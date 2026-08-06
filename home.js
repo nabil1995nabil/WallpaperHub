@@ -14,6 +14,10 @@ function getImageUrl(image) {
         return image;
     }
 
+    if(image.startsWith("assets/")){
+        return image;
+    }
+
     return "assets/wallpapers/" + image;
 
 }
