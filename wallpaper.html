@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>WallpaperHub</title>
+
+<link rel="stylesheet" href="wallpaper.css">
+<link rel="stylesheet" href="effects.css">
+<link rel="stylesheet" href="css/bottom-nav.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+</head>
+
+
+<body>
+
+
+<header class="top-bar">
+
+
+<button id="backBtn" class="icon-btn">
+
+<span class="material-icons">
+arrow_back
+</span>
+
+</button>
+
+
+
+<h2 id="wallTitle">
+Loading...
+</h2>
+
+
+
+
+<div style="display:flex;gap:10px;">
+
+
+<button id="favoriteBtn" class="icon-btn">
+
+<span class="material-icons">
+favorite_border
+</span>
+
+</button>
+
+
+
+<button id="shareBtn" class="icon-btn">
+
+<span class="material-icons">
+share
+</span>
+
+</button>
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+<!-- =========================
+ Wallpaper Preview
+========================= -->
+
+
+<section class="preview">
+
+
+<div class="wallpaper-preview-wrapper">
+
+
+
+<img
+
+id="wallImage"
+
+src=""
+
+alt="Wallpaper"
+
+decoding="async"
+
+>
+
+
+
+<video
+
+id="wallVideo"
+
+class="wall-video"
+
+muted
+
+loop
+
+playsinline
+
+autoplay
+
+preload="metadata"
+
+>
+
+</video>
+
+
+
+
+<div
+
+id="qualityBadge"
+
+class="quality-badge"
+
+>
+
+HD
+
+</div>
+
+<button id="moreOptionsBtn" class="more-options-btn">
+
+<span class="material-icons">
+more_vert
+</span>
+
+</button>
+
+
+<div id="optionsMenu" class="options-menu">
+
+<button id="setWallpaperBtn" type="button">
+
+<span class="material-icons">
+wallpaper
+</span>
+
+تعيين كخلفية
+
+</button>
+
+</div>
+
+<!-- Fullscreen -->
+
+<button
+id="fullscreenBtn"
+type="button"
+class="image-action-btn fullscreen-image-btn"
+>
+
+<span class="material-icons">
+fullscreen
+</span>
+
+</button>
+
+
+<!-- Download -->
+
+<button
+id="downloadBtn"
+type="button"
+class="image-action-btn download-image-btn"
+>
+
+<span class="material-icons">
+download
+</span>
+
+</button>
+
+
+
+</div>
+
+
+</section>
+
+<!-- =========================
+     Fullscreen Viewer
+========================= -->
+
+
+<div
+
+id="fullscreenViewer"
+
+class="fullscreen-viewer"
+
+>
+
+
+<img
+
+id="fullscreenImage"
+
+src=""
+
+alt="Fullscreen Wallpaper"
+
+>
+
+
+
+
+<video
+
+id="fullscreenVideo"
+
+muted
+
+loop
+
+playsinline
+
+preload="metadata"
+
+>
+
+</video>
+
+
+
+
+
+<button
+
+id="closeFullscreenBtn"
+
+class="fullscreen-close"
+
+type="button"
+
+>
+
+<span class="material-icons">
+
+close
+
+</span>
+
+</button>
+
+
+<span class="material-icons">
+
+wallpaper
+
+</span>
+
+
+
+<span>
+
+تعيين كخلفية
+
+</span>
+
+
+</button>
+
+
+
+
+</div>
+
+
+<!-- =========================
+     Wallpaper Information
+========================= -->
+
+
+<section class="info">
+
+
+<h2 id="wallTitle2">
+
+معلومات الخلفية
+
+</h2>
+
+
+
+
+<div class="info-item">
+
+<span>
+الدقة
+</span>
+
+<span id="wallResolution"></span>
+
+</div>
+
+
+
+
+
+<div class="info-item">
+
+<span>
+الحجم
+</span>
+
+<span id="wallSize"></span>
+
+</div>
+
+
+
+
+
+<div class="info-item">
+
+<span>
+عدد التحميلات
+</span>
+
+<span id="wallDownloads"></span>
+
+</div>
+
+
+
+
+
+<div class="info-item">
+
+
+<span>
+التقييم
+</span>
+
+
+
+<div>
+
+
+<span id="wallRating">
+0
+</span>
+
+
+
+<div id="ratingStars" class="rating-stars">
+
+
+<span class="star" data-rate="1">
+☆
+</span>
+
+<span class="star" data-rate="2">
+☆
+</span>
+
+<span class="star" data-rate="3">
+☆
+</span>
+
+<span class="star" data-rate="4">
+☆
+</span>
+
+<span class="star" data-rate="5">
+☆
+</span>
+
+
+</div>
+
+
+
+<small id="ratingCount">
+(0 تقييم)
+</small>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+<div class="info-item">
+
+<span>
+الناشر
+</span>
+
+
+<span id="wallAuthor"></span>
+
+
+</div>
+
+
+
+
+
+<div class="info-item">
+
+<span>
+تاريخ الإضافة
+</span>
+
+
+<span id="wallDate"></span>
+
+
+</div>
+
+
+
+
+
+<div class="info-item image-link-item">
+
+
+<span>
+رابط الخلفية
+</span>
+
+
+
+<div class="image-link-box">
+
+
+<span id="wallImageLink"></span>
+
+
+
+<button
+
+id="copyImageLinkBtn"
+
+class="copy-link-btn"
+
+type="button"
+
+>
+
+<span class="material-icons">
+
+content_copy
+
+</span>
+
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+<section class="tags">
+
+
+<h3>
+الألوان
+</h3>
+
+
+<div id="colorPalette"></div>
+
+
+</section>
+
+
+
+
+
+
+
+<section class="tags">
+
+
+<h3>
+الوسوم
+</h3>
+
+
+<div id="tagsContainer"></div>
+
+
+</section>
+
+
+
+
+
+
+
+
+<section class="similar">
+
+
+<div class="section-title">
+
+
+<h3>
+خلفيات مشابهة
+</h3>
+
+
+
+<a href="#">
+عرض الكل
+</a>
+
+
+</div>
+
+
+
+<div
+
+id="similarWallpapers"
+
+class="similar-grid"
+
+>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+<!-- Scripts -->
+
+
+<script type="module" src="wallpaper.js"></script>
+
+<script src="effects.js"></script>
+
+<script src="theme.js"></script>
+
+<script src="js/bottom-nav.js"></script>
+
+
+
+</body>
+
+</html>

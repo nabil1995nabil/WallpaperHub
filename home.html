@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>WallpaperHub</title>
+
+<link rel="stylesheet" href="home.css">
+
+<link rel="stylesheet" href="effects.css">
+
+<link rel="stylesheet" href="ai-fab.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- خلفية شفافة -->
+<div id="drawerOverlay" class="drawer-overlay"></div>
+
+<!-- القائمة الجانبية -->
+<div id="sideDrawer" class="side-drawer">
+
+    <div class="drawer-header">
+        <img src="assets/images/user.png" id="drawerAvatar">
+        <h3 id="drawerName">زائر</h3>
+        <span id="drawerClose">✕</span>
+    </div>
+
+    <div class="drawer-menu">
+
+
+        <a href="#">🌙 الوضع الليلي</a>
+        <a href="#">🌍 اللغة</a>
+        <a href="#">📱 مشاركة التطبيق</a>
+        <a href="#">⭐ تقييم التطبيق</a>
+        <a href="#">📢 تيليجرام</a>
+
+        <hr>
+
+        <a href="settings.html">⚙️ الإعدادات</a>
+        <a href="about.html">ℹ️ حول التطبيق</a>
+
+    </div>
+
+</div>
+
+<!-- Header -->
+
+<header class="header">
+
+    <button id="menuBtn" class="menu-btn">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+    <div class="logo">
+
+        <span class="material-icons">wallpaper</span>
+
+        <h2>
+<span class="typing-title">WallpaperHub</span>
+</h2>
+
+    </div>
+
+    <div class="chatgpt-loader">
+    <span></span>
+    <span></span>
+</div>
+
+<button id="notificationBtn" class="notification-orbit">
+
+    <span class="bell-orbit"></span>
+
+    <span class="bell-design">
+        <span class="bell-top"></span>
+        <span class="bell-body"></span>
+        <span class="bell-clapper"></span>
+    </span>
+
+    <span id="notificationCount" class="notification-count">
+        0
+    </span>
+
+</button>
+
+<div id="notificationPanel" class="notification-panel">
+
+    <div class="notification-header">
+    <h3>الإشعارات</h3>
+
+    <button id="clearNotificationsBtn" class="clear-btn">
+
+    <span class="clear-icon material-icons">
+        delete_outline
+    </span>
+
+    <span class="clear-text">
+        مسح الكل
+    </span>
+
+    <span class="clear-check material-icons">
+        check
+    </span>
+
+</button>
+</div>
+
+    <div id="notificationList">
+
+        <p class="empty-notification">
+            لا توجد إشعارات
+        </p>
+
+    </div>
+
+</div>
+
+</header>
+
+<!-- Search -->
+
+<section class="search-box">
+
+    <span class="material-icons">search</span>
+
+    <input
+        id="searchInput"
+        type="search"
+        placeholder="ابحث عن خلفيات...">
+
+</section>
+
+<!-- Wallpaper Of The Day -->
+
+<section class="today-wallpaper">
+
+    <img id="todayImage">
+
+    <div class="today-overlay">
+
+        <span class="today-badge">
+            ⭐ خلفية اليوم
+        </span>
+
+        <h2 id="todayTitle"></h2>
+
+        <p id="todayDescription"></p>
+
+        <div class="today-buttons">
+
+            <button id="todayView">
+
+                <span class="material-icons">
+                    visibility
+                </span>
+
+                عرض
+
+            </button>
+
+            <button id="todayDownload">
+
+                <span class="material-icons">
+                    download
+                </span>
+
+                تحميل
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- SLIDER -->
+
+<section class="slider-section">
+
+    <div id="sliderContent"></div>
+
+    <div id="sliderDots"></div>
+
+</section>
+
+<!-- CATEGORIES -->
+
+<section class="categories">
+
+<h3>الأقسام</h3>
+
+<div class="category-list">
+
+<div class="category" data-category="all">
+🌍
+<p>الكل</p>
+</div>
+
+<div class="category" data-category="nature">
+🌿
+<p>الطبيعة</p>
+</div>
+
+<div class="category" data-category="cars">
+🚗
+<p>السيارات</p>
+</div>
+
+<div class="category" data-category="games">
+🎮
+<p>الألعاب</p>
+</div>
+
+<div class="category" data-category="space">
+🌌
+<p>الفضاء</p>
+</div>
+
+<div class="category" data-category="ai">
+🤖
+<p>الذكاء</p>
+</div>
+
+<div class="category" data-category="amoled">
+📱
+<p>AMOLED</p>
+</div>
+
+<div class="category" data-category="animals">
+🐱
+<p>الحيوانات</p>
+</div>
+
+<div class="category" data-category="anime">
+🌀
+<p>الأنمي</p>
+</div>
+
+
+<div class="category" data-category="city">
+🏙️
+<p>المدن</p>
+</div>
+
+
+<div class="category" data-category="dark">
+🖤
+<p>Dark</p>
+</div>
+
+
+<div class="category" data-category="4k">
+💎
+<p>4K</p>
+</div>
+
+
+<div class="category" data-category="sports">
+⚽
+<p>رياضة</p>
+</div>
+
+
+<div class="category" data-category="minimal">
+✨
+<p>Minimal</p>
+</div>
+
+</section>
+
+<!-- الأكثر شعبية -->
+
+<section class="wall-section">
+
+<div class="title">
+
+<h3>🔥 الأكثر شعبية</h3>
+
+<a href="all-wallpapers.html?type=popular">
+    عرض الكل
+</a>
+
+</div>
+
+<div class="wall-grid" id="popularWallpapers"></div>
+
+</section>
+
+<!-- أحدث الخلفيات -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+        <h3>🆕 أحدث الخلفيات</h3>
+
+<a href="all-wallpapers.html?type=latest">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="latestWallpapers"></div>
+
+</section>
+
+<!-- الأكثر تحميلاً -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+<h3>🔥 الأكثر تحميلاً</h3>
+
+<a href="all-wallpapers.html?type=downloaded">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="downloadedWallpapers"></div>
+
+</section>
+
+<!-- الأكثر إعجاباً -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+<h3>❤️ الأكثر إعجاباً</h3>
+
+<a href="all-wallpapers.html?type=liked">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="likedWallpapers"></div>
+
+</section>
+
+<!-- المقترحة لك -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+<h3>⭐ المقترحة لك</h3>
+
+<a href="all-wallpapers.html?type=recommended">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="recommendedWallpapers"></div>
+
+</section>
+
+<!-- الأقسام -->
+
+<section class="categories-section">
+
+    <div class="title">
+
+<h3>📂 الأقسام</h3>
+
+<a href="categories.html">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div id="categoriesContainer" class="categories-grid"></div>
+
+</section>
+
+<!-- Dynamic Categories -->
+<div id="dynamicSections"></div>
+
+
+<!-- Bottom Navigation -->
+
+<nav class="bottom-nav">
+
+<div class="nav-item active"
+onclick="location.href='home.html'">
+
+<span class="material-icons">home</span>
+
+<p>الرئيسية</p>
+
+</div>
+
+<div class="nav-item"
+onclick="location.href='categories.html'">
+
+<span class="material-icons">grid_view</span>
+
+<p>الأقسام</p>
+
+</div>
+
+<div class="nav-item"
+onclick="document.getElementById('searchInput').focus()">
+
+<span class="material-icons">search</span>
+
+<p>بحث</p>
+
+</div>
+
+<div class="nav-item"
+onclick="location.href='favorites.html'">
+
+<span class="material-icons">favorite</span>
+
+<p>المفضلة</p>
+
+</div>
+
+<div class="nav-item"
+onclick="location.href='profile.html'">
+
+<span class="material-icons">person</span>
+
+<p>حسابي</p>
+
+</div>
+
+</nav>
+
+<script type="module" src="home.js"></script>
+
+<script src="theme.js"></script>
+
+<script src="effects.js"></script>
+
+<script src="ai-fab.js"></script>
+<script src="js/bottom-nav.js"></script>
+
+</body>
+</html>

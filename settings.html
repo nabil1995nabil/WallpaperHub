@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>الإعدادات - WallpaperHub</title>
+
+<link rel="stylesheet" href="settings.css">
+
+</head>
+
+
+<body>
+
+
+<div class="settings-page">
+
+
+
+<header class="settings-header">
+
+<h1>⚙️ الإعدادات</h1>
+
+<p>تخصيص تجربة WallpaperHub</p>
+
+</header>
+
+
+
+
+
+<!-- ================= المظهر ================= -->
+
+<section class="settings-card">
+
+<h2>🎨 المظهر</h2>
+
+
+<div class="setting-item">
+<div>
+<h3>🌙 الوضع الليلي</h3>
+<p>تفعيل المظهر الداكن</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="darkMode">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+<div>
+<h3>✨ الحركات والتأثيرات</h3>
+<p>تشغيل الأنيميشن</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="animations">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+<div>
+<h3>🌈 لون التطبيق</h3>
+<p>تغيير اللون الأساسي</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="appColor">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item card-style-setting">
+
+    <div class="setting-info">
+        <h3>🪟 نمط البطاقات</h3>
+        <p>اختيار تصميم بطاقات الخلفيات</p>
+    </div>
+
+    <button class="arrow-btn" id="cardStyleBtn">
+        ﹀
+    </button>
+
+</div>
+
+
+<div class="card-style-menu" id="cardStyleMenu">
+
+    <div class="style-option active" data-style="classic">
+        <span>☑️</span>
+        كلاسيكي
+    </div>
+
+
+    <div class="style-option" data-style="glass">
+        <span>☐</span>
+        زجاجي
+    </div>
+
+
+    <div class="style-option" data-style="premium">
+        <span>☐</span>
+        مميز ⭐
+    </div>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+<!-- ================= الخلفيات ================= -->
+
+
+<section class="settings-card">
+
+<h2>🖼️ الخلفيات</h2>
+
+
+<div class="setting-item">
+
+<div>
+<h3>🎬 الخلفيات المتحركة</h3>
+<p>تشغيل فيديوهات الخلفيات</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="videos">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>💎 الجودة العالية</h3>
+<p>تحميل أفضل جودة</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="highQuality">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>📱 ملء الشاشة</h3>
+<p>عرض الخلفية كاملة</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="fullscreen">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>🔄 تحديث تلقائي</h3>
+<p>البحث عن خلفيات جديدة</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="autoUpdate">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>📶 Wi-Fi فقط</h3>
+<p>توفير بيانات الإنترنت</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="wifiOnly">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= الاشعارات ================= -->
+
+
+<section class="settings-card">
+
+<h2>🔔 الإشعارات</h2>
+
+
+<div class="setting-item">
+
+<div>
+<h3>🆕 خلفيات جديدة</h3>
+<p>إشعار عند إضافة خلفيات</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="notifications">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>⭐ التقييمات</h3>
+<p>تنبيهات التفاعل</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="ratingsNotify">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>🎁 التحديثات</h3>
+<p>أخبار التطبيق</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="updatesNotify">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= التحميل ================= -->
+
+
+<section class="settings-card">
+
+<h2>📥 التحميلات</h2>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>💾 حفظ المعاينة</h3>
+<p>حفظ صورة قبل التحميل</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="previewSave">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>🏷️ شعار WallpaperHub</h3>
+<p>إضافة العلامة على الخلفية</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="watermark">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= AI ================= -->
+
+
+<section class="settings-card">
+
+<h2>🤖 الذكاء الاصطناعي</h2>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>🤖 مساعد Dual Orbit</h3>
+<p>إظهار المساعد الذكي</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="ai">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+<div class="setting-item">
+
+<div>
+<h3>🧠 اقتراحات ذكية</h3>
+<p>اقتراح خلفيات مناسبة</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="smartAI">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= الخصوصية ================= -->
+
+
+<section class="settings-card">
+
+
+<h2>🔐 الخصوصية</h2>
+
+
+<button class="action-btn">
+🗑️ مسح سجل البحث
+</button>
+
+
+<button class="action-btn">
+❤️ مسح المفضلة
+</button>
+
+
+<button class="action-btn danger">
+🔄 إعادة ضبط الإعدادات
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+<!-- ================= النظام ================= -->
+
+
+<section class="settings-card">
+
+
+<h2>⚙️ النظام</h2>
+
+
+<div class="setting-item">
+
+<div>
+<h3>🔄 تحديث تلقائي</h3>
+<p>تحديث التطبيق</p>
+</div>
+
+<label class="switch">
+<input type="checkbox" id="systemUpdate">
+<span class="slider-toggle"></span>
+</label>
+
+</div>
+
+
+<div class="setting-item">
+
+<div>
+<h3>🌐 اللغة</h3>
+<p>العربية</p>
+</div>
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<footer>
+
+© 2026 WallpaperHub
+
+</footer>
+
+
+</div>
+
+
+
+<script src="settings.js"></script>
+
+
+</body>
+
+</html>

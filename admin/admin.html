@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>WallpaperHub Admin</title>
+
+<link rel="stylesheet" href="admin.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+
+<body>
+
+
+<div class="sidebar">
+
+<div class="logo">
+
+<h2>WallpaperHub</h2>
+
+<p>Admin Panel</p>
+
+</div>
+
+
+<ul class="menu">
+
+<li class="active">
+🏠 لوحة التحكم
+</li>
+
+
+<li onclick="openWallpapers()">
+🖼️ الخلفيات
+</li>
+
+
+<li>
+📂 الأقسام
+</li>
+
+
+<li>
+🎞️ الخلفيات المتحركة
+</li>
+
+
+<li>
+⚙️ الإعدادات
+</li>
+
+
+<li id="logoutBtn">
+🚪 تسجيل الخروج
+</li>
+
+
+</ul>
+
+</div>
+
+
+
+
+<div class="main">
+
+
+<header>
+
+<h1>لوحة التحكم</h1>
+
+<p>
+إدارة خلفيات WallpaperHub
+</p>
+
+</header>
+
+
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<h3 id="wallpapersCount">
+0
+</h3>
+
+<span>
+إجمالي الخلفيات
+</span>
+
+</div>
+
+
+
+<div class="card">
+
+<h3 id="downloadsCount">
+0
+</h3>
+
+<span>
+إجمالي التحميلات
+</span>
+
+</div>
+
+
+
+<div class="card">
+
+<h3 id="favoritesCount">
+0
+</h3>
+
+<span>
+الإعجابات
+</span>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+1
+</h3>
+
+<span>
+المدير
+</span>
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<section class="add-wallpaper">
+
+
+<h2>
+➕ نشر خلفية جديدة
+</h2>
+
+
+
+
+<form id="wallpaperForm">
+
+
+
+<div class="form-grid">
+
+
+
+
+
+<!-- عنوان -->
+
+<div class="form-group">
+
+<label>
+اسم الخلفية
+</label>
+
+
+<input
+id="wallTitle"
+type="text"
+placeholder="مثال: Rain Night"
+>
+
+</div>
+
+
+
+
+
+<!-- نوع الملف -->
+
+<div class="form-group">
+
+<label>
+نوع الخلفية
+</label>
+
+
+<select id="wallType">
+
+
+<option value="image">
+🖼 صورة
+</option>
+
+
+<option value="video">
+🎞 فيديو متحرك
+</option>
+
+
+<option value="gif">
+🌀 GIF
+</option>
+
+
+</select>
+
+</div>
+
+
+
+
+
+
+<!-- القسم -->
+
+<div class="form-group">
+
+<label>
+القسم
+</label>
+
+
+<select id="wallCategory">
+
+
+<option value="nature">
+🌿 الطبيعة
+</option>
+
+
+<option value="cars">
+🚗 السيارات
+</option>
+
+
+<option value="games">
+🎮 الألعاب
+</option>
+
+
+<option value="space">
+🌌 الفضاء
+</option>
+
+
+<option value="ai">
+🤖 الذكاء الاصطناعي
+</option>
+
+
+<option value="amoled">
+🖤 AMOLED
+</option>
+
+
+<option value="animals">
+🐾 الحيوانات
+</option>
+
+
+<option value="anime">
+🌀 الأنمي
+</option>
+
+
+<option value="city">
+🏙️ المدن
+</option>
+
+
+<option value="sports">
+⚽ الرياضة
+</option>
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+
+<!-- الدقة -->
+
+<div class="form-group">
+
+<label>
+الدقة
+</label>
+
+
+<input
+id="wallResolution"
+placeholder="1440×3200"
+>
+
+
+</div>
+
+
+
+
+
+<!-- الحجم -->
+
+<div class="form-group">
+
+<label>
+الحجم
+</label>
+
+
+<input
+id="wallSize"
+placeholder="5 MB"
+>
+
+
+</div>
+
+
+
+
+
+
+
+
+<!-- الوسوم -->
+
+
+<div class="form-group full">
+
+
+<label>
+الوسوم
+</label>
+
+
+<input
+id="wallTags"
+placeholder="nature,forest,green"
+>
+
+
+</div>
+
+
+
+
+
+
+
+
+<!-- الملف -->
+
+<div class="form-group full">
+
+
+<label>
+ملف الخلفية
+</label>
+
+
+<input
+
+type="file"
+
+id="wallImage"
+
+accept="image/*,video/*"
+
+multiple
+
+>
+
+
+<small id="selectedImagesCount">
+
+لم يتم اختيار ملفات
+
+</small>
+
+
+</div>
+
+
+
+
+
+
+<!-- صورة مصغرة للفيديو -->
+
+<div class="form-group full">
+
+
+<label>
+صورة المعاينة للفيديو
+</label>
+
+
+<input
+
+type="file"
+
+id="videoThumbnail"
+
+accept="image/*"
+
+>
+
+
+</div>
+
+
+
+
+
+
+<!-- المعاينة -->
+
+
+<div class="preview-box full">
+
+
+<div
+id="imagesPreview"
+class="images-preview">
+
+
+<p class="preview-empty">
+
+اختر الملفات
+
+</p>
+
+
+</div>
+
+
+</div>
+
+<!-- Upload Progress -->
+
+<div class="upload-progress-box full">
+
+<div class="upload-progress-info">
+
+<span>
+📤 تقدم النشر
+</span>
+
+<span id="uploadProgressText">
+0 / 0
+</span>
+
+</div>
+
+
+<div class="upload-progress">
+
+<div 
+id="uploadProgressBar"
+class="upload-progress-bar">
+</div>
+
+</div>
+
+</div>
+
+<!-- خيارات -->
+
+
+<div class="checks">
+
+
+<label>
+
+<input
+type="checkbox"
+id="todayWallpaper"
+>
+
+خلفية اليوم
+
+</label>
+
+
+
+<label>
+
+<input
+type="checkbox"
+id="popular"
+>
+
+الأكثر شعبية
+
+</label>
+
+
+</div>
+
+
+
+
+
+
+
+<button
+id="saveWallpaper"
+type="submit"
+>
+
+🚀 نشر الخلفية
+
+</button>
+
+
+
+
+</div>
+
+
+</form>
+
+
+</section>
+
+
+
+</div>
+
+
+
+<script type="module" src="admin.js"></script>
+
+
+</body>
+
+
+</html>

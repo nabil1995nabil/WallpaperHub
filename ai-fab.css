@@ -1,0 +1,198 @@
+/* =====================================
+      WallpaperHub AI FAB
+====================================== */
+
+.ai-fab{
+
+position:fixed;
+
+right:20px;
+
+bottom:92px;
+
+width:50px;
+
+height:50px;
+
+border-radius:50%;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+background:rgba(18,18,28,.82);
+
+backdrop-filter:blur(18px);
+
+-webkit-backdrop-filter:blur(18px);
+
+box-shadow:
+
+0 8px 35px rgba(0,0,0,.25),
+
+0 0 18px rgba(0,255,255,.18);
+
+cursor:pointer;
+
+overflow:hidden;
+
+z-index:99999;
+
+transition:.35s;
+
+}
+
+.ai-fab:hover{
+
+transform:scale(1.08);
+
+}
+
+.ai-fab:active{
+
+transform:scale(.94);
+
+}
+
+#aiCanvas{
+
+width:55px;
+
+height:55px;
+
+display:block;
+
+filter:
+
+drop-shadow(0 0 12px rgba(0,255,255,.6))
+
+drop-shadow(0 0 24px rgba(125,80,255,.55));
+
+}
+
+.ai-fab::before{
+
+content:"";
+
+position:absolute;
+
+width:140%;
+
+height:140%;
+
+background:radial-gradient(circle,
+
+rgba(255,255,255,.20),
+
+transparent 65%);
+
+opacity:.25;
+
+animation:fabPulse 3s ease-in-out infinite;
+
+pointer-events:none;
+
+}
+
+@keyframes fabPulse{
+
+0%{
+
+transform:scale(.85);
+
+opacity:.15;
+
+}
+
+50%{
+
+transform:scale(1.2);
+
+opacity:.45;
+
+}
+
+100%{
+
+transform:scale(.85);
+
+opacity:.15;
+
+}
+
+}
+
+/* ===== AI داخل Header ===== */
+
+.ai-header-fab{
+    position: relative !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+
+    border-radius: 50% !important;
+    background: #292b31 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    overflow: visible !important;
+    cursor: pointer;
+}
+
+/* Canvas ديال الأنيميشن */
+.ai-header-fab #aiCanvas{
+    position: absolute !important;
+    width: 58px !important;
+    height: 58px !important;
+
+    top: 50% !important;
+    left: 50% !important;
+
+    transform: translate(-50%, -50%) !important;
+
+    z-index: 1 !important;
+    pointer-events: none;
+}
+
+/* الروبوت */
+.ai-header-fab .ai-robot{
+    position: relative !important;
+    z-index: 2 !important;
+
+    font-size: 25px !important;
+    line-height: 1 !important;
+
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* AI Robot داخل الهيدر */
+.ai-header-btn {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+
+    margin-left: 2px;
+    margin-right: -4px;
+
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ai-header-btn span {
+    font-size: 30px;
+    line-height: 1;
+}

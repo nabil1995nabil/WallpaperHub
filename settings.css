@@ -1,0 +1,500 @@
+/* =================================
+   WallpaperHub Settings CSS
+================================= */
+
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+
+
+body{
+
+    background:#f5f7fb;
+
+    color:#1d1d1f;
+
+    padding-bottom:40px;
+
+    transition:.3s;
+
+}
+
+
+
+.settings-page{
+
+    padding:20px;
+
+}
+
+
+
+/* Header */
+
+
+.settings-header{
+
+    text-align:center;
+
+    padding:30px 10px;
+
+    animation:fade .6s ease;
+
+}
+
+
+.settings-header h1{
+
+    font-size:28px;
+
+    color:#5b5df5;
+
+    margin-bottom:10px;
+
+}
+
+
+.settings-header p{
+
+    color:#777;
+
+}
+
+
+
+
+
+/* Cards */
+
+
+.settings-card{
+
+    background:white;
+
+    border-radius:25px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+
+    0 10px 25px rgba(0,0,0,.08);
+
+    animation:up .5s ease;
+
+}
+
+
+
+.settings-card h2{
+
+    color:#5b5df5;
+
+    font-size:19px;
+
+    margin-bottom:18px;
+
+}
+
+
+
+
+
+/* Setting Item */
+
+
+.setting-item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:16px 0;
+
+    border-bottom:1px solid #eee;
+
+}
+
+
+
+.setting-item:last-child{
+
+    border-bottom:none;
+
+}
+
+
+
+.setting-item h3{
+
+    font-size:16px;
+
+    margin-bottom:6px;
+
+}
+
+
+
+.setting-item p{
+
+    color:#777;
+
+    font-size:13px;
+
+}
+
+
+
+
+
+/* =================
+ Toggle
+================= */
+
+
+.switch{
+
+    position:relative;
+
+    width:55px;
+
+    height:30px;
+
+}
+
+
+
+.switch input{
+
+    display:none;
+
+}
+
+
+
+.slider-toggle{
+
+    position:absolute;
+
+    inset:0;
+
+    background:#ff3b30;
+
+    border-radius:30px;
+
+    cursor:pointer;
+
+    transition:.35s;
+
+}
+
+
+
+.slider-toggle::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:24px;
+
+    height:24px;
+
+    top:3px;
+
+    left:3px;
+
+    background:white;
+
+    border-radius:50%;
+
+    transition:.35s;
+
+    box-shadow:
+
+    0 3px 8px rgba(0,0,0,.25);
+
+}
+
+
+
+.switch input:checked 
++ .slider-toggle{
+
+    background:#34c759;
+
+}
+
+
+
+.switch input:checked 
++ .slider-toggle::before{
+
+    transform:translateX(25px);
+
+}
+
+
+
+
+
+/* =================
+ Action Buttons
+================= */
+
+
+.action-btn{
+
+    width:100%;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:16px;
+
+    margin-top:12px;
+
+    background:#f5f7ff;
+
+    color:#333;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+
+
+.action-btn:hover{
+
+    transform:translateY(-3px);
+
+}
+
+
+
+.action-btn:active{
+
+    transform:scale(.96);
+
+}
+
+
+
+.action-btn.danger{
+
+    background:#ff3b30;
+
+    color:white;
+
+}
+
+
+
+
+
+/* Footer */
+
+
+footer{
+
+    text-align:center;
+
+    color:#777;
+
+    margin-top:30px;
+
+    font-size:14px;
+
+}
+
+
+
+
+
+/* Animations */
+
+
+@keyframes fade{
+
+from{
+
+opacity:0;
+
+transform:translateY(20px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+
+
+@keyframes up{
+
+from{
+
+opacity:0;
+
+transform:scale(.95);
+
+}
+
+to{
+
+opacity:1;
+
+transform:scale(1);
+
+}
+
+}
+
+
+
+
+
+/* =================
+ Dark Mode
+================= */
+
+
+body.dark{
+
+    background:#111;
+
+    color:white;
+
+}
+
+
+
+body.dark .settings-card{
+
+    background:#1e1e1e;
+
+}
+
+
+
+body.dark .setting-item{
+
+    border-color:#333;
+
+}
+
+
+
+body.dark .setting-item p{
+
+    color:#aaa;
+
+}
+
+
+
+body.dark .action-btn{
+
+    background:#292929;
+
+    color:white;
+
+}
+
+
+
+body.dark .action-btn.danger{
+
+    background:#ff3b30;
+
+}
+
+
+body.dark .settings-header p{
+
+    color:#aaa;
+
+}
+
+.card-style-setting{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+
+.arrow-btn{
+    border:none;
+    background:none;
+    font-size:22px;
+    cursor:pointer;
+}
+
+
+.card-style-menu{
+
+    display:none;
+
+    margin-top:10px;
+
+    padding:15px;
+
+    background:#f5f5f5;
+
+    border-radius:18px;
+
+}
+
+
+.card-style-menu.show{
+    display:block;
+}
+
+
+.style-option{
+
+    padding:14px;
+
+    border-radius:14px;
+
+    margin-bottom:8px;
+
+    cursor:pointer;
+
+    background:white;
+
+    display:flex;
+
+    gap:10px;
+
+    align-items:center;
+
+}
+
+
+.style-option.active{
+
+    background:#e8e8ff;
+
+    color:#5b5df5;
+
+}

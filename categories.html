@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>الأقسام | WallpaperHub</title>
+
+<link rel="stylesheet" href="categories.css">
+
+<link rel="stylesheet" href="effects.css">
+
+<link rel="stylesheet" href="ai-fab.css">
+
+<link rel="stylesheet" href="css/bottom-nav.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+</head>
+
+<body>
+
+<header class="header">
+
+<button class="back-btn" onclick="history.back()">
+
+<span class="material-icons">arrow_back</span>
+
+</button>
+
+<h2>الأقسام</h2>
+
+</header>
+
+<section class="categories-page">
+
+<div class="category-card" data-category="all">
+<span>🌍</span>
+<h3>الكل</h3>
+<p>عرض جميع الخلفيات</p>
+</div>
+
+<div class="category-card" data-category="nature">
+<span>🌿</span>
+<h3>الطبيعة</h3>
+<p>جبال وغابات وأنهار</p>
+</div>
+
+<div class="category-card" data-category="cars">
+<span>🚗</span>
+<h3>السيارات</h3>
+<p>سيارات رياضية وفاخرة</p>
+</div>
+
+<div class="category-card" data-category="games">
+<span>🎮</span>
+<h3>الألعاب</h3>
+<p>أفضل خلفيات الألعاب</p>
+</div>
+
+<div class="category-card" data-category="space">
+<span>🌌</span>
+<h3>الفضاء</h3>
+<p>نجوم ومجرات وكواكب</p>
+</div>
+
+<div class="category-card" data-category="ai">
+<span>🤖</span>
+<h3>الذكاء الاصطناعي</h3>
+<p>خلفيات AI</p>
+</div>
+
+<div class="category-card" data-category="amoled">
+<span>📱</span>
+<h3>AMOLED</h3>
+<p>خلفيات سوداء</p>
+</div>
+
+<div class="category-card" data-category="animals">
+<span>🐱</span>
+<h3>الحيوانات</h3>
+<p>قطط وطيور وحيوانات</p>
+</div>
+<div class="category-card" data-category="anime">
+<span>🌀</span>
+<h3>الأنمي</h3>
+<p>شخصيات الأنمي</p>
+</div>
+
+
+<div class="category-card" data-category="city">
+<span>🏙️</span>
+<h3>المدن</h3>
+<p>مدن ومناظر حضرية</p>
+</div>
+
+
+<div class="category-card" data-category="dark">
+<span>🖤</span>
+<h3>Dark</h3>
+<p>خلفيات داكنة AMOLED</p>
+</div>
+
+
+<div class="category-card" data-category="4k">
+<span>💎</span>
+<h3>4K</h3>
+<p>جودة عالية جداً</p>
+</div>
+
+<div class="category-card" data-category="sports">
+
+<span>⚽</span>
+
+<h3>
+الرياضة
+</h3>
+
+<p>
+كرة القدم والرياضات
+</p>
+
+</div>
+
+
+
+<div class="category-card" data-category="minimal">
+
+<span>✨</span>
+
+<h3>
+Minimal
+</h3>
+
+<p>
+تصاميم بسيطة وأنيقة
+</p>
+
+</div>
+
+</section>
+
+<nav class="bottom-nav">
+
+<div class="nav-item"
+onclick="location.href='home.html'">
+
+<span class="material-icons">home</span>
+
+<p>الرئيسية</p>
+
+</div>
+
+<div class="nav-item active">
+
+<span class="material-icons">grid_view</span>
+
+<p>الأقسام</p>
+
+</div>
+
+<div class="nav-item"
+onclick="location.href='favorites.html'">
+
+<span class="material-icons">favorite</span>
+
+<p>المفضلة</p>
+
+</div>
+
+<div class="nav-item"
+onclick="location.href='profile.html'">
+
+<span class="material-icons">person</span>
+
+<p>حسابي</p>
+
+</div>
+
+</nav>
+
+<div class="ai-fab" id="aiFab">
+
+    <canvas id="aiCanvas" width="74" height="74"></canvas>
+
+</div>
+
+<script src="categories.js"></script>
+<script src="effects.js"></script>
+<script src="theme.js"></script>
+<script src="ai-fab.js"></script>
+<script src="js/bottom-nav.js"></script>
+</body>
+
+</html>

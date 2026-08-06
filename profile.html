@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>حسابي | WallpaperHub</title>
+
+
+<link rel="stylesheet" href="profile.css">
+
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
+</head>
+
+
+<body>
+
+
+
+<!-- ==========================
+ Header
+========================== -->
+
+
+<header class="profile-header">
+
+
+<button 
+class="back-btn"
+onclick="history.back()">
+
+
+<span class="material-icons">
+arrow_back
+</span>
+
+
+</button>
+
+
+
+
+
+<h2>
+حسابي
+</h2>
+
+
+
+
+
+<div class="profile-actions">
+
+
+
+<!-- تسجيل الدخول -->
+
+
+<button id="loginBtn" class="login-btn">
+<span class="material-icons">
+login
+</span>
+</button>
+
+<!-- تعديل الحساب -->
+
+
+<button 
+id="editProfileBtn"
+class="edit-btn">
+
+
+<span class="material-icons">
+edit
+</span>
+
+
+</button>
+
+
+
+
+</div>
+
+
+
+</header>
+
+<!-- ==========================
+ Profile Cover
+========================== -->
+
+
+<section class="profile-cover">
+
+
+<img
+id="coverImage"
+class="cover-image"
+src="assets/images/default-cover.jpg"
+alt="Cover"
+/>
+
+
+
+
+<div class="profile-avatar-box">
+
+
+<img
+id="userAvatar"
+class="profile-avatar"
+src="assets/images/user.png"
+alt="User Avatar"
+/>
+
+
+
+
+<button
+id="changeAvatarBtn"
+class="avatar-edit"
+type="button"
+>
+
+
+<span class="material-icons">
+photo_camera
+</span>
+
+
+</button>
+
+
+</div>
+
+
+
+
+
+<h2 id="userName">
+زائر
+</h2>
+
+
+
+
+<p id="userEmail">
+غير مسجل
+</p>
+
+
+
+
+</section>
+
+
+
+
+<!-- ==========================
+ User Information
+========================== -->
+
+
+<section class="user-info">
+
+
+<div class="info-card">
+
+
+<span class="material-icons">
+person
+</span>
+
+
+<div>
+
+<h4>
+اسم المستخدم
+</h4>
+
+
+<p id="infoUserName">
+زائر
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="info-card">
+
+
+<span class="material-icons">
+email
+</span>
+
+
+<div>
+
+<h4>
+البريد الإلكتروني
+</h4>
+
+
+<p id="infoUserEmail">
+غير مسجل
+</p>
+
+
+</div>
+
+
+</div>
+
+<div class="info-card">
+
+
+<span class="material-icons">
+verified
+</span>
+
+
+<div>
+
+<h4>
+نوع الحساب
+</h4>
+
+
+<p id="accountType">
+زائر
+</p>
+
+<div class="info-card">
+
+<span class="material-icons">
+calendar_month
+</span>
+
+<div>
+
+<h4>
+تاريخ الانضمام
+</h4>
+
+<p id="joinDate">
+-
+</p>
+
+</div>
+
+</div>
+
+
+
+<div class="info-card">
+
+<span class="material-icons">
+login
+</span>
+
+<div>
+
+<h4>
+آخر دخول
+</h4>
+
+<p id="lastLogin">
+-
+</p>
+
+</div>
+
+
+</div>
+
+
+
+</section>
+
+<!-- ==========================
+ Statistics
+========================== -->
+
+
+<section class="profile-stats">
+
+
+<div class="stat-card">
+
+
+<h3 id="downloadCount">
+0
+</h3>
+
+
+<p>
+تحميل
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="stat-card">
+
+
+<h3 id="likeCount">
+0
+</h3>
+
+
+<p>
+إعجاب
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="stat-card">
+
+
+<h3 id="viewCount">
+0
+</h3>
+
+
+<p>
+مشاهدة
+</p>
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+<!-- ==========================
+ Wallpapers Content
+========================== -->
+
+
+<section class="profile-content">
+
+
+
+<div class="section-title">
+
+<h2>
+📥 الخلفيات التي حملتها
+</h2>
+
+</div>
+
+
+
+<div
+id="downloadedWallpapers"
+class="profile-grid">
+
+</div>
+
+
+
+
+
+
+<div class="section-title">
+
+<h2>
+❤️ الخلفيات التي أعجبتك
+</h2>
+
+</div>
+
+
+
+
+<div
+id="likedWallpapers"
+class="profile-grid">
+
+</div>
+
+
+
+
+
+
+
+<div class="section-title">
+
+<h2>
+👁️ الخلفيات التي رأيتها
+</h2>
+
+</div>
+
+
+
+
+<div
+id="viewedWallpapers"
+class="profile-grid">
+
+</div>
+
+
+
+</section>
+
+<!-- ==========================
+ Edit Profile Modal
+========================== -->
+
+
+<div
+id="editModal"
+class="edit-modal">
+
+
+<div class="edit-box">
+
+
+<h2>
+تعديل الحساب
+</h2>
+
+
+
+
+<div class="edit-input">
+
+
+<label>
+الاسم
+</label>
+
+
+
+<input
+
+id="editName"
+
+type="text"
+
+placeholder="اسم المستخدم"
+
+
+>
+
+
+</div>
+
+
+
+
+
+<div class="edit-input">
+
+
+<label>
+الصورة الشخصية
+</label>
+
+
+
+<input
+
+id="avatarInput"
+
+type="file"
+
+accept="image/*"
+
+
+>
+
+
+</div>
+
+
+
+
+
+
+<div class="edit-input">
+
+
+<label>
+صورة الغلاف
+</label>
+
+
+
+<input
+
+id="coverInput"
+
+type="file"
+
+accept="image/*"
+
+
+>
+
+
+</div>
+
+
+
+
+
+
+<div class="edit-buttons">
+
+
+<button
+
+id="saveProfileBtn"
+
+type="button"
+
+>
+
+حفظ
+
+</button>
+
+
+
+
+<button
+
+id="closeEditBtn"
+
+type="button"
+
+>
+
+إلغاء
+
+</button>
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<!-- ==========================
+ Bottom Navigation
+========================== -->
+
+
+<nav class="bottom-nav">
+
+
+
+<div class="nav-item">
+
+
+<span class="material-icons">
+home
+</span>
+
+
+<p>
+الرئيسية
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="nav-item">
+
+
+<span class="material-icons">
+grid_view
+</span>
+
+
+<p>
+الأقسام
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="nav-item">
+
+
+<span class="material-icons">
+favorite
+</span>
+
+
+<p>
+المفضلة
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="nav-item active">
+
+
+<span class="material-icons">
+person
+</span>
+
+
+<p>
+حسابي
+</p>
+
+
+</div>
+
+
+
+</nav>
+
+
+
+
+
+<!-- ==========================
+ Scripts
+========================== -->
+
+
+<script type="module" src="profile.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,477 @@
+/* ===============================
+        WallpaperHub AI
+================================ */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+
+background:#f5f7ff;
+
+overflow:hidden;
+
+height:100vh;
+
+display:flex;
+
+flex-direction:column;
+
+}
+
+/* الخلفية */
+
+.ai-bg{
+
+position:fixed;
+
+inset:0;
+
+background:
+
+radial-gradient(circle at top,#6b6cff22,transparent 40%),
+
+radial-gradient(circle at bottom,#00d9ff22,transparent 45%),
+
+#f5f7ff;
+
+z-index:-1;
+
+}
+
+/* الهيدر */
+
+.ai-header{
+
+height:74px;
+
+display:flex;
+
+align-items:center;
+
+justify-content:space-between;
+
+padding:15px;
+
+background:rgba(255,255,255,.75);
+
+backdrop-filter:blur(18px);
+
+border-bottom:1px solid rgba(0,0,0,.05);
+
+}
+
+.back-btn{
+
+width:46px;
+
+height:46px;
+
+border:none;
+
+border-radius:50%;
+
+background:#fff;
+
+cursor:pointer;
+
+box-shadow:0 6px 20px rgba(0,0,0,.08);
+
+}
+
+.back-btn .material-icons{
+
+font-size:28px;
+
+}
+
+.ai-title{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
+}
+
+.ai-title h2{
+
+font-size:20px;
+
+color:#4a5cff;
+
+}
+
+.ai-title p{
+
+font-size:13px;
+
+color:#888;
+
+}
+
+/* الشعار */
+
+.ai-logo{
+
+width:56px;
+
+height:56px;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+}
+
+/* الرسائل */
+
+.chat-container{
+
+flex:1;
+
+overflow-y:auto;
+
+padding:18px;
+
+display:flex;
+
+flex-direction:column;
+
+gap:15px;
+
+}
+
+/* الرسائل */
+
+.message{
+
+display:flex;
+
+}
+
+.message.ai{
+
+justify-content:flex-start;
+
+}
+
+.message.user{
+
+justify-content:flex-end;
+
+}
+
+.bubble{
+
+max-width:78%;
+
+padding:14px 18px;
+
+border-radius:20px;
+
+line-height:1.7;
+
+font-size:15px;
+
+box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.message.ai .bubble{
+
+background:#fff;
+
+}
+
+.message.user .bubble{
+
+background:#5564ff;
+
+color:#fff;
+
+}
+
+/* الكتابة */
+
+.chat-input{
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
+padding:15px;
+
+background:#fff;
+
+border-top:1px solid #eee;
+
+}
+
+.chat-input input{
+
+flex:1;
+
+height:48px;
+
+border:none;
+
+background:#f3f5ff;
+
+border-radius:30px;
+
+padding:0 18px;
+
+font-size:15px;
+
+outline:none;
+
+}
+
+.chat-input button{
+
+width:48px;
+
+height:48px;
+
+border:none;
+
+border-radius:50%;
+
+background:#5564ff;
+
+color:#fff;
+
+cursor:pointer;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+transition:.25s;
+
+}
+
+.chat-input button:hover{
+
+transform:scale(1.08);
+
+}
+
+.material-icons{
+
+font-size:24px;
+
+}
+
+/* =====================
+    Suggestions
+===================== */
+
+.suggestions{
+
+display:flex;
+
+overflow-x:auto;
+
+gap:10px;
+
+padding:12px 15px;
+
+scroll-behavior:smooth;
+
+-webkit-overflow-scrolling:touch;
+
+}
+
+.suggestions::-webkit-scrollbar{
+
+display:none;
+
+}
+
+.chip{
+
+flex:0 0 auto;
+
+border:none;
+
+padding:11px 18px;
+
+border-radius:30px;
+
+background:#ffffff;
+
+color:#444;
+
+font-size:14px;
+
+cursor:pointer;
+
+box-shadow:0 6px 18px rgba(0,0,0,.08);
+
+transition:.25s;
+
+}
+
+.chip:active{
+
+transform:scale(.95);
+
+}
+
+.chip:hover{
+
+background:#5865ff;
+
+color:#fff;
+
+}
+
+/* =====================
+   Welcome Screen
+===================== */
+
+.welcome-screen{
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+padding:40px 25px;
+
+text-align:center;
+
+animation:fadeIn .8s;
+
+}
+
+.welcome-logo{
+
+margin-bottom:18px;
+
+}
+
+.welcome-screen h1{
+
+font-size:30px;
+
+color:#5564ff;
+
+margin-bottom:10px;
+
+}
+
+.welcome-screen p{
+
+font-size:20px;
+
+font-weight:bold;
+
+margin-bottom:10px;
+
+}
+
+.welcome-screen span{
+
+font-size:15px;
+
+color:#777;
+
+max-width:320px;
+
+line-height:1.8;
+
+}
+
+@keyframes fadeIn{
+
+from{
+
+opacity:0;
+
+transform:translateY(25px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+.code-block{
+margin:12px 0;
+border-radius:14px;
+overflow:hidden;
+background:#1e1e1e;
+border:1px solid #333;
+}
+
+.code-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px 14px;
+background:#2d2d2d;
+color:#fff;
+font-size:13px;
+}
+
+.copy-btn{
+background:#4f5fff;
+color:#fff;
+border:none;
+padding:6px 12px;
+border-radius:8px;
+cursor:pointer;
+}
+
+.code-block pre{
+margin:0;
+padding:15px;
+overflow:auto;
+color:#f8f8f2;
+font-size:14px;
+line-height:1.6;
+}
+
+.code-block code{
+font-family:Consolas,monospace;
+white-space:pre;
+}
+
+.ai-thinking {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.thinking-ai-canvas {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.ai-thinking span {
+    font-size: 16px;
+}

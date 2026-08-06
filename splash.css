@@ -1,0 +1,231 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+
+body{
+
+    width:100%;
+    height:100vh;
+
+    overflow:hidden;
+
+    background:#fff;
+
+    font-family:Arial,sans-serif;
+
+}
+
+
+
+.splash{
+
+    width:100%;
+    height:100%;
+
+    display:flex;
+    flex-direction:column;
+
+    justify-content:center;
+    align-items:center;
+
+    position:relative;
+
+}
+
+/* هاتف */
+
+.phone{
+
+    width:140px;
+    height:220px;
+
+    border-radius:35px;
+
+    background:#111;
+
+    padding:9px;
+
+    overflow:hidden;
+
+    transform:translateY(-40px);
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,.2);
+
+}
+
+.screen{
+
+    width:100%;
+    height:100%;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+}
+
+
+
+/* الخلفيات */
+
+.wall-slider{
+
+    display:flex;
+
+    width:300%;
+    height:100%;
+
+    animation:
+    wallMove 9s linear infinite;
+
+}
+
+
+
+.wall-slider img{
+
+    width:33.333%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    flex-shrink:0;
+
+}
+
+
+
+@keyframes wallMove{
+
+
+0%{
+transform:translateX(0);
+}
+
+
+33%{
+transform:translateX(-33.333%);
+}
+
+
+66%{
+transform:translateX(-66.666%);
+}
+
+
+100%{
+transform:translateX(0);
+}
+
+
+}
+
+
+
+
+#title{
+
+    direction:ltr;
+
+    font-size:42px;
+
+    margin-top:-10px;
+
+    font-weight:900;
+
+    color:#5b5df5;
+
+}
+
+
+
+#title span{
+
+    display:inline-block;
+
+    animation:
+    wave 2s ease-in-out infinite;
+
+}
+
+
+
+#title span:nth-child(2){
+animation-delay:.1s;
+}
+
+#title span:nth-child(3){
+animation-delay:.2s;
+}
+
+#title span:nth-child(4){
+animation-delay:.3s;
+}
+
+#title span:nth-child(5){
+animation-delay:.4s;
+}
+
+#title span:nth-child(6){
+animation-delay:.5s;
+}
+
+#title span:nth-child(7){
+animation-delay:.6s;
+}
+
+#title span:nth-child(8){
+animation-delay:.7s;
+}
+
+#title span:nth-child(9){
+animation-delay:.8s;
+}
+
+#title span:nth-child(10){
+animation-delay:.9s;
+}
+
+#title span:nth-child(11){
+animation-delay:1s;
+}
+
+#title span:nth-child(12){
+animation-delay:1.1s;
+}
+
+
+
+@keyframes wave{
+
+0%,100%{
+
+transform:translateY(0);
+
+}
+
+
+50%{
+
+transform:translateY(-8px);
+
+}
+
+}
+
+
+
+p{
+
+    margin-top:10px;
+
+    color:#777;
+
+    font-size:18px;
+
+}

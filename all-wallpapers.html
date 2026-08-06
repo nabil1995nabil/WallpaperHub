@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>الخلفيات | WallpaperHub</title>
+
+<link
+rel="stylesheet"
+href="all-wallpapers.css">
+
+<link
+rel="stylesheet"
+href="effects.css">
+
+<link
+href="https://fonts.googleapis.com/icon?family=Material+Icons"
+rel="stylesheet">
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<header class="header">
+
+    <button
+        id="backBtn"
+        class="back-btn"
+        type="button">
+
+        <span class="material-icons">
+            arrow_back
+        </span>
+
+    </button>
+
+
+    <div class="header-info">
+
+        <h2 id="pageTitle">
+            الخلفيات
+        </h2>
+
+        <span id="wallpaperCount">
+            0 خلفية
+        </span>
+
+    </div>
+
+
+    <button
+        id="searchBtn"
+        class="search-btn"
+        type="button">
+
+        <span class="material-icons">
+            search
+        </span>
+
+    </button>
+
+</header>
+
+
+
+<!-- SEARCH -->
+
+<section
+id="searchBox"
+class="search-box">
+
+    <span class="material-icons">
+        search
+    </span>
+
+    <input
+        id="searchInput"
+        type="search"
+        placeholder="ابحث عن خلفية...">
+
+</section>
+
+
+
+<!-- FILTERS -->
+
+<section class="filters">
+
+
+<button
+class="filter-btn active"
+data-filter="all">
+
+🌍 الكل
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="4k">
+
+💎 4K
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="anime">
+
+🌀 أنمي
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="space">
+
+🌌 فضاء
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="cars">
+
+🚗 سيارات
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="nature">
+
+🌿 طبيعة
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="dark">
+
+🖤 Dark
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="downloads">
+
+📥 الأكثر تحميلاً
+
+</button>
+
+
+
+<button
+class="filter-btn"
+data-filter="rating">
+
+⭐ الأعلى تقييماً
+
+</button>
+
+
+</section>
+
+
+
+<!-- LOADING -->
+
+<div
+id="loading"
+class="loading">
+
+    <div class="loader"></div>
+
+    <p>
+        جاري تحميل الخلفيات...
+    </p>
+
+</div>
+
+
+
+<!-- WALLPAPERS -->
+
+<main
+id="wallpapersGrid"
+class="wallpapers-grid">
+</main>
+
+
+
+<!-- EMPTY -->
+
+<div
+id="emptyState"
+class="empty-state"
+style="display:none;">
+
+    <span class="material-icons">
+        image_not_supported
+    </span>
+
+    <h3>
+        لا توجد خلفيات
+    </h3>
+
+    <p>
+        لم نجد خلفيات في هذا القسم.
+    </p>
+
+</div>
+
+
+
+<!-- SCROLL TOP -->
+
+<button
+id="scrollTop"
+class="scroll-top"
+type="button">
+
+    <span class="material-icons">
+        keyboard_arrow_up
+    </span>
+
+</button>
+
+
+
+<script src="all-wallpapers.js"></script>
+
+<script src="effects.js"></script>
+
+<script src="theme.js"></script>
+
+
+</body>
+
+</html>

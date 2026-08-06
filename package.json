@@ -1,0 +1,21 @@
+{
+  "name": "wallpaperhub",
+  "version": "1.0.0",
+  "description": "WallpaperHub server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "wallpaper",
+    "wallpaperhub"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.2.0"
+  }
+}

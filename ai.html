@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>WallpaperHub AI</title>
+
+<link rel="stylesheet" href="ai.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- الخلفية -->
+<div class="ai-bg"></div>
+
+<!-- الهيدر -->
+
+<header class="ai-header">
+
+<button class="back-btn" onclick="history.back()">
+
+<span class="material-icons">arrow_back</span>
+
+</button>
+
+<div class="ai-title">
+
+<div class="ai-logo">
+
+<canvas id="aiCanvas" width="56" height="56"></canvas>
+
+</div>
+
+<div>
+
+<h2>WallpaperHub AI</h2>
+
+<p>مساعدك الذكي</p>
+
+</div>
+
+</div>
+
+</header>
+
+<!-- الرسائل -->
+
+<div class="chat-container" id="chatContainer">
+
+<div class="message ai">
+
+<div class="bubble">
+
+👋 مرحباً، أنا.
+
+كيف يمكنني مساعدتك اليوم؟
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- الكتابة -->
+
+<div class="chat-input">
+
+<button id="imageBtn">
+
+<span class="material-icons">image</span>
+
+</button>
+
+<input
+
+type="text"
+
+id="userInput"
+
+placeholder="اكتب رسالتك..."
+
+autocomplete="off"
+
+>
+
+<button id="sendBtn">
+
+<span class="material-icons">send</span>
+
+</button>
+
+</div>
+
+<script src="ai-fab.js"></script>
+<script type="module" src="ai.js"></script>
+
+</body>
+
+</html>

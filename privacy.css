@@ -1,0 +1,237 @@
+/* ==============================
+   WallpaperHub Privacy CSS
+============================== */
+
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+
+body{
+
+    background:#f5f7fb;
+
+    color:#333;
+
+    direction:rtl;
+
+}
+
+
+
+.privacy-page{
+
+    padding:25px 20px;
+
+    max-width:800px;
+
+    margin:auto;
+
+}
+
+
+
+/* العنوان */
+
+.privacy-page h1{
+
+    text-align:center;
+
+    color:#5b5df5;
+
+    font-size:26px;
+
+    font-weight:700;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.intro{
+
+    text-align:center;
+
+    color:#777;
+
+    font-size:15px;
+
+    line-height:1.8;
+
+    margin-bottom:30px;
+
+}
+
+
+
+
+
+/* الأقسام */
+
+.privacy-page section{
+
+    background:white;
+
+    border-radius:25px;
+
+    padding:25px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+
+    0 10px 25px rgba(0,0,0,.06);
+
+}
+
+
+
+.privacy-page h2{
+
+    color:#5b5df5;
+
+    font-size:21px;
+
+    margin-bottom:18px;
+
+}
+
+
+
+.privacy-page p{
+
+    font-size:15px;
+
+    line-height:2;
+
+    color:#555;
+
+    font-weight:300;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.privacy-page b{
+
+    color:#222;
+
+    font-weight:600;
+
+}
+
+
+
+
+
+/* Footer */
+
+
+.privacy-page footer{
+
+    text-align:center;
+
+    color:#888;
+
+    font-size:14px;
+
+    line-height:2;
+
+    margin-top:30px;
+
+}
+
+
+
+
+
+/* حركة دخول */
+
+
+.privacy-page section,
+.privacy-page h1{
+
+    animation:showPage .6s ease;
+
+}
+
+
+
+@keyframes showPage{
+
+
+from{
+
+opacity:0;
+
+transform:translateY(20px);
+
+}
+
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+
+}
+
+
+
+
+
+
+
+/* الوضع الليلي */
+
+
+body.dark{
+
+    background:#111;
+
+    color:white;
+
+}
+
+
+
+body.dark .privacy-page section{
+
+    background:#1e1e1e;
+
+}
+
+
+
+body.dark .privacy-page p{
+
+    color:#bbb;
+
+}
+
+
+
+body.dark .privacy-page b{
+
+    color:white;
+
+}
+
+
+
+body.dark .privacy-page footer{
+
+    color:#aaa;
+
+}

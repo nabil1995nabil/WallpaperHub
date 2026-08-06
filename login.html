@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>تسجيل الدخول | WallpaperHub</title>
+
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="effects.css">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="login-page">
+
+    <div class="login-container">
+
+        <!-- العنوان -->
+        <h1>تسجيل الدخول</h1>
+
+        <!-- البريد -->
+        <div class="input-group">
+            <input
+                type="email"
+                id="email"
+                placeholder="أدخل بريدك الإلكتروني"
+                autocomplete="email"
+            >
+        </div>
+
+        <!-- كلمة المرور -->
+        <div class="input-group">
+            <input
+                type="password"
+                id="password"
+                placeholder="أدخل كلمة المرور"
+                autocomplete="current-password"
+            >
+        </div>
+
+        <!-- تسجيل الدخول -->
+        <button id="loginBtn" class="main-btn">
+            تسجيل الدخول
+        </button>
+
+
+        <!-- المتابعة بواسطة -->
+        <div class="continue-text">
+            أو المتابعة بواسطة
+        </div>
+
+
+        <!-- تسجيل اجتماعي -->
+        <div class="social-login">
+
+            <!-- Facebook - نبرمجه لاحقاً -->
+            <button
+                type="button"
+                class="social-btn facebook-btn"
+                id="facebookBtn"
+                aria-label="Facebook"
+            >
+                <span class="facebook-logo">f</span>
+            </button>
+
+
+            <!-- Google -->
+            <button
+                type="button"
+                class="social-btn google-btn"
+                id="googleBtn"
+                aria-label="Google"
+            >
+                <img
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    alt="Google"
+                >
+            </button>
+
+        </div>
+
+
+        <!-- إنشاء حساب -->
+        <div class="register-text">
+            <span>ليس لديك حساب؟</span>
+
+            <button id="registerBtn" class="register-link">
+                إنشاء حساب
+            </button>
+        </div>
+
+
+        <!-- رجوع -->
+        <button
+            type="button"
+            onclick="history.back()"
+            class="back-btn"
+        >
+            رجوع
+        </button>
+
+    </div>
+
+</div>
+
+
+<script type="module" src="login.js"></script>
+<script src="effects.js"></script>
+
+</body>
+</html>
