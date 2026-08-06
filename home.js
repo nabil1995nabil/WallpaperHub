@@ -78,24 +78,13 @@ async function loadWallpapers() {
 
     try {
 
-        const response = await fetch("http://localhost:3000/api/wallpapers")
+        const response = await fetch("/api/wallpapers");
 
         const text = await response.text();
 
         console.log("API RESPONSE:", text);
 
         wallpapers = JSON.parse(text);
-
-
-        const oldCount =
-        Number(localStorage.getItem("wallpaperCount")) || 0;
-
-
-        localStorage.setItem(
-            "wallpaperCount",
-            wallpapers.length
-        );
-
 
         renderSlider();
         loadTodayWallpaper();
@@ -105,7 +94,6 @@ async function loadWallpapers() {
         renderLatest();
         renderRecommended();
         createDynamicSections();
-
 
     } catch(err) {
 
