@@ -5,8 +5,8 @@
 const favoritesGrid = document.getElementById("favoritesGrid");
 const emptyState = document.getElementById("emptyState");
 
-const API_URL = "http://localhost:3000/api/wallpapers";
-const SERVER_URL = "http://localhost:3000";
+const API_URL = "/api/wallpapers";
+const SERVER_URL = "";
 
 function getImageUrl(imagePath) {
 
@@ -101,19 +101,18 @@ async function loadFavorites() {
 
 loadFavorites();
 
-// ===========================
-// تحديث الصفحة بعد المزامنة
-// ===========================
 
+// تحديث عند تغيير المفضلة من صفحة أخرى
 window.addEventListener(
-    "wallpaperhub:user-synced",
-    () => {
+"storage",
+()=>{
+    loadFavorites();
+});
 
-        console.log(
-            "تمت المزامنة، تحديث المفضلة..."
-        );
 
-        loadFavorites();
-
-    }
-);
+// تحديث عبر event داخلي
+window.addEventListener(
+"wallpaperhub:user-synced",
+()=>{
+    loadFavorites();
+});

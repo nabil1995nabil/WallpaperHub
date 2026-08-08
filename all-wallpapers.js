@@ -2,13 +2,15 @@
 // WallpaperHub - All Wallpapers
 // ==========================================
 
-const API_URL = "http://localhost:3000/api/wallpapers";
+const API_URL = "/api/wallpapers";
 
-const SERVER_URL = "http://localhost:3000";
+const SERVER_URL = "";
 
 function getImageUrl(imagePath) {
 
-    if (!imagePath) return "";
+    if (!imagePath) {
+        return "assets/logo/no-image.png";
+    }
 
     if (
         imagePath.startsWith("http://") ||
@@ -17,8 +19,11 @@ function getImageUrl(imagePath) {
         return imagePath;
     }
 
-    return SERVER_URL + "/" +
-        imagePath.replace(/^\/+/, "");
+    if (imagePath.startsWith("assets/")) {
+        return "/" + imagePath;
+    }
+
+    return "/assets/wallpapers/" + imagePath;
 }
 
 // ============================

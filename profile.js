@@ -13,11 +13,8 @@ auth
 import {
 
 GoogleAuthProvider,
-
 signInWithPopup,
-
 signOut,
-
 onAuthStateChanged
 
 }
@@ -41,7 +38,7 @@ console.log(
 
 
 const API =
-"http://localhost:3000/api/wallpapers";
+"/api/wallpapers";
 
 
 
@@ -52,15 +49,10 @@ let wallpapers = [];
 
 
 // ===============================
-// Firebase
+// Firebase Login System
 // ===============================
 
-
-const provider =
-new GoogleAuthProvider();
-
-
-
+const provider = new GoogleAuthProvider();
 
 
 // ===============================
@@ -141,243 +133,231 @@ document.getElementById("joinDate");
 const lastLogin =
 document.getElementById("lastLogin");
 
+/// ===============================
+// تحديث حالة الزر
 // ===============================
-// تحديث زر الدخول
-// ===============================
-
 
 function updateLoginState(user){
 
-
-if(!loginBtn)
-return;
+    if(!loginBtn) return;
 
 
+    if(user){
 
-if(user){
+        loginBtn.innerHTML = `
+        <span class="material-icons">
+        logout
+        </span>
+        `;
 
-
-loginBtn.innerHTML = `
-
-<span class="material-icons">
-logout
-</span>
-
-`;
+        loginBtn.classList.add("logout");
 
 
+    }else{
 
-loginBtn.classList.add(
-"logout"
-);
+        loginBtn.innerHTML = `
+        <span class="material-icons">
+        login
+        </span>
+        `;
 
+        loginBtn.classList.remove("logout");
 
-
-}else{
-
-
-loginBtn.innerHTML = `
-
-<span class="material-icons">
-login
-</span>
-
-`;
-
-
-
-loginBtn.classList.remove(
-"logout"
-);
-
-
+    }
 
 }
 
 
-}
+
 
 // ===============================
-// زر Google Login / Logout
+// تسجيل الدخول والخروج Google
 // ===============================
-
 
 if(loginBtn){
 
 
-loginBtn.onclick = async()=>{
-
-
-const user =
-auth.currentUser;
-
+loginBtn.addEventListener("click", async()=>{
 
 
 try{
 
 
+const currentUser = auth.currentUser;
 
-if(user){
 
+
+// ===============================
+// تسجيل الخروج
+// ===============================
+
+if(currentUser){
 
 
 await signOut(auth);
 
 
 
-localStorage.removeItem(
-"userName"
-);
-
-
-
-localStorage.removeItem(
-"userEmail"
-);
-
-
-
-localStorage.removeItem(
-"userAvatar"
-);
-
-
-
-}else{
-
-
-
-const result =
-await signInWithPopup(
-auth,
-provider
-);
-
-
-
-const account =
-result.user;
-
-
-
-localStorage.setItem(
-"userName",
-account.displayName || "مستخدم"
-);
-
-if(!localStorage.getItem("joinDate")){
-
-localStorage.setItem(
-"joinDate",
-new Date().toLocaleString("ar-MA")
-);
-
-}
-
-localStorage.setItem(
-"userEmail",
-account.email || ""
-);
-
-
-
-localStorage.setItem(
-"userAvatar",
-account.photoURL || ""
-);
-
-
-
-}
-
-
-
-}catch(error){
-
-
-console.error(
-"AUTH ERROR",
-error
-);
-
-
-
-}
-
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-// ===============================
-// مراقبة الحساب
-// ===============================
-
-
-onAuthStateChanged(auth, (user)=>{
-
-
-if(user){
-
-
-console.log(
-"Logged:",
-user.email
-);
-
-
-updateLoginState(user);
-
-
-localStorage.setItem(
-"userName",
-user.displayName || "مستخدم"
-);
-
-
-localStorage.setItem(
-"userEmail",
-user.email || ""
-);
-
-
-localStorage.setItem(
-"userAvatar",
-user.photoURL || ""
-);
-
-
-
-}else{
-
-
-console.log(
-"No User"
-);
+localStorage.removeItem("userName");
+localStorage.removeItem("userEmail");
+localStorage.removeItem("userAvatar");
+localStorage.removeItem("joinDate");
 
 
 
 updateLoginState(null);
 
 
+loadUserData();
+
+
+
+return;
+
 
 }
 
+
+
+
+// ===============================
+// تسجيل الدخول Google
+// ===============================
+
+
+const result = await signInWithPopup(
+    auth,
+    provider
+);
+
+
+
+const user = result.user;
+
+
+
+console.log(
+"Firebase Login Success:",
+user
+);
+
+
+
+
+const name =
+user.displayName || "مستخدم";
+
+
+const email =
+user.email || "غير مسجل";
+
+
+const avatar =
+user.photoURL || "assets/images/avatar.png";
+
+
+
+
+
+// حفظ البيانات
+
+localStorage.setItem(
+"userName",
+name
+);
+
+
+localStorage.setItem(
+"userEmail",
+email
+);
+
+
+localStorage.setItem(
+"userAvatar",
+avatar
+);
+
+
+
+if(!localStorage.getItem("joinDate")){
+
+
+localStorage.setItem(
+"joinDate",
+new Date().toLocaleString("ar-MA")
+);
+
+
+}
+
+
+
+
+// تحديث الصفحة مباشرة
+
+if(userName){
+
+userName.textContent =
+name;
+
+}
+
+
+if(userEmail){
+
+userEmail.textContent =
+email;
+
+}
+
+
+if(userAvatar){
+
+userAvatar.src =
+avatar;
+
+}
+
+
+
+
+updateLoginState(user);
 
 
 loadUserData();
 
 
 
+}
+
+
+
+catch(error){
+
+
+console.error(
+"GOOGLE LOGIN ERROR:",
+error.code,
+error.message
+);
+
+
+
+alert(
+"خطأ تسجيل الدخول: " + error.message
+);
+
+
+
+}
+
+
+
 });
+
+
+}
 
 // ===============================
 // تحميل الخلفيات من السيرفر
@@ -509,10 +489,10 @@ email;
 
 // الصورة الشخصية
 
-if(avatar && userAvatar)
+if(userAvatar)
 
 userAvatar.src =
-avatar;
+avatar || "assets/images/avatar.png";
 
 
 
@@ -521,10 +501,10 @@ avatar;
 
 // صورة الغلاف
 
-if(cover && coverImage)
+if(coverImage)
 
 coverImage.src =
-cover;
+cover || "assets/images/default-cover.jpg";
 
 
 

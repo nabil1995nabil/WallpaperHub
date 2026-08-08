@@ -16,35 +16,19 @@ console.log("WallpaperHub Player Loaded");
 
 function getImageUrl(url){
 
-
     if(!url)
+        return "/assets/logo/no-image.png";
 
-        return "assets/images/no-image.png";
-
-
-
-    if(url.startsWith("http"))
-
+    if(
+        url.startsWith("http://") ||
+        url.startsWith("https://")
+    ){
         return url;
+    }
 
-
-
-    if(url.startsWith("assets/"))
-
-        return url;
-
-
-
-    return "assets/wallpapers/" + url;
-
+    return "/" + url.replace(/^\/+/, "");
 
 }
-
-
-
-
-
-
 
 // ===============================
 // Media Detector
@@ -97,15 +81,7 @@ function isVideoMedia(wallpaper){
 // API
 // ===============================
 
-
-const API =
-
-"http://localhost:3000/api/wallpapers";
-
-
-
-
-
+const API = "/api/wallpapers";
 
 
 // ===============================

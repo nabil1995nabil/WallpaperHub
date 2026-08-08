@@ -9,76 +9,99 @@
 
 <title>WallpaperHub AI</title>
 
+
 <link rel="stylesheet" href="ai.css">
+
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+
 </head>
+
 
 <body>
 
-<!-- الخلفية -->
+
 <div class="ai-bg"></div>
 
-<!-- الهيدر -->
 
-<header class="ai-header">
+<div class="ai-page">
 
-<button class="back-btn" onclick="history.back()">
 
-<span class="material-icons">arrow_back</span>
 
-</button>
+<!-- الشعار فقط -->
 
-<div class="ai-title">
+<div class="ai-brand">
 
-<div class="ai-logo">
 
-<canvas id="aiCanvas" width="56" height="56"></canvas>
+<canvas id="aiCanvas" width="50" height="50"></canvas>
 
-</div>
 
-<div>
+<span>
+WallpaperHub AI
+</span>
 
-<h2>WallpaperHub AI</h2>
-
-<p>مساعدك الذكي</p>
 
 </div>
 
-</div>
 
-</header>
 
-<!-- الرسائل -->
+
+
+<!-- منطقة المحادثة -->
+
 
 <div class="chat-container" id="chatContainer">
 
-<div class="message ai">
 
-<div class="bubble">
+<!-- تظهر الرسائل هنا -->
 
-👋 مرحباً، أنا.
 
-كيف يمكنني مساعدتك اليوم؟
 
-</div>
+<div class="welcome-screen">
 
-</div>
-
-</div>
+<h1 id="welcomeText">
+مرحبا 👋
+</h1>
 
 </div>
 
-<!-- الكتابة -->
+
+
+</div>
+
+
+
+
+
+
+<!-- صندوق الكتابة -->
+
 
 <div class="chat-input">
 
-<button id="imageBtn">
 
-<span class="material-icons">image</span>
+
+<button 
+id="imageBtn"
+class="input-btn">
+
+<span class="material-icons">
+image
+</span>
 
 </button>
+
+
+<input 
+type="file"
+id="imageInput"
+accept="image/*"
+hidden>
+
+
+
+
 
 <input
 
@@ -92,16 +115,39 @@ autocomplete="off"
 
 >
 
-<button id="sendBtn">
 
-<span class="material-icons">send</span>
+
+
+
+<button 
+id="sendBtn"
+class="send-btn">
+
+
+<span class="material-icons">
+send
+</span>
+
 
 </button>
 
+
+
 </div>
 
+
+
+
+</div>
+
+
+
+
+
 <script src="ai-fab.js"></script>
+
 <script type="module" src="ai.js"></script>
+
 
 </body>
 

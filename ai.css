@@ -1,477 +1,569 @@
-/* ===============================
-        WallpaperHub AI
-================================ */
+/* ==================================
+   WallpaperHub AI Modern UI
+   Full Screen Responsive Design
+================================== */
+
 
 *{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
 }
+
+
+html,
+body{
+
+    width:100%;
+    height:100%;
+    overflow:hidden;
+
+}
+
 
 body{
 
-background:#f5f7ff;
-
-overflow:hidden;
-
-height:100vh;
-
-display:flex;
-
-flex-direction:column;
+    min-height:100dvh;
 
 }
 
-/* الخلفية */
+
+/* ===============================
+   Background
+================================ */
+
 
 .ai-bg{
 
-position:fixed;
+    position:fixed;
 
-inset:0;
+    inset:0;
 
-background:
+    background:
 
-radial-gradient(circle at top,#6b6cff22,transparent 40%),
+    radial-gradient(
+        circle at top,
+        #6b6cff30,
+        transparent 40%
+    ),
 
-radial-gradient(circle at bottom,#00d9ff22,transparent 45%),
+    radial-gradient(
+        circle at bottom,
+        #00d9ff25,
+        transparent 45%
+    ),
 
-#f5f7ff;
+    #f7f8ff;
 
-z-index:-1;
-
-}
-
-/* الهيدر */
-
-.ai-header{
-
-height:74px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:space-between;
-
-padding:15px;
-
-background:rgba(255,255,255,.75);
-
-backdrop-filter:blur(18px);
-
-border-bottom:1px solid rgba(0,0,0,.05);
+    z-index:-1;
 
 }
 
-.back-btn{
 
-width:46px;
 
-height:46px;
 
-border:none;
+/* ===============================
+   Main Page
+================================ */
 
-border-radius:50%;
 
-background:#fff;
+.ai-page{
 
-cursor:pointer;
+    width:100%;
+    height:100dvh;
 
-box-shadow:0 6px 20px rgba(0,0,0,.08);
+    display:flex;
 
-}
+    flex-direction:column;
 
-.back-btn .material-icons{
-
-font-size:28px;
+    position:relative;
 
 }
 
-.ai-title{
 
-display:flex;
 
-align-items:center;
 
-gap:12px;
+/* ===============================
+   Small Logo
+================================ */
 
-}
 
-.ai-title h2{
+.ai-brand{
 
-font-size:20px;
+    height:65px;
 
-color:#4a5cff;
+    display:flex;
 
-}
+    align-items:center;
 
-.ai-title p{
+    justify-content:center;
 
-font-size:13px;
+    gap:8px;
 
-color:#888;
+    color:#5564ff;
 
-}
+    font-size:19px;
 
-/* الشعار */
-
-.ai-logo{
-
-width:56px;
-
-height:56px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
+    font-weight:bold;
 
 }
 
-/* الرسائل */
+
+.ai-brand canvas{
+
+    width:38px;
+
+    height:38px;
+
+}
+
+
+
+/* ===============================
+   Chat Area
+================================ */
+
 
 .chat-container{
 
-flex:1;
+    flex:1;
 
-overflow-y:auto;
+    overflow-y:auto;
 
-padding:18px;
+    padding:
 
-display:flex;
+    20px
 
-flex-direction:column;
+    15px
 
-gap:15px;
+    120px;
+
+
+    scroll-behavior:smooth;
 
 }
 
-/* الرسائل */
+
+/* Scroll */
+
+.chat-container::-webkit-scrollbar{
+
+    width:4px;
+
+}
+
+.chat-container::-webkit-scrollbar-thumb{
+
+    background:#aaa;
+
+    border-radius:10px;
+
+}
+
+
+
+/* ===============================
+   Messages
+================================ */
+
 
 .message{
 
-display:flex;
+    display:flex;
+
+    margin-bottom:15px;
 
 }
+
+
 
 .message.ai{
 
-justify-content:flex-start;
+    justify-content:flex-start;
 
 }
+
+
 
 .message.user{
 
-justify-content:flex-end;
+    justify-content:flex-end;
 
 }
+
+
 
 .bubble{
 
-max-width:78%;
+    max-width:80%;
 
-padding:14px 18px;
+    padding:14px 18px;
 
-border-radius:20px;
+    border-radius:22px;
 
-line-height:1.7;
+    line-height:1.7;
 
-font-size:15px;
+    font-size:15px;
 
-box-shadow:0 8px 20px rgba(0,0,0,.08);
+    box-shadow:
+
+    0 8px 25px rgba(0,0,0,.08);
 
 }
+
+
 
 .message.ai .bubble{
 
-background:#fff;
+    background:white;
+
+    color:#333;
 
 }
+
+
 
 .message.user .bubble{
 
-background:#5564ff;
+    background:#5564ff;
 
-color:#fff;
+    color:white;
 
 }
 
-/* الكتابة */
+
+
+
+
+/* ===============================
+   Input Floating Bar
+================================ */
+
 
 .chat-input{
 
-display:flex;
+    position:absolute;
 
-align-items:center;
+    bottom:15px;
 
-gap:10px;
+    left:15px;
 
-padding:15px;
+    right:15px;
 
-background:#fff;
 
-border-top:1px solid #eee;
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+
+    background:white;
+
+    padding:8px;
+
+
+    border-radius:35px;
+
+
+    box-shadow:
+
+    0 10px 40px rgba(0,0,0,.15);
+
 
 }
+
+
+
+/* Text */
 
 .chat-input input{
 
-flex:1;
+    flex:1;
 
-height:48px;
+    height:45px;
 
-border:none;
+    border:none;
 
-background:#f3f5ff;
+    outline:none;
 
-border-radius:30px;
 
-padding:0 18px;
+    background:#f2f4ff;
 
-font-size:15px;
 
-outline:none;
+    border-radius:25px;
 
-}
 
-.chat-input button{
+    padding:0 18px;
 
-width:48px;
 
-height:48px;
+    font-size:15px;
 
-border:none;
-
-border-radius:50%;
-
-background:#5564ff;
-
-color:#fff;
-
-cursor:pointer;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-transition:.25s;
 
 }
 
-.chat-input button:hover{
 
-transform:scale(1.08);
 
-}
+/* Buttons */
 
-.material-icons{
 
-font-size:24px;
+.input-btn,
+.send-btn{
 
-}
 
-/* =====================
-    Suggestions
-===================== */
+    width:45px;
 
-.suggestions{
+    height:45px;
 
-display:flex;
 
-overflow-x:auto;
+    border:none;
 
-gap:10px;
 
-padding:12px 15px;
+    border-radius:50%;
 
-scroll-behavior:smooth;
 
--webkit-overflow-scrolling:touch;
+    display:flex;
 
-}
+    align-items:center;
 
-.suggestions::-webkit-scrollbar{
+    justify-content:center;
 
-display:none;
+
+    cursor:pointer;
+
 
 }
 
-.chip{
 
-flex:0 0 auto;
 
-border:none;
+.input-btn{
 
-padding:11px 18px;
+    background:#eef0ff;
 
-border-radius:30px;
-
-background:#ffffff;
-
-color:#444;
-
-font-size:14px;
-
-cursor:pointer;
-
-box-shadow:0 6px 18px rgba(0,0,0,.08);
-
-transition:.25s;
+    color:#5564ff;
 
 }
 
-.chip:active{
 
-transform:scale(.95);
 
-}
+.send-btn{
 
-.chip:hover{
+    background:#5564ff;
 
-background:#5865ff;
-
-color:#fff;
+    color:white;
 
 }
 
-/* =====================
-   Welcome Screen
-===================== */
 
-.welcome-screen{
 
-display:flex;
+.input-btn:hover,
+.send-btn:hover{
 
-flex-direction:column;
-
-justify-content:center;
-
-align-items:center;
-
-padding:40px 25px;
-
-text-align:center;
-
-animation:fadeIn .8s;
+    transform:scale(1.08);
 
 }
 
-.welcome-logo{
 
-margin-bottom:18px;
 
-}
-
-.welcome-screen h1{
-
-font-size:30px;
-
-color:#5564ff;
-
-margin-bottom:10px;
-
-}
+/* ===============================
+   Welcome
+================================ */
 
 .welcome-screen p{
 
-font-size:20px;
+    font-size:15px;
 
-font-weight:bold;
-
-margin-bottom:10px;
+    font-weight:bold;
 
 }
+
+
 
 .welcome-screen span{
 
-font-size:15px;
+    color:#777;
 
-color:#777;
-
-max-width:320px;
-
-line-height:1.8;
+    margin-top:10px;
 
 }
 
-@keyframes fadeIn{
 
-from{
 
-opacity:0;
+/* ===============================
+   Code Block
+================================ */
 
-transform:translateY(25px);
-
-}
-
-to{
-
-opacity:1;
-
-transform:translateY(0);
-
-}
-
-}
 
 .code-block{
-margin:12px 0;
-border-radius:14px;
-overflow:hidden;
-background:#1e1e1e;
-border:1px solid #333;
+
+    margin:12px 0;
+
+    border-radius:15px;
+
+    overflow:hidden;
+
+    background:#1e1e1e;
+
 }
+
+
 
 .code-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:10px 14px;
-background:#2d2d2d;
-color:#fff;
-font-size:13px;
+
+    padding:10px;
+
+    background:#292929;
+
+    color:white;
+
+    display:flex;
+
+    justify-content:space-between;
+
 }
+
+
 
 .copy-btn{
-background:#4f5fff;
-color:#fff;
-border:none;
-padding:6px 12px;
-border-radius:8px;
-cursor:pointer;
+
+    background:#5564ff;
+
+    color:white;
+
+    border:none;
+
+    padding:6px 12px;
+
+    border-radius:8px;
+
 }
+
+
 
 .code-block pre{
-margin:0;
-padding:15px;
-overflow:auto;
-color:#f8f8f2;
-font-size:14px;
-line-height:1.6;
+
+    padding:15px;
+
+    overflow:auto;
+
+    color:white;
+
 }
 
-.code-block code{
-font-family:Consolas,monospace;
-white-space:pre;
+
+
+/* ===============================
+   Tablet
+================================ */
+
+
+@media(min-width:768px){
+
+
+.chat-container{
+
+    padding-left:50px;
+
+    padding-right:50px;
+
 }
 
-.ai-thinking {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+
+
+.bubble{
+
+    max-width:65%;
+
 }
 
-.thinking-ai-canvas {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
+
+
 }
 
-.ai-thinking span {
-    font-size: 16px;
+
+
+/* ===============================
+   PC
+================================ */
+
+
+@media(min-width:1100px){
+
+
+.ai-brand{
+
+    font-size:22px;
+
+}
+
+
+
+.chat-input{
+
+    max-width:900px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+}
+
+
+
+.chat-container{
+
+    max-width:1000px;
+
+    width:100%;
+
+    margin:auto;
+
+}
+
+
+
+}
+
+
+
+/* ===============================
+   Small Phones
+================================ */
+
+
+@media(max-width:400px){
+
+
+.chat-input{
+
+    left:10px;
+
+    right:10px;
+
+}
+
+
+
+.input-btn,
+.send-btn{
+
+    width:40px;
+
+    height:40px;
+
+}
+
+
+
+.chat-input input{
+
+    height:40px;
+
+    font-size:14px;
+
+}
+
+
+
 }

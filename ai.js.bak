@@ -554,7 +554,7 @@ reader.readAsDataURL(file);
 
 
 // ===============================
-// WallpaperHub AI
+// Gemini AI
 // Text + Image
 // ===============================
 
@@ -565,23 +565,77 @@ imageData=null,
 imageFile=null
 ){
 
+
 try{
 
 
-const userLocale =
-navigator.language;
+let parts=[];
 
 
-const userTimezone =
-Intl.DateTimeFormat()
-.resolvedOptions()
-.timeZone;
+
+parts.push({
+
+text:`
+
+أنت WallpaperHub AI.
+
+اسمك WallpaperHub AI.
+
+تجيب باللغة العربية.
+
+إذا سألك المستخدم عن الخلفيات أو التصميم أو البرمجة فأعطه أفضل إجابة.
+
+حلل الصور إذا تم إرسال صورة.
+
+رسالة المستخدم:
+
+${message}
+
+`
+
+});
+
+
+
+
+
+// إضافة الصورة
+
+if(imageData && imageFile){
+
+
+parts.push({
+
+inlineData:{
+
+
+mimeType:
+imageFile.type,
+
+
+data:
+imageData
+
+
+}
+
+
+});
+
+
+}
+
+
+
+
 
 
 
 const response =
 await fetch(
-"/api/chat",
+
+`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+
 {
 
 method:"POST",
@@ -596,28 +650,24 @@ headers:{
 
 body:JSON.stringify({
 
-message:message,
+contents:[
 
+{
 
-imageData:imageData,
+parts:parts
 
+}
 
-mimeType:
-imageFile ?
-imageFile.type :
-null,
-
-
-locale:userLocale,
-
-
-timezone:userTimezone
-
+]
 
 })
 
 
-});
+}
+
+
+);
+
 
 
 
@@ -628,8 +678,17 @@ await response.json();
 
 
 
+
+
 console.log(
-"AI Server Response:",
+"HTTP:",
+response.status
+);
+
+
+
+console.log(
+"Gemini Response:",
 data
 );
 
@@ -637,42 +696,35 @@ data
 
 
 
-if(!response.ok){
 
 
-return "⚠️ وقع مشكل في الاتصال بالسيرفر";
+if (!response.ok) {
 
+    console.error(
+        "Gemini Server Error:",
+        data
+    );
+
+    return "⚠️ عذراً، حدث خطأ في الاتصال بالخادم. حاول مرة أخرى بعد قليل.";
+
+}
+
+
+if (!data.candidates || !data.candidates.length) {
+
+    console.error(
+        "No Gemini Response:",
+        data
+    );
+
+    return "⚠️ لم أتمكن من الحصول على رد الآن، حاول مرة أخرى.";
 
 }
 
 
 
 
-return data.reply ||
 
-"⚠️ ماقدرتش نجيب جواب دابا";
-
-
-
-
-
-}catch(e){
-
-
-console.error(
-"AI Error:",
-e
-);
-
-
-
-return "⚠️ وقع مشكل مؤقت، حاول مرة أخرى.";
-
-
-}
-
-
-}
 
 
 return data

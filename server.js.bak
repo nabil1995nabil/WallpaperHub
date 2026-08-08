@@ -734,7 +734,7 @@ app.post("/api/chat", async(req,res)=>{
 
         parts.push({
 
-    text:
+            text:
 `أنت WallpaperHub AI.
 
 حدد بلد المستخدم من اللغة والمنطقة الزمنية.
@@ -758,8 +758,6 @@ ${timezone}
 
 رسالة المستخدم:
 ${message}`
-
-});
 
 
 
