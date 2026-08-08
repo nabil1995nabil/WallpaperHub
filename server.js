@@ -9,6 +9,12 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
+
 const app = express();
 const PORT = 3000;
 
@@ -891,7 +897,123 @@ ${message}`
 
 });
 
+const OpenAI = require("openai");
 
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
+
+
+// ===============================
+// Generate Image
+// ===============================
+
+app.post("/api/generate-image", async(req,res)=>{
+
+
+try{
+
+
+const {prompt}=req.body;
+
+
+
+const result =
+await openai.images.generate({
+
+model:"gpt-image-1",
+
+prompt:
+`
+Create a premium smartphone wallpaper.
+
+${prompt}
+
+Requirements:
+- 4K quality
+- vertical mobile wallpaper
+- 1440x3200 resolution style
+- no text
+- no watermark
+- ultra detailed
+`,
+
+size:"1024x1536"
+
+
+});
+
+
+
+res.json({
+
+image:
+result.data[0].url
+
+});
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+res.status(500).json({
+
+error:"Image generation failed"
+
+});
+
+
+}
+
+
+});
+
+app.post("/api/generate-image", async(req,res)=>{
+
+try{
+
+const {prompt}=req.body;
+
+const result = await openai.images.generate({
+
+model:"gpt-image-1",
+
+prompt:`
+Premium smartphone wallpaper.
+
+${prompt}
+
+4K quality,
+vertical mobile wallpaper,
+no text,
+no watermark
+`,
+
+size:"1024x1536"
+
+});
+
+
+res.json({
+image: result.data[0].url
+});
+
+
+}catch(error){
+
+console.log(error);
+
+res.status(500).json({
+error:"Image generation failed"
+});
+
+}
+
+});
 
 // ================================
 // Start
