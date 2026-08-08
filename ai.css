@@ -223,6 +223,8 @@ background:transparent;
 
 box-shadow:none;
 
+border:none;
+
 }
 
 
@@ -773,5 +775,63 @@ color:#5564ff;
 box-shadow:0 5px 20px rgba(0,0,0,.1);
 
 cursor:pointer;
+
+}
+
+.ai-image-card{
+
+margin-top:15px;
+
+border-radius:25px;
+
+overflow:hidden;
+
+box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+}
+
+
+
+.ai-image-card img{
+
+width:100%;
+
+display:block;
+
+border-radius:25px;
+
+}
+
+
+
+.image-viewer{
+
+position:fixed;
+
+inset:0;
+
+background:rgba(0,0,0,.85);
+
+z-index:999;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+padding:20px;
+
+}
+
+
+
+.image-viewer img{
+
+max-width:100%;
+
+max-height:90%;
+
+border-radius:25px;
 
 }

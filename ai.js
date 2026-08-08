@@ -382,14 +382,80 @@ file.name
 // Add Message
 // ===============================
 
-function addMessage(text, sender, save=true){
+function addMessage(text,sender,save=true){
 
 
 
 function formatMessage(text){
 
+
+
+// ===============================
+// Image Detection
+// ===============================
+
+const imageRegex =
+/(https?:\/\/[^\s]+\.(jpg|jpeg|png|webp)(\?[^\s]*)?)/i;
+
+
+
+if(imageRegex.test(text)){
+
+
+const imageUrl =
+text.match(imageRegex)[0];
+
+
+
+text =
+text.replace(imageUrl,"");
+
+
+
+return `
+
+
+<div class="ai-text">
+
+${text}
+
+</div>
+
+
+
+<div class="ai-image-card">
+
+
+<img
+
+src="${imageUrl}"
+
+loading="lazy"
+
+onclick="openImage(this.src)"
+
+>
+
+
+</div>
+
+
+`;
+
+}
+
+
+
+
+// ===============================
+// Code Block
+// ===============================
+
+
 return text.replace(
+
 /```(\w+)?\n([\s\S]*?)```/g,
+
 (_,lang="",code)=>{
 
 
@@ -407,10 +473,17 @@ return `
 
 <div class="code-header">
 
-<span>${lang||"Code"}</span>
+
+<span>
+
+${lang || "Code"}
+
+</span>
+
 
 
 <button class="copy-btn"
+
 onclick="copyCode('${id}')">
 
 نسخ
@@ -425,7 +498,9 @@ onclick="copyCode('${id}')">
 <pre>
 
 <code id="${id}">
+
 ${escapeHtml(code)}
+
 </code>
 
 </pre>
@@ -433,11 +508,14 @@ ${escapeHtml(code)}
 
 </div>
 
+
 `;
 
 }
 
+
 );
+
 
 
 }
@@ -445,7 +523,14 @@ ${escapeHtml(code)}
 
 
 
+
+// ===============================
+// Escape HTML
+// ===============================
+
+
 function escapeHtml(text){
+
 
 return text
 
@@ -455,9 +540,16 @@ return text
 
 .replace(/>/g,"&gt;");
 
+
 }
 
 
+
+
+
+// ===============================
+// Copy Code
+// ===============================
 
 
 window.copyCode=function(id){
@@ -468,7 +560,80 @@ document.getElementById(id)
 .innerText;
 
 
+
 navigator.clipboard.writeText(code);
+
+
+};
+
+// ===============================
+// Open Image
+// ===============================
+
+window.openImage=function(src){
+
+
+const viewer =
+document.createElement("div");
+
+
+viewer.className="image-viewer";
+
+
+viewer.innerHTML=`
+
+<img src="${src}">
+
+`;
+
+
+viewer.onclick=()=>{
+
+viewer.remove();
+
+};
+
+
+document.body.appendChild(viewer);
+
+
+};
+
+// ===============================
+// Image Viewer
+// ===============================
+
+
+window.openImage=function(src){
+
+
+const viewer =
+document.createElement("div");
+
+
+
+viewer.className =
+"image-viewer";
+
+
+
+viewer.innerHTML = `
+
+<img src="${src}">
+
+`;
+
+
+
+viewer.onclick=()=>{
+
+viewer.remove();
+
+};
+
+
+
+document.body.appendChild(viewer);
 
 
 };
@@ -477,8 +642,14 @@ navigator.clipboard.writeText(code);
 
 
 
+// ===============================
+// Create Message
+// ===============================
+
+
 const msg =
 document.createElement("div");
+
 
 
 msg.className =
@@ -491,6 +662,7 @@ const bubble =
 document.createElement("div");
 
 
+
 bubble.className =
 "bubble";
 
@@ -501,14 +673,20 @@ formatMessage(text);
 
 
 
+
 msg.appendChild(bubble);
+
 
 
 chatContainer.appendChild(msg);
 
 
 
-// حفظ الرسالة الجديدة فقط
+
+// ===============================
+// Save
+// ===============================
+
 
 if(save){
 
@@ -519,8 +697,21 @@ saveMessage(text,sender);
 
 
 
+
+// ===============================
+// Auto Scroll
+// ===============================
+
+
+setTimeout(()=>{
+
+
 chatContainer.scrollTop =
 chatContainer.scrollHeight;
+
+
+
+},100);
 
 
 
