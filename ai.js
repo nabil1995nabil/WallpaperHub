@@ -1,18 +1,3 @@
-import {
-auth,
-db,
-collection,
-addDoc,
-getDocs,
-query,
-orderBy,
-serverTimestamp
-} from "./firebase.js";
-
-import {
-GEMINI_API_KEY,
-GEMINI_MODEL
-} from "./config.js";
 
 
 // ===============================
@@ -673,47 +658,6 @@ return "⚠️ وقع مشكل مؤقت، حاول مرة أخرى.";
 
 
 }
-
-
-return data
-.candidates[0]
-.content
-.parts[0]
-.text;
-
-
-
-
-
-
-
-}catch(e){
-
-
-
-console.error(
-"Gemini Error:",
-e
-);
-
-
-
-return "⚠️ يوجد مشكل مؤقت في الاتصال. يرجى المحاولة مرة أخرى.";
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
 
 
 // ===============================
