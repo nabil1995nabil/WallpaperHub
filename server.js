@@ -903,12 +903,9 @@ ${message}`
 
 app.post("/api/generate-image", async(req,res)=>{
 
-
 try{
 
-
 const {prompt}=req.body;
-
 
 
 const result =
@@ -925,7 +922,6 @@ ${prompt}
 Requirements:
 - 4K quality
 - vertical mobile wallpaper
-- 1440x3200 resolution style
 - no text
 - no watermark
 - ultra detailed
@@ -933,9 +929,7 @@ Requirements:
 
 size:"1024x1536"
 
-
 });
-
 
 
 res.json({
@@ -946,9 +940,7 @@ result.data[0].url
 });
 
 
-
 }catch(error){
-
 
 console.log(error);
 
@@ -959,48 +951,6 @@ error:"Image generation failed"
 
 });
 
-
-}
-
-
-});
-
-try{
-
-const {prompt}=req.body;
-
-const result = await openai.images.generate({
-
-model:"gpt-image-1",
-
-prompt:`
-Premium smartphone wallpaper.
-
-${prompt}
-
-4K quality,
-vertical mobile wallpaper,
-no text,
-no watermark
-`,
-
-size:"1024x1536"
-
-});
-
-
-res.json({
-image: result.data[0].url
-});
-
-
-}catch(error){
-
-console.log(error);
-
-res.status(500).json({
-error:"Image generation failed"
-});
 
 }
 
