@@ -25,7 +25,302 @@ document.getElementById("imageInput");
 
 let selectedImage = null;
 
+// ===============================
+// Sidebar + Chat History
+// ===============================
 
+
+const menuBtn =
+document.getElementById("menuBtn");
+
+
+const sidebar =
+document.getElementById("sidebar");
+
+
+const closeSidebar =
+document.getElementById("closeSidebar");
+
+
+const newChat =
+document.getElementById("newChat");
+
+
+const chatHistory =
+document.getElementById("chatHistory");
+
+
+
+// فتح القائمة
+
+if(menuBtn && sidebar){
+
+menuBtn.onclick = ()=>{
+
+sidebar.classList.add("active");
+
+};
+
+}
+
+
+
+// إغلاق القائمة
+
+if(closeSidebar && sidebar){
+
+closeSidebar.onclick = ()=>{
+
+sidebar.classList.remove("active");
+
+};
+
+}
+
+
+
+
+// ===============================
+// Save Chats
+// ===============================
+
+
+let chats =
+JSON.parse(
+localStorage.getItem("wallpaperChats")
+) || [];
+
+
+
+let currentChat = null;
+
+
+
+function saveChats(){
+
+localStorage.setItem(
+"wallpaperChats",
+JSON.stringify(chats)
+);
+
+}
+
+
+
+
+// إنشاء محادثة جديدة
+
+function createNewChat(){
+
+
+currentChat = {
+
+id:Date.now(),
+
+title:"محادثة جديدة",
+
+messages:[]
+
+};
+
+
+
+chats.unshift(currentChat);
+
+
+saveChats();
+
+
+renderHistory();
+
+
+chatContainer.innerHTML="";
+
+
+sidebar.classList.remove("active");
+
+
+}
+
+
+
+
+if(newChat){
+
+newChat.onclick =
+createNewChat;
+
+}
+
+
+
+
+
+// ===============================
+// عرض القائمة
+// ===============================
+
+
+function renderHistory(){
+
+
+if(!chatHistory)
+return;
+
+
+
+chatHistory.innerHTML="";
+
+
+
+chats.forEach(chat=>{
+
+
+const item =
+document.createElement("div");
+
+
+
+item.className="history-item";
+
+
+item.innerHTML=`
+
+<span>
+${chat.title}
+</span>
+
+`;
+
+
+
+item.onclick=()=>{
+
+
+loadChat(chat.id);
+
+
+};
+
+
+
+chatHistory.appendChild(item);
+
+
+
+});
+
+
+}
+
+
+
+
+// ===============================
+// تحميل محادثة
+// ===============================
+
+
+function loadChat(id){
+
+
+const chat =
+chats.find(
+c=>c.id===id
+);
+
+
+
+if(!chat)
+return;
+
+
+
+currentChat = chat;
+
+
+
+chatContainer.innerHTML="";
+
+
+
+chat.messages.forEach(msg=>{
+
+
+addMessage(
+msg.text,
+msg.sender,
+false
+);
+
+
+});
+
+
+
+sidebar.classList.remove("active");
+
+}
+
+
+
+
+// ===============================
+// حفظ الرسائل
+// ===============================
+
+
+function saveMessage(text,sender){
+
+
+if(!currentChat){
+
+
+createNewChat();
+
+
+}
+
+
+
+currentChat.messages.push({
+
+text:text,
+
+sender:sender
+
+});
+
+
+
+if(
+currentChat.title==="محادثة جديدة"
+&& sender==="user"
+){
+
+
+currentChat.title =
+text.substring(0,25);
+
+
+}
+
+
+
+saveChats();
+
+
+renderHistory();
+
+
+}
+
+
+
+
+// تشغيل أول مرة
+
+renderHistory();
 
 // ===============================
 // Image Picker
@@ -87,7 +382,7 @@ file.name
 // Add Message
 // ===============================
 
-function addMessage(text, sender){
+function addMessage(text, sender, save=true){
 
 
 
@@ -213,16 +508,23 @@ chatContainer.appendChild(msg);
 
 
 
-chatContainer.scrollTop =
-chatContainer.scrollHeight;
+// حفظ الرسالة الجديدة فقط
 
+if(save){
 
+saveMessage(text,sender);
 
 }
 
 
 
 
+chatContainer.scrollTop =
+chatContainer.scrollHeight;
+
+
+
+}
 
 // ===============================
 // Thinking Effect
