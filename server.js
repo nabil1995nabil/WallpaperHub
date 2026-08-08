@@ -840,7 +840,7 @@ ${message}`
             return res.json({
 
                 reply:
-                "⚠️ مشكلة في الاتصال بـ Gemini"
+                "⚠️ مشكلة في الاتصال بـ السيرفر"
 
             });
 
@@ -856,7 +856,7 @@ ${message}`
             return res.json({
 
                 reply:
-                "⚠️ Gemini لم يرجع جواب"
+                "⚠️ سيرفر لم يرجع جواب"
 
             });
 
@@ -896,13 +896,6 @@ ${message}`
 
 
 });
-
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-
 
 // ===============================
 // Generate Image
@@ -971,8 +964,6 @@ error:"Image generation failed"
 
 
 });
-
-app.post("/api/generate-image", async(req,res)=>{
 
 try{
 
