@@ -10,6 +10,17 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
+<<<<<<< HEAD
+=======
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
+
+const app = express();
+const PORT = 3000;
+>>>>>>> 58ccab8 (Fix OpenAI image route)
 
 
 const app = express();
@@ -1255,10 +1266,40 @@ parts:parts
 
 }
 
+<<<<<<< HEAD
 );
 
 
 
+=======
+            console.log(data);
+
+
+            return res.json({
+
+                reply:
+                "⚠️ مشكلة في الاتصال بـ السيرفر"
+
+            });
+
+        }
+
+
+
+        if(
+            !data.candidates ||
+            !data.candidates[0]
+        ){
+
+            return res.json({
+
+                reply:
+                "⚠️ سيرفر لم يرجع جواب"
+
+            });
+
+        }
+>>>>>>> 58ccab8 (Fix OpenAI image route)
 
 
 
@@ -1283,7 +1324,11 @@ reply:
 
 });
 
+// ===============================
+// Generate Image
+// ===============================
 
+<<<<<<< HEAD
 }
 
 
@@ -1348,12 +1393,15 @@ reply:
 // ================================
 
 
+=======
+>>>>>>> 58ccab8 (Fix OpenAI image route)
 app.post("/api/generate-image", async(req,res)=>{
 
 
 try{
 
 
+<<<<<<< HEAD
 const {
 prompt,
 model
@@ -1462,11 +1510,49 @@ return res.json({
 
 image:
 `data:image/png;base64,${base64}`
+=======
+const {prompt}=req.body;
+
+
+
+const result =
+await openai.images.generate({
+
+model:"gpt-image-1",
+
+prompt:
+`
+Create a premium smartphone wallpaper.
+
+${prompt}
+
+Requirements:
+- 4K quality
+- vertical mobile wallpaper
+- 1440x3200 resolution style
+- no text
+- no watermark
+- ultra detailed
+`,
+
+size:"1024x1536"
+
 
 });
 
 
 
+res.json({
+
+image:
+result.data[0].url
+>>>>>>> 58ccab8 (Fix OpenAI image route)
+
+});
+
+
+
+<<<<<<< HEAD
 }
 
 
@@ -1559,40 +1645,30 @@ error:
 
 
 // ===============================
-// Unknown
+// Unknown Model
 // ===============================
-
 
 return res.status(400).json({
 
-error:
-"Unknown model"
+    error: "Unknown model"
 
 });
 
 
+} catch(error) {
 
 
-
-}catch(error){
-
-
-console.log(
-
-"Image API Error:",
-
-error
-
-);
+    console.log(
+        "Image API Error:",
+        error
+    );
 
 
+    return res.status(500).json({
 
-res.status(500).json({
+        error: error.message
 
-error:
-error.message
-
-});
+    });
 
 
 }
