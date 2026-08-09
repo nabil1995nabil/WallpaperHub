@@ -2,21 +2,6 @@
 // WallpaperHub Admin JS
 // Part 1/5
 // ==========================================
-
-
-// ============================
-// حماية لوحة التحكم
-// ============================
-
-if(localStorage.getItem("adminLogged") !== "true"){
-
-    location.href = "login.html";
-
-}
-
-
-
-
 // ============================
 // العناصر
 // ============================
@@ -1715,38 +1700,6 @@ editWallpaper;
 
 window.deleteWallpaper =
 deleteWallpaper;
-
-
-
-
-
-
-// ==========================================
-// تسجيل الخروج
-// ==========================================
-
-
-if(logoutBtn){
-
-
-logoutBtn.onclick = ()=>{
-
-
-localStorage.removeItem(
-"adminLogged"
-);
-
-
-
-location.href =
-"login.html";
-
-
-
-};
-
-
-}
 
 
 // فتح صفحة الخلفيات
