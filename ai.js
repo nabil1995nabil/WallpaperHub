@@ -874,6 +874,8 @@ return;
 
 }
 
+}
+
 let imageData = null;
 
 
@@ -931,14 +933,13 @@ reply,
 
 selectedImage=null;
 
-
 if(imageInput){
-
 imageInput.value="";
-
 }
 
+return;
 
+}
 
 }
 
@@ -1256,13 +1257,10 @@ text;
 // Start
 // ===============================
 
-
 document.addEventListener(
 "DOMContentLoaded",
 ()=>{
 
-
 updateWelcome();
-
 
 });
