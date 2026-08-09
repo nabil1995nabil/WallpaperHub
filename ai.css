@@ -412,7 +412,7 @@ box-shadow:
 
     height:100%;
 
-    transform:translateY(-170px);
+    transform:translateY(-250px);
 
 }
 
@@ -420,7 +420,7 @@ box-shadow:
 
 #welcomeText{
 
-    font-size:13px;
+    font-size:15px;
 
     font-weight:600;
 
