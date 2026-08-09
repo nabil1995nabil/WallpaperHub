@@ -39,22 +39,21 @@ body{
 
 .ai-bg{
 
-background:#ffffff;
+    position:fixed;
 
-}
+    inset:0;
 
+    background:
     radial-gradient(
         circle at bottom,
         #00d9ff25,
         transparent 45%
     ),
-
     #f7f8ff;
 
     z-index:-1;
 
 }
-
 
 
 
@@ -403,33 +402,18 @@ box-shadow:
 /* Welcome Message */
 
 .welcome-screen{
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    height:100%;
-
-    transform:translateY(-250px);
-
+    position:absolute;
+    top:40%;
+    left:0;
+    right:0;
+    text-align:center;
 }
 
 
-
 #welcomeText{
-
-    font-size:15px;
-
-    font-weight:600;
-
+    font-size:22px;
     color:#777;
-
-    margin:0;
-
-    text-align:center;
-
+    font-weight:600;
 }
 
 

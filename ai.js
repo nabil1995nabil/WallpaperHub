@@ -865,7 +865,7 @@ thinkingMessage.remove();
 
 
 addMessage(
-`![image](${data.image})`,
+data.image,
 "ai"
 );
 
@@ -938,8 +938,6 @@ imageInput.value="";
 }
 
 return;
-
-}
 
 }
 
@@ -1247,7 +1245,7 @@ text;
 
 
 }
-
+نم
 
 
 
