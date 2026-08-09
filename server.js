@@ -50,10 +50,21 @@ app.use(
     express.static(__dirname)
 );
 
+// ================================
+// Admin Panel
+// ================================
 
+app.get("/admin",(req,res)=>{
 
+    res.sendFile(
+        path.join(
+            __dirname,
+            "admin",
+            "admin.html"
+        )
+    );
 
-
+});
 
 // ================================
 // Paths
