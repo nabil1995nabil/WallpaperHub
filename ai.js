@@ -395,7 +395,7 @@ function formatMessage(text){
 // ===============================
 
 const imageRegex =
-/(https?:\/\/[^\s]+\.(jpg|jpeg|png|webp)(\?[^\s]*)?)/i;
+/(https?:\/\/[^\s]+)/i;
 
 
 
@@ -562,39 +562,6 @@ document.getElementById(id)
 
 
 navigator.clipboard.writeText(code);
-
-
-};
-
-// ===============================
-// Open Image
-// ===============================
-
-window.openImage=function(src){
-
-
-const viewer =
-document.createElement("div");
-
-
-viewer.className="image-viewer";
-
-
-viewer.innerHTML=`
-
-<img src="${src}">
-
-`;
-
-
-viewer.onclick=()=>{
-
-viewer.remove();
-
-};
-
-
-document.body.appendChild(viewer);
 
 
 };
@@ -886,13 +853,21 @@ await response.json();
 if(data.image){
 
 
-addMessage(
-data.image,
-"ai"
-);
+const thinkingMessage =
+typing.closest(".message");
 
+
+if(thinkingMessage){
+
+thinkingMessage.remove();
 
 }
+
+
+addMessage(
+`![image](${data.image})`,
+"ai"
+);
 
 
 return;
@@ -929,9 +904,15 @@ selectedImage
 
 
 
-if(typing.parentElement){
+if(typing){
 
-typing.parentElement.remove();
+const thinkingMessage = typing.closest(".message");
+
+if(thinkingMessage){
+
+thinkingMessage.remove();
+
+}
 
 }
 
