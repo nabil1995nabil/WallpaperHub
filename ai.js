@@ -2,52 +2,26 @@
 // Elements
 // ===============================
 
-const chatContainer =
-document.getElementById("chatContainer");
+const chatContainer = document.getElementById("chatContainer");
+const userInput = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
 
-
-const userInput =
-document.getElementById("userInput");
-
-
-const sendBtn =
-document.getElementById("sendBtn");
-
-
-const imageBtn =
-document.getElementById("imageBtn");
-
-
-const imageInput =
-document.getElementById("imageInput");
-
-
+const imageBtn = document.getElementById("imageBtn");
+const imageInput = document.getElementById("imageInput");
 
 let selectedImage = null;
+
 
 // ===============================
 // Sidebar + Chat History
 // ===============================
 
+const menuBtn = document.getElementById("menuBtn");
+const sidebar = document.getElementById("sidebar");
+const closeSidebar = document.getElementById("closeSidebar");
 
-const menuBtn =
-document.getElementById("menuBtn");
-
-
-const sidebar =
-document.getElementById("sidebar");
-
-
-const closeSidebar =
-document.getElementById("closeSidebar");
-
-
-const newChat =
-document.getElementById("newChat");
-
-
-const chatHistory =
-document.getElementById("chatHistory");
+const newChat = document.getElementById("newChat");
+const chatHistory = document.getElementById("chatHistory");
 
 
 
@@ -55,11 +29,11 @@ document.getElementById("chatHistory");
 
 if(menuBtn && sidebar){
 
-menuBtn.onclick = ()=>{
+    menuBtn.onclick = ()=>{
 
-sidebar.classList.add("active");
+        sidebar.classList.add("active");
 
-};
+    };
 
 }
 
@@ -69,11 +43,11 @@ sidebar.classList.add("active");
 
 if(closeSidebar && sidebar){
 
-closeSidebar.onclick = ()=>{
+    closeSidebar.onclick = ()=>{
 
-sidebar.classList.remove("active");
+        sidebar.classList.remove("active");
 
-};
+    };
 
 }
 
@@ -85,10 +59,26 @@ sidebar.classList.remove("active");
 // ===============================
 
 
-let chats =
-JSON.parse(
-localStorage.getItem("wallpaperChats")
-) || [];
+let chats = [];
+
+try{
+
+    chats =
+    JSON.parse(
+        localStorage.getItem("wallpaperChats")
+    ) || [];
+
+
+}catch(error){
+
+    chats = [];
+
+    console.error(
+        "Chat Load Error:",
+        error
+    );
+
+}
 
 
 
@@ -98,46 +88,58 @@ let currentChat = null;
 
 function saveChats(){
 
-localStorage.setItem(
-"wallpaperChats",
-JSON.stringify(chats)
-);
+    localStorage.setItem(
+        "wallpaperChats",
+        JSON.stringify(chats)
+    );
 
 }
 
 
 
+// ===============================
+// Create New Chat
+// ===============================
 
-// إنشاء محادثة جديدة
 
 function createNewChat(){
 
 
-currentChat = {
+    currentChat = {
 
-id:Date.now(),
+        id: Date.now(),
 
-title:"محادثة جديدة",
+        title:"محادثة جديدة",
 
-messages:[]
+        messages:[]
 
-};
-
-
-
-chats.unshift(currentChat);
+    };
 
 
-saveChats();
+
+    chats.unshift(currentChat);
 
 
-renderHistory();
+    saveChats();
 
 
-chatContainer.innerHTML="";
+    renderHistory();
 
 
-sidebar.classList.remove("active");
+
+    if(chatContainer){
+
+        chatContainer.innerHTML="";
+
+    }
+
+
+
+    if(sidebar){
+
+        sidebar.classList.remove("active");
+
+    }
 
 
 }
@@ -147,8 +149,8 @@ sidebar.classList.remove("active");
 
 if(newChat){
 
-newChat.onclick =
-createNewChat;
+    newChat.onclick =
+    createNewChat;
 
 }
 
@@ -157,58 +159,58 @@ createNewChat;
 
 
 // ===============================
-// عرض القائمة
+// Render History
 // ===============================
 
 
 function renderHistory(){
 
 
-if(!chatHistory)
-return;
+    if(!chatHistory)
+    return;
 
 
 
-chatHistory.innerHTML="";
+    chatHistory.innerHTML="";
 
 
 
-chats.forEach(chat=>{
+    chats.forEach(chat=>{
 
 
-const item =
-document.createElement("div");
-
-
-
-item.className="history-item";
-
-
-item.innerHTML=`
-
-<span>
-${chat.title}
-</span>
-
-`;
+        const item =
+        document.createElement("div");
 
 
 
-item.onclick=()=>{
-
-
-loadChat(chat.id);
-
-
-};
+        item.className =
+        "history-item";
 
 
 
-chatHistory.appendChild(item);
+        item.innerHTML = `
+
+            <span>
+                ${chat.title}
+            </span>
+
+        `;
 
 
 
-});
+        item.onclick = ()=>{
+
+            loadChat(chat.id);
+
+        };
+
+
+
+        chatHistory.appendChild(item);
+
+
+
+    });
 
 
 }
@@ -216,109 +218,124 @@ chatHistory.appendChild(item);
 
 
 
+
 // ===============================
-// تحميل محادثة
+// Load Chat
 // ===============================
 
 
 function loadChat(id){
 
 
-const chat =
-chats.find(
-c=>c.id===id
-);
+    const chat =
+    chats.find(
+        c=>c.id===id
+    );
 
 
 
-if(!chat)
-return;
+    if(!chat)
+    return;
 
 
 
-currentChat = chat;
+    currentChat = chat;
 
 
 
-chatContainer.innerHTML="";
+    if(chatContainer){
+
+        chatContainer.innerHTML="";
+
+    }
 
 
 
-chat.messages.forEach(msg=>{
+    chat.messages.forEach(msg=>{
 
 
-addMessage(
-msg.text,
-msg.sender,
-false
-);
+        addMessage(
+            msg.text,
+            msg.sender,
+            false
+        );
 
 
-});
+    });
 
 
 
-sidebar.classList.remove("active");
+    if(sidebar){
+
+        sidebar.classList.remove("active");
+
+    }
+
 
 }
 
 
 
 
+
 // ===============================
-// حفظ الرسائل
+// Save Message
 // ===============================
 
 
 function saveMessage(text,sender){
 
 
-if(!currentChat){
+
+    if(!currentChat){
+
+        createNewChat();
+
+    }
 
 
-createNewChat();
+
+
+    currentChat.messages.push({
+
+        text:text,
+
+        sender:sender
+
+    });
+
+
+
+
+    if(
+        currentChat.title==="محادثة جديدة"
+        &&
+        sender==="user"
+    ){
+
+
+        currentChat.title =
+        text.substring(0,25);
+
+
+    }
+
+
+
+
+    saveChats();
+
+
+    renderHistory();
 
 
 }
 
 
 
-currentChat.messages.push({
-
-text:text,
-
-sender:sender
-
-});
 
 
-
-if(
-currentChat.title==="محادثة جديدة"
-&& sender==="user"
-){
-
-
-currentChat.title =
-text.substring(0,25);
-
-
-}
-
-
-
-saveChats();
-
-
-renderHistory();
-
-
-}
-
-
-
-
-// تشغيل أول مرة
+// تشغيل التاريخ
 
 renderHistory();
 
@@ -326,50 +343,52 @@ renderHistory();
 // Image Picker
 // ===============================
 
+
 if(imageBtn && imageInput){
 
 
-imageBtn.onclick = ()=>{
+    imageBtn.onclick = ()=>{
 
-    imageInput.click();
+        imageInput.click();
 
-};
-
-
-
-imageInput.onchange = ()=>{
-
-
-const file =
-imageInput.files[0];
-
-
-if(!file)
-return;
+    };
 
 
 
-if(!file.type.startsWith("image/")){
+    imageInput.onchange = ()=>{
 
-alert("اختر صورة فقط");
 
-return;
-
-}
+        const file =
+        imageInput.files[0];
 
 
 
-selectedImage = file;
-
-
-console.log(
-"Image selected:",
-file.name
-);
+        if(!file)
+        return;
 
 
 
-};
+        if(!file.type.startsWith("image/")){
+
+            alert("اختر صورة فقط");
+
+            return;
+
+        }
+
+
+
+        selectedImage = file;
+
+
+
+        console.log(
+            "Image selected:",
+            file.name
+        );
+
+
+    };
 
 
 }
@@ -382,143 +401,216 @@ file.name
 // Add Message
 // ===============================
 
+
 function addMessage(text,sender,save=true){
 
 
 
-function formatMessage(text){
+    function formatMessage(text){
 
 
 
-// ===============================
-// Image Detection
-// ===============================
-
-const imageRegex =
-/(https?:\/\/[^\s]+)/i;
+        // ===============================
+        // Image Detection
+        // ===============================
 
 
-
-if(imageRegex.test(text)){
-
-
-const imageUrl =
-text.match(imageRegex)[0];
+        const imageRegex =
+        /(https?:\/\/[^\s]+)/i;
 
 
 
-text =
-text.replace(imageUrl,"");
+        if(imageRegex.test(text)){
+
+
+            const imageUrl =
+            text.match(imageRegex)[0];
 
 
 
-return `
-
-
-<div class="ai-text">
-
-${text}
-
-</div>
+            const cleanText =
+            text.replace(imageUrl,"");
 
 
 
-<div class="ai-image-card">
+            return `
+
+            <div class="ai-text">
+
+                ${cleanText}
+
+            </div>
 
 
-<img
+            <div class="ai-image-card">
 
-src="${imageUrl}"
+                <img
 
-loading="lazy"
+                src="${imageUrl}"
 
-onclick="openImage(this.src)"
+                loading="lazy"
 
->
+                onclick="openImage(this.src)"
+
+                >
+
+            </div>
+
+            `;
 
 
-</div>
+        }
 
 
-`;
+
+
+
+        // ===============================
+        // Code Block
+        // ===============================
+
+
+        return text.replace(
+
+        /```(\w+)?\n([\s\S]*?)```/g,
+
+        (_,lang="",code)=>{
+
+
+            const id =
+            "code"+Math.random()
+            .toString(36)
+            .slice(2);
+
+
+
+            return `
+
+            <div class="code-block">
+
+
+                <div class="code-header">
+
+
+                    <span>
+
+                    ${lang || "Code"}
+
+                    </span>
+
+
+
+                    <button class="copy-btn"
+
+                    onclick="copyCode('${id}')">
+
+                    نسخ
+
+                    </button>
+
+
+                </div>
+
+
+
+                <pre>
+
+                <code id="${id}">
+
+                ${escapeHtml(code)}
+
+                </code>
+
+                </pre>
+
+
+            </div>
+
+            `;
+
+
+        });
+
+
+    }
+
+
+
+
+
+    // إنشاء الرسالة
+
+    const msg =
+    document.createElement("div");
+
+
+
+    msg.className =
+    "message " + sender;
+
+
+
+    const bubble =
+    document.createElement("div");
+
+
+
+    bubble.className =
+    "bubble";
+
+
+
+    bubble.innerHTML =
+    formatMessage(text);
+
+
+
+    msg.appendChild(bubble);
+
+
+
+    if(chatContainer){
+
+        chatContainer.appendChild(msg);
+
+    }
+
+
+
+
+    // حفظ
+
+    if(save){
+
+        saveMessage(
+            text,
+            sender
+        );
+
+    }
+
+
+
+
+    // Scroll
+
+    setTimeout(()=>{
+
+
+        if(chatContainer){
+
+            chatContainer.scrollTop =
+            chatContainer.scrollHeight;
+
+        }
+
+
+    },100);
+
+
 
 }
 
-
-
-
-// ===============================
-// Code Block
-// ===============================
-
-
-return text.replace(
-
-/```(\w+)?\n([\s\S]*?)```/g,
-
-(_,lang="",code)=>{
-
-
-const id =
-"code"+Math.random()
-.toString(36)
-.slice(2);
-
-
-
-return `
-
-<div class="code-block">
-
-
-<div class="code-header">
-
-
-<span>
-
-${lang || "Code"}
-
-</span>
-
-
-
-<button class="copy-btn"
-
-onclick="copyCode('${id}')">
-
-نسخ
-
-</button>
-
-
-</div>
-
-
-
-<pre>
-
-<code id="${id}">
-
-${escapeHtml(code)}
-
-</code>
-
-</pre>
-
-
-</div>
-
-
-`;
-
-}
-
-
-);
-
-
-
-}
 
 
 
@@ -532,16 +624,17 @@ ${escapeHtml(code)}
 function escapeHtml(text){
 
 
-return text
+    return text
 
-.replace(/&/g,"&amp;")
+    .replace(/&/g,"&amp;")
 
-.replace(/</g,"&lt;")
+    .replace(/</g,"&lt;")
 
-.replace(/>/g,"&gt;");
+    .replace(/>/g,"&gt;");
 
 
 }
+
 
 
 
@@ -555,16 +648,26 @@ return text
 window.copyCode=function(id){
 
 
-const code =
-document.getElementById(id)
-.innerText;
+    const code =
+    document.getElementById(id);
 
 
 
-navigator.clipboard.writeText(code);
+    if(code){
+
+        navigator.clipboard.writeText(
+            code.innerText
+        );
+
+    }
 
 
 };
+
+
+
+
+
 
 // ===============================
 // Image Viewer
@@ -574,191 +677,136 @@ navigator.clipboard.writeText(code);
 window.openImage=function(src){
 
 
-const viewer =
-document.createElement("div");
+    const viewer =
+    document.createElement("div");
 
 
 
-viewer.className =
-"image-viewer";
+    viewer.className =
+    "image-viewer";
 
 
 
-viewer.innerHTML = `
+    viewer.innerHTML = `
 
-<img src="${src}">
+        <img src="${src}">
 
-`;
+    `;
 
 
 
-viewer.onclick=()=>{
+    viewer.onclick = ()=>{
 
-viewer.remove();
+        viewer.remove();
+
+    };
+
+
+
+    document.body.appendChild(viewer);
+
 
 };
-
-
-
-document.body.appendChild(viewer);
-
-
-};
-
-
-
-
-
-// ===============================
-// Create Message
-// ===============================
-
-
-const msg =
-document.createElement("div");
-
-
-
-msg.className =
-"message "+sender;
-
-
-
-
-const bubble =
-document.createElement("div");
-
-
-
-bubble.className =
-"bubble";
-
-
-
-bubble.innerHTML =
-formatMessage(text);
-
-
-
-
-msg.appendChild(bubble);
-
-
-
-chatContainer.appendChild(msg);
-
-
-
-
-// ===============================
-// Save
-// ===============================
-
-
-if(save){
-
-saveMessage(text,sender);
-
-}
-
-
-
-
-
-// ===============================
-// Auto Scroll
-// ===============================
-
-
-setTimeout(()=>{
-
-
-chatContainer.scrollTop =
-chatContainer.scrollHeight;
-
-
-
-},100);
-
-
-
-}
 
 // ===============================
 // Thinking Effect
 // ===============================
 
+
 function typingEffect(){
 
 
-const msg =
-document.createElement("div");
-
-
-msg.className =
-"message ai";
+    const msg =
+    document.createElement("div");
 
 
 
-const bubble =
-document.createElement("div");
-
-
-bubble.className =
-"bubble";
-
-
-bubble.innerHTML = `
-
-<div class="ai-thinking">
-
-<canvas 
-class="thinking-ai-canvas"
-width="42"
-height="42">
-</canvas>
-
-
-<div class="thinking-dots">
-    <span></span>
-    <span></span>
-    <span></span>
-</div>
-
-
-</div>
-
-`;
+    msg.className =
+    "message ai";
 
 
 
-msg.appendChild(bubble);
-
-
-chatContainer.appendChild(msg);
-
-
-
-const canvas =
-bubble.querySelector(
-".thinking-ai-canvas"
-);
+    const bubble =
+    document.createElement("div");
 
 
 
-if(canvas &&
-typeof window.createAILogo==="function"){
+    bubble.className =
+    "bubble";
 
-window.createAILogo(canvas);
+
+
+    bubble.innerHTML = `
+
+    <div class="ai-thinking">
+
+
+        <canvas
+
+        class="thinking-ai-canvas"
+
+        width="42"
+
+        height="42">
+
+        </canvas>
+
+
+
+        <div class="thinking-dots">
+
+            <span></span>
+
+            <span></span>
+
+            <span></span>
+
+        </div>
+
+
+    </div>
+
+    `;
+
+
+
+    msg.appendChild(bubble);
+
+
+
+    if(chatContainer){
+
+        chatContainer.appendChild(msg);
+
+    }
+
+
+
+
+
+    const canvas =
+    bubble.querySelector(
+        ".thinking-ai-canvas"
+    );
+
+
+
+    if(
+        canvas &&
+        typeof window.createAILogo==="function"
+    ){
+
+        window.createAILogo(canvas);
+
+    }
+
+
+
+    return bubble;
+
 
 }
 
-
-
-return bubble;
-
-
-}
 
 
 
@@ -768,185 +816,351 @@ return bubble;
 // Send Message
 // ===============================
 
+
 async function sendMessage(){
 
 
 
-const text =
-userInput.value.trim();
+    const text =
+    userInput.value.trim();
 
 
 
-if(text==="" && !selectedImage)
-return;
+    if(
+        text === "" &&
+        !selectedImage
+    )
+    return;
 
 
 
 
-if(text){
-
-addMessage(
-text,
-"user"
-);
-
-}
-
-
-
-
-const welcome =
-document.querySelector(
-".welcome-screen"
-);
-
-
-
-if(welcome){
-
-welcome.style.display="none";
-
-}
-
-
-
-userInput.value="";
-
-
-
-const typing =
-typingEffect();
-
-// ===============================
-// AI Image Generation
-// ===============================
-
-const generateWords = [
-    "خلفية",
-    "صورة",
-    "ولد",
-    "صمم",
-    "اصنع",
-    "انشئ",
-    "generate",
-    "wallpaper"
-];
-
-
-const isImageRequest =
-generateWords.some(word =>
-    text.toLowerCase().includes(word)
-);
-
-
-
-if(isImageRequest){
-
-
-    try{
-
-
-        const response =
-        await fetch("/api/generate-image",{
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-
-            body:JSON.stringify({
-
-                prompt:text
-
-            })
-
-        });
-
-
-
-        const data =
-        await response.json();
-
-
-
-        // حذف علامة التفكير
-
-        if(typing){
-
-            const thinkingMessage =
-            typing.closest(".message");
-
-
-            if(thinkingMessage){
-
-                thinkingMessage.remove();
-
-            }
-
-        }
-
-
-
-
-        if(data.image){
-
-
-            addMessage(
-                data.image,
-                "ai"
-            );
-
-
-        }else{
-
-
-            addMessage(
-                "⚠️ ماقدرتش نولد الصورة دابا",
-                "ai"
-            );
-
-
-        }
-
-
-
-        return;
-
-
-
-    }catch(error){
-
-
-        console.error(
-            "Image Generation Error:",
-            error
-        );
-
-
-        if(typing){
-
-            const thinkingMessage =
-            typing.closest(".message");
-
-
-            if(thinkingMessage){
-
-                thinkingMessage.remove();
-
-            }
-
-        }
+    if(text){
 
 
         addMessage(
-            "⚠️ وقع مشكل أثناء توليد الصورة",
-            "ai"
+            text,
+            "user"
         );
 
 
-        return;
+    }
+
+
+
+
+    const welcome =
+    document.querySelector(
+        ".welcome-screen"
+    );
+
+
+
+    if(welcome){
+
+        welcome.style.display="none";
+
+    }
+
+
+
+
+
+    userInput.value = "";
+
+
+
+    const typing =
+    typingEffect();
+
+
+
+
+
+    // ===============================
+    // Image Generation
+    // ===============================
+
+
+    const generateWords = [
+
+        "خلفية",
+
+        "صورة",
+
+        "ولد",
+
+        "بنت",
+
+        "صمم",
+
+        "اصنع",
+
+        "انشئ",
+
+        "generate",
+
+        "wallpaper"
+
+    ];
+
+
+
+
+
+    const isImageRequest =
+    generateWords.some(word =>
+
+        text.toLowerCase()
+        .includes(
+            word.toLowerCase()
+        )
+
+    );
+
+
+
+
+
+
+    if(isImageRequest){
+
+
+        try{
+
+
+
+            const response =
+            await fetch(
+                "/api/generate-image",
+                {
+
+                    method:"POST",
+
+
+                    headers:{
+
+                        "Content-Type":
+                        "application/json"
+
+                    },
+
+
+                    body:JSON.stringify({
+
+                        prompt:text
+
+                    })
+
+
+                }
+            );
+
+
+
+
+
+            if(!response.ok){
+
+
+                const error =
+                await response.text();
+
+
+                console.error(
+                    "Image Error:",
+                    error
+                );
+
+
+                throw new Error(
+                    "Image API Error"
+                );
+
+
+            }
+
+
+
+
+
+
+            const data =
+            await response.json();
+
+
+
+
+            removeTyping(typing);
+
+
+
+
+
+            if(data.image){
+
+
+                addMessage(
+
+                    data.image,
+
+                    "ai"
+
+                );
+
+
+            }else{
+
+
+                addMessage(
+
+                    "⚠️ لم يتم إنشاء الصورة",
+
+                    "ai"
+
+                );
+
+
+            }
+
+
+
+
+
+            return;
+
+
+
+
+
+
+        }catch(error){
+
+
+
+            console.error(
+                error
+            );
+
+
+
+            removeTyping(typing);
+
+
+
+            addMessage(
+
+                "⚠️ حدث خطأ أثناء إنشاء الصورة",
+
+                "ai"
+
+            );
+
+
+
+            return;
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+    // ===============================
+    // Chat AI
+    // ===============================
+
+
+
+    let imageData = null;
+
+
+
+    if(selectedImage){
+
+
+        imageData =
+        await imageToBase64(
+            selectedImage
+        );
+
+
+    }
+
+
+
+
+
+    const reply =
+    await askGemini(
+
+        text,
+
+        imageData,
+
+        selectedImage
+
+    );
+
+
+
+
+
+    removeTyping(typing);
+
+
+
+
+
+    addMessage(
+
+        reply,
+
+        "ai"
+
+    );
+
+
+
+
+
+    selectedImage = null;
+
+
+}
+
+
+
+
+
+
+// حذف تأثير التفكير
+
+function removeTyping(typing){
+
+
+    if(typing){
+
+
+        const message =
+        typing.closest(
+            ".message"
+        );
+
+
+
+        if(message){
+
+            message.remove();
+
+        }
 
 
     }
@@ -961,8 +1175,8 @@ if(isImageRequest){
 
 if(sendBtn){
 
-sendBtn.onclick =
-sendMessage;
+    sendBtn.onclick =
+    sendMessage;
 
 }
 
@@ -971,19 +1185,21 @@ sendMessage;
 if(userInput){
 
 
-userInput.addEventListener(
-"keydown",
-(e)=>{
+    userInput.addEventListener(
+        "keydown",
+        (e)=>{
 
 
-if(e.key==="Enter"){
+            if(e.key==="Enter"){
 
-sendMessage();
+                sendMessage();
 
-}
+            }
 
 
-});
+        }
+
+    );
 
 
 }
@@ -1002,17 +1218,18 @@ document
 .forEach(chip=>{
 
 
-chip.onclick=()=>{
+    chip.onclick = ()=>{
 
 
-userInput.value =
-chip.innerText;
+        userInput.value =
+        chip.innerText;
 
 
-sendMessage();
+
+        sendMessage();
 
 
-};
+    };
 
 
 });
@@ -1030,40 +1247,42 @@ sendMessage();
 function imageToBase64(file){
 
 
-return new Promise((resolve,reject)=>{
+    return new Promise(
+    (resolve,reject)=>{
 
 
-const reader =
-new FileReader();
-
-
-
-reader.onload=()=>{
-
-
-resolve(
-reader.result.split(",")[1]
-);
-
-
-};
+        const reader =
+        new FileReader();
 
 
 
-reader.onerror =
-reject;
+        reader.onload = ()=>{
+
+
+            resolve(
+
+                reader.result
+                .split(",")[1]
+
+            );
+
+
+        };
 
 
 
-reader.readAsDataURL(file);
+        reader.onerror =
+        reject;
 
 
 
-});
+        reader.readAsDataURL(file);
+
+
+    });
 
 
 }
-
 
 
 
@@ -1077,87 +1296,174 @@ reader.readAsDataURL(file);
 
 
 async function askGemini(
-message,
-imageData=null,
-imageFile=null
+    message,
+    imageData=null,
+    imageFile=null
 ){
 
-try{
+
+    try{
 
 
-const userLocale =
-navigator.language;
-
-
-const userTimezone =
-Intl.DateTimeFormat()
-.resolvedOptions()
-.timeZone;
+        const userLocale =
+        navigator.language;
 
 
 
-const response =
-await fetch(
-"/api/chat",
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":
-"application/json"
-
-},
-
-
-body:JSON.stringify({
-
-message:message,
-
-
-imageData:imageData,
-
-
-mimeType:
-imageFile ?
-imageFile.type :
-null,
-
-
-locale:userLocale,
-
-
-timezone:userTimezone
-
-
-})
-
-
-});
+        const userTimezone =
+        Intl.DateTimeFormat()
+        .resolvedOptions()
+        .timeZone;
 
 
 
 
+        const response =
+        await fetch(
+            "/api/chat",
+            {
 
-const data =
-await response.json();
+                method:"POST",
 
 
+                headers:{
 
-console.log(
-"AI Server Response:",
-data
-);
+                    "Content-Type":
+                    "application/json"
+
+                },
+
+
+                body:JSON.stringify({
+
+                    message:message,
+
+
+                    imageData:imageData,
+
+
+                    mimeType:
+
+                    imageFile ?
+
+                    imageFile.type :
+
+                    null,
+
+
+                    locale:userLocale,
+
+
+                    timezone:userTimezone
+
+
+                })
+
+
+            }
+
+        );
 
 
 
 
 
-if(!response.ok){
+
+        let data;
 
 
-return "⚠️ وقع مشكل في الاتصال بالسيرفر";
+
+        try{
+
+
+            data =
+            await response.json();
+
+
+
+        }catch(error){
+
+
+
+            const text =
+            await response.text();
+
+
+
+            console.error(
+                "Server Response:",
+                text
+            );
+
+
+
+            return "⚠️ السيرفر رجع بيانات غير صحيحة";
+
+        }
+
+
+
+
+
+
+
+        console.log(
+            "AI Server Response:",
+            data
+        );
+
+
+
+
+
+
+        if(!response.ok){
+
+
+            return (
+
+                data.message ||
+
+                "⚠️ وقع مشكل في الاتصال بالسيرفر"
+
+            );
+
+
+        }
+
+
+
+
+
+        return (
+
+            data.reply ||
+
+            "⚠️ ماقدرتش نجيب جواب دابا"
+
+        );
+
+
+
+
+
+
+    }catch(error){
+
+
+
+        console.error(
+            "AI Error:",
+            error
+        );
+
+
+
+        return "⚠️ وقع مشكل مؤقت، حاول مرة أخرى.";
+
+
+
+    }
 
 
 }
@@ -1165,31 +1471,7 @@ return "⚠️ وقع مشكل في الاتصال بالسيرفر";
 
 
 
-return data.reply ||
 
-"⚠️ ماقدرتش نجيب جواب دابا";
-
-
-
-
-
-}catch(e){
-
-
-console.error(
-"AI Error:",
-e
-);
-
-
-
-return "⚠️ وقع مشكل مؤقت، حاول مرة أخرى.";
-
-
-}
-
-
-}
 
 
 // ===============================
@@ -1200,65 +1482,69 @@ return "⚠️ وقع مشكل مؤقت، حاول مرة أخرى.";
 function updateWelcome(){
 
 
-const hour =
-new Date().getHours();
+    const hour =
+    new Date()
+    .getHours();
 
 
 
-let text;
+    let text;
 
 
 
-if(hour >=5 && hour <12){
 
 
-text =
-"صباح الخير";
+    if(hour >=5 && hour <12){
+
+
+        text =
+        "صباح الخير";
+
+
+    }
+
+    else if(hour >=12 && hour <18){
+
+
+        text =
+        "نهارك سعيد";
+
+
+    }
+
+    else{
+
+
+        text =
+        "مساء الخير";
+
+
+    }
+
+
+
+
+
+    const el =
+    document.getElementById(
+        "welcomeText"
+    );
+
+
+
+    if(el){
+
+
+        el.innerHTML =
+        text;
+
+
+    }
 
 
 }
 
-else if(hour >=12 && hour <18){
 
-
-text =
-"نهارك سعيد";
-
-
-}
-
-else{
-
-
-text =
-"مساء الخير";
-
-
-}
-
-
-
-
-
-
-const el =
-document.getElementById(
-"welcomeText"
-);
-
-
-
-if(el){
-
-el.innerHTML =
-text;
-
-}
-
-
-
-}
-نم
 
 
 
@@ -1268,10 +1554,13 @@ text;
 // Start
 // ===============================
 
+
 document.addEventListener(
 "DOMContentLoaded",
 ()=>{
 
-updateWelcome();
+
+    updateWelcome();
+
 
 });
