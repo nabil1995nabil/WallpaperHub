@@ -752,9 +752,11 @@ height="42">
 </canvas>
 
 
-<span>
-يفكر...
-</span>
+<div class="thinking-dots">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
 
 
 </div>
@@ -848,8 +850,54 @@ userInput.value="";
 const typing =
 typingEffect();
 
+// ===============================
+// AI Image Generation
+// ===============================
+
+if(
+text.includes("خلفية") ||
+text.includes("صورة") ||
+text.includes("wallpaper")
+){
 
 
+const response =
+await fetch("/api/generate-image",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+prompt:text
+
+})
+
+});
+
+
+const data =
+await response.json();
+
+
+if(data.image){
+
+
+addMessage(
+data.image,
+"ai"
+);
+
+
+}
+
+
+return;
+
+}
 
 let imageData = null;
 

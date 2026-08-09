@@ -39,17 +39,9 @@ body{
 
 .ai-bg{
 
-    position:fixed;
+background:#ffffff;
 
-    inset:0;
-
-    background:
-
-    radial-gradient(
-        circle at top,
-        #6b6cff30,
-        transparent 40%
-    ),
+}
 
     radial-gradient(
         circle at bottom,
@@ -221,9 +213,15 @@ body{
 
 background:transparent;
 
-box-shadow:none;
+color:#555;
 
 border:none;
+
+box-shadow:none;
+
+font-size:13px;
+
+line-height:1.9;
 
 }
 
@@ -833,5 +831,82 @@ max-width:100%;
 max-height:90%;
 
 border-radius:25px;
+
+}
+
+/* ===============================
+ AI Thinking Dots
+================================ */
+
+.ai-thinking{
+
+display:flex;
+align-items:center;
+gap:12px;
+
+}
+
+
+.thinking-dots{
+
+display:flex;
+gap:6px;
+
+}
+
+
+.thinking-dots span{
+
+width:8px;
+height:8px;
+
+background:#777;
+
+border-radius:50%;
+
+animation:dots 1.4s infinite;
+
+}
+
+
+.thinking-dots span:nth-child(2){
+
+animation-delay:.2s;
+
+}
+
+
+.thinking-dots span:nth-child(3){
+
+animation-delay:.4s;
+
+}
+
+
+
+@keyframes dots{
+
+0%,80%,100%{
+
+transform:scale(.5);
+opacity:.4;
+
+}
+
+
+40%{
+
+transform:scale(1);
+opacity:1;
+
+}
+
+}
+
+.bubble strong{
+
+color:#111;
+
+font-weight:700;
 
 }
