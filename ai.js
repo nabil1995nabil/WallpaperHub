@@ -821,123 +821,136 @@ typingEffect();
 // AI Image Generation
 // ===============================
 
-if(
-text.includes("خلفية") ||
-text.includes("صورة") ||
-text.includes("wallpaper")
-){
+const generateWords = [
+    "خلفية",
+    "صورة",
+    "ولد",
+    "صمم",
+    "اصنع",
+    "انشئ",
+    "generate",
+    "wallpaper"
+];
 
 
-const response =
-await fetch("/api/generate-image",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-prompt:text
-
-})
-
-});
-
-
-const data =
-await response.json();
-
-
-if(data.image){
-
-
-const thinkingMessage =
-typing.closest(".message");
-
-
-if(thinkingMessage){
-
-thinkingMessage.remove();
-
-}
-
-
-addMessage(
-data.image,
-"ai"
-);
-
-
-return;
-
-}
-
-}
-
-let imageData = null;
-
-
-
-if(selectedImage){
-
-
-imageData =
-await imageToBase64(
-selectedImage
-);
-
-
-}
-
-
-
-
-
-const reply =
-await askGemini(
-text,
-imageData,
-selectedImage
+const isImageRequest =
+generateWords.some(word =>
+    text.toLowerCase().includes(word)
 );
 
 
 
+if(isImageRequest){
 
 
-if(typing){
-
-const thinkingMessage = typing.closest(".message");
-
-if(thinkingMessage){
-
-thinkingMessage.remove();
-
-}
-
-}
+    try{
 
 
+        const response =
+        await fetch("/api/generate-image",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
 
 
+            body:JSON.stringify({
 
-addMessage(
-reply,
-"ai"
-);
+                prompt:text
 
+            })
 
+        });
 
 
 
-selectedImage=null;
+        const data =
+        await response.json();
 
-if(imageInput){
-imageInput.value="";
-}
 
-return;
+
+        // حذف علامة التفكير
+
+        if(typing){
+
+            const thinkingMessage =
+            typing.closest(".message");
+
+
+            if(thinkingMessage){
+
+                thinkingMessage.remove();
+
+            }
+
+        }
+
+
+
+
+        if(data.image){
+
+
+            addMessage(
+                data.image,
+                "ai"
+            );
+
+
+        }else{
+
+
+            addMessage(
+                "⚠️ ماقدرتش نولد الصورة دابا",
+                "ai"
+            );
+
+
+        }
+
+
+
+        return;
+
+
+
+    }catch(error){
+
+
+        console.error(
+            "Image Generation Error:",
+            error
+        );
+
+
+        if(typing){
+
+            const thinkingMessage =
+            typing.closest(".message");
+
+
+            if(thinkingMessage){
+
+                thinkingMessage.remove();
+
+            }
+
+        }
+
+
+        addMessage(
+            "⚠️ وقع مشكل أثناء توليد الصورة",
+            "ai"
+        );
+
+
+        return;
+
+
+    }
+
 
 }
 
