@@ -1340,7 +1340,6 @@ reply:
 app.post("/api/generate-image", async(req,res)=>{
 
 
-
 try{
 
 
@@ -1348,6 +1347,8 @@ const {
 prompt,
 model
 }=req.body;
+
+
 
 // ===============================
 // Stable Diffusion
@@ -1369,11 +1370,13 @@ method:"POST",
 
 headers:{
 
+
 Authorization:
 `Bearer ${process.env.HF_TOKEN}`,
 
 "Content-Type":
 "application/json"
+
 
 },
 
@@ -1383,20 +1386,51 @@ body:JSON.stringify({
 inputs:
 
 `
-Smartphone wallpaper.
+Premium smartphone wallpaper.
+
 ${prompt}
 
 4K quality,
-vertical,
+vertical phone wallpaper,
 no text,
 no watermark
 `
 
 })
 
+
 }
 
 );
+
+
+
+
+
+if(!response.ok){
+
+
+const error =
+await response.text();
+
+
+console.log(
+"HuggingFace Error:",
+error
+);
+
+
+return res.status(500).json({
+
+error:
+"Stable Diffusion failed"
+
+});
+
+
+}
+
+
 
 
 
@@ -1408,6 +1442,8 @@ await response.arrayBuffer();
 const base64 =
 Buffer.from(buffer)
 .toString("base64");
+
+
 
 
 
@@ -1426,36 +1462,6 @@ image:
 
 
 
-return res.status(400).json({
-
-error:
-"Unknown model"
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"Image API Error:",
-error
-);
-
-
-res.status(500).json({
-
-error:
-error.message
-
-});
-
-
-}
-
-
-});
 
 // ===============================
 // Unsplash Ready Wallpapers
@@ -1465,23 +1471,35 @@ error.message
 if(model==="unsplash"){
 
 
+
 const response =
 await fetch(
 
+
 `https://api.unsplash.com/search/photos?query=${encodeURIComponent(prompt)}&per_page=1`,
+
 
 {
 
+
 headers:{
 
+
 Authorization:
+
 `Client-ID ${process.env.UNSPLASH_KEY}`
 
-}
 
 }
+
+
+}
+
 
 );
+
+
+
 
 
 
@@ -1490,9 +1508,13 @@ await response.json();
 
 
 
+
+
+
 if(
 data.results &&
-data.results.length
+data.results.length > 0
+
 ){
 
 
@@ -1508,6 +1530,8 @@ data.results[0].urls.regular
 
 
 
+
+
 return res.json({
 
 error:
@@ -1519,6 +1543,51 @@ error:
 }
 
 
+
+
+
+
+// ===============================
+// Unknown
+// ===============================
+
+
+return res.status(400).json({
+
+error:
+"Unknown model"
+
+});
+
+
+
+
+
+}catch(error){
+
+
+console.log(
+
+"Image API Error:",
+
+error
+
+);
+
+
+
+res.status(500).json({
+
+error:
+error.message
+
+});
+
+
+}
+
+
+});
 
 // ================================
 // Start

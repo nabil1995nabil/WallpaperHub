@@ -1480,13 +1480,12 @@ selectedModel==="unsplash"
 ){
 
 
-
 try{
 
 
 const response =
 await fetch(
-"/api/wallpaper",
+"/api/generate-image",
 {
 
 
@@ -1505,9 +1504,9 @@ headers:{
 
 body:JSON.stringify({
 
+prompt:text,
 
-prompt:text
-
+model:"unsplash"
 
 })
 
@@ -1526,7 +1525,6 @@ typing
 
 
 
-
 if(data.image){
 
 
@@ -1534,7 +1532,6 @@ addMessage(
 data.image,
 "ai"
 );
-
 
 
 }else{
@@ -1555,7 +1552,6 @@ return;
 
 
 }catch(error){
-
 
 
 console.log(error);
@@ -1582,12 +1578,6 @@ return;
 
 
 }
-
-
-
-
-
-
 
 // ===============================
 // Gemini Chat
