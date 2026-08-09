@@ -87,44 +87,60 @@ WallpaperHub AI
 
 
 
+<!-- منطقة المحادثة -->
+
 <div class="chat-container" id="chatContainer">
 
 
-</div>
+    <div class="welcome-screen">
 
-</div>
+        <h1 id="welcomeText">
+            كيف يمكنني مساعدتك
+        </h1>
 
-
-</div>
-
-
-<!-- تظهر الرسائل هنا -->
-
-
-
-<div class="welcome-screen">
-
-<h1 id="welcomeText">
-كيف يمكنني مساعدتك
-</h1>
-
-</div>
-
+    </div>
 
 
 </div>
-
-
-
-
-
 
 <!-- صندوق الكتابة -->
 
 
 <div class="chat-input">
 
+<!-- AI Model Selector -->
 
+<div class="model-selector">
+
+<button id="modelBtn">
+
+🧠 Gemini ▼
+
+</button>
+
+
+<div class="model-menu" id="modelMenu">
+
+
+<div data-model="gemini">
+النصوص 📝
+</div>
+
+
+<div data-model="stable">
+توليد الخلفيات 📷
+</div>
+
+
+<div data-model="unsplash">
+🖼️ خلفيات جاهزة 
+</div>
+
+
+</div>
+
+
+</div>
 
 <button 
 id="imageBtn"
@@ -189,8 +205,7 @@ send
 
 
 <script src="ai-fab.js"></script>
-
-<script type="module" src="ai.js"></script>
+<script src="ai.js"></script>
 
 
 </body>

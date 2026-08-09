@@ -1,7 +1,8 @@
 // ======================================
-// WallpaperHub Server v2.0
+// WallpaperHub Server v3.0
 // Express Edition
 // ======================================
+
 
 const express = require("express");
 const cors = require("cors");
@@ -9,84 +10,162 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
-const OpenAI = require("openai");
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
 
 const app = express();
-const PORT = 3000;
 
+const PORT = 3000;
 
 // ================================
 // Middlewares
 // ================================
 
+
 app.use(cors());
 
+
 app.use(express.json({
+
     limit:"10mb"
+
 }));
 
+
 app.use(express.urlencoded({
+
     extended:true
+
 }));
+
+
+
 
 
 // ================================
 // Static Files
 // ================================
 
-app.use(express.static(__dirname));
+
+app.use(
+    express.static(__dirname)
+);
+
+
+
+
 
 
 // ================================
 // Paths
 // ================================
 
+
 const DATA_FILE =
-path.join(__dirname,"data","wallpapers.json");
+
+path.join(
+    __dirname,
+    "data",
+    "wallpapers.json"
+);
 
 
-console.log("DATA PATH:", DATA_FILE);
+
+console.log(
+    "DATA PATH:",
+    DATA_FILE
+);
+
+
+
+
+
+
 
 
 // ================================
 // Read Wallpapers
 // ================================
 
+
 function readWallpapers(){
+
 
     try{
 
-        const data =
-        fs.readFileSync(DATA_FILE,"utf8");
 
-        return JSON.parse(data);
+        const data =
+
+        fs.readFileSync(
+
+            DATA_FILE,
+
+            "utf8"
+
+        );
+
+
+
+        return JSON.parse(
+            data
+        );
+
+
 
     }catch(err){
 
-        console.log(err);
+
+
+        console.log(
+            err
+        );
+
 
         return [];
 
+
+
     }
 
+
 }
+
+
+
+
+
 
 
 // ================================
 // Save Wallpapers
 // ================================
 
+
 function saveWallpapers(list){
 
+
+
     fs.writeFileSync(
+
+
         DATA_FILE,
-        JSON.stringify(list,null,2),
+
+
+        JSON.stringify(
+
+            list,
+
+            null,
+
+            2
+
+        ),
+
+
         "utf8"
+
+
     );
+
 
 }
 
@@ -388,333 +467,632 @@ app.post("/api/wallpapers", (req, res) => {
 // Update Wallpaper
 // ================================
 
-app.put("/api/wallpapers/:id", (req, res) => {
 
-    try {
+app.put(
+"/api/wallpapers/:id",
+(req,res)=>{
 
-        const wallpapers = readWallpapers();
 
-        const id = Number(req.params.id);
+try{
 
-        const index = wallpapers.findIndex(w => w.id === id);
 
-        if (index === -1) {
+const wallpapers =
+readWallpapers();
 
-            return res.status(404).json({
 
-                success: false,
 
-                message: "Wallpaper not found"
+const id =
+Number(req.params.id);
 
-            });
 
-        }
 
-        wallpapers[index] = {
+const index =
+wallpapers.findIndex(
+w=>w.id===id
+);
 
-            ...wallpapers[index],
 
-            ...req.body,
 
-            id
 
-        };
 
-        saveWallpapers(wallpapers);
+if(index===-1){
 
-        res.json({
 
-            success: true,
+return res.status(404).json({
 
-            message: "Wallpaper updated",
+success:false,
 
-            wallpaper: wallpapers[index]
-
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-
-            success: false,
-
-            message: "Server Error"
-
-        });
-
-    }
+message:"Wallpaper not found"
 
 });
 
-// ================================
-// Increase Downloads
-// ================================
 
-app.post("/api/wallpapers/:id/download", (req, res) => {
+}
 
-    try {
 
-        const wallpapers = readWallpapers();
 
-        const id = Number(req.params.id);
 
-        const wall = wallpapers.find(w => w.id === id);
 
-        if (!wall) {
+wallpapers[index] = {
 
-            return res.status(404).json({
 
-                success: false,
+...wallpapers[index],
 
-                message: "Wallpaper not found"
 
-            });
+...req.body,
 
-        }
 
-        wall.downloads = (wall.downloads || 0) + 1;
+id
 
-        saveWallpapers(wallpapers);
 
-        res.json({
 
-            success: true,
+};
 
-            downloads: wall.downloads
 
-        });
 
-    } catch (err) {
 
-        console.error(err);
 
-        res.status(500).json({
+saveWallpapers(
+wallpapers
+);
 
-            success: false
 
-        });
 
-    }
+
+
+res.json({
+
+success:true,
+
+wallpaper:
+wallpapers[index]
 
 });
+
+
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// ================================
+// Download Count
+// ================================
+
+
+app.post(
+"/api/wallpapers/:id/download",
+(req,res)=>{
+
+
+try{
+
+
+const wallpapers =
+readWallpapers();
+
+
+const id =
+Number(req.params.id);
+
+
+
+const wall =
+wallpapers.find(
+w=>w.id===id
+);
+
+
+
+
+
+if(!wall){
+
+
+return res.status(404).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+
+
+wall.downloads =
+(wall.downloads || 0)+1;
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+
+res.json({
+
+success:true,
+
+downloads:
+wall.downloads
+
+});
+
+
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
 
 // ================================
 // Like Wallpaper
 // ================================
 
-app.post("/api/wallpapers/:id/like", (req, res) => {
 
-    try {
+app.post(
+"/api/wallpapers/:id/like",
+(req,res)=>{
 
-        const wallpapers = readWallpapers();
 
-        const id = Number(req.params.id);
+try{
 
-        const wall = wallpapers.find(w => w.id === id);
 
-        if (!wall) {
+const wallpapers =
+readWallpapers();
 
-            return res.status(404).json({
 
-                success: false
+const id =
+Number(req.params.id);
 
-            });
 
-        }
 
-        wall.likes = (wall.likes || 0) + 1;
+const wall =
+wallpapers.find(
+w=>w.id===id
+);
 
-        saveWallpapers(wallpapers);
 
-        res.json({
 
-            success: true,
 
-            likes: wall.likes
 
-        });
+if(!wall){
 
-    } catch (err) {
+return res.status(404).json({
 
-        console.error(err);
-
-        res.status(500).json({
-
-            success: false
-
-        });
-
-    }
+success:false
 
 });
+
+}
+
+
+
+
+
+wall.likes =
+(wall.likes || 0)+1;
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+
+res.json({
+
+success:true,
+
+likes:
+wall.likes
+
+});
+
+
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
 
 // ================================
 // View Wallpaper
 // ================================
 
-app.post("/api/wallpapers/:id/view", (req, res) => {
 
-    try {
+app.post(
+"/api/wallpapers/:id/view",
+(req,res)=>{
 
-        const wallpapers = readWallpapers();
 
-        const id = Number(req.params.id);
+try{
 
-        const wall = wallpapers.find(w => w.id === id);
 
-        if (!wall) {
+const wallpapers =
+readWallpapers();
 
-            return res.status(404).json({
 
-                success: false
+const id =
+Number(req.params.id);
 
-            });
 
-        }
 
-        wall.views = (wall.views || 0) + 1;
+const wall =
+wallpapers.find(
+w=>w.id===id
+);
 
-        saveWallpapers(wallpapers);
 
-        res.json({
 
-            success: true,
 
-            views: wall.views
 
-        });
+if(!wall){
 
-    } catch (err) {
+return res.status(404).json({
 
-        console.error(err);
-
-        res.status(500).json({
-
-            success: false
-
-        });
-
-    }
+success:false
 
 });
 
-// ================================
-// Rate Wallpaper
-// ================================
+}
 
-app.post("/api/wallpapers/:id/rate", (req, res) => {
 
-    try {
 
-        const wallpapers = readWallpapers();
 
-        const id = Number(req.params.id);
 
-        const wall = wallpapers.find(w => w.id === id);
+wall.views =
+(wall.views || 0)+1;
 
-        if (!wall) {
 
-            return res.status(404).json({
-                success: false
-            });
 
-        }
+saveWallpapers(
+wallpapers
+);
 
-        const rating = Number(req.body.rating);
 
-        if (rating < 1 || rating > 5) {
 
-            return res.status(400).json({
-                success: false
-            });
 
-        }
+res.json({
 
-        wall.ratingCount = (wall.ratingCount || 0) + 1;
+success:true,
 
-        wall.ratingSum = (wall.ratingSum || 0) + rating;
-
-        wall.rating =
-            Number(
-                (
-                    wall.ratingSum /
-                    wall.ratingCount
-                ).toFixed(1)
-            );
-
-        saveWallpapers(wallpapers);
-
-        res.json({
-
-            success: true,
-
-            rating: wall.rating,
-
-            ratingCount: wall.ratingCount
-
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-
-            success: false
-
-        });
-
-    }
+views:
+wall.views
 
 });
+
+
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// ================================
+// Rating
+// ================================
+
+
+app.post(
+"/api/wallpapers/:id/rate",
+(req,res)=>{
+
+
+try{
+
+
+const wallpapers =
+readWallpapers();
+
+
+
+const id =
+Number(req.params.id);
+
+
+
+const wall =
+wallpapers.find(
+w=>w.id===id
+);
+
+
+
+
+
+if(!wall){
+
+return res.status(404).json({
+
+success:false
+
+});
+
+}
+
+
+
+
+
+const rating =
+Number(req.body.rating);
+
+
+
+
+
+if(
+rating < 1 ||
+rating > 5
+){
+
+
+return res.status(400).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+
+
+wall.ratingCount =
+(wall.ratingCount || 0)+1;
+
+
+
+wall.ratingSum =
+(wall.ratingSum || 0)+rating;
+
+
+
+wall.rating =
+Number(
+
+(
+wall.ratingSum /
+wall.ratingCount
+
+).toFixed(1)
+
+);
+
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+
+
+res.json({
+
+success:true,
+
+rating:
+wall.rating
+
+});
+
+
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
 
 // ================================
 // Delete Wallpaper
 // ================================
 
-app.delete("/api/wallpapers/:id", (req, res) => {
 
-    try {
+app.delete(
+"/api/wallpapers/:id",
+(req,res)=>{
 
-        let wallpapers = readWallpapers();
 
-        const id = Number(req.params.id);
+try{
 
-        const index = wallpapers.findIndex(
-            w => w.id === id
-        );
 
-        if (index === -1) {
+let wallpapers =
+readWallpapers();
 
-            return res.status(404).json({
-                success: false,
-                message: "Wallpaper not found"
-            });
 
-        }
 
-        // حذف الخلفية من البيانات فقط
-        wallpapers.splice(index, 1);
+const id =
+Number(req.params.id);
 
-        saveWallpapers(wallpapers);
 
-        res.json({
-            success: true,
-            message: "Wallpaper deleted"
-        });
 
-    } catch (err) {
 
-        console.error(err);
+const index =
+wallpapers.findIndex(
 
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
+w=>w.id===id
 
-    }
+);
+
+
+
+
+
+if(index===-1){
+
+
+return res.status(404).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+
+wallpapers.splice(
+index,
+1
+);
+
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+
+res.json({
+
+success:true
+
+});
+
+
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
 
 });
 
@@ -722,39 +1100,52 @@ app.delete("/api/wallpapers/:id", (req, res) => {
 // Gemini AI Chat
 // ================================
 
-app.post("/api/chat", async(req,res)=>{
 
-    try{
+app.post(
+"/api/chat",
+async(req,res)=>{
 
-        const {
- message,
- imageData,
- mimeType,
- locale,
- timezone
+
+try{
+
+
+const {
+
+message,
+
+imageData,
+
+mimeType,
+
+locale,
+
+timezone
+
+
 }=req.body;
 
 
-        let parts = [];
 
 
-        parts.push({
 
-    text:
+let parts=[];
+
+
+
+
+
+parts.push({
+
+
+text:
+
 `أنت WallpaperHub AI.
 
-حدد بلد المستخدم من اللغة والمنطقة الزمنية.
-جاوب المستخدم بنفس لهجته المحلية.
+جاوب المستخدم بنفس لغته ولهجته.
 
-قواعد:
-- إذا كان من المغرب جاوب بالدارجة المغربية واستعمل كلمات مثل:
-خويا، صاحبي، مرحبا بيك.
-- إذا كان من السعودية استعمل اللهجة السعودية.
-- إذا كان من مصر استعمل اللهجة المصرية.
-- إذا كان من فرنسا جاوب بالفرنسية.
-- إذا كان من دولة أخرى استعمل لغتهم ولهجتهم المناسبة.
+إذا كان من المغرب استعمل الدارجة المغربية.
 
-لا تستعمل العربية الفصحى إلا إذا طلب المستخدم ذلك.
+حلل الصورة إذا كانت موجودة.
 
 لغة المستخدم:
 ${locale}
@@ -765,196 +1156,369 @@ ${timezone}
 رسالة المستخدم:
 ${message}`
 
+
+
 });
 
 
 
-        if(imageData){
-
-            parts.push({
-
-                inlineData:{
-
-                    mimeType:
-                    mimeType || "image/jpeg",
-
-                    data:imageData
-
-                }
-
-            });
-
-        }
 
 
 
-        const response = await fetch(
+
+if(imageData){
+
+
+
+parts.push({
+
+
+inlineData:{
+
+
+mimeType:
+mimeType ||
+"image/jpeg",
+
+
+data:
+imageData
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+const response =
+await fetch(
 
 `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
 
 {
 
-    method:"POST",
 
-    headers:{
+method:"POST",
 
-        "Content-Type":"application/json"
 
-    },
+headers:{
 
 
-    body:JSON.stringify({
+"Content-Type":
+"application/json"
 
-        contents:[
 
-            {
+},
 
-                parts:parts
 
-            }
 
-        ]
+body:JSON.stringify({
 
-    })
 
-});
+contents:[
 
+{
 
-        const data =
-        await response.json();
+parts:parts
 
+}
 
+]
 
-        console.log(
-            "Gemini status:",
-            response.status
-        );
 
+})
 
 
-        if(!response.ok){
 
-            console.log(data);
+}
 
+);
 
-            return res.json({
 
-                reply:
-                "⚠️ مشكلة في الاتصال بـ السيرفر"
 
-            });
 
-        }
 
 
+const data =
+await response.json();
 
-        if(
-            !data.candidates ||
-            !data.candidates[0]
-        ){
 
-            return res.json({
 
-                reply:
-                "⚠️ سيرفر لم يرجع جواب"
 
-            });
 
-        }
 
 
+if(!response.ok){
 
-        res.json({
 
-            reply:
-            data
-            .candidates[0]
-            .content
-            .parts[0]
-            .text
 
-        });
+return res.json({
 
+reply:
+"⚠️ مشكلة في Gemini"
 
-
-    }catch(err){
-
-        console.log(
-            "Gemini Error:",
-            err
-        );
-
-
-        res.json({
-
-            reply:
-            "⚠️ وقع خطأ مؤقت"
-
-        });
-
-    }
-
-
-});
-
-// ===============================
-// Generate Image
-// ===============================
-
-app.post("/api/generate-image", async(req,res)=>{
-
-try{
-
-const {prompt}=req.body;
-
-
-const result =
-await openai.images.generate({
-
-model:"gpt-image-1",
-
-prompt:
-`
-Create a premium smartphone wallpaper.
-
-${prompt}
-
-Requirements:
-- 4K quality
-- vertical mobile wallpaper
-- no text
-- no watermark
-- ultra detailed
-`,
-
-size:"1024x1536"
-
-});
-
-
-res.json({
-
-image:
-result.data[0].url
-
-});
-
-
-}catch(error){
-
-console.log(error);
-
-
-res.status(500).json({
-
-error:"Image generation failed"
 
 });
 
 
 }
 
+
+
+
+
+
+
+res.json({
+
+
+reply:
+
+data
+.candidates[0]
+.content
+.parts[0]
+.text
+
+
+
 });
+
+
+
+
+
+
+}catch(error){
+
+
+
+console.log(
+"Gemini Error:",
+error
+);
+
+
+
+res.json({
+
+
+reply:
+"⚠️ وقع خطأ مؤقت"
+
+
+});
+
+
+
+}
+
+
+
+});
+
+// ================================
+// Generate Image
+// Models:
+// stable = Stable Diffusion
+// unsplash = Ready wallpapers
+// ================================
+
+
+app.post("/api/generate-image", async(req,res)=>{
+
+
+
+try{
+
+
+const {
+prompt,
+model
+}=req.body;
+
+// ===============================
+// Stable Diffusion
+// ===============================
+
+
+if(model==="stable"){
+
+
+
+const response =
+await fetch(
+
+"https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+
+{
+
+method:"POST",
+
+headers:{
+
+Authorization:
+`Bearer ${process.env.HF_TOKEN}`,
+
+"Content-Type":
+"application/json"
+
+},
+
+
+body:JSON.stringify({
+
+inputs:
+
+`
+Smartphone wallpaper.
+${prompt}
+
+4K quality,
+vertical,
+no text,
+no watermark
+`
+
+})
+
+}
+
+);
+
+
+
+const buffer =
+await response.arrayBuffer();
+
+
+
+const base64 =
+Buffer.from(buffer)
+.toString("base64");
+
+
+
+return res.json({
+
+image:
+`data:image/png;base64,${base64}`
+
+});
+
+
+
+}
+
+
+
+
+
+return res.status(400).json({
+
+error:
+"Unknown model"
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"Image API Error:",
+error
+);
+
+
+res.status(500).json({
+
+error:
+error.message
+
+});
+
+
+}
+
+
+});
+
+// ===============================
+// Unsplash Ready Wallpapers
+// ===============================
+
+
+if(model==="unsplash"){
+
+
+const response =
+await fetch(
+
+`https://api.unsplash.com/search/photos?query=${encodeURIComponent(prompt)}&per_page=1`,
+
+{
+
+headers:{
+
+Authorization:
+`Client-ID ${process.env.UNSPLASH_KEY}`
+
+}
+
+}
+
+);
+
+
+
+const data =
+await response.json();
+
+
+
+if(
+data.results &&
+data.results.length
+){
+
+
+return res.json({
+
+image:
+data.results[0].urls.regular
+
+});
+
+
+}
+
+
+
+return res.json({
+
+error:
+"لم يتم العثور على خلفية"
+
+});
+
+
+}
+
+
 
 // ================================
 // Start

@@ -2,26 +2,175 @@
 // Elements
 // ===============================
 
-const chatContainer = document.getElementById("chatContainer");
-const userInput = document.getElementById("userInput");
-const sendBtn = document.getElementById("sendBtn");
+const chatContainer =
+document.getElementById("chatContainer");
 
-const imageBtn = document.getElementById("imageBtn");
-const imageInput = document.getElementById("imageInput");
+
+const userInput =
+document.getElementById("userInput");
+
+
+const sendBtn =
+document.getElementById("sendBtn");
+
+
+const imageBtn =
+document.getElementById("imageBtn");
+
+
+const imageInput =
+document.getElementById("imageInput");
+
+
 
 let selectedImage = null;
 
 
 // ===============================
+// AI Model Selector
+// ===============================
+
+
+let selectedModel =
+localStorage.getItem("selectedModel")
+|| "gemini";
+
+
+
+const modelBtn =
+document.getElementById("modelBtn");
+
+
+const modelMenu =
+document.getElementById("modelMenu");
+
+
+
+function updateModelButton(){
+
+
+if(!modelBtn)
+return;
+
+
+let name;
+
+
+if(selectedModel==="gemini"){
+
+name="🧠 Gemini";
+
+}
+
+else if(selectedModel==="stable"){
+
+name="🎨 Stable Diffusion";
+
+}
+
+else if(selectedModel==="unsplash"){
+
+name="🖼️ Unsplash";
+
+}
+
+
+
+modelBtn.innerHTML =
+name+" ▼";
+
+
+}
+
+
+
+
+updateModelButton();
+
+
+
+
+if(modelBtn && modelMenu){
+
+
+modelBtn.onclick=()=>{
+
+
+modelMenu.classList.toggle(
+"active"
+);
+
+
+};
+
+
+
+
+modelMenu
+.querySelectorAll("div")
+.forEach(item=>{
+
+
+
+item.onclick=()=>{
+
+
+selectedModel =
+item.dataset.model;
+
+
+
+localStorage.setItem(
+"selectedModel",
+selectedModel
+);
+
+
+
+updateModelButton();
+
+
+
+modelMenu.classList.remove(
+"active"
+);
+
+
+
+};
+
+
+
+});
+
+
+}
+
+// ===============================
 // Sidebar + Chat History
 // ===============================
 
-const menuBtn = document.getElementById("menuBtn");
-const sidebar = document.getElementById("sidebar");
-const closeSidebar = document.getElementById("closeSidebar");
 
-const newChat = document.getElementById("newChat");
-const chatHistory = document.getElementById("chatHistory");
+const menuBtn =
+document.getElementById("menuBtn");
+
+
+const sidebar =
+document.getElementById("sidebar");
+
+
+const closeSidebar =
+document.getElementById("closeSidebar");
+
+
+const newChat =
+document.getElementById("newChat");
+
+
+const chatHistory =
+document.getElementById("chatHistory");
+
+
 
 
 
@@ -29,13 +178,20 @@ const chatHistory = document.getElementById("chatHistory");
 
 if(menuBtn && sidebar){
 
+
     menuBtn.onclick = ()=>{
 
-        sidebar.classList.add("active");
+
+        sidebar.classList.add(
+            "active"
+        );
+
 
     };
 
+
 }
+
 
 
 
@@ -43,13 +199,20 @@ if(menuBtn && sidebar){
 
 if(closeSidebar && sidebar){
 
+
     closeSidebar.onclick = ()=>{
 
-        sidebar.classList.remove("active");
+
+        sidebar.classList.remove(
+            "active"
+        );
+
 
     };
 
+
 }
+
 
 
 
@@ -61,24 +224,36 @@ if(closeSidebar && sidebar){
 
 let chats = [];
 
+
+
 try{
+
 
     chats =
     JSON.parse(
-        localStorage.getItem("wallpaperChats")
+        localStorage.getItem(
+            "wallpaperChats"
+        )
     ) || [];
+
 
 
 }catch(error){
 
-    chats = [];
+
+    chats=[];
+
 
     console.error(
         "Chat Load Error:",
         error
     );
 
+
 }
+
+
+
 
 
 
@@ -86,14 +261,27 @@ let currentChat = null;
 
 
 
+
+
+
 function saveChats(){
 
+
     localStorage.setItem(
+
         "wallpaperChats",
+
         JSON.stringify(chats)
+
     );
 
+
 }
+
+
+
+
+
 
 
 
@@ -105,19 +293,28 @@ function saveChats(){
 function createNewChat(){
 
 
+
     currentChat = {
 
-        id: Date.now(),
+
+        id:Date.now(),
+
 
         title:"محادثة جديدة",
 
+
         messages:[]
+
 
     };
 
 
 
-    chats.unshift(currentChat);
+
+    chats.unshift(
+        currentChat
+    );
+
 
 
     saveChats();
@@ -127,32 +324,52 @@ function createNewChat(){
 
 
 
+
     if(chatContainer){
+
 
         chatContainer.innerHTML="";
 
+
     }
+
+
 
 
 
     if(sidebar){
 
-        sidebar.classList.remove("active");
+
+        sidebar.classList.remove(
+            "active"
+        );
+
 
     }
 
 
+
 }
+
+
+
+
 
 
 
 
 if(newChat){
 
+
     newChat.onclick =
     createNewChat;
 
+
 }
+
+
+
+
 
 
 
@@ -166,6 +383,7 @@ if(newChat){
 function renderHistory(){
 
 
+
     if(!chatHistory)
     return;
 
@@ -175,11 +393,16 @@ function renderHistory(){
 
 
 
+
+
     chats.forEach(chat=>{
 
 
+
         const item =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
 
 
@@ -190,30 +413,41 @@ function renderHistory(){
 
         item.innerHTML = `
 
-            <span>
-                ${chat.title}
-            </span>
+        <span>
+
+        ${chat.title}
+
+        </span>
 
         `;
 
 
 
-        item.onclick = ()=>{
+        item.onclick=()=>{
 
-            loadChat(chat.id);
+
+            loadChat(
+                chat.id
+            );
+
 
         };
 
 
 
-        chatHistory.appendChild(item);
+        chatHistory.appendChild(
+            item
+        );
 
 
 
     });
 
 
+
 }
+
+
 
 
 
@@ -225,6 +459,7 @@ function renderHistory(){
 
 
 function loadChat(id){
+
 
 
     const chat =
@@ -239,40 +474,62 @@ function loadChat(id){
 
 
 
-    currentChat = chat;
+
+    currentChat =
+    chat;
+
 
 
 
     if(chatContainer){
 
+
         chatContainer.innerHTML="";
 
+
     }
+
+
 
 
 
     chat.messages.forEach(msg=>{
 
 
+
         addMessage(
+
             msg.text,
+
             msg.sender,
+
             false
+
         );
+
 
 
     });
 
 
 
+
+
     if(sidebar){
 
-        sidebar.classList.remove("active");
+
+        sidebar.classList.remove(
+            "active"
+        );
+
 
     }
 
 
+
 }
+
+
 
 
 
@@ -283,26 +540,39 @@ function loadChat(id){
 // ===============================
 
 
-function saveMessage(text,sender){
+function saveMessage(
+text,
+sender
+){
 
 
 
     if(!currentChat){
 
+
         createNewChat();
+
 
     }
 
 
 
 
+
     currentChat.messages.push({
+
 
         text:text,
 
+
         sender:sender
 
+
+
     });
+
+
+
 
 
 
@@ -314,11 +584,18 @@ function saveMessage(text,sender){
     ){
 
 
+
         currentChat.title =
-        text.substring(0,25);
+        text.substring(
+            0,
+            25
+        );
+
 
 
     }
+
+
 
 
 
@@ -329,7 +606,9 @@ function saveMessage(text,sender){
     renderHistory();
 
 
+
 }
+
 
 
 
@@ -349,13 +628,17 @@ if(imageBtn && imageInput){
 
     imageBtn.onclick = ()=>{
 
+
         imageInput.click();
+
 
     };
 
 
 
+
     imageInput.onchange = ()=>{
+
 
 
         const file =
@@ -368,13 +651,21 @@ if(imageBtn && imageInput){
 
 
 
+
         if(!file.type.startsWith("image/")){
 
-            alert("اختر صورة فقط");
+
+            alert(
+                "اختر صورة فقط"
+            );
+
 
             return;
 
+
         }
+
+
 
 
 
@@ -388,10 +679,15 @@ if(imageBtn && imageInput){
         );
 
 
+
     };
 
 
+
 }
+
+
+
 
 
 
@@ -402,214 +698,306 @@ if(imageBtn && imageInput){
 // ===============================
 
 
-function addMessage(text,sender,save=true){
+function addMessage(
+text,
+sender,
+save=true
+){
 
 
 
-    function formatMessage(text){
 
 
+function formatMessage(text){
 
-        // ===============================
-        // Image Detection
-        // ===============================
 
 
-        const imageRegex =
-        /(https?:\/\/[^\s]+)/i;
 
 
+// ===============================
+// Image Detection
+// ===============================
 
-        if(imageRegex.test(text)){
 
+const imageRegex =
+/(https?:\/\/[^\s]+)/i;
 
-            const imageUrl =
-            text.match(imageRegex)[0];
 
 
 
-            const cleanText =
-            text.replace(imageUrl,"");
+if(imageRegex.test(text)){
 
 
 
-            return `
+    const imageUrl =
+    text.match(imageRegex)[0];
 
-            <div class="ai-text">
 
-                ${cleanText}
 
-            </div>
+    const cleanText =
+    text.replace(
+        imageUrl,
+        ""
+    );
 
 
-            <div class="ai-image-card">
 
-                <img
+    return `
 
-                src="${imageUrl}"
 
-                loading="lazy"
+    <div class="ai-text">
 
-                onclick="openImage(this.src)"
+        ${cleanText}
 
-                >
+    </div>
 
-            </div>
 
-            `;
 
+    <div class="ai-image-card">
 
-        }
 
+        <img
 
+        src="${imageUrl}"
 
+        loading="lazy"
 
+        onclick="openImage(this.src)"
 
-        // ===============================
-        // Code Block
-        // ===============================
+        >
 
 
-        return text.replace(
 
-        /```(\w+)?\n([\s\S]*?)```/g,
+    </div>
 
-        (_,lang="",code)=>{
 
 
-            const id =
-            "code"+Math.random()
-            .toString(36)
-            .slice(2);
+    `;
 
 
+}
 
-            return `
 
-            <div class="code-block">
 
 
-                <div class="code-header">
 
 
-                    <span>
 
-                    ${lang || "Code"}
 
-                    </span>
+// ===============================
+// Code Block
+// ===============================
 
 
+return text.replace(
 
-                    <button class="copy-btn"
 
-                    onclick="copyCode('${id}')">
+/```(\w+)?\n([\s\S]*?)```/g,
 
-                    نسخ
 
-                    </button>
+(_,lang="",code)=>{
 
 
-                </div>
 
+const id =
+"code"+Math.random()
+.toString(36)
+.slice(2);
 
 
-                <pre>
 
-                <code id="${id}">
 
-                ${escapeHtml(code)}
 
-                </code>
+return `
 
-                </pre>
 
+<div class="code-block">
 
-            </div>
 
-            `;
 
+<div class="code-header">
 
-        });
 
+<span>
 
-    }
+${lang || "Code"}
 
+</span>
 
 
 
 
-    // إنشاء الرسالة
+<button class="copy-btn"
 
-    const msg =
-    document.createElement("div");
+onclick="copyCode('${id}')">
 
 
+نسخ
 
-    msg.className =
-    "message " + sender;
 
+</button>
 
 
-    const bubble =
-    document.createElement("div");
 
+</div>
 
 
-    bubble.className =
-    "bubble";
 
 
 
-    bubble.innerHTML =
-    formatMessage(text);
+<pre>
 
 
+<code id="${id}">
 
-    msg.appendChild(bubble);
 
+${escapeHtml(code)}
 
 
-    if(chatContainer){
+</code>
 
-        chatContainer.appendChild(msg);
 
-    }
+</pre>
 
 
 
+</div>
 
-    // حفظ
 
-    if(save){
-
-        saveMessage(
-            text,
-            sender
-        );
-
-    }
-
-
-
-
-    // Scroll
-
-    setTimeout(()=>{
-
-
-        if(chatContainer){
-
-            chatContainer.scrollTop =
-            chatContainer.scrollHeight;
-
-        }
-
-
-    },100);
+`;
 
 
 
 }
+
+
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// إنشاء الرسالة
+
+
+const msg =
+document.createElement(
+"div"
+);
+
+
+
+
+msg.className =
+"message "+sender;
+
+
+
+
+
+const bubble =
+document.createElement(
+"div"
+);
+
+
+
+
+bubble.className =
+"bubble";
+
+
+
+
+bubble.innerHTML =
+formatMessage(text);
+
+
+
+
+
+msg.appendChild(
+bubble
+);
+
+
+
+
+
+
+if(chatContainer){
+
+
+    chatContainer.appendChild(
+        msg
+    );
+
+
+}
+
+
+
+
+
+
+
+// حفظ
+
+
+if(save){
+
+
+    saveMessage(
+        text,
+        sender
+    );
+
+
+}
+
+
+
+
+
+
+
+
+// Scroll
+
+
+setTimeout(()=>{
+
+
+if(chatContainer){
+
+
+chatContainer.scrollTop =
+chatContainer.scrollHeight;
+
+
+
+}
+
+
+
+},100);
+
+
+
+}
+
+
+
+
 
 
 
@@ -624,16 +1012,29 @@ function addMessage(text,sender,save=true){
 function escapeHtml(text){
 
 
-    return text
+return text
 
-    .replace(/&/g,"&amp;")
+.replace(
+/&/g,
+"&amp;"
+)
 
-    .replace(/</g,"&lt;")
+.replace(
+/</g,
+"&lt;"
+)
 
-    .replace(/>/g,"&gt;");
+.replace(
+/>/g,
+"&gt;"
+);
 
 
 }
+
+
+
+
 
 
 
@@ -648,21 +1049,32 @@ function escapeHtml(text){
 window.copyCode=function(id){
 
 
-    const code =
-    document.getElementById(id);
+
+const code =
+document.getElementById(id);
 
 
 
-    if(code){
 
-        navigator.clipboard.writeText(
-            code.innerText
-        );
+if(code){
 
-    }
+
+
+navigator.clipboard.writeText(
+code.innerText
+);
+
+
+
+}
+
 
 
 };
+
+
+
+
 
 
 
@@ -677,33 +1089,51 @@ window.copyCode=function(id){
 window.openImage=function(src){
 
 
-    const viewer =
-    document.createElement("div");
+
+const viewer =
+document.createElement(
+"div"
+);
 
 
 
-    viewer.className =
-    "image-viewer";
+
+viewer.className =
+"image-viewer";
 
 
 
-    viewer.innerHTML = `
-
-        <img src="${src}">
-
-    `;
 
 
+viewer.innerHTML = `
 
-    viewer.onclick = ()=>{
 
-        viewer.remove();
+<img src="${src}">
 
-    };
+
+`;
 
 
 
-    document.body.appendChild(viewer);
+
+
+viewer.onclick=()=>{
+
+
+viewer.remove();
+
+
+
+};
+
+
+
+
+
+document.body.appendChild(
+viewer
+);
+
 
 
 };
@@ -716,93 +1146,73 @@ window.openImage=function(src){
 function typingEffect(){
 
 
-    const msg =
-    document.createElement("div");
+const msg =
+document.createElement("div");
 
 
 
-    msg.className =
-    "message ai";
+msg.className =
+"message ai";
 
 
 
-    const bubble =
-    document.createElement("div");
+const bubble =
+document.createElement("div");
 
 
 
-    bubble.className =
-    "bubble";
+bubble.className =
+"bubble";
 
 
 
-    bubble.innerHTML = `
-
-    <div class="ai-thinking">
+bubble.innerHTML = `
 
 
-        <canvas
-
-        class="thinking-ai-canvas"
-
-        width="42"
-
-        height="42">
-
-        </canvas>
+<div class="ai-thinking">
 
 
+<div class="thinking-dots">
 
-        <div class="thinking-dots">
+<span></span>
 
-            <span></span>
+<span></span>
 
-            <span></span>
-
-            <span></span>
-
-        </div>
+<span></span>
 
 
-    </div>
+</div>
 
-    `;
+
+</div>
+
+
+`;
 
 
 
-    msg.appendChild(bubble);
-
-
-
-    if(chatContainer){
-
-        chatContainer.appendChild(msg);
-
-    }
+msg.appendChild(
+bubble
+);
 
 
 
 
-
-    const canvas =
-    bubble.querySelector(
-        ".thinking-ai-canvas"
-    );
+if(chatContainer){
 
 
+chatContainer.appendChild(
+msg
+);
 
-    if(
-        canvas &&
-        typeof window.createAILogo==="function"
-    ){
 
-        window.createAILogo(canvas);
-
-    }
+}
 
 
 
-    return bubble;
+
+return bubble;
+
 
 
 }
@@ -821,317 +1231,234 @@ async function sendMessage(){
 
 
 
-    const text =
-    userInput.value.trim();
+const text =
+userInput.value.trim();
 
 
 
-    if(
-        text === "" &&
-        !selectedImage
-    )
-    return;
 
 
+if(
+text === "" &&
+!selectedImage
+)
+return;
 
 
-    if(text){
 
 
-        addMessage(
-            text,
-            "user"
-        );
 
+if(text){
 
-    }
 
+addMessage(
+text,
+"user"
+);
 
 
+}
 
-    const welcome =
-    document.querySelector(
-        ".welcome-screen"
-    );
 
 
 
-    if(welcome){
 
-        welcome.style.display="none";
+const welcome =
+document.querySelector(
+".welcome-screen"
+);
 
-    }
 
 
+if(welcome){
 
 
+welcome.style.display =
+"none";
 
-    userInput.value = "";
 
+}
 
 
-    const typing =
-    typingEffect();
 
 
 
+userInput.value="";
 
 
-    // ===============================
-    // Image Generation
-    // ===============================
 
 
-    const generateWords = [
 
-        "خلفية",
+const typing =
+typingEffect();
 
-        "صورة",
 
-        "ولد",
 
-        "بنت",
 
-        "صمم",
 
-        "اصنع",
 
-        "انشئ",
+// ===============================
+// Image Request
+// ===============================
 
-        "generate",
 
-        "wallpaper"
+const imageWords = [
 
-    ];
+"خلفية",
 
+"صورة",
 
+"ولد",
 
+"اصنع",
 
+"انشئ",
 
-    const isImageRequest =
-    generateWords.some(word =>
+"صمم",
 
-        text.toLowerCase()
-        .includes(
-            word.toLowerCase()
-        )
+"generate",
 
-    );
+"wallpaper"
 
+];
 
 
 
 
 
-    if(isImageRequest){
+const isImageRequest =
+imageWords.some(word=>
 
+text.toLowerCase()
+.includes(
+word.toLowerCase()
+)
 
-        try{
+);
 
 
 
-            const response =
-            await fetch(
-                "/api/generate-image",
-                {
 
-                    method:"POST",
 
 
-                    headers:{
 
-                        "Content-Type":
-                        "application/json"
 
-                    },
 
+// ===============================
+// Stable Diffusion
+// ===============================
 
-                    body:JSON.stringify({
 
-                        prompt:text
+if(
+isImageRequest &&
+selectedModel==="stable"
+){
 
-                    })
 
+try{
 
-                }
-            );
 
+const response =
+await fetch(
+"/api/generate-image",
+{
 
 
+method:"POST",
 
 
-            if(!response.ok){
+headers:{
 
 
-                const error =
-                await response.text();
+"Content-Type":
+"application/json"
 
 
-                console.error(
-                    "Image Error:",
-                    error
-                );
+},
 
 
-                throw new Error(
-                    "Image API Error"
-                );
 
+body:JSON.stringify({
 
-            }
 
+prompt:text,
 
 
+model:"stable"
 
 
+})
 
-            const data =
-            await response.json();
 
 
+});
 
 
-            removeTyping(typing);
+const data =
+await response.json();
 
 
 
 
+removeTyping(
+typing
+);
 
-            if(data.image){
 
 
-                addMessage(
 
-                    data.image,
 
-                    "ai"
+if(data.image){
 
-                );
 
+addMessage(
+data.image,
+"ai"
+);
 
-            }else{
 
 
-                addMessage(
+}else{
 
-                    "⚠️ لم يتم إنشاء الصورة",
 
-                    "ai"
+addMessage(
+"⚠️ لم يتم إنشاء الصورة",
+"ai"
+);
 
-                );
 
+}
 
-            }
 
 
+return;
 
 
 
-            return;
+}catch(error){
 
 
+console.error(error);
 
 
 
+removeTyping(
+typing
+);
 
-        }catch(error){
 
 
+addMessage(
+"⚠️ خطأ أثناء توليد الصورة",
+"ai"
+);
 
-            console.error(
-                error
-            );
 
 
+return;
 
-            removeTyping(typing);
 
-
-
-            addMessage(
-
-                "⚠️ حدث خطأ أثناء إنشاء الصورة",
-
-                "ai"
-
-            );
-
-
-
-            return;
-
-
-        }
-
-
-
-    }
-
-
-
-
-
-
-
-    // ===============================
-    // Chat AI
-    // ===============================
-
-
-
-    let imageData = null;
-
-
-
-    if(selectedImage){
-
-
-        imageData =
-        await imageToBase64(
-            selectedImage
-        );
-
-
-    }
-
-
-
-
-
-    const reply =
-    await askGemini(
-
-        text,
-
-        imageData,
-
-        selectedImage
-
-    );
-
-
-
-
-
-    removeTyping(typing);
-
-
-
-
-
-    addMessage(
-
-        reply,
-
-        "ai"
-
-    );
-
-
-
-
-
-    selectedImage = null;
+}
 
 
 }
@@ -1141,29 +1468,242 @@ async function sendMessage(){
 
 
 
-// حذف تأثير التفكير
+
+// ===============================
+// Unsplash / Ready Wallpapers
+// ===============================
+
+
+if(
+isImageRequest &&
+selectedModel==="unsplash"
+){
+
+
+
+try{
+
+
+const response =
+await fetch(
+"/api/wallpaper",
+{
+
+
+method:"POST",
+
+
+headers:{
+
+
+"Content-Type":
+"application/json"
+
+
+},
+
+
+body:JSON.stringify({
+
+
+prompt:text
+
+
+})
+
+
+});
+
+
+const data =
+await response.json();
+
+
+
+removeTyping(
+typing
+);
+
+
+
+
+if(data.image){
+
+
+addMessage(
+data.image,
+"ai"
+);
+
+
+
+}else{
+
+
+addMessage(
+"⚠️ لم أجد خلفية",
+"ai"
+);
+
+
+}
+
+
+
+return;
+
+
+
+}catch(error){
+
+
+
+console.log(error);
+
+
+
+removeTyping(
+typing
+);
+
+
+
+addMessage(
+"⚠️ خطأ في البحث عن الخلفية",
+"ai"
+);
+
+
+
+return;
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// Gemini Chat
+// ===============================
+
+
+
+let imageData=null;
+
+
+
+
+if(selectedImage){
+
+
+imageData =
+await imageToBase64(
+selectedImage
+);
+
+
+}
+
+
+
+
+
+
+
+const reply =
+await askGemini(
+
+text,
+
+imageData,
+
+selectedImage
+
+);
+
+
+
+
+
+removeTyping(
+typing
+);
+
+
+
+
+
+addMessage(
+reply,
+"ai"
+);
+
+
+
+
+
+selectedImage=null;
+
+
+
+if(imageInput){
+
+
+imageInput.value="";
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// Remove Thinking
+// ===============================
+
 
 function removeTyping(typing){
 
 
-    if(typing){
 
-
-        const message =
-        typing.closest(
-            ".message"
-        );
+if(typing){
 
 
 
-        if(message){
+const message =
+typing.closest(
+".message"
+);
 
-            message.remove();
-
-        }
 
 
-    }
+
+if(message){
+
+
+message.remove();
+
+
+}
+
+
+
+}
+
 
 
 }
@@ -1175,34 +1715,41 @@ function removeTyping(typing){
 
 if(sendBtn){
 
-    sendBtn.onclick =
-    sendMessage;
+
+sendBtn.onclick =
+sendMessage;
+
 
 }
+
 
 
 
 if(userInput){
 
 
-    userInput.addEventListener(
-        "keydown",
-        (e)=>{
+userInput.addEventListener(
+"keydown",
+(e)=>{
 
 
-            if(e.key==="Enter"){
-
-                sendMessage();
-
-            }
+if(e.key==="Enter"){
 
 
-        }
-
-    );
+sendMessage();
 
 
 }
+
+
+
+});
+
+
+}
+
+
+
 
 
 
@@ -1218,21 +1765,26 @@ document
 .forEach(chip=>{
 
 
-    chip.onclick = ()=>{
+chip.onclick=()=>{
 
 
-        userInput.value =
-        chip.innerText;
+userInput.value =
+chip.innerText;
 
 
 
-        sendMessage();
+sendMessage();
 
 
-    };
+
+};
+
 
 
 });
+
+
+
 
 
 
@@ -1247,39 +1799,46 @@ document
 function imageToBase64(file){
 
 
-    return new Promise(
-    (resolve,reject)=>{
+return new Promise(
+(resolve,reject)=>{
 
 
-        const reader =
-        new FileReader();
-
-
-
-        reader.onload = ()=>{
-
-
-            resolve(
-
-                reader.result
-                .split(",")[1]
-
-            );
-
-
-        };
+const reader =
+new FileReader();
 
 
 
-        reader.onerror =
-        reject;
+
+reader.onload=()=>{
+
+
+resolve(
+
+reader.result
+.split(",")[1]
+
+);
+
+
+};
 
 
 
-        reader.readAsDataURL(file);
 
 
-    });
+reader.onerror =
+reject;
+
+
+
+
+reader.readAsDataURL(
+file
+);
+
+
+
+});
 
 
 }
@@ -1289,184 +1848,168 @@ function imageToBase64(file){
 
 
 
+
+
+
 // ===============================
-// WallpaperHub AI
-// Text + Image
+// Gemini AI
 // ===============================
 
 
 async function askGemini(
-    message,
-    imageData=null,
-    imageFile=null
+message,
+imageData=null,
+imageFile=null
 ){
 
 
-    try{
 
+try{
 
-        const userLocale =
-        navigator.language;
 
 
+const userLocale =
+navigator.language;
 
-        const userTimezone =
-        Intl.DateTimeFormat()
-        .resolvedOptions()
-        .timeZone;
 
 
+const userTimezone =
+Intl.DateTimeFormat()
+.resolvedOptions()
+.timeZone;
 
 
-        const response =
-        await fetch(
-            "/api/chat",
-            {
 
-                method:"POST",
 
 
-                headers:{
 
-                    "Content-Type":
-                    "application/json"
+const response =
+await fetch(
+"/api/chat",
+{
 
-                },
 
+method:"POST",
 
-                body:JSON.stringify({
 
-                    message:message,
+headers:{
 
 
-                    imageData:imageData,
+"Content-Type":
+"application/json"
 
 
-                    mimeType:
+},
 
-                    imageFile ?
 
-                    imageFile.type :
 
-                    null,
+body:JSON.stringify({
 
 
-                    locale:userLocale,
+message:message,
 
 
-                    timezone:userTimezone
 
+imageData:imageData,
 
-                })
 
 
-            }
+mimeType:
 
-        );
+imageFile ?
 
+imageFile.type :
 
+null,
 
 
 
+locale:userLocale,
 
-        let data;
 
 
+timezone:userTimezone
 
-        try{
 
 
-            data =
-            await response.json();
+})
 
-
-
-        }catch(error){
-
-
-
-            const text =
-            await response.text();
-
-
-
-            console.error(
-                "Server Response:",
-                text
-            );
-
-
-
-            return "⚠️ السيرفر رجع بيانات غير صحيحة";
-
-        }
-
-
-
-
-
-
-
-        console.log(
-            "AI Server Response:",
-            data
-        );
-
-
-
-
-
-
-        if(!response.ok){
-
-
-            return (
-
-                data.message ||
-
-                "⚠️ وقع مشكل في الاتصال بالسيرفر"
-
-            );
-
-
-        }
-
-
-
-
-
-        return (
-
-            data.reply ||
-
-            "⚠️ ماقدرتش نجيب جواب دابا"
-
-        );
-
-
-
-
-
-
-    }catch(error){
-
-
-
-        console.error(
-            "AI Error:",
-            error
-        );
-
-
-
-        return "⚠️ وقع مشكل مؤقت، حاول مرة أخرى.";
-
-
-
-    }
 
 
 }
+
+);
+
+
+
+
+
+
+
+
+const data =
+await response.json();
+
+
+
+
+
+
+
+if(!response.ok){
+
+
+
+return (
+
+data.message ||
+
+"⚠️ وقع مشكل في السيرفر"
+
+);
+
+
+
+}
+
+
+
+
+
+
+return (
+
+data.reply ||
+
+"⚠️ ماقدرتش نجيب جواب"
+
+);
+
+
+
+}catch(error){
+
+
+
+console.error(
+"Gemini Error:",
+error
+);
+
+
+
+return "⚠️ وقع خطأ مؤقت";
+
+
+
+}
+
+
+
+}
+
+
+
 
 
 
@@ -1482,64 +2025,43 @@ async function askGemini(
 function updateWelcome(){
 
 
-    const hour =
-    new Date()
-    .getHours();
 
-
-
-    let text;
-
+const hour =
+new Date()
+.getHours();
 
 
 
 
-    if(hour >=5 && hour <12){
-
-
-        text =
-        "صباح الخير";
-
-
-    }
-
-    else if(hour >=12 && hour <18){
-
-
-        text =
-        "نهارك سعيد";
-
-
-    }
-
-    else{
-
-
-        text =
-        "مساء الخير";
-
-
-    }
+let text;
 
 
 
 
 
-    const el =
-    document.getElementById(
-        "welcomeText"
-    );
+if(hour >=5 && hour <12){
 
 
-
-    if(el){
-
-
-        el.innerHTML =
-        text;
+text =
+"صباح الخير";
 
 
-    }
+}
+
+else if(hour >=12 && hour <18){
+
+
+text =
+"نهارك سعيد";
+
+
+}
+
+else{
+
+
+text =
+"مساء الخير";
 
 
 }
@@ -1547,6 +2069,32 @@ function updateWelcome(){
 
 
 
+
+
+
+const el =
+document.getElementById(
+"welcomeText"
+);
+
+
+
+
+
+if(el){
+
+
+el.innerHTML =
+text;
+
+
+}
+
+
+
+
+
+}
 
 
 
@@ -1560,7 +2108,7 @@ document.addEventListener(
 ()=>{
 
 
-    updateWelcome();
+updateWelcome();
 
 
 });
