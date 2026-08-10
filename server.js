@@ -1,5 +1,5 @@
 // ======================================
-// WallpaperHub Server v3.0
+// WallpaperHub Server v3.1
 // Express Edition
 // ======================================
 
@@ -10,22 +10,12 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
-<<<<<<< HEAD
-=======
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-
-const app = express();
-const PORT = 3000;
->>>>>>> 58ccab8 (Fix OpenAI image route)
-
 
 const app = express();
 
 const PORT = 3000;
+
+
 
 // ================================
 // Middlewares
@@ -36,19 +26,13 @@ app.use(cors());
 
 
 app.use(express.json({
-
     limit:"10mb"
-
 }));
 
 
 app.use(express.urlencoded({
-
     extended:true
-
 }));
-
-
 
 
 
@@ -61,9 +45,12 @@ app.use(
     express.static(__dirname)
 );
 
+
+
 // ================================
 // Admin Panel
 // ================================
+
 
 app.get("/admin",(req,res)=>{
 
@@ -77,13 +64,32 @@ app.get("/admin",(req,res)=>{
 
 });
 
+
+
 // ================================
-// Paths
+// Home
+// ================================
+
+
+app.get("/",(req,res)=>{
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "index.html"
+        )
+    );
+
+});
+
+
+
+// ================================
+// Database Path
 // ================================
 
 
 const DATA_FILE =
-
 path.join(
     __dirname,
     "data",
@@ -99,92 +105,56 @@ console.log(
 
 
 
-
-
-
-
-
 // ================================
-// Read Wallpapers
+// Read Data
 // ================================
 
 
 function readWallpapers(){
 
-
     try{
 
-
         const data =
-
         fs.readFileSync(
-
             DATA_FILE,
-
             "utf8"
-
         );
 
 
-
-        return JSON.parse(
-            data
-        );
+        return JSON.parse(data);
 
 
+    }catch(error){
 
-    }catch(err){
-
-
-
-        console.log(
-            err
-        );
-
+        console.log(error);
 
         return [];
 
-
-
     }
-
 
 }
 
 
 
-
-
-
-
 // ================================
-// Save Wallpapers
+// Save Data
 // ================================
 
 
 function saveWallpapers(list){
 
 
-
     fs.writeFileSync(
-
 
         DATA_FILE,
 
-
         JSON.stringify(
-
             list,
-
             null,
-
             2
-
         ),
 
-
         "utf8"
-
 
     );
 
@@ -192,298 +162,247 @@ function saveWallpapers(list){
 }
 
 // ================================
-// API
+// Wallpapers API
 // ================================
+
 
 // جميع الخلفيات
 
 app.get("/api/wallpapers",(req,res)=>{
 
-    const wallpapers = readWallpapers();
+
+    const wallpapers =
+    readWallpapers();
+
 
     res.json(wallpapers);
 
-});
-
-// ================================
-// Home
-// ================================
-
-app.get("/",(req,res)=>{
-
-    res.sendFile(
-
-        path.join(__dirname,"index.html")
-
-    );
 
 });
+
+
+
+
 
 // ================================
 // Add Wallpaper
 // ================================
 
-app.post("/api/wallpapers", (req, res) => {
 
-    console.log(req.body);
+app.post(
+"/api/wallpapers",
+(req,res)=>{
 
 
-    try {
+try{
 
 
-        const wallpapers = readWallpapers();
+const wallpapers =
+readWallpapers();
 
 
 
-        const newWallpaper = {
+const newWallpaper = {
 
 
-            id: Date.now(),
+id:Date.now(),
 
 
 
-            title:
-            req.body.title ||
-            "Untitled",
+title:
+req.body.title ||
+"Untitled",
 
 
 
-            category:
-            req.body.category ||
-            "other",
+category:
+req.body.category ||
+"other",
 
 
 
+type:
+req.body.type ||
+"image",
 
-            // نوع الخلفية
-            type:
-            req.body.type ||
-            "image",
 
 
+animated:
 
-            // هل هي متحركة
-            animated:
+req.body.type==="video" ||
+req.body.type==="gif",
 
-            req.body.type === "video" ||
-            req.body.type === "gif",
 
 
+thumbnail:
 
+req.body.thumbnail ||
+req.body.image ||
+"",
 
 
-            // صورة المعاينة
 
-            thumbnail:
+image:
 
-            req.body.thumbnail ||
-            req.body.image ||
-            "",
+req.body.image ||
+req.body.thumbnail ||
+"",
 
 
 
+resolution:
 
-            // الملف الأساسي
+req.body.resolution ||
+"",
 
-            image:
 
-            req.body.image ||
-            req.body.thumbnail ||
-            "",
 
+size:
 
+req.body.size ||
+"",
 
 
 
+downloads:0,
 
-            resolution:
 
-            req.body.resolution ||
-            "",
+likes:0,
 
 
+views:0,
 
 
-            size:
 
-            req.body.size ||
-            "",
+rating:0,
 
 
+ratingCount:0,
 
 
+ratingSum:0,
 
-            downloads:0,
 
-            likes:0,
 
-            views:0,
+author:
 
+req.body.author ||
+"WallpaperHub",
 
 
 
-            rating:0,
+date:
 
-            ratingCount:0,
+new Date()
+.toLocaleString("ar-MA"),
 
-            ratingSum:0,
 
 
+colors:
 
+req.body.colors ||
+[],
 
 
-            author:
 
-            req.body.author ||
-            "WallpaperHub",
+tags:
 
+req.body.tags ||
+[],
 
 
 
-            date:
+featured:
 
-            new Date()
-            .toLocaleString("ar-MA"),
+req.body.featured ||
+false,
 
 
 
+todayWallpaper:
 
-            colors:
+req.body.todayWallpaper ||
+false,
 
-            req.body.colors ||
-            [],
 
 
+popular:
 
+req.body.popular ||
+false
 
-            tags:
 
-            req.body.tags ||
-            [],
 
+};
 
 
 
 
+// خلفية اليوم واحدة فقط
 
-            featured:
+if(newWallpaper.todayWallpaper){
 
-            req.body.featured ||
-            false,
 
+wallpapers.forEach(w=>{
 
 
+w.todayWallpaper=false;
 
 
-            todayWallpaper:
+});
 
-            req.body.todayWallpaper ||
-            false,
 
+}
 
 
 
+wallpapers.push(
+newWallpaper
+);
 
-            popular:
 
-            req.body.popular ||
-            false
 
+saveWallpapers(
+wallpapers
+);
 
 
-        };
 
+res.json({
 
+success:true,
 
+wallpaper:newWallpaper
 
+});
 
 
-        // منع وجود أكثر من خلفية اليوم
 
-        if(newWallpaper.todayWallpaper){
+}catch(error){
 
 
-            wallpapers.forEach(w=>{
+console.log(error);
 
 
-                w.todayWallpaper =
-                false;
+res.status(500).json({
 
+success:false,
 
-            });
+message:"Server Error"
 
+});
 
-        }
 
-
-
-
-
-
-        wallpapers.push(
-            newWallpaper
-        );
-
-
-
-
-
-        saveWallpapers(
-            wallpapers
-        );
-
-
-
-
-
-        res.json({
-
-
-            success:true,
-
-
-            message:
-            "Wallpaper added successfully",
-
-
-            wallpaper:
-            newWallpaper
-
-
-        });
-
-
-
-
-
-    } catch(err){
-
-
-
-        console.error(err);
-
-
-
-
-        res.status(500).json({
-
-
-            success:false,
-
-
-            message:
-            "Server Error"
-
-
-        });
-
-
-
-    }
+}
 
 
 
 });
+
+
+
+
+
 
 // ================================
 // Update Wallpaper
@@ -516,15 +435,12 @@ w=>w.id===id
 
 
 
-
 if(index===-1){
 
 
 return res.status(404).json({
 
-success:false,
-
-message:"Wallpaper not found"
+success:false
 
 });
 
@@ -535,7 +451,7 @@ message:"Wallpaper not found"
 
 
 
-wallpapers[index] = {
+wallpapers[index]={
 
 
 ...wallpapers[index],
@@ -547,9 +463,7 @@ wallpapers[index] = {
 id
 
 
-
 };
-
 
 
 
@@ -557,8 +471,6 @@ id
 saveWallpapers(
 wallpapers
 );
-
-
 
 
 
@@ -572,6 +484,175 @@ wallpapers[index]
 });
 
 
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+// ================================
+// Delete Wallpaper
+// ================================
+
+
+app.delete(
+"/api/wallpapers/:id",
+(req,res)=>{
+
+
+try{
+
+
+let wallpapers =
+readWallpapers();
+
+
+
+const id =
+Number(req.params.id);
+
+
+
+const index =
+wallpapers.findIndex(
+w=>w.id===id
+);
+
+
+
+
+if(index===-1){
+
+
+return res.status(404).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+wallpapers.splice(
+index,
+1
+);
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+res.json({
+
+success:true
+
+});
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+});
+
+// ================================
+// Download Count
+// ================================
+
+
+app.post(
+"/api/wallpapers/:id/download",
+(req,res)=>{
+
+
+try{
+
+
+const wallpapers =
+readWallpapers();
+
+
+
+const id =
+Number(req.params.id);
+
+
+
+const wall =
+wallpapers.find(
+w=>w.id===id
+);
+
+
+
+
+if(!wall){
+
+
+return res.status(404).json({
+
+success:false
+
+});
+
+
+}
+
+
+
+wall.downloads =
+(wall.downloads || 0) + 1;
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+res.json({
+
+success:true,
+
+downloads:
+wall.downloads
+
+});
 
 
 
@@ -600,104 +681,6 @@ success:false
 
 
 
-
-
-// ================================
-// Download Count
-// ================================
-
-
-app.post(
-"/api/wallpapers/:id/download",
-(req,res)=>{
-
-
-try{
-
-
-const wallpapers =
-readWallpapers();
-
-
-const id =
-Number(req.params.id);
-
-
-
-const wall =
-wallpapers.find(
-w=>w.id===id
-);
-
-
-
-
-
-if(!wall){
-
-
-return res.status(404).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-
-
-wall.downloads =
-(wall.downloads || 0)+1;
-
-
-
-saveWallpapers(
-wallpapers
-);
-
-
-
-
-res.json({
-
-success:true,
-
-downloads:
-wall.downloads
-
-});
-
-
-
-
-
-}catch(error){
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-
-
-
 // ================================
 // Like Wallpaper
 // ================================
@@ -715,6 +698,7 @@ const wallpapers =
 readWallpapers();
 
 
+
 const id =
 Number(req.params.id);
 
@@ -727,9 +711,8 @@ w=>w.id===id
 
 
 
-
-
 if(!wall){
+
 
 return res.status(404).json({
 
@@ -737,21 +720,19 @@ success:false
 
 });
 
+
 }
 
 
 
-
-
 wall.likes =
-(wall.likes || 0)+1;
+(wall.likes || 0) + 1;
 
 
 
 saveWallpapers(
 wallpapers
 );
-
 
 
 
@@ -766,9 +747,10 @@ wall.likes
 
 
 
-
-
 }catch(error){
+
+
+console.log(error);
 
 
 res.status(500).json({
@@ -783,8 +765,6 @@ success:false
 
 
 });
-
-
 
 
 
@@ -809,6 +789,7 @@ const wallpapers =
 readWallpapers();
 
 
+
 const id =
 Number(req.params.id);
 
@@ -822,8 +803,8 @@ w=>w.id===id
 
 
 
-
 if(!wall){
+
 
 return res.status(404).json({
 
@@ -831,21 +812,19 @@ success:false
 
 });
 
+
 }
 
 
 
-
-
 wall.views =
-(wall.views || 0)+1;
+(wall.views || 0) + 1;
 
 
 
 saveWallpapers(
 wallpapers
 );
-
 
 
 
@@ -860,9 +839,10 @@ wall.views
 
 
 
-
-
 }catch(error){
+
+
+console.log(error);
 
 
 res.status(500).json({
@@ -877,8 +857,6 @@ success:false
 
 
 });
-
-
 
 
 
@@ -917,14 +895,15 @@ w=>w.id===id
 
 
 
-
 if(!wall){
+
 
 return res.status(404).json({
 
 success:false
 
 });
+
 
 }
 
@@ -947,7 +926,9 @@ rating > 5
 
 return res.status(400).json({
 
-success:false
+success:false,
+
+message:"Rating must be 1-5"
 
 });
 
@@ -959,16 +940,17 @@ success:false
 
 
 wall.ratingCount =
-(wall.ratingCount || 0)+1;
+(wall.ratingCount || 0) + 1;
 
 
 
 wall.ratingSum =
-(wall.ratingSum || 0)+rating;
+(wall.ratingSum || 0) + rating;
 
 
 
 wall.rating =
+
 Number(
 
 (
@@ -988,121 +970,24 @@ wallpapers
 
 
 
-
-
 res.json({
 
 success:true,
 
 rating:
-wall.rating
+wall.rating,
+
+ratingCount:
+wall.ratingCount
 
 });
-
-
 
 
 
 }catch(error){
 
 
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-
-
-
-// ================================
-// Delete Wallpaper
-// ================================
-
-
-app.delete(
-"/api/wallpapers/:id",
-(req,res)=>{
-
-
-try{
-
-
-let wallpapers =
-readWallpapers();
-
-
-
-const id =
-Number(req.params.id);
-
-
-
-
-const index =
-wallpapers.findIndex(
-
-w=>w.id===id
-
-);
-
-
-
-
-
-if(index===-1){
-
-
-return res.status(404).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-
-wallpapers.splice(
-index,
-1
-);
-
-
-
-
-saveWallpapers(
-wallpapers
-);
-
-
-
-
-res.json({
-
-success:true
-
-});
-
-
-
-
-
-}catch(error){
+console.log(error);
 
 
 res.status(500).json({
@@ -1150,14 +1035,13 @@ timezone
 
 
 
-let parts=[];
+let parts = [];
 
 
 
 
 
 parts.push({
-
 
 text:
 
@@ -1179,7 +1063,6 @@ ${timezone}
 ${message}`
 
 
-
 });
 
 
@@ -1188,34 +1071,32 @@ ${message}`
 
 
 
+// إذا كانت هناك صورة
+
 if(imageData){
 
 
-
 parts.push({
-
 
 inlineData:{
 
 
 mimeType:
-mimeType ||
-"image/jpeg",
+
+mimeType || "image/jpeg",
 
 
 data:
+
 imageData
 
 
-
 }
-
 
 
 });
 
 
-
 }
 
 
@@ -1224,10 +1105,11 @@ imageData
 
 
 
-const response =
-await fetch(
+const response = await fetch(
+
 
 `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
 
 {
 
@@ -1238,8 +1120,7 @@ method:"POST",
 headers:{
 
 
-"Content-Type":
-"application/json"
+"Content-Type":"application/json"
 
 
 },
@@ -1247,7 +1128,6 @@ headers:{
 
 
 body:JSON.stringify({
-
 
 contents:[
 
@@ -1259,47 +1139,18 @@ parts:parts
 
 ]
 
-
 })
-
 
 
 }
 
-<<<<<<< HEAD
+
+
 );
 
 
 
-=======
-            console.log(data);
 
-
-            return res.json({
-
-                reply:
-                "⚠️ مشكلة في الاتصال بـ السيرفر"
-
-            });
-
-        }
-
-
-
-        if(
-            !data.candidates ||
-            !data.candidates[0]
-        ){
-
-            return res.json({
-
-                reply:
-                "⚠️ سيرفر لم يرجع جواب"
-
-            });
-
-        }
->>>>>>> 58ccab8 (Fix OpenAI image route)
 
 
 
@@ -1310,25 +1161,53 @@ await response.json();
 
 
 
+console.log(
+"Gemini Status:",
+response.status
+);
+
+
+
+
+
 
 
 if(!response.ok){
 
 
+console.log(data);
+
 
 return res.json({
 
 reply:
-"⚠️ مشكلة في Gemini"
-
+"⚠️ مشكلة في الاتصال بـ Gemini"
 
 });
 
-// ===============================
-// Generate Image
-// ===============================
 
-<<<<<<< HEAD
+}
+
+
+
+
+
+
+
+if(
+!data.candidates ||
+!data.candidates[0]
+){
+
+
+return res.json({
+
+reply:
+"⚠️ Gemini لم يرجع جواب"
+
+});
+
+
 }
 
 
@@ -1339,7 +1218,6 @@ reply:
 
 res.json({
 
-
 reply:
 
 data
@@ -1347,7 +1225,6 @@ data
 .content
 .parts[0]
 .text
-
 
 
 });
@@ -1360,7 +1237,6 @@ data
 }catch(error){
 
 
-
 console.log(
 "Gemini Error:",
 error
@@ -1370,13 +1246,10 @@ error
 
 res.json({
 
-
 reply:
 "⚠️ وقع خطأ مؤقت"
 
-
 });
-
 
 
 }
@@ -1389,23 +1262,28 @@ reply:
 // Generate Image
 // Models:
 // stable = Stable Diffusion
-// unsplash = Ready wallpapers
+// unsplash = Ready Wallpapers
 // ================================
 
 
-=======
->>>>>>> 58ccab8 (Fix OpenAI image route)
-app.post("/api/generate-image", async(req,res)=>{
+app.post(
+"/api/generate-image",
+async(req,res)=>{
 
 
 try{
 
 
-<<<<<<< HEAD
 const {
+
 prompt,
+
 model
+
+
 }=req.body;
+
+
 
 
 
@@ -1421,46 +1299,65 @@ if(model==="stable"){
 const response =
 await fetch(
 
+
 "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+
 
 {
 
+
 method:"POST",
+
 
 headers:{
 
 
 Authorization:
+
 `Bearer ${process.env.HF_TOKEN}`,
 
+
+
 "Content-Type":
+
 "application/json"
 
 
 },
 
 
+
 body:JSON.stringify({
 
 inputs:
+
 
 `
 Premium smartphone wallpaper.
 
 ${prompt}
 
-4K quality,
-vertical phone wallpaper,
-no text,
-no watermark
+Requirements:
+
+- 4K quality
+- vertical phone wallpaper
+- no text
+- no watermark
+- ultra detailed
+
 `
+
 
 })
 
 
 }
 
+
+
 );
+
+
 
 
 
@@ -1469,14 +1366,17 @@ no watermark
 if(!response.ok){
 
 
+
 const error =
 await response.text();
+
 
 
 console.log(
 "HuggingFace Error:",
 error
 );
+
 
 
 return res.status(500).json({
@@ -1493,8 +1393,12 @@ error:
 
 
 
+
+
 const buffer =
 await response.arrayBuffer();
+
+
 
 
 
@@ -1506,53 +1410,19 @@ Buffer.from(buffer)
 
 
 
+
+
 return res.json({
 
 image:
+
 `data:image/png;base64,${base64}`
-=======
-const {prompt}=req.body;
-
-
-
-const result =
-await openai.images.generate({
-
-model:"gpt-image-1",
-
-prompt:
-`
-Create a premium smartphone wallpaper.
-
-${prompt}
-
-Requirements:
-- 4K quality
-- vertical mobile wallpaper
-- 1440x3200 resolution style
-- no text
-- no watermark
-- ultra detailed
-`,
-
-size:"1024x1536"
 
 
 });
 
 
 
-res.json({
-
-image:
-result.data[0].url
->>>>>>> 58ccab8 (Fix OpenAI image route)
-
-});
-
-
-
-<<<<<<< HEAD
 }
 
 
@@ -1560,8 +1430,9 @@ result.data[0].url
 
 
 
+
 // ===============================
-// Unsplash Ready Wallpapers
+// Unsplash
 // ===============================
 
 
@@ -1573,7 +1444,9 @@ const response =
 await fetch(
 
 
+
 `https://api.unsplash.com/search/photos?query=${encodeURIComponent(prompt)}&per_page=1`,
+
 
 
 {
@@ -1593,7 +1466,9 @@ Authorization:
 }
 
 
+
 );
+
 
 
 
@@ -1608,22 +1483,33 @@ await response.json();
 
 
 
+
 if(
+
 data.results &&
+
 data.results.length > 0
 
 ){
 
 
+
 return res.json({
 
 image:
-data.results[0].urls.regular
+
+data.results[0]
+.urls
+.regular
+
 
 });
 
 
+
 }
+
+
 
 
 
@@ -1637,7 +1523,9 @@ error:
 });
 
 
+
 }
+
 
 
 
@@ -1648,59 +1536,60 @@ error:
 // Unknown Model
 // ===============================
 
+
 return res.status(400).json({
 
-    error: "Unknown model"
+error:
+"Unknown model"
 
 });
 
 
-} catch(error) {
 
 
-    console.log(
-        "Image API Error:",
-        error
-    );
 
 
-    return res.status(500).json({
+}catch(error){
 
-        error: error.message
 
-    });
+
+console.log(
+
+"Image API Error:",
+
+error
+
+);
+
+
+
+
+res.status(500).json({
+
+error:
+error.message
+
+});
+
 
 
 }
 
 
+
 });
 
-// ================================
-// Start
-// ================================
+//=====تشغيل سيرفر===\\
 
 app.listen(PORT,()=>{
 
+console.log(
+"WallpaperHub Server Started"
+);
 
-    console.log("");
-
-    console.log(
-    "===================================="
-    );
-
-    console.log(
-    " WallpaperHub Server Started"
-    );
-
-    console.log(
-    " PORT:",
-    PORT
-    );
-
-    console.log(
-    "===================================="
-    );
-
+console.log(
+"PORT:",
+PORT
+);
 
 });

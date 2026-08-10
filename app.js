@@ -345,6 +345,56 @@ function loadTodayWallpaper() {
 
 }
 
+// ================================
+// Global Dark Mode Sync
+// ================================
+
+const dark =
+document.getElementById("darkMode");
+
+
+if(dark){
+
+    dark.checked = settings.darkMode;
+
+
+    dark.addEventListener("change",()=>{
+
+
+        settings.darkMode =
+        dark.checked;
+
+
+        saveSettings();
+
+
+        applySetting("darkMode");
+
+
+    });
+
+
+}
+
+function loadTheme(){
+
+    const saved =
+    JSON.parse(
+        localStorage.getItem("wallpaperSettings")
+    );
+
+
+    if(saved && saved.darkMode){
+
+        document.body.classList.add("dark");
+
+    }
+
+}
+
+
+loadTheme();
+
 /* ==========================
    Dark Mode Global
 ========================== */
