@@ -185,3 +185,165 @@ body.dark .bottom-nav{
 
 
 }
+
+/* ==========================
+   WallpaperHub Light Clean Mode
+========================== */
+
+body{
+    background:#ffffff !important;
+    color:#111111;
+}
+
+
+/* كل الصفحات والأقسام */
+
+header,
+.header,
+section,
+.container,
+.card,
+.box,
+.wall-card,
+.category-card,
+.settings-card,
+.info-card,
+.profile-cover,
+.favorite-card,
+.bottom-nav,
+nav{
+
+    background:#ffffff !important;
+    color:#111111;
+
+}
+
+
+
+/* النصوص */
+
+h1,
+h2,
+h3,
+h4,
+p,
+span,
+label{
+
+    color:#111111;
+
+}
+
+
+
+/* الكروت */
+
+.wall-card,
+.favorite-card,
+.category-card{
+
+    box-shadow:
+    0 5px 20px rgba(0,0,0,.08);
+
+}
+
+
+
+/* إزالة الخلفيات المتسخة */
+
+section,
+.container,
+.box{
+
+    border:none;
+
+}
+
+
+
+/* الهيدر */
+
+header,
+.header{
+
+    border-bottom:1px solid #eeeeee;
+
+}
+
+
+
+/* الشريط السفلي */
+
+.bottom-nav{
+
+    border-top:1px solid #eeeeee;
+
+}
+
+
+
+/* الأزرار */
+
+button{
+
+    background:#ffffff;
+    color:#111111;
+
+}
+
+
+
+/* inputs */
+
+input,
+textarea,
+select{
+
+    background:#ffffff;
+    color:#111111;
+    border:1px solid #ddd;
+
+}
+
+
+
+/* ==========================
+   Dark override
+========================== */
+
+body.dark{
+
+    background:#000000 !important;
+    color:#ffffff;
+
+}
+
+
+body.dark header,
+body.dark .header,
+body.dark section,
+body.dark .container,
+body.dark .card,
+body.dark .box,
+body.dark .wall-card,
+body.dark .category-card,
+body.dark .favorite-card,
+body.dark .bottom-nav{
+
+    background:#000000 !important;
+    color:#ffffff;
+
+}
+
+
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark p,
+body.dark span,
+body.dark label{
+
+    color:#ffffff;
+
+}
