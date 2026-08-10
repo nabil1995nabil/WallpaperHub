@@ -347,3 +347,191 @@ body.dark label{
     color:#ffffff;
 
 }
+
+/* ==================================
+   WallpaperHub Pure White Mode
+================================== */
+
+
+/* الشاشة كاملة */
+
+html,
+body{
+
+    background:#ffffff !important;
+    color:#111 !important;
+
+}
+
+
+
+/* كل الحاويات الرئيسية */
+
+main,
+section,
+.container,
+.page,
+.content,
+.home,
+.wrapper{
+
+    background:#ffffff !important;
+
+}
+
+
+
+/* الهيدر */
+
+header,
+.header,
+.top-header{
+
+    background:#ffffff !important;
+    color:#111 !important;
+    border-bottom:1px solid #eee;
+
+}
+
+
+
+/* البحث */
+
+.search-box,
+.search-container{
+
+    background:#ffffff !important;
+
+    border:1px solid #eee;
+
+}
+
+
+
+/* بطاقات الخلفيات */
+
+.wall-card,
+.card,
+.category-card,
+.favorite-card{
+
+    background:#ffffff !important;
+
+    color:#111 !important;
+
+    box-shadow:
+    0 4px 15px rgba(0,0,0,.08);
+
+}
+
+
+
+/* النصوص */
+
+h1,h2,h3,h4,
+p,
+span,
+label{
+
+    color:#111 !important;
+
+}
+
+
+
+/* زر العرض والتحميل */
+
+button{
+
+    color:#111;
+
+}
+
+
+
+/* الشريط السفلي */
+
+.bottom-nav,
+nav{
+
+    background:#ffffff !important;
+
+    color:#111 !important;
+
+    border-top:1px solid #eee;
+
+}
+
+
+
+/* الأيقونات */
+
+.nav-item,
+.nav-item span{
+
+    color:#111 !important;
+
+}
+
+
+
+/* إزالة أي خلفية ملونة */
+
+*{
+
+    background-image:none;
+
+}
+
+
+
+/* استثناء الصور */
+
+img{
+
+    background:transparent !important;
+
+}
+
+
+
+/* ===========================
+   Dark Mode
+=========================== */
+
+body.dark,
+body.dark html{
+
+    background:#000 !important;
+    color:#fff !important;
+
+}
+
+
+body.dark header,
+body.dark .header,
+body.dark main,
+body.dark section,
+body.dark .container,
+body.dark .wall-card,
+body.dark .card,
+body.dark .category-card,
+body.dark .favorite-card,
+body.dark .bottom-nav{
+
+    background:#000 !important;
+    color:#fff !important;
+
+}
+
+
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark p,
+body.dark span{
+
+    color:#fff !important;
+
+}
