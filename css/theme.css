@@ -92,3 +92,107 @@ body.dark a{
     color:#93c5fd;
 
 }
+
+/* =========================
+   WallpaperHub Dark Fix
+========================= */
+
+
+body.dark{
+
+    background:#0f172a;
+
+}
+
+
+/* منع المربعات الكبيرة */
+
+body.dark section,
+body.dark .container{
+
+    background:transparent;
+
+}
+
+
+
+/* Header + Bottom */
+
+body.dark header,
+body.dark .header,
+body.dark .bottom-nav,
+body.dark nav{
+
+    background:#0f172a;
+
+    border-color:#1e293b;
+
+}
+
+
+
+/* العناوين */
+
+body.dark h1,
+body.dark h2,
+body.dark h3{
+
+    color:#ffffff;
+
+}
+
+
+
+/* أقسام الصفحة */
+
+body.dark .section-title,
+body.dark .section-header{
+
+    background:transparent;
+
+}
+
+
+
+/* بطاقات الأقسام */
+
+body.dark .category,
+body.dark .category-card{
+
+    background:#1e293b;
+
+    color:white;
+
+}
+
+
+
+/* بطاقات الخلفيات */
+
+body.dark .wall-card{
+
+    background:#1e293b;
+
+}
+
+
+
+/* إزالة الخلفيات البيضاء */
+
+body.dark .card,
+body.dark .box,
+body.dark .settings-card{
+
+    background:#172033;
+
+}
+
+
+
+/* المفضلة لاحقا */
+
+body.dark .favorite-card{
+
+    background:transparent;
+
+}
