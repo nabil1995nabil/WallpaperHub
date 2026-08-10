@@ -1,0 +1,94 @@
+/* Global Dark Mode */
+
+body{
+    background:#f5f7fb;
+    color:#1d1d1f;
+    transition:.3s;
+}
+
+
+body.dark{
+    background:#111827;
+    color:#fff;
+}
+
+
+/* Cards + Sections */
+
+body.dark header,
+body.dark footer,
+body.dark section,
+body.dark .card,
+body.dark .wall-card,
+body.dark .container,
+body.dark .box,
+body.dark .settings-card,
+body.dark .info-card,
+body.dark .stat-card,
+body.dark .profile-cover,
+body.dark .privacy-page,
+body.dark .ai-container,
+body.dark .chat-container,
+body.dark .bubble,
+body.dark .search-box,
+body.dark .category-card{
+    
+    background:#1e293b;
+    color:white;
+
+}
+
+
+/* Text */
+
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark p,
+body.dark span,
+body.dark label{
+
+    color:#f8fafc;
+
+}
+
+
+/* Inputs */
+
+body.dark input,
+body.dark textarea,
+body.dark select{
+
+    background:#334155;
+    color:white;
+    border-color:#475569;
+
+}
+
+
+/* Buttons */
+
+body.dark button{
+
+    color:white;
+
+}
+
+
+/* Bottom navigation */
+
+body.dark .bottom-nav{
+
+    background:#1e293b;
+
+}
+
+
+/* Links */
+
+body.dark a{
+
+    color:#93c5fd;
+
+}
