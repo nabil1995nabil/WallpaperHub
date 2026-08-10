@@ -112,48 +112,6 @@ transform:scale(.9);
 
 }
 
-/* ================= SEARCH ================= */
-
-.search-box{
-
-margin:18px;
-
-height:58px;
-
-display:flex;
-
-align-items:center;
-
-padding:0 18px;
-
-background:#fff;
-
-border-radius:18px;
-
-box-shadow:var(--shadow);
-
-}
-
-.search-box input{
-
-flex:1;
-
-border:none;
-
-outline:none;
-
-background:transparent;
-
-font-size:16px;
-
-}
-
-.search-box span{
-
-color:#999;
-
-}
-
 /* ================= SLIDER ================= */
 
 .slider-section{
@@ -200,7 +158,7 @@ color:#999;
         );
 
     animation:
-        sliderBorderRotate 3s linear infinite;
+        sliderBorderRotate 6s linear infinite;
 
     z-index:-2;
 }
@@ -721,8 +679,6 @@ main,
 /* ================= ANIMATION ================= */
 
 .header,
-
-.search-box,
 
 .slider,
 
