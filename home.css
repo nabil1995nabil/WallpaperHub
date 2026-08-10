@@ -561,7 +561,7 @@ transform:scale(1.1);
 
 }
 
-//* ================= BOTTOM NAV ================= */
+/* ================= BOTTOM NAV ================= */
 
 .bottom-nav{
 
@@ -594,20 +594,11 @@ transform:scale(1.1);
 }
 
 
-/* الوضع الليلي */
-
-.dark .bottom-nav{
-
-    background:rgba(20,20,20,.95);
-
-    box-shadow:
-    0 -5px 20px rgba(0,0,0,.4);
-
-}
-
-
+/* كل عنصر ياخذ نفس المساحة */
 
 .nav-item{
+
+    flex:1;
 
     display:flex;
 
@@ -619,13 +610,25 @@ transform:scale(1.1);
 
     gap:4px;
 
-    font-size:12px;
+    font-size:11px;
 
     color:#888;
 
     transition:.35s;
 
     cursor:pointer;
+
+}
+
+
+/* الوضع الليلي */
+
+.dark .bottom-nav{
+
+    background:#000;
+
+    box-shadow:
+    0 -5px 20px rgba(0,0,0,.5);
 
 }
 
@@ -641,13 +644,23 @@ transform:scale(1.1);
 
 .nav-item span{
 
-    font-size:27px;
+    font-size:30px;
 
     transition:.35s;
 
 }
 
 
+
+.nav-item p{
+
+    margin:0;
+
+}
+
+
+
+/* العنصر النشيط */
 
 .nav-item.active{
 
