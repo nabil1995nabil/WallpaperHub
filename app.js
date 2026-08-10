@@ -346,16 +346,16 @@ function loadTodayWallpaper() {
 }
 
 /* ==========================
-   Global Dark Mode
+   Dark Mode Global
 ========================== */
 
-function applyDarkMode(){
+function applyGlobalTheme(){
 
-    const dark =
+    const darkMode =
     localStorage.getItem("darkMode");
 
 
-    if(dark === "true"){
+    if(darkMode === "true"){
 
         document.body.classList.add("dark");
 
@@ -368,7 +368,7 @@ function applyDarkMode(){
 }
 
 
-applyDarkMode();
+applyGlobalTheme();
 
 /* ==========================
    تشغيل التطبيق
