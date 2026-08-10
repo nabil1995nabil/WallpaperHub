@@ -2,8 +2,10 @@
    WallpaperHub - app.js
 ================================== */
 
-const API_URL = "http://localhost:3000/api/wallpapers";
-const SERVER_URL = "http://localhost:3000";
+const SERVER_URL = window.location.origin;
+
+const API_URL =
+SERVER_URL + "/api/wallpapers";
 
 function getImageUrl(imagePath) {
 
@@ -342,6 +344,31 @@ function loadTodayWallpaper() {
     }
 
 }
+
+/* ==========================
+   Global Dark Mode
+========================== */
+
+function applyDarkMode(){
+
+    const dark =
+    localStorage.getItem("darkMode");
+
+
+    if(dark === "true"){
+
+        document.body.classList.add("dark");
+
+    }else{
+
+        document.body.classList.remove("dark");
+
+    }
+
+}
+
+
+applyDarkMode();
 
 /* ==========================
    تشغيل التطبيق

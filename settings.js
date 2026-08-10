@@ -552,3 +552,36 @@ option.dataset.style
 
 
 });
+
+const savedDark =
+localStorage.getItem("darkMode");
+
+
+if(savedDark==="true"){
+    document.body.classList.add("dark");
+}
+
+
+const dark =
+document.getElementById("darkMode");
+
+
+if(dark){
+
+dark.onchange=()=>{
+
+document.body.classList.toggle(
+"dark",
+dark.checked
+);
+
+
+localStorage.setItem(
+"darkMode",
+dark.checked
+);
+
+
+};
+
+}
