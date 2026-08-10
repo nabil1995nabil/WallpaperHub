@@ -1,27 +1,49 @@
-/* Global Dark Mode */
+/* =========================
+   WallpaperHub Pure Black Theme
+========================= */
+
+
+/* الوضع العادي */
 
 body{
+
     background:#f5f7fb;
-    color:#1d1d1f;
+    color:#111;
+
     transition:.3s;
+
 }
 
+
+
+/* =========================
+   Dark Mode
+========================= */
 
 body.dark{
-    background:#111827;
+
+    background:#000 !important;
     color:#fff;
+
 }
 
 
-/* Cards + Sections */
+
+/* =========================
+   كل الخلفيات
+========================= */
+
 
 body.dark header,
 body.dark footer,
+body.dark nav,
 body.dark section,
-body.dark .card,
-body.dark .wall-card,
 body.dark .container,
+body.dark .card,
 body.dark .box,
+body.dark .wall-card,
+body.dark .category-card,
+body.dark .category,
 body.dark .settings-card,
 body.dark .info-card,
 body.dark .stat-card,
@@ -31,15 +53,24 @@ body.dark .ai-container,
 body.dark .chat-container,
 body.dark .bubble,
 body.dark .search-box,
-body.dark .category-card{
-    
-    background:#1e293b;
-    color:white;
+body.dark .bottom-nav{
+
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    border-color:#222 !important;
+
 
 }
 
 
-/* Text */
+
+/* =========================
+   النصوص
+========================= */
+
 
 body.dark h1,
 body.dark h2,
@@ -47,152 +78,110 @@ body.dark h3,
 body.dark h4,
 body.dark p,
 body.dark span,
-body.dark label{
+body.dark label,
+body.dark div{
 
-    color:#f8fafc;
+
+    color:#fff;
 
 }
 
 
-/* Inputs */
+
+/* =========================
+   الصور والبطاقات
+========================= */
+
+
+body.dark .wall-card img{
+
+    background:#000;
+
+}
+
+
+
+/* =========================
+   Inputs
+========================= */
+
 
 body.dark input,
 body.dark textarea,
 body.dark select{
 
-    background:#334155;
-    color:white;
-    border-color:#475569;
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    border:1px solid #333;
+
 
 }
 
 
-/* Buttons */
-
-body.dark button{
-
-    color:white;
-
-}
-
-
-/* Bottom navigation */
-
-body.dark .bottom-nav{
-
-    background:#1e293b;
-
-}
-
-
-/* Links */
-
-body.dark a{
-
-    color:#93c5fd;
-
-}
 
 /* =========================
-   WallpaperHub Dark Fix
+   Buttons
 ========================= */
 
 
-body.dark{
-
-    background:#0f172a;
-
-}
+body.dark button{
 
 
-/* منع المربعات الكبيرة */
+    background:#000;
 
-body.dark section,
-body.dark .container{
+    color:#fff;
 
-    background:transparent;
+    border-color:#333;
+
 
 }
 
 
 
-/* Header + Bottom */
+/* =========================
+   روابط
+========================= */
 
-body.dark header,
-body.dark .header,
-body.dark .bottom-nav,
-body.dark nav{
 
-    background:#0f172a;
+body.dark a{
 
-    border-color:#1e293b;
+    color:#fff;
 
 }
 
 
 
-/* العناوين */
+/* =========================
+   إزالة أي مربعات فاتحة
+========================= */
 
-body.dark h1,
-body.dark h2,
-body.dark h3{
-
-    color:#ffffff;
-
-}
-
-
-
-/* أقسام الصفحة */
 
 body.dark .section-title,
-body.dark .section-header{
-
-    background:transparent;
-
-}
-
-
-
-/* بطاقات الأقسام */
-
-body.dark .category,
-body.dark .category-card{
-
-    background:#1e293b;
-
-    color:white;
-
-}
-
-
-
-/* بطاقات الخلفيات */
-
-body.dark .wall-card{
-
-    background:#1e293b;
-
-}
-
-
-
-/* إزالة الخلفيات البيضاء */
-
-body.dark .card,
-body.dark .box,
-body.dark .settings-card{
-
-    background:#172033;
-
-}
-
-
-
-/* المفضلة لاحقا */
-
+body.dark .section-header,
 body.dark .favorite-card{
 
-    background:transparent;
+
+    background:#000 !important;
+
+
+}
+
+
+
+/* =========================
+   Bottom Navigation
+========================= */
+
+
+body.dark .bottom-nav{
+
+
+    background:#000 !important;
+
+    border-top:1px solid #222;
+
 
 }
