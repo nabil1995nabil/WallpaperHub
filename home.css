@@ -2092,7 +2092,7 @@ display:block;
 }
 
 
-/* الداخل ديال البطاقة */
+/* داخل البطاقة */
 
 .category::after{
 
@@ -2110,6 +2110,32 @@ display:block;
 
 }
 
+
+/* الوضع الليلي */
+
+body.dark .category::after{
+
+    background:#000;
+
+}
+
+
+body.dark .category p,
+body.dark .category span{
+
+    color:white;
+
+}
+
+
+/* الوضع العادي */
+
+body:not(.dark) .category p,
+body:not(.dark) .category span{
+
+    color:#111;
+
+}
 
 /* حركة الدوران */
 
@@ -2219,4 +2245,12 @@ transition:.4s;
 
 transform:translateY(-6px) scale(1.05);
 
+}
+
+.category{
+    color:#111;
+}
+
+body.dark .category{
+    color:white;
 }
