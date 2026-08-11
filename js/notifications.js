@@ -127,7 +127,7 @@ return `
 
 
 <div class="notification-card"
-data-id="${item.wallpaperId}">
+onclick="openWallpaper('${item.wallpaperId}')">
 
 
 
@@ -188,10 +188,8 @@ ${item.date}
 
 <button
 class="action-link"
-onclick="openWallpaper('${item.wallpaperId}')">
-
+onclick="event.stopPropagation(); openWallpaper('${item.wallpaperId}')">
 عرض
-
 </button>
 
 
@@ -277,11 +275,10 @@ activateCards();
 
 function openWallpaper(id){
 
+    if(!id) return;
 
-window.location.href =
-
-`wallpaper.html?id=${id}`;
-
+    window.location.href =
+    "wallpaper.html?id=" + id;
 
 }
 
