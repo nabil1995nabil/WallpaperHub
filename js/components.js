@@ -5,37 +5,37 @@
 
 // Bottom Navigation
 
-const bottomNav = document.getElementById("bottomNav");
+//const bottomNav = document.getElementById("bottomNav");
 
-if(bottomNav){
+//if(bottomNav){
 
-fetch("/components/bottom-nav.html")
+//fetch("/components/bottom-nav.html")
 
-.then(response=>response.text())
+//.then(response=>response.text())
 
-.then(html=>{
+//.then(html=>{
 
-bottomNav.innerHTML = html;
+//bottomNav.innerHTML = html;
 
 
-document.querySelectorAll(".nav-item")
-.forEach(item=>{
+//document.querySelectorAll(".nav-item")
+//.forEach(item=>{
 
-item.onclick=()=>{
+//item.onclick=()=>{
 
-const page = item.dataset.page;
+//const page = item.dataset.page;
 
-if(page){
-location.href = page;
-}
+//if(page){
+//location.href = page;
+//}
 
-};
+//};
 
-});
+//});
 
-});
+//});
 
-}
+//}
 
 
 // ==============================
