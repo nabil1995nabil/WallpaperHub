@@ -1,0 +1,44 @@
+.siri-orb-wrapper{
+
+    position:relative;
+
+    width:45px;
+    height:45px;
+
+    border-radius:50%;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+    overflow:hidden;
+
+}
+
+
+.siri-orb-wrapper:hover{
+
+    transform:scale(1.05);
+
+}
+
+
+.siri-orb-wrapper:active{
+
+    transform:scale(.9);
+
+}
+
+
+
+.siri-orb-wrapper canvas{
+
+    position:absolute;
+
+    width:100%;
+    height:100%;
+
+    top:0;
+    left:0;
+
+}
