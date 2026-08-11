@@ -7,15 +7,15 @@
 
     position:fixed;
 
-    left:50%;
-    bottom:20px;
+    left:0%;
+    bottom:0px;
 
     transform:translateX(-50%);
 
     width:100%;
-    max-width:380px;
+    max-width:100px;
 
-    height:60px;
+    height:65px;
 
 
     display:flex;
