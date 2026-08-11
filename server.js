@@ -268,6 +268,53 @@ app.get(
 });
 
 // ================================
+// Delete All Notifications
+// ================================
+
+app.delete(
+"/api/notifications",
+(req,res)=>{
+
+
+try{
+
+
+saveNotifications([]);
+
+
+
+res.json({
+
+    success:true,
+
+    message:
+    "Notifications cleared"
+
+});
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+res.status(500).json({
+
+    success:false,
+
+    message:
+    "Server Error"
+
+});
+
+
+}
+
+
+});
+
+// ================================
 // Wallpapers API
 // ================================
 

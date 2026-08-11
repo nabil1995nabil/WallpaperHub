@@ -15,23 +15,19 @@
 
 
 <!-- Notifications Style -->
-
 <link rel="stylesheet" href="css/notifications.css">
 
 
 <!-- Theme -->
-
 <link rel="stylesheet" href="css/theme.css">
 
 
 <!-- Bottom Nav -->
-
 <link rel="stylesheet" href="css/bottom-nav.css">
 
 
 
 <!-- Material Icons -->
-
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 
@@ -42,7 +38,7 @@
 
 
 
-<!-- Notifications Page -->
+<!-- صفحة الإشعارات -->
 
 <main class="notifications-page" id="notiPage">
 
@@ -51,14 +47,29 @@
 <header class="page-header">
 
 
+<div class="header-title">
+
+<span class="material-icons">
+notifications
+</span>
+
+
 <h1>
 مركز التحديثات
 </h1>
 
+</div>
 
-<button 
+
+
+
+<button
 class="clear-all"
 id="clearBtn">
+
+<span class="material-icons">
+delete_outline
+</span>
 
 مسح الكل
 
@@ -70,12 +81,24 @@ id="clearBtn">
 
 
 
-<!-- Cards Container -->
 
-<section 
+<!-- قائمة الإشعارات -->
+
+<section
 class="notifications-list"
 id="notificationsList">
 
+
+<div class="loading-notifications">
+
+<span class="material-icons">
+sync
+</span>
+
+
+جاري تحميل الإشعارات...
+
+</div>
 
 
 </section>
@@ -89,7 +112,6 @@ id="notificationsList">
 
 
 
-
 <!-- Bottom Navigation -->
 
 <div id="bottomNav"></div>
@@ -98,11 +120,13 @@ id="notificationsList">
 
 
 
-<!-- Scripts -->
-
+<!-- Components -->
 
 <script src="js/components.js"></script>
 
+
+
+<!-- Notifications Logic -->
 
 <script src="js/notifications.js"></script>
 
