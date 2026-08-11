@@ -755,147 +755,162 @@ font-size:21px;
 
 .today-wallpaper{
 
-position:relative;
+    position:relative;
 
-margin:18px;
+    margin:18px;
 
-height:240px;
+    height:240px;
 
-border-radius:28px;
+    border-radius:28px;
 
-overflow:hidden;
+    overflow:hidden;
 
-box-shadow:0 12px 30px rgba(0,0,0,.12);
+    box-shadow:
+    0 12px 30px rgba(0,0,0,.12);
 
 }
+
 
 .today-wallpaper img{
 
-width:100%;
+    width:100%;
 
-height:100%;
+    height:100%;
 
-object-fit:cover;
+    object-fit:cover;
 
-transition:.5s;
+    transition:.5s;
 
 }
+
 
 .today-wallpaper:hover img{
 
-transform:scale(1.08);
+    transform:scale(1.08);
 
 }
+
+
+
+/* الطبقة فوق الصورة */
 
 .today-overlay{
 
-position:absolute;
+    position:absolute;
 
-left:0;
+    left:0;
+    right:0;
+    bottom:0;
 
-right:0;
+    padding:20px;
 
-bottom:0;
+    background:
+    linear-gradient(
+    to top,
+    rgba(0,0,0,.65),
+    transparent
+    );
 
-padding:22px;
-
-background:linear-gradient(
-
-to top,
-
-rgba(0,0,0,.88),
-
-rgba(0,0,0,.15)
-
-);
-
-color:#fff;
+    color:#fff;
 
 }
+
+
+
+/* خلفية اليوم فقط */
 
 .today-overlay span{
 
-display:inline-block;
+    display:inline-block;
 
-padding:6px 14px;
+    padding:7px 16px;
 
-border-radius:30px;
+    border-radius:30px;
 
-background:#ffb300;
+    background:#ffb300;
 
-color:#222;
+    color:#222;
 
-font-size:12px;
+    font-size:13px;
 
-font-weight:bold;
+    font-weight:bold;
 
-margin-bottom:10px;
-
-}
-
-.today-overlay h2{
-
-font-size:24px;
-
-margin-bottom:6px;
+    margin-bottom:12px;
 
 }
 
+
+
+/* إخفاء الاسم والوصف في الرئيسية */
+
+.today-overlay h2,
 .today-overlay p{
 
-opacity:.9;
-
-margin-bottom:16px;
+    display:none;
 
 }
+
+
+
+/* الأزرار */
 
 .today-buttons{
 
-display:flex;
+    display:flex;
 
-gap:12px;
+    gap:12px;
+
+    margin-top:20px;
 
 }
+
+
 
 .today-buttons button{
 
-flex:1;
+    flex:1;
 
-height:46px;
+    height:48px;
 
-border:none;
+    border:none;
 
-border-radius:14px;
+    border-radius:16px;
 
-font-size:15px;
+    font-size:16px;
 
-font-weight:bold;
+    font-weight:bold;
 
-cursor:pointer;
+    cursor:pointer;
 
-transition:.3s;
+    transition:.3s;
 
 }
+
+
 
 #todayView{
 
-background:#ffffff;
+    background:#fff;
 
-color:#222;
+    color:#222;
 
 }
+
+
 
 #todayDownload{
 
-background:#5b5df5;
+    background:#5b5df5;
 
-color:#fff;
+    color:#fff;
 
 }
 
+
+
 .today-buttons button:active{
 
-transform:scale(.96);
+    transform:scale(.96);
 
 }
 
@@ -2222,4 +2237,46 @@ transform:translateY(-6px) scale(1.05);
 
 body.dark .category{
     color:white;
+}
+
+.today-buttons{
+    display:flex;
+    gap:20px;
+}
+
+
+.today-buttons button{
+
+    width:20px;
+    height:20px;
+
+    border:none;
+    background:rgba(0,0,0,.35);
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+
+    backdrop-filter:blur(10px);
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+
+.today-buttons .material-icons{
+
+    font-size:28px;
+}
+
+
+.today-buttons button:active{
+
+    transform:scale(.85);
+
 }
