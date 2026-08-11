@@ -1,0 +1,345 @@
+/* ================================
+   Warzone Tactical HUD Navbar
+   WallpaperHub Edition
+================================ */
+
+
+
+.warzone-nav{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+
+    background:
+
+    linear-gradient(
+        180deg,
+        rgba(20,29,38,.85),
+        rgba(10,15,20,.95)
+    );
+
+
+    padding:0 15px;
+
+
+    height:65px;
+
+
+    clip-path:
+
+    polygon(
+    15px 0%,
+    calc(100% - 15px) 0%,
+    100% 15px,
+    100% 100%,
+    0% 100%,
+    0% 15px
+    );
+
+
+    border-top:
+
+    2px solid #ff9900;
+
+
+
+    box-shadow:
+
+    0 25px 50px rgba(0,0,0,.8),
+
+    0 0 30px rgba(255,153,0,.05);
+
+
+
+    transform:
+
+    rotateX(20deg);
+
+
+    transform-style:preserve-3d;
+
+
+    letter-spacing:2px;
+
+}
+
+
+
+
+
+/* خطوط HUD */
+
+.warzone-nav::before{
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    inset:0;
+
+
+    background:
+
+    linear-gradient(
+    rgba(18,24,32,0) 50%,
+    rgba(0,0,0,.4) 50%
+    );
+
+
+    background-size:
+
+    100% 4px;
+
+
+    pointer-events:none;
+
+
+    opacity:.6;
+
+
+    z-index:4;
+
+
+}
+
+
+
+
+
+
+
+/* الأزرار */
+
+
+.nav-tab{
+
+
+    position:relative;
+
+
+    height:100%;
+
+
+    padding:
+
+    0 30px;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+
+    color:#7a8b99;
+
+
+
+    text-decoration:none;
+
+
+    font-size:14px;
+
+
+    font-weight:900;
+
+
+
+    z-index:3;
+
+
+
+    transition:
+
+    .2s ease;
+
+
+
+    transform:
+
+    translateZ(25px);
+
+
+
+    border-right:
+
+    1px solid rgba(255,255,255,.03);
+
+
+
+    -webkit-tap-highlight-color:transparent;
+
+
+}
+
+
+
+
+
+.nav-tab:hover,
+
+.nav-tab.active{
+
+
+    color:white;
+
+
+    text-shadow:
+
+    0 0 10px rgba(255,255,255,.6);
+
+
+}
+
+
+
+
+
+
+
+
+/* المؤشر المتحرك */
+
+
+.tactical-slider{
+
+
+    position:absolute;
+
+
+    left:0;
+
+
+    bottom:0;
+
+
+    height:
+
+    calc(100% - 4px);
+
+
+
+    width:0;
+
+
+
+    background:
+
+
+    linear-gradient(
+    0deg,
+    rgba(255,153,0,.15),
+    transparent
+    ),
+
+
+    linear-gradient(
+    90deg,
+    rgba(255,153,0,.2) 1px,
+    transparent 1px
+    );
+
+
+
+    background-size:
+
+    100% 100%,
+
+    6px 100%;
+
+
+
+    border-left:
+
+    3px solid #ff9900;
+
+
+    border-right:
+
+    3px solid #ff9900;
+
+
+
+    pointer-events:none;
+
+
+
+    z-index:1;
+
+
+
+    transition:
+
+    all .3s cubic-bezier(
+    .19,
+    1,
+    .22,
+    1
+    );
+
+
+
+    transform:
+
+    translateZ(10px);
+
+
+
+}
+
+
+
+
+
+
+
+.tactical-slider::before{
+
+
+    content:"[  ]";
+
+
+    position:absolute;
+
+
+    top:2px;
+
+
+    left:50%;
+
+
+    transform:
+
+    translateX(-50%);
+
+
+
+    color:#ff9900;
+
+
+    font-size:10px;
+
+
+    font-family:monospace;
+
+
+    opacity:.8;
+
+
+    font-weight:bold;
+
+
+}
