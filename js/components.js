@@ -1,46 +1,43 @@
 // ==============================
-// Load Components
-// ==============================
+ //Load Components
+ //==============================
+
+const bottomNav = document.getElementById("bottomNav");
+
+if(bottomNav){
+
+fetch("/components/bottom-nav.html")
+
+.then(response=>response.text())
+
+.then(html=>{
+
+bottomNav.innerHTML = html;
 
 
-// Bottom Navigation
+document.querySelectorAll(".nav-item")
+.forEach(item=>{
 
-//const bottomNav = document.getElementById("bottomNav");
+item.onclick=()=>{
 
-//if(bottomNav){
+const page = item.dataset.page;
 
-//fetch("/components/bottom-nav.html")
+if(page){
+location.href = page;
+}
 
-//.then(response=>response.text())
+};
 
-//.then(html=>{
+});
 
-//bottomNav.innerHTML = html;
+});
 
-
-//document.querySelectorAll(".nav-item")
-//.forEach(item=>{
-
-//item.onclick=()=>{
-
-//const page = item.dataset.page;
-
-//if(page){
-//location.href = page;
-//}
-
-//};
-
-//});
-
-//});
-
-//}
+}
 
 
-// ==============================
-// AI Button
-// ==============================
+//==============================
+//AI Button
+//==============================
 
 const aiButton = document.getElementById("aiButton");
 
@@ -97,7 +94,7 @@ document.body.appendChild(script);
 
 // ==============================
 // Side Drawer
-// ==============================
+ //==============================
 
 const menuBtn = document.getElementById("menuBtn");
 const sideDrawer = document.getElementById("sideDrawer");
