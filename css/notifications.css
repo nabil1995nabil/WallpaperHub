@@ -1,0 +1,548 @@
+/* =====================================
+   WallpaperHub Notifications 100D UI
+===================================== */
+
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+
+
+body{
+
+    min-height:100vh;
+
+    background:
+    radial-gradient(
+        circle at top,
+        #162235,
+        #03060a 70%
+    );
+
+    color:white;
+
+    overflow-x:hidden;
+
+    perspective:1000px;
+
+}
+
+
+
+
+/* الصفحة */
+
+.notifications-page{
+
+    width:100%;
+
+    max-width:480px;
+
+    margin:auto;
+
+    padding:25px 18px 100px;
+
+    transform-style:preserve-3d;
+
+}
+
+
+
+/* Header */
+
+.page-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding-bottom:15px;
+
+    margin-bottom:20px;
+
+    border-bottom:
+
+    1px solid
+
+    rgba(0,242,254,.15);
+
+    transform:translateZ(20px);
+
+}
+
+
+
+.page-header h1{
+
+    font-size:22px;
+
+    font-weight:800;
+
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #fff,
+        #00f2fe
+    );
+
+
+    -webkit-background-clip:text;
+
+    color:transparent;
+
+
+    text-shadow:
+
+    0 0 20px
+
+    rgba(0,242,254,.4);
+
+}
+
+
+
+.clear-all{
+
+    border:none;
+
+    background:none;
+
+    color:#789;
+
+    font-size:13px;
+
+    cursor:pointer;
+
+}
+
+
+
+.clear-all:hover{
+
+    color:#ff3b30;
+
+}
+
+
+
+
+
+/* قائمة الإشعارات */
+
+.notifications-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
+
+
+
+
+
+/* Card */
+
+.notification-card{
+
+
+    position:relative;
+
+
+    display:flex;
+
+    gap:15px;
+
+
+    padding:15px;
+
+
+    border-radius:22px;
+
+
+    background:
+
+    rgba(255,255,255,.04);
+
+
+
+    border:
+
+    1px solid
+
+    rgba(0,242,254,.12);
+
+
+
+    backdrop-filter:blur(15px);
+
+
+
+    overflow:hidden;
+
+
+
+    cursor:pointer;
+
+
+
+    transform-style:preserve-3d;
+
+
+
+    transition:
+
+    .35s cubic-bezier(.25,1,.3,1);
+
+
+
+    box-shadow:
+
+    0 15px 35px
+
+    rgba(0,0,0,.5);
+
+}
+
+
+
+
+.notification-card::before{
+
+
+    content:"";
+
+
+    position:absolute;
+
+    inset:0;
+
+
+    background:
+
+    linear-gradient(
+        135deg,
+        rgba(0,242,254,.15),
+        transparent
+    );
+
+
+    opacity:0;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.notification-card:hover::before{
+
+    opacity:1;
+
+}
+
+
+
+.notification-card:hover{
+
+    border-color:
+
+    rgba(0,242,254,.5);
+
+
+    box-shadow:
+
+    0 20px 50px
+
+    rgba(0,242,254,.18);
+
+}
+
+
+
+
+
+
+/* صورة الخلفية */
+
+.wallpaper-thumb{
+
+
+    width:85px;
+
+    height:120px;
+
+
+    flex-shrink:0;
+
+
+    border-radius:15px;
+
+
+    overflow:hidden;
+
+
+    transform:
+
+    translateZ(20px);
+
+
+
+    box-shadow:
+
+    0 10px 25px
+
+    rgba(0,0,0,.7);
+
+}
+
+
+
+.wallpaper-thumb img{
+
+
+    width:100%;
+
+    height:100%;
+
+
+    object-fit:cover;
+
+
+}
+
+
+
+
+
+
+/* النص */
+
+.card-body{
+
+
+    flex:1;
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    justify-content:space-between;
+
+
+
+    transform:
+
+    translateZ(10px);
+
+}
+
+
+
+.card-body h2{
+
+
+    font-size:16px;
+
+
+    margin-bottom:8px;
+
+
+}
+
+
+
+.card-body p{
+
+
+    font-size:13px;
+
+
+    color:#9aa;
+
+
+    line-height:1.6;
+
+
+}
+
+
+
+
+
+
+/* Footer */
+
+.card-footer{
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    margin-top:12px;
+
+
+}
+
+
+
+
+.time-tag{
+
+
+    font-size:11px;
+
+
+    color:#00f2fe;
+
+
+    background:
+
+    rgba(0,242,254,.1);
+
+
+    padding:4px 9px;
+
+
+    border-radius:10px;
+
+
+}
+
+
+
+
+.action-link{
+
+
+    border:none;
+
+
+    color:white;
+
+
+    background:
+
+
+    linear-gradient(
+        90deg,
+        #00f2fe,
+        #4a6cf7
+    );
+
+
+    padding:6px 14px;
+
+
+    border-radius:20px;
+
+
+    font-size:12px;
+
+
+    cursor:pointer;
+
+
+    box-shadow:
+
+
+    0 0 15px
+
+    rgba(0,242,254,.4);
+
+
+}
+
+
+
+
+
+/* حركة دخول */
+
+.notification-card{
+
+    animation:
+
+    cardShow .6s ease;
+
+}
+
+
+
+@keyframes cardShow{
+
+
+from{
+
+    opacity:0;
+
+    transform:
+
+    translateY(30px)
+
+    translateZ(-50px);
+
+}
+
+
+
+to{
+
+    opacity:1;
+
+    transform:
+
+    translateY(0)
+
+    translateZ(0);
+
+}
+
+
+}
+
+
+
+
+/* الوضع النهاري */
+
+body:not(.dark) .notification-card{
+
+    background:
+
+    rgba(255,255,255,.8);
+
+
+    color:#111;
+
+
+}
+
+
+
+body:not(.dark) .card-body p{
+
+    color:#666;
+
+}
