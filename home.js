@@ -308,9 +308,9 @@ onclick="event.stopPropagation(); toggleFavorite('${wall.id}')">
 
 </button>
 
-card.innerHTML = `
-<img src="${wall.image}">
+</div>
 
+`;
 
 }
 
