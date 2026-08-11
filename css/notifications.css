@@ -522,7 +522,42 @@ to{
 
 }
 
+.clear-all{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
 
+.clear-all .material-icons{
+    font-size:18px;
+}
+
+.loading-notifications{
+
+    text-align:center;
+
+    padding:40px 0;
+
+    color:#9aa;
+
+    font-size:14px;
+
+    animation:pulseLoad 1.5s infinite;
+
+}
+
+
+@keyframes pulseLoad{
+
+0%,100%{
+opacity:.5;
+}
+
+50%{
+opacity:1;
+}
+
+}
 
 
 /* الوضع النهاري */
