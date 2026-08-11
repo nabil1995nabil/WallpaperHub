@@ -914,17 +914,6 @@ font-size:21px;
 
 }
 
-.slide-info{
-position:absolute;
-left:0;
-right:0;
-bottom:0;
-padding:20px;
-background:linear-gradient(transparent,rgba(0,0,0,.8));
-color:#fff;
-    z-index:2;
-}
-
 .notification-count{
 position:absolute;
 top:-5px;

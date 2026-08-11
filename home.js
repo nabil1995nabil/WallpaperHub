@@ -308,21 +308,9 @@ onclick="event.stopPropagation(); toggleFavorite('${wall.id}')">
 
 </button>
 
-<div class="wall-info">
+card.innerHTML = `
+<img src="${wall.image}">
 
-<h3>
-${wall.title || "بدون اسم"}
-</h3>
-
-<span>
-${wall.category || "عام"}
-</span>
-
-</div>
-
-</div>
-
-`;
 
 }
 
@@ -873,30 +861,6 @@ function renderSlider() {
 
 
         ${mediaHTML}
-
-
-
-
-        <div class="slide-info">
-
-
-            <h2>
-
-            ${wall.title || "بدون اسم"}
-
-            </h2>
-
-
-
-            <p>
-
-            ${wall.category || "عام"}
-
-            </p>
-
-
-
-        </div>
 
 
 
