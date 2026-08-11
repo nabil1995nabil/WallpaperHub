@@ -1,10 +1,9 @@
 // ======================================
-// WallpaperHub Notifications 100D JS
+// WallpaperHub Notifications JS
 // ======================================
 
 
 console.log("Notifications JS Loaded");
-
 
 
 const notificationsList =
@@ -16,76 +15,100 @@ document.getElementById("clearBtn");
 
 
 
+let notifications = [];
 
-// بيانات تجريبية حاليا
-// من بعد نربطوها مع API أو Firebase
-
-let notifications = [
-
-{
-id:1,
-
-title:
-"إضافة خلفية طبيعية نيون 🌌",
-
-description:
-"تم رفع خلفية جديدة فائقة الدقة في قسم الطبيعة.",
-
-image:
-"assets/wallpapers/nature1.jpg",
-
-time:
-"منذ دقيقتين",
-
-action:
-"عرض وتعيين"
-
-},
+let wallpapers = [];
 
 
-{
-id:2,
-
-title:
-"تحديث قسم السيارات 🔥",
-
-description:
-"تمت إضافة خلفيات سيارات رياضية جديدة.",
-
-image:
-"assets/wallpapers/car1.jpg",
-
-time:
-"منذ ساعة",
-
-action:
-"استكشف الآن"
-
-},
 
 
-{
-id:3,
+// ======================================
+// تحميل البيانات
+// ======================================
 
-title:
-"خلفية فضائية جديدة 🌍",
+async function loadNotifications(){
 
-description:
-"تصميم جديد عالي الجودة لشاشات AMOLED.",
 
-image:
-"assets/wallpapers/space1.jpg",
+try{
 
-time:
-"منذ يوم",
 
-action:
-"تحميل فوري"
+const notiResponse =
+await fetch("/api/notifications");
+
+
+notifications =
+await notiResponse.json();
+
+
+
+const wallResponse =
+await fetch("/api/wallpapers");
+
+
+wallpapers =
+await wallResponse.json();
+
+
+
+
+renderNotifications();
+
+
+
+}catch(error){
+
+
+console.log(
+"Notifications Error:",
+error
+);
+
+
+
+notificationsList.innerHTML =
+
+`
+<p class="empty-notification">
+لا توجد إشعارات
+</p>
+`;
 
 }
 
 
-];
+}
+
+
+
+
+
+// ======================================
+// البحث عن الخلفية
+// ======================================
+
+
+function getWallpaperImage(id){
+
+
+const wall =
+
+wallpapers.find(
+w=>String(w.id)===String(id)
+);
+
+
+
+if(!wall)
+return "assets/logo/no-image.png";
+
+
+
+return wall.thumbnail || wall.image;
+
+
+}
+
+
 
 
 
@@ -99,19 +122,21 @@ action:
 function createNotificationCard(item){
 
 
+
 return `
 
 
 <div class="notification-card"
-data-id="${item.id}">
+data-id="${item.wallpaperId}">
 
 
 
 <div class="wallpaper-thumb">
 
-<img 
 
-src="${item.image}"
+<img
+
+src="${getWallpaperImage(item.wallpaperId)}"
 
 onerror="this.src='assets/logo/no-image.png'"
 
@@ -139,7 +164,7 @@ ${item.title}
 
 <p>
 
-${item.description}
+${item.message}
 
 </p>
 
@@ -155,15 +180,17 @@ ${item.description}
 
 <span class="time-tag">
 
-${item.time}
+${item.date}
 
 </span>
 
 
 
-<button class="action-link">
+<button
+class="action-link"
+onclick="openWallpaper('${item.wallpaperId}')">
 
-${item.action}
+عرض
 
 </button>
 
@@ -172,13 +199,10 @@ ${item.action}
 </div>
 
 
-
 </div>
 
 
-
 </div>
-
 
 
 `;
@@ -190,7 +214,7 @@ ${item.action}
 
 
 // ======================================
-// عرض الإشعارات
+// عرض
 // ======================================
 
 
@@ -206,13 +230,30 @@ notificationsList.innerHTML="";
 
 
 
+if(notifications.length===0){
+
+
+notificationsList.innerHTML=
+
+`
+<p class="empty-notification">
+لا توجد إشعارات
+</p>
+`;
+
+
+return;
+
+}
+
+
+
 notifications.forEach(item=>{
 
 
 notificationsList.innerHTML +=
 
 createNotificationCard(item);
-
 
 
 });
@@ -227,21 +268,40 @@ activateCards();
 
 
 
+
+
 // ======================================
-// تأثير 3D للبطاقات
+// فتح الخلفية
+// ======================================
+
+
+function openWallpaper(id){
+
+
+window.location.href =
+
+`wallpaper.html?id=${id}`;
+
+
+}
+
+
+
+
+
+
+
+// ======================================
+// تأثير 3D
 // ======================================
 
 
 function activateCards(){
 
 
-const cards =
-document.querySelectorAll(".notification-card");
-
-
-
-cards.forEach(card=>{
-
+document
+.querySelectorAll(".notification-card")
+.forEach(card=>{
 
 
 card.addEventListener(
@@ -253,17 +313,16 @@ const rect =
 card.getBoundingClientRect();
 
 
-
 const x =
-e.clientX - rect.left
-- rect.width/2;
-
+e.clientX -
+rect.left -
+rect.width/2;
 
 
 const y =
-e.clientY - rect.top
-- rect.height/2;
-
+e.clientY -
+rect.top -
+rect.height/2;
 
 
 
@@ -281,115 +340,17 @@ translateZ(15px)
 
 
 
-
-
 card.addEventListener(
 "mouseleave",
 ()=>{
 
 
-card.style.transform =
-
-`
-rotateX(0)
-rotateY(0)
-translateZ(0)
-`;
-
+card.style.transform="";
 
 });
 
 
-
-
-
-card.addEventListener(
-"click",
-()=>{
-
-
-playBeep(
-1800,
-0.05
-);
-
-
 });
-
-
-
-});
-
-
-
-}
-
-
-
-
-// ======================================
-// صوت التفاعل
-// ======================================
-
-
-const audioCtx =
-
-new
-(window.AudioContext ||
-window.webkitAudioContext)();
-
-
-
-function playBeep(freq,duration){
-
-
-if(audioCtx.state==="suspended"){
-
-audioCtx.resume();
-
-}
-
-
-
-const osc =
-audioCtx.createOscillator();
-
-
-
-const gain =
-audioCtx.createGain();
-
-
-
-osc.frequency.value=freq;
-
-
-
-gain.gain.value=.015;
-
-
-
-osc.connect(gain);
-
-gain.connect(audioCtx.destination);
-
-
-
-osc.start();
-
-
-
-gain.gain.exponentialRampToValueAtTime(
-0.0001,
-audioCtx.currentTime + duration
-);
-
-
-
-osc.stop(
-audioCtx.currentTime + duration
-);
-
 
 
 }
@@ -398,76 +359,66 @@ audioCtx.currentTime + duration
 
 
 
+
 // ======================================
-// مسح الكل
+// مسح الكل (مؤقت)
 // ======================================
 
 
 if(clearBtn){
 
 
-clearBtn.onclick=()=>{
+clearBtn.onclick = async ()=>{
 
 
-playBeep(600,.1);
+try{
 
 
-
-const cards =
-document.querySelectorAll(".notification-card");
-
-
-
-cards.forEach((card,index)=>{
-
-
-setTimeout(()=>{
-
-
-card.style.opacity="0";
-
-card.style.transform=
-"translateX(150%)";
+const response =
+await fetch(
+"/api/notifications",
+{
+method:"DELETE"
+}
+);
 
 
 
-setTimeout(()=>{
-
-
-card.remove();
-
-
-},400);
+const result =
+await response.json();
 
 
 
-},index*120);
-
-
-
-});
-
-
-
-setTimeout(()=>{
+if(result.success){
 
 
 notifications=[];
 
 
-},600);
+renderNotifications();
 
 
+}
 
-};
 
+}catch(error){
+
+
+console.log(
+"Clear Error:",
+error
+);
 
 
 }
 
 
 
+};
+
+
+}
 
 // تشغيل
 
-renderNotifications();
+loadNotifications();
