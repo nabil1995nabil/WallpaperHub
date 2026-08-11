@@ -98,44 +98,6 @@ document.body.appendChild(script);
 // ==============================
 // Load Components
 // ==============================
-
-
-// AI Button
-
-const aiButton =
-document.getElementById("aiButton");
-
-
-if(aiButton){
-
-fetch("/components/ai-button.html")
-
-.then(response=>response.text())
-
-.then(html=>{
-
-aiButton.innerHTML = html;
-
-
-const script =
-document.createElement("script");
-
-
-script.src =
-"/js/ai-button.js";
-
-
-document.body.appendChild(script);
-
-
-});
-
-}
-
-
-
-
-
 // Notification Button
 
 const notificationButton =
