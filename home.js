@@ -949,164 +949,60 @@ function renderSlider() {
 }
 
 // ==============================
-// Notifications
+// Notification Badge
 // ==============================
 
-const notificationBtn =
-document.getElementById("notificationBtn");
+function updateNotificationCount(){
 
-const notificationPanel =
-document.getElementById("notificationPanel");
+    const badge =
+    document.getElementById("notificationCount");
 
-const notificationList =
-document.getElementById("notificationList");
 
-const notificationCount =
-document.getElementById("notificationCount");
+    if(!badge) return;
 
-const clearNotificationsBtn =
-document.getElementById("clearNotificationsBtn");
 
-let notifications =
-JSON.parse(localStorage.getItem("notifications")) || [];
-
-function addNotification(title, message, wallpaperId = null) {
-
-    notifications.unshift({
-        id: Date.now(),
-        title: title,
-        message: message,
-        wallpaperId: wallpaperId,
-        time: new Date().toLocaleString("ar")
-    });
-
-    localStorage.setItem(
-        "notifications",
-        JSON.stringify(notifications)
+    const notifications =
+    JSON.parse(
+        localStorage.getItem("notifications") || "[]"
     );
 
-renderNotifications();
 
-}
+    if(notifications.length > 0){
 
-if(clearNotificationsBtn){
+        badge.textContent =
+        notifications.length;
 
-clearNotificationsBtn.onclick = function () {
+        badge.style.display =
+        "flex";
 
-    if (notifications.length === 0) return;
+    }else{
 
-    if (clearNotificationsBtn.classList.contains("deleting")) {
-        return;
+        badge.style.display =
+        "none";
+
     }
 
-    clearNotificationsBtn.classList.add("deleting");
-
-    setTimeout(() => {
-
-        notifications = [];
-
-        localStorage.removeItem("notifications");
-
-        renderNotifications();
-
-        clearNotificationsBtn.classList.remove("deleting");
-        clearNotificationsBtn.classList.add("success");
-
-        setTimeout(() => {
-            clearNotificationsBtn.classList.remove("success");
-        },1200);
-
-    },650);
-
-};
-
 }
 
-function renderNotifications(){
 
-notificationList.innerHTML="";
+// فتح صفحة الإشعارات
 
-notificationCount.textContent=notifications.length;
+function openNotifications(){
 
-// تشغيل حركة الجرس عند وجود إشعارات
-if (notifications.length > 0) {
-    notificationBtn.classList.add("has-notification");
-} else {
-    notificationBtn.classList.remove("has-notification");
-}
-
-if(notifications.length===0){
-
-notificationList.innerHTML=
-'<p class="empty-notification">لا توجد إشعارات</p>';
-
-notificationCount.style.display="none";
-
-return;
-
-}
-
-notificationCount.style.display="flex";
-
-notifications.forEach(item=>{
-
-notificationList.innerHTML+=`
-<div class="notification-item"
-onclick="openNotification('${item.wallpaperId}')">
-<h4>${item.title}</h4>
-<p>${item.message}</p>
-</div>
-`;
-
-});
-
-}
-
-notificationBtn.onclick=function(){
-
-notificationPanel.classList.toggle("show");
-
-};
-
-document.addEventListener("click",function(e){
-
-if(
-!notificationPanel.contains(e.target)
-&&
-!notificationBtn.contains(e.target)
-){
-
-notificationPanel.classList.remove("show");
-
-}
-
-});
-
-renderNotifications();
-
-function openNotification(wallpaperId) {
-
-    if (!wallpaperId) return;
-
-    // حذف الإشعار الذي تم الضغط عليه فقط
-    notifications = notifications.filter(
-        item => String(item.wallpaperId) !== String(wallpaperId)
-    );
-
-    localStorage.setItem(
-        "notifications",
-        JSON.stringify(notifications)
-    );
-
-    renderNotifications();
-
-    // تنظيف أي ID قديم
-    localStorage.removeItem("selectedWallpaper");
-
-    // فتح الخلفية المرتبطة بالإشعار مباشرة
     window.location.href =
-        `wallpaper.html?id=${encodeURIComponent(wallpaperId)}`;
+    "notifications.html";
+
 }
+
+
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+    updateNotificationCount();
+
+});
 
 // ======================
 // Side Drawer

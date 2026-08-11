@@ -103,7 +103,48 @@ console.log(
     DATA_FILE
 );
 
+const NOTIFICATIONS_FILE =
+path.join(
+    __dirname,
+    "data",
+    "notifications.json"
+);
 
+
+function readNotifications(){
+
+    try{
+
+        return JSON.parse(
+            fs.readFileSync(
+                NOTIFICATIONS_FILE,
+                "utf8"
+            )
+        );
+
+    }catch{
+
+        return [];
+
+    }
+
+}
+
+
+
+function saveNotifications(list){
+
+    fs.writeFileSync(
+        NOTIFICATIONS_FILE,
+        JSON.stringify(
+            list,
+            null,
+            2
+        ),
+        "utf8"
+    );
+
+}
 
 // ================================
 // Read Data
@@ -160,6 +201,71 @@ function saveWallpapers(list){
 
 
 }
+
+
+// ================================
+// Notifications System
+// ================================
+
+
+function createNotification(wallpaper){
+
+
+    const notifications =
+    readNotifications();
+
+
+
+    notifications.unshift({
+
+        id:
+        Date.now(),
+
+
+        title:
+        "🆕 خلفية جديدة",
+
+
+        message:
+        `${wallpaper.title} تمت إضافتها`,
+
+
+        wallpaperId:
+        wallpaper.id,
+
+
+        date:
+        wallpaper.date
+
+    });
+
+
+
+    saveNotifications(
+        notifications
+    );
+
+
+}
+
+// ================================
+// Notifications API
+// ================================
+
+
+app.get(
+"/api/notifications",
+(req,res)=>{
+
+    const notifications =
+    readNotifications();
+
+
+    res.json(
+        notifications
+    );
+
+});
 
 // ================================
 // Wallpapers API
@@ -363,16 +469,24 @@ newWallpaper
 
 
 saveWallpapers(
-wallpapers
+    wallpapers
+);
+
+
+
+// إنشاء إشعار للخلفية الجديدة
+
+createNotification(
+    newWallpaper
 );
 
 
 
 res.json({
 
-success:true,
+    success:true,
 
-wallpaper:newWallpaper
+    wallpaper:newWallpaper
 
 });
 
@@ -1578,6 +1692,8 @@ error.message
 
 
 });
+
+
 
 //=====تشغيل سيرفر===\\
 
