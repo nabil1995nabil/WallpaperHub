@@ -1,3 +1,8 @@
+// =================================
+// WallpaperHub Notification Bell
+// =================================
+
+
 const notiBtn =
 document.getElementById("notiBtn");
 
@@ -11,55 +16,50 @@ document.getElementById("bellIcon");
 
 
 
-if(notiBtn){
 
 
-let count = 0;
+// جلب عدد الإشعارات من السيرفر
+
+async function loadNotificationCount(){
 
 
-
-function playNotificationSound(){
-
-
-const audioCtx =
-new (window.AudioContext ||
-window.webkitAudioContext)();
+try{
 
 
-
-const osc =
-audioCtx.createOscillator();
-
-
-const gain =
-audioCtx.createGain();
+const response =
+await fetch("/api/notifications");
 
 
 
-osc.type="sine";
-
-
-osc.frequency.value=880;
-
-
-gain.gain.value=.3;
+const notifications =
+await response.json();
 
 
 
-osc.connect(gain);
 
-gain.connect(
-audioCtx.destination
+const count =
+notifications.length;
+
+
+
+
+updateNotifications(
+count
 );
 
 
 
-osc.start();
+}catch(error){
 
 
-osc.stop(
-audioCtx.currentTime+.4
+console.log(
+"Notification Error:",
+error
 );
+
+
+}
+
 
 
 }
@@ -68,18 +68,20 @@ audioCtx.currentTime+.4
 
 
 
+
 function updateNotifications(amount){
 
 
-count += amount;
+if(!notiBadge) return;
+
+
+if(amount > 0){
+
 
 
 notiBadge.textContent =
-count;
+amount;
 
-
-
-if(count>0){
 
 
 notiBadge.classList.add(
@@ -87,12 +89,13 @@ notiBadge.classList.add(
 );
 
 
+
+if(bellIcon){
+
+
 bellIcon.classList.add(
 "bell-shake"
 );
-
-
-playNotificationSound();
 
 
 
@@ -111,18 +114,13 @@ bellIcon.classList.remove(
 }
 
 
-}
+
+}else{
 
 
 
-
-notiBtn.onclick=()=>{
-
-
-count=0;
-
-
-notiBadge.textContent="0";
+notiBadge.textContent =
+"";
 
 
 notiBadge.classList.remove(
@@ -130,20 +128,49 @@ notiBadge.classList.remove(
 );
 
 
-};
 
-
-
-
-// تجربة مؤقتة
-// من بعد نحيدوها ونربطوها بالإشعارات الحقيقية
-
-setTimeout(()=>{
-
-updateNotifications(1);
-
-},2000);
+}
 
 
 
 }
+
+
+
+
+
+
+// عند الضغط على الجرس
+
+if(notiBtn){
+
+
+notiBtn.onclick = ()=>{
+
+
+window.location.href =
+"notifications.html";
+
+
+};
+
+
+}
+
+
+
+
+
+
+// تشغيل عند فتح الصفحة
+
+loadNotificationCount();
+
+
+
+// تحديث كل دقيقة
+
+setInterval(
+loadNotificationCount,
+60000
+);
