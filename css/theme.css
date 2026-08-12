@@ -1,13 +1,13 @@
-/* =========================
-   WallpaperHub Pure Black Theme
-========================= */
+/* ==================================
+ WallpaperHub Theme Clean
+================================== */
 
 
-/* الوضع العادي */
+/* Light */
 
 body{
 
-    background:#f5f7fb;
+    background:#ffffff;
     color:#111;
 
     transition:.3s;
@@ -16,267 +16,52 @@ body{
 
 
 
-/* =========================
-   Dark Mode
-========================= */
+/* =================
+ Dark Mode
+================= */
+
 
 body.dark{
 
-    background:#000 !important;
+    background:#0b0b0b;
     color:#fff;
 
 }
 
 
 
-/* =========================
-   كل الخلفيات
-========================= */
+/* الحاويات */
 
-
-body.dark header,
-body.dark footer,
-body.dark nav,
+body.dark main,
 body.dark section,
+body.dark header,
 body.dark .container,
 body.dark .card,
-body.dark .box,
-body.dark .wall-card,
-body.dark .category-card,
-body.dark .category,
 body.dark .settings-card,
 body.dark .info-card,
-body.dark .stat-card,
 body.dark .profile-cover,
-body.dark .privacy-page,
-body.dark .ai-container,
-body.dark .chat-container,
-body.dark .bubble,
-body.dark .search-box,
 body.dark .bottom-nav{
 
+    background:#111;
 
-    background:#000 !important;
+    color:#fff;
 
-    color:#fff !important;
-
-    border-color:#222 !important;
-
+    border-color:#222;
 
 }
 
 
 
-/* =========================
-   النصوص
-========================= */
-
+/* النصوص فقط */
 
 body.dark h1,
 body.dark h2,
 body.dark h3,
 body.dark h4,
 body.dark p,
-body.dark span,
-body.dark label,
-body.dark div{
-
+body.dark label{
 
     color:#fff;
-
-}
-
-
-
-/* =========================
-   الصور والبطاقات
-========================= */
-
-
-body.dark .wall-card img{
-
-    background:#000;
-
-}
-
-
-
-/* =========================
-   Inputs
-========================= */
-
-
-body.dark input,
-body.dark textarea,
-body.dark select{
-
-
-    background:#000 !important;
-
-    color:#fff !important;
-
-    border:1px solid #333;
-
-
-}
-
-
-
-/* =========================
-   Buttons
-========================= */
-
-
-body.dark button{
-
-
-    background:#000;
-
-    color:#fff;
-
-    border-color:#333;
-
-
-}
-
-
-
-/* =========================
-   روابط
-========================= */
-
-
-body.dark a{
-
-    color:#fff;
-
-}
-
-
-
-/* =========================
-   إزالة أي مربعات فاتحة
-========================= */
-
-
-body.dark .section-title,
-body.dark .section-header,
-body.dark .favorite-card{
-
-
-    background:#000 !important;
-
-
-}
-
-
-
-/* =========================
-   Bottom Navigation
-========================= */
-
-
-body.dark .bottom-nav{
-
-
-    background:#000 !important;
-
-    border-top:1px solid #222;
-
-
-}
-
-/* ==========================
-   WallpaperHub Light Clean Mode
-========================== */
-
-body{
-    background:#ffffff !important;
-    color:#111111;
-}
-
-
-/* كل الصفحات والأقسام */
-
-header,
-.header,
-section,
-.container,
-.card,
-.box,
-.wall-card,
-.category-card,
-.settings-card,
-.info-card,
-.profile-cover,
-.favorite-card,
-.bottom-nav,
-nav{
-
-    background:#ffffff !important;
-    color:#111111;
-
-}
-
-
-
-/* النصوص */
-
-h1,
-h2,
-h3,
-h4,
-p,
-span,
-label{
-
-    color:#111111;
-
-}
-
-
-
-/* الكروت */
-
-.wall-card,
-.favorite-card,
-.category-card{
-
-    box-shadow:
-    0 5px 20px rgba(0,0,0,.08);
-
-}
-
-
-
-/* إزالة الخلفيات المتسخة */
-
-section,
-.container,
-.box{
-
-    border:none;
-
-}
-
-
-
-/* الهيدر */
-
-header,
-.header{
-
-    border-bottom:1px solid #eeeeee;
-
-}
-
-
-
-/* الشريط السفلي */
-
-.bottom-nav{
-
-    border-top:1px solid #eeeeee;
 
 }
 
@@ -284,254 +69,60 @@ header,
 
 /* الأزرار */
 
-button{
+body.dark button{
 
-    background:#ffffff;
-    color:#111111;
+    background:#181818;
 
-}
+    color:#fff;
 
-
-
-/* inputs */
-
-input,
-textarea,
-select{
-
-    background:#ffffff;
-    color:#111111;
-    border:1px solid #ddd;
+    border:1px solid #333;
 
 }
 
 
 
-/* ==========================
-   Dark override
-========================== */
+/* Inputs */
 
-body.dark{
+body.dark input,
+body.dark textarea,
+body.dark select{
 
-    background:#000000 !important;
-    color:#ffffff;
+    background:#111;
+
+    color:#fff;
+
+    border:1px solid #333;
 
 }
 
 
-body.dark header,
-body.dark .header,
-body.dark section,
-body.dark .container,
-body.dark .card,
-body.dark .box,
-body.dark .wall-card,
-body.dark .category-card,
-body.dark .favorite-card,
+
+/* الصور */
+
+body.dark img{
+
+    background:transparent;
+
+}
+
+
+
+/* bottom nav */
+
 body.dark .bottom-nav{
 
-    background:#000000 !important;
-    color:#ffffff;
+    background:#111;
 
-}
-
-
-body.dark h1,
-body.dark h2,
-body.dark h3,
-body.dark h4,
-body.dark p,
-body.dark span,
-body.dark label{
-
-    color:#ffffff;
-
-}
-
-/* ==================================
-   WallpaperHub Pure White Mode
-================================== */
-
-
-/* الشاشة كاملة */
-
-html,
-body{
-
-    background:#ffffff !important;
-    color:#111 !important;
+    border-top:1px solid #333;
 
 }
 
 
 
-/* كل الحاويات الرئيسية */
+/* أيقونات */
 
-main,
-section,
-.container,
-.page,
-.content,
-.home,
-.wrapper{
+body.dark .material-icons{
 
-    background:#ffffff !important;
-
-}
-
-
-
-/* الهيدر */
-
-header,
-.header,
-.top-header{
-
-    background:#ffffff !important;
-    color:#111 !important;
-    border-bottom:1px solid #eee;
-
-}
-
-
-
-/* البحث */
-
-.search-box,
-.search-container{
-
-    background:#ffffff !important;
-
-    border:1px solid #eee;
-
-}
-
-
-
-/* بطاقات الخلفيات */
-
-.wall-card,
-.card,
-.category-card,
-.favorite-card{
-
-    background:#ffffff !important;
-
-    color:#111 !important;
-
-    box-shadow:
-    0 4px 15px rgba(0,0,0,.08);
-
-}
-
-
-
-/* النصوص */
-
-h1,h2,h3,h4,
-p,
-span,
-label{
-
-    color:#111 !important;
-
-}
-
-
-
-/* زر العرض والتحميل */
-
-button{
-
-    color:#111;
-
-}
-
-
-
-/* الشريط السفلي */
-
-.bottom-nav,
-nav{
-
-    background:#ffffff !important;
-
-    color:#111 !important;
-
-    border-top:1px solid #eee;
-
-}
-
-
-
-/* الأيقونات */
-
-.nav-item,
-.nav-item span{
-
-    color:#111 !important;
-
-}
-
-
-
-/* إزالة أي خلفية ملونة */
-
-*{
-
-    background-image:none;
-
-}
-
-
-
-/* استثناء الصور */
-
-img{
-
-    background:transparent !important;
-
-}
-
-
-
-/* ===========================
-   Dark Mode
-=========================== */
-
-body.dark,
-body.dark html{
-
-    background:#000 !important;
-    color:#fff !important;
-
-}
-
-
-body.dark header,
-body.dark .header,
-body.dark main,
-body.dark section,
-body.dark .container,
-body.dark .wall-card,
-body.dark .card,
-body.dark .category-card,
-body.dark .favorite-card,
-body.dark .bottom-nav{
-
-    background:#000 !important;
-    color:#fff !important;
-
-}
-
-
-body.dark h1,
-body.dark h2,
-body.dark h3,
-body.dark h4,
-body.dark p,
-body.dark span{
-
-    color:#fff !important;
+    color:#fff;
 
 }
