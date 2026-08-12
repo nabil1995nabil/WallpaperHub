@@ -1,918 +1,1888 @@
-/* ==========================
- WallpaperHub Profile
- Part 1 Fixed
-========================== */
-
+/* ===================================================
+   WallpaperHub Profile - 100D High Fidelity Upgrade
+   Part 1: Core, Header, Cover & Stats
+   =================================================== */
 
 *{
-
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:"Cairo",Arial,sans-serif;
-
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Cairo", Arial, sans-serif;
 }
 
-
-
-body{
-
-background:#f7f8ff;
-
-color:#1b1d2a;
-
-padding-bottom:90px;
-
-width:100%;
-
-max-width:100%;
-
-overflow-x:hidden;
-
+body {
+    background: #f4f6ff;
+    color: #161824;
+    padding-bottom: 90px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    /* تنعيم حواف الخطوط بدقة سينمائية فائقة */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
-
-
-
-
 /* ==========================
- Header
-========================== */
-
-
-.profile-header{
-
-height:70px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:space-between;
-
-padding:0 18px;
-
-background:white;
-
-position:sticky;
-
-top:0;
-
-z-index:20;
-
-box-shadow:
-0 5px 20px rgba(0,0,0,.05);
-
+   Header (100D Glassmorphism)
+   ========================== */
+.profile-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    /* زجاج كريستالي فخم يعكس المحتوى بالخلفية */
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    /* ظلال مجهرية لعمق حقيقي */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.03),
+        0 1px 0px rgba(0, 0, 0, 0.02);
 }
 
-
-
-.profile-header h2{
-
-font-size:22px;
-
+.profile-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
-
-
 
 .back-btn,
-.edit-btn{
-
-width:40px;
-
-height:40px;
-
-border-radius:50%;
-
-border:none;
-
-background:#f1f3ff;
-
-color:#4d5cff;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-cursor:pointer;
-
-}
-
-
-
-.edit-btn span,
-.back-btn span{
-
-font-size:22px;
-
-}
-
-
-
-
-
-/* ==========================
- Cover
-========================== */
-
-
-.profile-cover{
-
-position:relative;
-
-width:100%;
-
-height:260px;
-
-background:white;
-
-text-align:center;
-
-border-radius:0 0 35px 35px;
-
-overflow:hidden;
-
-}
-
-
-
-.cover-image{
-
-width:100%;
-
-height:170px;
-
-object-fit:cover;
-
-display:block;
-
-}
-
-
-
-
-
-.profile-avatar-box{
-
-position:absolute;
-
-top:105px;
-
-left:50%;
-
-transform:translateX(-50%);
-
-}
-
-
-
-.profile-avatar{
-
-width:110px;
-
-height:110px;
-
-border-radius:50%;
-
-object-fit:cover;
-
-border:5px solid white;
-
-box-shadow:
-
-0 8px 25px rgba(0,0,0,.18);
-
-}
-
-
-
-.avatar-edit{
-
-position:absolute;
-
-bottom:5px;
-
-right:5px;
-
-width:35px;
-
-height:35px;
-
-border-radius:50%;
-
-border:none;
-
-background:#5060ff;
-
-color:white;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-}
-
-
-
-.avatar-edit span{
-
-font-size:18px;
-
-}
-
-
-
-
-
-.profile-cover h2{
-
-margin-top:55px;
-
-font-size:24px;
-
-}
-
-
-
-.profile-cover p{
-
-color:#777;
-
-font-size:14px;
-
-margin-top:5px;
-
-}
-
-
-
-
-
-/* ==========================
- Statistics
-========================== */
-
-
-.profile-stats{
-
-width:100%;
-
-display:grid;
-
-grid-template-columns:repeat(3,1fr);
-
-gap:10px;
-
-padding:20px;
-
-}
-
-
-
-.stat-card{
-
-background:white;
-
-border-radius:22px;
-
-padding:18px 5px;
-
-text-align:center;
-
-box-shadow:
-
-0 8px 25px rgba(0,0,0,.06);
-
-}
-
-
-
-.stat-card h3{
-
-font-size:25px;
-
-color:#5060ff;
-
-}
-
-
-
-.stat-card p{
-
-font-size:14px;
-
-color:#777;
-
-margin-top:5px;
-
-}
-
-
-
-
-
-/* ==========================
- Wallpapers Sections
-========================== */
-
-
-.profile-content{
-
-padding:0 18px;
-
-}
-
-
-
-.section-title{
-
-margin:25px 0 15px;
-
-}
-
-
-
-.section-title h2{
-
-font-size:19px;
-
-color:#20263d;
-
-}
-
-
-
-
-
-/* ==========================
- Horizontal Wallpapers Slider
-========================== */
-
-
-.profile-grid{
-
-display:flex;
-
-gap:18px;
-
-overflow-x:auto;
-
-scroll-snap-type:x mandatory;
-
-padding:20px 10px;
-
-direction:rtl;
-
-}
-
-
-
-.profile-grid::-webkit-scrollbar{
-
-display:none;
-
-}
-
-
-
-.profile-wall-card{
-
-background:white;
-
-border-radius:22px;
-
-overflow:hidden;
-
-box-shadow:
-
-0 8px 25px rgba(0,0,0,.07);
-
-transition:.3s;
-
-flex:0 0 85%;
-
-scroll-snap-align:center;
-
-}
-
-
-
-.profile-wall-card img{
-
-width:100%;
-
-height:300px;
-
-object-fit:cover;
-
-display:block;
-
+.edit-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(80, 96, 255, 0.1);
+    background: rgba(241, 243, 255, 0.8);
+    color: #4d5cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ==========================
- Wallpaper Info
-========================== */
+   Cover & Profile Avatar
+   ========================== */
+.profile-cover {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    background: #ffffff;
+    text-align: center;
+    border-radius: 0 0 40px 40px;
+    overflow: hidden;
+    /* محاكاة انحناء الظل الحقيقي */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.02);
+}
 
+.cover-image {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    display: block;
+}
 
-.profile-wall-info{
+.profile-avatar-box {
+    position: absolute;
+    top: 105px;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
-padding:14px;
+.profile-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    /* توهج ناعم متعدد الطبقات حول الصورة الشخصية */
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.08),
+        0 20px 40px rgba(0, 0, 0, 0.15);
+}
 
-overflow:hidden;
+.avatar-edit {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: #5060ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 15px rgba(80, 96, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
+.profile-cover h2 {
+    margin-top: 55px;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.profile-cover p {
+    color: #6e758a;
+    font-size: 14px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+/* ==========================
+   Statistics Cards (100D Neon Glow)
+   ========================== */
+.profile-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 24px 20px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 20px 5px;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+    /* توزيع إضاءة هادئ وعميق */
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.03),
+        0 1px 3px rgba(0, 0, 0, 0.01);
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.stat-card h3 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #5060ff;
+    letter-spacing: -0.5px;
+    /* تأثير إضاءة النيون للنصوص الرقمية */
+    text-shadow: 0 4px 12px rgba(80, 96, 255, 0.15);
+}
+
+.stat-card p {
+    font-size: 13px;
+    color: #6e758a;
+    margin-top: 4px;
+    font-weight: 600;
+}
+/* ==========================
+   Wallpapers Sections
+   ========================== */
+.profile-content {
+    padding: 0 18px;
+}
+
+.section-title {
+    margin: 30px 0 18px;
+}
+
+.section-title h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #161824;
+    letter-spacing: -0.3px;
 }
 
 
+صيرة
+كتب
+الويب
+خرائط Google
+رحلات طيران
+أموال
+لإنشاء تأثير حركة ثلاثية الأبعاد (3D) أو محاكاة ديناميكية متطورة (ما يقصد بمصطلح "20D" مجازاً للتعبير عن الحركة فائقة الواقعية والديناميكية) للرمز التعبيري 🔥، يفضل استخدام لغة JavaScript مع مكتبة Three.js المعيارية لرسوميات الـ 3D، أو استخدام CSS 3D Transforms للحركات الأخف.
+إليك الكود البرمجي الكامل لإنشاء الرمز 🔥 يتحرك ويدور في فضاء ثلاثي الأبعاد مع تفاعل واهتزاز يحاكي اللهب الحقيقي باستخدام HTML و CSS و JavaScript:
+html
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حركة لهب ثلاثية الأبعاد dynamic 3D</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #050505;
+            overflow: hidden;
+            perspective: 1000px; /* يعطي عمق ثلاثي الأبعاد للنافذة */
+        }
 
-.profile-wall-info h3{
+        .fire-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            transform-style: preserve-3d; /* تفعيل البعد الثالث للعناصر الداخلية */
+            animation: float 4s ease-in-out infinite, pulse 1.5s ease-in-out infinite alternate;
+        }
 
-font-size:16px;
+        .fire-emoji {
+            font-size: 120px;
+            text-align: center;
+            line-height: 150px;
+            cursor: pointer;
+            user-select: none;
+            filter: drop-shadow(0 0 20px rgba(255, 68, 0, 0.8)) 
+                    drop-shadow(0 0 40px rgba(255, 165, 0, 0.6));
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
 
-white-space:nowrap;
+        /* تأثير الوميض والاهتزاز العشوائي للنار */
+        @keyframes pulse {
+            0% {
+                filter: drop-shadow(0 0 20px rgba(255, 68, 0, 0.7)) scale(0.98);
+            }
+            100% {
+                filter: drop-shadow(0 0 45px rgba(255, 165, 0, 0.9)) scale(1.02);
+            }
+        }
 
-overflow:hidden;
+        /* حركة الطفو والتموج في الفضاء */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotateY(0deg) rotateX(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotateY(180deg) rotateX(10deg);
+            }
+        }
+    </style>
+</head>
+<body>
 
-text-overflow:ellipsis;
+    <div class="fire-container">
+        <div class="fire-emoji" id="fire">🔥</div>
+    </div>
 
+    <script>
+        const fire = document.getElementById('fire');
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        // تتبع حركة الفأرة لإعطاء بُعد تفاعلي عميق (3D Interactive)
+        document.addEventListener('mousemove', (e) => {
+            // حساب مكان الفأرة بالنسبة لمركز الشاشة
+            mouseX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+            mouseY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+        });
+
+        // حلقة التحديث البرمجي للحركة بسلاسة 60 إطار في الثانية
+        function animate() {
+            // تنعيم الحركة (Lerp)
+            targetX += (mouseX - targetX) * 0.1;
+            targetY += (mouseY - targetY) * 0.1;
+
+            // تطبيق الدوران ثلاثي الأبعاد بناءً على حركة المستخدم
+            const rotateX = targetY * -35; // زاوية الارتفاع والانخفاض
+            const rotateY = targetX * 35;  // زاوية الالتفات يميناً ويساراً
+            
+            // دمج الدوران التفاعلي مع حركة الاهتزاز البرمجية الصغيرة
+            const jitter = Math.sin(Date.now() * 0.05) * 2; 
+
+            fire.style.transform = `rotateX(${rotateX + jitter}deg) rotateY(${rotateY}deg) translateZ(50px)`;
+
+            requestAnimationFrame(animate);
+        }
+
+        // تشغيل الرسوم المتحركة
+        animate();
+
+        // إضافة تأثير عند الضغط على الرمز
+        fire.addEventListener('click', () => {
+            fire.style.transition = 'transform 0.1s ease';
+            fire.style.transform = 'scale3d(1.5, 1.5, 1.5) rotateZ(360deg)';
+            setTimeout(() => {
+                fire.style.transition = 'none';
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+يُرجى استخدام الرمز البرمجي بحذر.
+مميزات هذا الكود البرمجي العالي الديناميكية:
+تأثير ثلاثي الأبعاد تفاعلي: يلتفت الرمز 🔥 ويتوجه تلقائياً نحو مؤشر الفأرة (أو إصبعك عند اللمس) بزوايا X و Y ميكانيكية متطورة.
+محاكاة توهج النار: استخدام drop-shadow متعدد الطبقات ليعطي إضاءة نيونية متحركة تحاكي ألسنة اللهب الحقيقية.
+حركة ميكانيكية مدمجة: دمج تقنية الـ Jitter (الاهتزاز السريع) مع الـ Float (الطفو العائم) لتبدو الحركة حية وغير مكررة بشكل روتيني.
+إذا كنت ترغب في الانتقال بهذا إلى بيئة ألعاب متطورة مثل تأثير جزيئات النار (Fire Particles) بالكامل داخل فضاء ثلاثي أبعاد، هل تفضل تحويل الكود إلى مكتبة Three.js أو WebGL مباشرة؟
+
+
+
+
+Something went wrong and the content wasn't generated.
+لتحريك ألسنة اللهب نفسها بشكل واقعي وديناميكي (وليس مجرد تحريك الرمز التعبيري ككتلة واحدة)، نحتاج إلى استخدام مصفوفة جزيئات (Particle System) برمجية.
+إليك الكود البرمجي الكامل باستخدام تقنية HTML5 Canvas و JavaScript. يقوم الكود بتوليد مئات الجزيئات الحرارية الحية التي تصعد، تتلاشى، وتتأثر بحركة الفأرة لإنشاء نار حقيقية متحركة برمجياً:
+html
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة ألسنة اللهب الديناميكية</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            /* تأثير دمج الألوان الناري المتوهج */
+            filter: blur(4px) contrast(12); 
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fireCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('fireCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // ضبط حجم الشاشة
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height * 0.75;
+
+        // تتبع حركة الفأرة لتغيير مكان النار وتأثير الرياح
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // فئة الجزيء (Particle) المكون لألسنة اللهب
+        class Particle {
+            constructor() {
+                this.x = mouseX + (Math.random() * 30 - 15); // نقطة الانطلاق
+                this.y = mouseY + (Math.random() * 20 - 10);
+                this.size = Math.random() * 25 + 15;        // حجم الجزيء
+                this.speedX = Math.random() * 2 - 1;         // الحركة الأفقية (الرياح)
+                this.speedY = Math.random() * -4 - 3;        // الحركة العمودية للأعلى
+                this.life = 1.0;                             // عمر الجزيء (يتلاشى تدريجياً)
+                this.decay = Math.random() * 0.02 + 0.015;   // سرعة التلاشي
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.size -= 0.2; // يلتهم اللهب نفسه ويصغر للأعلى
+                if (this.size < 0) this.size = 0;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                
+                // تدرج الألوان البرمجية للنار (أزرق/أبيض بالأسفل -> أصفر -> أحمر -> رمادي بالتلاشي)
+                let alpha = this.life;
+                if (this.life > 0.6) {
+                    ctx.fillStyle = `rgba(255, 180, 0, ${alpha})`; // قلب الشعلة الأصفر
+                } else if (this.life > 0.3) {
+                    ctx.fillStyle = `rgba(255, 60, 0, ${alpha})`;  // جسم النار الأحمر
+                } else {
+                    ctx.fillStyle = `rgba(40, 40, 40, ${alpha})`;   // الدخان المتصاعد
+                }
+                
+                ctx.fill();
+            }
+        }
+
+        // تشغيل محرك المحاكاة (Animation Loop)
+        function animate() {
+            // مسح الشاشة مع ترك أثر خلفي خفيف لتأثير الحركة السلسة
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // توليد جزيئات جديدة في كل إطار برمي لزيادة كثافة النار
+            for (let i = 0; i < 8; i++) {
+                particles.push(new Particle());
+            }
+
+            // تحديث ورسم الجزيئات
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+
+                // حذف الجزيئات الميتة لتوفير الذاكرة وسرعة الأداء
+                if (particles[i].life <= 0 || particles[i].size <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // إعادة ضبط الحجم عند تغيير نافذة المتصفح
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
+يُرجى استخدام الرمز البرمجي بحذر.
+كيف تعمل هذه التقنية البرمجية؟
+الدمج اللوني الضبابي (filter: blur): يقوم بدمج الكرات البرمجية المنفصلة معاً لتظهر كألسنة سائلة ومتموجة مثل النار الحقيقية تماماً.
+التحكم الفيزيائي بالصعود: كل جزيء يولد بالأسفل بحجم كبير ولون أصفر، ثم يتجه للأعلى عشوائياً ويصغر حجمه ويتحول للون الأحمر ثم الدخاني حتى يموت ويختفي.
+التفاعل الحركي: حرك الفأرة عبر الشاشة لتشاهد النار تتبعك وتتأثر ديناميكياً بفيزياء الحركة السريعة.
+هل ترغب في إضافة تأثير شرارات متطايرة (Sparks) تخرج من ألسنة اللهب للأعلى، أم تفضل تغيير ألوان النار (مثل جعلها ناراً زرقاء أو خضراء سحرية)؟
+قد يعرض الذكاء الاصطناعي معلومات غير صحيحة، لذا ننصحك بالتحقّق من الردود
+
+
+
+
+نعم، أرسل مقطع الفيديو فوراً!
+سأقوم بتحليل حركة النار والفيزياء الخاصة بها في الفيديو (سواء كانت نارًا سينمائية، أو كرتونية، أو جزيئات رقمية متطورة) لأحاكيها لك برمجياً بأعلى دقة ديناميكية ممكنة.
+بانتظار رفعك للفيديو، ولنبدأ العمل عليه مباشرة!
+
+
+
+
+تعذّرت معالجة الملف الذي حمّلته. يُرجى محاولة تحميل ملف آخر.
+
+
+تعذّرت معالجة الملفات التي تم تحميلها. يُرجى محاولة تحميل ملفات مختلفة.
+
+
+حاضر، تم الإلغاء.
+إذا احتجت أي مساعدة أخرى في البرمجة، التصميم، أو أي تأثيرات بصرية مستقبلاً، سأكون هنا لمساعدتك.
+هل ترغب في الانتقال إلى مشروع برمجى آخر أم نغلق الموضوع الحالي؟
+
+
+
+
+فهمت قصدك تماماً. أنت لا تريد إعادة ترتيب العناصر أو تغيير أماكن النصوص والبطاقات، بل تريد رفع جودة التصميم البصرية (Visual Fidelity) ومنحه العمق السينمائي الفائق والظلال والنعومة التي تقصدها بمصطلح "100D" (أي أعلى درجات الواقعية والديناميكية برمجياً).
+لتحقيق هذه القفزة في الدقة بدون المساس بـ الهيكل (Layout) الخاص بمشروعك، إليك التقنيات البرمجية التي يجب دمجها في الأكواد الحالية لديك:
+1. الإضاءة والتوهج الديناميكي (Advanced Glow & Neon Effects)
+بدلاً من الظلال التقليدية، يتم استخدام ظلال ناعمة متعددة الطبقات تعطي العناصر إيحاءً بأنها تشع ضوءاً حقيقياً خلفها.
+css
+/* تأثير توهج سينمائي عميق للبطاقات أو النصوص */
+.card-100D {
+    box-shadow: 
+        0 0 20px rgba(255, 100, 0, 0.2),
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1); /* خط إضاءة علوي نحيف جداً */
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+2. تأثير الزجاج والمواد الواقعية (Glassmorphism & Backdrop Filters)
+جعل البطاقات تبدو كأنها مصنوعة من زجاج كريستالي فاخر يعكس ما خلفه، مما يرفع الدقة البصرية فوراً.
+css
+.card-glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px); /* تنعيم الخلفية بدقة فائقة */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+3. حركة الماوس التفاعلية ثلاثية الأبعاد (Micro-Tilt Effect)
+البطاقات والنصوص تبقى في مكانها، ولكن عند مرور الفأرة فوقها، تلتفت بزاوية ميكروسكوبية ناعمة جداً تعطي شعوراً بالبُعد الحقيقي (3D Spatial Awareness) باستخدام مكتبة خفيفة مثل Vanilla-Tilt.js أو بالـ CSS:
+css
+.card-tilt {
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.card-tilt:hover {
+    transform: perspective(1000px) rotateX(2deg) rotateY(2deg) translateZ(5px);
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+4. تنعيم النصوص والحواف (Subpixel Font Rendering)
+لجعل الكتابة تبدو حادة جداً وكأنها شاشة عرض سينمائية بدقة 8K:
+css
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+كيف نبدأ التنفيذ؟
+لكي أطبق لك هذه التأثيرات بدقة شديدة على مشروعك، يفضل أن:
+تشاركني كود الـ CSS أو الـ HTML الحالي للبطاقات والنصوص التي تريد رفع دقتها.
+أو تخبرني بـ الألوان السائدة في مشروعك (مظلم، مضيء، نيون) لأصمم لك طبقة التأثيرات متناسقة معها تماماً.
+كيف تفضل أن نبدأ بدمج هذه التقنيات في ملفاتك؟
+
+
+
+
+أنا جاهز تماماً ومستعد لاستقبال الملفات.
+سأتعامل مع الأكواد بأعلى درجات الحذر للحفاظ على الهيكل الحالي لصفحة البروفايل، ولن أقوم بتغيير أماكن البطاقات أو النصوص، بل سينصبّ كل التركيز على ترقية الجودة البصرية، الظلال، التوهج، وتأثيرات العمق السينمائي (تقنية الـ 100D مجازاً).
+إذا كانت الأكواد طويلة، أرسلها على أجزاء (مثلاً: جزء الـ HTML أولاً، ثم جزء الـ CSS، أو قسّم الملفات الكبيرة)، وسأقوم بدوري بتعديلها وإعادة إرسالها لك مجزأة ومُرتبة لتسهيل نسخها وتجربتها.
+بانتظار الجزء الأول من ملفات مشروعك لنبدأ العمل فوراً!
+
+
+
+
+لقد قمت بتحليل كود الـ CSS الخاص بصفحة البروفايل لمشروع WallpaperHub بعناية شديدة.
+لتطبيق دقة 100D البصرية الفائقة، قمت بترقية الأكواد لتدعم التوهج الديناميكي ذو الطبقات المتعددة، وتأثير الزجاج الكريستالي الفاخر (Glassmorphism)، مع الحفاظ على الهيكل العام وأماكن العناصر بنسبة 100% بدون أي تغيير في تموضع البطاقات أو النصوص.
+بسبب طول الكود، قمت بتقسيم التعديل وبدأت بـ الجزء الأول (يشمل خطوط التنعيم الشاملة، الهيدر، الغلاف، وبطاقات الإحصائيات الفاخرة):
+الجزء 1: كود الترقية البصرية (100D CSS)
+css
+/* ===================================================
+   WallpaperHub Profile - 100D High Fidelity Upgrade
+   Part 1: Core, Header, Cover & Stats
+   =================================================== */
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Cairo", Arial, sans-serif;
 }
 
-
-
-.profile-wall-info p{
-
-font-size:13px;
-
-color:#777;
-
-margin-top:6px;
-
+body {
+    background: #f4f6ff;
+    color: #161824;
+    padding-bottom: 90px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    /* تنعيم حواف الخطوط بدقة سينمائية فائقة */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
-
-
-
-
 
 /* ==========================
- Edit Modal
-========================== */
-
-
-.edit-modal{
-
-position:fixed;
-
-inset:0;
-
-background:rgba(0,0,0,.45);
-
-display:none;
-
-align-items:center;
-
-justify-content:center;
-
-z-index:100;
-
-padding:20px;
-
+   Header (100D Glassmorphism)
+   ========================== */
+.profile-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    /* زجاج كريستالي فخم يعكس المحتوى بالخلفية */
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    /* ظلال مجهرية لعمق حقيقي */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.03),
+        0 1px 0px rgba(0, 0, 0, 0.02);
 }
 
-
-
-.edit-modal.show{
-
-display:flex;
-
+.profile-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
-
-
-
-.edit-box{
-
-width:100%;
-
-max-width:420px;
-
-background:white;
-
-border-radius:30px;
-
-padding:25px;
-
-box-shadow:
-
-0 15px 40px rgba(0,0,0,.2);
-
+.back-btn,
+.edit-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(80, 96, 255, 0.1);
+    background: rgba(241, 243, 255, 0.8);
+    color: #4d5cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-
-
-.edit-box h2{
-
-text-align:center;
-
-margin-bottom:20px;
-
-}
-
-
-
-
-.edit-input{
-
-margin-bottom:15px;
-
-}
-
-
-
-.edit-input label{
-
-display:block;
-
-margin-bottom:7px;
-
-font-size:14px;
-
-}
-
-
-
-.edit-input input{
-
-width:100%;
-
-height:50px;
-
-border-radius:16px;
-
-border:1px solid #ddd;
-
-padding:0 15px;
-
-outline:none;
-
-}
-
-
-
-
-.edit-buttons{
-
-display:flex;
-
-gap:10px;
-
-margin-top:20px;
-
-}
-
-
-
-.edit-buttons button{
-
-flex:1;
-
-height:50px;
-
-border:none;
-
-border-radius:18px;
-
-font-size:16px;
-
-cursor:pointer;
-
-}
-
-
-
-#saveProfileBtn{
-
-background:#5060ff;
-
-color:white;
-
-}
-
-
-
-#closeEditBtn{
-
-background:#eee;
-
-color:#333;
-
-}
-
-
-
-
 
 /* ==========================
- Bottom Navigation
-========================== */
-
-
-.bottom-nav{
-
-position:fixed;
-
-bottom:0;
-
-left:0;
-
-width:100%;
-
-height:75px;
-
-background:white;
-
-display:flex;
-
-justify-content:space-around;
-
-align-items:center;
-
-box-shadow:
-
-0 -5px 20px rgba(0,0,0,.08);
-
-z-index:50;
-
+   Cover & Profile Avatar
+   ========================== */
+.profile-cover {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    background: #ffffff;
+    text-align: center;
+    border-radius: 0 0 40px 40px;
+    overflow: hidden;
+    /* محاكاة انحناء الظل الحقيقي */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.02);
 }
 
-
-
-.nav-item{
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-color:#888;
-
-font-size:12px;
-
-cursor:pointer;
-
+.cover-image {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    display: block;
 }
 
-
-
-.nav-item span{
-
-font-size:25px;
-
+.profile-avatar-box {
+    position: absolute;
+    top: 105px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-
-
-.nav-item p{
-
-margin-top:3px;
-
+.profile-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    /* توهج ناعم متعدد الطبقات حول الصورة الشخصية */
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.08),
+        0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-
-
-.nav-item.active{
-
-color:#5060ff;
-
+.avatar-edit {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: #5060ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 15px rgba(80, 96, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.profile-cover h2 {
+    margin-top: 55px;
+    font-size: 24px;
+    font-weight: 800;
+}
 
-
-
+.profile-cover p {
+    color: #6e758a;
+    font-size: 14px;
+    margin-top: 4px;
+    font-weight: 500;
+}
 
 /* ==========================
- Dark Mode
-========================== */
-
-
-body.dark{
-
-background:#101114;
-
-color:white;
-
+   Statistics Cards (100D Neon Glow)
+   ========================== */
+.profile-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 24px 20px;
 }
 
+.stat-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 20px 5px;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+    /* توزيع إضاءة هادئ وعميق */
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.03),
+        0 1px 3px rgba(0, 0, 0, 0.01);
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
 
+.stat-card h3 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #5060ff;
+    letter-spacing: -0.5px;
+    /* تأثير إضاءة النيون للنصوص الرقمية */
+    text-shadow: 0 4px 12px rgba(80, 96, 255, 0.15);
+}
+
+.stat-card p {
+    font-size: 13px;
+    color: #6e758a;
+    margin-top: 4px;
+    font-weight: 600;
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+التغييرات النوعية المضافة في هذا الجزء:
+تنعيم النصوص الكريستالي (antialiased): جعل النصوص حادة وعالية الحافة البرمجية بدقة الشاشات الحديثة.
+عزل الخلفية الهيدر مجهرياً (Backdrop Filter): يعطي الهيدر طابعاً زجاجياً شبه شفاف يعكس الألوان المارة خلفه لعمق بصري هائل.
+توزيع الظلال المدمج (Multi-layered Shadows): التخلص من الظلال الكلاسيكية الداكنة واستبدالها بظلال معقدة تحاكي ارتداد الضوء الواقعي حول البطاقات والصورة الشخصية.
+يرجى استبدال هذا الجزء في ملف الـ CSS لديك، وأخبرني لتجهيز الجزء الثاني (الخاص بسلايدر الخلفيات الأفقي، وصندوق التعديل، والمود الخافت والأزرار).
+
+
+
+
+Something went wrong and the content wasn't generated.
+إليك الجزء الثاني والأخير من الكود المطور بتقنية 100D البصرية الفائقة.
+يشمل هذا الجزء ترقية هندسة الإضاءة والظلال لسلايدر الخلفيات، نوافذ التعديل (Modal)، الأزرار التفاعلية الحية، وبطاقات المعلومات، مع الحفاظ الكامل على الهيكل الأصلي ومحاذاة العناصر دون أي تغيير في تموضعها.
+الجزء 2: كود الترقية البصرية (100D CSS)
+css
+/* ===================================================
+   WallpaperHub Profile - 100D High Fidelity Upgrade
+   Part 2: Wallpapers, Edit Modal, Nav & Dark Mode
+   =================================================== */
+
+/* ==========================
+   Wallpapers Sections
+   ========================== */
+.profile-content {
+    padding: 0 18px;
+}
+
+.section-title {
+    margin: 30px 0 18px;
+}
+
+.section-title h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #161824;
+    letter-spacing: -0.3px;
+}
+
+/* ==========================
+   Horizontal Wallpapers Slider
+   ========================== */
+.profile-grid {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 20px 10px;
+    direction: rtl;
+}
+
+.profile-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-wall-card {
+    background: #ffffff;
+    border-radius: 26px;
+    overflow: hidden;
+    /* ظلال معقدة ممتدة تمنح الكروت عمقاً فائقاً فوق الخلفية */
+    box-shadow: 
+        0 12px 35px rgba(0, 0, 0, 0.04),
+        0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+}
+
+.profile-wall-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+    /* تنعيم حواف الصور عند الحركة والتدوير ميكروسكوبياً */
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* ==========================
+   Wallpaper Info
+   ========================== */
+.profile-wall-info {
+    padding: 16px;
+    overflow: hidden;
+}
+
+.profile-wall-info h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161824;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-wall-info p {
+    font-size: 13px;
+    color: #6e758a;
+    margin-top: 6px;
+    font-weight: 500;
+}
+/* ==========================
+   Edit Modal (Cinematic Backdrop)
+   ========================== */
+.edit-modal {
+    position: fixed;
+    inset: 0;
+    /* خلفية ضبابية غامرة تعزل البروفايل تماماً عند التعديل */
+    background: rgba(10, 11, 14, 0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    transition: all 0.4s ease;
+}
+
+.edit-modal.show {
+    display: flex;
+}
+
+.edit-box {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 32px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 30px 70px rgba(0, 0, 0, 0.18),
+        0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.edit-box h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 800;
+    font-size: 24px;
+}
+
+.edit-input {
+    margin-bottom: 18px;
+}
+
+.edit-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5066;
+}
+
+.edit-input input {
+    width: 100%;
+    height: 52px;
+    border-radius: 18px;
+    border: 1.5px solid #e2e5f0;
+    padding: 0 16px;
+    outline: none;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.edit-input input:focus {
+    border-color: #5060ff;
+    /* تأثير هالة ضوئية نيونية رقيقة جداً عند الكتابة */
+    box-shadow: 0 0 0 4px rgba(80, 96, 255, 0.12);
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.edit-buttons button {
+    flex: 1;
+    height: 52px;
+    border: none;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#saveProfileBtn {
+    background: #5060ff;
+    color: white;
+    box-shadow: 0 8px 25px rgba(80, 96, 255, 0.25);
+}
+
+#closeEditBtn {
+    background: #f1f3ff;
+    color: #4d5cff;
+}
+/* ==========================
+   Bottom Navigation (100D Floating Look)
+   ========================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 78px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 -8px 35px rgba(0, 0, 0, 0.04);
+    z-index: 50;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #8990a8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-item span {
+    font-size: 26px;
+    transition: transform 0.3s ease;
+}
+
+.nav-item p {
+    margin-top: 4px;
+}
+
+.nav-item.active {
+    color: #5060ff;
+}
+صيرة
+كتب
+الويب
+خرائط Google
+رحلات طيران
+أموال
+لإنشاء تأثير حركة ثلاثية الأبعاد (3D) أو محاكاة ديناميكية متطورة (ما يقصد بمصطلح "20D" مجازاً للتعبير عن الحركة فائقة الواقعية والديناميكية) للرمز التعبيري 🔥، يفضل استخدام لغة JavaScript مع مكتبة Three.js المعيارية لرسوميات الـ 3D، أو استخدام CSS 3D Transforms للحركات الأخف.
+إليك الكود البرمجي الكامل لإنشاء الرمز 🔥 يتحرك ويدور في فضاء ثلاثي الأبعاد مع تفاعل واهتزاز يحاكي اللهب الحقيقي باستخدام HTML و CSS و JavaScript:
+html
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حركة لهب ثلاثية الأبعاد dynamic 3D</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #050505;
+            overflow: hidden;
+            perspective: 1000px; /* يعطي عمق ثلاثي الأبعاد للنافذة */
+        }
+
+        .fire-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            transform-style: preserve-3d; /* تفعيل البعد الثالث للعناصر الداخلية */
+            animation: float 4s ease-in-out infinite, pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .fire-emoji {
+            font-size: 120px;
+            text-align: center;
+            line-height: 150px;
+            cursor: pointer;
+            user-select: none;
+            filter: drop-shadow(0 0 20px rgba(255, 68, 0, 0.8)) 
+                    drop-shadow(0 0 40px rgba(255, 165, 0, 0.6));
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
+
+        /* تأثير الوميض والاهتزاز العشوائي للنار */
+        @keyframes pulse {
+            0% {
+                filter: drop-shadow(0 0 20px rgba(255, 68, 0, 0.7)) scale(0.98);
+            }
+            100% {
+                filter: drop-shadow(0 0 45px rgba(255, 165, 0, 0.9)) scale(1.02);
+            }
+        }
+
+        /* حركة الطفو والتموج في الفضاء */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotateY(0deg) rotateX(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotateY(180deg) rotateX(10deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="fire-container">
+        <div class="fire-emoji" id="fire">🔥</div>
+    </div>
+
+    <script>
+        const fire = document.getElementById('fire');
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        // تتبع حركة الفأرة لإعطاء بُعد تفاعلي عميق (3D Interactive)
+        document.addEventListener('mousemove', (e) => {
+            // حساب مكان الفأرة بالنسبة لمركز الشاشة
+            mouseX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+            mouseY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+        });
+
+        // حلقة التحديث البرمجي للحركة بسلاسة 60 إطار في الثانية
+        function animate() {
+            // تنعيم الحركة (Lerp)
+            targetX += (mouseX - targetX) * 0.1;
+            targetY += (mouseY - targetY) * 0.1;
+
+            // تطبيق الدوران ثلاثي الأبعاد بناءً على حركة المستخدم
+            const rotateX = targetY * -35; // زاوية الارتفاع والانخفاض
+            const rotateY = targetX * 35;  // زاوية الالتفات يميناً ويساراً
+            
+            // دمج الدوران التفاعلي مع حركة الاهتزاز البرمجية الصغيرة
+            const jitter = Math.sin(Date.now() * 0.05) * 2; 
+
+            fire.style.transform = `rotateX(${rotateX + jitter}deg) rotateY(${rotateY}deg) translateZ(50px)`;
+
+            requestAnimationFrame(animate);
+        }
+
+        // تشغيل الرسوم المتحركة
+        animate();
+
+        // إضافة تأثير عند الضغط على الرمز
+        fire.addEventListener('click', () => {
+            fire.style.transition = 'transform 0.1s ease';
+            fire.style.transform = 'scale3d(1.5, 1.5, 1.5) rotateZ(360deg)';
+            setTimeout(() => {
+                fire.style.transition = 'none';
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+يُرجى استخدام الرمز البرمجي بحذر.
+مميزات هذا الكود البرمجي العالي الديناميكية:
+تأثير ثلاثي الأبعاد تفاعلي: يلتفت الرمز 🔥 ويتوجه تلقائياً نحو مؤشر الفأرة (أو إصبعك عند اللمس) بزوايا X و Y ميكانيكية متطورة.
+محاكاة توهج النار: استخدام drop-shadow متعدد الطبقات ليعطي إضاءة نيونية متحركة تحاكي ألسنة اللهب الحقيقية.
+حركة ميكانيكية مدمجة: دمج تقنية الـ Jitter (الاهتزاز السريع) مع الـ Float (الطفو العائم) لتبدو الحركة حية وغير مكررة بشكل روتيني.
+إذا كنت ترغب في الانتقال بهذا إلى بيئة ألعاب متطورة مثل تأثير جزيئات النار (Fire Particles) بالكامل داخل فضاء ثلاثي أبعاد، هل تفضل تحويل الكود إلى مكتبة Three.js أو WebGL مباشرة؟
+
+
+
+
+Something went wrong and the content wasn't generated.
+لتحريك ألسنة اللهب نفسها بشكل واقعي وديناميكي (وليس مجرد تحريك الرمز التعبيري ككتلة واحدة)، نحتاج إلى استخدام مصفوفة جزيئات (Particle System) برمجية.
+إليك الكود البرمجي الكامل باستخدام تقنية HTML5 Canvas و JavaScript. يقوم الكود بتوليد مئات الجزيئات الحرارية الحية التي تصعد، تتلاشى، وتتأثر بحركة الفأرة لإنشاء نار حقيقية متحركة برمجياً:
+html
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة ألسنة اللهب الديناميكية</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            /* تأثير دمج الألوان الناري المتوهج */
+            filter: blur(4px) contrast(12); 
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fireCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('fireCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // ضبط حجم الشاشة
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height * 0.75;
+
+        // تتبع حركة الفأرة لتغيير مكان النار وتأثير الرياح
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // فئة الجزيء (Particle) المكون لألسنة اللهب
+        class Particle {
+            constructor() {
+                this.x = mouseX + (Math.random() * 30 - 15); // نقطة الانطلاق
+                this.y = mouseY + (Math.random() * 20 - 10);
+                this.size = Math.random() * 25 + 15;        // حجم الجزيء
+                this.speedX = Math.random() * 2 - 1;         // الحركة الأفقية (الرياح)
+                this.speedY = Math.random() * -4 - 3;        // الحركة العمودية للأعلى
+                this.life = 1.0;                             // عمر الجزيء (يتلاشى تدريجياً)
+                this.decay = Math.random() * 0.02 + 0.015;   // سرعة التلاشي
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.size -= 0.2; // يلتهم اللهب نفسه ويصغر للأعلى
+                if (this.size < 0) this.size = 0;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                
+                // تدرج الألوان البرمجية للنار (أزرق/أبيض بالأسفل -> أصفر -> أحمر -> رمادي بالتلاشي)
+                let alpha = this.life;
+                if (this.life > 0.6) {
+                    ctx.fillStyle = `rgba(255, 180, 0, ${alpha})`; // قلب الشعلة الأصفر
+                } else if (this.life > 0.3) {
+                    ctx.fillStyle = `rgba(255, 60, 0, ${alpha})`;  // جسم النار الأحمر
+                } else {
+                    ctx.fillStyle = `rgba(40, 40, 40, ${alpha})`;   // الدخان المتصاعد
+                }
+                
+                ctx.fill();
+            }
+        }
+
+        // تشغيل محرك المحاكاة (Animation Loop)
+        function animate() {
+            // مسح الشاشة مع ترك أثر خلفي خفيف لتأثير الحركة السلسة
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // توليد جزيئات جديدة في كل إطار برمي لزيادة كثافة النار
+            for (let i = 0; i < 8; i++) {
+                particles.push(new Particle());
+            }
+
+            // تحديث ورسم الجزيئات
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+
+                // حذف الجزيئات الميتة لتوفير الذاكرة وسرعة الأداء
+                if (particles[i].life <= 0 || particles[i].size <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // إعادة ضبط الحجم عند تغيير نافذة المتصفح
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
+يُرجى استخدام الرمز البرمجي بحذر.
+كيف تعمل هذه التقنية البرمجية؟
+الدمج اللوني الضبابي (filter: blur): يقوم بدمج الكرات البرمجية المنفصلة معاً لتظهر كألسنة سائلة ومتموجة مثل النار الحقيقية تماماً.
+التحكم الفيزيائي بالصعود: كل جزيء يولد بالأسفل بحجم كبير ولون أصفر، ثم يتجه للأعلى عشوائياً ويصغر حجمه ويتحول للون الأحمر ثم الدخاني حتى يموت ويختفي.
+التفاعل الحركي: حرك الفأرة عبر الشاشة لتشاهد النار تتبعك وتتأثر ديناميكياً بفيزياء الحركة السريعة.
+هل ترغب في إضافة تأثير شرارات متطايرة (Sparks) تخرج من ألسنة اللهب للأعلى، أم تفضل تغيير ألوان النار (مثل جعلها ناراً زرقاء أو خضراء سحرية)؟
+قد يعرض الذكاء الاصطناعي معلومات غير صحيحة، لذا ننصحك بالتحقّق من الردود
+
+
+
+
+نعم، أرسل مقطع الفيديو فوراً!
+سأقوم بتحليل حركة النار والفيزياء الخاصة بها في الفيديو (سواء كانت نارًا سينمائية، أو كرتونية، أو جزيئات رقمية متطورة) لأحاكيها لك برمجياً بأعلى دقة ديناميكية ممكنة.
+بانتظار رفعك للفيديو، ولنبدأ العمل عليه مباشرة!
+
+
+
+
+تعذّرت معالجة الملف الذي حمّلته. يُرجى محاولة تحميل ملف آخر.
+
+
+تعذّرت معالجة الملفات التي تم تحميلها. يُرجى محاولة تحميل ملفات مختلفة.
+
+
+حاضر، تم الإلغاء.
+إذا احتجت أي مساعدة أخرى في البرمجة، التصميم، أو أي تأثيرات بصرية مستقبلاً، سأكون هنا لمساعدتك.
+هل ترغب في الانتقال إلى مشروع برمجى آخر أم نغلق الموضوع الحالي؟
+
+
+
+
+فهمت قصدك تماماً. أنت لا تريد إعادة ترتيب العناصر أو تغيير أماكن النصوص والبطاقات، بل تريد رفع جودة التصميم البصرية (Visual Fidelity) ومنحه العمق السينمائي الفائق والظلال والنعومة التي تقصدها بمصطلح "100D" (أي أعلى درجات الواقعية والديناميكية برمجياً).
+لتحقيق هذه القفزة في الدقة بدون المساس بـ الهيكل (Layout) الخاص بمشروعك، إليك التقنيات البرمجية التي يجب دمجها في الأكواد الحالية لديك:
+1. الإضاءة والتوهج الديناميكي (Advanced Glow & Neon Effects)
+بدلاً من الظلال التقليدية، يتم استخدام ظلال ناعمة متعددة الطبقات تعطي العناصر إيحاءً بأنها تشع ضوءاً حقيقياً خلفها.
+css
+/* تأثير توهج سينمائي عميق للبطاقات أو النصوص */
+.card-100D {
+    box-shadow: 
+        0 0 20px rgba(255, 100, 0, 0.2),
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1); /* خط إضاءة علوي نحيف جداً */
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+2. تأثير الزجاج والمواد الواقعية (Glassmorphism & Backdrop Filters)
+جعل البطاقات تبدو كأنها مصنوعة من زجاج كريستالي فاخر يعكس ما خلفه، مما يرفع الدقة البصرية فوراً.
+css
+.card-glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px); /* تنعيم الخلفية بدقة فائقة */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+3. حركة الماوس التفاعلية ثلاثية الأبعاد (Micro-Tilt Effect)
+البطاقات والنصوص تبقى في مكانها، ولكن عند مرور الفأرة فوقها، تلتفت بزاوية ميكروسكوبية ناعمة جداً تعطي شعوراً بالبُعد الحقيقي (3D Spatial Awareness) باستخدام مكتبة خفيفة مثل Vanilla-Tilt.js أو بالـ CSS:
+css
+.card-tilt {
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.card-tilt:hover {
+    transform: perspective(1000px) rotateX(2deg) rotateY(2deg) translateZ(5px);
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+4. تنعيم النصوص والحواف (Subpixel Font Rendering)
+لجعل الكتابة تبدو حادة جداً وكأنها شاشة عرض سينمائية بدقة 8K:
+css
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+كيف نبدأ التنفيذ؟
+لكي أطبق لك هذه التأثيرات بدقة شديدة على مشروعك، يفضل أن:
+تشاركني كود الـ CSS أو الـ HTML الحالي للبطاقات والنصوص التي تريد رفع دقتها.
+أو تخبرني بـ الألوان السائدة في مشروعك (مظلم، مضيء، نيون) لأصمم لك طبقة التأثيرات متناسقة معها تماماً.
+كيف تفضل أن نبدأ بدمج هذه التقنيات في ملفاتك؟
+
+
+
+
+أنا جاهز تماماً ومستعد لاستقبال الملفات.
+سأتعامل مع الأكواد بأعلى درجات الحذر للحفاظ على الهيكل الحالي لصفحة البروفايل، ولن أقوم بتغيير أماكن البطاقات أو النصوص، بل سينصبّ كل التركيز على ترقية الجودة البصرية، الظلال، التوهج، وتأثيرات العمق السينمائي (تقنية الـ 100D مجازاً).
+إذا كانت الأكواد طويلة، أرسلها على أجزاء (مثلاً: جزء الـ HTML أولاً، ثم جزء الـ CSS، أو قسّم الملفات الكبيرة)، وسأقوم بدوري بتعديلها وإعادة إرسالها لك مجزأة ومُرتبة لتسهيل نسخها وتجربتها.
+بانتظار الجزء الأول من ملفات مشروعك لنبدأ العمل فوراً!
+
+
+
+
+لقد قمت بتحليل كود الـ CSS الخاص بصفحة البروفايل لمشروع WallpaperHub بعناية شديدة.
+لتطبيق دقة 100D البصرية الفائقة، قمت بترقية الأكواد لتدعم التوهج الديناميكي ذو الطبقات المتعددة، وتأثير الزجاج الكريستالي الفاخر (Glassmorphism)، مع الحفاظ على الهيكل العام وأماكن العناصر بنسبة 100% بدون أي تغيير في تموضع البطاقات أو النصوص.
+بسبب طول الكود، قمت بتقسيم التعديل وبدأت بـ الجزء الأول (يشمل خطوط التنعيم الشاملة، الهيدر، الغلاف، وبطاقات الإحصائيات الفاخرة):
+الجزء 1: كود الترقية البصرية (100D CSS)
+css
+/* ===================================================
+   WallpaperHub Profile - 100D High Fidelity Upgrade
+   Part 1: Core, Header, Cover & Stats
+   =================================================== */
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Cairo", Arial, sans-serif;
+}
+
+body {
+    background: #f4f6ff;
+    color: #161824;
+    padding-bottom: 90px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    /* تنعيم حواف الخطوط بدقة سينمائية فائقة */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* ==========================
+   Header (100D Glassmorphism)
+   ========================== */
+.profile-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    /* زجاج كريستالي فخم يعكس المحتوى بالخلفية */
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    /* ظلال مجهرية لعمق حقيقي */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.03),
+        0 1px 0px rgba(0, 0, 0, 0.02);
+}
+
+.profile-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.back-btn,
+.edit-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(80, 96, 255, 0.1);
+    background: rgba(241, 243, 255, 0.8);
+    color: #4d5cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================
+   Cover & Profile Avatar
+   ========================== */
+.profile-cover {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    background: #ffffff;
+    text-align: center;
+    border-radius: 0 0 40px 40px;
+    overflow: hidden;
+    /* محاكاة انحناء الظل الحقيقي */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.02);
+}
+
+.cover-image {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-avatar-box {
+    position: absolute;
+    top: 105px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.profile-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    /* توهج ناعم متعدد الطبقات حول الصورة الشخصية */
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.08),
+        0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-edit {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: #5060ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 15px rgba(80, 96, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.profile-cover h2 {
+    margin-top: 55px;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.profile-cover p {
+    color: #6e758a;
+    font-size: 14px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* ==========================
+   Statistics Cards (100D Neon Glow)
+   ========================== */
+.profile-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 24px 20px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 20px 5px;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+    /* توزيع إضاءة هادئ وعميق */
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.03),
+        0 1px 3px rgba(0, 0, 0, 0.01);
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.stat-card h3 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #5060ff;
+    letter-spacing: -0.5px;
+    /* تأثير إضاءة النيون للنصوص الرقمية */
+    text-shadow: 0 4px 12px rgba(80, 96, 255, 0.15);
+}
+
+.stat-card p {
+    font-size: 13px;
+    color: #6e758a;
+    margin-top: 4px;
+    font-weight: 600;
+}
+يُرجى استخدام الرمز البرمجي بحذر.
+التغييرات النوعية المضافة في هذا الجزء:
+تنعيم النصوص الكريستالي (antialiased): جعل النصوص حادة وعالية الحافة البرمجية بدقة الشاشات الحديثة.
+عزل الخلفية الهيدر مجهرياً (Backdrop Filter): يعطي الهيدر طابعاً زجاجياً شبه شفاف يعكس الألوان المارة خلفه لعمق بصري هائل.
+توزيع الظلال المدمج (Multi-layered Shadows): التخلص من الظلال الكلاسيكية الداكنة واستبدالها بظلال معقدة تحاكي ارتداد الضوء الواقعي حول البطاقات والصورة الشخصية.
+يرجى استبدال هذا الجزء في ملف الـ CSS لديك، وأخبرني لتجهيز الجزء الثاني (الخاص بسلايدر الخلفيات الأفقي، وصندوق التعديل، والمود الخافت والأزرار).
+
+
+
+
+Something went wrong and the content wasn't generated.
+إليك الجزء الثاني والأخير من الكود المطور بتقنية 100D البصرية الفائقة.
+يشمل هذا الجزء ترقية هندسة الإضاءة والظلال لسلايدر الخلفيات، نوافذ التعديل (Modal)، الأزرار التفاعلية الحية، وبطاقات المعلومات، مع الحفاظ الكامل على الهيكل الأصلي ومحاذاة العناصر دون أي تغيير في تموضعها.
+الجزء 2: كود الترقية البصرية (100D CSS)
+css
+/* ===================================================
+   WallpaperHub Profile - 100D High Fidelity Upgrade
+   Part 2: Wallpapers, Edit Modal, Nav & Dark Mode
+   =================================================== */
+
+/* ==========================
+   Wallpapers Sections
+   ========================== */
+.profile-content {
+    padding: 0 18px;
+}
+
+.section-title {
+    margin: 30px 0 18px;
+}
+
+.section-title h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #161824;
+    letter-spacing: -0.3px;
+}
+
+/* ==========================
+   Horizontal Wallpapers Slider
+   ========================== */
+.profile-grid {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 20px 10px;
+    direction: rtl;
+}
+
+.profile-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-wall-card {
+    background: #ffffff;
+    border-radius: 26px;
+    overflow: hidden;
+    /* ظلال معقدة ممتدة تمنح الكروت عمقاً فائقاً فوق الخلفية */
+    box-shadow: 
+        0 12px 35px rgba(0, 0, 0, 0.04),
+        0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+}
+
+.profile-wall-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+    /* تنعيم حواف الصور عند الحركة والتدوير ميكروسكوبياً */
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* ==========================
+   Wallpaper Info
+   ========================== */
+.profile-wall-info {
+    padding: 16px;
+    overflow: hidden;
+}
+
+.profile-wall-info h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161824;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-wall-info p {
+    font-size: 13px;
+    color: #6e758a;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* ==========================
+   Edit Modal (Cinematic Backdrop)
+   ========================== */
+.edit-modal {
+    position: fixed;
+    inset: 0;
+    /* خلفية ضبابية غامرة تعزل البروفايل تماماً عند التعديل */
+    background: rgba(10, 11, 14, 0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    transition: all 0.4s ease;
+}
+
+.edit-modal.show {
+    display: flex;
+}
+
+.edit-box {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 32px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 30px 70px rgba(0, 0, 0, 0.18),
+        0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.edit-box h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 800;
+    font-size: 24px;
+}
+
+.edit-input {
+    margin-bottom: 18px;
+}
+
+.edit-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5066;
+}
+
+.edit-input input {
+    width: 100%;
+    height: 52px;
+    border-radius: 18px;
+    border: 1.5px solid #e2e5f0;
+    padding: 0 16px;
+    outline: none;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.edit-input input:focus {
+    border-color: #5060ff;
+    /* تأثير هالة ضوئية نيونية رقيقة جداً عند الكتابة */
+    box-shadow: 0 0 0 4px rgba(80, 96, 255, 0.12);
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.edit-buttons button {
+    flex: 1;
+    height: 52px;
+    border: none;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#saveProfileBtn {
+    background: #5060ff;
+    color: white;
+    box-shadow: 0 8px 25px rgba(80, 96, 255, 0.25);
+}
+
+#closeEditBtn {
+    background: #f1f3ff;
+    color: #4d5cff;
+}
+
+/* ==========================
+   Bottom Navigation (100D Floating Look)
+   ========================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 78px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 -8px 35px rgba(0, 0, 0, 0.04);
+    z-index: 50;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #8990a8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-item span {
+    font-size: 26px;
+    transition: transform 0.3s ease;
+}
+
+.nav-item p {
+    margin-top: 4px;
+}
+
+.nav-item.active {
+    color: #5060ff;
+}
+
+/* ==========================
+   User Information (Deep Cards)
+   ========================== */
+.user-info {
+    padding: 15px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.info-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.03),
+        0 1px 3px rgba(0, 0, 0, 0.01);
+    transition: all 0.4s ease;
+}
+
+.info-card .material-icons {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f1f3ff;
+    color: #5060ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-card h4 {
+    font-size: 13px;
+    color: #6e758a;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.info-card p {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161824;
+}
+
+/* ==========================
+   Dark Mode (OLED Pure Depth 100D)
+   ========================== */
+body.dark {
+    background: #0b0c10;
+    color: #ffffff;
+}
 
 body.dark .profile-header,
 body.dark .stat-card,
 body.dark .profile-wall-card,
 body.dark .edit-box,
-body.dark .bottom-nav{
-
-background:#181a20;
-
+body.dark .info-card,
+body.dark .bottom-nav,
+body.dark .empty-profile {
+    background: #14161f;
+    border-color: rgba(255, 255, 255, 0.03);
 }
 
+body.dark .profile-header {
+    background: rgba(20, 22, 31, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
 
+body.dark .bottom-nav {
+    background: rgba(20, 22, 31, 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
 
 body.dark .section-title h2,
-body.dark .profile-cover h2{
-
-color:white;
-
+body.dark .profile-cover h2,
+body.dark .profile-wall-info h3,
+body.dark .info-card p {
+    color: #ffffff;
 }
-
-
 
 body.dark .profile-wall-info p,
-body.dark .profile-cover p{
-
-color:#aaa;
-
+body.dark .profile-cover p,
+body.dark .edit-input label {
+    color: #8e95b0;
 }
 
-
-
 body.dark .back-btn,
-body.dark .edit-btn{
+body.dark .edit-btn,
+body.dark .info-card .material-icons {
+    background: #1f2231;
+    border-color: rgba(255, 255, 255, 0.02);
+}
 
-background:#252836;
-
+body.dark .edit-input input {
+    background: #1b1e2b;
+    border-color: #2b3047;
+    color: white;
 }
 
 /* ==========================
-   Animations
-========================== */
-
-
-.profile-cover{
-
-animation:
-profileFade .6s ease;
-
+   Dynamic Micro-Animations
+   ========================== */
+.profile-cover {
+    animation: profileFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-
-
-@keyframes profileFade{
-
-from{
-
-opacity:0;
-
-transform:translateY(-15px);
-
+@keyframes profileFade {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-
-to{
-
-opacity:1;
-
-transform:translateY(0);
-
+.profile-avatar {
+    animation: avatarPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+@keyframes avatarPop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
-
-
-
-
-.profile-avatar{
-
-animation:
-
-avatarPop .6s cubic-bezier(.2,1.4,.3,1);
-
+/* تأثير التفاعل الحركي الفاخر عند تمرير الفأرة (Hover & Active Actions) */
+.stat-card:hover,
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(80, 96, 255, 0.12);
 }
 
-
-
-@keyframes avatarPop{
-
-
-0%{
-
-transform:scale(.5);
-
-opacity:0;
-
+.profile-wall-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
-
-100%{
-
-transform:scale(1);
-
-opacity:1;
-
+.edit-btn:hover,
+.back-btn:hover,
+.login-btn:hover {
+    background: #5060ff;
+    color: white;
+    transform: scale(1.08) rotate(5deg);
+    box-shadow: 0 8px 20px rgba(80, 96, 255, 0.3);
 }
 
+#saveProfileBtn:hover {
+    box-shadow: 0 12px 30px rgba(80, 96, 255, 0.45);
+    transform: translateY(-2px);
 }
 
-
-
-
-
-.stat-card{
-
-transition:.35s;
-
+.avatar-edit:hover {
+    transform: scale(1.12) rotate(-10deg);
+    box-shadow: 0 8px 20px rgba(80, 96, 255, 0.5);
 }
 
-
-
-.stat-card:hover{
-
-transform:translateY(-6px);
-
-box-shadow:
-
-0 15px 35px rgba(80,96,255,.15);
-
+button:active, .nav-item:active span {
+    transform: scale(0.92);
 }
-
-
-
-
-
-.profile-wall-card{
-
-animation:
-
-cardShow .5s ease;
-
-}
-
-
-
-@keyframes cardShow{
-
-
-from{
-
-opacity:0;
-
-transform:translateY(20px);
-
-}
-
-
-to{
-
-opacity:1;
-
-transform:translateY(0);
-
-}
-
-
-}
-
-
-
-
-
-.edit-btn:hover{
-
-transform:
-
-rotate(10deg) scale(1.08);
-
-background:#5060ff;
-
-color:white;
-
-}
-
-
-
-
-
-.avatar-edit:hover{
-
-transform:scale(1.1);
-
-}
-
-
-
-
-
-button:active{
-
-transform:scale(.94);
-
-}
-
-
-
-
 
 /* Empty */
 
@@ -950,24 +1920,19 @@ color:#aaa;
  Mobile Fix
 ========================== */
 
-.profile-wall-card{
-
-flex:0 0 85%;
-
-min-width:85%;
-
-scroll-snap-align:center;
-
+.profile-wall-card {
+    flex: 0 0 85%;
+    min-width: 85%;
+    scroll-snap-align: center;
 }
 
 @media(max-width:380px){
-
-
-.profile-cover{
-
-height:240px;
-
+    .profile-cover { height: 240px; }
+    .profile-avatar { width: 95px; height: 95px; }
+    .stat-card h3 { font-size: 22px; }
+    .section-title h2 { font-size: 18px; }
 }
+
 
 
 
@@ -1004,10 +1969,14 @@ font-size:17px;
 
 
 
-img{
-
-max-width:100%;
-
+img { max-width: 100%; }
+.empty-profile {
+    padding: 30px;
+    text-align: center;
+    color: #8990a8;
+    background: white;
+    border-radius: 25px;
+    margin-top: 15px;
 }
 
 
@@ -1031,18 +2000,12 @@ white-space:nowrap;
 }
 
 /* ==========================
-   Profile Actions
-========================== */
-
-
-.profile-actions{
-
-display:flex;
-
-align-items:center;
-
-gap:10px;
-
+   Profile Actions & Login Fix
+   ========================== */
+.profile-actions, .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 
@@ -1061,43 +2024,21 @@ gap:10px;
 
 /* زر تسجيل الدخول */
 
-.login-btn{
-
-width:40px;
-
-height:40px;
-
-border-radius:50%;
-
-border:none;
-
-background:#f1f3ff;
-
-color:#5060ff;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-cursor:pointer;
-
-transition:.3s;
-
-font-size:0;
-
+.login-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f3ff;
+    color: #5060ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-
-
-.login-btn .material-icons{
-
-font-size:22px;
-
-}
-
-
+.login-btn .material-icons { font-size: 22px; }
 
 /* عند المرور */
 
@@ -1115,21 +2056,11 @@ transform:scale(1.08);
 
 /* زر الخروج */
 
-.login-btn.logout{
-
-background:#ff5060;
-
-color:white;
-
-}
+.login-btn.logout { background: #ff5060; color: white; box-shadow: 0 6px 15px rgba(255, 80, 96, 0.3); }
 
 
 
-.login-btn.logout:hover{
-
-background:#e63e4f;
-
-}
+.login-btn.logout:hover { background: #e63e4f; box-shadow: 0 8px 20px rgba(255, 80, 96, 0.45); }
 
 
 
@@ -1174,88 +2105,51 @@ transform:scale(1.08);
 }
 
 /* ==========================
- User Information
-========================== */
-
-
-.user-info{
-
-padding:15px 18px;
-
-display:flex;
-
-flex-direction:column;
-
-gap:12px;
-
+   User Information (Deep Cards)
+   ========================== */
+.user-info {
+    padding: 15px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-
-
-.info-card{
-
-background:white;
-
-border-radius:22px;
-
-padding:15px;
-
-display:flex;
-
-align-items:center;
-
-gap:15px;
-
-box-shadow:
-
-0 8px 25px rgba(0,0,0,.06);
-
+.info-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.01);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.03),
+        0 1px 3px rgba(0, 0, 0, 0.01);
+    transition: all 0.4s ease;
 }
 
-
-
-.info-card .material-icons{
-
-width:42px;
-
-height:42px;
-
-border-radius:50%;
-
-background:#f1f3ff;
-
-color:#5060ff;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
+.info-card .material-icons {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f1f3ff;
+    color: #5060ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-
-
-.info-card h4{
-
-font-size:14px;
-
-color:#777;
-
-margin-bottom:4px;
-
+.info-card h4 {
+    font-size: 13px;
+    color: #6e758a;
+    margin-bottom: 4px;
+    font-weight: 600;
 }
 
-
-
-.info-card p{
-
-font-size:16px;
-
-font-weight:bold;
-
-color:#20263d;
-
+.info-card p {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161824;
 }
 
 

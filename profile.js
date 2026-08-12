@@ -1444,6 +1444,8 @@ editModal.classList.remove(
 
 }
 
+
+
 // ===============================
 // Start Profile
 // ===============================
@@ -1459,6 +1461,30 @@ loadUserData();
 
 loadWallpapers();
 
+    // ===================================================
+    // WallpaperHub - 100D Interactive 3D Tilt Effect
+    // ===================================================
+    const tiltElements = document.querySelectorAll('.stat-card, .info-card, .profile-wall-card');
 
+    tiltElements.forEach(element => {
+        element.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease';
+        element.style.transformStyle = 'preserve-3d';
 
+        element.addEventListener('mousemove', (e) => {
+            const rect = element.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            
+            const maxRotation = 8;
+            const rotateX = (y * -maxRotation).toFixed(2);
+            const rotateY = (x * maxRotation).toFixed(2);
+            
+            element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(6px)`;
+        });
+
+        element.addEventListener('mouseleave', () => {
+            element.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+        });
+    });
+ 
 });
