@@ -1,203 +1,180 @@
-/* ==================================
-   WallpaperHub 20D Bottom Navigation
-================================== */
-
-.bottom-nav{
-
-    position:fixed;
-
-    left:0;
-    right:0;
-    bottom:0;
-
-    width:100%;
-    height:72px;
-
-    display:flex;
-
-    align-items:center;
-    justify-content:space-around;
-
-
-    background:
-    rgba(255,255,255,.75);
-
-
-    border-radius:28px 28px 0 0;
-
-
-    border:
-    1px solid rgba(0,242,254,.15);
-
-
-    backdrop-filter:blur(18px);
-
-
-    box-shadow:
-    0 -5px 30px rgba(0,242,254,.12);
-
-
-    z-index:9999;
-
-
-    transform-style:preserve-3d;
-
-    perspective:500px;
-
-    overflow:hidden;
-
-}
-
-
-/* Canvas البلازما */
-
-.plasma-canvas{
-
-    position:absolute;
-
-    inset:0;
-
-    width:100%;
-    height:100%;
-
-    border-radius:28px;
-
-    pointer-events:none;
-
-    z-index:1;
-
-}
-
-
-/* العناصر */
-
-.nav-item{
-
-    position:relative;
-
-    flex:1;
-
-    height:100%;
-
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    justify-content:center;
-
-
-    color:#222;
-
-
-    cursor:pointer;
-
-
-    z-index:5;
-
-
-    transition:.35s;
-
-
-    transform-style:preserve-3d;
-
-}
-
-
-
-/* الأيقونات */
-
-.nav-item span{
-
-    font-size:28px;
-
-    transition:.35s;
-
-}
-
-
-/* النص */
-
-.nav-item p{
-
-    margin:4px 0 0;
-
-    font-size:12px;
-
-}
-
-
-
-/* العنصر النشيط */
-
-.nav-item.active{
-
-    color:#00cfff;
-
-
-    transform:
-    translateZ(35px)
-    translateY(-8px);
-
-}
-
-
-.nav-item.active span{
-
-    transform:scale(1.2);
-
-
-    filter:
-    drop-shadow(0 0 12px #00f2fe);
-
-}
-
-
-
-/* الخط المضيء */
-
-.plasma-line{
-
-    position:absolute;
-
-    bottom:5px;
-
-
-    width:50px;
-
-    height:3px;
-
-
-    background:#00f2fe;
-
-
-    border-radius:20px;
-
-
-    box-shadow:
-    0 0 15px #00f2fe;
-
-
-    transition:.4s;
-
-
-}
-
-
-/* الوضع الليلي */
-
-body.dark .bottom-nav{
-
-    background:
-    rgba(10,10,15,.85);
-
-}
-
-
-body.dark .nav-item{
-
-    color:#aaa;
-
-}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بطاقة النحت البارز 100D Embossed</title>
+    <!-- خط القاهرة الحاد للأرقام والنصوص -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    
+    <style>
+        /* الخلفية المريحة بلون العاج الناعم لإبراز النحت الأبيض */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #eef2f7;
+            font-family: 'Cairo', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 1. البطاقة الأساسية بتأثير البروز الناعم (Embossed Container) */
+        .embossed-card {
+            width: 380px;
+            background: #eef2f7; /* يجب أن يكون نفس لون الخلفية تماماً لتأثير النحت */
+            border-radius: 40px;
+            padding: 35px 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            
+            /* دمج ظلال معقدة: ظل غامق أسفل اليمين، وظل أبيض ساطع أعلى اليسار يحاكي منبع الضوء */
+            box-shadow: 
+                12px 12px 25px rgba(166, 180, 200, 0.7), 
+                -12px -12px 25px rgba(255, 255, 255, 1);
+            
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* أيقونة القفل البارزة */
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a253c;
+            margin: 0 0 8px 0;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: #7a889b;
+            font-weight: 600;
+            line-height: 1.6;
+            margin: 0 0 25px 0;
+        }
+
+        /* 2. حاوية حقول الإدخال */
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            direction: ltr; /* لجعل الترتيب من اليسار لليمين في الأرقام */
+        }
+
+        /* 3. الخانات المحفورة للداخل بدقة فائقة (Inset / Sunken Effect) */
+        .otp-input {
+            width: 46px;
+            height: 52px;
+            border: none;
+            outline: none;
+            background: #eef2f7;
+            border-radius: 14px;
+            font-size: 20px;
+            font-weight: 800;
+            color: #5060ff; /* لون رقم مميز وعصري عند الكتابة */
+            text-align: center;
+            
+            /* السر هنا: ظلال داخلية (inset) تعطي إيحاء بأن الخانة محفورة داخل الجسم الأبيض */
+            box-shadow: 
+                inset 4px 4px 8px rgba(166, 180, 200, 0.8), 
+                inset -4px -4px 8px rgba(255, 255, 255, 1);
+                
+            transition: all 0.3s ease;
+        }
+
+        /* تأثير ضوئي عند الضغط والكتابة داخل الخانة */
+        .otp-input:focus {
+            box-shadow: 
+                inset 2px 2px 4px rgba(166, 180, 200, 0.5), 
+                inset -2px -2px 4px rgba(255, 255, 255, 1),
+                0 0 10px rgba(80, 96, 255, 0.15);
+            background: #f3f6fa;
+        }
+
+        /* 4. الزر الرئيسي البارز للخارج (Raised Button) */
+        .verify-btn {
+            width: 100%;
+            height: 54px;
+            border: none;
+            outline: none;
+            background: #eef2f7;
+            border-radius: 18px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #4a5568;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            
+            /* بروز ناعم للزر ليعطيك إحساساً بأنه زر فيزيائي حقيقي قابل للضغط */
+            box-shadow: 
+                6px 6px 14px rgba(166, 180, 200, 0.6), 
+                -6px -6px 14px rgba(255, 255, 255, 1);
+                
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* تأثير فيزيائي مذهل: عند تمرير الماوس يرتفع الزر قليلاً */
+        .verify-btn:hover {
+            color: #5060ff;
+            box-shadow: 
+                8px 8px 18px rgba(166, 180, 200, 0.7), 
+                -8px -8px 18px rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+
+        /* عند النقر: ينحفر الزر للداخل تماماً كأنه زر حقيقي انضغط */
+        .verify-btn:active {
+            transform: translateY(0px);
+            box-shadow: 
+                inset 4px 4px 8px rgba(166, 180, 200, 0.6), 
+                inset -4px -4px 8px rgba(255, 255, 255, 1);
+        }
+
+        /* النصوص الفرعية الملونة بالأسفل لملء التصميم */
+        .resend-text {
+            font-size: 12px;
+            color: #8a99ad;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .resend-text span {
+            color: #5060ff;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- هيكل بطاقة التحقق المحفورة والبارزة -->
+    <div class="embossed-card">
+        <div class="card-icon">🔐</div>
+        <h2 class="card-title">تأكيد الرمز السرّي</h2>
+        <p class="card-subtitle">لقد أرسلنا رمز التحقق المكون من 6 أرقام إلى رقم هاتفك المحمول</p>
+        
+        <!-- حقول الإدخال المحفورة غائراً داخل البطاقة البيضاء -->
+        <div class="otp-container">
+            <input type="text" class="otp-input" maxlength="1" placeholder="•">
+            <input type="text" class="otp-input" maxlength="1" placeholder="•">
+            <input type="text" class="otp-input" maxlength="1" placeholder="•">
+            <input type="text" class="otp-input" maxlength="1" placeholder="•">
+            <input type="text" class="otp-input" maxlength="1" placeholder="•">
+            <input type="text" class="otp-input" maxlength="1" placeholder="•">
+        </div>
+
+        <!-- الزر البارز للخارج بتأثير ميكانيكي -->
+        <button class="verify-btn">تأكيد الرمز الآن</button>
+        
+        <p class="resend-text">إعادة إرسال الرمز خلال <span>21 ثانية</span></p>
+    </div>
+
+</body>
+</html>
