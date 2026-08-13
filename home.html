@@ -10,6 +10,7 @@
 
 <link rel="stylesheet" href="home.css">
 <link rel="stylesheet" href="css/home-categories.css">
+<link rel="stylesheet" href="css/slider.css">
 <link rel="stylesheet" href="effects.css">
 <link rel="stylesheet" href="ai-fab.css">
 <link rel="stylesheet" href="css/theme.css">
@@ -84,33 +85,25 @@
 
 <section class="today-wallpaper">
 
-    <img id="todayImage">
+<img id="todayImage">
 
-    <div class="today-overlay">
+<div class="today-overlay">
 
-        <span class="today-badge">
-            ⭐ خلفية اليوم
-        </span>
+<span class="today-badge">
+⭐ خلفية اليوم
+</span>
 
-        <h2 id="todayTitle"></h2>
+<h2 id="todayTitle"></h2>
 
-        <p id="todayDescription"></p>
+<p id="todayDescription"></p>
 
-        </div>
-
-    </div>
+</div>
 
 </section>
-<!-- SLIDER -->
-<section class="slider-section">
-    <div class="swiper mySwiper">
-        <div class="swiper-wrapper" id="sliderWrapper">
-            <!-- سيتم ضخ صور السيرفر هنا ديناميكياً -->
-        </div>
-        <div class="swiper-pagination"></div>
-    </div>
-</section>
 
+<!-- Slider Component -->
+
+<div id="homeSlider"></div>
 
 
 <!-- CATEGORIES -->
@@ -236,7 +229,7 @@
 <div id="bottomNav"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
+<script src="js/slider.js"></script>
 <script src="js/home-categories.js"></script>
 <script src="js/components.js"></script>
 <script type="module" src="home.js"></script>
