@@ -180,33 +180,3 @@ menuBtn.classList.remove("active");
 
 }
 
-// ==============================
-// Home Slider
-// ==============================
-
-const homeSlider =
-document.getElementById("homeSlider");
-
-
-if(homeSlider){
-
-fetch("/components/home-slider.html")
-
-.then(res=>res.text())
-
-.then(html=>{
-
-homeSlider.innerHTML = html;
-
-
-const script =
-document.createElement("script");
-
-script.src="/js/slider.js";
-
-document.body.appendChild(script);
-
-
-});
-
-}>
