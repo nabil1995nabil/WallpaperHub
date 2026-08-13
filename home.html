@@ -9,6 +9,7 @@
 <title>WallpaperHub</title>
 
 <link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="css/home-categories.css">
 <link rel="stylesheet" href="effects.css">
 <link rel="stylesheet" href="ai-fab.css">
 <link rel="stylesheet" href="css/theme.css">
@@ -16,11 +17,9 @@
 <link rel="stylesheet" href="css/notification-button.css">
 <link rel="stylesheet" href="css/bottom-nav.css">
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-<link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
 </head>
 
@@ -102,108 +101,23 @@ href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     </div>
 
 </section>
-
 <!-- SLIDER -->
-
 <section class="slider-section">
-
-<div class="swiper mySwiper">
-
-<div class="swiper-wrapper" id="sliderContent">
-
-</div>
-
-
-<div class="swiper-pagination"></div>
-
-</div>
-
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper" id="sliderWrapper">
+            <!-- سيتم ضخ صور السيرفر هنا ديناميكياً -->
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
 </section>
+
+
 
 <!-- CATEGORIES -->
 
-<section class="categories">
+<!-- Home Categories Component -->
 
-<h3>الأقسام</h3>
-
-<div class="category-list">
-
-<div class="category" data-category="all">
-🌍
-<p>الكل</p>
-</div>
-
-<div class="category" data-category="nature">
-🌿
-<p>الطبيعة</p>
-</div>
-
-<div class="category" data-category="cars">
-🚗
-<p>السيارات</p>
-</div>
-
-<div class="category" data-category="games">
-🎮
-<p>الألعاب</p>
-</div>
-
-<div class="category" data-category="space">
-🌌
-<p>الفضاء</p>
-</div>
-
-<div class="category" data-category="ai">
-🤖
-<p>الذكاء</p>
-</div>
-
-<div class="category" data-category="amoled">
-📱
-<p>AMOLED</p>
-</div>
-
-<div class="category" data-category="animals">
-🐱
-<p>الحيوانات</p>
-</div>
-
-<div class="category" data-category="anime">
-🌀
-<p>الأنمي</p>
-</div>
-
-
-<div class="category" data-category="city">
-🏙️
-<p>المدن</p>
-</div>
-
-
-<div class="category" data-category="dark">
-🖤
-<p>Dark</p>
-</div>
-
-
-<div class="category" data-category="4k">
-💎
-<p>4K</p>
-</div>
-
-
-<div class="category" data-category="sports">
-⚽
-<p>رياضة</p>
-</div>
-
-
-<div class="category" data-category="minimal">
-✨
-<p>Minimal</p>
-</div>
-
-</section>
+<div id="homeCategories"></div>
 
 <!-- الأكثر شعبية -->
 
@@ -321,17 +235,15 @@ href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
 <div id="bottomNav"></div>
 
-
-<script type="module" src="home.js"></script>
-
-<script src="theme.js"></script>
-
-<script src="effects.js"></script>
-
-<script src="ai-fab.js"></script>
-<script src="js/components.js"></script>
-<script src="js/bottom-nav-20d.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script src="js/home-categories.js"></script>
+<script src="js/components.js"></script>
+<script type="module" src="home.js"></script>
+<script src="js/bottom-nav-20d.js"></script>
+<script src="theme.js"></script>
+<script src="effects.js"></script>
+<script src="ai-fab.js"></script>
 
 </body>
 </html>

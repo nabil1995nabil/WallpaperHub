@@ -5,7 +5,8 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 
 <title>حسابي | WallpaperHub</title>
 
@@ -13,6 +14,7 @@
 <link rel="stylesheet" href="profile.css">
 
 <link rel="stylesheet" href="css/theme.css">
+
 <link rel="stylesheet" href="css/bottom-nav.css">
 
 
@@ -25,11 +27,9 @@
 <body>
 
 
-
 <!-- ==========================
  Header
 ========================== -->
-
 
 <header class="profile-header">
 
@@ -38,15 +38,11 @@
 class="back-btn"
 onclick="history.back()">
 
-
 <span class="material-icons">
 arrow_back
 </span>
 
-
 </button>
-
-
 
 
 
@@ -56,44 +52,39 @@ arrow_back
 
 
 
-
-
 <div class="profile-actions">
 
 
+<button 
+id="loginBtn"
+class="login-btn">
 
-<!-- تسجيل الدخول -->
-
-
-<button id="loginBtn" class="login-btn">
 <span class="material-icons">
 login
 </span>
+
 </button>
 
-<!-- تعديل الحساب -->
 
 
 <button 
 id="editProfileBtn"
 class="edit-btn">
 
-
 <span class="material-icons">
 edit
 </span>
 
-
 </button>
-
-
 
 
 </div>
 
 
-
 </header>
+
+
+
 
 <!-- ==========================
  Profile Cover
@@ -107,9 +98,7 @@ edit
 id="coverImage"
 class="cover-image"
 src="assets/images/default-cover.jpg"
-alt="Cover"
-/>
-
+alt="Cover">
 
 
 
@@ -120,17 +109,13 @@ alt="Cover"
 id="userAvatar"
 class="profile-avatar"
 src="assets/images/user.png"
-alt="User Avatar"
-/>
-
+alt="Avatar">
 
 
 
 <button
 id="changeAvatarBtn"
-class="avatar-edit"
-type="button"
->
+class="avatar-edit">
 
 
 <span class="material-icons">
@@ -145,12 +130,9 @@ photo_camera
 
 
 
-
-
 <h2 id="userName">
 مجهول
 </h2>
-
 
 
 
@@ -159,9 +141,8 @@ photo_camera
 </p>
 
 
-
-
 </section>
+
 
 
 
@@ -174,8 +155,8 @@ photo_camera
 <section class="user-info">
 
 
-<div class="info-card">
 
+<div class="info-card">
 
 <span class="material-icons">
 person
@@ -188,14 +169,12 @@ person
 اسم المستخدم
 </h4>
 
-
 <p id="infoUserName">
 زائر
 </p>
 
 
 </div>
-
 
 </div>
 
@@ -228,6 +207,10 @@ email
 
 </div>
 
+
+
+
+
 <div class="info-card">
 
 
@@ -247,11 +230,23 @@ verified
 زائر
 </p>
 
+
+</div>
+
+
+</div>
+
+
+
+
+
 <div class="info-card">
+
 
 <span class="material-icons">
 calendar_month
 </span>
+
 
 <div>
 
@@ -259,21 +254,28 @@ calendar_month
 تاريخ الانضمام
 </h4>
 
+
 <p id="joinDate">
 -
 </p>
 
-</div>
 
 </div>
+
+
+</div>
+
+
 
 
 
 <div class="info-card">
 
+
 <span class="material-icons">
 login
 </span>
+
 
 <div>
 
@@ -281,14 +283,17 @@ login
 آخر دخول
 </h4>
 
+
 <p id="lastLogin">
 -
 </p>
 
+
 </div>
 
 
 </div>
+
 
 
 
@@ -304,17 +309,14 @@ login
 
 <div class="stat-card">
 
-
 <h3 id="downloadCount">
 0
 </h3>
-
 
 <p>
 تحميل
 </p>
 
-
 </div>
 
 
@@ -322,17 +324,14 @@ login
 
 
 <div class="stat-card">
-
 
 <h3 id="likeCount">
 0
 </h3>
 
-
 <p>
 إعجاب
 </p>
-
 
 </div>
 
@@ -342,16 +341,13 @@ login
 
 <div class="stat-card">
 
-
 <h3 id="viewCount">
 0
 </h3>
 
-
 <p>
 مشاهدة
 </p>
-
 
 </div>
 
@@ -382,11 +378,13 @@ login
 
 
 
+
 <div
 id="downloadedWallpapers"
 class="profile-grid">
 
 </div>
+
 
 
 
@@ -400,6 +398,7 @@ class="profile-grid">
 </h2>
 
 </div>
+
 
 
 
@@ -427,6 +426,7 @@ class="profile-grid">
 
 
 
+
 <div
 id="viewedWallpapers"
 class="profile-grid">
@@ -436,6 +436,11 @@ class="profile-grid">
 
 
 </section>
+
+
+
+
+
 
 <!-- ==========================
  Edit Profile Modal
@@ -448,6 +453,7 @@ class="edit-modal">
 
 
 <div class="edit-box">
+
 
 
 <h2>
@@ -474,11 +480,12 @@ type="text"
 
 placeholder="اسم المستخدم"
 
-
 >
 
 
 </div>
+
+
 
 
 
@@ -501,11 +508,11 @@ type="file"
 
 accept="image/*"
 
-
 >
 
 
 </div>
+
 
 
 
@@ -528,7 +535,6 @@ id="coverInput"
 type="file"
 
 accept="image/*"
-
 
 >
 
@@ -558,6 +564,7 @@ type="button"
 
 
 
+
 <button
 
 id="closeEditBtn"
@@ -572,34 +579,39 @@ type="button"
 
 
 
-</div>
-
-
-
-
-</div>
-
 
 </div>
 
 
 
 
+</div>
 
+
+</div>
 
 <!-- ==========================
  Bottom Navigation
 ========================== -->
+
 <div id="bottomNav"></div>
+
+
 
 
 <!-- ==========================
  Scripts
 ========================== -->
+
+
 <script type="module" src="profile.js"></script>
+
 <script src="theme.js"></script>
+
 <script src="js/components.js"></script>
+
 <script src="js/bottom-nav-20d.js"></script>
+
 
 
 </body>

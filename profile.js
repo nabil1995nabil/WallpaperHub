@@ -1,21 +1,23 @@
-// =====================================
-// WallpaperHub Profile JS
-// Clean Firebase Version
-// Part 1/4
-// =====================================
+/* ===================================================
+   WallpaperHub Profile JS
+   Clean 100D Version
+   Part 1/4
+=================================================== */
+
+
+/* ==========================
+   Firebase Imports
+========================== */
+
+
+import { auth } from "./firebase.js";
 
 
 import {
-auth
-} from "./firebase.js";
 
-
-import {
-
-GoogleAuthProvider,
-signInWithPopup,
-signOut,
-onAuthStateChanged
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut
 
 }
 
@@ -32,14 +34,14 @@ console.log(
 
 
 
-// ===============================
-// API
-// ===============================
 
 
-const API =
-"/api/wallpapers";
+/* ==========================
+   API
+========================== */
 
+
+const API = "/api/wallpapers";
 
 
 let wallpapers = [];
@@ -48,160 +50,237 @@ let wallpapers = [];
 
 
 
-// ===============================
-// Firebase Login System
-// ===============================
+
+/* ==========================
+   Firebase Provider
+========================== */
+
 
 const provider = new GoogleAuthProvider();
 
 
-// ===============================
-// Elements
-// ===============================
+
+
+
+
+/* ==========================
+   DOM Elements
+========================== */
+
 
 const loginBtn =
-document.getElementById(
-"loginBtn"
-);
+document.getElementById("loginBtn");
+
 
 const userName =
-document.getElementById(
-"userName"
-);
+document.getElementById("userName");
+
 
 const userEmail =
-document.getElementById(
-"userEmail"
-);
+document.getElementById("userEmail");
+
 
 const userAvatar =
-document.getElementById(
-"userAvatar"
-);
+document.getElementById("userAvatar");
+
 
 const coverImage =
-document.getElementById(
-"coverImage"
-);
+document.getElementById("coverImage");
+
+
 
 const downloadedContainer =
 document.getElementById(
 "downloadedWallpapers"
 );
 
+
+
 const likedContainer =
 document.getElementById(
 "likedWallpapers"
 );
+
+
 
 const viewedContainer =
 document.getElementById(
 "viewedWallpapers"
 );
 
+
+
+
 const downloadCount =
 document.getElementById(
 "downloadCount"
 );
+
+
 
 const likeCount =
 document.getElementById(
 "likeCount"
 );
 
+
+
 const viewCount =
 document.getElementById(
 "viewCount"
 );
 
+
+
+
 const infoUserName =
-document.getElementById("infoUserName");
+document.getElementById(
+"infoUserName"
+);
+
 
 
 const infoUserEmail =
-document.getElementById("infoUserEmail");
+document.getElementById(
+"infoUserEmail"
+);
+
 
 
 const accountType =
-document.getElementById("accountType");
+document.getElementById(
+"accountType"
+);
+
 
 
 const joinDate =
-document.getElementById("joinDate");
+document.getElementById(
+"joinDate"
+);
+
 
 
 const lastLogin =
-document.getElementById("lastLogin");
+document.getElementById(
+"lastLogin"
+);
 
-/// ===============================
-// تحديث حالة الزر
-// ===============================
+
+
+
+
+
+
+/* ==========================
+   Update Login Button
+========================== */
+
 
 function updateLoginState(user){
 
-    if(!loginBtn) return;
+
+    if(!loginBtn)
+    return;
+
 
 
     if(user){
 
+
         loginBtn.innerHTML = `
+
         <span class="material-icons">
         logout
         </span>
+
         `;
 
-        loginBtn.classList.add("logout");
+
+        loginBtn.classList.add(
+        "logout"
+        );
+
 
 
     }else{
 
+
         loginBtn.innerHTML = `
+
         <span class="material-icons">
         login
         </span>
+
         `;
 
-        loginBtn.classList.remove("logout");
+
+        loginBtn.classList.remove(
+        "logout"
+        );
+
 
     }
+
 
 }
 
 
 
 
-// ===============================
-// تسجيل الدخول والخروج Google
-// ===============================
+
+
+
+
+/* ==========================
+   Login / Logout
+========================== */
+
 
 if(loginBtn){
 
 
-loginBtn.addEventListener("click", async()=>{
+loginBtn.addEventListener(
+"click",
+
+async()=>{
 
 
 try{
 
 
-const currentUser = auth.currentUser;
+
+const currentUser =
+auth.currentUser;
 
 
 
-// ===============================
-// تسجيل الخروج
-// ===============================
+
+
+/* Logout */
+
 
 if(currentUser){
+
 
 
 await signOut(auth);
 
 
 
-localStorage.removeItem("userName");
-localStorage.removeItem("userEmail");
-localStorage.removeItem("userAvatar");
-localStorage.removeItem("joinDate");
+localStorage.removeItem(
+"userName"
+);
+
+
+localStorage.removeItem(
+"userEmail"
+);
+
+
+localStorage.removeItem(
+"userAvatar"
+);
 
 
 
@@ -215,51 +294,51 @@ loadUserData();
 return;
 
 
+
 }
 
 
 
 
-// ===============================
-// تسجيل الدخول Google
-// ===============================
 
 
-const result = await signInWithPopup(
-    auth,
-    provider
+/* Login Google */
+
+
+const result =
+await signInWithPopup(
+auth,
+provider
 );
 
 
 
-const user = result.user;
-
-
-
-console.log(
-"Firebase Login Success:",
-user
-);
+const user =
+result.user;
 
 
 
 
 const name =
-user.displayName || "مستخدم";
+user.displayName ||
+"مستخدم";
+
 
 
 const email =
-user.email || "غير مسجل";
+user.email ||
+"غير مسجل";
+
 
 
 const avatar =
-user.photoURL || "assets/images/avatar.png";
+user.photoURL ||
+"assets/images/avatar.png";
 
 
 
 
 
-// حفظ البيانات
 
 localStorage.setItem(
 "userName",
@@ -267,10 +346,12 @@ name
 );
 
 
+
 localStorage.setItem(
 "userEmail",
 email
 );
+
 
 
 localStorage.setItem(
@@ -280,44 +361,24 @@ avatar
 
 
 
+
+
+
 if(!localStorage.getItem("joinDate")){
 
 
 localStorage.setItem(
+
 "joinDate",
+
 new Date().toLocaleString("ar-MA")
+
 );
 
 
 }
 
 
-
-
-// تحديث الصفحة مباشرة
-
-if(userName){
-
-userName.textContent =
-name;
-
-}
-
-
-if(userEmail){
-
-userEmail.textContent =
-email;
-
-}
-
-
-if(userAvatar){
-
-userAvatar.src =
-avatar;
-
-}
 
 
 
@@ -331,21 +392,25 @@ loadUserData();
 
 }
 
-
-
 catch(error){
 
 
 console.error(
-"GOOGLE LOGIN ERROR:",
-error.code,
-error.message
+
+"LOGIN ERROR:",
+
+error
+
 );
 
 
 
 alert(
-"خطأ تسجيل الدخول: " + error.message
+
+"خطأ تسجيل الدخول: "
++
+error.message
+
 );
 
 
@@ -359,232 +424,214 @@ alert(
 
 }
 
-// ===============================
-// تحميل الخلفيات من السيرفر
-// ===============================
+/* ===================================================
+   User Data + Wallpapers
+   Part 2/4
+=================================================== */
 
 
-async function loadWallpapers(){
-
-
-try{
-
-
-const res =
-await fetch(API);
-
-
-
-if(!res.ok)
-
-throw new Error(
-"SERVER ERROR"
-);
-
-
-
-wallpapers =
-await res.json();
-
-
-
-renderProfile();
-
-
-
-}catch(error){
-
-
-console.error(
-"LOAD WALLPAPERS ERROR:",
-error
-);
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-/// ===============================
-// تحميل بيانات المستخدم
-// ===============================
+/* ==========================
+   Load User Data
+========================== */
 
 
 function loadUserData(){
 
 
+    const name =
 
-const name =
+    localStorage.getItem(
+    "userName"
+    )
+    ||
+    "زائر";
 
-localStorage.getItem(
-"userName"
-)
-||
-"زائر";
 
 
+    const email =
 
+    localStorage.getItem(
+    "userEmail"
+    )
+    ||
+    "غير مسجل";
 
-const email =
 
-localStorage.getItem(
-"userEmail"
-)
-||
-"غير مسجل";
 
+    const avatar =
 
+    localStorage.getItem(
+    "userAvatar"
+    );
 
 
-const avatar =
 
-localStorage.getItem(
-"userAvatar"
-);
+    const cover =
 
+    localStorage.getItem(
+    "userCover"
+    );
 
 
 
-const cover =
 
-localStorage.getItem(
-"userCover"
-);
 
+    if(userName)
 
+    userName.textContent =
+    name;
 
 
 
-// الاسم الرئيسي
 
-if(userName)
 
-userName.textContent =
-name;
+    if(userEmail)
 
+    userEmail.textContent =
+    email;
 
 
 
 
-// البريد الرئيسي
 
-if(userEmail)
+    if(userAvatar)
 
-userEmail.textContent =
-email;
+    userAvatar.src =
+    avatar ||
+    "assets/images/avatar.png";
 
 
 
 
 
+    if(coverImage)
 
-// الصورة الشخصية
+    coverImage.src =
+    cover ||
+    "assets/images/default-cover.jpg";
 
-if(userAvatar)
 
-userAvatar.src =
-avatar || "assets/images/avatar.png";
 
 
 
 
 
 
-// صورة الغلاف
+    if(infoUserName)
 
-if(coverImage)
+    infoUserName.textContent =
+    name;
 
-coverImage.src =
-cover || "assets/images/default-cover.jpg";
 
 
 
 
+    if(infoUserEmail)
 
+    infoUserEmail.textContent =
+    email;
 
-// ===============================
-// معلومات المستخدم الإضافية
-// ===============================
 
 
-const infoUserName =
-document.getElementById(
-"infoUserName"
-);
 
 
-const infoUserEmail =
-document.getElementById(
-"infoUserEmail"
-);
 
 
-const accountType =
-document.getElementById(
-"accountType"
-);
+    if(email !== "غير مسجل"){
 
 
-const joinDate =
-document.getElementById(
-"joinDate"
-);
+        if(accountType)
 
+        accountType.textContent =
+        "حساب Google";
 
-const lastLogin =
-document.getElementById(
-"lastLogin"
-);
 
+    }else{
 
 
+        if(accountType)
 
+        accountType.textContent =
+        "زائر";
 
 
-if(infoUserName)
+    }
 
-infoUserName.textContent =
-name;
 
 
 
 
 
-if(infoUserEmail)
 
-infoUserEmail.textContent =
-email;
+    let join =
 
+    localStorage.getItem(
+    "joinDate"
+    );
 
 
 
 
-if(email !== "غير مسجل"){
+    if(!join && email !== "غير مسجل"){
 
 
-if(accountType)
+        join =
+        new Date()
+        .toLocaleString(
+        "ar-MA"
+        );
 
-accountType.textContent =
-"حساب Google";
 
 
+        localStorage.setItem(
+        "joinDate",
+        join
+        );
 
-}else{
 
+    }
 
-if(accountType)
 
-accountType.textContent =
-"زائر";
+
+
+
+
+    if(joinDate)
+
+    joinDate.textContent =
+    join ||
+    "-";
+
+
+
+
+
+
+
+
+    const loginTime =
+
+    new Date()
+    .toLocaleString(
+    "ar-MA"
+    );
+
+
+
+
+    localStorage.setItem(
+    "lastLogin",
+    loginTime
+    );
+
+
+
+
+    if(lastLogin)
+
+    lastLogin.textContent =
+    loginTime;
+
 
 
 }
@@ -594,97 +641,93 @@ accountType.textContent =
 
 
 
-// تاريخ الانضمام
-
-let join =
-
-localStorage.getItem(
-"joinDate"
-);
 
 
 
-
-if(!join && email !== "غير مسجل"){
-
-
-join =
-new Date().toLocaleString(
-"ar-MA"
-);
+/* ==========================
+   Load Wallpapers API
+========================== */
 
 
-
-localStorage.setItem(
-"joinDate",
-join
-);
+async function loadWallpapers(){
 
 
+    try{
 
-}
+
+        const response =
+
+        await fetch(API);
 
 
 
 
-if(joinDate)
+        if(!response.ok)
 
-joinDate.textContent =
-join || "-";
+        throw new Error(
+        "SERVER ERROR"
+        );
 
 
 
 
 
+        wallpapers =
 
-
-// تحديث آخر دخول كل مرة
-
-const loginTime =
-
-new Date().toLocaleString(
-"ar-MA"
-);
-
-
-
-
-localStorage.setItem(
-"lastLogin",
-loginTime
-);
+        await response.json();
 
 
 
 
 
-if(lastLogin)
+        renderProfile();
 
-lastLogin.textContent =
-loginTime;
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+        "LOAD WALLPAPERS ERROR:",
+
+        error
+
+        );
+
+
+    }
 
 
 
 }
 
-// ===============================
-// جلب قوائم المستخدم
-// ===============================
+
+
+
+
+
+
+
+/* ==========================
+   Local Storage Lists
+========================== */
 
 
 function getUserList(key){
 
 
-return JSON.parse(
+    return JSON.parse(
 
-localStorage.getItem(key)
+        localStorage.getItem(key)
 
-||
+        ||
 
-"[]"
+        "[]"
 
-);
-
+    );
 
 
 }
@@ -697,38 +740,36 @@ localStorage.getItem(key)
 
 
 
-// ===============================
-// عرض البروفايل
-// ===============================
+/* ==========================
+   Render Profile
+========================== */
 
 
 function renderProfile(){
 
 
 
-const downloads =
+    const downloads =
 
-getUserList(
-"downloads"
-);
-
-
-
-
-const likes =
-
-getUserList(
-"favorites"
-);
+    getUserList(
+    "downloads"
+    );
 
 
 
+    const likes =
 
-const views =
+    getUserList(
+    "favorites"
+    );
 
-getUserList(
-"views"
-);
+
+
+    const views =
+
+    getUserList(
+    "views"
+    );
 
 
 
@@ -736,65 +777,68 @@ getUserList(
 
 
 
-renderUserWalls(
 
-downloadedContainer,
+    renderUserWalls(
 
-downloads
+    downloadedContainer,
 
-);
+    downloads
 
-
-
-
-
-renderUserWalls(
-
-likedContainer,
-
-likes
-
-);
+    );
 
 
 
 
 
-renderUserWalls(
+    renderUserWalls(
 
-viewedContainer,
+    likedContainer,
 
-views
+    likes
 
-);
-
-
-
-
-
-
-if(downloadCount)
-
-downloadCount.textContent =
-downloads.length;
+    );
 
 
 
 
 
-if(likeCount)
+    renderUserWalls(
 
-likeCount.textContent =
-likes.length;
+    viewedContainer,
+
+    views
+
+    );
 
 
 
 
 
-if(viewCount)
 
-viewCount.textContent =
-views.length;
+
+
+    if(downloadCount)
+
+    downloadCount.textContent =
+    downloads.length;
+
+
+
+
+
+    if(likeCount)
+
+    likeCount.textContent =
+    likes.length;
+
+
+
+
+
+    if(viewCount)
+
+    viewCount.textContent =
+    views.length;
 
 
 
@@ -808,42 +852,185 @@ views.length;
 
 
 
-// ===============================
-// عرض الخلفيات
-// ===============================
+/* ==========================
+   Render Wallpaper Cards
+========================== */
 
 
-function renderUserWalls(container,ids){
-
-
-if(!container)
-
-return;
-
+function renderUserWalls(
+container,
+ids
+){
 
 
 
+    if(!container)
 
-container.innerHTML = "";
+    return;
 
 
 
 
 
-if(!ids.length){
+    container.innerHTML = "";
 
 
-container.innerHTML = `
 
-<div class="empty-profile">
 
-لا توجد خلفيات هنا حاليا
 
-</div>
 
-`;
 
-return;
+    if(!ids.length){
+
+
+        container.innerHTML = `
+
+        <div class="empty-profile">
+
+        لا توجد خلفيات هنا حاليا
+
+        </div>
+
+        `;
+
+
+        return;
+
+
+    }
+
+
+
+
+
+
+
+
+    ids.forEach(id=>{
+
+
+
+        const wall =
+
+        wallpapers.find(
+
+            item =>
+
+            String(item.id)
+            ===
+            String(id)
+
+        );
+
+
+
+
+
+        if(!wall)
+
+        return;
+
+
+
+
+
+
+
+
+        const card =
+
+        document.createElement(
+        "div"
+        );
+
+
+
+
+
+        card.className =
+
+        "profile-wall-card";
+
+
+
+
+
+
+        card.innerHTML = `
+
+
+        <img
+
+        src="${getImageUrl(
+        wall.thumbnail ||
+        wall.image
+        )}"
+
+        loading="lazy"
+
+        >
+
+
+
+
+        <div class="profile-wall-info">
+
+
+        <h3>
+
+        ${wall.title || "بدون اسم"}
+
+        </h3>
+
+
+
+        <p>
+
+        ${wall.category || "عام"}
+
+        </p>
+
+
+        </div>
+
+
+
+        `;
+
+
+
+
+
+
+
+
+        card.onclick = ()=>{
+
+
+            location.href =
+
+            "wallpaper.html?id="
+
+            +
+
+            wall.id;
+
+
+
+        };
+
+
+
+
+
+
+
+        container.appendChild(card);
+
+
+
+    });
+
 
 
 }
@@ -853,180 +1040,60 @@ return;
 
 
 
-ids.forEach(id=>{
 
 
-
-const wall =
-
-wallpapers.find(
-
-w =>
-
-String(w.id) === String(id)
-
-);
-
-
-
-
-
-if(!wall)
-
-return;
-
-
-
-
-
-
-const card =
-
-document.createElement(
-"div"
-);
-
-
-
-
-
-card.className =
-
-"profile-wall-card";
-
-
-
-
-
-
-
-card.innerHTML = `
-
-
-<img
-
-src="${getImageUrl(
-
-wall.thumbnail || wall.image
-
-)}"
-
-loading="lazy"
-
-
->
-
-
-
-
-<div class="profile-wall-info">
-
-
-<h3>
-
-${wall.title || "بدون اسم"}
-
-</h3>
-
-
-
-<p>
-
-${wall.category || "عام"}
-
-</p>
-
-
-
-</div>
-
-
-`;
-
-
-
-
-
-
-
-
-card.onclick = ()=>{
-
-
-location.href =
-
-"wallpaper.html?id="+wall.id;
-
-
-
-};
-
-
-
-
-
-
-container.appendChild(card);
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-// ===============================
-// معالجة رابط الصورة
-// ===============================
+/* ==========================
+   Image URL Handler
+========================== */
 
 
 function getImageUrl(url){
 
 
 
-if(!url)
+    if(!url)
 
-return "assets/images/no-image.png";
-
-
-
-
-
-if(url.startsWith("http"))
-
-return url;
+    return "assets/images/no-image.png";
 
 
 
 
 
-if(url.startsWith("assets/"))
+    if(url.startsWith("http"))
 
-return url;
-
-
+    return url;
 
 
 
-return "assets/wallpapers/"+url;
+
+
+    if(url.startsWith("assets/"))
+
+    return url;
+
+
+
+
+
+    return "assets/wallpapers/" + url;
 
 
 
 }
 
-// ===============================
-// Edit Profile
-// ===============================
+/* ===================================================
+   Edit Profile + Image Upload
+   Part 3/4
+=================================================== */
+
+
+/* ==========================
+   Edit Elements
+========================== */
 
 
 const editProfileBtn =
+
 document.getElementById(
 "editProfileBtn"
 );
@@ -1034,6 +1101,7 @@ document.getElementById(
 
 
 const editModal =
+
 document.getElementById(
 "editModal"
 );
@@ -1041,6 +1109,7 @@ document.getElementById(
 
 
 const closeEditBtn =
+
 document.getElementById(
 "closeEditBtn"
 );
@@ -1048,6 +1117,7 @@ document.getElementById(
 
 
 const saveProfileBtn =
+
 document.getElementById(
 "saveProfileBtn"
 );
@@ -1055,141 +1125,11 @@ document.getElementById(
 
 
 const editName =
+
 document.getElementById(
 "editName"
 );
 
-
-
-
-
-
-if(editProfileBtn){
-
-
-editProfileBtn.onclick = ()=>{
-
-
-if(editModal)
-
-editModal.classList.add(
-"show"
-);
-
-
-
-if(editName)
-
-editName.value =
-userName.textContent;
-
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-if(closeEditBtn){
-
-
-closeEditBtn.onclick = ()=>{
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-if(saveProfileBtn){
-
-
-saveProfileBtn.onclick = ()=>{
-
-
-const name =
-
-editName.value.trim();
-
-
-
-
-
-if(name){
-
-
-
-localStorage.setItem(
-
-"userName",
-
-name
-
-);
-
-
-
-
-if(userName)
-
-userName.textContent =
-name;
-
-
-
-}
-
-
-
-
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-
-// ===============================
-// Image Upload
-// ===============================
 
 
 const avatarInput =
@@ -1219,39 +1159,36 @@ document.getElementById(
 
 
 
-function readImage(file,callback){
+
+/* ==========================
+   Open Edit Modal
+========================== */
+
+
+if(editProfileBtn){
+
+
+editProfileBtn.onclick = ()=>{
+
+
+    if(editModal)
+
+    editModal.classList.add(
+    "show"
+    );
 
 
 
-if(!file)
 
-return;
+    if(editName)
 
+    editName.value =
 
-
-
-const reader =
-
-new FileReader();
-
-
-
-
-
-reader.onload = ()=>{
-
-
-callback(
-reader.result
-);
+    userName.textContent;
 
 
 
 };
-
-
-
-reader.readAsDataURL(file);
 
 
 
@@ -1263,7 +1200,203 @@ reader.readAsDataURL(file);
 
 
 
-// تغيير الصورة الشخصية
+/* ==========================
+   Close Modal
+========================== */
+
+
+if(closeEditBtn){
+
+
+closeEditBtn.onclick = ()=>{
+
+
+    if(editModal)
+
+    editModal.classList.remove(
+    "show"
+    );
+
+
+};
+
+
+}
+
+
+
+
+
+
+
+
+if(editModal){
+
+
+editModal.onclick = (event)=>{
+
+
+    if(event.target === editModal){
+
+
+        editModal.classList.remove(
+        "show"
+        );
+
+
+    }
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   Save Profile Name
+========================== */
+
+
+if(saveProfileBtn){
+
+
+saveProfileBtn.onclick = ()=>{
+
+
+    const name =
+
+    editName.value.trim();
+
+
+
+
+
+    if(name){
+
+
+
+        localStorage.setItem(
+
+        "userName",
+
+        name
+
+        );
+
+
+
+
+        if(userName)
+
+        userName.textContent =
+        name;
+
+
+
+
+
+        if(infoUserName)
+
+        infoUserName.textContent =
+        name;
+
+
+
+    }
+
+
+
+
+
+
+    if(editModal)
+
+    editModal.classList.remove(
+    "show"
+    );
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+   Read Image
+========================== */
+
+
+function readImage(
+file,
+callback
+){
+
+
+
+    if(!file)
+
+    return;
+
+
+
+
+    const reader =
+
+    new FileReader();
+
+
+
+
+
+    reader.onload = ()=>{
+
+
+        callback(
+
+        reader.result
+
+        );
+
+
+    };
+
+
+
+
+    reader.readAsDataURL(file);
+
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   Change Avatar
+========================== */
 
 
 if(changeAvatarBtn && avatarInput){
@@ -1272,8 +1405,7 @@ if(changeAvatarBtn && avatarInput){
 changeAvatarBtn.onclick = ()=>{
 
 
-avatarInput.click();
-
+    avatarInput.click();
 
 
 };
@@ -1294,44 +1426,43 @@ avatarInput.onchange = ()=>{
 
 
 
-const file =
+    const file =
 
-avatarInput.files[0];
-
-
-
-
-readImage(
-
-file,
-
-(src)=>{
-
-
-
-if(userAvatar)
-
-userAvatar.src =
-src;
+    avatarInput.files[0];
 
 
 
 
-localStorage.setItem(
+    readImage(
 
-"userAvatar",
+    file,
 
-src
-
-);
+    (src)=>{
 
 
 
-}
+        if(userAvatar)
+
+        userAvatar.src =
+        src;
 
 
 
-);
+
+        localStorage.setItem(
+
+        "userAvatar",
+
+        src
+
+        );
+
+
+
+    }
+
+
+    );
 
 
 
@@ -1348,7 +1479,10 @@ src
 
 
 
-// تغيير صورة الغلاف
+
+/* ==========================
+   Change Cover
+========================== */
 
 
 if(coverInput){
@@ -1357,45 +1491,43 @@ if(coverInput){
 coverInput.onchange = ()=>{
 
 
+    const file =
 
-const file =
-
-coverInput.files[0];
-
-
-
-
-readImage(
-
-file,
-
-(src)=>{
-
-
-
-if(coverImage)
-
-coverImage.src =
-src;
+    coverInput.files[0];
 
 
 
 
-localStorage.setItem(
+    readImage(
 
-"userCover",
+    file,
 
-src
-
-);
+    (src)=>{
 
 
 
-}
+        if(coverImage)
+
+        coverImage.src =
+        src;
 
 
 
-);
+
+        localStorage.setItem(
+
+        "userCover",
+
+        src
+
+        );
+
+
+
+    }
+
+
+    );
 
 
 
@@ -1405,50 +1537,15 @@ src
 
 }
 
+/* ===================================================
+   Start App + 100D Motion Engine
+   Part 4/4
+=================================================== */
 
 
-
-
-
-
-
-// ===============================
-// إغلاق النافذة عند الضغط خارجها
-// ===============================
-
-
-if(editModal){
-
-
-
-editModal.onclick = (e)=>{
-
-
-if(e.target === editModal){
-
-
-
-editModal.classList.remove(
-"show"
-);
-
-
-
-}
-
-
-
-};
-
-
-
-}
-
-
-
-// ===============================
-// Start Profile
-// ===============================
+/* ==========================
+   Start Profile
+========================== */
 
 
 document.addEventListener(
@@ -1456,35 +1553,424 @@ document.addEventListener(
 ()=>{
 
 
-loadUserData();
+    loadUserData();
 
 
-loadWallpapers();
+    loadWallpapers();
 
-    // ===================================================
-    // WallpaperHub - 100D Interactive 3D Tilt Effect
-    // ===================================================
-    const tiltElements = document.querySelectorAll('.stat-card, .info-card, .profile-wall-card');
 
-    tiltElements.forEach(element => {
-        element.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease';
-        element.style.transformStyle = 'preserve-3d';
-
-        element.addEventListener('mousemove', (e) => {
-            const rect = element.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width - 0.5;
-            const y = (e.clientY - rect.top) / rect.height - 0.5;
-            
-            const maxRotation = 8;
-            const rotateX = (y * -maxRotation).toFixed(2);
-            const rotateY = (x * maxRotation).toFixed(2);
-            
-            element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(6px)`;
-        });
-
-        element.addEventListener('mouseleave', () => {
-            element.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
-        });
-    });
- 
 });
+
+
+
+
+
+
+
+/* ==========================
+   100D Card Motion Engine
+========================== */
+
+
+function init100DMotion(){
+
+
+
+const cards = document.querySelectorAll(
+
+".info-card, .stat-card, .profile-wall-card"
+
+);
+
+
+
+
+
+
+cards.forEach(card=>{
+
+
+
+    let targetX = 0;
+
+    let targetY = 0;
+
+
+    let currentX = 0;
+
+    let currentY = 0;
+
+
+
+
+
+    card.style.transformStyle =
+    "preserve-3d";
+
+
+
+
+
+
+
+    const light =
+    document.createElement("div");
+
+
+
+    light.className =
+    "motion-light";
+
+
+
+
+
+    Object.assign(
+
+    light.style,
+
+    {
+
+
+        position:"absolute",
+
+        inset:"0",
+
+        pointerEvents:"none",
+
+        opacity:"0",
+
+        borderRadius:"inherit",
+
+        transition:"opacity .3s ease",
+
+        background:
+
+        "radial-gradient(circle, rgba(255,255,255,.35), transparent 50%)",
+
+        zIndex:"5"
+
+
+    }
+
+    );
+
+
+
+
+    card.appendChild(light);
+
+
+
+
+
+
+
+
+    function animate(){
+
+
+
+        currentX +=
+
+        (targetX - currentX)
+        * .12;
+
+
+
+
+        currentY +=
+
+        (targetY - currentY)
+        * .12;
+
+
+
+
+
+
+        card.style.transform =
+
+
+        `
+
+        perspective(1000px)
+
+        rotateX(${currentX}deg)
+
+        rotateY(${currentY}deg)
+
+        translateZ(10px)
+
+        `;
+
+
+
+
+
+
+        requestAnimationFrame(
+        animate
+        );
+
+
+
+    }
+
+
+
+
+
+    animate();
+
+
+
+
+
+
+
+
+    function moveCard(x,y){
+
+
+
+        const rect =
+
+        card.getBoundingClientRect();
+
+
+
+
+
+        const px =
+
+        (x - rect.left)
+
+        /
+
+        rect.width;
+
+
+
+
+
+        const py =
+
+        (y - rect.top)
+
+        /
+
+        rect.height;
+
+
+
+
+
+
+        targetY =
+
+        (px - .5)
+        *
+        12;
+
+
+
+
+
+
+        targetX =
+
+        (py - .5)
+        *
+        -12;
+
+
+
+
+
+
+
+
+        light.style.opacity =
+        "1";
+
+
+
+
+
+        light.style.background =
+
+
+        `
+
+        radial-gradient(
+
+        circle at
+
+        ${px*100}%
+
+        ${py*100}%,
+
+        rgba(255,255,255,.45),
+
+        transparent 45%
+
+        )
+
+        `;
+
+
+
+    }
+
+
+
+
+
+
+
+
+    card.addEventListener(
+
+    "mousemove",
+
+    e=>{
+
+
+        moveCard(
+
+        e.clientX,
+
+        e.clientY
+
+        );
+
+
+    }
+
+    );
+
+
+
+
+
+
+
+
+    card.addEventListener(
+
+    "mouseleave",
+
+    ()=>{
+
+
+        targetX = 0;
+
+        targetY = 0;
+
+
+        light.style.opacity =
+        "0";
+
+
+
+    }
+
+    );
+
+
+
+
+
+
+
+
+    card.addEventListener(
+
+    "touchmove",
+
+    e=>{
+
+
+        const touch =
+
+        e.touches[0];
+
+
+
+        moveCard(
+
+        touch.clientX,
+
+        touch.clientY
+
+        );
+
+
+
+    },
+
+    {
+
+    passive:true
+
+    }
+
+    );
+
+
+
+
+
+
+
+    card.addEventListener(
+
+    "touchend",
+
+    ()=>{
+
+
+        targetX = 0;
+
+        targetY = 0;
+
+
+        light.style.opacity =
+        "0";
+
+
+
+    }
+
+    );
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+/* تشغيل محرك 3D */
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+()=>{
+
+
+    init100DMotion();
+
+
+}
+
+);

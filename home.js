@@ -715,332 +715,85 @@ function renderDownloaded() {
 }
 
 // =======================================
-// 3D Swiper Slider
-// Image + Video Support
+// السلايدر 3D Coverflow Carousel
 // =======================================
 
-function renderSlider(){
-
-
-const slider =
-document.getElementById("sliderContent");
-
-
-
-if(!slider)
-return;
-
-
-
-slider.innerHTML = "";
-
-
-
-// خلفيات السلايدر فقط
-
-const sliderWallpapers =
-
-wallpapers
-.filter(w=>w.featured)
-.slice()
-.reverse();
-
-
-
-
-
-sliderWallpapers.forEach((wall)=>{
-
-
-
-const slide =
-document.createElement("div");
-
-
-
-slide.className =
-"swiper-slide";
-
-
-
-slide.dataset.wallpaperId =
-wall.id;
-
-
-
-let mediaHTML = "";
-
-
-
-
-// ==========================
-// Video
-// ==========================
-
-
-if(isVideoMedia(wall)){
-
-
-mediaHTML = `
-
-
-<video
-
-src="${getImageUrl(wall.image)}"
-
-muted
-
-loop
-
-autoplay
-
-playsinline
-
-loading="lazy"
-
-></video>
-
-
-`;
-
-
-
-}
-
-
-
-// ==========================
-// Image
-// ==========================
-
-
-else{
-
-
-mediaHTML = `
-
-
-<img
-
-src="${getImageUrl(
-wall.thumbnail || wall.image
-)}"
-
-
-alt="${wall.title || 'Wallpaper'}"
-
-
-loading="lazy"
-
-
-onerror="this.src='assets/logo/no-image.png'"
-
->
-
-
-`;
-
-
-
-}
-
-
-
-
-
-
-slide.innerHTML = `
-
-
-${mediaHTML}
-
-
-
-<div class="slider-info">
-
-<h3>
-
-${wall.title || "Wallpaper"}
-
-</h3>
-
-
-</div>
-
-
-`;
-
-
-
-
-
-
-slide.onclick = ()=>{
-
-
-openWallpaper(
-wall.id
-);
-
-
-};
-
-
-
-
-
-slider.appendChild(slide);
-
-
-
-});
-
-
-
-
-
-
-
-// ================================
-// تشغيل Swiper 3D
-// ================================
-
-
-if(window.sliderSwiper){
-
-window.sliderSwiper.destroy(
-true,
-true
-);
-
-}
-
-
-
-
-window.sliderSwiper =
-
-new Swiper(".mySwiper",{
-
-
-
-effect:"coverflow",
-
-
-
-grabCursor:true,
-
-
-
-centeredSlides:true,
-
-
-
-slidesPerView:"auto",
-
-
-
-loop:true,
-
-
-
-coverflowEffect:{
-
-
-rotate:25,
-
-
-stretch:0,
-
-
-depth:220,
-
-
-modifier:1,
-
-
-slideShadows:true
-
-
-},
-
-
-
-autoplay:{
-
-
-delay:3000,
-
-
-disableOnInteraction:false
-
-
-},
-
-
-
-pagination:{
-
-
-el:".swiper-pagination",
-
-
-clickable:true
-
-
-}
-
-
-
-});
-
-
-
-}
-        // ==========================
-        // النقاط
-        // ==========================
-
-
-        if(dotsContainer){
-
-
-
-            const dot =
-            document.createElement("span");
-
-
-
-            dot.className =
-
-            `slider-dot ${
-                index === 0
-                ?
-                "active"
-                :
-                ""
-            }`;
-
-
-
-            dot.dataset.index =
-            index;
-
-
-
-            dotsContainer.appendChild(dot);
-
-
-
+let swiperInstance = null;
+
+function renderSlider() {
+    const wrapper = document.getElementById("sliderWrapper");
+    if (!wrapper) return;
+
+    wrapper.innerHTML = "";
+
+    // جلب أحدث الخلفيات للعرض في السلايدر
+    const sliderWallpapers = wallpapers.slice().reverse().slice(0, 10);
+
+    if (sliderWallpapers.length === 0) return;
+
+    sliderWallpapers.forEach(wall => {
+        const slide = document.createElement("div");
+        slide.className = "swiper-slide";
+        slide.dataset.wallpaperId = wall.id;
+
+        let mediaHTML = "";
+        
+        // دعم الصور والفيديوهات
+        if (isVideoMedia(wall)) {
+            mediaHTML = `
+                <video 
+                    src="${getImageUrl(wall.image)}" 
+                    muted 
+                    loop 
+                    autoplay 
+                    playsinline>
+                </video>`;
+        } else {
+            mediaHTML = `
+                <img 
+                    src="${getImageUrl(wall.thumbnail || wall.image)}" 
+                    alt="${wall.title || 'Wallpaper'}" 
+                    loading="lazy" 
+                    onerror="this.src='assets/logo/no-image.png'">`;
         }
 
+        slide.innerHTML = mediaHTML;
 
+        // عند النقر فتح صفحة التفاصيل
+        slide.addEventListener("click", function() {
+            openWallpaper(this.dataset.wallpaperId);
+        });
 
-
+        wrapper.appendChild(slide);
     });
 
+    // إعادة تهيئة Swiper Carousel
+    if (swiperInstance) {
+        swiperInstance.destroy(true, true);
+    }
 
-
+    swiperInstance = new Swiper(".mySwiper", {
+        effect: "coverflow",
+        grabCursor: true,
+        centeredSlides: true,
+        slidesPerView: "auto",
+        loop: sliderWallpapers.length > 2,
+        coverflowEffect: {
+            rotate: 25,        // زاوية دوران البطاقات الجانبية
+            stretch: 0,        // المسافة البينية
+            depth: 180,        // عمق الصورة في المنتصف لتظهر أكبر
+            modifier: 1,       // قوة التأثير
+            slideShadows: true // إظهار الظلال على البطاقات الجانبية
+        },
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
+    });
 
 
     startSlider();
@@ -1185,36 +938,6 @@ document.body.classList.remove("drawer-open");
     }
 
 }
-
-// =======================================
-// فتح الأقسام في صفحة جميع الخلفيات
-// =======================================
-
-document.querySelectorAll(".category").forEach(category => {
-
-    category.addEventListener("click", function () {
-
-        const categoryName = this.dataset.category;
-
-        if (!categoryName) return;
-
-        // قسم الكل
-        if (categoryName === "all") {
-
-            window.location.href =
-                "all-wallpapers.html";
-
-            return;
-        }
-
-        // باقي الأقسام
-        window.location.href =
-            "all-wallpapers.html?category=" +
-            encodeURIComponent(categoryName);
-
-    });
-
-});
 
 // ======================
 // Bottom Nav Animation
