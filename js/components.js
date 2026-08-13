@@ -34,6 +34,40 @@ location.href = page;
 
 }
 
+// ==============================
+// Home Categories Component
+// ==============================
+
+const homeCategories =
+document.getElementById("homeCategories");
+
+
+if(homeCategories){
+
+fetch("/components/home-categories.html")
+
+.then(response=>response.text())
+
+.then(html=>{
+
+
+homeCategories.innerHTML = html;
+
+
+
+// تشغيل JS الخاص بالأقسام
+
+if(window.initHomeCategories){
+
+    window.initHomeCategories();
+
+}
+
+
+});
+
+
+}
 
 //==============================
 //AI Button
