@@ -1,254 +1,533 @@
-/* ============================
-   WallpaperHub - Categories
-============================ */
+/* ===================================================
+   WallpaperHub - Categories 100D Embossed Upgrade
+   =================================================== */
 
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Cairo", Arial, sans-serif; /* ترقية الخط ليصبح حاداً وأنيقاً */
 }
 
-
-body{
-
-    background:#f8f9fc;
-
-    padding-bottom:90px;
-
-    color:#222;
-
+body {
+    background: #eef2f7; /* لون العاج الناعم الأساسي لإبراز النحت الأبيض */
+    padding-bottom: 90px;
+    color: #1a253c;
+    /* تنعيم حواف الخطوط بدقة سينمائية فائقة */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-
-
-/* ================= HEADER ================= */
-
-
-.header{
-
-    position:sticky;
-
-    top:0;
-
-    height:70px;
-
-    background:#fff;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    box-shadow:
-    0 2px 12px rgba(0,0,0,.06);
-
-    z-index:1000;
-
+/* ================= HEADER (Glassmorphism) ================= */
+.header {
+    position: sticky;
+    top: 0;
+    height: 70px;
+    /* زجاج كريستالي فخم يعكس الأقسام المارة خلفه */
+    background: rgba(238, 242, 247, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    /* ظلال مجهرية لعمق حقيقي */
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.02),
+        0 1px 0px rgba(0, 0, 0, 0.01);
+    z-index: 1000;
 }
 
-
-.header h2{
-
-    font-size:22px;
-
-    font-weight:700;
-
-    color:#3f51b5;
-
+.header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #5060ff; /* اللون الأزرق العصري الموحد للمشروع */
+    letter-spacing: -0.5px;
 }
 
-
-
-/* زر الرجوع */
-
-.back-btn{
-
-    position:absolute;
-
-    left:18px;
-
-    width:42px;
-
-    height:42px;
-
-    border:none;
-
-    background:#f3f3f3;
-
-    border-radius:50%;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    cursor:pointer;
-
+/* زر الرجوع المطور */
+.back-btn {
+    position: absolute;
+    left: 18px;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: #eef2f7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 
+        4px 4px 10px rgba(166, 180, 200, 0.5), 
+        -4px -4px 10px rgba(255, 255, 255, 1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-
-
-/* ================= CATEGORIES ================= */
-
-
-.categories-page{
-
-    padding:18px;
-
-    display:grid;
-
-    grid-template-columns:repeat(2,1fr);
-
-    gap:16px;
-
+.back-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 
+        6px 6px 12px rgba(166, 180, 200, 0.6), 
+        -6px -6px 12px rgba(255, 255, 255, 1);
 }
 
-
-
-.category-card{
-
-    background:#fff;
-
-    border-radius:22px;
-
-    padding:25px 15px;
-
-    text-align:center;
-
-    box-shadow:
-
-    0 8px 20px rgba(0,0,0,.05);
-
-    transition:.3s;
-
-    cursor:pointer;
-
+/* ================= CATEGORIES GRID ================= */
+.categories-page {
+    padding: 24px 18px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    perspective: 1000px; /* تفعيل البعد الثالث للكروت */
 }
 
-
-
-.category-card:hover,
-.category-card:active{
-
-    transform:translateY(-6px);
-
+/* كروت الأقسام المنحوتة بارزاً (Embossed Neumorphic Cards) */
+.category-card {
+    background: #eef2f7; /* نفس لون الخلفية تماماً لتأثير النحت */
+    border-radius: 28px;
+    padding: 30px 15px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    
+    /* ظلال معاكسة: ظل داكن أسفل اليمين، وظل ساطع أعلى اليسار لمحاكاة الضوء الفيزيائي */
+    box-shadow: 
+        10px 10px 20px rgba(166, 180, 200, 0.6), 
+        -10px -10px 20px rgba(255, 255, 255, 1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    cursor: pointer;
+    transform-style: preserve-3d;
 }
 
-
-
-.category-card span{
-
-    font-size:48px;
-
-    display:block;
-
-    margin-bottom:15px;
-
+/* تأثير التفاعل الحركي الفاخر عند تمرير اليد أو الماوس */
+.category-card:hover {
+    transform: translateY(-4px) translateZ(10px);
+    box-shadow: 
+        14px 14px 28px rgba(166, 180, 200, 0.7), 
+        -14px -14px 28px rgba(255, 255, 255, 1);
 }
 
-
-
-.category-card h3{
-
-    font-size:18px;
-
-    margin-bottom:8px;
-
+/* عند النقر: ينحفر الكرت للداخل برمجياً بشكل فيزيائي مذهل */
+.category-card:active {
+    transform: scale(0.97) translateZ(0);
+    box-shadow: 
+        inset 6px 6px 12px rgba(166, 180, 200, 0.6), 
+        inset -6px -6px 12px rgba(255, 255, 255, 1);
 }
 
-
-
-.category-card p{
-
-    font-size:13px;
-
-    color:#777;
-
-    line-height:1.5;
-
+.category-card span {
+    font-size: 44px;
+    display: block;
+    margin-bottom: 12px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* إسقاط ظل ناعم تحت الإيموجي ليعطيه عمقاً طافياً */
+    filter: drop-shadow(0 8px 12px rgba(166, 180, 200, 0.4));
 }
 
+.category-card:hover span {
+    transform: scale(1.15) translateZ(15px);
+}
 
+.category-card h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1a253c;
+    margin-bottom: 6px;
+}
+
+.category-card p {
+    font-size: 12px;
+    color: #7a889b;
+    line-height: 1.5;
+    font-weight: 600;
+}
 
 /* ================= ANIMATION ================= */
-
-
-.category-card{
-
-    animation:fade .5s ease;
-
+.category-card {
+    animation: fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-
-@keyframes fade{
-
-    from{
-
-        opacity:0;
-
-        transform:translateY(20px);
-
+/* ظهور تدريجي انسيابي للكروت عند فتح الصفحة */
+@keyframes fade {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
     }
-
-
-    to{
-
-        opacity:1;
-
-        transform:translateY(0);
-
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
-
 }
 
+/* تأخير حركة الظهور للكروت لتعطي طابعاً تتابعياً أنيقاً */
+.category-card:nth-child(1) { animation-delay: 0.05s; }
+.category-card:nth-child(2) { animation-delay: 0.1s; }
+.category-card:nth-child(3) { animation-delay: 0.15s; }
+.category-card:nth-child(4) { animation-delay: 0.2s; }
 
-
-/* ================= DARK MODE ================= */
-
-
-body.dark{
-
-    background:#121212;
-
-    color:#fff;
-
+/* ================= DARK MODE (OLED Deep Pure) ================= */
+body.dark {
+    background: #0b0c10;
+    color: #ffffff;
 }
 
-
-
-body.dark .category-card{
-
-    background:#1e1e1e;
-
-    color:#fff;
-
+body.dark .header {
+    background: rgba(11, 12, 16, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-
-
-body.dark .category-card p{
-
-    color:#aaa;
-
+body.dark .header h2 {
+    color: #ffffff;
 }
 
-
-
-body.dark .header{
-
-    background:#1b1b1b;
-
+body.dark .back-btn {
+    background: #14161f;
+    border-color: rgba(255, 255, 255, 0.02);
+    box-shadow: 
+        6px 6px 15px rgba(0, 0, 0, 0.4), 
+        -4px -4px 12px rgba(255, 255, 255, 0.01);
+    color: #fff;
 }
 
+body.dark .category-card {
+    background: #14161f; /* رمادي داكن فاخر للأجهزة الحديثة */
+    border-color: rgba(255, 255, 255, 0.02);
+    /* نحت بارز مخصص للوضع المظلم */
+    box-shadow: 
+        10px 10px 20px rgba(0, 0, 0, 0.4), 
+        -6px -6px 15px rgba(255, 255, 255, 0.01);
+}
 
+body.dark .category-card h3 {
+    color: #ffffff;
+}
 
-body.dark button{
+body.dark .category-card p {
+    color: #8e95b0;
+}
 
-    background:#4c5cff;
+body.dark .category-card span {
+    filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.5));
+}
 
-    color:#fff;
+body.dark .category-card:hover {
+    box-shadow: 
+        14px 14px 28px rgba(0, 0, 0, 0.5), 
+        -8px -8px 20px rgba(255, 255, 255, 0.02);
+}
 
+body.dark .category-card:active {
+    box-shadow: 
+        inset 6px 6px 12px rgba(0, 0, 0, 0.5), 
+        inset -4px -4px 12px rgba(255, 255, 255, 0.01);
+}
+
+/* ===================================================
+   WallpaperHub - 100D Ultra-Fidelity Graphic Boost
+   =================================================== */
+
+.category-card {
+    /* ترقية معالجة الرسوميات عبر كرت الشاشة لجعل الحواف ناعمة جداً بدون بكسلة */
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: subpixel-antialiased;
+    
+    /* إضافة تدرج ضوئي مائل خفي يحاكي انعكاس الضوء على الأسطح المصقولة */
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.02) 100%);
+}
+
+/* رفع دقة الأيقونات التعبيرية (Emojis) لتبدو مجسمة ومطبوعة بوضوح 4K */
+.category-card span {
+    font-weight: normal;
+    text-shadow: 
+        1px 1px 0px rgba(255, 255, 255, 0.8),
+        3px 5px 10px rgba(166, 180, 200, 0.3);
+    filter: saturate(1.15) contrast(1.05); /* زيادة حيوية وتشبع الألوان */
+}
+
+/* في الوضع الداكن: تحويل الانعكاس الضوئي إلى وهج نيون مجهري فائق الدقة */
+body.dark .category-card {
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 60%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+body.dark .category-card span {
+    text-shadow: none;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.15)) saturate(1.2);
+}
+
+/* جعل حركات الانتقال والتفاعل فائقة النعومة ومريحة جداً للعين (60 إطار بالثانية) */
+.category-card, .category-card span {
+    transition: 
+        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+        box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.4s ease;
+}
+
+/* ===================================================
+   WallpaperHub - 1000D Animated Border & Custom Colors
+   =================================================== */
+
+/* إعداد الحاوية لتدوير الإطار الضوئي دون الخروج عن الحواف */
+.category-card {
+    position: relative;
+    background: #eef2f7;
+    overflow: hidden; /* ضروري لقص الإطار الدائري المضيء */
+    z-index: 1;
+}
+
+/* إنشاء طبقة الخلفية الداخلية لتغطية مركز الإطار والحفاظ على لون النحت البارز */
+.category-card::before {
+    content: '';
+    position: absolute;
+    inset: 3px; /* سمك الإطار المضيء */
+    background: #eef2f7;
+    border-radius: 25px;
+    z-index: 2;
+    transition: background 0.3s ease;
+}
+
+/* تأمين طفو محتويات الكرت (الأيقونة والنصوص) فوق الإطار المتحرك */
+.category-card span, 
+.category-card h3, 
+.category-card p {
+    position: relative;
+    z-index: 3;
+}
+
+/* محرك الإطار الضوئي الدوّار الخفي */
+.category-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    /* تدرج مخفي افتراضياً */
+    background: transparent;
+    z-index: 0;
+    transform-origin: center;
+}
+
+/* تفعيل الدوران المتواصل عند اختيار البطاقة بنشاط */
+.category-card.active-border::after {
+    animation: rotateBorder 3s linear infinite;
+}
+
+@keyframes rotateBorder {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===================================================
+   تخصيص الألوان والنيون لكل بطاقة بناءً على نوعها
+   =================================================== */
+
+/* 1. الكل: أزرق ملكي */
+.category-card[data-category="all"].active-border::after {
+    background: conic-gradient(#5060ff, transparent 60%, #5060ff);
+}
+.category-card[data-category="all"].active-border {
+    box-shadow: 0 0 25px rgba(80, 96, 255, 0.45);
+}
+
+/* 2. الطبيعة: أخضر عشبي */
+.category-card[data-category="nature"].active-border::after {
+    background: conic-gradient(#2ecc71, transparent 60%, #2ecc71);
+}
+.category-card[data-category="nature"].active-border {
+    box-shadow: 0 0 25px rgba(46, 204, 113, 0.45);
+}
+
+/* 3. السيارات: أحمر رياضي */
+.category-card[data-category="cars"].active-border::after {
+    background: conic-gradient(#e74c3c, transparent 60%, #e74c3c);
+}
+.category-card[data-category="cars"].active-border {
+    box-shadow: 0 0 25px rgba(231, 76, 60, 0.45);
+}
+
+/* 4. الألعاب: بنفسجي نيون */
+.category-card[data-category="games"].active-border::after {
+    background: conic-gradient(#9b59b6, transparent 60%, #9b59b6);
+}
+.category-card[data-category="games"].active-border {
+    box-shadow: 0 0 25px rgba(155, 89, 182, 0.45);
+}
+
+/* 5. الفضاء: أزرق كوني غامق */
+.category-card[data-category="space"].active-border::after {
+    background: conic-gradient(#1abc9c, transparent 60%, #1abc9c);
+}
+.category-card[data-category="space"].active-border {
+    box-shadow: 0 0 25px rgba(26, 188, 156, 0.45);
+}
+
+/* 6. الذكاء الاصطناعي: فضي سايبر */
+.category-card[data-category="ai"].active-border::after {
+    background: conic-gradient(#3498db, transparent 60%, #3498db);
+}
+.category-card[data-category="ai"].active-border {
+    box-shadow: 0 0 25px rgba(52, 152, 219, 0.45);
+}
+
+/* 7. AMOLED: ذهبي ناصع متناقض مع السواد */
+.category-card[data-category="amoled"].active-border::after {
+    background: conic-gradient(#f1c40f, transparent 60%, #f1c40f);
+}
+.category-card[data-category="amoled"].active-border {
+    box-shadow: 0 0 25px rgba(241, 196, 15, 0.45);
+}
+
+/* توافق مظهر الغطاء الداخلي في الوضع المظلم */
+body.dark .category-card::before {
+    background: #14161f;
+}
+
+/* ===================================================
+   WallpaperHub - 1000D Complete All Categories Setup
+   =================================================== */
+
+/* إعداد الحاوية لتدوير الإطار الضوئي بدقة مجهرية */
+.category-card {
+    position: relative;
+    background: #eef2f7;
+    overflow: hidden; /* لقص الإطار الدائري المضيء على الحواف فقط */
+    z-index: 1;
+}
+
+/* طبقة الغطاء الداخلي لحماية النصوص والأيقونات من التلون بالخلفية */
+.category-card::before {
+    content: '';
+    position: absolute;
+    inset: 4px; /* سمك الخط المضيء الذي يدور حول المربع */
+    background: #eef2f7;
+    border-radius: 24px;
+    z-index: 2;
+    transition: background 0.3s ease;
+}
+
+/* رفع محتويات الكرت فوق الإطار الدوار لتظل واضحة 100% */
+.category-card span, 
+.category-card h3, 
+.category-card p {
+    position: relative;
+    z-index: 3;
+}
+
+/* محرك الإطار الضوئي الدوّار الخلفي */
+.category-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: transparent;
+    z-index: 0;
+    transform-origin: center;
+}
+
+/* تشغيل حلقة الدوران اللانهائية السلسة */
+.category-card.active-border::after {
+    animation: rotateBorder 2.5s linear infinite;
+}
+
+@keyframes rotateBorder {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===================================================
+   تخصيص الألوان والنيون لجميع البطاقات (14 قسماً بالكامل)
+   =================================================== */
+
+/* 1. الكل */
+.category-card[data-category="all"].active-border::after {
+    background: conic-gradient(#5060ff, transparent 60%, #5060ff);
+}
+.category-card[data-category="all"].active-border { box-shadow: 0 0 25px rgba(80, 96, 255, 0.4); }
+
+/* 2. الطبيعة */
+.category-card[data-category="nature"].active-border::after {
+    background: conic-gradient(#2ecc71, transparent 60%, #2ecc71);
+}
+.category-card[data-category="nature"].active-border { box-shadow: 0 0 25px rgba(46, 204, 113, 0.4); }
+
+/* 3. السيارات */
+.category-card[data-category="cars"].active-border::after {
+    background: conic-gradient(#e74c3c, transparent 60%, #e74c3c);
+}
+.category-card[data-category="cars"].active-border { box-shadow: 0 0 25px rgba(231, 76, 60, 0.4); }
+
+/* 4. الألعاب */
+.category-card[data-category="games"].active-border::after {
+    background: conic-gradient(#9b59b6, transparent 60%, #9b59b6);
+}
+.category-card[data-category="games"].active-border { box-shadow: 0 0 25px rgba(155, 89, 182, 0.4); }
+
+/* 5. الفضاء */
+.category-card[data-category="space"].active-border::after {
+    background: conic-gradient(#1abc9c, transparent 60%, #1abc9c);
+}
+.category-card[data-category="space"].active-border { box-shadow: 0 0 25px rgba(26, 188, 156, 0.4); }
+
+/* 6. الذكاء الاصطناعي */
+.category-card[data-category="ai"].active-border::after {
+    background: conic-gradient(#3498db, transparent 60%, #3498db);
+}
+.category-card[data-category="ai"].active-border { box-shadow: 0 0 25px rgba(52, 152, 219, 0.4); }
+
+/* 7. AMOLED */
+.category-card[data-category="amoled"].active-border::after {
+    background: conic-gradient(#f1c40f, transparent 60%, #f1c40f);
+}
+.category-card[data-category="amoled"].active-border { box-shadow: 0 0 25px rgba(241, 196, 15, 0.4); }
+
+/* 8. الحيوانات (برتقالي دافئ) */
+.category-card[data-category="animals"].active-border::after {
+    background: conic-gradient(#e67e22, transparent 60%, #e67e22);
+}
+.category-card[data-category="animals"].active-border { box-shadow: 0 0 25px rgba(230, 126, 34, 0.4); }
+
+/* 9. الأنمي (وردي نيون مبهج) */
+.category-card[data-category="anime"].active-border::after {
+    background: conic-gradient(#ff4081, transparent 60%, #ff4081);
+}
+.category-card[data-category="anime"].active-border { box-shadow: 0 0 25px rgba(255, 64, 129, 0.4); }
+
+/* 10. المدن (أزرق سماوي حضري) */
+.category-card[data-category="city"].active-border::after {
+    background: conic-gradient(#00bcd4, transparent 60%, #00bcd4);
+}
+.category-card[data-category="city"].active-border { box-shadow: 0 0 25px rgba(0, 188, 212, 0.4); }
+
+/* 11. Dark (أرجواني غامق غامض) */
+.category-card[data-category="dark"].active-border::after {
+    background: conic-gradient(#3f51b5, transparent 60%, #3f51b5);
+}
+.category-card[data-category="dark"].active-border { box-shadow: 0 0 25px rgba(63, 81, 181, 0.4); }
+
+/* 12. 4K (كريستال فيروزي حاد) */
+.category-card[data-category="4k"].active-border::after {
+    background: conic-gradient(#00e5ff, transparent 60%, #00e5ff);
+}
+.category-card[data-category="4k"].active-border { box-shadow: 0 0 25px rgba(0, 229, 255, 0.4); }
+
+/* 13. الرياضة (أحمر ناري ديناميكي) */
+.category-card[data-category="sports"].active-border::after {
+    background: conic-gradient(#ff3d00, transparent 60%, #ff3d00);
+}
+.category-card[data-category="sports"].active-border { box-shadow: 0 0 25px rgba(255, 61, 0, 0.4); }
+
+/* 14. Minimal (رمادي فضي مصقول) */
+.category-card[data-category="minimal"].active-border::after {
+    background: conic-gradient(#78909c, transparent 60%, #78909c);
+}
+.category-card[data-category="minimal"].active-border { box-shadow: 0 0 25px rgba(120, 144, 156, 0.4); }
+
+/* توافق مظهر الغطاء الداخلي لحماية النصوص بالوضع المظلم */
+body.dark .category-card::before {
+    background: #14161f;
 }
