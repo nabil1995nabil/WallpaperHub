@@ -1,91 +1,49 @@
-console.log("HOME JS LOADED");
+console.log("HOME JS LOADED - 1000D ULTRA GAMING ENGINE ACTIVE");
 
 // =======================================
 // WallpaperHub Home
 // =======================================
 
 function getImageUrl(image) {
-
     if(!image){
         return "assets/logo/no-image.png";
     }
-
     if(image.startsWith("http")){
         return image;
     }
-
     if(image.startsWith("assets/")){
         return image;
     }
-
     return "assets/wallpapers/" + image;
-
 }
-
 
 // =======================================
 // Detect Video Wallpaper
 // =======================================
-
 function isVideoMedia(wallpaper){
+    if(!wallpaper) return false;
+    if(wallpaper.type === "video") return true;
 
-    if(!wallpaper)
-        return false;
-
-
-    if(wallpaper.type === "video")
-        return true;
-
-
-    const url =
-    String(wallpaper.image || "")
-    .toLowerCase();
-
-
-    return [
-        ".mp4",
-        ".webm",
-        ".mov",
-        ".m3u8"
-    ].some(ext =>
-        url.includes(ext)
-    );
-
+    const url = String(wallpaper.image || "").toLowerCase();
+    return [".mp4", ".webm", ".mov", ".m3u8"].some(ext => url.includes(ext));
 }
-
-
 
 let wallpapers = [];
 
-const latestContainer =
-document.getElementById("latestWallpapers");
-
-const recommendedContainer =
-document.getElementById("recommendedWallpapers");
-
-const dynamicSections =
-document.getElementById("dynamicSections");
-
-const popularContainer =
-document.getElementById("popularWallpapers");
-
-const likedContainer =
-document.getElementById("likedWallpapers");
-
-const downloadedContainer =
-document.getElementById("downloadedWallpapers");
+const latestContainer = document.getElementById("latestWallpapers");
+const recommendedContainer = document.getElementById("recommendedWallpapers");
+const dynamicSections = document.getElementById("dynamicSections");
+const popularContainer = document.getElementById("popularWallpapers");
+const likedContainer = document.getElementById("likedWallpapers");
+const downloadedContainer = document.getElementById("downloadedWallpapers");
 
 // =======================================
 // تحميل البيانات
 // =======================================
 async function loadWallpapers() {
-
     try {
-
         const response = await fetch("/api/wallpapers");
-
         const text = await response.text();
-
         console.log("API RESPONSE:", text);
 
         wallpapers = JSON.parse(text);
@@ -99,138 +57,71 @@ async function loadWallpapers() {
         renderRecommended();
         createDynamicSections();
 
+        // تشغيل المحرك الفيزيائي فور انتهاء بناء كافة الكروت الديناميكية في الصفحة
+        setTimeout(initHome1000DEngine, 400);
+
     } catch(err) {
-
-        console.error(
-            "API wallpapers error:",
-            err
-        );
-
+        console.error("API wallpapers error:", err);
     }
-
 }
+
 let currentSlide = 0;
 let sliderInterval;
 
 function startSlider() {
-
-    const slides =
-        document.querySelectorAll("#sliderContent .slide");
-
-    const dots =
-        document.querySelectorAll("#sliderDots .slider-dot");
+    const slides = document.querySelectorAll("#sliderContent .slide");
+    const dots = document.querySelectorAll("#sliderDots .slider-dot");
 
     if (!slides.length) return;
-
     clearInterval(sliderInterval);
-
     currentSlide = 0;
 
-
     function showSlide(index) {
-
-        const newIndex =
-            (index + slides.length) % slides.length;
-
-        const oldSlide =
-            document.querySelector(
-                "#sliderContent .slide.active"
-            );
-
+        const newIndex = (index + slides.length) % slides.length;
+        const oldSlide = document.querySelector("#sliderContent .slide.active");
         const newSlide = slides[newIndex];
 
-
-        // إذا كانت هي نفس الصورة
         if (oldSlide === newSlide) {
-
             currentSlide = newIndex;
-
-            updateSliderDots(
-                dots,
-                currentSlide
-            );
-
+            updateSliderDots(dots, currentSlide);
             return;
         }
 
-
-        // إخراج الصورة القديمة
         if (oldSlide) {
-
             oldSlide.classList.remove("active");
-
             oldSlide.classList.add("slide-out");
-
             setTimeout(() => {
-
                 oldSlide.classList.remove("slide-out");
-
             }, 560);
-
         }
 
-
-        // إظهار الصورة الجديدة
         newSlide.classList.add("active");
-
         currentSlide = newIndex;
-
-
-        // تحديث النقاط
-        updateSliderDots(
-            dots,
-            currentSlide
-        );
-
+        updateSliderDots(dots, currentSlide);
     }
 
-
-    // إظهار أول صورة
     showSlide(0);
 
-
-    // التبديل التلقائي
     sliderInterval = setInterval(() => {
-
         showSlide(currentSlide + 1);
-
     }, 4000);
 
-
-    // الضغط على النقاط
     dots.forEach((dot, index) => {
-
         dot.onclick = function(event) {
-
             event.stopPropagation();
-
             showSlide(index);
-
             clearInterval(sliderInterval);
-
             sliderInterval = setInterval(() => {
-
                 showSlide(currentSlide + 1);
-
             }, 4000);
-
         };
-
     });
-
 }
 
 function updateSliderDots(dots, index) {
-
     dots.forEach((dot, i) => {
-
-        dot.classList.toggle(
-            "active",
-            i === index
-        );
-
+        dot.classList.toggle("active", i === index);
     });
-    
 }
 
 // =======================================
@@ -239,79 +130,33 @@ function updateSliderDots(dots, index) {
 // =======================================
 
 function createWallpaperCard(wall) {
-
     let mediaHTML = "";
 
-
-    // فيديو
     if(isVideoMedia(wall)){
-
         mediaHTML = `
-
         <div class="video-preview">
-
-            <video
-            src="${getImageUrl(wall.image)}"
-            muted
-            loop
-            autoplay
-            playsinline
-            preload="metadata">
-            </video>
-
-            <div class="video-icon">
-                ▶
-            </div>
-
+            <video src="${getImageUrl(wall.image)}" muted loop autoplay playsinline preload="metadata"></video>
+            <div class="video-icon">▶</div>
         </div>
-
         `;
-
-
-    }else{
-
-
-        // صورة
-
+    } else {
         mediaHTML = `
-
-        <img
-
-        src="${getImageUrl(
-            wall.thumbnail || wall.image
-        )}"
-
-        alt="${wall.title || 'Wallpaper'}"
-
-        loading="lazy"
-
-        onerror="this.src='assets/logo/no-image.png'">
-
+        <img src="${getImageUrl(wall.thumbnail || wall.image)}" alt="${wall.title || 'Wallpaper'}" loading="lazy" onerror="this.src='assets/logo/no-image.png'">
         `;
-
     }
 
-
-
-return `
-
-<div class="wall-card"
-onclick="openWallpaper('${wall.id}')">
-
-${mediaHTML}
-
-<button
-class="fav-btn"
-onclick="event.stopPropagation(); toggleFavorite('${wall.id}')">
-
-❤
-
-</button>
-
-</div>
-
-`;
-
+    return `
+    <div class="wall-card" data-tilt-card="true" onclick="openWallpaper('${wall.id}')">
+        ${mediaHTML}
+        <div class="wall-info">
+            <h4>${wall.title || 'بدون عنوان'}</h4>
+            <p>${wall.category || ''}</p>
+        </div>
+        <button class="favorite-btn" onclick="event.stopPropagation(); toggleFavorite(this, '${wall.id}')">
+            ❤
+        </button>
+    </div>
+    `;
 }
 
 // =======================================
@@ -319,26 +164,11 @@ onclick="event.stopPropagation(); toggleFavorite('${wall.id}')">
 // =======================================
 
 function renderLatest() {
-
     if (!latestContainer) return;
-
     latestContainer.innerHTML = "";
-
-    wallpapers
-
-    .slice()
-
-    .reverse()
-
-    .slice(0,8)
-
-    .forEach(wall => {
-
-        latestContainer.innerHTML +=
-        createWallpaperCard(wall);
-
+    wallpapers.slice().reverse().slice(0,8).forEach(wall => {
+        latestContainer.innerHTML += createWallpaperCard(wall);
     });
-
 }
 
 // =======================================
@@ -346,24 +176,11 @@ function renderLatest() {
 // =======================================
 
 function renderRecommended() {
-
     if (!recommendedContainer) return;
-
     recommendedContainer.innerHTML = "";
-
-    wallpapers
-
-    .filter(w => w.featured)
-
-    .slice(0,8)
-
-    .forEach(wall => {
-
-        recommendedContainer.innerHTML +=
-        createWallpaperCard(wall);
-
+    wallpapers.filter(w => w.featured).slice(0,8).forEach(wall => {
+        recommendedContainer.innerHTML += createWallpaperCard(wall);
     });
-
 }
 
 // =======================================
@@ -371,85 +188,41 @@ function renderRecommended() {
 // =======================================
 
 const categoryNames = {
-
     nature: "🌿 الطبيعة",
-
     cars: "🚗 السيارات",
-
     games: "🎮 الألعاب",
-
     space: "🌌 الفضاء",
-
     ai: "🤖 الذكاء الاصطناعي",
-
     amoled: "🖤 AMOLED",
-
     animals: "🐾 الحيوانات",
-
     anime: "🌀 الأنمي",
-
     city: "🏙️ المدن",
-
     dark: "🖤 Dark",
-
     "4k": "💎 4K",
-
     sports: "⚽ الرياضة",
-
     minimal: "✨ Minimal"
-
 };
 
 // =======================================
 
 function createDynamicSections() {
-
     if (!dynamicSections) return;
-
     dynamicSections.innerHTML = "";
-
-    const categories =
-    [...new Set(wallpapers.map(w => w.category))];
+    const categories = [...new Set(wallpapers.map(w => w.category))];
 
     categories.forEach(category => {
-
-        const section =
-        document.createElement("section");
-
-        section.className =
-        "wall-section";
-
+        const section = document.createElement("section");
+        section.className = "wall-section";
         section.innerHTML = `
-
             <div class="title">
-
-                <h3>
-
-                    ${categoryNames[category] || category}
-
-                </h3>
-
-                <a href="all-wallpapers.html?category=${encodeURIComponent(category)}">
-
-            عرض الكل
-
-                </a>
-
+                <h3>${categoryNames[category] || category}</h3>
+                <a href="all-wallpapers.html?category=${encodeURIComponent(category)}">عرض الكل</a>
             </div>
-
-            <div
-            class="wall-grid"
-            id="section-${category}">
-            </div>
-
+            <div class="wall-grid" id="section-${category}"></div>
         `;
-
         dynamicSections.appendChild(section);
-
         renderCategory(category);
-
     });
-
 }
 
 // =======================================
@@ -457,29 +230,13 @@ function createDynamicSections() {
 // =======================================
 
 function renderCategory(category) {
-
-    const container =
-    document.getElementById(
-        `section-${category}`
-    );
-
+    const container = document.getElementById(`section-${category}`);
     if (!container) return;
-
     container.innerHTML = "";
 
-    wallpapers
-
-    .filter(w => w.category === category)
-
-    .slice(0,6)
-
-    .forEach(wall => {
-
-        container.innerHTML +=
-        createWallpaperCard(wall);
-
+    wallpapers.filter(w => w.category === category).slice(0,6).forEach(wall => {
+        container.innerHTML += createWallpaperCard(wall);
     });
-
 }
 
 // =======================================
@@ -487,48 +244,28 @@ function renderCategory(category) {
 // =======================================
 
 function openWallpaper(id) {
-
-    window.location.href =
-        `wallpaper.html?id=${id}`;
-
+    window.location.href = `wallpaper.html?id=${id}`;
 }
 
 // =======================================
 // المفضلة
 // =======================================
 
-function toggleFavorite(id) {
-
-    let favorites =
-        JSON.parse(
-            localStorage.getItem("favorites") || "[]"
-        );
+function toggleFavorite(btn, id) {
+    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
 
     if (favorites.includes(id)) {
-
-        favorites =
-            favorites.filter(item => item !== id);
-
-        } else {
-
-    favorites.push(id);
-
-    const wall = findWallpaper(id);
-
-    if (wall) {
-        addNotification(
-            "❤️ تمت الإضافة إلى المفضلة",
-            `"${wall.title}" أضيفت إلى المفضلة.`
-        );
+        favorites = favorites.filter(item => item !== id);
+        btn.classList.remove("active");
+    } else {
+        favorites.push(id);
+        btn.classList.add("active");
+        const wall = findWallpaper(id);
+        if (wall && typeof addNotification === "function") {
+            addNotification("❤️ تمت الإضافة إلى المفضلة", `"${wall.title}" أضيفت إلى المفضلة.`);
+        }
     }
-
-}
-
-    localStorage.setItem(
-        "favorites",
-        JSON.stringify(favorites)
-    );
-
+    localStorage.setItem("favorites", JSON.stringify(favorites));
 }
 
 // =======================================
@@ -536,11 +273,7 @@ function toggleFavorite(id) {
 // =======================================
 
 function findWallpaper(id) {
-
-    return wallpapers.find(
-        wall => wall.id == id
-    );
-
+    return wallpapers.find(wall => wall.id == id);
 }
 
 // =======================================
@@ -580,14 +313,8 @@ function getLatestWallpapers() {
 //========
 
 function loadTodayWallpaper() {
-
-    const today =
-        wallpapers.find(w => w.todayWallpaper)
-        || wallpapers.find(w => w.featured)
-        || wallpapers[0];
-
+    const today = wallpapers.find(w => w.todayWallpaper) || wallpapers.find(w => w.featured) || wallpapers[0];
     if (!today) return;
-
 
     const img = document.getElementById("todayImage");
     const title = document.getElementById("todayTitle");
@@ -595,34 +322,19 @@ function loadTodayWallpaper() {
     const view = document.getElementById("todayView");
     const download = document.getElementById("todayDownload");
 
-
-    if(img){
-        img.src = getImageUrl(today.thumbnail || today.image);
-    }
-
-    if(title){
-        title.textContent = today.title;
-    }
-
-    if(desc){
-        desc.textContent = today.category;
-    }
-
-    if(view){
-        view.onclick = () => openWallpaper(today.id);
-    }
-
-    if(download){
+    if(img) img.src = getImageUrl(today.thumbnail || today.image);
+    if(title) title.textContent = today.title;
+    if(desc) desc.textContent = categoryNames[today.category] || today.category;
+    if(view) view.onclick = () => openWallpaper(today.id);
+    
+    if(download) {
         download.onclick = () => {
-
             const a = document.createElement("a");
             a.href = getImageUrl(today.image);
             a.download = today.title + ".jpg";
             a.click();
-
         };
     }
-
 }
 
 // =======================================
@@ -646,26 +358,11 @@ document.addEventListener(
 // ==============================
 
 function renderPopular() {
-
     if (!popularContainer) return;
-
     popularContainer.innerHTML = "";
-
-    wallpapers
-
-    .slice()
-
-    .sort((a,b)=>(b.downloads||0)-(a.downloads||0))
-
-    .slice(0,8)
-
-    .forEach(wall=>{
-
-        popularContainer.innerHTML +=
-        createWallpaperCard(wall);
-
+    wallpapers.slice().sort((a,b)=>(b.downloads||0)-(a.downloads||0)).slice(0,8).forEach(wall=>{
+        popularContainer.innerHTML += createWallpaperCard(wall);
     });
-
 }
 
 // ==============================
@@ -673,46 +370,21 @@ function renderPopular() {
 // ==============================
 
 function renderLiked() {
-
     if (!likedContainer) return;
-
     likedContainer.innerHTML = "";
-
-    wallpapers
-
-    .slice()
-
-    .sort((a,b)=>(b.likes||0)-(a.likes||0))
-
-    .slice(0,8)
-
-    .forEach(wall=>{
-
-        likedContainer.innerHTML +=
-        createWallpaperCard(wall);
-
+    wallpapers.slice().sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,8).forEach(wall=>{
+        likedContainer.innerHTML += createWallpaperCard(wall);
     });
-
 }
-
+//اكتر تحميلا//
 function renderDownloaded() {
-
     if (!downloadedContainer) return;
-
     downloadedContainer.innerHTML = "";
-
-    wallpapers
-        .slice()
-        .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
-        .slice(0, 8)
-        .forEach(wall => {
-
-            downloadedContainer.innerHTML +=
-                createWallpaperCard(wall);
-
-        });
-
+    wallpapers.slice().sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 8).forEach(wall => {
+        downloadedContainer.innerHTML += createWallpaperCard(wall);
+    });
 }
+
 
 // =======================================
 // السلايدر
@@ -720,71 +392,21 @@ function renderDownloaded() {
 // =======================================
 
 function renderSlider() {
+    const slider = document.getElementById("sliderContent");
+    const dotsContainer = document.getElementById("sliderDots");
 
-
-    const slider =
-    document.getElementById("sliderContent");
-
-
-    const dotsContainer =
-    document.getElementById("sliderDots");
-
-
-
-    if(!slider)
-        return;
-
-
-
+    if(!slider) return;
     slider.innerHTML = "";
+    if(dotsContainer) dotsContainer.innerHTML = "";
 
-
-
-    if(dotsContainer){
-
-        dotsContainer.innerHTML = "";
-
-    }
-
-
-
-
-    const sliderWallpapers =
-
-    wallpapers
-    .slice()
-    .reverse();
-
-
-
-
+    const sliderWallpapers = wallpapers.slice().reverse();
 
     sliderWallpapers.forEach((wall,index)=>{
-
-
-
-        const slide =
-        document.createElement("div");
-
-
-
-        slide.className =
-        "slide";
-
-
-
-        slide.dataset.wallpaperId =
-        wall.id;
-
-
-
+        const slide = document.createElement("div");
+        slide.className = "slide";
+        slide.dataset.wallpaperId = wall.id;
 
         let mediaHTML = "";
-
-
-
-
-
         // ==========================
         // فيديو
         // ==========================

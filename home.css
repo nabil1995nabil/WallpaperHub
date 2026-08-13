@@ -7,361 +7,307 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:Arial,sans-serif;
+font-family: "Cairo", Arial, sans-serif; /* ترقية الخط ليصبح حاداً وسينمائياً كالألعاب */
 }
 
 :root{
-
 --primary:#5b5df5;
 --primary2:#7d5fff;
---bg:#f5f7fb;
---card:#ffffff;
---text:#1d1d1f;
---gray:#777;
---shadow:0 10px 30px rgba(0,0,0,.08);
-
+--bg:#0b0c10; /* تحويل الخلفية إلى اللون الداكن العميق لإبراز توهج الألعاب */
+--card:#14161f; /* كروت زجاجية مظلمة فاخرة */
+--text:#ffffff; /* نصوص ناصعة حادة */
+--gray:#8e95b0;
+--shadow: 0 15px 35px rgba(0,0,0,.4);
 }
 
-body{
-
-background:var(--bg);
-
-color:var(--text);
-
-padding-bottom:90px;
-
+body {
+background: var(--bg);
+color: var(--text);
+padding-bottom: 90px;
+/* تفعيل محرك تنعيم الرسوميات الشامل عبر كرت الشاشة (GPU) */
+-webkit-font-smoothing: subpixel-antialiased;
+-moz-osx-font-smoothing: grayscale;
+text-rendering: optimizeLegibility;
+perspective: 1500px; /* تفعيل البعد الثالث لكافة عناصر الصفحة */
 }
 
 /* ================= HEADER ================= */
 
-.header{
-
-position:sticky;
-
-top:0;
-
-z-index:1000;
-
-height:72px;
-
-padding:0 20px;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-background:rgba(255,255,255,.92);
-
-backdrop-filter:blur(15px);
-
-box-shadow:0 4px 18px rgba(0,0,0,.05);
-
+.header {
+position: sticky;
+top: 0;
+z-index: 1000;
+height: 72px;
+padding: 0 20px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+/* زجاج كريستالي غامر يعكس المحتوى في الخلفية */
+background: rgba(11, 12, 16, 0.75) !important;
+backdrop-filter: blur(25px) saturate(1.5) !important;
+-webkit-backdrop-filter: blur(25px) saturate(1.5) !important;
+border-bottom: 1px solid rgba(80, 96, 255, 0.15);
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.logo{
-
-display:flex;
-
-align-items:center;
-
-gap:10px;
-
+.logo {
+display: flex;
+align-items: center;
+gap: 10px;
 }
 
-.logo .material-icons{
-
-font-size:34px;
-
-color:var(--primary);
-
+.logo .material-icons {
+font-size: 34px;
+color: var(--primary);
+/* توهج نيون للأيقونة الرئيسية */
+filter: drop-shadow(0 0 8px var(--primary));
 }
 
-.logo h2{
-
-font-size:14px;
-
-font-weight:700;
-
-color:var(--primary);
-
+.logo h2 {
+font-size: 15px;
+font-weight: 900;
+color: #ffffff;
+letter-spacing: -0.3px;
 }
 
-.header-icons{
-
-display:flex;
-
-gap:16px;
-
+.header-icons {
+display: flex;
+gap: 16px;
+align-items: center;
 }
 
-.header-icons span{
-
-font-size:28px;
-
-cursor:pointer;
-
-transition:.3s;
-
+.header-icons span {
+font-size: 28px;
+cursor: pointer;
+transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+color: #8e95b0;
 }
 
-.header-icons span:active{
+.header-icons span:hover {
+color: #ffffff;
+transform: scale(1.08);
+}
 
-transform:scale(.9);
-
+.header-icons span:active {
+transform: scale(.9);
 }
 
 /* ================= SLIDER ================= */
 
-.slider-section{
-    margin:18px;
-    height:220px;
+/* ===================================================
+   WallpaperHub Home - 1000D Slider Gaming Fidelity
+   =================================================== */
 
-    position:relative;
-    border-radius:22px;
-
-    /* مساحة للإطار المتحرك */
-    padding:3px;
-
-    overflow:hidden;
-    isolation:isolate;
-
-    box-shadow:
-        0 10px 30px rgba(0,0,0,.15);
+.slider-section {
+    margin: 18px;
+    height: 220px;
+    position: relative;
+    border-radius: 28px; /* تنعيم الحواف بدقة */
+    padding: 3px;
+    overflow: hidden;
+    isolation: isolate;
+    /* توهج نيون ناعم مزدوج مقتبس من الألعاب */
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.5), 
+        0 0 25px rgba(91, 93, 245, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    will-change: transform;
+    transform: translateZ(0);
 }
 
-
-/* الإطار المتحرك */
-
-.slider-section::before{
-    content:"";
-
-    position:absolute;
-
-    width:160%;
-    height:220%;
-
-    left:-30%;
-    top:-60%;
-
-    background:
-        conic-gradient(
-            transparent 0deg,
-            transparent 70deg,
-            #5b5df5 110deg,
-            #00e5ff 145deg,
-            #ffffff 175deg,
-            #7d5fff 205deg,
-            transparent 250deg,
-            transparent 360deg
-        );
-
-    animation:
-        sliderBorderRotate 6s linear infinite;
-
-    z-index:-2;
+/* الإطار الليزري المتحرك المطور */
+.slider-section::before {
+    content: "";
+    position: absolute;
+    width: 170%;
+    height: 230%;
+    left: -35%;
+    top: -65%;
+    /* تدرج ليزري حاد وعالي النقاء والبريق */
+    background: conic-gradient(
+        transparent 0deg,
+        transparent 80deg,
+        #5b5df5 115deg,
+        #00e5ff 145deg,
+        #ffffff 170deg,
+        #7d5fff 200deg,
+        transparent 240deg,
+        transparent 360deg
+    );
+    /* تسريع الدوران اللانهائي بدقة 60 إطار في الثانية */
+    animation: sliderBorderRotate 5s linear infinite;
+    z-index: -2;
 }
 
-
-/* خلفية داخلية */
-
-.slider-section::after{
-    content:"";
-
-    position:absolute;
-
-    inset:3px;
-
-    border-radius:19px;
-
-    background:#111;
-
-    z-index:-1;
+/* خلفية داخلية زجاجية فاخرة (HUD Crystal Pane) */
+.slider-section::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 25px;
+    background: #14161f; /* رمادي اللعبة المظلم الفاخر */
+    z-index: -1;
+    border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-
-/* محتوى السلايدر */
-
-#sliderContent{
-    position:relative;
-
-    width:100%;
-    height:100%;
-
-    overflow:hidden;
-
-    border-radius:19px;
-
-    z-index:1;
-}
-
-
-/* دوران الضوء */
-
-@keyframes sliderBorderRotate{
-
-    from{
-        transform:rotate(0deg);
-    }
-
-    to{
-        transform:rotate(360deg);
-    }
-
-}
-
+/* محتوى السلايدر المتوازن */
 #sliderContent {
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    border-radius: 25px;
+    z-index: 1;
+}
+
+/* دوران الضوء الليزري السريع */
+@keyframes sliderBorderRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 #sliderContent .slide {
     position: absolute;
     top: 0;
     left: 0;
-
     width: 100%;
     height: 100%;
-
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-
     transform: translateX(100%);
-
-    transition:
-        transform .55s cubic-bezier(.22,.61,.36,1),
-        opacity .55s ease,
-        visibility .55s;
+    /* حركات تنقل الأجهزة فائقة السرعة */
+    transition: 
+        transform .6s cubic-bezier(.16, 1, .3, 1),
+        opacity .6s ease,
+        visibility .6s;
 }
 
-
-/* الصورة المعروضة */
-
+/* الصورة المعروضة بنشاط */
 #sliderContent .slide.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-
     transform: translateX(0);
-
     z-index: 2;
 }
 
-
-/* الصورة القديمة تخرج لليسار */
-
+/* الصورة القديمة تخرج لليسار بسلاسة */
 #sliderContent .slide.slide-out {
     opacity: 1;
     visibility: visible;
-
     transform: translateX(-100%);
-
     z-index: 1;
 }
 
+/* ترقية جرافيك الصورة وتفعيل عمق الزووم السينمائي (Cinematic Deep Zoom) */
 #sliderContent .slide img {
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-    position:relative;
-    z-index:1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    z-index: 1;
+    backface-visibility: hidden;
+    /* تحسين تشبع جرافيك الصور المقتبس من ألعاب الخيال العلمي */
+    filter: saturate(1.18) contrast(1.06);
+    will-change: transform, filter;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
 }
+
+/* زووم ذكي وتفاعل لوني دافئ فوري عند تمرير إصبعك أو الماوس فوق السلايدر */
+.slider-section:hover #sliderContent .slide.active img {
+    transform: scale(1.05) translateZ(5px);
+    filter: saturate(1.3) contrast(1.1);
+}
+
 
 /* ================= CATEGORIES ================= */
 
-.categories{
-
-margin:20px 18px;
-
+.categories {
+margin: 24px 18px;
 }
 
-.categories h3{
-
-margin-bottom:15px;
-
-font-size:20px;
-
+.categories h3 {
+margin-bottom: 16px;
+font-size: 20px;
+font-weight: 900;
+letter-spacing: -0.5px;
+text-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
 }
 
-.category-list{
-
-display:flex;
-
-gap:14px;
-
-overflow-x:auto;
-
-padding-bottom:8px;
-
-scrollbar-width:none;
-
+.category-list {
+display: flex;
+gap: 14px;
+overflow-x: auto;
+padding: 10px 5px;
+scrollbar-width: none;
 }
 
-.category-list::-webkit-scrollbar{
-
-display:none;
-
+/* ترقية كروت الأقسام الدائرية لتصبح لوحات تكنولوجية بارزة */
+.category {
+min-width: 92px;
+height: 92px;
+background: #14161f;
+border-radius: 24px;
+box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+border: 1px solid rgba(255, 255, 255, 0.03);
+will-change: transform;
+transform: translateZ(0);
+transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
 }
 
-.category{
-
-min-width:90px;
-
-height:90px;
-
-background:#fff;
-
-border-radius:22px;
-
-display:flex;
-
-flex-direction:column;
-
-justify-content:center;
-
-align-items:center;
-
-box-shadow:var(--shadow);
-
-transition:.35s;
-
-cursor:pointer;
-
+/* الغطاء الداخلي للأقسام ليتناسب مع عمق اللعبة الداكن */
+body.dark .category::after, .category::after {
+background: #14161f !important;
+inset: 3px;
+border-radius: 21px;
 }
 
-.category:hover{
-
-transform:translateY(-4px);
-
+/* إبقاء النصوص والأيقونات ناصعة ومطبوعة بدقة فوق الإطار */
+body.dark .category p, body.dark .category span,
+body:not(.dark) .category p, body:not(.dark) .category span {
+color: #ffffff !important;
+position: relative;
+z-index: 3;
 }
 
-.category:active{
-
-transform:scale(.95);
-
+.category span {
+font-size: 28px;
+filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.category.active{
-
-background:linear-gradient(135deg,var(--primary),var(--primary2));
-
-color:#fff;
-
+.category p {
+font-size: 12px;
+font-weight: 800;
+margin-top: 6px;
+color: #8e95b0 !important;
 }
 
-.category p{
-
-margin-top:8px;
-
-font-size:13px;
-
-font-weight:600;
-
+/* تأثير التفاعل والارتفاع الفاخر للأقسام */
+.category:hover {
+transform: translateY(-6px) scale(1.04) rotateY(5deg);
+box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(91, 93, 245, 0.2);
 }
+
+.category:hover span {
+transform: scale(1.15) translateZ(10px);
+}
+
+.category:active {
+transform: scale(.95);
+box-shadow: inset 4px 4px 10px rgba(0,0,0,0.5);
+}
+
+/* نمط القسم النشط المتوهج بالكامل */
+.category.active {
+background: linear-gradient(135deg, var(--primary), var(--primary2));
+box-shadow: 0 0 25px rgba(91, 93, 245, 0.45);
+}
+
+.category.active p {
+color: #ffffff !important;
 
 /* ===================================
    WallpaperHub - home.css
@@ -370,195 +316,185 @@ font-weight:600;
 
 /* ================= WALLPAPERS ================= */
 
-.wall-section{
-
-margin:22px 18px;
-
+.wall-section {
+    margin: 22px 18px;
+    perspective: 1000px;
 }
 
-.title{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-margin-bottom:14px;
-
+.title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
 }
 
-.title h3{
-
-font-size:20px;
-
-font-weight:700;
-
+.title h3 {
+    font-size: 20px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
 }
 
-.title a{
-
-text-decoration:none;
-
-color:var(--primary);
-
-font-size:14px;
-
-font-weight:600;
-
+.title a {
+    text-decoration: none;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(91, 93, 245, 0.3);
+    transition: all 0.3s ease;
 }
 
-.wall-grid{
-display:flex;
-gap:16px;
-overflow-x:auto;
-padding-bottom:10px;
-scroll-behavior:smooth;
-scrollbar-width:none;
+.title a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 12px #ffffff;
 }
 
-.wall-grid::-webkit-scrollbar{
-display:none;
+.wall-grid {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    will-change: transform;
+}
+
+.wall-grid::-webkit-scrollbar {
+    display: none;
 }
 
 /* ===== Wallpaper Card ===== */
 
-.wall-card{
-
-    position:relative;
-    overflow:hidden;
-
-    width:150px;
-    min-width:150px;
-
-    height:220px;
-
-    border-radius:22px;
-
-    background:#fff;
-
-    box-shadow:
-    0 8px 20px rgba(0,0,0,.08);
-
-    transition:.25s;
-
-    flex-shrink:0;
-
+.wall-card {
+    position: relative;
+    overflow: hidden;
+    width: 150px;
+    min-width: 150px;
+    height: 220px;
+    border-radius: 26px;
+    background: #14161f;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    flex-shrink: 0;
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
 }
-
 
 .wall-card img,
 .wall-card video,
-.video-preview{
-
-    width:100%;
-
-    height:100%;
-
-    object-fit:cover;
-
-    display:block;
-
+.video-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    backface-visibility: hidden;
+    filter: saturate(1.1) contrast(1.05); /* حدة ألوان الألعاب الكريستالية */
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
 }
 
-
-.video-preview{
-
-    position:absolute;
-
-    inset:0;
-
-}
-
-
-.wall-card:hover img{
-
-    transform:scale(1.05);
-
-}
-
-
-.wall-info{
-
-    position:absolute;
-
-    left:0;
-    right:0;
-    bottom:0;
-
-    padding:15px;
-
-    background:
-    linear-gradient(
-    to top,
-    rgba(0,0,0,.85),
-    transparent
+/* تأثير المسح الضوئي الليزري اللامع (Laser Specular Sweep) */
+.wall-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        rgba(91, 93, 245, 0.25), 
+        rgba(255, 255, 255, 0.1), 
+        transparent
     );
-
-    color:white;
-
+    transform: skewX(-25deg);
+    z-index: 4;
+    pointer-events: none;
 }
 
-.wall-info h4{
-
-font-size:16px;
-
-margin-bottom:5px;
-
-font-weight:700;
-
+/* تفعيل زووم وشعاع الليزر الميكانيكي الفخم عند التفاعل */
+.wall-card:hover::before {
+    animation: laserSweep 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.wall-info p{
-
-font-size:13px;
-
-opacity:.9;
-
+@keyframes laserSweep {
+    0% { left: -150%; }
+    100% { left: 150%; }
 }
 
-/* زر المفضلة */
-
-.favorite-btn{
-
-position:absolute;
-
-top:12px;
-
-left:12px;
-
-width:42px;
-
-height:42px;
-
-border-radius:50%;
-
-background:rgba(255,255,255,.9);
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-font-size:20px;
-
-backdrop-filter:blur(12px);
-
-transition:.3s;
-
-z-index:20;
-
+.wall-card:hover img {
+    transform: scale(1.08) translateZ(10px);
+    filter: saturate(1.2) contrast(1.1);
 }
 
-.favorite-btn.active{
+.wall-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 20px rgba(91, 93, 245, 0.25);
+    border-color: rgba(91, 93, 245, 0.3);
+}
 
-background:#ff2d55;
+/* معلومات الكرت المحدثة */
+.wall-info {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 15px;
+    background: linear-gradient(to top, rgba(11, 12, 16, 0.95), rgba(11, 12, 16, 0.4), transparent);
+    color: white;
+    z-index: 5;
+    transform: translateZ(5px);
+}
 
-color:#fff;
+.wall-info h4 {
+    font-size: 15px;
+    margin-bottom: 3px;
+    font-weight: 800;
+}
 
-transform:scale(1.1);
+.wall-info p {
+    font-size: 12px;
+    opacity: .75;
+    font-weight: 600;
+}
 
+/* زر المفضلة الكريستالي الطافي */
+.favorite-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(20, 22, 31, 0.7);
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 20;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.12);
+    background: rgba(20, 22, 31, 0.9);
+}
+
+.favorite-btn.active {
+    background: #ff2d55;
+    color: #fff;
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(255, 45, 85, 0.5);
+    border-color: transparent;
 }
 
 /* ================= ANIMATION ================= */
@@ -597,118 +533,71 @@ transform:translateY(0);
 
 /* ================= RESPONSIVE ================= */
 
-@media(max-width:600px){
-
-.wall-grid{
-
-grid-template-columns:repeat(2,1fr);
-
-gap:14px;
-
+@media(max-width:600px) {
+    .wall-grid {
+        gap: 14px;
+    }
+    .logo h2 {
+        font-size: 18px;
+    }
 }
-
-.wall-card img{
-
-height:180px;
-
-}
-
-.logo h2{
-
-font-size:21px;
-
-}
-
-}
-
 /* ===========================
       Wallpaper Of The Day
 =========================== */
 
-.today-wallpaper{
-
-    position:relative;
-
-    margin:18px;
-
-    height:240px;
-
-    border-radius:28px;
-
-    overflow:hidden;
-
-    box-shadow:
-    0 12px 30px rgba(0,0,0,.12);
-
+..today-wallpaper {
+    position: relative;
+    margin: 18px;
+    height: 240px;
+    border-radius: 32px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), 0 0 25px rgba(91, 93, 245, 0.15);
 }
 
 
-.today-wallpaper img{
-
-    width:100%;
-
-    height:100%;
-
-    object-fit:cover;
-
-    transition:.5s;
-
+.today-wallpaper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 
-.today-wallpaper:hover img{
 
-    transform:scale(1.08);
-
+.today-wallpaper:hover img {
+    transform: scale(1.05);
 }
 
 
 
 /* الطبقة فوق الصورة */
 
-.today-overlay{
-
-    position:absolute;
-
-    left:0;
-    right:0;
-    bottom:0;
-
-    padding:20px;
-
-    background:
-    linear-gradient(
-    to top,
-    rgba(0,0,0,.65),
-    transparent
-    );
-
-    color:#fff;
-
+.today-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(11, 12, 16, 0.9), rgba(11, 12, 16, 0.3), transparent);
+    color: #fff;
+    z-index: 5;
 }
 
 
 
 /* خلفية اليوم فقط */
 
-.today-overlay span{
-
-    display:inline-block;
-
-    padding:7px 16px;
-
-    border-radius:30px;
-
-    background:#ffb300;
-
-    color:#222;
-
-    font-size:13px;
-
-    font-weight:bold;
-
-    margin-bottom:12px;
-
+.today-overlay span {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 30px;
+    background: #ffb300;
+    color: #111;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(255, 179, 0, 0.3);
 }
 
 
@@ -726,37 +615,30 @@ font-size:21px;
 
 /* الأزرار */
 
-.today-buttons{
-
-    display:flex;
-
-    gap:12px;
-
-    margin-top:20px;
-
+.today-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
 }
 
 
-
-.today-buttons button{
-
-    flex:1;
-
-    height:48px;
-
-    border:none;
-
-    border-radius:16px;
-
-    font-size:16px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    transition:.3s;
-
+today-buttons button {
+    width: 44px !important;
+    height: 44px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(20, 22, 31, 0.7) !important;
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3) !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
+
 
 
 
@@ -778,86 +660,77 @@ font-size:21px;
 
 }
 
+.today-buttons button:hover {
+    background: var(--primary) !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 15px rgba(91, 93, 245, 0.4) !important;
+    transform: scale(1.1);
+}
 
-
-.today-buttons button:active{
-
-    transform:scale(.96);
-
+.today-buttons button:active {
+    transform: scale(.92) !important;
 }
 
 /*نظام جري اشعارات*/
 
-.notification-count{
-position:absolute;
-top:-5px;
-right:-5px;
-background:#ff3b30;
-color:#fff;
-font-size:11px;
-min-width:18px;
-height:18px;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:50%;
-font-weight:bold;
+.notification-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 800;
+    box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+    border: 1.5px solid #14161f;
 }
 
 /* ===========================
    Side Drawer
 =========================== */
 
-.drawer-overlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,.45);
-opacity:0;
-visibility:hidden;
-transition:.3s;
-z-index:9998;
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 6, 8, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    z-index: 9998;
 }
 
-.drawer-overlay.show{
-opacity:1;
-visibility:visible;
+.drawer-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+.side-drawer {
+    position: fixed;
+    top: 15px;
+    right: 0;
+    width: 280px;
+    max-width: 85%;
+    height: calc(100% - 30px);
+    background: #14161f;
+    border-left: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: -15px 0 45px rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    overflow-y: auto;
+    transform: translateX(105%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    border-radius: 28px 0 0 28px;
 }
 
-.side-drawer{
-    position:fixed;
-
-    top:10px;
-    right:0;
-
-    width:270px;
-    max-width:82%;
-
-    height:calc(100% - 20px);
-
-    background:#fff;
-
-    box-shadow:-8px 0 30px rgba(0,0,0,.18);
-
-    z-index:9999;
-
-    overflow-y:auto;
-
-    transform:translateX(105%);
-
-    transition:
-        transform .35s cubic-bezier(.22,1,.36,1);
-
-    will-change:transform;
-
-    /* الحواف الداخلية */
-    border-radius:24px 0 0 24px;
-}
-
-.side-drawer.show{
-    transform:translateX(0);
+.side-drawer.show {
+    transform: translateX(0);
 }
 
 
@@ -875,75 +748,70 @@ visibility:visible;
         visibility .25s;
 }
 
-.drawer-header{
-padding:30px 20px;
-background:linear-gradient(135deg,#5a5cff,#7b5cff);
-color:#fff;
-text-align:center;
-position:relative;
+.drawer-header {
+    padding: 35px 20px;
+    background: linear-gradient(135deg, #5a5cff, #7b5cff);
+    color: #fff;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 
-.drawer-header img{
-    width:82px;
-    height:82px;
-
-    border-radius:50%;
-
-    object-fit:cover;
-
-    background:#fff;
-
-    border:3px solid rgba(255,255,255,.9);
+.drawer-header img {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    border: 3px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
-.drawer-header h3{
-    margin-top:12px;
-
-    font-size:20px;
-    font-weight:700;
-
-    color:#fff;
-
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+.drawer-header h3 {
+    margin-top: 12px;
+    font-size: 20px;
+    font-weight: 800;
 }
 
-#drawerClose{
-position:absolute;
-left:15px;
-top:15px;
-font-size:24px;
-cursor:pointer;
+#drawerClose {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.7);
+    transition: color 0.3s;
 }
 
-.drawer-menu{
-padding:10px 0;
+#drawerClose:hover { color: #ffffff; }
+
+.drawer-menu { padding: 15px 0; }
+
+.drawer-menu a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 24px;
+    color: #8e95b0;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.drawer-menu a{
-display:flex;
-align-items:center;
-gap:12px;
-padding:16px 20px;
-color:#333;
-text-decoration:none;
-font-size:17px;
-transition:.25s;
+.drawer-menu a:hover {
+    background: rgba(90, 92, 255, 0.08);
+    color: #5a5cff;
+    padding-right: 32px;
 }
 
-.drawer-menu a:hover{
-background:#f5f5ff;
-color:#5a5cff;
-padding-right:28px;
+.drawer-menu hr {
+    border: none;
+    height: 1px;
+    background: rgba(255,255,255,0.04);
+    margin: 12px 20px;
 }
 
-.drawer-menu hr{
-border:none;
-height:1px;
-background:#eee;
-margin:10px 18px;
-}
 
 /* الوضع الليلي */
 
@@ -992,13 +860,10 @@ body.dark button{
     cursor:pointer;
 }
 
-.menu-btn span{
-    width:15px;
-    height:3px;
-    background:#222;
-    border-radius:5px;
-    transition:.28s;
+.menu-btn span {
+    background: #ffffff !important; /* تحويل لون الخطوط للون الأبيض ليتوافق مع الواجهة المظلمة */
 }
+
 
 
 /* يتحول إلى X */
@@ -1526,16 +1391,8 @@ display:block;
 
 }
 
-.wall-card video,
-.video-preview{
-
-    width:100%;
-    height:100px;
-
-    object-fit:cover;
-
-    display:block;
-
+.wall-card video, .video-preview {
+    height: 100% !important; /* تأمين عدم فقدان المحاذاة أو حركات الفيديو الافتراضية */
 }
 
 
