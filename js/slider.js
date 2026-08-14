@@ -252,13 +252,14 @@ function createMiniCards(items){
     const container =
     document.querySelector(".mini-cards");
 
+
     if(!container) return;
 
 
     container.innerHTML="";
 
 
-    items.slice(0,4).forEach((wall,index)=>{
+    items.forEach((wall,index)=>{
 
 
         const card =
