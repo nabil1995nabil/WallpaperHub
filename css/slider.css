@@ -113,15 +113,25 @@
 
 .slider-category{
 
-    color:#ffb703;
+position:absolute;
 
-    font-size:14px;
+top:-60px;
 
-    font-weight:bold;
+right:0;
+
+background:#ffb703;
+
+padding:7px 18px;
+
+border-radius:20px;
+
+color:#111;
+
+font-weight:bold;
+
+z-index:10;
 
 }
-
-
 
 .slider-info h2{
 
@@ -368,3 +378,37 @@
 
 
 }
+
+.title-box{
+
+width:280px;
+
+overflow:hidden;
+
+white-space:nowrap;
+
+}
+
+
+.title-box h2{
+
+display:inline-block;
+
+animation:moveTitle 8s linear infinite;
+
+}
+
+
+@keyframes moveTitle{
+
+from{
+transform:translateX(0);
+}
+
+
+to{
+transform:translateX(-100%);
+}
+
+}
+
