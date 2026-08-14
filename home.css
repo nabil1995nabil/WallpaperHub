@@ -112,6 +112,137 @@ transform:scale(.9);
 
 }
 
+/* ==========================
+   Today Wallpaper 3D Buttons
+   ========================== */
+
+.today-actions{
+
+    display:flex;
+    gap:15px;
+    margin-top:18px;
+
+}
+
+
+.today-actions button{
+
+    position:relative;
+
+    min-width:130px;
+    height:48px;
+
+    border:none;
+    border-radius:18px;
+
+    color:white;
+
+    font-size:15px;
+    font-weight:700;
+
+    cursor:pointer;
+
+    background:
+    linear-gradient(
+        145deg,
+        rgba(255,255,255,.35),
+        rgba(80,96,255,.75)
+    );
+
+
+    backdrop-filter:blur(15px);
+
+
+    box-shadow:
+
+    0 10px 20px rgba(0,0,0,.25),
+
+    inset 0 2px 4px rgba(255,255,255,.5),
+
+    inset 0 -5px 10px rgba(0,0,0,.25);
+
+
+    transform:
+    translateZ(20px);
+
+
+    transition:
+    .35s ease;
+
+}
+
+
+/* الطبقة السفلية تعطي إحساس الارتفاع */
+
+.today-actions button::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+        180deg,
+        rgba(255,255,255,.35),
+        transparent
+    );
+
+    opacity:.5;
+
+}
+
+
+
+/* عند الضغط */
+
+.today-actions button:active{
+
+    transform:
+    translateY(5px)
+    scale(.96);
+
+
+    box-shadow:
+
+    0 4px 8px rgba(0,0,0,.3),
+
+    inset 0 3px 8px rgba(0,0,0,.3);
+
+}
+
+
+
+/* زر التحميل لون مختلف */
+
+#todayDownload{
+
+    background:
+    linear-gradient(
+        145deg,
+        #00d4ff,
+        #5060ff
+    );
+
+}
+
+
+/* زر المشاهدة */
+
+#todayView{
+
+    background:
+    linear-gradient(
+        145deg,
+        #ffffff55,
+        #333333aa
+    );
+
+}
+
 /* ================= SLIDER ================= */
 
 .slider-section{
