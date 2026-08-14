@@ -241,7 +241,7 @@
 
     display:flex;
 
-    gap:12px;
+    gap:10px;
 
     overflow-x:auto;
 
@@ -354,6 +354,8 @@
     top:10px;
 
     left:50%;
+    
+    bottom:10px;
 
     transform:translateX(-50%);
 
