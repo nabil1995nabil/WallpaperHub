@@ -124,7 +124,7 @@ ${wall.category || ""}
     });
 
     createMiniCards(items);
-
+updateMiniFocus(0);
 
     startAutoSlider(items.length);
 
@@ -333,10 +333,6 @@ function updateMiniFocus(index){
     document.querySelector(".mini-wrapper");
 
 
-    if(!wrapper)
-        return;
-
-
     const wrapperCenter =
     wrapper.offsetWidth / 2;
 
@@ -351,6 +347,6 @@ function updateMiniFocus(index){
 
 
     container.style.transform =
-    `translateX(${move}px)`;
+    "translateX(" + move + "px)";
 
 }
