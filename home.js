@@ -88,9 +88,14 @@ async function loadWallpapers() {
 
         console.log("API RESPONSE:", text);
 
-        wallpapers = JSON.parse(text);
-
-        renderSlider();
+        try {
+            wallpapers = JSON.parse(text);
+        }
+        catch(e){
+            console.error("Invalid API JSON:", text);
+            return;
+        }
+renderSlider();
         loadTodayWallpaper();
         renderPopular();
         renderDownloaded();
@@ -101,10 +106,7 @@ async function loadWallpapers() {
 
     } catch(err) {
 
-        console.error(
-            "API wallpapers error:",
-            err
-        );
+        console.error("API wallpapers error:", err);
 
     }
 
@@ -231,6 +233,169 @@ function updateSliderDots(dots, index) {
 
     });
     
+}
+
+// =======================================
+// إنشاء السلايدر
+// =======================================
+
+function renderSlider(){
+
+
+    const slider =
+    document.getElementById("sliderContent");
+
+
+    const dotsContainer =
+    document.getElementById("sliderDots");
+
+
+    if(!slider)
+        return;
+
+
+
+    slider.innerHTML = "";
+
+
+    if(dotsContainer){
+
+        dotsContainer.innerHTML = "";
+
+    }
+
+
+
+
+    const sliderWallpapers =
+
+    wallpapers
+
+    .slice()
+
+    .reverse()
+
+    .slice(0,10);
+
+
+
+
+
+    sliderWallpapers.forEach((wall,index)=>{
+
+
+        const slide =
+        document.createElement("div");
+
+
+
+        slide.className =
+        "slide";
+
+
+
+        slide.dataset.id =
+        wall.id;
+
+
+
+
+        let media = "";
+
+
+
+
+        if(isVideoMedia(wall)){
+
+
+            media = `
+
+            <video
+
+            src="${getImageUrl(wall.image)}"
+
+            muted
+
+            autoplay
+
+            loop
+
+            playsinline>
+
+            </video>
+
+            `;
+
+
+
+        }else{
+
+
+            media = `
+
+            <img
+
+            src="${getImageUrl(
+                wall.thumbnail || wall.image
+            )}"
+
+            alt="${wall.title || 'Wallpaper'}">
+
+            `;
+
+
+        }
+
+
+
+
+
+        slide.innerHTML = media;
+
+
+
+
+        slide.onclick = ()=>{
+
+            openWallpaper(wall.id);
+
+        };
+
+
+
+        slider.appendChild(slide);
+
+
+
+
+
+
+        if(dotsContainer){
+
+
+            const dot =
+            document.createElement("span");
+
+
+            dot.className =
+            "slider-dot";
+
+
+
+            dotsContainer.appendChild(dot);
+
+
+        }
+
+
+
+    });
+
+
+
+
+    startSlider();
+
 }
 
 // =======================================
@@ -714,253 +879,7 @@ function renderDownloaded() {
 
 }
 
-// =======================================
-// السلايدر القديم
-// Image + Video Support
-// =======================================
 
-
-let currentSlide = 0;
-let sliderInterval;
-
-
-
-function renderSlider(){
-
-
-    const slider =
-    document.getElementById("sliderContent");
-
-
-    const dotsContainer =
-    document.getElementById("sliderDots");
-
-
-    if(!slider)
-        return;
-
-
-
-    slider.innerHTML = "";
-
-
-    if(dotsContainer)
-        dotsContainer.innerHTML = "";
-
-
-
-    const sliderWallpapers =
-
-    wallpapers
-    .slice()
-    .reverse()
-    .slice(0,10);
-
-
-
-
-    sliderWallpapers.forEach((wall,index)=>{
-
-
-        const slide =
-        document.createElement("div");
-
-
-        slide.className =
-        "slide";
-
-
-
-        slide.dataset.wallpaperId =
-        wall.id;
-
-
-
-        let mediaHTML = "";
-
-
-
-        if(isVideoMedia(wall)){
-
-
-            mediaHTML = `
-
-            <video
-
-            src="${getImageUrl(wall.image)}"
-
-            muted
-            loop
-            autoplay
-            playsinline>
-
-            </video>
-
-            `;
-
-
-        }else{
-
-
-            mediaHTML = `
-
-            <img
-
-            src="${getImageUrl(
-            wall.thumbnail || wall.image
-            )}"
-
-            alt="${wall.title || 'Wallpaper'}">
-
-            `;
-
-
-        }
-
-
-
-        slide.innerHTML =
-        mediaHTML;
-
-
-
-        slide.onclick = ()=>{
-
-            openWallpaper(
-                wall.id
-            );
-
-        };
-
-
-
-        slider.appendChild(slide);
-
-
-
-
-        if(dotsContainer){
-
-
-            const dot =
-            document.createElement("span");
-
-
-            dot.className =
-            "slider-dot";
-
-
-            dotsContainer.appendChild(dot);
-
-
-        }
-
-
-
-    });
-
-
-
-    startSlider();
-
-
-}
-
-
-
-
-
-function startSlider(){
-
-
-    const slides =
-    document.querySelectorAll(
-    "#sliderContent .slide"
-    );
-
-
-    const dots =
-    document.querySelectorAll(
-    "#sliderDots .slider-dot"
-    );
-
-
-
-    if(!slides.length)
-        return;
-
-
-
-    clearInterval(sliderInterval);
-
-
-
-    function showSlide(index){
-
-
-        slides.forEach(slide=>{
-
-            slide.classList.remove(
-            "active",
-            "slide-out"
-            );
-
-        });
-
-
-
-        slides[index].classList.add(
-        "active"
-        );
-
-
-
-        dots.forEach((dot,i)=>{
-
-
-            dot.classList.toggle(
-            "active",
-            i===index
-            );
-
-
-        });
-
-
-
-        currentSlide=index;
-
-
-    }
-
-
-
-
-    showSlide(0);
-
-
-
-    sliderInterval =
-    setInterval(()=>{
-
-
-        currentSlide++;
-
-
-        if(currentSlide >= slides.length)
-            currentSlide=0;
-
-
-
-        showSlide(currentSlide);
-
-
-
-    },4000);
-
-
-
-}
 
 // ==============================
 // Notification Badge
