@@ -73,15 +73,6 @@ ${wall.title || "Wallpaper"}
 
 </div>
 
-<div class="title-box">
-
-<h2>
-${wall.title}
-</h2>
-
-</div>
-
-
             <p>
             ${wall.description || "خلفية مميزة من WallpaperHub"}
             </p>
@@ -94,9 +85,6 @@ ${wall.title}
 
         </div>
 
-
-
-        <div class="mini-cards"></div>
 
 
         `;
