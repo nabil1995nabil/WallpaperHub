@@ -65,19 +65,6 @@ ${wall.category || ""}
 </div>
 
 
-<div class="title-marquee">
-
-<h2>
-${wall.title || "Wallpaper"}
-</h2>
-
-</div>
-
-            <p>
-            ${wall.description || "خلفية مميزة من WallpaperHub"}
-            </p>
-
-
             <button>
             عرض الخلفية
             </button>
@@ -272,10 +259,6 @@ function createMiniCards(items){
         card.innerHTML=`
 
         <img src="${wall.thumbnail || wall.image}">
-
-        <span>
-        ${wall.title || ""}
-        </span>
 
         `;
 
