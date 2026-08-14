@@ -93,11 +93,11 @@
 
 /* معلومات الصورة */
 
-.slider-info{
+.slider-info {
 
     position:absolute;
 
-    top:35px;
+    top:45px;
 
     left:25px;
 
@@ -105,33 +105,19 @@
 
     z-index:10;
 
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:flex-start;
+    text-align:center;
 
 }
 
 
 /* التصنيف فوق اليمين */
-.slider-category{
+.slider-category {
 
-    align-self:flex-end;
+    position:absolute;
 
-    background:#ffb703;
+    top:0;
 
-    color:#000;
-
-    padding:8px 22px;
-
-    border-radius:25px;
-
-    font-weight:bold;
-
-    font-size:15px;
-
-    margin-bottom:35px;
+    right:0;
 
 }
 
@@ -150,13 +136,13 @@
 
 .slider-info p{
 
-    font-size:14px;
+    margin-top:70px;
 
-    color:#ddd;
+    margin-left:auto;
 
-    width:80%;
+    margin-right:auto;
 
-    margin-bottom:20px;
+    max-width:300px;
 
 }
 
@@ -176,20 +162,22 @@
 
     font-weight:bold;
 
-    margin-top:10px;
+    margin-top:15px;
 
 }
 
 /* مكان العنوان ثابت */
-.title-marquee{
+.title-marquee {
 
-    width:70%;
+    position:relative;
+
+    top:55px;
+
+    width:100%;
 
     overflow:hidden;
 
     white-space:nowrap;
-
-    margin-bottom:15px;
 
 }
 
@@ -231,13 +219,17 @@
 
     position:absolute;
 
-    bottom:25px;
-
-    left:0;
+    bottom:55px;
 
     width:100%;
 
-    z-index:20;
+    height:95px;
+
+    display:flex;
+
+    justify-content:center;
+
+    overflow:hidden;
 
 }
 
@@ -259,6 +251,7 @@
 
     scroll-snap-type:x mandatory;
 
+    transition: transform .5s ease;
 }
 
 
@@ -379,14 +372,13 @@
 
 #sliderDots{
 
+    position:absolute;
 
-    display:flex;
+    bottom:15px;
 
-    justify-content:center;
+    left:0;
 
-    gap:8px;
-
-    margin-top:15px;
+    right:0;
 
 }
 
