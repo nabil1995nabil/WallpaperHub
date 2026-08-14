@@ -28,10 +28,9 @@ function initSlider(data){
 
     // آخر 10 خلفيات
     const items =
-    data
-    .slice()
-    .reverse()
-    .slice(0,10);
+data
+.slice()
+.reverse();
 
 
 
@@ -61,14 +60,20 @@ function initSlider(data){
         <div class="slider-info">
 
 
-            <span class="slider-category">
-            ${wall.category || ""}
-            </span>
+<div class="slider-category">
+${wall.category}
+</div>
 
 
-            <h2>
-            ${wall.title || "Wallpaper"}
-            </h2>
+<div class="title-marquee">
+
+<div class="title-box">
+
+<h2>
+${wall.title}
+</h2>
+
+</div>
 
 
             <p>
@@ -205,32 +210,24 @@ function showSlider(index){
 
 function createMiniCards(items){
 
-
     const container =
-    document.querySelector(
-        ".mini-cards"
-    );
+    document.querySelector(".mini-cards");
 
 
-    if(!container)
-    return;
-
+    if(!container) return;
 
 
     container.innerHTML="";
 
 
-    items.slice(0,4)
-    .forEach((wall,index)=>{
+    items.forEach((wall,index)=>{
 
 
         const card =
         document.createElement("div");
 
 
-        card.className =
-        "mini-card";
-
+        card.className="mini-card";
 
 
         card.innerHTML=`
@@ -242,7 +239,6 @@ function createMiniCards(items){
         </span>
 
         `;
-
 
 
         card.onclick=()=>{
@@ -257,12 +253,7 @@ function createMiniCards(items){
 
     });
 
-
 }
-
-
-
-
 
 // تشغيل تلقائي
 
