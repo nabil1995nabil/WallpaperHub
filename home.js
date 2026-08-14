@@ -563,13 +563,13 @@ const categoryNames = {
 
     minimal: "✨ Minimal"
 
-"rain": "🌧️ المطر",
+rain: "🌧️ المطر",
 
-"sunset": "🌅 الغروب",
+sunset: "🌅 الغروب",
 
-"architecture": "🏛️ العمارة",
+architecture: "🏛️ العمارة",
 
-"deep-space": "🚀 الفضاء العميق",
+deep-space: "🚀 الفضاء العميق",
 
 };
 
