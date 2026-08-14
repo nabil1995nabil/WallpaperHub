@@ -179,7 +179,6 @@ function showSlider(index){
 
 
     updateMiniCards(index);
-    updateMiniFocus(index);
 
 }
 
@@ -304,49 +303,5 @@ function startAutoSlider(length){
     },5000);
 
 
-
-}
-
-// تحريك الصور المصغرة خلف الإطار الثابت
-function updateMiniFocus(index){
-
-    const container =
-    document.querySelector(".mini-cards");
-
-
-    const cards =
-    document.querySelectorAll(".mini-card");
-
-
-    if(!container || !cards.length)
-        return;
-
-
-    const activeCard = cards[index];
-
-
-    if(!activeCard)
-        return;
-
-
-    const wrapper =
-    document.querySelector(".mini-wrapper");
-
-
-    const wrapperCenter =
-    wrapper.offsetWidth / 2;
-
-
-    const cardCenter =
-    activeCard.offsetLeft +
-    (activeCard.offsetWidth / 2);
-
-
-    const move =
-    wrapperCenter - cardCenter;
-
-
-    container.style.transform =
-    "translateX(" + move + "px)";
 
 }
