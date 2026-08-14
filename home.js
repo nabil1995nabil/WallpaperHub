@@ -557,7 +557,7 @@ const categoryNames = {
 
     dark: "🖤 Dark",
 
-    4k: "💎 4K",
+    "4k": "💎 4K",
 
     sports: "⚽ الرياضة",
 
