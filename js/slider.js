@@ -1,308 +1,198 @@
 // =======================================
-// WallpaperHub Gaming 3D Slider
-// Independent Component
-// Image + Video Support
+// WallpaperHub New Interactive Slider
 // =======================================
 
-
-console.log("Gaming Slider Loaded");
-
-
-
-let swiperInstance = null;
+let sliderIndex = 0;
+let sliderTimer;
 
 
+// تشغيل السلايدر
+function initSlider(data){
 
-// =======================================
-// Image URL Helper
-// =======================================
+    const slider =
+    document.getElementById("sliderContent");
+
+    const dots =
+    document.getElementById("sliderDots");
 
 
-function getImageUrl(url){
+    if(!slider) return;
 
 
-    if(!url){
-
-        return "assets/logo/no-image.png";
-
+    slider.innerHTML = "";
+    
+    if(dots){
+        dots.innerHTML = "";
     }
 
 
-
-    if(
-        url.startsWith("http://") ||
-        url.startsWith("https://")
-    ){
-
-        return url;
-
-    }
+    // آخر 10 خلفيات
+    const items =
+    data
+    .slice()
+    .reverse()
+    .slice(0,10);
 
 
 
-    if(url.startsWith("/")){
-
-        return url;
-
-    }
+    items.forEach((wall,index)=>{
 
 
-
-    if(url.startsWith("assets/")){
-
-        return url;
-
-    }
+        const slide =
+        document.createElement("div");
 
 
+        slide.className =
+        "slide";
 
-    return "assets/wallpapers/" + url;
 
+        if(index === 0)
+        slide.classList.add("active");
+
+
+
+        slide.innerHTML = `
+
+        <img 
+        src="${wall.image}"
+        alt="${wall.title || 'Wallpaper'}">
+
+
+        <div class="slider-info">
+
+
+            <span class="slider-category">
+            ${wall.category || ""}
+            </span>
+
+
+            <h2>
+            ${wall.title || "Wallpaper"}
+            </h2>
+
+
+            <p>
+            ${wall.description || "خلفية مميزة من WallpaperHub"}
+            </p>
+
+
+            <button>
+            عرض الخلفية
+            </button>
+
+
+        </div>
+
+
+
+        <div class="mini-cards"></div>
+
+
+        `;
+
+
+
+        slide.querySelector("button")
+        .onclick = ()=>{
+
+            openWallpaper(wall.id);
+
+        };
+
+
+
+        slider.appendChild(slide);
+
+
+
+        // النقاط
+
+        if(dots){
+
+            const dot =
+            document.createElement("span");
+
+
+            dot.className =
+            "slider-dot";
+
+
+            if(index===0)
+            dot.classList.add("active");
+
+
+
+            dot.onclick=()=>{
+
+                showSlider(index);
+
+            };
+
+
+            dots.appendChild(dot);
+
+        }
+
+
+    });
+
+
+
+    createMiniCards(items);
+
+
+    startAutoSlider(items.length);
 
 }
 
 
 
 
+// عرض سلايد
 
-// =======================================
-// Detect Video
-// =======================================
-
-
-function isVideoMedia(wall){
+function showSlider(index){
 
 
-    if(!wall)
-
-        return false;
-
-
-
-    if(wall.type === "video")
-
-        return true;
-
-
-
-
-    const url =
-
-    String(wall.image || "")
-
-    .toLowerCase();
-
-
-
-
-    return [
-
-        ".mp4",
-        ".webm",
-        ".mov",
-        ".m3u8"
-
-    ].some(ext =>
-
-        url.includes(ext)
-
+    const slides =
+    document.querySelectorAll(
+        "#sliderContent .slide"
     );
 
 
-}
+    const dots =
+    document.querySelectorAll(
+        "#sliderDots .slider-dot"
+    );
 
 
+    if(!slides.length)
+    return;
 
 
 
+    sliderIndex = index;
 
-// =======================================
-// Open Wallpaper
-// =======================================
 
 
-function openWallpaper(id){
+    slides.forEach((slide,i)=>{
 
+        slide.classList.toggle(
+            "active",
+            i===index
+        );
 
-    if(!id)
+    });
 
-        return;
 
 
+    dots.forEach((dot,i)=>{
 
-    window.location.href =
+        dot.classList.toggle(
+            "active",
+            i===index
+        );
 
-    "wallpaper.html?id=" + id;
-
-
-}
-
-
-
-
-
-
-
-
-// =======================================
-// Render Slider
-// =======================================
-
-
-function renderSlider(wallpapers){
-
-
-
-const wrapper =
-
-document.getElementById("sliderWrapper");
-
-
-
-
-if(!wrapper)
-
-return;
-
-
-
-
-wrapper.innerHTML = "";
-
-
-
-
-
-const sliderWallpapers =
-
-
-wallpapers
-
-.slice()
-
-.reverse()
-
-.slice(0,10);
-
-
-
-
-
-if(!sliderWallpapers.length)
-
-return;
-
-
-
-
-
-
-
-
-sliderWallpapers.forEach(wall=>{
-
-
-const slide =
-
-document.createElement("div");
-
-
-
-
-
-slide.className =
-
-"swiper-slide slide";
-
-
-
-
-
-slide.dataset.wallpaperId =
-
-wall.id;
-
-
-
-
-
-
-let mediaHTML = "";
-
-
-
-
-
-// ======================
-// Video
-// ======================
-
-
-if(isVideoMedia(wall)){
-
-
-
-mediaHTML = `
-
-
-<video
-
-src="${getImageUrl(wall.image)}"
-
-muted
-
-loop
-
-autoplay
-
-playsinline
-
-preload="metadata"
-
->
-
-</video>
-
-
-`;
-
-
-
-
-}else{
-
-
-
-// ======================
-// Image
-// ======================
-
-
-mediaHTML = `
-
-
-<img
-
-src="${getImageUrl(
-
-wall.thumbnail || wall.image
-
-)}"
-
-
-alt="${wall.title || "Wallpaper"}"
-
-
-loading="lazy"
-
-
-onerror="this.src='assets/logo/no-image.png'"
-
->
-
-
-`;
-
+    });
 
 
 }
@@ -311,49 +201,61 @@ onerror="this.src='assets/logo/no-image.png'"
 
 
 
-slide.innerHTML = mediaHTML;
+// الصور الصغيرة
+
+function createMiniCards(items){
+
+
+    const container =
+    document.querySelector(
+        ".mini-cards"
+    );
+
+
+    if(!container)
+    return;
 
 
 
+    container.innerHTML="";
 
 
-slide.onclick = ()=>{
+    items.slice(0,4)
+    .forEach((wall,index)=>{
 
 
-openWallpaper(
-wall.id
-);
+        const card =
+        document.createElement("div");
 
 
-};
-
-
-
-
-
-wrapper.appendChild(slide);
+        card.className =
+        "mini-card";
 
 
 
-});
+        card.innerHTML=`
+
+        <img src="${wall.thumbnail || wall.image}">
+
+        <span>
+        ${wall.title || ""}
+        </span>
+
+        `;
 
 
 
+        card.onclick=()=>{
+
+            showSlider(index);
+
+        };
 
 
+        container.appendChild(card);
 
 
-
-// حذف Swiper القديم
-
-
-if(swiperInstance){
-
-
-swiperInstance.destroy(
-true,
-true
-);
+    });
 
 
 }
@@ -362,209 +264,32 @@ true
 
 
 
+// تشغيل تلقائي
 
-// =======================================
-// Gaming 3D Swiper
-// =======================================
-
-
-swiperInstance = new Swiper(
-
-".mySwiper",
-
-{
+function startAutoSlider(length){
 
 
-effect:"coverflow",
+    clearInterval(sliderTimer);
 
 
+    sliderTimer =
+    setInterval(()=>{
 
-grabCursor:true,
+
+        sliderIndex++;
 
 
-
-centeredSlides:true,
+        if(sliderIndex>=length)
+        sliderIndex=0;
 
 
 
-slidesPerView:"auto",
+        showSlider(sliderIndex);
 
 
 
-loop:
-
-sliderWallpapers.length > 2,
-
-
-
-
-
-coverflowEffect:{
-
-
-rotate:35,
-
-
-stretch:0,
-
-
-depth:220,
-
-
-modifier:1.2,
-
-
-slideShadows:true
-
-
-},
-
-
-
-
-
-autoplay:{
-
-
-delay:3000,
-
-
-disableOnInteraction:false
-
-
-},
-
-
-
-
-
-pagination:{
-
-
-el:".swiper-pagination",
-
-
-clickable:true
-
-
-}
-
-
-
-});
+    },5000);
 
 
 
 }
-
-
-
-
-
-
-
-
-// =======================================
-// Load Slider Data
-// =======================================
-
-
-async function loadSlider(){
-
-
-
-try{
-
-
-
-const response =
-
-await fetch("/api/wallpapers");
-
-
-
-
-
-if(!response.ok){
-
-throw new Error(
-"Wallpaper API Error"
-);
-
-}
-
-
-
-
-
-const wallpapers =
-
-await response.json();
-
-
-
-
-
-renderSlider(
-wallpapers
-);
-
-
-
-
-
-}catch(error){
-
-
-
-console.error(
-
-"Slider Error:",
-
-error
-
-);
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-// =======================================
-// Start
-// =======================================
-
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-
-loadSlider();
-
-
-
-});
-
-
-
-
-
-
-
-// Export
-
-window.renderSlider =
-
-renderSlider;
