@@ -112,6 +112,257 @@ transform:scale(.9);
 
 }
 
+/* ================= SLIDER ================= */
+
+.slider-section{
+    margin:18px;
+    height:220px;
+
+    position:relative;
+    border-radius:22px;
+
+    /* مساحة للإطار المتحرك */
+    padding:3px;
+
+    overflow:hidden;
+    isolation:isolate;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.15);
+}
+
+
+/* الإطار المتحرك */
+
+.slider-section::before{
+    content:"";
+
+    position:absolute;
+
+    width:160%;
+    height:220%;
+
+    left:-30%;
+    top:-60%;
+
+    background:
+        conic-gradient(
+            transparent 0deg,
+            transparent 70deg,
+            #5b5df5 110deg,
+            #00e5ff 145deg,
+            #ffffff 175deg,
+            #7d5fff 205deg,
+            transparent 250deg,
+            transparent 360deg
+        );
+
+    animation:
+        sliderBorderRotate 6s linear infinite;
+
+    z-index:-2;
+}
+
+
+/* خلفية داخلية */
+
+.slider-section::after{
+    content:"";
+
+    position:absolute;
+
+    inset:3px;
+
+    border-radius:19px;
+
+    background:#111;
+
+    z-index:-1;
+}
+
+
+/* محتوى السلايدر */
+
+#sliderContent{
+    position:relative;
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    border-radius:19px;
+
+    z-index:1;
+}
+
+
+/* دوران الضوء */
+
+@keyframes sliderBorderRotate{
+
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+
+}
+
+#sliderContent {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#sliderContent .slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translateX(100%);
+
+    transition:
+        transform .55s cubic-bezier(.22,.61,.36,1),
+        opacity .55s ease,
+        visibility .55s;
+}
+
+
+/* الصورة المعروضة */
+
+#sliderContent .slide.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateX(0);
+
+    z-index: 2;
+}
+
+
+/* الصورة القديمة تخرج لليسار */
+
+#sliderContent .slide.slide-out {
+    opacity: 1;
+    visibility: visible;
+
+    transform: translateX(-100%);
+
+    z-index: 1;
+}
+
+#sliderContent .slide img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    position:relative;
+    z-index:1;
+}
+
+/* ================= CATEGORIES ================= */
+
+.categories{
+
+margin:20px 18px;
+
+}
+
+.categories h3{
+
+margin-bottom:15px;
+
+font-size:20px;
+
+}
+
+.category-list{
+
+display:flex;
+
+gap:14px;
+
+overflow-x:auto;
+
+padding-bottom:8px;
+
+scrollbar-width:none;
+
+}
+
+.category-list::-webkit-scrollbar{
+
+display:none;
+
+}
+
+.category{
+
+min-width:90px;
+
+height:90px;
+
+background:#fff;
+
+border-radius:22px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:var(--shadow);
+
+transition:.35s;
+
+cursor:pointer;
+
+}
+
+.category:hover{
+
+transform:translateY(-4px);
+
+}
+
+.category:active{
+
+transform:scale(.95);
+
+}
+
+.category.active{
+
+background:linear-gradient(135deg,var(--primary),var(--primary2));
+
+color:#fff;
+
+}
+
+.category p{
+
+margin-top:8px;
+
+font-size:13px;
+
+font-weight:600;
+
+}
+
 /* ===================================
    WallpaperHub - home.css
    Part 2
@@ -315,6 +566,8 @@ transform:scale(1.1);
 /* ================= ANIMATION ================= */
 
 .header,
+
+.slider,
 
 .categories,
 
@@ -763,7 +1016,102 @@ body.dark button{
 .menu-btn.active span:nth-child(3){
     transform:translateY(-9px) rotate(-45deg);
 }
+/* ==================================
+   Slider Dots
+================================== */
 
+.slider-section{
+    position:relative;
+}
+
+
+/* النقاط داخل السلايدر */
+
+#sliderDots{
+
+    position:absolute;
+
+    bottom:20px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    z-index:30;
+
+
+    display:flex;
+
+    align-items:center;
+
+    gap:7px;
+
+
+    /*
+    مهم لأن الخلفيات يمكن
+    يكون عددها كبير
+    */
+
+    max-width:55%;
+
+    overflow-x:auto;
+
+    scrollbar-width:none;
+
+    padding:6px 8px;
+
+}
+
+
+#sliderDots::-webkit-scrollbar{
+
+    display:none;
+
+}
+
+
+.slider-dot{
+
+    flex:0 0 auto;
+
+    width:8px;
+
+    height:8px;
+
+    border-radius:50%;
+
+    background:
+        rgba(255,255,255,.55);
+
+    transition:
+        width .3s ease,
+        background .3s ease;
+
+}
+
+
+.slider-dot.active{
+
+    width:24px;
+
+    border-radius:10px;
+
+    background:#fff;
+
+}
+
+
+/* النقطة النشطة */
+
+.slider-dot.active{
+
+    width:22px;
+
+    border-radius:10px;
+
+    background:#ffffff;
+
+}
 
 /* إخفاء FAB فقط أثناء فتح القائمة */
 #aiFab.drawer-open {
@@ -1014,6 +1362,20 @@ body.dark button{
     80%{
         transform:rotate(-5deg);
     }
+
+}
+
+
+.slide img,
+.slide video{
+
+width:100%;
+
+height:100%;
+
+object-fit:cover;
+
+display:block;
 
 }
 

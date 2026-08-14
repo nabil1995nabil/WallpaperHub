@@ -715,88 +715,248 @@ function renderDownloaded() {
 }
 
 // =======================================
-// السلايدر 3D Coverflow Carousel
+// السلايدر القديم
+// Image + Video Support
 // =======================================
 
-let swiperInstance = null;
 
-function renderSlider() {
-    const wrapper = document.getElementById("sliderWrapper");
-    if (!wrapper) return;
+let currentSlide = 0;
+let sliderInterval;
 
-    wrapper.innerHTML = "";
 
-    // جلب أحدث الخلفيات للعرض في السلايدر
-    const sliderWallpapers = wallpapers.slice().reverse().slice(0, 10);
 
-    if (sliderWallpapers.length === 0) return;
+function renderSlider(){
 
-    sliderWallpapers.forEach(wall => {
-        const slide = document.createElement("div");
-        slide.className = "swiper-slide";
-        slide.dataset.wallpaperId = wall.id;
+
+    const slider =
+    document.getElementById("sliderContent");
+
+
+    const dotsContainer =
+    document.getElementById("sliderDots");
+
+
+    if(!slider)
+        return;
+
+
+
+    slider.innerHTML = "";
+
+
+    if(dotsContainer)
+        dotsContainer.innerHTML = "";
+
+
+
+    const sliderWallpapers =
+
+    wallpapers
+    .slice()
+    .reverse()
+    .slice(0,10);
+
+
+
+
+    sliderWallpapers.forEach((wall,index)=>{
+
+
+        const slide =
+        document.createElement("div");
+
+
+        slide.className =
+        "slide";
+
+
+
+        slide.dataset.wallpaperId =
+        wall.id;
+
+
 
         let mediaHTML = "";
-        
-        // دعم الصور والفيديوهات
-        if (isVideoMedia(wall)) {
+
+
+
+        if(isVideoMedia(wall)){
+
+
             mediaHTML = `
-                <video 
-                    src="${getImageUrl(wall.image)}" 
-                    muted 
-                    loop 
-                    autoplay 
-                    playsinline>
-                </video>`;
-        } else {
+
+            <video
+
+            src="${getImageUrl(wall.image)}"
+
+            muted
+            loop
+            autoplay
+            playsinline>
+
+            </video>
+
+            `;
+
+
+        }else{
+
+
             mediaHTML = `
-                <img 
-                    src="${getImageUrl(wall.thumbnail || wall.image)}" 
-                    alt="${wall.title || 'Wallpaper'}" 
-                    loading="lazy" 
-                    onerror="this.src='assets/logo/no-image.png'">`;
+
+            <img
+
+            src="${getImageUrl(
+            wall.thumbnail || wall.image
+            )}"
+
+            alt="${wall.title || 'Wallpaper'}">
+
+            `;
+
+
         }
 
-        slide.innerHTML = mediaHTML;
 
-        // عند النقر فتح صفحة التفاصيل
-        slide.addEventListener("click", function() {
-            openWallpaper(this.dataset.wallpaperId);
-        });
 
-        wrapper.appendChild(slide);
+        slide.innerHTML =
+        mediaHTML;
+
+
+
+        slide.onclick = ()=>{
+
+            openWallpaper(
+                wall.id
+            );
+
+        };
+
+
+
+        slider.appendChild(slide);
+
+
+
+
+        if(dotsContainer){
+
+
+            const dot =
+            document.createElement("span");
+
+
+            dot.className =
+            "slider-dot";
+
+
+            dotsContainer.appendChild(dot);
+
+
+        }
+
+
+
     });
 
-    // إعادة تهيئة Swiper Carousel
-    if (swiperInstance) {
-        swiperInstance.destroy(true, true);
-    }
-
-    swiperInstance = new Swiper(".mySwiper", {
-        effect: "coverflow",
-        grabCursor: true,
-        centeredSlides: true,
-        slidesPerView: "auto",
-        loop: sliderWallpapers.length > 2,
-        coverflowEffect: {
-            rotate: 25,        // زاوية دوران البطاقات الجانبية
-            stretch: 0,        // المسافة البينية
-            depth: 180,        // عمق الصورة في المنتصف لتظهر أكبر
-            modifier: 1,       // قوة التأثير
-            slideShadows: true // إظهار الظلال على البطاقات الجانبية
-        },
-        autoplay: {
-            delay: 3000,
-            disableOnInteraction: false,
-        },
-        pagination: {
-            el: ".swiper-pagination",
-            clickable: true,
-        },
-    });
 
 
     startSlider();
+
+
+}
+
+
+
+
+
+function startSlider(){
+
+
+    const slides =
+    document.querySelectorAll(
+    "#sliderContent .slide"
+    );
+
+
+    const dots =
+    document.querySelectorAll(
+    "#sliderDots .slider-dot"
+    );
+
+
+
+    if(!slides.length)
+        return;
+
+
+
+    clearInterval(sliderInterval);
+
+
+
+    function showSlide(index){
+
+
+        slides.forEach(slide=>{
+
+            slide.classList.remove(
+            "active",
+            "slide-out"
+            );
+
+        });
+
+
+
+        slides[index].classList.add(
+        "active"
+        );
+
+
+
+        dots.forEach((dot,i)=>{
+
+
+            dot.classList.toggle(
+            "active",
+            i===index
+            );
+
+
+        });
+
+
+
+        currentSlide=index;
+
+
+    }
+
+
+
+
+    showSlide(0);
+
+
+
+    sliderInterval =
+    setInterval(()=>{
+
+
+        currentSlide++;
+
+
+        if(currentSlide >= slides.length)
+            currentSlide=0;
+
+
+
+        showSlide(currentSlide);
+
+
+
+    },4000);
 
 
 
