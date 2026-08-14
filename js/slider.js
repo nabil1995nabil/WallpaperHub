@@ -61,11 +61,17 @@ data
 
 
 <div class="slider-category">
-${wall.category}
+${wall.category || ""}
 </div>
 
 
 <div class="title-marquee">
+
+<h2>
+${wall.title || "Wallpaper"}
+</h2>
+
+</div>
 
 <div class="title-box">
 
