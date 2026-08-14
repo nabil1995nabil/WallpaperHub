@@ -151,7 +151,6 @@ ${wall.title || "Wallpaper"}
 
 function showSlider(index){
 
-
     const slides =
     document.querySelectorAll(
         "#sliderContent .slide"
@@ -168,16 +167,14 @@ function showSlider(index){
     return;
 
 
-
     sliderIndex = index;
-
 
 
     slides.forEach((slide,i)=>{
 
         slide.classList.toggle(
             "active",
-            i===index
+            i === index
         );
 
     });
@@ -188,17 +185,65 @@ function showSlider(index){
 
         dot.classList.toggle(
             "active",
-            i===index
+            i === index
         );
 
     });
 
 
+
+    updateMiniCards(index);
+
 }
 
+function updateMiniCards(index){
+
+    const cards =
+    document.querySelectorAll(".mini-card img");
 
 
+    const labels =
+    document.querySelectorAll(".mini-card span");
 
+
+    const total =
+    wallpapers.length;
+
+
+    cards.forEach((card,i)=>{
+
+        let imgIndex =
+        (index + i + total - 1) % total;
+
+
+        card.src =
+        wallpapers[imgIndex].thumbnail ||
+        wallpapers[imgIndex].image;
+
+
+        if(labels[i]){
+
+            labels[i].textContent =
+            wallpapers[imgIndex].title || "";
+
+        }
+
+
+    });
+
+
+    document
+    .querySelectorAll(".mini-card")
+    .forEach((card,i)=>{
+
+        card.classList.toggle(
+            "active",
+            i === 1
+        );
+
+    });
+
+}
 
 // الصور الصغيرة
 
@@ -207,14 +252,13 @@ function createMiniCards(items){
     const container =
     document.querySelector(".mini-cards");
 
-
     if(!container) return;
 
 
     container.innerHTML="";
 
 
-    items.forEach((wall,index)=>{
+    items.slice(0,4).forEach((wall,index)=>{
 
 
         const card =
