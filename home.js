@@ -557,11 +557,20 @@ const categoryNames = {
 
     dark: "🖤 Dark",
 
-    "4k": "💎 4K",
+    4k: "💎 4K",
 
     sports: "⚽ الرياضة",
 
     minimal: "✨ Minimal"
+
+    rain: "🌧️ المطر",
+
+    sunset: "🌅 الغروب",
+
+    architecture: "🏛️ العمارة",
+
+   deep-space: "🚀 الفضاء العميق",
+
 
 };
 
