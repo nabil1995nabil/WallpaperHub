@@ -15,9 +15,14 @@ font-family:Arial,sans-serif;
 
 body{
 
-background:#f5f7fb;
+background:
+radial-gradient(
+circle at top,
+#1b2340,
+#05060b 70%
+);
 
-color:#222;
+color:#fff;
 
 padding-bottom:100px;
 
@@ -40,9 +45,10 @@ top:0;
 
 height:65px;
 
-background:#ffffffee;
+background:
+rgba(10,15,30,.65);
 
-backdrop-filter:blur(15px);
+backdrop-filter:blur(18px);
 
 display:flex;
 
@@ -53,7 +59,10 @@ align-items:center;
 padding:0 18px;
 
 box-shadow:
-0 5px 18px rgba(0,0,0,.08);
+0 5px 30px rgba(0,0,0,.5);
+
+border-bottom:
+1px solid rgba(255,255,255,.08);
 
 z-index:1000;
 
@@ -71,10 +80,23 @@ border:none;
 
 border-radius:50%;
 
-background:#fff;
+
+background:
+linear-gradient(
+145deg,
+rgba(255,255,255,.25),
+rgba(255,255,255,.05)
+);
+
+
+color:white;
+
 
 box-shadow:
-0 5px 15px rgba(0,0,0,.08);
+
+inset 0 0 15px rgba(255,255,255,.15),
+0 10px 25px rgba(0,0,0,.5);
+
 
 display:flex;
 
@@ -88,6 +110,14 @@ transition:.3s;
 
 }
 
+
+.icon-btn:hover{
+
+transform:
+translateY(-3px)
+scale(1.05);
+
+}
 
 
 .icon-btn:active{
@@ -1884,5 +1914,101 @@ gap:10px;
 align-items:center;
 
 font-size:15px;
+
+}
+
+#wallTitle2{
+    font-size:18px;
+    font-weight:400;
+    text-align:center;
+    line-height:1.4;
+    margin:20px 15px;
+    color:#222;
+    word-break:break-word;
+}
+
+#wallTitle{
+    display:none;
+}
+
+/* ==========================
+   5D Gaming Preview
+========================== */
+
+
+.wallpaper-preview-wrapper{
+
+transform-style:preserve-3d;
+
+perspective:1200px;
+
+transition:
+transform .4s ease;
+
+}
+
+
+
+.wallpaper-preview-wrapper::before{
+
+content:"";
+
+position:absolute;
+
+inset:-5px;
+
+border-radius:35px;
+
+
+background:
+
+linear-gradient(
+45deg,
+#00eaff,
+#7c3cff,
+#ff0080,
+#00eaff
+);
+
+
+background-size:300% 300%;
+
+
+animation:
+rgbBorder 8s linear infinite;
+
+
+filter:blur(15px);
+
+opacity:.7;
+
+z-index:-1;
+
+}
+
+
+
+@keyframes rgbBorder{
+
+
+0%{
+
+background-position:0% 50%;
+
+}
+
+
+50%{
+
+background-position:100% 50%;
+
+}
+
+
+100%{
+
+background-position:0% 50%;
+
+}
 
 }
