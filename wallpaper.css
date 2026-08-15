@@ -1,18 +1,26 @@
 /* ============================
  WallpaperHub Gaming 5D CSS
- Part 1
+ PART 1
+ Base + Body + Header + Preview
 ============================= */
 
+
+/* RESET */
 
 *{
 
 margin:0;
-
 padding:0;
-
 box-sizing:border-box;
-
 font-family:Arial,sans-serif;
+
+}
+
+
+
+html{
+
+scroll-behavior:smooth;
 
 }
 
@@ -20,27 +28,102 @@ font-family:Arial,sans-serif;
 
 body{
 
-
 background:
 
 radial-gradient(
 circle at top,
-#202b55 0%,
-#080b18 45%,
-#03040a 100%
+#26345f 0%,
+#0b1024 40%,
+#03050d 100%
 );
 
 
 color:white;
 
-
 padding-bottom:100px;
-
 
 overflow-x:hidden;
 
+}
+
+
+
+/* طبقة الإضاءة العامة */
+
+body::after{
+
+content:"";
+
+position:fixed;
+
+inset:0;
+
+
+background:
+
+radial-gradient(
+circle at 20% 20%,
+rgba(0,234,255,.12),
+transparent 30%
+),
+
+
+radial-gradient(
+circle at 80% 80%,
+rgba(255,0,170,.12),
+transparent 30%
+);
+
+
+pointer-events:none;
+
+
+z-index:0;
+
+
+animation:
+
+atmosphereMove 12s ease infinite;
 
 }
+
+
+
+@keyframes atmosphereMove{
+
+
+0%,100%{
+
+transform:scale(1);
+
+}
+
+
+50%{
+
+transform:scale(1.15);
+
+}
+
+
+}
+
+
+
+/* كل العناصر فوق الإضاءة */
+
+.top-bar,
+.preview,
+.info,
+.tags,
+.similar{
+
+position:relative;
+
+z-index:2;
+
+}
+
 
 
 
@@ -54,22 +137,28 @@ overflow-x:hidden;
 
 position:sticky;
 
-
 top:0;
 
 
 height:65px;
 
 
+
 background:
 
-rgba(10,15,35,.65);
+rgba(10,15,35,.75);
 
 
-backdrop-filter:blur(18px);
+
+backdrop-filter:
+
+blur(18px);
 
 
--webkit-backdrop-filter:blur(18px);
+
+-webkit-backdrop-filter:
+
+blur(18px);
 
 
 
@@ -107,12 +196,10 @@ z-index:1000;
 
 
 
-
 .icon-btn{
 
 
 width:46px;
-
 
 height:46px;
 
@@ -127,13 +214,9 @@ border-radius:50%;
 background:
 
 linear-gradient(
-
 145deg,
-
 rgba(255,255,255,.25),
-
 rgba(255,255,255,.05)
-
 );
 
 
@@ -152,21 +235,18 @@ justify-content:center;
 
 
 
-box-shadow:
-
-
-inset 0 0 15px rgba(255,255,255,.15),
-
-0 10px 25px rgba(0,0,0,.5);
-
-
-
 cursor:pointer;
 
 
 
-transition:.3s;
+box-shadow:
 
+inset 0 0 15px rgba(255,255,255,.15),
+0 10px 25px rgba(0,0,0,.5);
+
+
+
+transition:.3s;
 
 
 }
@@ -179,7 +259,6 @@ transition:.3s;
 transform:
 
 translateY(-3px)
-
 scale(1.05);
 
 
@@ -187,8 +266,9 @@ scale(1.05);
 
 
 
+
 /* ============================
- PREVIEW
+ PREVIEW AREA
 ============================= */
 
 
@@ -197,8 +277,9 @@ scale(1.05);
 
 padding:18px;
 
-
 }
+
+
 
 
 
@@ -221,17 +302,17 @@ overflow:hidden;
 transform-style:preserve-3d;
 
 
-
 perspective:1200px;
 
 
 
-transition:.4s;
+transition:
+
+transform .4s ease;
 
 
 
 box-shadow:
-
 
 0 30px 80px rgba(0,0,0,.65);
 
@@ -241,9 +322,8 @@ box-shadow:
 
 
 
-
-/* RGB GLOW */
-
+ 
+/* RGB BORDER */
 
 .wallpaper-preview-wrapper::before{
 
@@ -264,19 +344,12 @@ border-radius:38px;
 
 background:
 
-
 linear-gradient(
-
 45deg,
-
 #00eaff,
-
 #7c3cff,
-
 #ff0080,
-
 #00eaff
-
 );
 
 
@@ -294,13 +367,11 @@ rgbBorder 8s linear infinite;
 filter:blur(18px);
 
 
-
 opacity:.8;
 
 
 
 z-index:-1;
-
 
 
 }
@@ -336,9 +407,9 @@ background-position:0% 50%;
 
 
 
-
-
-/* MEDIA */
+/* ============================
+ IMAGE / VIDEO
+============================= */
 
 
 .preview img,
@@ -369,7 +440,8 @@ background:#000;
 
 transition:
 
-transform .5s ease;
+transform .5s ease,
+filter .5s ease;
 
 
 
@@ -377,12 +449,9 @@ transform .5s ease;
 
 
 
-
 #wallImage{
 
-
 display:block;
-
 
 }
 
@@ -390,17 +459,12 @@ display:block;
 
 #wallVideo{
 
-
 display:none;
-
 
 }
 
-
-
-
 /* ============================
- QUALITY
+ QUALITY BADGE
 ============================= */
 
 
@@ -417,7 +481,7 @@ left:15px;
 
 
 
-padding:8px 13px;
+padding:8px 14px;
 
 
 
@@ -427,7 +491,15 @@ rgba(0,0,0,.55);
 
 
 
-backdrop-filter:blur(10px);
+backdrop-filter:
+
+blur(12px);
+
+
+
+-webkit-backdrop-filter:
+
+blur(12px);
 
 
 
@@ -449,7 +521,14 @@ z-index:10;
 
 border:
 
-1px solid rgba(255,255,255,.15);
+1px solid rgba(255,255,255,.2);
+
+
+
+box-shadow:
+
+0 8px 25px rgba(0,0,0,.4);
+
 
 
 }
@@ -458,8 +537,9 @@ border:
 
 
 
+
 /* ============================
- ACTION BUTTONS
+ IMAGE ACTION BUTTONS
 ============================= */
 
 
@@ -470,18 +550,19 @@ position:absolute;
 
 
 
-bottom:16px;
+bottom:18px;
 
 
 
-width:46px;
+width:48px;
 
 
-height:46px;
+height:48px;
 
 
 
 border:none;
+
 
 
 border-radius:50%;
@@ -516,24 +597,31 @@ z-index:20;
 
 
 
-backdrop-filter:blur(15px);
+backdrop-filter:
+
+blur(15px);
+
+
+
+-webkit-backdrop-filter:
+
+blur(15px);
 
 
 
 border:
 
-1px solid rgba(255,255,255,.15);
+1px solid rgba(255,255,255,.18);
 
 
 
 box-shadow:
 
-
-0 10px 25px rgba(0,0,0,.5);
-
+0 10px 30px rgba(0,0,0,.5);
 
 
-transition:.25s;
+
+transition:.3s;
 
 
 
@@ -548,8 +636,8 @@ transition:.25s;
 transform:
 
 translateY(-5px)
-
 scale(1.08);
+
 
 
 }
@@ -560,36 +648,18 @@ scale(1.08);
 .image-action-btn:active{
 
 
-transform:scale(.9);
+transform:
+
+scale(.9);
+
 
 
 background:#6366f1;
 
 
-}
-
-
-
-
-
-.download-image-btn{
-
-
-right:14px;
-
 
 }
 
-
-
-
-.fullscreen-image-btn{
-
-
-left:14px;
-
-
-}
 
 
 
@@ -604,31 +674,368 @@ font-size:25px;
 
 
 
+
+
+.download-image-btn{
+
+
+right:15px;
+
+
+}
+
+
+
+
+
+.fullscreen-image-btn{
+
+
+left:15px;
+
+
+}
+
+
+
+
+
+
 /* ============================
- VIDEO BUTTON
+ MORE OPTIONS BUTTON
 ============================= */
 
 
-.video-floating-btn{
+.more-options-btn{
 
 
-animation:none;
+position:absolute;
+
+
+top:20px;
+
+
+right:20px;
+
+
+
+width:45px;
+
+
+height:45px;
+
+
+
+border-radius:50%;
+
+
+
+border:1px solid rgba(255,255,255,.2);
+
+
+
+background:
+
+rgba(0,0,0,.45);
+
+
+
+color:white;
+
+
+
+backdrop-filter:
+
+blur(12px);
+
+
+
+z-index:20;
+
 
 
 }
 
 
 
-.video-floating-btn .material-icons{
 
 
-font-size:23px;
+.options-menu{
+
+
+position:absolute;
+
+
+top:70px;
+
+
+right:20px;
+
+
+
+background:
+
+rgba(20,20,40,.8);
+
+
+
+backdrop-filter:
+
+blur(20px);
+
+
+
+border-radius:18px;
+
+
+
+padding:10px;
+
+
+
+display:none;
+
+
+
+z-index:50;
+
+
+
+border:
+
+1px solid rgba(255,255,255,.15);
+
+
+
+box-shadow:
+
+0 15px 40px rgba(0,0,0,.5);
+
+
+
+}
+
+
+
+
+
+.options-menu.active{
+
+
+display:block;
+
+
+}
+
+
+
+
+
+
+
+/* ============================
+ 5D DEPTH EFFECT
+============================= */
+
+
+
+.wallpaper-preview-wrapper{
+
+
+isolation:isolate;
+
+
+}
+
+
+
+
+
+.wallpaper-preview-wrapper::after{
+
+
+content:"";
+
+
+position:absolute;
+
+
+inset:0;
+
+
+
+background:
+
+
+radial-gradient(
+
+circle at 30% 20%,
+
+rgba(0,234,255,.25),
+
+transparent 35%
+
+);
+
+
+
+pointer-events:none;
+
+
+
+z-index:3;
+
+
+
+mix-blend-mode:screen;
+
+
+
+}
+
+
+
+
+.preview img,
+.preview video{
+
+
+transform:
+
+translateZ(30px);
+
+
+
+}
+
+
+
+
+.wallpaper-preview-wrapper:hover
+.preview img,
+.wallpaper-preview-wrapper:hover
+.preview video{
+
+
+filter:
+
+brightness(1.12)
+contrast(1.08)
+saturate(1.15);
+
+
+
+}
+
+
+
+
+
+/* انعكاس ضوء سينمائي */
+
+
+.wallpaper-preview-wrapper::marker{
+
+
+display:none;
+
+
+}
+
+
+
+
+
+.wallpaper-preview-wrapper:hover::after{
+
+
+background:
+
+linear-gradient(
+
+120deg,
+
+transparent 20%,
+
+rgba(255,255,255,.25),
+
+transparent 70%
+
+);
+
+
+
+animation:
+
+shineMove 1s;
+
+
+
+}
+
+
+
+
+@keyframes shineMove{
+
+
+from{
+
+transform:translateX(-100%);
+
+}
+
+
+
+to{
+
+transform:translateX(100%);
+
+}
+
+
+
+}
+
+
+
+
+/* ============================
+ 5D MOBILE TOUCH
+============================= */
+
+
+@media(max-width:600px){
+
+
+
+.preview img,
+.preview video{
+
+
+height:58vh;
+
+
+}
+
+
+
+.image-action-btn{
+
+
+width:44px;
+
+height:44px;
+
+
+}
+
 
 
 }
 
 /* ============================
- INFO SECTION - GLASS GAMING
+ INFO GAMING GLASS CARD
 ============================= */
 
 
@@ -638,8 +1045,8 @@ font-size:23px;
 margin:18px;
 
 
-background:
 
+background:
 
 rgba(255,255,255,.08);
 
@@ -647,13 +1054,11 @@ rgba(255,255,255,.08);
 
 backdrop-filter:
 
-
 blur(20px);
 
 
 
 -webkit-backdrop-filter:
-
 
 blur(20px);
 
@@ -669,19 +1074,96 @@ padding:22px;
 
 border:
 
-
 1px solid rgba(255,255,255,.15);
 
 
 
 box-shadow:
 
-
 0 25px 60px rgba(0,0,0,.45);
 
 
 
+overflow:hidden;
+
+
+
 }
+
+
+
+
+
+.info::before{
+
+
+content:"";
+
+
+position:absolute;
+
+
+top:0;
+
+
+left:-100%;
+
+
+width:100%;
+
+
+height:2px;
+
+
+
+background:
+
+linear-gradient(
+
+90deg,
+
+transparent,
+
+#00eaff,
+
+#ff00aa,
+
+transparent
+
+);
+
+
+
+animation:
+
+hudLine 4s linear infinite;
+
+
+
+}
+
+
+
+
+@keyframes hudLine{
+
+
+0%{
+
+transform:translateX(0);
+
+}
+
+
+100%{
+
+transform:translateX(200%);
+
+}
+
+
+}
+
 
 
 
@@ -691,10 +1173,10 @@ box-shadow:
 font-size:24px;
 
 
-margin-bottom:20px;
-
-
 text-align:center;
+
+
+margin-bottom:20px;
 
 
 color:white;
@@ -725,24 +1207,57 @@ padding:15px 0;
 
 border-bottom:
 
-
 1px solid rgba(255,255,255,.12);
 
 
 
+background:
+
+rgba(255,255,255,.03);
+
+
+
+border-radius:15px;
+
+
+
+margin-bottom:8px;
+
+
+
+padding-left:12px;
+
+padding-right:12px;
+
+
+
+transition:.3s;
+
+
+
 }
 
 
 
 
 
-.info-item:last-child{
+.info-item:hover{
 
 
-border:none;
+background:
+
+rgba(0,234,255,.12);
+
+
+
+transform:
+
+translateX(5px);
+
 
 
 }
+
 
 
 
@@ -750,11 +1265,13 @@ border:none;
 .info-item span:first-child{
 
 
-color:rgba(255,255,255,.65);
+color:
+
+rgba(255,255,255,.65);
+
 
 
 }
-
 
 
 
@@ -762,10 +1279,11 @@ color:rgba(255,255,255,.65);
 .info-item span:last-child{
 
 
+color:white;
+
+
 font-weight:bold;
 
-
-color:white;
 
 
 }
@@ -774,10 +1292,8 @@ color:white;
 
 
 
-
-
 /* ============================
- TAGS
+ TAGS NEON
 ============================= */
 
 
@@ -791,6 +1307,7 @@ margin:18px;
 
 
 
+
 .tags h3{
 
 
@@ -798,6 +1315,7 @@ margin-bottom:15px;
 
 
 }
+
 
 
 
@@ -819,12 +1337,25 @@ gap:10px;
 
 
 
-
 .tag{
 
 
-background:
+position:relative;
 
+
+overflow:hidden;
+
+
+
+padding:10px 18px;
+
+
+
+border-radius:30px;
+
+
+
+background:
 
 linear-gradient(
 
@@ -838,26 +1369,17 @@ rgba(255,255,255,.05)
 
 
 
-padding:10px 18px;
-
-
-border-radius:30px;
-
-
-
 color:white;
 
 
 
 border:
 
-
-1px solid rgba(255,255,255,.15);
+1px solid rgba(255,255,255,.18);
 
 
 
 box-shadow:
-
 
 0 10px 25px rgba(0,0,0,.35);
 
@@ -871,12 +1393,81 @@ transition:.3s;
 
 
 
+
+
 .tag:hover{
 
 
 transform:
 
-translateY(-5px);
+translateY(-6px);
+
+
+
+box-shadow:
+
+0 0 25px rgba(0,234,255,.4);
+
+
+
+}
+
+
+
+
+
+.tag::after{
+
+
+content:"";
+
+
+position:absolute;
+
+
+inset:0;
+
+
+
+background:
+
+linear-gradient(
+
+120deg,
+
+transparent,
+
+rgba(255,255,255,.4),
+
+transparent
+
+);
+
+
+
+transform:
+
+translateX(-120%);
+
+
+
+transition:.6s;
+
+
+
+}
+
+
+
+
+
+.tag:hover::after{
+
+
+transform:
+
+translateX(120%);
+
 
 
 }
@@ -892,6 +1483,7 @@ translateY(-5px);
 ============================= */
 
 
+
 .similar{
 
 
@@ -899,7 +1491,6 @@ margin:18px;
 
 
 }
-
 
 
 
@@ -919,6 +1510,7 @@ align-items:center;
 margin-bottom:15px;
 
 
+
 }
 
 
@@ -931,8 +1523,10 @@ margin-bottom:15px;
 font-size:22px;
 
 
-}
+color:white;
 
+
+}
 
 
 
@@ -940,7 +1534,7 @@ font-size:22px;
 .section-title a{
 
 
-color:#60a5fa;
+color:#00eaff;
 
 
 font-weight:bold;
@@ -955,22 +1549,23 @@ text-decoration:none;
 
 
 
-
 .similar-grid{
 
 
 display:grid;
 
 
-grid-template-columns:repeat(2,1fr);
+grid-template-columns:
+
+repeat(2,1fr);
+
 
 
 gap:15px;
 
 
+
 }
-
-
 
 
 
@@ -981,13 +1576,17 @@ gap:15px;
 
 background:
 
-
 rgba(255,255,255,.08);
 
 
 
 backdrop-filter:
 
+blur(18px);
+
+
+
+-webkit-backdrop-filter:
 
 blur(18px);
 
@@ -1003,15 +1602,13 @@ overflow:hidden;
 
 border:
 
-
-1px solid rgba(255,255,255,.12);
+1px solid rgba(255,255,255,.15);
 
 
 
 box-shadow:
 
-
-0 20px 45px rgba(0,0,0,.4);
+0 20px 45px rgba(0,0,0,.45);
 
 
 
@@ -1026,6 +1623,25 @@ transition:.35s;
 }
 
 
+
+
+.similar-card:hover{
+
+
+transform:
+
+translateY(-8px)
+scale(1.03);
+
+
+
+box-shadow:
+
+0 25px 60px rgba(0,234,255,.25);
+
+
+
+}
 
 
 
@@ -1052,6 +1668,7 @@ display:block;
 
 
 
+
 .similar-card p{
 
 
@@ -1073,27 +1690,6 @@ color:white;
 
 
 
-.similar-card:hover{
-
-
-transform:
-
-
-translateY(-8px)
-
-
-scale(1.03);
-
-
-
-}
-
-
-
-
-
-
-
 /* ============================
  RATING
 ============================= */
@@ -1108,10 +1704,8 @@ display:flex;
 gap:5px;
 
 
-margin-top:8px;
-
-
 }
+
 
 
 
@@ -1126,14 +1720,10 @@ color:#555;
 
 
 
-cursor:pointer;
-
-
 transition:.25s;
 
 
 }
-
 
 
 
@@ -1144,15 +1734,14 @@ transition:.25s;
 color:#ffd700;
 
 
-text-shadow:
 
+text-shadow:
 
 0 0 15px #ffd700;
 
 
+
 }
-
-
 
 
 
@@ -1161,8 +1750,8 @@ text-shadow:
 
 transform:
 
-
 scale(1.2);
+
 
 
 }
@@ -1176,8 +1765,8 @@ scale(1.2);
 color:rgba(255,255,255,.7);
 
 
-}
 
+}
 
 
 
@@ -1191,425 +1780,302 @@ color:white;
 font-weight:bold;
 
 
+
+}
+
+/* ============================
+ FULLSCREEN VIEWER
+============================= */
+
+
+.fullscreen-viewer{
+
+
+position:fixed;
+
+
+inset:0;
+
+
+width:100%;
+
+
+height:100dvh;
+
+
+
+background:#000;
+
+
+
+z-index:99999;
+
+
+
+display:flex;
+
+
+
+align-items:center;
+
+
+
+justify-content:center;
+
+
+
+opacity:0;
+
+
+
+visibility:hidden;
+
+
+
+pointer-events:none;
+
+
+
+transition:.35s;
+
+
+
 }
 
 
 
+
+
+.fullscreen-viewer.active{
+
+
+opacity:1;
+
+
+visibility:visible;
+
+
+pointer-events:auto;
+
+
+}
+
+
+
+
+
+
+#fullscreenImage,
+#fullscreenVideo{
+
+
+width:100%;
+
+
+height:100%;
+
+
+object-fit:contain;
+
+
+
+transform:
+
+scale(.85);
+
+
+
+opacity:0;
+
+
+
+transition:
+
+.45s cubic-bezier(.22,.8,.25,1);
+
+
+
+}
+
+
+
+
+
+.fullscreen-viewer.active
+#fullscreenImage,
+
+.fullscreen-viewer.active
+#fullscreenVideo{
+
+
+transform:
+
+scale(1);
+
+
+
+opacity:1;
+
+
+
+}
 
 
 
 
 
 /* ============================
- DARK MODE
+ FULLSCREEN BUTTONS
 ============================= */
 
 
-body.dark{
+.fullscreen-close{
+
+
+position:absolute;
+
+
+top:20px;
+
+
+right:20px;
+
+
+
+width:45px;
+
+
+height:45px;
+
+
+
+border-radius:50%;
+
+
+
+border:none;
+
 
 
 background:
 
-
-#050505;
-
-
-}
-
-
-
-body.dark .info,
-
-body.dark .similar-card,
-
-body.dark .tag{
-
-
-background:
-
-
-rgba(255,255,255,.08);
+rgba(0,0,0,.55);
 
 
 
 color:white;
 
 
-}
+
+display:flex;
+
+
+align-items:center;
+
+
+justify-content:center;
 
 
 
+z-index:20;
 
 
 
-
-
-/* ============================
- MOBILE
-============================= */
-
-
-@media(max-width:600px){
-
-
-
-.preview img,
-
-.preview video{
-
-
-height:58vh;
-
-
-}
-
-
-
-.info{
-
-
-margin:15px;
-
-
-}
-
-
-
-.info h2{
-
-
-font-size:21px;
-
-
-}
-
-
-
-.similar-card img{
-
-
-height:180px;
-
-
-}
+backdrop-filter:blur(12px);
 
 
 
 }
 
-// ===============================
-// WallpaperHub 5D Gaming Motion
-// ===============================
 
 
-const previewCard =
-document.querySelector(".wallpaper-preview-wrapper");
+.set-wallpaper-btn{
 
 
+position:absolute;
 
-if(previewCard){
 
 
+bottom:30px;
 
-    // حركة الماوس للكمبيوتر
 
-    previewCard.addEventListener(
-    "mousemove",
-    (e)=>{
+left:50%;
 
 
-        const box =
-        previewCard.getBoundingClientRect();
 
+transform:
 
+translateX(-50%);
 
-        const x =
-        e.clientX - box.left;
 
 
+min-width:190px;
 
-        const y =
-        e.clientY - box.top;
 
 
+height:52px;
 
-        const rotateY =
-        ((x / box.width)-0.5) * 14;
 
 
+padding:0 25px;
 
-        const rotateX =
-        ((y / box.height)-0.5) * -14;
 
 
+border:none;
 
 
-        previewCard.style.transform =
-        `
-        perspective(1200px)
-        rotateX(${rotateX}deg)
-        rotateY(${rotateY}deg)
-        scale(1.03)
-        `;
 
+border-radius:30px;
 
-
-    });
-
-
-
-    previewCard.addEventListener(
-    "mouseleave",
-    ()=>{
-
-
-        previewCard.style.transform =
-        `
-        perspective(1200px)
-        rotateX(0deg)
-        rotateY(0deg)
-        scale(1)
-        `;
-
-
-    });
-
-
-
-}
-
-
-
-
-
-// ===============================
-// حركة الهاتف Gyroscope
-// ===============================
-
-
-window.addEventListener(
-"deviceorientation",
-(e)=>{
-
-
-    if(!previewCard)
-    return;
-
-
-
-    let x =
-    e.gamma || 0;
-
-
-
-    let y =
-    e.beta || 0;
-
-
-
-    x =
-    Math.max(-15,Math.min(15,x));
-
-
-
-    y =
-    Math.max(-15,Math.min(15,y));
-
-
-
-    previewCard.style.transform =
-    `
-    perspective(1200px)
-    rotateY(${x/2}deg)
-    rotateX(${-(y-45)/3}deg)
-    scale(1.02)
-    `;
-
-
-
-});
-
-/* ==========================
-   5D DEPTH LAYERS
-========================== */
-
-
-.wallpaper-preview-wrapper{
-
-    isolation:isolate;
-
-}
-
-
-
-/* طبقة ضوء متحركة */
-
-.wallpaper-preview-wrapper::after{
-
-    content:"";
-
-    position:absolute;
-
-    inset:0;
-
-
-    background:
-
-    radial-gradient(
-    circle at 30% 20%,
-    rgba(0,234,255,.35),
-    transparent 35%
-    );
-
-
-    opacity:.5;
-
-
-    pointer-events:none;
-
-
-    z-index:3;
-
-
-    mix-blend-mode:screen;
-
-
-    transition:.3s;
-
-}
-
-
-
-
-/* الصورة كطبقة خلفية */
-
-#wallImage,
-#wallVideo{
-
-
-    position:relative;
-
-    z-index:1;
-
-
-    transform:
-    translateZ(0);
-
-
-}
-
-
-
-/* تأثير انعكاس على الصورة */
-
-
-.wallpaper-preview-wrapper:hover
-#wallImage,
-.wallpaper-preview-wrapper:hover
-#wallVideo{
-
-
-    filter:
-
-    brightness(1.08)
-    contrast(1.05);
-
-
-
-}
-
-/* ==========================
-   GAMING HUD INTERFACE
-========================== */
-
-
-/* بطاقة المعلومات */
-
-.info{
-
-    position:relative;
-
-    overflow:hidden;
-
-}
-
-
-
-.info::before{
-
-    content:"";
-
-    position:absolute;
-
-    top:0;
-
-    left:0;
-
-    width:100%;
-
-    height:2px;
-
-
-    background:
-
-    linear-gradient(
-    90deg,
-    transparent,
-    #00eaff,
-    #ff00aa,
-    transparent
-    );
-
-
-    animation:
-    hudLine 4s linear infinite;
-
-
-}
-
-
-
-@keyframes hudLine{
-
-
-0%{
-
-transform:translateX(-100%);
-
-}
-
-
-100%{
-
-transform:translateX(100%);
-
-}
-
-
-}
-
-
-
-
-
-/* عناصر المعلومات */
-
-
-.info-item{
 
 
 background:
 
-rgba(255,255,255,.03);
+linear-gradient(
+
+135deg,
+
+#00eaff,
+
+#4f46e5
+
+);
 
 
-border-radius:15px;
+
+color:white;
 
 
-margin-bottom:8px;
+
+font-size:15px;
 
 
-padding:15px;
+
+font-weight:bold;
+
+
+
+display:flex;
+
+
+align-items:center;
+
+
+justify-content:center;
+
+
+gap:10px;
+
+
+
+box-shadow:
+
+
+0 10px 40px rgba(0,234,255,.4);
+
+
+
+z-index:20;
 
 
 
@@ -1621,116 +2087,13 @@ transition:.3s;
 
 
 
-.info-item:hover{
-
-
-background:
-
-rgba(0,234,255,.12);
-
-
-
-transform:
-
-translateX(5px);
-
-
-
-}
-
-
-
-
-
-
-
-/* زر تعيين الخلفية */
-
-.set-wallpaper-btn{
-
-
-background:
-
-linear-gradient(
-135deg,
-#00eaff,
-#4f46e5
-);
-
-
-
-color:white;
-
-
-
-box-shadow:
-
-0 10px 30px rgba(0,234,255,.35);
-
-
-
-border:
-
-1px solid rgba(255,255,255,.3);
-
-
-
-}
-
-
-
-
 .set-wallpaper-btn:hover{
 
 
 transform:
 
 translateX(-50%)
-
-translateY(-5px);
-
-
-
-}
-
-
-
-
-
-
-
-
-/* زر التحميل */
-
-.download-image-btn{
-
-
-background:
-
-linear-gradient(
-145deg,
-#ffffff33,
-#ffffff08
-);
-
-
-
-border:
-
-1px solid rgba(255,255,255,.2);
-
-
-
-}
-
-
-
-.download-image-btn:hover{
-
-
-box-shadow:
-
-0 0 25px #00eaff;
+translateY(-6px);
 
 
 
@@ -1741,77 +2104,12 @@ box-shadow:
 
 
 
-/* الوسوم Neon */
+/* ============================
+ PAGE ANIMATION
+============================= */
 
 
-.tag{
-
-
-position:relative;
-
-overflow:hidden;
-
-
-}
-
-
-
-.tag::after{
-
-
-content:"";
-
-
-position:absolute;
-
-
-inset:0;
-
-
-
-background:
-
-linear-gradient(
-120deg,
-transparent,
-rgba(255,255,255,.35),
-transparent
-);
-
-
-
-transform:
-
-translateX(-120%);
-
-
-
-transition:.5s;
-
-
-
-}
-
-
-
-.tag:hover::after{
-
-
-transform:
-
-translateX(120%);
-
-
-
-}
-
-
-
-
-
-
-/* دخول البطاقات */
-
+.wallpaper-preview-wrapper,
 .info,
 .tags,
 .similar{
@@ -1819,7 +2117,7 @@ translateX(120%);
 
 animation:
 
-fadeUp .7s ease both;
+fadeUp .8s ease both;
 
 
 
@@ -1827,16 +2125,24 @@ fadeUp .7s ease both;
 
 
 
-.tags{
+
+.info{
 
 animation-delay:.15s;
 
 }
 
 
+.tags{
+
+animation-delay:.25s;
+
+}
+
+
 .similar{
 
-animation-delay:.3s;
+animation-delay:.35s;
 
 }
 
@@ -1881,144 +2187,127 @@ translateY(0);
 
 }
 
-/* ==========================
-   GAMING ATMOSPHERE
-   Floating Light Particles
-========================== */
-
-
-body::after{
-
-    content:"";
-
-    position:fixed;
-
-    inset:0;
-
-
-    background:
-
-    radial-gradient(
-    circle at 20% 30%,
-    rgba(0,234,255,.12),
-    transparent 25%
-    ),
-
-
-    radial-gradient(
-    circle at 80% 70%,
-    rgba(255,0,170,.12),
-    transparent 25%
-    );
-
-
-    animation:
-
-    atmosphereMove 12s ease-in-out infinite;
-
-
-    pointer-events:none;
-
-
-    z-index:-1;
-
-}
 
 
 
 
 
-@keyframes atmosphereMove{
 
 
-0%,100%{
+/* ============================
+ MOBILE OPTIMIZATION
+============================= */
 
 
-transform:
+@media(max-width:600px){
 
-scale(1)
-translate(0,0);
+
+
+.preview{
+
+
+padding:15px;
 
 
 }
 
 
 
-50%{
+
+.preview img,
+.preview video{
 
 
-transform:
-
-scale(1.15)
-translate(20px,-20px);
-
-
-}
-
+height:58vh;
 
 
 }
 
-/* ==========================
-   CINEMATIC PAGE ENTER
-========================== */
+
 
 
 .wallpaper-preview-wrapper{
 
-    animation:
 
-    previewEnter 1s cubic-bezier(.22,.8,.25,1);
-
-}
-
-
-
-@keyframes previewEnter{
-
-
-from{
-
-
-opacity:0;
-
-
-transform:
-
-scale(.85)
-
-translateY(60px);
-
-
-
-filter:
-
-blur(10px);
-
+perspective:800px;
 
 
 }
 
 
 
-to{
+
+.info{
 
 
-opacity:1;
+margin:15px;
 
 
-transform:
-
-scale(1)
-
-translateY(0);
+padding:18px;
 
 
+}
 
-filter:
 
-blur(0);
 
+
+
+.similar-grid{
+
+
+gap:12px;
+
+
+}
+
+
+
+.similar-card img{
+
+
+height:180px;
+
+
+}
+
+
+
+
+.image-action-btn{
+
+
+width:44px;
+
+
+height:44px;
+
+
+}
+
+
+
+
+}
+
+
+
+
+
+/* ============================
+ REDUCE MOTION
+============================= */
+
+
+@media(prefers-reduced-motion:reduce){
+
+
+*{
+
+
+animation:none!important;
+
+
+transition:none!important;
 
 
 }
