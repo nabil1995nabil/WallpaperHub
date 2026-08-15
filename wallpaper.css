@@ -2012,3 +2012,144 @@ background-position:0% 50%;
 }
 
 }
+
+/* ==========================
+   5D Motion Effect
+========================== */
+
+
+.wallpaper-preview-wrapper{
+
+    position:relative;
+
+    overflow:hidden;
+
+    transform-style:preserve-3d;
+
+    will-change:transform;
+
+}
+
+
+
+/* انعكاس الضوء */
+
+.wallpaper-preview-wrapper::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+    linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,.25),
+    transparent 70%
+    );
+
+
+    transform:
+    translateX(-100%);
+
+
+    transition:.8s;
+
+    pointer-events:none;
+
+}
+
+
+
+.wallpaper-preview-wrapper:hover::after{
+
+    transform:
+    translateX(100%);
+
+}
+
+
+
+/* الصورة تصبح طبقة عميقة */
+
+.preview img,
+.preview video{
+
+    transform:
+    translateZ(30px);
+
+    transition:
+    transform .5s ease;
+
+}
+
+// ===============================
+// 5D Tilt Effect
+// ===============================
+
+
+const card =
+document.querySelector(".wallpaper-preview-wrapper");
+
+
+if(card){
+
+
+card.addEventListener("mousemove",(e)=>{
+
+
+const box =
+card.getBoundingClientRect();
+
+
+const x =
+e.clientX - box.left;
+
+
+const y =
+e.clientY - box.top;
+
+
+
+const rotateY =
+((x / box.width)-0.5) * 12;
+
+
+const rotateX =
+((y / box.height)-0.5) * -12;
+
+
+
+card.style.transform =
+`
+perspective(1000px)
+rotateX(${rotateX}deg)
+rotateY(${rotateY}deg)
+scale(1.03)
+`;
+
+
+
+});
+
+
+
+card.addEventListener("mouseleave",()=>{
+
+
+card.style.transform =
+`
+perspective(1000px)
+rotateX(0)
+rotateY(0)
+scale(1)
+`;
+
+
+});
+
+
+}
+
