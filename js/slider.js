@@ -5,8 +5,6 @@
 let sliderIndex = 0;
 let sliderTimer;
 
-let currentSliderItems = [];
-
 
 // تشغيل السلايدر
 function initSlider(data){
@@ -23,12 +21,9 @@ function initSlider(data){
 
     // آخر 10 خلفيات
     const items =
-    data
-    .slice()
-    .reverse();
-
-
-    currentSliderItems = items;
+data
+.slice()
+.reverse();
 
 
 
@@ -58,9 +53,9 @@ function initSlider(data){
         <div class="slider-info">
 
 
-        <div class="slider-category">
-        ${wall.category || ""}
-        </div>
+<div class="slider-category">
+${wall.category || ""}
+</div>
 
 
             <button>
@@ -71,6 +66,7 @@ function initSlider(data){
         </div>
 
 
+
         `;
 
 
@@ -78,11 +74,7 @@ function initSlider(data){
         slide.querySelector("button")
         .onclick = ()=>{
 
-
-            openWallpaper(
-                currentSliderItems[sliderIndex].id
-            );
-
+            openWallpaper(wall.id);
 
         };
 
@@ -92,17 +84,16 @@ function initSlider(data){
 
 
 
+
+        
+
+
     });
 
-
-
     createMiniCards(items);
-
-
     startAutoSlider(items.length);
 
 }
-
 
 
 
@@ -111,100 +102,92 @@ function initSlider(data){
 
 function showSlider(index){
 
-
     const slides =
     document.querySelectorAll(
         "#sliderContent .slide"
     );
 
-
     if(!slides.length)
     return;
-
 
 
     sliderIndex = index;
 
 
-
     slides.forEach((slide,i)=>{
-
 
         slide.classList.toggle(
             "active",
             i === index
         );
 
-
     });
-
-
 
     updateMiniCards(index);
 
-
 }
 
-
-
-
-
-
-// تحديث الصور المصغرة
-
 function updateMiniCards(index){
-
 
     const cards =
     document.querySelectorAll(".mini-card img");
 
 
+    const labels =
+    document.querySelectorAll(".mini-card span");
+
 
     const total =
-    currentSliderItems.length;
-
+    wallpapers.length;
 
 
     cards.forEach((card,i)=>{
-
 
         let imgIndex =
         (index + i + total - 1) % total;
 
 
-
         card.src =
-        currentSliderItems[imgIndex].thumbnail ||
-        currentSliderItems[imgIndex].image;
+        wallpapers[imgIndex].thumbnail ||
+        wallpapers[imgIndex].image;
+
+
+        if(labels[i]){
+
+            labels[i].textContent =
+            wallpapers[imgIndex].title || "";
+
+        }
 
 
     });
 
 
+    document
+    .querySelectorAll(".mini-card")
+    .forEach((card,i)=>{
+
+        card.classList.toggle(
+            "active",
+            i === 1
+        );
+
+    });
 
 }
-
-
-
-
-
 
 // الصور الصغيرة
 
 function createMiniCards(items){
 
-
     const container =
     document.querySelector(".mini-cards");
-
 
 
     if(!container) return;
 
 
-
     container.innerHTML="";
-
 
 
     items.forEach((wall,index)=>{
@@ -214,9 +197,7 @@ function createMiniCards(items){
         document.createElement("div");
 
 
-
         card.className="mini-card";
-
 
 
         card.innerHTML=`
@@ -226,30 +207,19 @@ function createMiniCards(items){
         `;
 
 
-
         card.onclick=()=>{
-
 
             showSlider(index);
 
-
         };
-
 
 
         container.appendChild(card);
 
 
-
     });
 
-
-
 }
-
-
-
-
 
 // تشغيل تلقائي
 
@@ -259,13 +229,11 @@ function startAutoSlider(length){
     clearInterval(sliderTimer);
 
 
-
     sliderTimer =
     setInterval(()=>{
 
 
         sliderIndex++;
-
 
 
         if(sliderIndex>=length)
