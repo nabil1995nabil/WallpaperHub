@@ -17,9 +17,6 @@ function initSlider(data){
 
 
     slider.innerHTML = "";
-    
-
-    }
 
 
     // آخر 10 خلفيات
@@ -94,8 +91,6 @@ ${wall.category || ""}
     });
 
     createMiniCards(items);
-updateMiniFocus(0);
-
     startAutoSlider(items.length);
 
 }
