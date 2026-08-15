@@ -1,11 +1,8 @@
 /* ============================
- WallpaperHub Gaming 5D CSS
+ WallpaperHub Clean Dark Base
  PART 1
- Base + Body + Header + Preview
 ============================= */
 
-
-/* RESET */
 
 *{
 
@@ -15,7 +12,6 @@ box-sizing:border-box;
 font-family:Arial,sans-serif;
 
 }
-
 
 
 html{
@@ -28,102 +24,20 @@ scroll-behavior:smooth;
 
 body{
 
-background:
 
-radial-gradient(
-circle at top,
-#26345f 0%,
-#0b1024 40%,
-#03050d 100%
-);
+background:#000;
 
 
 color:white;
 
+
 padding-bottom:100px;
+
 
 overflow-x:hidden;
 
-}
-
-
-
-/* طبقة الإضاءة العامة */
-
-body::after{
-
-content:"";
-
-position:fixed;
-
-inset:0;
-
-
-background:
-
-radial-gradient(
-circle at 20% 20%,
-rgba(0,234,255,.12),
-transparent 30%
-),
-
-
-radial-gradient(
-circle at 80% 80%,
-rgba(255,0,170,.12),
-transparent 30%
-);
-
-
-pointer-events:none;
-
-
-z-index:0;
-
-
-animation:
-
-atmosphereMove 12s ease infinite;
 
 }
-
-
-
-@keyframes atmosphereMove{
-
-
-0%,100%{
-
-transform:scale(1);
-
-}
-
-
-50%{
-
-transform:scale(1.15);
-
-}
-
-
-}
-
-
-
-/* كل العناصر فوق الإضاءة */
-
-.top-bar,
-.preview,
-.info,
-.tags,
-.similar{
-
-position:relative;
-
-z-index:2;
-
-}
-
 
 
 
@@ -137,29 +51,14 @@ z-index:2;
 
 position:sticky;
 
+
 top:0;
 
 
 height:65px;
 
 
-
-background:
-
-rgba(10,15,35,.75);
-
-
-
-backdrop-filter:
-
-blur(18px);
-
-
-
--webkit-backdrop-filter:
-
-blur(18px);
-
+background:#090909;
 
 
 display:flex;
@@ -171,25 +70,13 @@ justify-content:space-between;
 align-items:center;
 
 
-
 padding:0 18px;
 
 
-
-border-bottom:
-
-1px solid rgba(255,255,255,.12);
-
-
-
-box-shadow:
-
-0 10px 40px rgba(0,0,0,.45);
-
+border-bottom:1px solid #222;
 
 
 z-index:1000;
-
 
 
 }
@@ -201,6 +88,7 @@ z-index:1000;
 
 width:46px;
 
+
 height:46px;
 
 
@@ -210,19 +98,10 @@ border:none;
 border-radius:50%;
 
 
-
-background:
-
-linear-gradient(
-145deg,
-rgba(255,255,255,.25),
-rgba(255,255,255,.05)
-);
-
+background:#151515;
 
 
 color:white;
-
 
 
 display:flex;
@@ -234,16 +113,12 @@ align-items:center;
 justify-content:center;
 
 
-
 cursor:pointer;
-
 
 
 box-shadow:
 
-inset 0 0 15px rgba(255,255,255,.15),
-0 10px 25px rgba(0,0,0,.5);
-
+0 5px 15px rgba(0,0,0,.5);
 
 
 transition:.3s;
@@ -253,22 +128,16 @@ transition:.3s;
 
 
 
-.icon-btn:hover{
+.icon-btn:active{
 
-
-transform:
-
-translateY(-3px)
-scale(1.05);
-
+transform:scale(.9);
 
 }
 
 
 
-
 /* ============================
- PREVIEW AREA
+ PREVIEW
 ============================= */
 
 
@@ -277,8 +146,8 @@ scale(1.05);
 
 padding:18px;
 
-}
 
+}
 
 
 
@@ -292,124 +161,23 @@ position:relative;
 width:100%;
 
 
-border-radius:32px;
+border-radius:30px;
 
 
 overflow:hidden;
 
 
-
-transform-style:preserve-3d;
-
-
-perspective:1200px;
-
-
-
-transition:
-
-transform .4s ease;
-
+background:#050505;
 
 
 box-shadow:
 
-0 30px 80px rgba(0,0,0,.65);
-
-
-
-}
-
-
-
- 
-/* RGB BORDER */
-
-.wallpaper-preview-wrapper::before{
-
-
-content:"";
-
-
-position:absolute;
-
-
-inset:-5px;
-
-
-
-border-radius:38px;
-
-
-
-background:
-
-linear-gradient(
-45deg,
-#00eaff,
-#7c3cff,
-#ff0080,
-#00eaff
-);
-
-
-
-background-size:300% 300%;
-
-
-
-animation:
-
-rgbBorder 8s linear infinite;
-
-
-
-filter:blur(18px);
-
-
-opacity:.8;
-
-
-
-z-index:-1;
+0 15px 40px rgba(0,0,0,.8);
 
 
 }
 
 
-
-
-@keyframes rgbBorder{
-
-
-0%{
-
-background-position:0% 50%;
-
-}
-
-
-50%{
-
-background-position:100% 50%;
-
-}
-
-
-100%{
-
-background-position:0% 50%;
-
-}
-
-
-}
-
-
-
-/* ============================
- IMAGE / VIDEO
-============================= */
 
 
 .preview img,
@@ -425,31 +193,22 @@ height:65vh;
 display:block;
 
 
-
 object-fit:cover;
 
 
-
-border-radius:32px;
-
+border-radius:30px;
 
 
 background:#000;
-
-
-
-transition:
-
-transform .5s ease,
-filter .5s ease;
-
 
 
 }
 
 
 
+
 #wallImage{
+
 
 display:block;
 
@@ -459,12 +218,16 @@ display:block;
 
 #wallVideo{
 
+
 display:none;
 
 }
 
+
+
+
 /* ============================
- QUALITY BADGE
+ QUALITY
 ============================= */
 
 
@@ -480,55 +243,22 @@ top:15px;
 left:15px;
 
 
-
 padding:8px 14px;
 
 
-
-background:
-
-rgba(0,0,0,.55);
-
-
-
-backdrop-filter:
-
-blur(12px);
-
-
-
--webkit-backdrop-filter:
-
-blur(12px);
-
+background:rgba(0,0,0,.7);
 
 
 border-radius:20px;
 
 
-
 font-size:13px;
-
 
 
 font-weight:bold;
 
 
-
-z-index:10;
-
-
-
-border:
-
-1px solid rgba(255,255,255,.2);
-
-
-
-box-shadow:
-
-0 8px 25px rgba(0,0,0,.4);
-
+z-index:5;
 
 
 }
@@ -536,10 +266,8 @@ box-shadow:
 
 
 
-
-
 /* ============================
- IMAGE ACTION BUTTONS
+ IMAGE BUTTONS
 ============================= */
 
 
@@ -549,9 +277,7 @@ box-shadow:
 position:absolute;
 
 
-
-bottom:18px;
-
+bottom:16px;
 
 
 width:48px;
@@ -560,23 +286,16 @@ width:48px;
 height:48px;
 
 
-
-border:none;
-
-
-
 border-radius:50%;
 
 
+border:1px solid #333;
 
-background:
 
-rgba(0,0,0,.55);
-
+background:rgba(0,0,0,.75);
 
 
 color:white;
-
 
 
 display:flex;
@@ -588,79 +307,10 @@ align-items:center;
 justify-content:center;
 
 
-
-cursor:pointer;
-
-
-
-z-index:20;
-
-
-
-backdrop-filter:
-
-blur(15px);
-
-
-
--webkit-backdrop-filter:
-
-blur(15px);
-
-
-
-border:
-
-1px solid rgba(255,255,255,.18);
-
-
-
-box-shadow:
-
-0 10px 30px rgba(0,0,0,.5);
-
-
-
-transition:.3s;
-
+z-index:10;
 
 
 }
-
-
-
-
-.image-action-btn:hover{
-
-
-transform:
-
-translateY(-5px)
-scale(1.08);
-
-
-
-}
-
-
-
-
-.image-action-btn:active{
-
-
-transform:
-
-scale(.9);
-
-
-
-background:#6366f1;
-
-
-
-}
-
-
 
 
 
@@ -674,8 +324,6 @@ font-size:25px;
 
 
 
-
-
 .download-image-btn{
 
 
@@ -683,8 +331,6 @@ right:15px;
 
 
 }
-
-
 
 
 
@@ -696,346 +342,8 @@ left:15px;
 
 }
 
-
-
-
-
-
 /* ============================
- MORE OPTIONS BUTTON
-============================= */
-
-
-.more-options-btn{
-
-
-position:absolute;
-
-
-top:20px;
-
-
-right:20px;
-
-
-
-width:45px;
-
-
-height:45px;
-
-
-
-border-radius:50%;
-
-
-
-border:1px solid rgba(255,255,255,.2);
-
-
-
-background:
-
-rgba(0,0,0,.45);
-
-
-
-color:white;
-
-
-
-backdrop-filter:
-
-blur(12px);
-
-
-
-z-index:20;
-
-
-
-}
-
-
-
-
-
-.options-menu{
-
-
-position:absolute;
-
-
-top:70px;
-
-
-right:20px;
-
-
-
-background:
-
-rgba(20,20,40,.8);
-
-
-
-backdrop-filter:
-
-blur(20px);
-
-
-
-border-radius:18px;
-
-
-
-padding:10px;
-
-
-
-display:none;
-
-
-
-z-index:50;
-
-
-
-border:
-
-1px solid rgba(255,255,255,.15);
-
-
-
-box-shadow:
-
-0 15px 40px rgba(0,0,0,.5);
-
-
-
-}
-
-
-
-
-
-.options-menu.active{
-
-
-display:block;
-
-
-}
-
-
-
-
-
-
-
-/* ============================
- 5D DEPTH EFFECT
-============================= */
-
-
-
-.wallpaper-preview-wrapper{
-
-
-isolation:isolate;
-
-
-}
-
-
-
-
-
-.wallpaper-preview-wrapper::after{
-
-
-content:"";
-
-
-position:absolute;
-
-
-inset:0;
-
-
-
-background:
-
-
-radial-gradient(
-
-circle at 30% 20%,
-
-rgba(0,234,255,.25),
-
-transparent 35%
-
-);
-
-
-
-pointer-events:none;
-
-
-
-z-index:3;
-
-
-
-mix-blend-mode:screen;
-
-
-
-}
-
-
-
-
-.preview img,
-.preview video{
-
-
-transform:
-
-translateZ(30px);
-
-
-
-}
-
-
-
-
-.wallpaper-preview-wrapper:hover
-.preview img,
-.wallpaper-preview-wrapper:hover
-.preview video{
-
-
-filter:
-
-brightness(1.12)
-contrast(1.08)
-saturate(1.15);
-
-
-
-}
-
-
-
-
-
-/* انعكاس ضوء سينمائي */
-
-
-.wallpaper-preview-wrapper::marker{
-
-
-display:none;
-
-
-}
-
-
-
-
-
-.wallpaper-preview-wrapper:hover::after{
-
-
-background:
-
-linear-gradient(
-
-120deg,
-
-transparent 20%,
-
-rgba(255,255,255,.25),
-
-transparent 70%
-
-);
-
-
-
-animation:
-
-shineMove 1s;
-
-
-
-}
-
-
-
-
-@keyframes shineMove{
-
-
-from{
-
-transform:translateX(-100%);
-
-}
-
-
-
-to{
-
-transform:translateX(100%);
-
-}
-
-
-
-}
-
-
-
-
-/* ============================
- 5D MOBILE TOUCH
-============================= */
-
-
-@media(max-width:600px){
-
-
-
-.preview img,
-.preview video{
-
-
-height:58vh;
-
-
-}
-
-
-
-.image-action-btn{
-
-
-width:44px;
-
-height:44px;
-
-
-}
-
-
-
-}
-
-/* ============================
- INFO GAMING GLASS CARD
+ INFO CARD
 ============================= */
 
 
@@ -1045,121 +353,21 @@ height:44px;
 margin:18px;
 
 
-
-background:
-
-rgba(255,255,255,.08);
+background:#0b0b0b;
 
 
-
-backdrop-filter:
-
-blur(20px);
-
-
-
--webkit-backdrop-filter:
-
-blur(20px);
-
-
-
-border-radius:28px;
-
+border-radius:25px;
 
 
 padding:22px;
 
 
-
-border:
-
-1px solid rgba(255,255,255,.15);
-
+border:1px solid #222;
 
 
 box-shadow:
 
-0 25px 60px rgba(0,0,0,.45);
-
-
-
-overflow:hidden;
-
-
-
-}
-
-
-
-
-
-.info::before{
-
-
-content:"";
-
-
-position:absolute;
-
-
-top:0;
-
-
-left:-100%;
-
-
-width:100%;
-
-
-height:2px;
-
-
-
-background:
-
-linear-gradient(
-
-90deg,
-
-transparent,
-
-#00eaff,
-
-#ff00aa,
-
-transparent
-
-);
-
-
-
-animation:
-
-hudLine 4s linear infinite;
-
-
-
-}
-
-
-
-
-@keyframes hudLine{
-
-
-0%{
-
-transform:translateX(0);
-
-}
-
-
-100%{
-
-transform:translateX(200%);
-
-}
+0 10px 30px rgba(0,0,0,.6);
 
 
 }
@@ -1200,64 +408,22 @@ justify-content:space-between;
 align-items:center;
 
 
-
-padding:15px 0;
-
+padding:15px;
 
 
-border-bottom:
-
-1px solid rgba(255,255,255,.12);
+margin-bottom:10px;
 
 
-
-background:
-
-rgba(255,255,255,.03);
-
+background:#111;
 
 
 border-radius:15px;
 
 
-
-margin-bottom:8px;
-
-
-
-padding-left:12px;
-
-padding-right:12px;
-
-
-
-transition:.3s;
-
+border:1px solid #222;
 
 
 }
-
-
-
-
-
-.info-item:hover{
-
-
-background:
-
-rgba(0,234,255,.12);
-
-
-
-transform:
-
-translateX(5px);
-
-
-
-}
-
 
 
 
@@ -1265,14 +431,10 @@ translateX(5px);
 .info-item span:first-child{
 
 
-color:
-
-rgba(255,255,255,.65);
-
+color:#888;
 
 
 }
-
 
 
 
@@ -1285,15 +447,12 @@ color:white;
 font-weight:bold;
 
 
-
 }
 
 
 
-
-
 /* ============================
- TAGS NEON
+ TAGS
 ============================= */
 
 
@@ -1307,16 +466,16 @@ margin:18px;
 
 
 
-
 .tags h3{
 
 
 margin-bottom:15px;
 
 
+font-size:22px;
+
+
 }
-
-
 
 
 
@@ -1336,152 +495,31 @@ gap:10px;
 
 
 
-
 .tag{
-
-
-position:relative;
-
-
-overflow:hidden;
-
 
 
 padding:10px 18px;
 
 
-
-border-radius:30px;
-
+background:#111;
 
 
-background:
+border-radius:25px;
 
-linear-gradient(
 
-145deg,
-
-rgba(255,255,255,.18),
-
-rgba(255,255,255,.05)
-
-);
-
+border:1px solid #222;
 
 
 color:white;
 
 
-
-border:
-
-1px solid rgba(255,255,255,.18);
-
-
-
-box-shadow:
-
-0 10px 25px rgba(0,0,0,.35);
-
-
-
-transition:.3s;
-
-
-
 }
-
-
-
-
-
-.tag:hover{
-
-
-transform:
-
-translateY(-6px);
-
-
-
-box-shadow:
-
-0 0 25px rgba(0,234,255,.4);
-
-
-
-}
-
-
-
-
-
-.tag::after{
-
-
-content:"";
-
-
-position:absolute;
-
-
-inset:0;
-
-
-
-background:
-
-linear-gradient(
-
-120deg,
-
-transparent,
-
-rgba(255,255,255,.4),
-
-transparent
-
-);
-
-
-
-transform:
-
-translateX(-120%);
-
-
-
-transition:.6s;
-
-
-
-}
-
-
-
-
-
-.tag:hover::after{
-
-
-transform:
-
-translateX(120%);
-
-
-
-}
-
-
-
-
 
 
 
 /* ============================
  SIMILAR WALLPAPERS
 ============================= */
-
 
 
 .similar{
@@ -1491,7 +529,6 @@ margin:18px;
 
 
 }
-
 
 
 
@@ -1510,10 +547,7 @@ align-items:center;
 margin-bottom:15px;
 
 
-
 }
-
-
 
 
 
@@ -1523,21 +557,14 @@ margin-bottom:15px;
 font-size:22px;
 
 
-color:white;
-
-
 }
-
 
 
 
 .section-title a{
 
 
-color:#00eaff;
-
-
-font-weight:bold;
+color:#aaa;
 
 
 text-decoration:none;
@@ -1547,103 +574,57 @@ text-decoration:none;
 
 
 
-
-
 .similar-grid{
 
 
 display:grid;
 
 
-grid-template-columns:
-
-repeat(2,1fr);
-
+grid-template-columns:repeat(2,1fr);
 
 
 gap:15px;
 
 
-
 }
 
 
 
 
-
-.info,
-.similar-card,
-.tag{
-    background:rgba(20,25,45,.75);
-    color:white;
-}
+.similar-card{
 
 
-
-backdrop-filter:
-
-blur(18px);
+background:#0b0b0b;
 
 
-
--webkit-backdrop-filter:
-
-blur(18px);
-
-
-
-border-radius:24px;
-
+border-radius:25px;
 
 
 overflow:hidden;
 
 
-
-border:
-
-1px solid rgba(255,255,255,.15);
-
+border:1px solid #222;
 
 
 box-shadow:
 
-0 20px 45px rgba(0,0,0,.45);
+0 10px 25px rgba(0,0,0,.5);
 
 
-
-cursor:pointer;
-
-
-
-transition:.35s;
-
+transition:.3s;
 
 
 }
 
 
 
-
-.similar-card:hover{
-
-
-transform:
-
-translateY(-8px)
-scale(1.03);
+.similar-card:active{
 
 
-
-box-shadow:
-
-0 25px 60px rgba(0,234,255,.25);
-
+transform:scale(.96);
 
 
 }
-
-
 
 
 
@@ -1662,10 +643,7 @@ object-fit:cover;
 display:block;
 
 
-
 }
-
-
 
 
 
@@ -1688,8 +666,6 @@ color:white;
 
 
 
-
-
 /* ============================
  RATING
 ============================= */
@@ -1701,12 +677,13 @@ color:white;
 display:flex;
 
 
-gap:5px;
+gap:6px;
+
+
+margin-top:10px;
 
 
 }
-
-
 
 
 
@@ -1719,66 +696,40 @@ font-size:30px;
 color:#555;
 
 
-
-transition:.25s;
+cursor:pointer;
 
 
 }
-
 
 
 
 .star.active{
 
 
-color:#ffd700;
-
-
-
-text-shadow:
-
-0 0 15px #ffd700;
-
+color:#ffc400;
 
 
 }
-
-
-
-.star:hover{
-
-
-transform:
-
-scale(1.2);
-
-
-
-}
-
 
 
 
 #ratingCount{
 
 
-color:rgba(255,255,255,.7);
-
+color:#888;
 
 
 }
 
 
 
-
 #wallRating{
-
-
-color:white;
 
 
 font-weight:bold;
 
+
+color:white;
 
 
 }
@@ -1803,46 +754,34 @@ width:100%;
 height:100dvh;
 
 
-
 background:#000;
-
 
 
 z-index:99999;
 
 
-
 display:flex;
-
 
 
 align-items:center;
 
 
-
 justify-content:center;
-
 
 
 opacity:0;
 
 
-
 visibility:hidden;
-
 
 
 pointer-events:none;
 
 
-
-transition:.35s;
-
+transition:.3s;
 
 
 }
-
-
 
 
 
@@ -1863,8 +802,6 @@ pointer-events:auto;
 
 
 
-
-
 #fullscreenImage,
 #fullscreenVideo{
 
@@ -1878,48 +815,10 @@ height:100%;
 object-fit:contain;
 
 
-
-transform:
-
-scale(.85);
-
-
-
-opacity:0;
-
-
-
-transition:
-
-.45s cubic-bezier(.22,.8,.25,1);
-
+background:#000;
 
 
 }
-
-
-
-
-
-.fullscreen-viewer.active
-#fullscreenImage,
-
-.fullscreen-viewer.active
-#fullscreenVideo{
-
-
-transform:
-
-scale(1);
-
-
-
-opacity:1;
-
-
-
-}
-
 
 
 
@@ -1941,30 +840,22 @@ top:20px;
 right:20px;
 
 
-
 width:45px;
 
 
 height:45px;
 
 
+border:none;
+
 
 border-radius:50%;
 
 
-
-border:none;
-
-
-
-background:
-
-rgba(0,0,0,.55);
-
+background:#111;
 
 
 color:white;
-
 
 
 display:flex;
@@ -1976,13 +867,7 @@ align-items:center;
 justify-content:center;
 
 
-
-z-index:20;
-
-
-
-backdrop-filter:blur(12px);
-
+z-index:10;
 
 
 }
@@ -1995,64 +880,37 @@ backdrop-filter:blur(12px);
 position:absolute;
 
 
-
 bottom:30px;
 
 
 left:50%;
 
 
-
-transform:
-
-translateX(-50%);
-
-
-
-min-width:190px;
-
+transform:translateX(-50%);
 
 
 height:52px;
 
 
-
 padding:0 25px;
-
 
 
 border:none;
 
 
-
 border-radius:30px;
 
 
-
-background:
-
-linear-gradient(
-
-135deg,
-
-#00eaff,
-
-#4f46e5
-
-);
+background:white;
 
 
-
-color:white;
-
+color:#111;
 
 
 font-size:15px;
 
 
-
 font-weight:bold;
-
 
 
 display:flex;
@@ -2064,125 +922,68 @@ align-items:center;
 justify-content:center;
 
 
-gap:10px;
+gap:8px;
 
 
-
-box-shadow:
-
-
-0 10px 40px rgba(0,234,255,.4);
-
-
-
-z-index:20;
-
-
-
-transition:.3s;
-
+z-index:10;
 
 
 }
 
 
 
-.set-wallpaper-btn:hover{
+
+
+.set-wallpaper-btn:active{
 
 
 transform:
 
 translateX(-50%)
-translateY(-6px);
 
+scale(.95);
 
 
 }
 
 
 
-
-
-
 /* ============================
- PAGE ANIMATION
+ OPTIONS MENU
 ============================= */
 
 
-.wallpaper-preview-wrapper,
-.info,
-.tags,
-.similar{
+.more-options-btn{
 
 
-animation:
-
-fadeUp .8s ease both;
+position:absolute;
 
 
-
-}
-
+top:20px;
 
 
-
-.info{
-
-animation-delay:.15s;
-
-}
+right:20px;
 
 
-.tags{
-
-animation-delay:.25s;
-
-}
+width:45px;
 
 
-.similar{
-
-animation-delay:.35s;
-
-}
+height:45px;
 
 
+border-radius:50%;
 
 
-
-@keyframes fadeUp{
-
-
-from{
+border:1px solid #333;
 
 
-opacity:0;
+background:rgba(0,0,0,.7);
 
 
-transform:
-
-translateY(40px);
+color:white;
 
 
-
-}
-
-
-
-to{
-
-
-opacity:1;
-
-
-transform:
-
-translateY(0);
-
-
-
-}
-
+z-index:20;
 
 
 }
@@ -2190,12 +991,80 @@ translateY(0);
 
 
 
+.options-menu{
 
+
+position:absolute;
+
+
+top:70px;
+
+
+right:20px;
+
+
+background:#111;
+
+
+border:1px solid #333;
+
+
+border-radius:18px;
+
+
+padding:10px;
+
+
+display:none;
+
+
+z-index:50;
+
+
+}
+
+
+
+.options-menu.active{
+
+
+display:block;
+
+
+}
+
+
+
+.options-menu button{
+
+
+background:none;
+
+
+border:none;
+
+
+color:white;
+
+
+padding:12px 20px;
+
+
+display:flex;
+
+
+gap:10px;
+
+
+align-items:center;
+
+
+}
 
 
 
 /* ============================
- MOBILE OPTIMIZATION
+ MOBILE
 ============================= */
 
 
@@ -2213,7 +1082,6 @@ padding:15px;
 
 
 
-
 .preview img,
 .preview video{
 
@@ -2222,18 +1090,6 @@ height:58vh;
 
 
 }
-
-
-
-
-.wallpaper-preview-wrapper{
-
-
-perspective:800px;
-
-
-}
-
 
 
 
@@ -2247,8 +1103,6 @@ padding:18px;
 
 
 }
-
-
 
 
 
@@ -2272,7 +1126,6 @@ height:180px;
 
 
 
-
 .image-action-btn{
 
 
@@ -2285,104 +1138,204 @@ height:44px;
 }
 
 
-
-
 }
 
-
-
-
-
 /* ============================
- REDUCE MOTION
+   PART 4
+   SAFE 5D EFFECT
 ============================= */
 
 
-@media(prefers-reduced-motion:reduce){
+/* 5D فقط على البطاقات */
+
+.wallpaper-preview-wrapper,
+.similar-card{
+
+    transform-style:preserve-3d;
+
+    transition:
+    transform .35s ease;
+
+}
 
 
-*{
+
+/* الصورة تتحرك قليلاً */
+
+.wallpaper-preview-wrapper img,
+.wallpaper-preview-wrapper video,
+.similar-card img{
 
 
-animation:none!important;
+    transition:
 
-
-transition:none!important;
+    transform .35s ease,
+    filter .35s ease;
 
 
 }
 
 
 
+
+
+.wallpaper-preview-wrapper:hover img,
+.wallpaper-preview-wrapper:hover video,
+.similar-card:hover img{
+
+
+    transform:
+
+    translateZ(25px)
+    scale(1.03);
+
+
+    filter:
+
+    brightness(1.08);
+
+
 }
 
-/* =========================
- FIX OVERLAY BLOCKING INFO
-========================= */
 
 
-.info{
+
+
+/* منع أي طبقة من تغطية المحتوى */
+
+
+.info,
+.tags,
+.similar{
+
+
     position:relative;
-    z-index:50;
-    background:rgba(10,15,30,.85) !important;
+
+    z-index:5;
+
+
+}
+
+
+
+
+/* خلفية الصفحة النهائية */
+
+
+body{
+
+
+    background:#000 !important;
+
+
+}
+
+
+
+
+
+/* تحسين البطاقات */
+
+
+.similar-card{
+
+
+    cursor:pointer;
+
+
     overflow:hidden;
-}
 
 
-/* إزالة أي طبقة فوق البطاقة */
-
-.info::before,
-.info::after{
-    display:none !important;
-}
-
-
-/* المحتوى فوق أي تأثير */
-
-.info *{
-    position:relative;
-    z-index:100;
-}
-
-
-/* منع تأثير الإضاءة العام من تغطية الصفحة */
-
-body::after{
-    z-index:-10 !important;
-}
-
-
-/* إصلاح النص */
-
-.info h2{
-    color:#fff !important;
-}
-
-
-.info-item span:first-child{
-    color:rgba(255,255,255,.7) !important;
-}
-
-
-.info-item span:last-child{
-    color:#fff !important;
 }
 
 
 
-/* النجوم */
 
-.rating-stars{
-    position:relative;
-    z-index:200;
+
+.similar-card:hover{
+
+
+    box-shadow:
+
+    0 15px 35px rgba(255,255,255,.12);
+
+
 }
 
 
-.star{
-    color:#888;
+
+
+/* حركة دخول بسيطة */
+
+
+.wallpaper-preview-wrapper,
+.info,
+.tags,
+.similar{
+
+
+    animation:
+
+    fadeInPage .6s ease;
+
+
 }
 
 
-.star.active{
-    color:#ffd700;
+
+@keyframes fadeInPage{
+
+
+from{
+
+opacity:0;
+
+transform:translateY(20px);
+
+}
+
+
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+
+}
+
+
+
+
+/* الهاتف */
+
+
+@media(max-width:600px){
+
+
+.wallpaper-preview-wrapper,
+.similar-card{
+
+
+    transform:none !important;
+
+
+}
+
+
+
+.wallpaper-preview-wrapper img,
+.wallpaper-preview-wrapper video{
+
+
+    transform:none !important;
+
+
+}
+
+
+
 }
