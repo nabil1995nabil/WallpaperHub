@@ -150,19 +150,28 @@
 
 .slider-info button{
 
-    padding:10px 30px;
+    position:absolute;
+
+    top:270px;
+    right:20px;
+
+    padding:12px 35px;
 
     border:none;
 
-    border-radius:25px;
+    border-radius:30px;
 
-    background:white;
+    background:rgba(255,255,255,0.92);
 
     color:#111;
 
     font-weight:bold;
 
-    margin-top:15px;
+    font-size:15px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+
+    backdrop-filter:blur(5px);
 
 }
 
