@@ -2315,3 +2315,74 @@ transition:none!important;
 
 
 }
+
+/* =========================
+ FIX OVERLAY BLOCKING INFO
+========================= */
+
+
+.info{
+    position:relative;
+    z-index:50;
+    background:rgba(10,15,30,.85) !important;
+    overflow:hidden;
+}
+
+
+/* إزالة أي طبقة فوق البطاقة */
+
+.info::before,
+.info::after{
+    display:none !important;
+}
+
+
+/* المحتوى فوق أي تأثير */
+
+.info *{
+    position:relative;
+    z-index:100;
+}
+
+
+/* منع تأثير الإضاءة العام من تغطية الصفحة */
+
+body::after{
+    z-index:-10 !important;
+}
+
+
+/* إصلاح النص */
+
+.info h2{
+    color:#fff !important;
+}
+
+
+.info-item span:first-child{
+    color:rgba(255,255,255,.7) !important;
+}
+
+
+.info-item span:last-child{
+    color:#fff !important;
+}
+
+
+
+/* النجوم */
+
+.rating-stars{
+    position:relative;
+    z-index:200;
+}
+
+
+.star{
+    color:#888;
+}
+
+
+.star.active{
+    color:#ffd700;
+}
