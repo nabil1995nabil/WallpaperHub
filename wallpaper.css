@@ -1571,12 +1571,12 @@ gap:15px;
 
 
 
-.similar-card{
-
-
-background:
-
-rgba(255,255,255,.08);
+.info,
+.similar-card,
+.tag{
+    background:rgba(20,25,45,.75);
+    color:white;
+}
 
 
 
