@@ -6,7 +6,7 @@
 .slider-section{
 
     width:100%;
-    padding:20px 30px;
+    padding:20px 55px;
     overflow:hidden;
 
 }
@@ -153,9 +153,9 @@
     position:absolute;
 
     top:160px;
-    right:15px;
+    right:9px;
 
-    padding:12px 35px;
+    padding:10px 20px;
 
     border:none;
 
@@ -167,7 +167,7 @@
 
     font-weight:bold;
 
-    font-size:15px;
+    font-size:9px;
 
     box-shadow:0 8px 20px rgba(0,0,0,.25);
 
@@ -187,34 +187,6 @@
     overflow:hidden;
 
     white-space:nowrap;
-
-}
-
-/* حركة العنوان الطويل */
-.title-marquee h2 {
-
-    display: inline-block;
-
-    font-size: 32px;
-    color:white;
-
-    animation: titleMove 8s linear infinite;
-}
-
-
-@keyframes titleMove {
-
-    0% {
-        transform: translateX(0);
-    }
-
-    50% {
-        transform: translateX(-40%);
-    }
-
-    100% {
-        transform: translateX(0);
-    }
 
 }
 
