@@ -12,17 +12,13 @@ function initSlider(data){
     const slider =
     document.getElementById("sliderContent");
 
-    const dots =
-    document.getElementById("sliderDots");
-
 
     if(!slider) return;
 
 
     slider.innerHTML = "";
     
-    if(dots){
-        dots.innerHTML = "";
+
     }
 
 
@@ -91,33 +87,7 @@ ${wall.category || ""}
 
 
 
-        // النقاط
 
-        if(dots){
-
-            const dot =
-            document.createElement("span");
-
-
-            dot.className =
-            "slider-dot";
-
-
-            if(index===0)
-            dot.classList.add("active");
-
-
-
-            dot.onclick=()=>{
-
-                showSlider(index);
-
-            };
-
-
-            dots.appendChild(dot);
-
-        }
         
 
 
@@ -142,13 +112,6 @@ function showSlider(index){
         "#sliderContent .slide"
     );
 
-
-    const dots =
-    document.querySelectorAll(
-        "#sliderDots .slider-dot"
-    );
-
-
     if(!slides.length)
     return;
 
@@ -164,19 +127,6 @@ function showSlider(index){
         );
 
     });
-
-
-
-    dots.forEach((dot,i)=>{
-
-        dot.classList.toggle(
-            "active",
-            i === index
-        );
-
-    });
-
-
 
     updateMiniCards(index);
 
