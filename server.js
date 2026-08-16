@@ -1899,6 +1899,269 @@ success:false
 
 });
 
+/// =====================================
+// Wallhaven Import API
+// =====================================
+
+app.get("/api/wallhaven",
+async(req,res)=>{
+
+try{
+
+const response = await fetch(
+"https://wallhaven.cc/api/v1/search?sorting=toplist&purity=100&categories=111"
+);
+
+
+const data = await response.json();
+
+
+const wallpapers = data.data.map(item=>({
+
+id:item.id,
+
+image:item.path,
+
+thumbnail:item.thumbs.large,
+
+source:"wallhaven"
+
+}));
+
+
+res.json(wallpapers);
+
+
+}catch(error){
+
+console.log(error);
+
+res.status(500).json({
+success:false
+});
+
+}
+
+
+});
+
+// =====================================
+// AI Wallhaven Import + Auto Category
+// =====================================
+
+app.post("/api/wallhaven/import-ai",
+async(req,res)=>{
+
+
+try{
+
+
+const response = await fetch(
+"https://wallhaven.cc/api/v1/search?sorting=random&purity=100&categories=111"
+);
+
+
+const data = await response.json();
+
+
+
+let wallpapers = readWallpapers();
+
+
+
+for(const item of data.data){
+
+
+
+const imageResponse =
+await fetch(item.path);
+
+
+
+const buffer =
+await imageResponse.arrayBuffer();
+
+
+
+const base64 =
+Buffer.from(buffer).toString("base64");
+
+
+
+
+
+const aiResponse = await fetch(
+
+`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+contents:[{
+
+parts:[
+
+{
+
+text:
+`
+حلل هذه الخلفية.
+
+اختر القسم المناسب فقط من:
+
+games
+animals
+cars
+amoled
+space
+nature
+other
+
+أرجع JSON فقط بهذا الشكل:
+
+{
+"category":"",
+"description":"",
+"tags":[]
+}
+
+`
+
+},
+
+{
+
+inlineData:{
+
+mimeType:"image/jpeg",
+
+data:base64
+
+}
+
+}
+
+]
+
+}]
+
+})
+
+}
+
+);
+
+
+
+
+
+const ai =
+await aiResponse.json();
+
+
+
+
+const text =
+ai.candidates[0]
+.content
+.parts[0]
+.text;
+
+
+
+const result =
+JSON.parse(
+text.replace(/```json|```/g,"")
+);
+
+
+
+
+
+
+wallpapers.push({
+
+id:
+Date.now(),
+
+title:
+"Wallhaven AI",
+
+image:item.path,
+
+thumbnail:item.thumbs.large,
+
+category:result.category,
+
+aiDescription:result.description,
+
+tags:result.tags,
+
+source:"wallhaven",
+
+downloads:0,
+
+likes:0,
+
+views:0,
+
+date:
+new Date().toLocaleString("ar-MA")
+
+});
+
+
+
+
+}
+
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+res.json({
+
+success:true,
+
+message:
+"AI Import Completed"
+
+});
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+res.status(500).json({
+
+success:false,
+
+error:error.message
+
+});
+
+
+}
+
+
+});
+
 //=====تشغيل سيرفر===\\
 
 app.listen(PORT,()=>{

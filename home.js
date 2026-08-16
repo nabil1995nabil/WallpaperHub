@@ -74,6 +74,8 @@ document.getElementById("likedWallpapers");
 
 const downloadedContainer =
 document.getElementById("downloadedWallpapers");
+const wallhavenContainer =
+document.getElementById("wallhavenAI");
 
 // =======================================
 // تحميل البيانات
@@ -504,21 +506,7 @@ function loadTodayWallpaper() {
 
 }
 
-// =======================================
-// تحميل الصفحة
-// =======================================
 
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => {
-
-        loadWallpapers();
-
-    }
-
-);
 
 // ==============================
 // الأكثر تحميلاً
@@ -796,3 +784,110 @@ if(navItems.length && indicator){
     });
 
 }
+
+//دالة جلب خلفيات //
+
+async function loadWallhavenAI(){
+
+try{
+
+
+const res =
+await fetch("/api/wallpapers");
+
+
+
+const wallpapers =
+await res.json();
+
+
+
+const container =
+document.getElementById("wallhavenAI");
+
+
+
+if(!container)
+return;
+
+
+
+container.innerHTML="";
+
+
+
+wallpapers
+
+.filter(w =>
+w.source === "wallhaven"
+)
+
+.slice(0,10)
+
+.forEach(w=>{
+
+
+const card =
+document.createElement("div");
+
+
+card.className =
+"wall-card";
+
+
+
+card.innerHTML = `
+
+<img src="${w.thumbnail || w.image}">
+
+
+`;
+
+
+
+card.onclick=()=>{
+
+
+location.href =
+"wallpaper.html?id="+w.id;
+
+
+};
+
+
+
+container.appendChild(card);
+
+
+});
+
+
+
+}catch(error){
+
+console.log(
+"Wallhaven AI Error",
+error
+);
+
+
+}
+
+}
+
+// =======================================
+// تحميل الصفحة
+// =======================================
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => {
+
+        loadWallpapers();
+        loadWallhaven();
+
+    }
+
+);

@@ -1805,3 +1805,48 @@ body.dark .category{
     transform:scale(.85);
 
 }
+
+/* ==========================
+   Wallhaven AI Section
+========================== */
+
+.wallhaven-section{
+
+    margin:22px 18px;
+
+}
+
+
+.wallhaven-section .wall-grid{
+
+    display:flex;
+
+    gap:16px;
+
+    overflow-x:auto;
+
+    scrollbar-width:none;
+
+}
+
+
+.wallhaven-section .wall-grid::-webkit-scrollbar{
+
+    display:none;
+
+}
+
+
+.wallhaven-section .wall-card{
+
+    width:150px;
+
+    min-width:150px;
+
+    height:220px;
+
+    border-radius:22px;
+
+    overflow:hidden;
+
+}
