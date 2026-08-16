@@ -2,6 +2,8 @@
 // WallpaperHub Admin JS
 // Part 1/5
 // ==========================================
+
+
 // ============================
 // العناصر
 // ============================
@@ -27,50 +29,40 @@ const logoutBtn =
 document.getElementById("logoutBtn");
 
 
-
 const form =
 document.getElementById("wallpaperForm");
-
 
 
 const imageInput =
 document.getElementById("wallImage");
 
 
-
 const typeInput =
 document.getElementById("wallType");
-
 
 
 const videoThumbnailInput =
 document.getElementById("videoThumbnail");
 
 
-
 const imagesPreview =
 document.getElementById("imagesPreview");
-
 
 
 const selectedImagesCount =
 document.getElementById("selectedImagesCount");
 
 
-
 const uploadProgressBox =
 document.getElementById("uploadProgressBox");
-
 
 
 const uploadProgressText =
 document.getElementById("uploadProgressText");
 
 
-
 const uploadProgressBar =
 document.getElementById("uploadProgressBar");
-
 
 
 const saveWallpaper =
@@ -86,20 +78,19 @@ document.getElementById("saveWallpaper");
 
 let wallpapers = [];
 
+
 let editingId = null;
 
 
 let selectedFiles = [];
 
 
-// نوع الخلفية
 
 let wallpaperType = "image";
 
 
-// صورة الفيديو المصغرة
-
 let videoThumbnail = "";
+
 
 
 
@@ -118,8 +109,9 @@ const CLOUDINARY_UPLOAD_PRESET =
 
 
 
+
 // ============================
-// تحميل بيانات اللوحة
+// تحميل لوحة التحكم
 // ============================
 
 
@@ -151,10 +143,9 @@ await response.json();
 
 if(!Array.isArray(wallpapers)){
 
-wallpapers=[];
+wallpapers = [];
 
 }
-
 
 
 
@@ -194,7 +185,7 @@ wallpaperContainer.innerHTML =
 
 
 // ============================
-// إحصائيات
+// الإحصائيات
 // ============================
 
 
@@ -208,7 +199,7 @@ wallpapers.length;
 
 
 
-let downloads =
+const downloads =
 
 wallpapers.reduce(
 (sum,wall)=>
@@ -225,8 +216,7 @@ downloads;
 
 
 
-
-let likes =
+const likes =
 
 wallpapers.reduce(
 (sum,wall)=>
@@ -240,6 +230,8 @@ if(favoritesCount)
 
 favoritesCount.textContent =
 likes;
+
+
 
 }
 
@@ -273,6 +265,7 @@ wallpaperContainer.innerHTML = `
 
 return;
 
+
 }
 
 
@@ -301,17 +294,11 @@ let media = "";
 
 
 
-// ======================
-// نوع الوسائط
-// ======================
-
-
 if(wall.type === "video"){
 
 
 
 media = `
-
 
 <video
 
@@ -326,7 +313,6 @@ loop
 playsinline
 
 ></video>
-
 
 
 <span class="file-type-badge">
@@ -348,7 +334,6 @@ else if(wall.type === "gif"){
 
 media = `
 
-
 <img
 
 src="${wall.image}"
@@ -356,7 +341,6 @@ src="${wall.image}"
 loading="lazy"
 
 >
-
 
 
 <span class="file-type-badge">
@@ -376,7 +360,6 @@ else{
 
 
 media = `
-
 
 <img
 
@@ -399,9 +382,6 @@ loading="lazy"
 
 
 }
-
-
-
 
 
 
@@ -489,7 +469,6 @@ onclick="deleteWallpaper('${wall.id}')"
 
 
 
-
 wallpaperContainer.appendChild(card);
 
 
@@ -500,11 +479,15 @@ wallpaperContainer.appendChild(card);
 
 }
 
-// ==========================================
-// اختيار الملفات والمعاينة
-// Part 3/5
-// ==========================================
 
+
+
+
+
+
+// ==========================================
+// اختيار نوع الخلفية
+// ==========================================
 
 
 if(typeInput){
@@ -519,14 +502,6 @@ wallpaperType =
 typeInput.value;
 
 
-
-console.log(
-"Type:",
-wallpaperType
-);
-
-
-
 });
 
 
@@ -538,9 +513,10 @@ wallpaperType
 
 
 
-// ============================
-// صورة معاينة الفيديو
-// ============================
+
+// ==========================================
+// صورة مصغرة للفيديو
+// ==========================================
 
 
 if(videoThumbnailInput){
@@ -593,9 +569,9 @@ reader.readAsDataURL(file);
 
 
 
-// ============================
+// ==========================================
 // اختيار الملفات
-// ============================
+// ==========================================
 
 
 if(imageInput){
@@ -606,12 +582,10 @@ imageInput.addEventListener(
 ()=>{
 
 
-
 const files =
 Array.from(
 imageInput.files
 );
-
 
 
 
@@ -623,10 +597,10 @@ alert(
 );
 
 
+imageInput.value = "";
 
-imageInput.value="";
 
-selectedFiles=[];
+selectedFiles = [];
 
 
 renderSelectedFiles();
@@ -636,8 +610,6 @@ return;
 
 
 }
-
-
 
 
 
@@ -657,10 +629,7 @@ file.type.startsWith("video/")
 );
 
 
-
 });
-
-
 
 
 
@@ -674,16 +643,9 @@ renderSelectedFiles();
 
 }
 
-
-
-
-
-
-
-
-// ============================
-// عرض المعاينة
-// ============================
+// ==========================================
+// عرض معاينة الملفات
+// ==========================================
 
 
 function renderSelectedFiles(){
@@ -694,10 +656,7 @@ return;
 
 
 
-
 imagesPreview.innerHTML = "";
-
-
 
 
 
@@ -714,13 +673,10 @@ selectedImagesCount.textContent =
 
 
 
-
-
 if(selectedFiles.length === 0){
 
 
 imagesPreview.innerHTML = `
-
 
 <p class="preview-empty">
 
@@ -728,15 +684,12 @@ imagesPreview.innerHTML = `
 
 </p>
 
-
 `;
 
 return;
 
 
 }
-
-
 
 
 
@@ -766,13 +719,10 @@ let media = "";
 
 
 
-
-
 if(file.type.startsWith("video/")){
 
 
 media = `
-
 
 <video
 
@@ -788,18 +738,14 @@ playsinline>
 
 </video>
 
-
 `;
 
 
 
-}
-
-else{
+}else{
 
 
 media = `
-
 
 <img
 
@@ -807,7 +753,6 @@ src="${url}"
 
 >
 
-
 `;
 
 
@@ -817,13 +762,9 @@ src="${url}"
 
 
 
-
-
 item.innerHTML = `
 
-
 ${media}
-
 
 
 <span class="preview-number">
@@ -851,8 +792,6 @@ data-index="${index}"
 
 
 `;
-
-
 
 
 
@@ -903,20 +842,25 @@ renderSelectedFiles();
 
 }
 
+
+
+
+
 // ==========================================
-// رفع الملفات إلى Cloudinary
-// Part 4/5
+// رفع Cloudinary مع نسبة حقيقية
 // ==========================================
 
 
-
-async function uploadToCloudinary(file, onProgress){
-
-
-return new Promise((resolve,reject)=>{
+async function uploadToCloudinary(file,onProgress){
 
 
-const formData = new FormData();
+return new Promise(
+(resolve,reject)=>{
+
+
+const formData =
+new FormData();
+
 
 
 formData.append(
@@ -925,84 +869,150 @@ file
 );
 
 
+
 formData.append(
 "upload_preset",
 CLOUDINARY_UPLOAD_PRESET
 );
 
 
-let resourceType="image";
+
+let resourceType =
+"image";
 
 
-if(file.type.startsWith("video/")){
-resourceType="video";
+
+if(
+file.type.startsWith("video/")
+){
+
+resourceType =
+"video";
+
 }
 
 
 
-const xhr = new XMLHttpRequest();
+
+const xhr =
+new XMLHttpRequest();
+
+
 
 
 xhr.open(
+
 "POST",
+
 `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`
+
 );
 
 
 
-xhr.upload.onprogress = (event)=>{
 
-if(event.lengthComputable && onProgress){
+
+
+xhr.upload.onprogress =
+(event)=>{
+
+
+if(
+event.lengthComputable &&
+onProgress
+){
+
 
 const percent =
 Math.round(
+
 (event.loaded / event.total) * 100
+
 );
+
 
 
 onProgress(percent);
 
+
+
 }
+
+
 
 };
 
 
 
-xhr.onload=()=>{
+
+
+
+xhr.onload = ()=>{
+
 
 const result =
-JSON.parse(xhr.responseText);
+JSON.parse(
+xhr.responseText
+);
 
 
-if(xhr.status >= 200 && xhr.status < 300){
 
-resolve(result.secure_url);
+if(
+xhr.status >= 200 &&
+xhr.status < 300
+){
+
+
+resolve(
+result.secure_url
+);
+
+
 
 }else{
 
+
 reject(
 new Error(
-result.error?.message || "فشل الرفع"
+result.error?.message ||
+"فشل رفع الملف"
 )
 );
 
+
+
 }
 
+
+
 };
 
 
 
-xhr.onerror=()=>{
+
+
+
+xhr.onerror = ()=>{
+
 
 reject(
-new Error("خطأ في الاتصال")
+new Error(
+"خطأ في الاتصال"
+)
 );
+
+
 
 };
 
 
 
-xhr.send(formData);
+
+
+xhr.send(
+formData
+);
+
 
 
 });
@@ -1010,9 +1020,14 @@ xhr.send(formData);
 
 }
 
-// ============================
+
+
+
+
+
+// ==========================================
 // معلومات الملف
-// ============================
+// ==========================================
 
 
 async function getFileInfo(file){
@@ -1023,12 +1038,9 @@ return new Promise(
 
 
 
-// فيديو
-
 if(
 file.type.startsWith("video/")
 ){
-
 
 
 const video =
@@ -1045,15 +1057,12 @@ video.onloadedmetadata =
 ()=>{
 
 
-
 resolve({
 
 resolution:
 
 video.videoWidth +
-
 "×" +
-
 video.videoHeight,
 
 
@@ -1064,21 +1073,12 @@ file.size /
 1024 /
 1024
 )
-
 .toFixed(2)
-
 +
-
 " MB"
 
 
 });
-
-
-
-URL.revokeObjectURL(
-video.src
-);
 
 
 
@@ -1096,8 +1096,6 @@ URL.createObjectURL(file);
 else{
 
 
-// صورة
-
 const img =
 new Image();
 
@@ -1107,15 +1105,12 @@ img.onload =
 ()=>{
 
 
-
 resolve({
 
 resolution:
 
 img.width +
-
 "×" +
-
 img.height,
 
 
@@ -1126,21 +1121,12 @@ file.size /
 1024 /
 1024
 )
-
 .toFixed(2)
-
 +
-
 " MB"
 
 
 });
-
-
-
-URL.revokeObjectURL(
-img.src
-);
 
 
 
@@ -1162,13 +1148,9 @@ URL.createObjectURL(file);
 
 }
 
-
-
-
-
-// ============================
+// ==========================================
 // إنشاء بيانات الخلفية
-// ============================
+// ==========================================
 
 
 function createWallpaperData(
@@ -1194,6 +1176,7 @@ const category =
 document
 .getElementById("wallCategory")
 .value;
+
 
 
 
@@ -1237,7 +1220,6 @@ file.name.replace(
 
 
 
-
 category,
 
 
@@ -1256,8 +1238,9 @@ file.type.startsWith("video/")
 
 
 
+image:
 
-image:url,
+url,
 
 
 
@@ -1283,13 +1266,24 @@ tags,
 
 
 
-downloads:0,
+downloads:
 
-likes:0,
+0,
 
-views:0,
 
-rating:0,
+likes:
+
+0,
+
+
+views:
+
+0,
+
+
+rating:
+
+0,
 
 
 
@@ -1305,13 +1299,20 @@ todayWallpaper:
 
 document
 .getElementById("todayWallpaper")
-.checked && index===0,
+.checked
+&&
+index===0,
 
 
 
-author:"WallpaperHub",
+author:
+
+"WallpaperHub",
+
+
 
 date:
+
 new Date().toISOString()
 
 
@@ -1321,9 +1322,13 @@ new Date().toISOString()
 
 }
 
+
+
+
+
+
 // ==========================================
 // نشر الخلفيات
-// Part 5/5
 // ==========================================
 
 
@@ -1368,6 +1373,7 @@ saveWallpaper.textContent =
 
 let success = 0;
 
+
 let failed = 0;
 
 
@@ -1375,30 +1381,37 @@ let failed = 0;
 const total =
 selectedFiles.length;
 
-// إعادة ضبط شريط التقدم
+
+
+
+
+// تصفير الشريط
 
 if(uploadProgressBar){
 
-    uploadProgressBar.style.width = "0%";
+uploadProgressBar.style.width =
+"0%";
 
 }
+
 
 
 if(uploadProgressText){
 
-const percent =
-Math.round(
-((i + 1) / total) * 100
-);
-
 uploadProgressText.textContent =
-`${i+1} / ${total} (${percent}%)`;
+`جاهز لرفع ${total} ملفات`;
 
 }
 
+
+
+
+
+
+
 for(
-let i=0;
-i<selectedFiles.length;
+let i = 0;
+i < total;
 i++
 ){
 
@@ -1419,52 +1432,75 @@ await getFileInfo(file);
 
 
 
+
 // رفع Cloudinary
 
 const url =
+
 await uploadToCloudinary(
+
 file,
+
 (percent)=>{
 
-
-if(uploadProgressText){
-
-uploadProgressText.textContent =
-`رفع الملف ${i+1}/${total} : ${percent}%`;
-
-}
 
 
 if(uploadProgressBar){
 
 uploadProgressBar.style.width =
-percent+"%";
+percent + "%";
 
 }
 
 
+
+
+if(uploadProgressText){
+
+uploadProgressText.textContent =
+
+`رفع الملف ${i+1}/${total} : ${percent}%`;
+
 }
+
+
+
+}
+
 );
+
+
 
 
 
 // إنشاء البيانات
 
 const data =
+
 createWallpaperData(
+
 file,
+
 url,
+
 info,
+
 i
+
 );
 
 
 
 
 
+// إرسال للسيرفر
+
 const response =
+
 await fetch(
+
 "/api/wallpapers",
+
 {
 
 method:"POST",
@@ -1472,16 +1508,19 @@ method:"POST",
 headers:{
 
 "Content-Type":
+
 "application/json"
 
 },
 
 body:
+
 JSON.stringify(data)
 
 }
 
 );
+
 
 
 
@@ -1496,19 +1535,20 @@ throw new Error(
 
 
 
+
 success++;
 
 
 
 
-}
+}catch(error){
 
-catch(error){
 
 
 console.error(
 error
 );
+
 
 
 failed++;
@@ -1519,24 +1559,29 @@ failed++;
 
 
 
-// التقدم
 
-const percent =
+
+// تحديث بعد انتهاء ملف
+
+const totalPercent =
 
 Math.round(
 
-((i+1)/total)*100
+((i+1) / total) * 100
 
 );
+
+
 
 
 
 if(uploadProgressBar){
 
 uploadProgressBar.style.width =
-percent+"%";
+totalPercent + "%";
 
 }
+
 
 
 
@@ -1544,7 +1589,7 @@ if(uploadProgressText){
 
 uploadProgressText.textContent =
 
-`${i+1} / ${total}`;
+`اكتمل ${i+1}/${total} (${totalPercent}%)`;
 
 }
 
@@ -1552,6 +1597,9 @@ uploadProgressText.textContent =
 
 }
 
+// ==========================================
+// إنهاء النشر
+// ==========================================
 
 
 saveWallpaper.disabled = false;
@@ -1574,11 +1622,10 @@ alert(
 
 
 
-
 form.reset();
 
 
-selectedFiles=[];
+selectedFiles = [];
 
 
 renderSelectedFiles();
@@ -1598,6 +1645,7 @@ await loadDashboard();
 
 
 
+
 // ==========================================
 // تعديل الخلفية
 // ==========================================
@@ -1607,13 +1655,17 @@ async function editWallpaper(id){
 
 
 const wall =
+
 wallpapers.find(
-w=>String(w.id)===String(id)
+
+w=>String(w.id) === String(id)
+
 );
 
 
 
 if(!wall)
+
 return;
 
 
@@ -1622,21 +1674,28 @@ return;
 document.getElementById(
 "wallTitle"
 ).value =
+
 wall.title || "";
+
 
 
 
 document.getElementById(
 "wallCategory"
 ).value =
+
 wall.category || "";
+
 
 
 
 document.getElementById(
 "wallTags"
 ).value =
+
 (wall.tags || []).join(",");
+
+
 
 
 
@@ -1647,6 +1706,7 @@ alert(
 
 
 }
+
 
 
 
@@ -1667,7 +1727,9 @@ if(
 )
 
 )
+
 return;
+
 
 
 
@@ -1707,11 +1769,14 @@ alert(
 );
 
 
+
+}
+
+
+
 }
 
 
-
-}
 
 
 
@@ -1721,21 +1786,36 @@ window.editWallpaper =
 editWallpaper;
 
 
+
 window.deleteWallpaper =
 deleteWallpaper;
 
 
+
+
+
+
+// ==========================================
 // فتح صفحة الخلفيات
+// ==========================================
+
 
 function openWallpapers(){
 
-location.href = "wallpapers.html";
+
+location.href =
+"wallpapers.html";
+
 
 }
 
 
+
 window.openWallpapers =
 openWallpapers;
+
+
+
 
 
 
