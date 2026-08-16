@@ -278,6 +278,8 @@ const categoryNames = {
     sports: "⚽ الرياضة",
 
     minimal: "✨ Minimal"
+    
+    wallhaven:"Wallhaven AI 🌐",
 
 };
 
@@ -288,6 +290,11 @@ function createDynamicSections() {
     if (!dynamicSections) return;
 
     dynamicSections.innerHTML = "";
+    
+    console.log(
+"ALL CATEGORIES:",
+wallpapers.map(w=>w.category)
+);
 
     const categories =
     [...new Set(wallpapers.map(w => w.category))];
