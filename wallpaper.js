@@ -346,7 +346,7 @@ w.id === currentWallpaper.id
 
 showWallpaper();
 
-
+autoAnalyzeWallpaper();
 
 loadSimilar();
 
@@ -2244,6 +2244,89 @@ alert(
 
 
 };
+
+
+}
+
+//=====
+//تحليل صورة بي دكاء الاصطناعي 
+//=}===
+
+async function autoAnalyzeWallpaper(){
+
+
+if(!currentWallpaper)
+
+return;
+
+
+// إذا موجود لا نعيد التحليل
+
+if(currentWallpaper.aiDescription){
+
+
+if(wallDescription)
+
+wallDescription.textContent =
+currentWallpaper.aiDescription;
+
+
+return;
+
+}
+
+
+
+try{
+
+
+const res =
+await fetch(
+
+`${API}/${currentWallpaper.id}/analyze`,
+
+{
+
+method:"POST"
+
+}
+
+);
+
+
+
+const data =
+await res.json();
+
+
+
+if(data.success){
+
+
+currentWallpaper.aiDescription =
+data.description;
+
+
+
+if(wallDescription)
+
+wallDescription.textContent =
+data.description;
+
+
+}
+
+
+
+}catch(error){
+
+console.log(
+"AI ANALYSIS ERROR",
+error
+);
+
+
+}
 
 
 }

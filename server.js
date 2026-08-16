@@ -366,7 +366,12 @@ title:
 req.body.title ||
 "Untitled",
 
+description:
+req.body.description || "",
 
+
+aiDescription:
+req.body.aiDescription || "",
 
 category:
 req.body.category ||
@@ -1740,7 +1745,159 @@ error.message
 
 });
 
+// ================================
+// AI Wallpaper Analysis
+// ================================
 
+app.post("/api/wallpapers/:id/analyze",
+async(req,res)=>{
+
+try{
+
+const wallpapers = readWallpapers();
+
+const id = Number(req.params.id);
+
+const wall = wallpapers.find(
+w=>w.id===id
+);
+
+
+if(!wall){
+
+return res.status(404).json({
+success:false
+});
+
+}
+
+
+// إذا كان عنده تحليل لا نعيد الطلب
+
+if(wall.aiDescription){
+
+return res.json({
+
+success:true,
+
+description:wall.aiDescription
+
+});
+
+}
+
+const imageResponse = await fetch(wall.image);
+
+
+const buffer =
+await imageResponse.arrayBuffer();
+
+
+const base64 =
+Buffer.from(buffer).toString("base64");
+
+const response = await fetch(
+
+`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+contents:[{
+
+parts:[
+
+{
+
+text:
+`
+حلل هذه الخلفية.
+اكتب وصف احترافي بين 100 و200 حرف.
+اذكر العناصر، الألوان، الجو، والأسلوب.
+`
+
+},
+
+{
+
+inlineData:{
+
+mimeType:"image/jpeg",
+
+data:
+base64
+
+
+}
+
+}
+
+]
+
+}]
+
+})
+
+}
+
+);
+
+
+const data =
+await response.json();
+
+
+
+const description =
+data.candidates[0]
+.content
+.parts[0]
+.text;
+
+
+
+wall.aiDescription =
+description;
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+res.json({
+
+success:true,
+
+description
+
+});
+
+
+
+}catch(error){
+
+console.log(error);
+
+res.status(500).json({
+
+success:false
+
+});
+
+}
+
+
+});
 
 //=====تشغيل سيرفر===\\
 
