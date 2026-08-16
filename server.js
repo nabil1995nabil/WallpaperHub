@@ -1957,7 +1957,7 @@ try{
 
 
 const response = await fetch(
-"https://wallhaven.cc/api/v1/search?sorting=random&purity=100&categories=111"
+"https://wallhaven.cc/api/v1/search?sorting=toplist&purity=100&categories=111"
 );
 
 
@@ -1976,11 +1976,43 @@ for(const item of data.data){
 
 
 
+// ===============================
+// فلترة الجودة 4K إلى 8K
+// ===============================
+
+if(item.resolution){
+
+
+const [w,h] =
+item.resolution
+.split("x")
+.map(Number);
+
+
+
+if(
+w < 3840 ||
+h < 2160
+){
+
+continue;
+
+}
+
+
+}
+
+
+
+
+
 // منع التكرار
 
-const exists = wallpapers.find(
+const exists =
+wallpapers.find(
 w => w.image === item.path
 );
+
 
 
 if(exists){
@@ -2015,7 +2047,10 @@ Buffer.from(buffer)
 
 
 
-// تحليل Gemini
+// ===============================
+// Gemini AI
+// ===============================
+
 
 const aiResponse = await fetch(
 
@@ -2045,6 +2080,13 @@ text:
 `
 حلل هذه الخلفية.
 
+مهم:
+- ارفض صور البشر والوجوه.
+- ارفض صور البورتريه.
+- اقبل فقط خلفيات عالية الجودة.
+- اقبل خلفيات الطبيعة وسيارات فارهة وحيوانات.
+- اقبل خلفيات طائرات بواخر وسفن.
+
 اختر القسم المناسب فقط:
 
 games
@@ -2056,6 +2098,13 @@ nature
 other
 
 
+إذا كانت الصورة تحتوي إنسان أرجع:
+
+{
+"category":"reject"
+}
+
+
 أرجع JSON فقط:
 
 {
@@ -2064,8 +2113,6 @@ other
 "tags":[]
 }
 
-
-لا تضف أي كلام خارج JSON.
 `
 
 },
@@ -2080,237 +2127,6 @@ mimeType:"image/jpeg",
 data:base64
 
 }
-
-}
-
-
-]
-
-}]
-
-})
-
-}
-
-);
-
-
-
-
-
-
-const ai =
-await aiResponse.json();
-
-
-
-
-if(
-!ai.candidates ||
-!ai.candidates[0]
-){
-
-continue;
-
-}
-
-
-
-
-
-const text =
-ai.candidates[0]
-.content
-.parts[0]
-.text;
-
-
-
-
-
-
-let result;
-
-
-
-try{
-
-
-const clean =
-text
-.replace(/```json/g,"")
-.replace(/```/g,"")
-.trim();
-
-
-
-result =
-JSON.parse(clean);
-
-
-
-}catch(error){
-
-
-console.log(
-"AI JSON ERROR",
-text
-);
-
-
-result = {
-
-category:"other",
-
-description:"",
-
-tags:[]
-
-};
-
-
-}
-
-
-
-
-
-
-
-// حفظ الخلفية
-
-wallpapers.push({
-
-id:
-Date.now() +
-Math.floor(Math.random()*1000),
-
-
-title:
-"Wallhaven AI",
-
-
-description:
-"",
-
-
-aiDescription:
-result.description || "",
-
-
-image:
-item.path,
-
-
-thumbnail:
-item.thumbs.large,
-
-
-
-category:
-result.category || "other",
-
-
-
-tags:
-result.tags || [],
-
-
-
-source:
-"wallhaven",
-
-
-
-downloads:
-0,
-
-
-likes:
-0,
-
-
-views:
-0,
-
-
-rating:
-0,
-
-
-ratingCount:
-0,
-
-
-
-date:
-new Date()
-.toLocaleString("ar-MA")
-
-
-});
-
-
-
-
-
-}
-
-
-
-
-
-
-saveWallpapers(
-wallpapers
-);
-
-
-
-
-
-res.json({
-
-success:true,
-
-message:
-"AI Import Completed",
-
-count:
-data.data.length
-
-});
-
-
-
-
-
-}catch(error){
-
-
-
-console.log(
-"Wallhaven AI Import Error",
-error
-);
-
-
-
-res.status(500).json({
-
-success:false,
-
-error:
-error.message
-
-});
-
-
-}
-
-
-
-});
 
 //=====تشغيل سيرفر===\\
 
