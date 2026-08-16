@@ -293,11 +293,23 @@ w.id === wallpaperId
 
 );
 
+
+
+
+// إذا لم توجد الخلفية
+
+if(!currentWallpaper){
+
+
+console.error(
+"Wallpaper Not Found"
+);
+
+
 return;
 
 
 }
-
 
 
 
@@ -381,14 +393,6 @@ error
 
 
 }
-
-
-
-
-
-
-
-
 // ===============================
 // View Counter
 // ===============================
