@@ -2269,7 +2269,9 @@ item.thumbs.large,
 
 
 category:
-result.category || "other",
+(result.category || "other")
+.toLowerCase()
+.trim(),
 
 
 
