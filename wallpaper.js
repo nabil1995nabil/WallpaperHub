@@ -91,90 +91,40 @@ const API = "/api/wallpapers";
 
 const wallImage =
 document.getElementById("wallImage");
-
-
-
 const wallVideo =
 document.getElementById("wallVideo");
-
-
-
-const wallTitle =
-document.getElementById("wallTitle");
-
-
-
 const wallTitle2 =
 document.getElementById("wallTitle2");
-
-
-
 const wallResolution =
 document.getElementById("wallResolution");
-
-
-
 const wallSize =
 document.getElementById("wallSize");
-
-
-
 const wallDownloads =
 document.getElementById("wallDownloads");
-
-
-
 const wallRating =
 document.getElementById("wallRating");
-
-
-
 const wallAuthor =
 document.getElementById("wallAuthor");
-
-
-
 const wallDate =
 document.getElementById("wallDate");
-
-
-
 const qualityBadge =
 document.getElementById("qualityBadge");
-
-
-
 const tagsContainer =
 document.getElementById("tagsContainer");
-
-
-
 const colorPalette =
 document.getElementById("colorPalette");
-
-
-
 const similarContainer =
 document.getElementById("similarWallpapers");
-
-
-
 const ratingStars =
 document.querySelectorAll(".star");
-
-
-
 const ratingCount =
 document.getElementById("ratingCount");
-
 const moreOptionsBtn =
 document.getElementById("moreOptionsBtn");
-
-
 const optionsMenu =
 document.getElementById("optionsMenu");
-
-
+const wallDescription =
+document.getElementById("wallDescription");
 
 if(moreOptionsBtn){
 
@@ -342,19 +292,6 @@ w=>
 w.id === wallpaperId
 
 );
-
-
-
-
-
-if(!currentWallpaper){
-
-
-if(wallTitle)
-
-wallTitle.textContent =
-"Wallpaper Not Found";
-
 
 return;
 
@@ -668,24 +605,15 @@ wallImage.style.display =
 
 }
 
+if(wallDescription)
 
+wallDescription.textContent =
 
-
-
+currentWallpaper.description || "";
 
 // ===============================
 // Information
 // ===============================
-
-
-
-if(wallTitle)
-
-wallTitle.textContent =
-
-currentWallpaper.title;
-
-
 
 if(wallTitle2)
 

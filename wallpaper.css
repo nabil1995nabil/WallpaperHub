@@ -1336,6 +1336,102 @@ transform:translateY(0);
 
 }
 
+}
 
+/* إصلاح ألوان النصوص */
+
+body{
+    color:#fff;
+}
+
+
+.info h2,
+.tags h3,
+.section-title h3,
+.section-title a,
+.similar h3{
+
+    color:#fff !important;
+
+}
+
+
+
+.info-item span:first-child{
+
+    color:#aaa !important;
+
+}
+
+
+
+.info-item span:last-child{
+
+    color:#fff !important;
+
+}
+
+
+
+.tag{
+
+    color:#fff !important;
+
+}
+
+
+
+.similar-card p{
+
+    color:#fff !important;
+
+}
+
+
+
+.similar{
+
+    color:white;
+
+}
+
+/* ============================
+ Description Box
+============================= */
+
+
+.description-box{
+
+    display:block;
+
+    min-height:70px;
+
+}
+
+
+
+.description-box span{
+
+    display:block;
+
+    color:#888;
+
+    margin-bottom:12px;
+
+}
+
+
+
+.description-box p{
+
+    color:white;
+
+    font-size:10px;
+
+    line-height:1.7;
+
+    word-break:break-word;
+
+    white-space:normal;
 
 }
