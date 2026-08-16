@@ -1961,6 +1961,7 @@ const response = await fetch(
 );
 
 
+
 const data = await response.json();
 
 
@@ -1969,9 +1970,30 @@ let wallpapers = readWallpapers();
 
 
 
+
+
 for(const item of data.data){
 
 
+
+// منع التكرار
+
+const exists = wallpapers.find(
+w => w.image === item.path
+);
+
+
+if(exists){
+
+continue;
+
+}
+
+
+
+
+
+// تحميل الصورة
 
 const imageResponse =
 await fetch(item.path);
@@ -1984,11 +2006,16 @@ await imageResponse.arrayBuffer();
 
 
 const base64 =
-Buffer.from(buffer).toString("base64");
+Buffer.from(buffer)
+.toString("base64");
 
 
 
 
+
+
+
+// تحليل Gemini
 
 const aiResponse = await fetch(
 
@@ -1999,8 +2026,11 @@ const aiResponse = await fetch(
 method:"POST",
 
 headers:{
+
 "Content-Type":"application/json"
+
 },
+
 
 body:JSON.stringify({
 
@@ -2008,13 +2038,14 @@ contents:[{
 
 parts:[
 
+
 {
 
 text:
 `
 حلل هذه الخلفية.
 
-اختر القسم المناسب فقط من:
+اختر القسم المناسب فقط:
 
 games
 animals
@@ -2024,7 +2055,8 @@ space
 nature
 other
 
-أرجع JSON فقط بهذا الشكل:
+
+أرجع JSON فقط:
 
 {
 "category":"",
@@ -2032,9 +2064,12 @@ other
 "tags":[]
 }
 
+
+لا تضف أي كلام خارج JSON.
 `
 
 },
+
 
 {
 
@@ -2047,6 +2082,7 @@ data:base64
 }
 
 }
+
 
 ]
 
@@ -2062,8 +2098,22 @@ data:base64
 
 
 
+
 const ai =
 await aiResponse.json();
+
+
+
+
+if(
+!ai.candidates ||
+!ai.candidates[0]
+){
+
+continue;
+
+}
+
 
 
 
@@ -2076,51 +2126,137 @@ ai.candidates[0]
 
 
 
-const result =
-JSON.parse(
-text.replace(/```json|```/g,"")
+
+
+
+let result;
+
+
+
+try{
+
+
+const clean =
+text
+.replace(/```json/g,"")
+.replace(/```/g,"")
+.trim();
+
+
+
+result =
+JSON.parse(clean);
+
+
+
+}catch(error){
+
+
+console.log(
+"AI JSON ERROR",
+text
 );
 
 
+result = {
+
+category:"other",
+
+description:"",
+
+tags:[]
+
+};
+
+
+}
 
 
 
+
+
+
+
+// حفظ الخلفية
 
 wallpapers.push({
 
 id:
-Date.now(),
+Date.now() +
+Math.floor(Math.random()*1000),
+
 
 title:
 "Wallhaven AI",
 
-image:item.path,
 
-thumbnail:item.thumbs.large,
+description:
+"",
 
-category:result.category,
 
-aiDescription:result.description,
+aiDescription:
+result.description || "",
 
-tags:result.tags,
 
-source:"wallhaven",
+image:
+item.path,
 
-downloads:0,
 
-likes:0,
+thumbnail:
+item.thumbs.large,
 
-views:0,
+
+
+category:
+result.category || "other",
+
+
+
+tags:
+result.tags || [],
+
+
+
+source:
+"wallhaven",
+
+
+
+downloads:
+0,
+
+
+likes:
+0,
+
+
+views:
+0,
+
+
+rating:
+0,
+
+
+ratingCount:
+0,
+
+
 
 date:
-new Date().toLocaleString("ar-MA")
+new Date()
+.toLocaleString("ar-MA")
+
 
 });
 
 
 
 
+
 }
+
+
 
 
 
@@ -2131,33 +2267,47 @@ wallpapers
 
 
 
+
+
 res.json({
 
 success:true,
 
 message:
-"AI Import Completed"
+"AI Import Completed",
+
+count:
+data.data.length
 
 });
+
+
 
 
 
 }catch(error){
 
 
-console.log(error);
+
+console.log(
+"Wallhaven AI Import Error",
+error
+);
+
 
 
 res.status(500).json({
 
 success:false,
 
-error:error.message
+error:
+error.message
 
 });
 
 
 }
+
 
 
 });
@@ -2176,3 +2326,14 @@ PORT
 );
 
 });
+
+setTimeout(()=>{
+
+fetch("http://localhost:3000/api/wallhaven/import-ai",{
+method:"POST"
+})
+.then(res=>res.json())
+.then(data=>console.log("AI Import:",data))
+.catch(err=>console.log(err));
+
+},5000);
