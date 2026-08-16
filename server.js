@@ -2127,6 +2127,7 @@ mimeType:"image/jpeg",
 data:base64
 
 }
+});
 
 //=====تشغيل سيرفر===\\
 
