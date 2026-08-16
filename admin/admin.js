@@ -910,13 +910,13 @@ renderSelectedFiles();
 
 
 
-async function uploadToCloudinary(file){
+async function uploadToCloudinary(file, onProgress){
 
 
+return new Promise((resolve,reject)=>{
 
-const formData =
-new FormData();
 
+const formData = new FormData();
 
 
 formData.append(
@@ -925,94 +925,90 @@ file
 );
 
 
-
 formData.append(
 "upload_preset",
 CLOUDINARY_UPLOAD_PRESET
 );
 
 
+let resourceType="image";
 
 
-
-let resourceType =
-"image";
-
-
-
-// فيديو أو GIF متحرك
-
-if(
-file.type.startsWith("video/")
-){
-
-resourceType =
-"video";
-
+if(file.type.startsWith("video/")){
+resourceType="video";
 }
 
 
 
+const xhr = new XMLHttpRequest();
 
 
-const response =
-await fetch(
-
-`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
-
-{
-
-method:"POST",
-
-body:formData
-
-}
-
+xhr.open(
+"POST",
+`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`
 );
 
 
 
+xhr.upload.onprogress = (event)=>{
 
+if(event.lengthComputable && onProgress){
+
+const percent =
+Math.round(
+(event.loaded / event.total) * 100
+);
+
+
+onProgress(percent);
+
+}
+
+};
+
+
+
+xhr.onload=()=>{
 
 const result =
-await response.json();
+JSON.parse(xhr.responseText);
 
 
+if(xhr.status >= 200 && xhr.status < 300){
 
+resolve(result.secure_url);
 
+}else{
 
-if(
-!response.ok ||
-!result.secure_url
-){
-
-
-throw new Error(
-
-result.error?.message ||
-
-"فشل رفع الملف"
-
+reject(
+new Error(
+result.error?.message || "فشل الرفع"
+)
 );
 
-
 }
 
+};
 
 
 
+xhr.onerror=()=>{
 
-return result.secure_url;
+reject(
+new Error("خطأ في الاتصال")
+);
 
+};
+
+
+
+xhr.send(formData);
+
+
+});
 
 
 }
-
-
-
-
-
-
 
 // ============================
 // معلومات الملف
@@ -1390,8 +1386,13 @@ if(uploadProgressBar){
 
 if(uploadProgressText){
 
-    uploadProgressText.textContent =
-    `0 / ${total}`;
+const percent =
+Math.round(
+((i + 1) / total) * 100
+);
+
+uploadProgressText.textContent =
+`${i+1} / ${total} (${percent}%)`;
 
 }
 
@@ -1421,7 +1422,29 @@ await getFileInfo(file);
 // رفع Cloudinary
 
 const url =
-await uploadToCloudinary(file);
+await uploadToCloudinary(
+file,
+(percent)=>{
+
+
+if(uploadProgressText){
+
+uploadProgressText.textContent =
+`رفع الملف ${i+1}/${total} : ${percent}%`;
+
+}
+
+
+if(uploadProgressBar){
+
+uploadProgressBar.style.width =
+percent+"%";
+
+}
+
+
+}
+);
 
 
 
