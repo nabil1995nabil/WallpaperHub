@@ -374,8 +374,7 @@ aiDescription:
 req.body.aiDescription || "",
 
 category:
-req.body.category ||
-"other",
+"wallhaven",
 
 
 
@@ -2237,52 +2236,43 @@ continue;
 
 wallpapers.push({
 
-
 id:
-Date.now() +
-Math.floor(Math.random()*1000),
-
+Date.now()+Math.floor(Math.random()*9999),
 
 
 title:
 "Wallhaven AI",
 
 
-
 description:"",
-
 
 
 aiDescription:
 result.description || "",
 
 
-
 image:
 item.path,
-
 
 
 thumbnail:
 item.thumbs.large,
 
 
-
 category:
-(result.category || "other")
-.toLowerCase()
-.trim(),
+"wallhaven",
 
 
-
-tags:
-result.tags || [],
-
+aiCategory:
+result.category || "other",
 
 
 source:
 "wallhaven",
 
+
+tags:
+result.tags || [],
 
 
 downloads:0,
@@ -2296,15 +2286,11 @@ rating:0,
 ratingCount:0,
 
 
-
 date:
 new Date()
 .toLocaleString("ar-MA")
 
-
 });
-
-
 
 
 
