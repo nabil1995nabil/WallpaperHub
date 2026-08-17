@@ -1435,3 +1435,37 @@ body{
     white-space:normal;
 
 }
+
+#wallTitle2 {
+    font-size:16px;
+    font-weight:300;
+    color:#555;
+
+    width:100%;
+    overflow:hidden;
+    white-space:nowrap;
+
+    text-align:center;
+}
+
+
+#wallTitle2.scroll-title {
+    animation: titleMove 12s linear infinite;
+}
+
+
+@keyframes titleMove {
+
+    0% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(-40%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+
+}

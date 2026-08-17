@@ -93,8 +93,6 @@ const wallImage =
 document.getElementById("wallImage");
 const wallVideo =
 document.getElementById("wallVideo");
-const wallTitle2 =
-document.getElementById("wallTitle2");
 const wallResolution =
 document.getElementById("wallResolution");
 const wallSize =
@@ -615,18 +613,30 @@ wallDescription.textContent =
 
 currentWallpaper.description || "";
 
+const wallTitle2 =
+document.getElementById("wallTitle2");
+
+if(wallTitle2){
+
+wallTitle2.textContent =
+currentWallpaper.title || "بدون اسم";
+
+
+wallTitle2.classList.remove("scroll-title");
+
+
+if(
+    wallTitle2.scrollWidth >
+    wallTitle2.clientWidth
+){
+
+    wallTitle2.classList.add("scroll-title");
+
+}
+
 // ===============================
 // Information
 // ===============================
-
-if(wallTitle2)
-
-wallTitle2.textContent =
-
-currentWallpaper.title;
-
-
-
 
 if(wallResolution)
 
@@ -2328,6 +2338,20 @@ error
 
 }
 
+
+}
+
+const backBtn =
+document.getElementById("backBtn");
+
+
+if(backBtn){
+
+backBtn.onclick = ()=>{
+
+history.back();
+
+};
 
 }
 
