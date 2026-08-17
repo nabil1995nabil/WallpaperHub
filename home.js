@@ -289,60 +289,95 @@ function createDynamicSections() {
 
     if (!dynamicSections) return;
 
+
     dynamicSections.innerHTML = "";
-    
-    console.log(
-"ALL CATEGORIES:",
-wallpapers.map(w=>w.category)
-);
 
-    const categories =
-[
-...new Set(
-wallpapers
-.filter(w => w.category && w.category !== "wallhaven")
-.map(w => w.category)
-)
-];
 
-    categories.forEach(category => {
+    const categories = [
+
+        "nature",
+        "cars",
+        "games",
+        "space",
+        "ai",
+        "amoled",
+        "animals",
+        "anime",
+        "city",
+        "dark",
+        "4k",
+        "sports",
+        "minimal",
+        "rain",
+        "sunset",
+        "architecture",
+        "deep-space",
+        "wallhaven"
+
+    ];
+
+
+
+    categories.forEach(category=>{
+
+
+        const exists =
+        wallpapers.some(
+            w =>
+            String(w.category).trim()
+            === category
+        );
+
+
+        if(!exists)
+        return;
+
+
 
         const section =
         document.createElement("section");
 
+
         section.className =
         "wall-section";
 
+
+
         section.innerHTML = `
 
-            <div class="title">
+        <div class="title">
 
-                <h3>
+        <h3>
+        ${categoryNames[category] || category}
+        </h3>
 
-                    ${categoryNames[category] || category}
 
-                </h3>
+        <a href="all-wallpapers.html?category=${category}">
+        عرض الكل
+        </a>
 
-                <a href="all-wallpapers.html?category=${encodeURIComponent(category)}">
 
-            عرض الكل
+        </div>
 
-                </a>
 
-            </div>
+        <div
+        class="wall-grid"
+        id="section-${category}">
+        </div>
 
-            <div
-            class="wall-grid"
-            id="section-${category}">
-            </div>
 
         `;
 
+
+
         dynamicSections.appendChild(section);
+
 
         renderCategory(category);
 
+
     });
+
 
 }
 
@@ -352,27 +387,41 @@ wallpapers
 
 function renderCategory(category) {
 
-    const container =
-    document.getElementById(
-        `section-${category}`
-    );
 
-    if (!container) return;
+const container =
+document.getElementById(
+`section-${category}`
+);
 
-    container.innerHTML = "";
 
-    wallpapers
+if(!container)
+return;
 
-    .filter(w => w.category === category)
 
-    .slice(0,6)
+container.innerHTML="";
 
-    .forEach(wall => {
 
-        container.innerHTML +=
-        createWallpaperCard(wall);
 
-    });
+wallpapers
+
+.filter(w =>
+String(w.category).trim()
+===
+String(category).trim()
+)
+
+
+.slice(0,6)
+
+.forEach(wall=>{
+
+
+container.innerHTML +=
+createWallpaperCard(wall);
+
+
+});
+
 
 }
 
