@@ -297,7 +297,13 @@ wallpapers.map(w=>w.category)
 );
 
     const categories =
-    [...new Set(wallpapers.map(w => w.category))];
+[
+...new Set(
+wallpapers
+.filter(w => w.category)
+.map(w => w.category)
+)
+];
 
     categories.forEach(category => {
 
