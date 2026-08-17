@@ -881,7 +881,8 @@ container.innerHTML="";
 wallpapers
 
 .filter(w =>
-w.source === "wallhaven"
+w.source === "wallhaven" &&
+w.category === "wallhaven"
 )
 
 .slice(0,10)

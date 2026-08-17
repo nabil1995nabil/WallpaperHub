@@ -374,7 +374,7 @@ aiDescription:
 req.body.aiDescription || "",
 
 category:
-"wallhaven",
+req.body.category || "other",
 
 
 
