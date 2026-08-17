@@ -277,7 +277,7 @@ const categoryNames = {
 
     sports: "⚽ الرياضة",
 
-    minimal: "✨ Minimal"
+    minimal: "✨ Minimal",
     
     wallhaven:"Wallhaven AI 🌐",
 
@@ -300,7 +300,7 @@ wallpapers.map(w=>w.category)
 [
 ...new Set(
 wallpapers
-.filter(w => w.category)
+.filter(w => w.category && w.category !== "wallhaven")
 .map(w => w.category)
 )
 ];
@@ -899,7 +899,7 @@ document.addEventListener(
     () => {
 
         loadWallpapers();
-        loadWallhaven();
+        loadWallhavenAI();
 
     }
 
