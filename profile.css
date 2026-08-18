@@ -2373,9 +2373,9 @@ button:active {
 
 .uid-box{
 
-margin:20px;
+margin:16px;
 
-padding:18px;
+padding:20px;
 
 background:white;
 
@@ -2391,7 +2391,7 @@ box-shadow:
 
 color:#64748b;
 
-font-size:14px;
+font-size:12px;
 
 margin-bottom:12px;
 
@@ -2428,9 +2428,9 @@ overflow:hidden;
 
 .uid-content button{
 
-width:40px;
+width:20px;
 
-height:40px;
+height:20px;
 
 border:none;
 
@@ -2440,6 +2440,6 @@ background:#eef2ff;
 
 cursor:pointer;
 
-font-size:18px;
+font-size:12px;
 
 }
