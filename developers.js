@@ -48,19 +48,21 @@ currentUser = user;
 
 
 if(user){
+
 document
 .getElementById("developerPage")
 .style.display="block";
 
 
 document
-.getElementById("loginRequired")
+.getElementById("loginPopup")
 .style.display="none";
+
 
 loadTokens();
 
 
-else{
+}else{
 
 
 document
@@ -69,8 +71,8 @@ document
 
 
 document
-.getElementById("loginRequired")
-.style.display="block";
+.getElementById("loginPopup")
+.style.display="flex";
 
 
 }
