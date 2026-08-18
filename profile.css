@@ -2372,18 +2372,7 @@ button:active {
 }
 
 .uid-box{
-
-margin:16px;
-
-padding:20px;
-
-background:white;
-
-border-radius:20px;
-
-box-shadow:
-0 8px 25px rgba(0,0,0,.08);
-
+    direction: rtl;
 }
 
 
@@ -2393,44 +2382,34 @@ color:#64748b;
 
 font-size:12px;
 
-margin-bottom:12px;
+margin-bottom:15px;
 
 }
+
 
 
 .uid-content{
-
-display:flex;
-
-align-items:center;
-
-gap:10px;
-
-direction:ltr;
-
+    display:flex;
+    align-items:center;
+    gap:12px;
 }
+
 
 
 #userUid{
-
-flex:1;
-
-font-family:monospace;
-
-font-size:8px;
-
-color:#1e293b;
-
-overflow:hidden;
-
+    flex:1;
+    font-family:monospace;
+    font-size:15px;
+    color:#1e293b;
 }
+
 
 
 .uid-content button{
 
-width:20px;
+width:45px;
 
-height:20px;
+height:45px;
 
 border:none;
 
@@ -2440,6 +2419,6 @@ background:#eef2ff;
 
 cursor:pointer;
 
-font-size:12px;
+font-size:14px;
 
 }

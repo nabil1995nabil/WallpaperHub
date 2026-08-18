@@ -17,7 +17,7 @@ import {
 
     GoogleAuthProvider,
     signInWithPopup,
-    signOut
+    signOut,
 onAuthStateChanged,
 }
 
