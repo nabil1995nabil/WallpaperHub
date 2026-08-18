@@ -147,6 +147,61 @@ function saveNotifications(list){
 }
 
 // ================================
+// API Tokens Database
+// ================================
+
+
+const TOKENS_FILE =
+path.join(
+    __dirname,
+    "data",
+    "tokens.json"
+);
+
+
+
+function readTokens(){
+
+    try{
+
+        return JSON.parse(
+            fs.readFileSync(
+                TOKENS_FILE,
+                "utf8"
+            )
+        );
+
+
+    }catch{
+
+        return [];
+
+    }
+
+}
+
+
+
+function saveTokens(tokens){
+
+
+    fs.writeFileSync(
+
+        TOKENS_FILE,
+
+        JSON.stringify(
+            tokens,
+            null,
+            2
+        ),
+
+        "utf8"
+
+    );
+
+}
+
+// ================================
 // Read Data
 // ================================
 
@@ -2346,6 +2401,222 @@ error:error.message
 
 }
 
+
+
+});
+
+// ================================
+// Create API Token
+// ================================
+
+
+app.post(
+"/api/tokens/create",
+(req,res)=>{
+
+
+try{
+
+
+const {
+
+userId,
+
+appName,
+
+domain
+
+}=req.body;
+
+
+
+if(!userId){
+
+return res.status(400).json({
+
+success:false,
+
+message:"User ID required"
+
+});
+
+}
+
+
+
+let tokens =
+readTokens();
+
+
+
+const token =
+"wall_live_" +
+Math.random()
+.toString(36)
+.substring(2)
++
+Date.now();
+
+
+
+
+
+const newToken = {
+
+
+id:
+Date.now(),
+
+
+userId,
+
+
+appName:
+appName || "My App",
+
+
+domain:
+domain || "",
+
+
+token,
+
+
+limit:1000,
+
+
+requests:0,
+
+
+active:true,
+
+
+created:
+new Date()
+.toISOString()
+
+
+};
+
+
+
+
+
+tokens.push(
+newToken
+);
+
+
+
+saveTokens(
+tokens
+);
+
+
+
+
+
+res.json({
+
+success:true,
+
+token:newToken
+
+});
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+});
+
+// ================================
+// Get User Tokens
+// ================================
+
+
+app.get(
+"/api/tokens/:userId",
+(req,res)=>{
+
+
+const tokens =
+readTokens();
+
+
+
+const result =
+tokens.filter(
+
+t=>
+
+String(t.userId)
+===
+String(req.params.userId)
+
+);
+
+
+
+res.json(result);
+
+
+
+});
+
+// ================================
+// Delete Token
+// ================================
+
+
+app.delete(
+"/api/tokens/:id",
+(req,res)=>{
+
+
+let tokens =
+readTokens();
+
+
+
+tokens =
+tokens.filter(
+
+t=>
+
+String(t.id)
+!==
+String(req.params.id)
+
+);
+
+
+
+saveTokens(
+tokens
+);
+
+
+
+res.json({
+
+success:true
+
+});
 
 
 });

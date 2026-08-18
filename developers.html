@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+WallpaperHub API Developer
+</title>
+
+
+<link rel="stylesheet" href="developers.css">
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+
+<header class="header">
+
+
+<h1>
+🔑 مفاتيح API للمطورين
+</h1>
+
+
+<p>
+إدارة مفاتيح الوصول إلى مكتبة خلفيات WallpaperHub
+</p>
+
+
+</header>
+
+
+
+
+
+<div class="dashboard-grid">
+
+
+
+<!-- إنشاء Token -->
+
+
+<section class="panel">
+
+
+<div class="panel-title">
+
+إنشاء مفتاح جديد
+
+</div>
+
+
+
+
+<form id="createTokenForm">
+
+
+<div class="form-group">
+
+
+<label>
+اسم التطبيق / المشروع
+</label>
+
+
+<input
+
+id="appName"
+
+type="text"
+
+placeholder="مثال: تطبيق خلفيات"
+
+required
+
+>
+
+
+</div>
+
+
+
+
+
+<div class="form-group">
+
+
+<label>
+النطاق المسموح Domain
+</label>
+
+
+<input
+
+id="appDomain"
+
+type="text"
+
+placeholder="https://example.com"
+
+required
+
+>
+
+
+</div>
+
+
+
+
+
+<div class="form-group">
+
+
+<label>
+حد الطلبات اليومي
+</label>
+
+
+<select id="rateLimit">
+
+
+<option value="1000">
+1000 طلب / يومياً مجاني
+</option>
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+<button
+class="btn-submit"
+type="submit">
+
+توليد المفتاح
+
+</button>
+
+
+
+</form>
+
+
+
+
+<div class="docs-box">
+
+
+<span>
+طريقة الاستخدام:
+</span>
+
+
+<code>
+
+GET /api/v1/wallpapers?token=YOUR_KEY
+
+</code>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+<!-- قائمة Tokens -->
+
+
+<section class="panel">
+
+
+<div class="panel-title">
+
+المفاتيح المفعلة
+
+</div>
+
+
+
+<div
+id="tokensList"
+class="tokens-list">
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+<script src="developers.js"></script>
+
+
+</body>
+
+
+</html>
