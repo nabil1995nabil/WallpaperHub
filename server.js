@@ -389,7 +389,186 @@ app.get("/api/wallpapers",(req,res)=>{
 });
 
 
+// ================================
+// Developer API - Protected Wallpapers
+// ================================
 
+
+app.get(
+"/api/v1/wallpapers",
+(req,res)=>{
+
+
+try{
+
+
+const token =
+req.query.token;
+
+
+
+if(!token){
+
+
+return res.status(401).json({
+
+success:false,
+
+message:
+"API Token required"
+
+});
+
+
+}
+
+
+
+
+
+let tokens =
+readTokens();
+
+
+
+
+const apiToken =
+tokens.find(
+
+t=>
+
+t.token === token
+
+);
+
+
+
+
+
+
+if(!apiToken){
+
+
+return res.status(401).json({
+
+success:false,
+
+message:
+"Invalid API Token"
+
+});
+
+
+}
+
+
+
+
+
+
+
+if(!apiToken.active){
+
+
+return res.status(403).json({
+
+success:false,
+
+message:
+"Token disabled"
+
+});
+
+
+}
+
+
+
+
+
+
+// زيادة عدد الطلبات
+
+apiToken.requests =
+(apiToken.requests || 0) + 1;
+
+
+
+
+apiToken.lastUsed =
+new Date()
+.toISOString();
+
+
+
+
+
+saveTokens(
+tokens
+);
+
+
+
+
+
+
+const wallpapers =
+readWallpapers();
+
+
+
+
+
+res.json({
+
+success:true,
+
+
+developer:
+
+apiToken.appName,
+
+
+count:
+wallpapers.length,
+
+
+data:
+wallpapers
+
+
+});
+
+
+
+
+
+
+}catch(error){
+
+
+console.log(
+"Developer API Error:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false,
+
+message:
+"Server Error"
+
+});
+
+
+}
+
+
+
+});
 
 
 // ================================
