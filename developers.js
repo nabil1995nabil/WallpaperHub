@@ -48,20 +48,30 @@ currentUser = user;
 
 
 if(user){
+document
+.getElementById("developerPage")
+.style.display="block";
+
+
+document
+.getElementById("loginRequired")
+.style.display="none";
 
 loadTokens();
 
 
-}else{
+else{
 
 
-tokensList.innerHTML = `
+document
+.getElementById("developerPage")
+.style.display="none";
 
-<p>
-يجب تسجيل الدخول لإنشاء API Token
-</p>
 
-`;
+document
+.getElementById("loginRequired")
+.style.display="block";
+
 
 }
 

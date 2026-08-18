@@ -20,6 +20,9 @@ WallpaperHub API Developer
 <body>
 
 
+<div id="developerPage">
+
+
 <div class="container">
 
 
@@ -45,9 +48,6 @@ WallpaperHub API Developer
 
 <div class="dashboard-grid">
 
-
-
-<!-- إنشاء Token -->
 
 
 <section class="panel">
@@ -131,7 +131,9 @@ required
 
 
 <option value="1000">
+
 1000 طلب / يومياً مجاني
+
 </option>
 
 
@@ -145,7 +147,9 @@ required
 
 
 <button
+
 class="btn-submit"
+
 type="submit">
 
 توليد المفتاح
@@ -155,6 +159,7 @@ type="submit">
 
 
 </form>
+
 
 
 
@@ -187,8 +192,6 @@ GET /api/v1/wallpapers?token=YOUR_KEY
 
 
 
-<!-- قائمة Tokens -->
-
 
 <section class="panel">
 
@@ -202,7 +205,9 @@ GET /api/v1/wallpapers?token=YOUR_KEY
 
 
 <div
+
 id="tokensList"
+
 class="tokens-list">
 
 
@@ -222,8 +227,63 @@ class="tokens-list">
 </div>
 
 
+</div>
 
-<script src="developers.js"></script>
+
+
+
+
+
+
+<!-- نافذة تسجيل الدخول -->
+
+<div id="loginPopup" class="login-popup">
+
+
+<div class="popup-box">
+
+
+<h3>
+🔒 تسجيل الدخول
+</h3>
+
+
+
+<p>
+قم بتسجيل الدخول أولاً للتمكن من الحصول على توكن
+</p>
+
+
+
+
+<button id="googleLoginBtn" class="google-login-btn">
+
+
+<img 
+src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+alt="Google">
+
+
+<span>
+تسجيل الدخول بواسطة Google
+</span>
+
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script type="module" src="developers.js"></script>
+
 
 
 </body>
