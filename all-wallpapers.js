@@ -870,11 +870,12 @@ function isFavorite(id) {
         localStorage.getItem(
             "favorites"
         ) || "[]"
-    );
+    )
+    .map(String);
 
 
     return favorites.includes(
-        Number(id)
+        String(id)
     );
 
 }
@@ -890,20 +891,24 @@ function toggleFavorite(
         localStorage.getItem(
             "favorites"
         ) || "[]"
-    );
+    )
+    .map(String);
 
 
-    id = Number(id);
+
+    id = String(id);
+
 
 
     if (
         favorites.includes(id)
     ) {
 
+
         favorites =
         favorites.filter(
             item =>
-            Number(item) !== id
+            item !== id
         );
 
 
@@ -927,6 +932,7 @@ function toggleFavorite(
         `;
 
     }
+
 
 
     localStorage.setItem(

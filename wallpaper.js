@@ -1727,10 +1727,7 @@ error
 
 
 const favoriteBtn =
-
 document.getElementById("favoriteBtn");
-
-
 
 
 
@@ -1738,78 +1735,49 @@ document.getElementById("favoriteBtn");
 function updateFavorite(){
 
 
-
-if(!favoriteBtn || !currentWallpaper)
-
-return;
+    if(!favoriteBtn || !currentWallpaper)
+        return;
 
 
 
-
-let favorites =
-
-JSON.parse(
-
-localStorage.getItem("favorites")
-
-||
-
-"[]"
-
-);
+    let favorites =
+    JSON.parse(
+        localStorage.getItem("favorites") || "[]"
+    )
+    .map(String);
 
 
 
+    if(
+        favorites.includes(
+            String(currentWallpaper.id)
+        )
+    ){
 
 
-if(
+        favoriteBtn.innerHTML = `
 
-favorites.map(String)
+        <span class="material-icons">
+            favorite
+        </span>
 
-.includes(
-
-String(currentWallpaper.id)
-
-)
-
-){
+        `;
 
 
-
-favoriteBtn.innerHTML = `
-
-<span class="material-icons">
-
-favorite
-
-</span>
-
-`;
+    }else{
 
 
+        favoriteBtn.innerHTML = `
 
-}else{
+        <span class="material-icons">
+            favorite_border
+        </span>
 
+        `;
 
-
-favoriteBtn.innerHTML = `
-
-<span class="material-icons">
-
-favorite_border
-
-</span>
-
-`;
-
-
+    }
 
 }
-
-
-
-}
-
 
 
 
@@ -1823,79 +1791,54 @@ if(favoriteBtn){
 favoriteBtn.onclick = ()=>{
 
 
-let favorites =
-
-JSON.parse(
-
-localStorage.getItem("favorites")
-
-||
-
-"[]"
-
-).map(String);
+    let favorites =
+    JSON.parse(
+        localStorage.getItem("favorites") || "[]"
+    )
+    .map(String);
 
 
 
-
-
-let id =
-
-String(currentWallpaper.id);
+    const id =
+    String(currentWallpaper.id);
 
 
 
+    if(
+        favorites.includes(id)
+    ){
 
 
-if(favorites.includes(id)){
+        favorites =
+        favorites.filter(
+            item => item !== id
+        );
 
 
-favorites =
-
-favorites.filter(
-
-x=>x!==id
-
-);
+    }else{
 
 
-
-}else{
-
-
-favorites.push(id);
+        favorites.push(id);
 
 
-}
+    }
 
 
 
-
-localStorage.setItem(
-
-"favorites",
-
-JSON.stringify(favorites)
-
-);
+    localStorage.setItem(
+        "favorites",
+        JSON.stringify(favorites)
+    );
 
 
 
-updateFavorite();
-
+    updateFavorite();
 
 
 };
 
 
 }
-
-
-
-
-
-
-
 
 // ===============================
 // Share
