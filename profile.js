@@ -32,6 +32,70 @@ console.log(
 );
 
 
+// هنا ضع كود UID
+let uidVisible = false;
+
+let userUID = "";
+
+
+const uidText =
+document.getElementById("userUid");
+
+const toggleUid =
+document.getElementById("toggleUid");
+
+const copyUid =
+document.getElementById("copyUid");
+
+
+onAuthStateChanged(auth,(user)=>{
+
+if(user){
+
+userUID = user.uid;
+
+}
+
+});
+
+
+if(toggleUid){
+
+toggleUid.onclick = ()=>{
+
+uidVisible = !uidVisible;
+
+
+if(uidVisible){
+
+uidText.textContent = userUID;
+
+toggleUid.textContent="🙈";
+
+}else{
+
+uidText.textContent="••••••••••••••";
+
+toggleUid.textContent="👁️";
+
+}
+
+};
+
+}
+
+
+if(copyUid){
+
+copyUid.onclick = ()=>{
+
+navigator.clipboard.writeText(userUID);
+
+alert("تم نسخ UID");
+
+};
+
+}
 
 
 
