@@ -392,3 +392,19 @@ width:22px;
 height:22px;
 
 }
+
+.token-stats{
+
+background:rgba(255,255,255,.5);
+
+border-radius:10px;
+
+padding:10px;
+
+margin-top:10px;
+
+color:#475569;
+
+font-size:12px;
+
+}

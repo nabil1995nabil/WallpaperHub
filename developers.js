@@ -339,7 +339,19 @@ ${token.limit}
 
 </div>
 
+<div class="token-stats">
 
+<p>
+📊 الطلبات اليوم:
+${token.requests || 0} / 200
+</p>
+
+<p>
+🕒 آخر استعمال:
+${token.lastUsed || "لا يوجد"}
+</p>
+
+</div>
 
 
 <div class="token-value-box">
