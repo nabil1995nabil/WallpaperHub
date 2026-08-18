@@ -484,15 +484,68 @@ message:
 
 
 
+// ================================
+// Reset Daily Requests
+// ================================
+
+const today = new Date()
+.toISOString()
+.split("T")[0];
+
+
+if(apiToken.lastRequestDate !== today){
+
+
+apiToken.requests = 0;
+
+
+apiToken.lastRequestDate = today;
+
+
+}
+
+
+// ================================
+// Daily Limit Check
+// ================================
+
+
+const dailyLimit = 200;
+
+
+// إذا لم يوجد عداد
+if(!apiToken.requests){
+
+apiToken.requests = 0;
+
+}
+
+
+// منع تجاوز الحد اليومي
+
+if(apiToken.requests >= dailyLimit){
+
+
+return res.status(429).json({
+
+success:false,
+
+message:
+"Daily request limit reached",
+
+limit:
+dailyLimit
+
+});
+
+
+}
 
 
 
 // زيادة عدد الطلبات
 
-apiToken.requests =
-(apiToken.requests || 0) + 1;
-
-
+apiToken.requests++;
 
 
 apiToken.lastUsed =
@@ -500,12 +553,7 @@ new Date()
 .toISOString();
 
 
-
-
-
-saveTokens(
-tokens
-);
+saveTokens(tokens);
 
 
 
@@ -2661,7 +2709,7 @@ domain || "",
 token,
 
 
-limit:1000,
+limit:200,
 
 
 requests:0,

@@ -42,6 +42,11 @@ onAuthStateChanged(
 auth,
 (user)=>{
 
+console.log(
+"Developer Auth:",
+user
+);
+
 
 currentUser = user;
 
@@ -65,6 +70,33 @@ loadTokens();
 }else{
 
 
+const savedEmail =
+localStorage.getItem("userEmail");
+
+
+if(savedEmail && savedEmail !== "غير مسجل"){
+
+
+document
+.getElementById("developerPage")
+.style.display="block";
+
+
+document
+.getElementById("loginPopup")
+.style.display="none";
+
+
+loadTokens();
+
+
+return;
+
+
+}
+
+
+
 document
 .getElementById("developerPage")
 .style.display="none";
@@ -79,10 +111,6 @@ document
 
 
 });
-
-
-
-
 
 
 // ================================
@@ -179,7 +207,10 @@ document
 
 
 
-
+console.log(
+"CURRENT USER UID:",
+currentUser.uid
+);
 
 
 const response =
