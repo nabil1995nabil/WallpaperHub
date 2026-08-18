@@ -1815,7 +1815,20 @@ window.openWallpapers =
 openWallpapers;
 
 
+// ==========================================
+// فتح صفحة الذكاء الاصطناعي
+// ==========================================
 
+function openAIControl(){
+
+    location.href =
+    "ai-control.html";
+
+}
+
+
+window.openAIControl =
+openAIControl;
 
 
 

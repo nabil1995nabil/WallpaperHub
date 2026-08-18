@@ -1,0 +1,138 @@
+/* =================================
+WallpaperHub AI Control CSS
+================================= */
+
+
+*{
+    box-sizing:border-box;
+    font-family:Tahoma, Arial, sans-serif;
+}
+
+
+
+body{
+
+    margin:0;
+    background:#f4f7ff;
+    color:#222;
+
+}
+
+
+
+.ai-header{
+
+    background:linear-gradient(
+        135deg,
+        #405de6,
+        #6c63ff
+    );
+
+    color:white;
+
+    padding:30px 20px;
+
+    text-align:center;
+
+    border-radius:0 0 30px 30px;
+
+}
+
+
+
+.ai-header h1{
+
+    margin:0;
+
+    font-size:28px;
+
+}
+
+
+
+.ai-header p{
+
+    opacity:.9;
+
+}
+
+
+
+.ai-container{
+
+    padding:20px;
+
+    display:grid;
+
+    gap:20px;
+
+}
+
+
+
+.ai-card{
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:20px;
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,.08);
+
+}
+
+
+
+.ai-card h2{
+
+    color:#405de6;
+
+}
+
+
+
+button{
+
+    background:#405de6;
+
+    color:white;
+
+    border:none;
+
+    padding:14px 25px;
+
+    border-radius:15px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+
+
+button:hover{
+
+    background:#3048c5;
+
+}
+
+
+
+#aiReport,
+#siteStatus{
+
+
+    margin-top:20px;
+
+    padding:15px;
+
+    background:#f5f7ff;
+
+    border-radius:15px;
+
+    line-height:2;
+
+}
