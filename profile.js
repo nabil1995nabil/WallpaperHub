@@ -1,12 +1,11 @@
 /* ===================================================
    WallpaperHub Profile JS
-   Clean 100D Version
    Part 1/4
 =================================================== */
 
 
 /* ==========================
-   Firebase Imports
+   Firebase
 ========================== */
 
 
@@ -15,10 +14,11 @@ import { auth } from "./firebase.js";
 
 import {
 
-    GoogleAuthProvider,
-    signInWithPopup,
-    signOut,
-onAuthStateChanged,
+GoogleAuthProvider,
+signInWithPopup,
+signOut,
+onAuthStateChanged
+
 }
 
 from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
@@ -32,83 +32,16 @@ console.log(
 );
 
 
-// هنا ضع كود UID
-let uidVisible = false;
-
-let userUID = "";
-
-
-const uidText =
-document.getElementById("userUid");
-
-const toggleUid =
-document.getElementById("toggleUid");
-
-const copyUid =
-document.getElementById("copyUid");
-
-
-onAuthStateChanged(auth,(user)=>{
-
-if(user){
-
-userUID = user.uid;
-
-}
-
-});
-
-
-if(toggleUid){
-
-toggleUid.onclick = ()=>{
-
-uidVisible = !uidVisible;
-
-
-if(uidVisible){
-
-uidText.textContent = userUID;
-
-toggleUid.textContent="🙈";
-
-}else{
-
-uidText.textContent="••••••••••••••";
-
-toggleUid.textContent="👁️";
-
-}
-
-};
-
-}
-
-
-if(copyUid){
-
-copyUid.onclick = ()=>{
-
-navigator.clipboard.writeText(userUID);
-
-alert("تم نسخ UID");
-
-};
-
-}
-
 
 
 
 /* ==========================
-   API
+   Provider
 ========================== */
 
 
-const API = "/api/wallpapers";
-
-
-let wallpapers = [];
+const provider =
+new GoogleAuthProvider();
 
 
 
@@ -116,11 +49,11 @@ let wallpapers = [];
 
 
 /* ==========================
-   Firebase Provider
+   User State
 ========================== */
 
 
-const provider = new GoogleAuthProvider();
+let currentUser = null;
 
 
 
@@ -128,73 +61,421 @@ const provider = new GoogleAuthProvider();
 
 
 /* ==========================
-   DOM Elements
+   DOM
 ========================== */
 
 
 const loginBtn =
-document.getElementById("loginBtn");
+document.getElementById(
+"loginBtn"
+);
+
 
 
 const userName =
-document.getElementById("userName");
+document.getElementById(
+"userName"
+);
+
 
 
 const userEmail =
-document.getElementById("userEmail");
+document.getElementById(
+"userEmail"
+);
+
 
 
 const userAvatar =
-document.getElementById("userAvatar");
-
-
-const coverImage =
-document.getElementById("coverImage");
-
-
-
-const downloadedContainer =
 document.getElementById(
-"downloadedWallpapers"
-);
-
-
-
-const likedContainer =
-document.getElementById(
-"likedWallpapers"
-);
-
-
-
-const viewedContainer =
-document.getElementById(
-"viewedWallpapers"
+"userAvatar"
 );
 
 
 
 
-const downloadCount =
-document.getElementById(
-"downloadCount"
+
+
+
+/* ==========================
+   Update Login Button
+========================== */
+
+
+function updateLoginState(user){
+
+
+
+if(!loginBtn)
+
+return;
+
+
+
+
+
+if(user){
+
+
+loginBtn.innerHTML = `
+
+<span class="material-icons">
+logout
+</span>
+
+`;
+
+
+
+}else{
+
+
+loginBtn.innerHTML = `
+
+<span class="material-icons">
+person
+</span>
+
+`;
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   Firebase Listener
+========================== */
+
+
+onAuthStateChanged(
+auth,
+(user)=>{
+
+
+currentUser = user;
+
+
+
+updateLoginState(
+user
 );
 
 
 
-const likeCount =
-document.getElementById(
-"likeCount"
+if(user){
+
+
+
+localStorage.setItem(
+"userName",
+user.displayName || "مستخدم"
 );
 
 
 
-const viewCount =
-document.getElementById(
-"viewCount"
+localStorage.setItem(
+"userEmail",
+user.email || ""
 );
 
 
+
+localStorage.setItem(
+"userAvatar",
+user.photoURL || ""
+);
+
+
+
+}else{
+
+
+localStorage.removeItem(
+"userName"
+);
+
+
+localStorage.removeItem(
+"userEmail"
+);
+
+
+localStorage.removeItem(
+"userAvatar"
+);
+
+
+
+}
+
+
+
+
+});
+
+
+
+
+
+
+
+
+/* ==========================
+   Login / Logout Button
+========================== */
+
+
+if(loginBtn){
+
+
+loginBtn.onclick = async()=>{
+
+
+try{
+
+
+
+if(currentUser){
+
+
+await signOut(auth);
+
+
+return;
+
+
+}
+
+
+
+
+
+
+await signInWithPopup(
+
+auth,
+
+provider
+
+);
+
+
+
+
+}
+
+
+catch(error){
+
+
+console.error(
+"AUTH ERROR",
+error
+);
+
+
+
+alert(
+"حدث خطأ في تسجيل الدخول"
+);
+
+
+
+}
+
+
+
+};
+
+
+}
+
+/* ===================================================
+   User Profile Data
+   Part 2/4
+=================================================== */
+
+
+/* ==========================
+   UID
+========================== */
+
+
+let userUID = "";
+
+
+let uidVisible = false;
+
+
+
+const uidText =
+document.getElementById(
+"userUid"
+);
+
+
+const toggleUid =
+document.getElementById(
+"toggleUid"
+);
+
+
+const copyUid =
+document.getElementById(
+"copyUid"
+);
+
+
+
+
+
+
+onAuthStateChanged(
+auth,
+(user)=>{
+
+
+if(user){
+
+
+userUID =
+user.uid;
+
+
+
+if(uidText)
+
+uidText.textContent =
+"••••••••••••••";
+
+
+
+}else{
+
+
+userUID = "";
+
+
+
+if(uidText)
+
+uidText.textContent =
+"••••••••••••••";
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+if(toggleUid){
+
+
+toggleUid.onclick = ()=>{
+
+
+uidVisible =
+!uidVisible;
+
+
+
+if(uidVisible){
+
+
+uidText.textContent =
+userUID;
+
+
+toggleUid.textContent =
+"🙈";
+
+
+
+}else{
+
+
+uidText.textContent =
+"••••••••••••••";
+
+
+toggleUid.textContent =
+"👁️";
+
+
+}
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+if(copyUid){
+
+
+copyUid.onclick = ()=>{
+
+
+if(userUID){
+
+
+navigator.clipboard.writeText(
+userUID
+);
+
+
+
+alert(
+"تم نسخ UID"
+);
+
+
+
+}
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   Profile Elements
+========================== */
 
 
 const infoUserName =
@@ -236,263 +517,6 @@ document.getElementById(
 
 
 
-/* ==========================
-   Update Login Button
-========================== */
-
-
-function updateLoginState(user){
-
-
-    if(!loginBtn)
-    return;
-
-
-
-    if(user){
-
-
-        loginBtn.innerHTML = `
-
-        <span class="material-icons">
-        logout
-        </span>
-
-        `;
-
-
-        loginBtn.classList.add(
-        "logout"
-        );
-
-
-
-    }else{
-
-
-        loginBtn.innerHTML = `
-
-        <span class="material-icons">
-        login
-        </span>
-
-        `;
-
-
-        loginBtn.classList.remove(
-        "logout"
-        );
-
-
-    }
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Login / Logout
-========================== */
-
-
-if(loginBtn){
-
-
-loginBtn.addEventListener(
-"click",
-
-async()=>{
-
-
-try{
-
-
-
-const currentUser =
-auth.currentUser;
-
-
-
-
-
-/* Logout */
-
-
-if(currentUser){
-
-
-
-await signOut(auth);
-
-
-
-localStorage.removeItem(
-"userName"
-);
-
-
-localStorage.removeItem(
-"userEmail"
-);
-
-
-localStorage.removeItem(
-"userAvatar"
-);
-
-
-
-updateLoginState(null);
-
-
-loadUserData();
-
-
-
-return;
-
-
-
-}
-
-
-
-
-
-
-/* Login Google */
-
-
-const result =
-await signInWithPopup(
-auth,
-provider
-);
-
-
-
-const user =
-result.user;
-
-
-
-
-const name =
-user.displayName ||
-"مستخدم";
-
-
-
-const email =
-user.email ||
-"غير مسجل";
-
-
-
-const avatar =
-user.photoURL ||
-"assets/images/avatar.png";
-
-
-
-
-
-
-localStorage.setItem(
-"userName",
-name
-);
-
-
-
-localStorage.setItem(
-"userEmail",
-email
-);
-
-
-
-localStorage.setItem(
-"userAvatar",
-avatar
-);
-
-
-
-
-
-
-if(!localStorage.getItem("joinDate")){
-
-
-localStorage.setItem(
-
-"joinDate",
-
-new Date().toLocaleString("ar-MA")
-
-);
-
-
-}
-
-
-
-
-
-
-updateLoginState(user);
-
-
-loadUserData();
-
-
-
-}
-
-catch(error){
-
-
-console.error(
-
-"LOGIN ERROR:",
-
-error
-
-);
-
-
-
-alert(
-
-"خطأ تسجيل الدخول: "
-+
-error.message
-
-);
-
-
-
-}
-
-
-
-});
-
-
-}
-
-/* ===================================================
-   User Data + Wallpapers
-   Part 2/4
-=================================================== */
-
 
 /* ==========================
    Load User Data
@@ -502,200 +526,243 @@ error.message
 function loadUserData(){
 
 
-    const name =
 
-    localStorage.getItem(
-    "userName"
-    )
-    ||
-    "زائر";
+const name =
 
+localStorage.getItem(
+"userName"
+)
+||
+"زائر";
 
 
-    const email =
 
-    localStorage.getItem(
-    "userEmail"
-    )
-    ||
-    "غير مسجل";
 
+const email =
 
+localStorage.getItem(
+"userEmail"
+)
+||
+"غير مسجل";
 
-    const avatar =
 
-    localStorage.getItem(
-    "userAvatar"
-    );
 
 
+const avatar =
 
-    const cover =
+localStorage.getItem(
+"userAvatar"
+);
 
-    localStorage.getItem(
-    "userCover"
-    );
 
 
 
 
 
-    if(userName)
 
-    userName.textContent =
-    name;
+if(userName)
 
+userName.textContent =
+name;
 
 
 
 
-    if(userEmail)
+if(userEmail)
 
-    userEmail.textContent =
-    email;
+userEmail.textContent =
+email;
 
 
 
 
 
-    if(userAvatar)
+if(userAvatar)
 
-    userAvatar.src =
-    avatar ||
-    "assets/images/avatar.png";
+userAvatar.src =
+avatar ||
+"assets/images/user.png";
 
 
 
 
 
-    if(coverImage)
 
-    coverImage.src =
-    cover ||
-    "assets/images/default-cover.jpg";
 
+if(infoUserName)
 
+infoUserName.textContent =
+name;
 
 
 
 
 
+if(infoUserEmail)
 
-    if(infoUserName)
+infoUserEmail.textContent =
+email;
 
-    infoUserName.textContent =
-    name;
 
 
 
 
 
-    if(infoUserEmail)
 
-    infoUserEmail.textContent =
-    email;
+if(email !== "غير مسجل"){
 
 
+if(accountType)
 
+accountType.textContent =
+"حساب Google";
 
 
+}else{
 
 
-    if(email !== "غير مسجل"){
+if(accountType)
 
+accountType.textContent =
+"زائر";
 
-        if(accountType)
 
-        accountType.textContent =
-        "حساب Google";
+}
 
 
-    }else{
 
 
-        if(accountType)
 
-        accountType.textContent =
-        "زائر";
 
+let join =
 
-    }
+localStorage.getItem(
+"joinDate"
+);
 
 
 
 
 
+if(joinDate)
 
+joinDate.textContent =
+join ||
+"-";
 
-    let join =
 
-    localStorage.getItem(
-    "joinDate"
-    );
 
 
 
+if(lastLogin)
 
-    if(!join && email !== "غير مسجل"){
+lastLogin.textContent =
+new Date()
+.toLocaleString(
+"ar-MA"
+);
 
 
-        join =
-        new Date()
-        .toLocaleString(
-        "ar-MA"
-        );
 
+}
 
+/* ===================================================
+   Wallpapers + Statistics
+   Part 3/4
+=================================================== */
 
-        localStorage.setItem(
-        "joinDate",
-        join
-        );
 
+/* ==========================
+   API
+========================== */
 
-    }
 
+const API =
+"/api/wallpapers";
 
 
 
+let wallpapers = [];
 
 
-    if(joinDate)
 
-    joinDate.textContent =
-    join ||
-    "-";
 
 
 
 
+/* ==========================
+   Containers
+========================== */
 
 
+const downloadedContainer =
+document.getElementById(
+"downloadedWallpapers"
+);
 
 
-    const loginTime =
 
-    new Date()
-    .toLocaleString(
-    "ar-MA"
-    );
+const likedContainer =
+document.getElementById(
+"likedWallpapers"
+);
 
 
 
+const viewedContainer =
+document.getElementById(
+"viewedWallpapers"
+);
 
-    localStorage.setItem(
-    "lastLogin",
-    loginTime
-    );
 
 
 
 
-    if(lastLogin)
 
-    lastLogin.textContent =
-    loginTime;
+const downloadCount =
+document.getElementById(
+"downloadCount"
+);
 
+
+
+const likeCount =
+document.getElementById(
+"likeCount"
+);
+
+
+
+const viewCount =
+document.getElementById(
+"viewCount"
+);
+
+
+
+
+
+
+
+
+/* ==========================
+   Local Data
+========================== */
+
+
+function getList(key){
+
+
+return JSON.parse(
+
+localStorage.getItem(key)
+
+||
+
+"[]"
+
+);
 
 
 }
@@ -707,91 +774,71 @@ function loadUserData(){
 
 
 
+function clearUserStats(){
+
+
+localStorage.removeItem(
+"downloads"
+);
+
+
+localStorage.removeItem(
+"favorites"
+);
+
+
+localStorage.removeItem(
+"views"
+);
+
+
+}
+
+
+
+
+
+
+
 
 /* ==========================
-   Load Wallpapers API
+   Load Wallpapers
 ========================== */
 
 
 async function loadWallpapers(){
 
 
-    try{
+try{
 
 
-        const response =
-
-        await fetch(API);
-
-
-
-
-        if(!response.ok)
-
-        throw new Error(
-        "SERVER ERROR"
-        );
+const res =
+await fetch(API);
 
 
 
-
-
-        wallpapers =
-
-        await response.json();
+wallpapers =
+await res.json();
 
 
 
-
-
-        renderProfile();
-
-
-
-    }
-
-    catch(error){
-
-
-        console.error(
-
-        "LOAD WALLPAPERS ERROR:",
-
-        error
-
-        );
-
-
-    }
+renderProfile();
 
 
 
 }
 
+catch(error){
 
 
+console.log(
+"Wallpapers Error",
+error
+);
 
 
+}
 
-
-
-/* ==========================
-   Local Storage Lists
-========================== */
-
-
-function getUserList(key){
-
-
-    return JSON.parse(
-
-        localStorage.getItem(key)
-
-        ||
-
-        "[]"
-
-    );
 
 
 }
@@ -805,7 +852,7 @@ function getUserList(key){
 
 
 /* ==========================
-   Render Profile
+   Render Statistics
 ========================== */
 
 
@@ -813,96 +860,66 @@ function renderProfile(){
 
 
 
-    const downloads =
-
-    getUserList(
-    "downloads"
-    );
+const downloads =
+getList("downloads");
 
 
 
-    const likes =
-
-    getUserList(
-    "favorites"
-    );
+const likes =
+getList("favorites");
 
 
 
-    const views =
-
-    getUserList(
-    "views"
-    );
+const views =
+getList("views");
 
 
 
 
 
+if(downloadCount)
 
-
-
-    renderUserWalls(
-
-    downloadedContainer,
-
-    downloads
-
-    );
+downloadCount.textContent =
+downloads.length;
 
 
 
 
+if(likeCount)
 
-    renderUserWalls(
-
-    likedContainer,
-
-    likes
-
-    );
+likeCount.textContent =
+likes.length;
 
 
 
 
+if(viewCount)
 
-    renderUserWalls(
-
-    viewedContainer,
-
-    views
-
-    );
+viewCount.textContent =
+views.length;
 
 
 
 
 
+renderWalls(
+downloadedContainer,
+downloads
+);
 
 
 
-    if(downloadCount)
-
-    downloadCount.textContent =
-    downloads.length;
-
-
+renderWalls(
+likedContainer,
+likes
+);
 
 
 
-    if(likeCount)
-
-    likeCount.textContent =
-    likes.length;
-
-
-
-
-
-    if(viewCount)
-
-    viewCount.textContent =
-    views.length;
+renderWalls(
+viewedContainer,
+views
+);
 
 
 
@@ -917,184 +934,44 @@ function renderProfile(){
 
 
 /* ==========================
-   Render Wallpaper Cards
+   Render Cards
 ========================== */
 
 
-function renderUserWalls(
+function renderWalls(
 container,
 ids
 ){
 
 
 
-    if(!container)
+if(!container)
 
-    return;
+return;
 
 
 
 
+container.innerHTML = "";
 
-    container.innerHTML = "";
 
 
 
+if(ids.length===0){
 
 
+container.innerHTML = `
 
+<div class="empty-profile">
 
-    if(!ids.length){
+لا توجد خلفيات حاليا
 
+</div>
 
-        container.innerHTML = `
+`;
 
-        <div class="empty-profile">
 
-        لا توجد خلفيات هنا حاليا
-
-        </div>
-
-        `;
-
-
-        return;
-
-
-    }
-
-
-
-
-
-
-
-
-    ids.forEach(id=>{
-
-
-
-        const wall =
-
-        wallpapers.find(
-
-            item =>
-
-            String(item.id)
-            ===
-            String(id)
-
-        );
-
-
-
-
-
-        if(!wall)
-
-        return;
-
-
-
-
-
-
-
-
-        const card =
-
-        document.createElement(
-        "div"
-        );
-
-
-
-
-
-        card.className =
-
-        "profile-wall-card";
-
-
-
-
-
-
-        card.innerHTML = `
-
-
-        <img
-
-        src="${getImageUrl(
-        wall.thumbnail ||
-        wall.image
-        )}"
-
-        loading="lazy"
-
-        >
-
-
-
-
-        <div class="profile-wall-info">
-
-
-        <h3>
-
-        ${wall.title || "بدون اسم"}
-
-        </h3>
-
-
-
-        <p>
-
-        ${wall.category || "عام"}
-
-        </p>
-
-
-        </div>
-
-
-
-        `;
-
-
-
-
-
-
-
-
-        card.onclick = ()=>{
-
-
-            location.href =
-
-            "wallpaper.html?id="
-
-            +
-
-            wall.id;
-
-
-
-        };
-
-
-
-
-
-
-
-        container.appendChild(card);
-
-
-
-    });
-
+return;
 
 
 }
@@ -1103,51 +980,91 @@ ids
 
 
 
+ids.forEach(id=>{
 
 
+const wall =
 
-/* ==========================
-   Image URL Handler
-========================== */
+wallpapers.find(
 
+item =>
 
-function getImageUrl(url){
+String(item.id)
+===
+String(id)
 
-
-
-    if(!url)
-
-    return "assets/images/no-image.png";
-
-
-
-
-
-    if(url.startsWith("http"))
-
-    return url;
+);
 
 
 
 
+if(!wall)
 
-    if(url.startsWith("assets/"))
-
-    return url;
+return;
 
 
 
 
 
-    return "assets/wallpapers/" + url;
+const card =
+document.createElement(
+"div"
+);
+
+
+
+card.className =
+"profile-wall-card";
+
+
+
+card.innerHTML = `
+
+<img src="${
+
+wall.thumbnail ||
+
+wall.image
+
+}">
+
+
+<h3>
+
+${wall.title || "بدون اسم"}
+
+</h3>
+
+`;
+
+
+
+card.onclick = ()=>{
+
+
+location.href =
+"wallpaper.html?id="
++
+wall.id;
+
+
+};
+
+
+
+container.appendChild(card);
+
+
+
+});
 
 
 
 }
 
 /* ===================================================
-   Edit Profile + Image Upload
-   Part 3/4
+   Edit Profile + Start
+   Part 4/4
 =================================================== */
 
 
@@ -1157,63 +1074,48 @@ function getImageUrl(url){
 
 
 const editProfileBtn =
-
 document.getElementById(
 "editProfileBtn"
 );
 
 
-
 const editModal =
-
 document.getElementById(
 "editModal"
 );
 
 
-
 const closeEditBtn =
-
 document.getElementById(
 "closeEditBtn"
 );
 
 
-
 const saveProfileBtn =
-
 document.getElementById(
 "saveProfileBtn"
 );
 
 
-
 const editName =
-
 document.getElementById(
 "editName"
 );
 
 
-
 const avatarInput =
-
 document.getElementById(
 "avatarInput"
 );
 
 
-
 const coverInput =
-
 document.getElementById(
 "coverInput"
 );
 
 
-
 const changeAvatarBtn =
-
 document.getElementById(
 "changeAvatarBtn"
 );
@@ -1222,10 +1124,8 @@ document.getElementById(
 
 
 
-
-
 /* ==========================
-   Open Edit Modal
+   Open Edit
 ========================== */
 
 
@@ -1235,25 +1135,22 @@ if(editProfileBtn){
 editProfileBtn.onclick = ()=>{
 
 
-    if(editModal)
+if(editModal)
 
-    editModal.classList.add(
-    "show"
-    );
-
-
+editModal.classList.add(
+"show"
+);
 
 
-    if(editName)
 
-    editName.value =
+if(editName)
 
-    userName.textContent;
+editName.value =
+userName.textContent;
 
 
 
 };
-
 
 
 }
@@ -1264,8 +1161,9 @@ editProfileBtn.onclick = ()=>{
 
 
 
+
 /* ==========================
-   Close Modal
+   Close Edit
 ========================== */
 
 
@@ -1275,44 +1173,14 @@ if(closeEditBtn){
 closeEditBtn.onclick = ()=>{
 
 
-    if(editModal)
+if(editModal)
 
-    editModal.classList.remove(
-    "show"
-    );
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-if(editModal){
-
-
-editModal.onclick = (event)=>{
-
-
-    if(event.target === editModal){
-
-
-        editModal.classList.remove(
-        "show"
-        );
-
-
-    }
+editModal.classList.remove(
+"show"
+);
 
 
 };
-
 
 
 }
@@ -1325,7 +1193,7 @@ editModal.onclick = (event)=>{
 
 
 /* ==========================
-   Save Profile Name
+   Save Name
 ========================== */
 
 
@@ -1335,62 +1203,47 @@ if(saveProfileBtn){
 saveProfileBtn.onclick = ()=>{
 
 
-    const name =
-
-    editName.value.trim();
-
+const name =
+editName.value.trim();
 
 
 
-
-    if(name){
-
+if(name){
 
 
-        localStorage.setItem(
-
-        "userName",
-
-        name
-
-        );
+localStorage.setItem(
+"userName",
+name
+);
 
 
 
+if(userName)
 
-        if(userName)
-
-        userName.textContent =
-        name;
-
+userName.textContent =
+name;
 
 
 
+if(infoUserName)
 
-        if(infoUserName)
-
-        infoUserName.textContent =
-        name;
-
+infoUserName.textContent =
+name;
 
 
-    }
+}
 
 
 
+if(editModal)
 
-
-
-    if(editModal)
-
-    editModal.classList.remove(
-    "show"
-    );
+editModal.classList.remove(
+"show"
+);
 
 
 
 };
-
 
 
 }
@@ -1402,9 +1255,8 @@ saveProfileBtn.onclick = ()=>{
 
 
 
-
 /* ==========================
-   Read Image
+   Image Reader
 ========================== */
 
 
@@ -1414,39 +1266,32 @@ callback
 ){
 
 
+if(!file)
 
-    if(!file)
-
-    return;
-
+return;
 
 
 
-    const reader =
-
-    new FileReader();
-
+const reader =
+new FileReader();
 
 
 
-
-    reader.onload = ()=>{
-
-
-        callback(
-
-        reader.result
-
-        );
+reader.onload = ()=>{
 
 
-    };
+callback(
+reader.result
+);
+
+
+};
 
 
 
-
-    reader.readAsDataURL(file);
-
+reader.readAsDataURL(
+file
+);
 
 
 }
@@ -1459,7 +1304,7 @@ callback
 
 
 /* ==========================
-   Change Avatar
+   Avatar
 ========================== */
 
 
@@ -1469,16 +1314,13 @@ if(changeAvatarBtn && avatarInput){
 changeAvatarBtn.onclick = ()=>{
 
 
-    avatarInput.click();
+avatarInput.click();
 
 
 };
 
 
 }
-
-
-
 
 
 
@@ -1489,45 +1331,30 @@ if(avatarInput){
 avatarInput.onchange = ()=>{
 
 
-
-    const file =
-
-    avatarInput.files[0];
+const file =
+avatarInput.files[0];
 
 
 
-
-    readImage(
-
-    file,
-
-    (src)=>{
+readImage(
+file,
+(src)=>{
 
 
-
-        if(userAvatar)
-
-        userAvatar.src =
-        src;
+userAvatar.src =
+src;
 
 
 
-
-        localStorage.setItem(
-
-        "userAvatar",
-
-        src
-
-        );
+localStorage.setItem(
+"userAvatar",
+src
+);
 
 
 
-    }
-
-
-    );
-
+}
+);
 
 
 };
@@ -1543,9 +1370,8 @@ avatarInput.onchange = ()=>{
 
 
 
-
 /* ==========================
-   Change Cover
+   Cover
 ========================== */
 
 
@@ -1555,75 +1381,38 @@ if(coverInput){
 coverInput.onchange = ()=>{
 
 
-    const file =
-
-    coverInput.files[0];
-
+const file =
+coverInput.files[0];
 
 
 
-    readImage(
-
-    file,
-
-    (src)=>{
+readImage(
+file,
+(src)=>{
 
 
-
-        if(coverImage)
-
-        coverImage.src =
-        src;
+coverImage.src =
+src;
 
 
 
-
-        localStorage.setItem(
-
-        "userCover",
-
-        src
-
-        );
+localStorage.setItem(
+"userCover",
+src
+);
 
 
 
-    }
-
-
-    );
+}
+);
 
 
 
 };
 
 
-
 }
 
-/* ===================================================
-   Start App + 100D Motion Engine
-   Part 4/4
-=================================================== */
-
-
-/* ==========================
-   Start Profile
-========================== */
-
-
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-
-    loadUserData();
-
-
-    loadWallpapers();
-
-
-});
 
 
 
@@ -1632,409 +1421,19 @@ document.addEventListener(
 
 
 /* ==========================
-   100D Card Motion Engine
+   Start App
 ========================== */
 
 
-function init100DMotion(){
-
-
-
-const cards = document.querySelectorAll(
-
-".info-card, .stat-card, .profile-wall-card"
-
-);
-
-
-
-
-
-
-cards.forEach(card=>{
-
-
-
-    let targetX = 0;
-
-    let targetY = 0;
-
-
-    let currentX = 0;
-
-    let currentY = 0;
-
-
-
-
-
-    card.style.transformStyle =
-    "preserve-3d";
-
-
-
-
-
-
-
-    const light =
-    document.createElement("div");
-
-
-
-    light.className =
-    "motion-light";
-
-
-
-
-
-    Object.assign(
-
-    light.style,
-
-    {
-
-
-        position:"absolute",
-
-        inset:"0",
-
-        pointerEvents:"none",
-
-        opacity:"0",
-
-        borderRadius:"inherit",
-
-        transition:"opacity .3s ease",
-
-        background:
-
-        "radial-gradient(circle, rgba(255,255,255,.35), transparent 50%)",
-
-        zIndex:"5"
-
-
-    }
-
-    );
-
-
-
-
-    card.appendChild(light);
-
-
-
-
-
-
-
-
-    function animate(){
-
-
-
-        currentX +=
-
-        (targetX - currentX)
-        * .12;
-
-
-
-
-        currentY +=
-
-        (targetY - currentY)
-        * .12;
-
-
-
-
-
-
-        card.style.transform =
-
-
-        `
-
-        perspective(1000px)
-
-        rotateX(${currentX}deg)
-
-        rotateY(${currentY}deg)
-
-        translateZ(10px)
-
-        `;
-
-
-
-
-
-
-        requestAnimationFrame(
-        animate
-        );
-
-
-
-    }
-
-
-
-
-
-    animate();
-
-
-
-
-
-
-
-
-    function moveCard(x,y){
-
-
-
-        const rect =
-
-        card.getBoundingClientRect();
-
-
-
-
-
-        const px =
-
-        (x - rect.left)
-
-        /
-
-        rect.width;
-
-
-
-
-
-        const py =
-
-        (y - rect.top)
-
-        /
-
-        rect.height;
-
-
-
-
-
-
-        targetY =
-
-        (px - .5)
-        *
-        12;
-
-
-
-
-
-
-        targetX =
-
-        (py - .5)
-        *
-        -12;
-
-
-
-
-
-
-
-
-        light.style.opacity =
-        "1";
-
-
-
-
-
-        light.style.background =
-
-
-        `
-
-        radial-gradient(
-
-        circle at
-
-        ${px*100}%
-
-        ${py*100}%,
-
-        rgba(255,255,255,.45),
-
-        transparent 45%
-
-        )
-
-        `;
-
-
-
-    }
-
-
-
-
-
-
-
-
-    card.addEventListener(
-
-    "mousemove",
-
-    e=>{
-
-
-        moveCard(
-
-        e.clientX,
-
-        e.clientY
-
-        );
-
-
-    }
-
-    );
-
-
-
-
-
-
-
-
-    card.addEventListener(
-
-    "mouseleave",
-
-    ()=>{
-
-
-        targetX = 0;
-
-        targetY = 0;
-
-
-        light.style.opacity =
-        "0";
-
-
-
-    }
-
-    );
-
-
-
-
-
-
-
-
-    card.addEventListener(
-
-    "touchmove",
-
-    e=>{
-
-
-        const touch =
-
-        e.touches[0];
-
-
-
-        moveCard(
-
-        touch.clientX,
-
-        touch.clientY
-
-        );
-
-
-
-    },
-
-    {
-
-    passive:true
-
-    }
-
-    );
-
-
-
-
-
-
-
-    card.addEventListener(
-
-    "touchend",
-
-    ()=>{
-
-
-        targetX = 0;
-
-        targetY = 0;
-
-
-        light.style.opacity =
-        "0";
-
-
-
-    }
-
-    );
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-/* تشغيل محرك 3D */
-
 document.addEventListener(
-
 "DOMContentLoaded",
-
 ()=>{
 
 
-    init100DMotion();
+loadUserData();
 
 
-}
+loadWallpapers();
 
-);
+
+});
