@@ -197,6 +197,12 @@ user.photoURL || ""
 
 
 
+// تحميل بيانات المستخدم
+
+loadUserProfile(user.uid);
+
+
+
 }else{
 
 
@@ -216,19 +222,59 @@ localStorage.removeItem(
 
 
 
+// تصفير بيانات الزائر
+
+document.getElementById("userName").textContent =
+"زائر";
+
+
+document.getElementById("userEmail").textContent =
+"غير مسجل";
+
+
+document.getElementById("accountType").textContent =
+"زائر";
+
+
+document.getElementById("joinDate").textContent =
+"-";
+
+
+document.getElementById("lastLogin").textContent =
+"-";
+
+
+
+document.getElementById("downloadsCount").textContent =
+"0";
+
+
+document.getElementById("favoritesCount").textContent =
+"0";
+
+
+document.getElementById("viewsCount").textContent =
+"0";
+
+
+
+const wallpapers =
+document.getElementById("userWallpapers");
+
+
+if(wallpapers){
+
+wallpapers.innerHTML = "";
+
 }
 
 
 
+}
+
+
 
 });
-
-
-
-
-
-
-
 
 /* ==========================
    Login / Logout Button
@@ -244,18 +290,37 @@ loginBtn.onclick = async()=>{
 try{
 
 
-
 if(currentUser){
 
 
 await signOut(auth);
 
+resetGuestProfile();
+
+location.reload();
+
+
+// تنظيف بيانات المستخدم المحلية
+
+localStorage.removeItem("joinDate");
+
+localStorage.removeItem("lastLogin");
+
+localStorage.removeItem("downloads");
+
+localStorage.removeItem("favorites");
+
+localStorage.removeItem("views");
+
+
+// تحديث الصفحة بعد الخروج
+
+location.reload();
+
 
 return;
 
-
 }
-
 
 
 
@@ -271,7 +336,6 @@ provider
 
 
 
-
 }
 
 
@@ -279,14 +343,19 @@ catch(error){
 
 
 console.error(
+
 "AUTH ERROR",
+
 error
+
 );
 
 
 
 alert(
+
 "حدث خطأ في تسجيل الدخول"
+
 );
 
 
