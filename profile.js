@@ -153,7 +153,7 @@ person
 
 
 /* ==========================
-   Firebase Listener - WITH FULL SYNC
+   Firebase Listener - WITH FULL DATA RESTORE
 ========================== */
 
 onAuthStateChanged(auth, (user) => {
@@ -172,18 +172,32 @@ onAuthStateChanged(auth, (user) => {
         localStorage.setItem("joinDate", new Date().toLocaleDateString("ar-MA"));
         localStorage.setItem("lastLogin", new Date().toLocaleString("ar-MA"));
         
-        // تحديث الواجهة
-        document.getElementById("userName").textContent = user.displayName || "مستخدم";
-        document.getElementById("userEmail").textContent = user.email || "غير مسجل";
-        document.getElementById("infoUserName").textContent = user.displayName || "مستخدم";
-        document.getElementById("infoUserEmail").textContent = user.email || "غير مسجل";
-        document.getElementById("accountType").textContent = "حساب Google";
-        document.getElementById("joinDate").textContent = new Date().toLocaleDateString("ar-MA");
-        document.getElementById("lastLogin").textContent = new Date().toLocaleString("ar-MA");
+        // تحديث الواجهة - البيانات الشخصية
+        const userNameEl = document.getElementById("userName");
+        if (userNameEl) userNameEl.textContent = user.displayName || "مستخدم";
+        
+        const userEmailEl = document.getElementById("userEmail");
+        if (userEmailEl) userEmailEl.textContent = user.email || "غير مسجل";
+        
+        const infoUserNameEl = document.getElementById("infoUserName");
+        if (infoUserNameEl) infoUserNameEl.textContent = user.displayName || "مستخدم";
+        
+        const infoUserEmailEl = document.getElementById("infoUserEmail");
+        if (infoUserEmailEl) infoUserEmailEl.textContent = user.email || "غير مسجل";
+        
+        const accountTypeEl = document.getElementById("accountType");
+        if (accountTypeEl) accountTypeEl.textContent = "حساب Google";
+        
+        const joinDateEl = document.getElementById("joinDate");
+        if (joinDateEl) joinDateEl.textContent = new Date().toLocaleDateString("ar-MA");
+        
+        const lastLoginEl = document.getElementById("lastLogin");
+        if (lastLoginEl) lastLoginEl.textContent = new Date().toLocaleString("ar-MA");
         
         // تحديث الصورة
-        if (user.photoURL) {
-            document.getElementById("userAvatar").src = user.photoURL;
+        const avatarEl = document.getElementById("userAvatar");
+        if (avatarEl && user.photoURL) {
+            avatarEl.src = user.photoURL;
         }
         
         // ============================
@@ -193,17 +207,24 @@ onAuthStateChanged(auth, (user) => {
         const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
         const views = JSON.parse(localStorage.getItem("views") || "[]");
         
-        document.getElementById("downloadCount").textContent = downloads.length;
-        document.getElementById("likeCount").textContent = favorites.length;
-        document.getElementById("viewCount").textContent = views.length;
+        const downloadCountEl = document.getElementById("downloadCount");
+        if (downloadCountEl) downloadCountEl.textContent = downloads.length;
         
-        // عرض الخلفيات المحملة/المفضلة/المرئية
+        const likeCountEl = document.getElementById("likeCount");
+        if (likeCountEl) likeCountEl.textContent = favorites.length;
+        
+        const viewCountEl = document.getElementById("viewCount");
+        if (viewCountEl) viewCountEl.textContent = views.length;
+        
+        // ============================
+        // تحميل الخلفيات وعرضها
+        // ============================
         loadWallpapers();
         
-        // تحميل بيانات المستخدم الإضافية (إذا وجدت)
-        if (typeof loadUserProfile === 'function') {
-            loadUserProfile(user.uid);
-        }
+        console.log("✅ تم تسجيل الدخول واستعادة البيانات:");
+        console.log("📥 تحميلات:", downloads.length);
+        console.log("❤️ إعجابات:", favorites.length);
+        console.log("👁️ مشاهدات:", views.length);
         
     } else {
         // ============================
@@ -238,15 +259,10 @@ function resetGuestProfile() {
     const uidEl = document.getElementById("userUid");
     if (uidEl) uidEl.textContent = "••••••••••••••";
     
-    // 3. تصفير الإحصائيات (التحميلات، الإعجابات، المشاهدات)
-    const stats = {
-        "downloadCount": "0",
-        "likeCount": "0",
-        "viewCount": "0"
-    };
-    Object.keys(stats).forEach(id => {
+    // 3. تصفير الإحصائيات
+    ["downloadCount", "likeCount", "viewCount"].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.textContent = stats[id];
+        if (el) el.textContent = "0";
     });
     
     // 4. تصفير الصورة الشخصية
@@ -261,7 +277,7 @@ function resetGuestProfile() {
         }
     });
     
-    // 6. تنظيف localStorage من جميع بيانات المستخدم
+    // 6. تنظيف localStorage من بيانات المستخدم
     const userKeys = [
         "userName", 
         "userEmail", 
@@ -274,99 +290,54 @@ function resetGuestProfile() {
         "userData"
     ];
     userKeys.forEach(key => localStorage.removeItem(key));
+    
+    console.log("👋 تم تسجيل الخروج وتصفير البيانات");
 }
 
 /* ==========================
-   Login / Logout Button
+   Login / Logout Button - FIXED
 ========================== */
 
-
-if(loginBtn){
-
-
-loginBtn.onclick = async()=>{
-
-
-try{
-
-
-if(currentUser){
-
-
-await signOut(auth);
-
-resetGuestProfile();
-
-location.reload();
-
-
-// تنظيف بيانات المستخدم المحلية
-
-localStorage.removeItem("joinDate");
-
-localStorage.removeItem("lastLogin");
-
-localStorage.removeItem("downloads");
-
-localStorage.removeItem("favorites");
-
-localStorage.removeItem("views");
-
-
-// تحديث الصفحة بعد الخروج
-
-location.reload();
-
-
-return;
-
-}
-
-
-
-
-
-await signInWithPopup(
-
-auth,
-
-provider
-
-);
-
-
-
-}
-
-
-catch(error){
-
-
-console.error(
-
-"AUTH ERROR",
-
-error
-
-);
-
-
-
-alert(
-
-"حدث خطأ في تسجيل الدخول"
-
-);
-
-
-
-}
-
-
-
-};
-
-
+if (loginBtn) {
+    loginBtn.onclick = async () => {
+        try {
+            if (currentUser) {
+                // ============================
+                // تسجيل الخروج
+                // ============================
+                await signOut(auth);
+                resetGuestProfile(); // تصفير كل شيء فوراً
+                
+                // تنظيف localStorage من بيانات المستخدم
+                const userKeys = [
+                    "joinDate", 
+                    "lastLogin", 
+                    "downloads", 
+                    "favorites", 
+                    "views",
+                    "userName",
+                    "userEmail",
+                    "userAvatar",
+                    "userData"
+                ];
+                userKeys.forEach(key => localStorage.removeItem(key));
+                
+                // تحديث الصفحة بعد الخروج
+                location.reload();
+                return;
+            }
+            
+            // ============================
+            // تسجيل الدخول
+            // ============================
+            await signInWithPopup(auth, provider);
+            // بعد تسجيل الدخول، onAuthStateChanged سيتولى الباقي
+            
+        } catch (error) {
+            console.error("AUTH ERROR", error);
+            alert("حدث خطأ في تسجيل الدخول");
+        }
+    };
 }
 
 /* ===================================================
@@ -911,12 +882,6 @@ error
 
 
 }
-
-
-
-
-
-
 
 
 
