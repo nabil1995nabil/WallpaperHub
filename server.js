@@ -157,7 +157,25 @@ path.join(
     "data",
     "tokens.json"
 );
+if(!fs.existsSync(TOKENS_FILE)){
 
+
+fs.mkdirSync(
+path.dirname(TOKENS_FILE),
+{
+recursive:true
+}
+);
+
+
+fs.writeFileSync(
+TOKENS_FILE,
+"[]",
+"utf8"
+);
+
+
+}
 
 
 function readTokens(){
@@ -185,6 +203,26 @@ function readTokens(){
 function saveTokens(tokens){
 
 
+    const folder =
+    path.dirname(TOKENS_FILE);
+
+
+
+    if(!fs.existsSync(folder)){
+
+
+        fs.mkdirSync(
+            folder,
+            {
+                recursive:true
+            }
+        );
+
+
+    }
+
+
+
     fs.writeFileSync(
 
         TOKENS_FILE,
@@ -198,6 +236,7 @@ function saveTokens(tokens){
         "utf8"
 
     );
+
 
 }
 
