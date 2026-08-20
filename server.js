@@ -2690,38 +2690,27 @@ Date.now();
 
 const newToken = {
 
-
-id:
-Date.now(),
-
+id: Date.now(),
 
 userId,
 
+appName: appName || "My App",
 
-appName:
-appName || "My App",
-
-
-domain:
-domain || "",
-
+domain: domain || "",
 
 token,
 
-
 limit:200,
-
 
 requests:0,
 
+lastRequestDate:null,
+
+lastUsed:null,
 
 active:true,
 
-
-created:
-new Date()
-.toISOString()
-
+created:new Date().toISOString()
 
 };
 
