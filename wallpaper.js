@@ -237,159 +237,41 @@ JSON.stringify(list)
 // Load Wallpaper
 // ===============================
 
-
-async function loadWallpaper(){
-
-
-try{
-
-
-const response =
-
-await fetch(API);
-
-
-
-if(!response.ok)
-
-throw new Error("API ERROR");
-
-
-
-
-
-allWallpapers =
-
-await response.json();
-
-
-
-
-
-allWallpapers =
-
-allWallpapers.map(w=>({
-
-...w,
-
-id:Number(w.id)
-
-}));
-
-
-
-
-
-
-currentWallpaper =
-
-allWallpapers.find(
-
-w=>
-
-w.id === wallpaperId
-
-);
-
-
-
-
-// إذا لم توجد الخلفية
-
-if(!currentWallpaper){
-
-
-console.error(
-"Wallpaper Not Found"
-);
-
-
-return;
-
-
-}
-
-
-
-
-
-categoryWallpapers =
-
-allWallpapers.filter(
-
-w=>
-
-w.category === currentWallpaper.category
-
-);
-
-
-
-
-
-currentWallpaperIndex =
-
-categoryWallpapers.findIndex(
-
-w=>
-
-w.id === currentWallpaper.id
-
-);
-
-
-
-
-
-
-showWallpaper();
-
-autoAnalyzeWallpaper();
-
-loadSimilar();
-
-
-
-updateFavorite();
-
-
-
-
-
-saveUserAction(
-
-"views",
-
-currentWallpaper.id
-
-);
-
-
-
-sendView(
-
-currentWallpaper.id
-
-);
-
-
-
-}catch(error){
-
-
-console.error(
-
-"LOAD WALLPAPER ERROR",
-
-error
-
-);
-
-
-}
-
-
-
+async function loadWallpaper() {
+    try {
+        const response = await fetch(API);
+        if (!response.ok) throw new Error("API ERROR");
+
+        allWallpapers = await response.json();
+        allWallpapers = allWallpapers.map(w => ({
+            ...w,
+            id: Number(w.id)
+        }));
+
+        currentWallpaper = allWallpapers.find(w => w.id === wallpaperId);
+
+        if (!currentWallpaper) {
+            console.error("Wallpaper Not Found");
+            return;
+        }
+
+        categoryWallpapers = allWallpapers.filter(w => w.category === currentWallpaper.category);
+        currentWallpaperIndex = categoryWallpapers.findIndex(w => w.id === currentWallpaper.id);
+
+        showWallpaper();
+        autoAnalyzeWallpaper();
+        loadSimilar();
+        updateFavorite();
+
+        saveUserAction("views", currentWallpaper.id);
+        // ✅ حفظ المشاهدة في الإحصائيات
+        window.syncUserStats("views", currentWallpaper.id);
+
+        sendView(currentWallpaper.id);
+
+    } catch (error) {
+        console.error("LOAD WALLPAPER ERROR", error);
+    }
 }
 // ===============================
 // View Counter
@@ -881,115 +763,29 @@ colorPalette.appendChild(div);
 // Change Wallpaper
 // ===============================
 
+function changeWallpaper(index) {
+    if (!categoryWallpapers.length) return;
 
-function changeWallpaper(index){
+    if (index >= categoryWallpapers.length) index = 0;
+    if (index < 0) index = categoryWallpapers.length - 1;
 
+    currentWallpaperIndex = index;
+    currentWallpaper = categoryWallpapers[index];
+    wallpaperId = currentWallpaper.id;
 
-if(!categoryWallpapers.length)
+    localStorage.setItem("selectedWallpaper", currentWallpaper.id);
+    history.replaceState({}, "", "wallpaper.html?id=" + currentWallpaper.id);
 
-return;
+    showWallpaper();
+    loadSimilar();
+    updateFavorite();
 
+    saveUserAction("views", currentWallpaper.id);
+    // ✅ حفظ المشاهدة في الإحصائيات
+    window.syncUserStats("views", currentWallpaper.id);
 
-
-if(index >= categoryWallpapers.length)
-
-index = 0;
-
-
-
-if(index < 0)
-
-index = categoryWallpapers.length - 1;
-
-
-
-
-
-currentWallpaperIndex = index;
-
-
-
-currentWallpaper =
-
-categoryWallpapers[index];
-
-
-
-
-
-wallpaperId =
-
-currentWallpaper.id;
-
-
-
-
-
-localStorage.setItem(
-
-"selectedWallpaper",
-
-currentWallpaper.id
-
-);
-
-
-
-
-
-history.replaceState(
-
-{},
-
-"",
-
-"wallpaper.html?id="+currentWallpaper.id
-
-);
-
-
-
-
-
-showWallpaper();
-
-
-
-loadSimilar();
-
-
-
-updateFavorite();
-
-
-
-
-
-saveUserAction(
-
-"views",
-
-currentWallpaper.id
-
-);
-
-
-
-sendView(
-
-currentWallpaper.id
-
-);
-
-
+    sendView(currentWallpaper.id);
 }
-
-
-
-
-
-
-
 
 // ===============================
 // Swipe
@@ -1435,409 +1231,134 @@ fullscreenVideo.pause();
 // Download Wallpaper + Watermark
 // ===============================
 
-
-const downloadBtn =
-document.getElementById("downloadBtn");
-
-
+const downloadBtn = document.getElementById("downloadBtn");
 
 // تحديد لون الشعار حسب الخلفية
-
-function getWatermarkColor(ctx, canvas){
-
-
+function getWatermarkColor(ctx, canvas) {
     const x = 50;
-
     const y = canvas.height - 50;
 
+    const pixel = ctx.getImageData(x, y, 1, 1).data;
+    const brightness = (pixel[0] * 299 + pixel[1] * 587 + pixel[2] * 114) / 1000;
 
-
-    const pixel =
-    ctx.getImageData(
-        x,
-        y,
-        1,
-        1
-    ).data;
-
-
-
-    const brightness =
-    (
-        pixel[0] * 299 +
-        pixel[1] * 587 +
-        pixel[2] * 114
-    ) / 1000;
-
-
-
-    if(brightness > 150){
-
+    if (brightness > 150) {
         return "rgba(0,0,0,0.18)";
-
-    }else{
-
+    } else {
         return "rgba(255,255,255,0.18)";
-
     }
-
-
 }
 
-
-
-
-async function downloadWithWatermark(imageUrl, title){
-
-
+async function downloadWithWatermark(imageUrl, title) {
     const img = new Image();
-
-
     img.crossOrigin = "anonymous";
-
-
     img.src = imageUrl;
 
-
-
-    img.onload = ()=>{
-
-
-        const canvas =
-        document.createElement("canvas");
-
-
-
-        const ctx =
-        canvas.getContext("2d");
-
-
-
+    img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
         const maxWidth = 1440;
 
+        let scale = 1;
+        if (img.width > maxWidth) {
+            scale = maxWidth / img.width;
+        }
 
-let scale = 1;
-
-
-if(img.width > maxWidth){
-
-    scale = maxWidth / img.width;
-
-}
-
-
-
-canvas.width =
-img.width * scale;
-
-
-canvas.height =
-img.height * scale;
-
-
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
 
         // رسم الخلفية
-
-ctx.drawImage(
-    img,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-);
-
-
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         // =========================
         // WallpaperHub Watermark
         // =========================
-
-
-        ctx.font =
-        "300 24px Arial";
-
-
-
-        ctx.fillStyle =
-        getWatermarkColor(
-            ctx,
-            canvas
-        );
-
-
-
-        ctx.shadowColor =
-        "rgba(0,0,0,0.30)";
-
-
-
+        ctx.font = "300 24px Arial";
+        ctx.fillStyle = getWatermarkColor(ctx, canvas);
+        ctx.shadowColor = "rgba(0,0,0,0.30)";
         ctx.shadowBlur = 3;
-
-
-
-        ctx.fillText(
-
-            "WallpaperHub",
-
-            35,
-
-            canvas.height - 35
-
-        );
-
-
-
-
+        ctx.fillText("WallpaperHub", 35, canvas.height - 35);
 
         // =========================
         // تحميل الصورة
         // =========================
-
-
-        const link =
-        document.createElement("a");
-
-
-
-        link.download =
-        (title || "wallpaper") + ".jpg";
-
-
-
-        link.href =
-        canvas.toDataURL(
-            "image/jpeg",
-            0.95
-        );
-
-
-
+        const link = document.createElement("a");
+        link.download = (title || "wallpaper") + ".jpg";
+        link.href = canvas.toDataURL("image/jpeg", 0.95);
         document.body.appendChild(link);
-
-
         link.click();
-
-
         link.remove();
-
-
-
     };
-
-
-
 }
 
+if (downloadBtn) {
+    downloadBtn.onclick = async (e) => {
+        e.preventDefault();
 
+        if (!currentWallpaper) return;
 
+        const url = getImageUrl(currentWallpaper.image);
 
+        // تحميل مع الشعار
+        downloadWithWatermark(url, currentWallpaper.title);
 
-if(downloadBtn){
+        // ✅ حفظ التحميل في الإحصائيات
+        window.syncUserStats("downloads", currentWallpaper.id);
 
+        // حفظ التحميل
+        saveUserAction("downloads", currentWallpaper.id);
 
-downloadBtn.onclick = async(e)=>{
-
-
-e.preventDefault();
-
-
-
-if(!currentWallpaper)
-
-return;
-
-
-
-const url =
-
-getImageUrl(
-    currentWallpaper.image
-);
-
-
-
-// تحميل مع الشعار
-
-downloadWithWatermark(
-
-    url,
-
-    currentWallpaper.title
-
-);
-
-
-
-
-// حفظ التحميل
-
-saveUserAction(
-
-    "downloads",
-
-    currentWallpaper.id
-
-);
-
-
-
-
-
-try{
-
-
-await fetch(
-
-`${API}/${currentWallpaper.id}/download`,
-
-{
-
-method:"POST"
-
-}
-
-);
-
-
-
-}catch(error){
-
-
-console.error(
-
-"DOWNLOAD ERROR",
-
-error
-
-);
-
-
-}
-
-
-
-};
-
-
+        try {
+            await fetch(`${API}/${currentWallpaper.id}/download`, {
+                method: "POST"
+            });
+        } catch (error) {
+            console.error("DOWNLOAD ERROR", error);
+        }
+    };
 }
 
 // ===============================
 // Favorite
 // ===============================
 
+const favoriteBtn = document.getElementById("favoriteBtn");
 
-const favoriteBtn =
-document.getElementById("favoriteBtn");
+function updateFavorite() {
+    if (!favoriteBtn || !currentWallpaper) return;
 
+    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
 
-
-
-function updateFavorite(){
-
-
-    if(!favoriteBtn || !currentWallpaper)
-        return;
-
-
-
-    let favorites =
-    JSON.parse(
-        localStorage.getItem("favorites") || "[]"
-    )
-    .map(String);
-
-
-
-    if(
-        favorites.includes(
-            String(currentWallpaper.id)
-        )
-    ){
-
-
+    if (favorites.includes(String(currentWallpaper.id))) {
         favoriteBtn.innerHTML = `
-
-        <span class="material-icons">
-            favorite
-        </span>
-
+            <span class="material-icons">
+                favorite
+            </span>
         `;
-
-
-    }else{
-
-
+    } else {
         favoriteBtn.innerHTML = `
-
-        <span class="material-icons">
-            favorite_border
-        </span>
-
+            <span class="material-icons">
+                favorite_border
+            </span>
         `;
-
     }
-
 }
 
+if (favoriteBtn) {
+    favoriteBtn.onclick = () => {
+        let favorites = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
+        const id = String(currentWallpaper.id);
 
+        if (favorites.includes(id)) {
+            favorites = favorites.filter(item => item !== id);
+        } else {
+            favorites.push(id);
+            // ✅ حفظ الإعجاب في الإحصائيات
+            window.syncUserStats("favorites", currentWallpaper.id);
+        }
 
-
-
-
-if(favoriteBtn){
-
-
-
-favoriteBtn.onclick = ()=>{
-
-
-    let favorites =
-    JSON.parse(
-        localStorage.getItem("favorites") || "[]"
-    )
-    .map(String);
-
-
-
-    const id =
-    String(currentWallpaper.id);
-
-
-
-    if(
-        favorites.includes(id)
-    ){
-
-
-        favorites =
-        favorites.filter(
-            item => item !== id
-        );
-
-
-    }else{
-
-
-        favorites.push(id);
-
-
-    }
-
-
-
-    localStorage.setItem(
-        "favorites",
-        JSON.stringify(favorites)
-    );
-
-
-
-    updateFavorite();
-
-
-};
-
-
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+        updateFavorite();
+    };
 }
 
 // ===============================

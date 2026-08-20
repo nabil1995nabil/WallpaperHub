@@ -234,6 +234,15 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// استعادة الإحصائيات من localStorage
+const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
+const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+const views = JSON.parse(localStorage.getItem("views") || "[]");
+
+document.getElementById("downloadCount").textContent = downloads.length;
+document.getElementById("likeCount").textContent = favorites.length;
+document.getElementById("viewCount").textContent = views.length;;
+
 /* ==========================
    Reset Guest Profile - FULL RESET
 ========================== */
@@ -347,170 +356,154 @@ if (loginBtn) {
 
 
 /* ==========================
-   UID
+   UID - Professional Style
 ========================== */
 
-
 let userUID = "";
-
-
 let uidVisible = false;
 
+const uidText = document.getElementById("userUid");
+const toggleUid = document.getElementById("toggleUid");
+const copyUid = document.getElementById("copyUid");
 
-
-const uidText =
-document.getElementById(
-"userUid"
-);
-
-
-const toggleUid =
-document.getElementById(
-"toggleUid"
-);
-
-
-const copyUid =
-document.getElementById(
-"copyUid"
-);
-
-
-
-
-
-
-onAuthStateChanged(
-auth,
-(user)=>{
-
-
-if(user){
-
-
-userUID =
-user.uid;
-
-
-
-if(uidText)
-
-uidText.textContent =
-"••••••••••••••";
-
-
-
-}else{
-
-
-userUID = "";
-
-
-
-if(uidText)
-
-uidText.textContent =
-"••••••••••••••";
-
-
-}
-
-
-
+// تحديث UID عند تغيير حالة المستخدم
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        userUID = user.uid;
+        if (uidText) uidText.textContent = "••••••••••••••";
+    } else {
+        userUID = "";
+        if (uidText) uidText.textContent = "••••••••••••••";
+    }
 });
 
-
-
-
-
-
-
-if(toggleUid){
-
-
-toggleUid.onclick = ()=>{
-
-
-uidVisible =
-!uidVisible;
-
-
-
-if(uidVisible){
-
-
-uidText.textContent =
-userUID;
-
-
-toggleUid.textContent =
-"🙈";
-
-
-
-}else{
-
-
-uidText.textContent =
-"••••••••••••••";
-
-
-toggleUid.textContent =
-"👁️";
-
-
+// ============================
+// زر إظهار/إخفاء UID (احترافي)
+// ============================
+if (toggleUid) {
+    toggleUid.onclick = () => {
+        uidVisible = !uidVisible;
+        
+        if (uidVisible) {
+            // إظهار UID
+            uidText.textContent = userUID || "لا يوجد UID";
+            toggleUid.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+            `;
+            toggleUid.title = "إخفاء UID";
+        } else {
+            // إخفاء UID
+            uidText.textContent = "••••••••••••••";
+            toggleUid.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            `;
+            toggleUid.title = "إظهار UID";
+        }
+    };
 }
 
-
-
-};
-
-
-
+// ============================
+// زر نسخ UID (احترافي)
+// ============================
+if (copyUid) {
+    copyUid.onclick = async () => {
+        if (!userUID) {
+            // رسالة خطأ أنيقة
+            const toast = document.createElement("div");
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #ff3b30;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                box-shadow: 0 8px 30px rgba(255, 59, 48, 0.4);
+                z-index: 9999;
+                animation: fadeInUp 0.3s ease;
+                direction: rtl;
+            `;
+            toast.textContent = "⚠️ لا يوجد UID لتنسخه";
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transition = "opacity 0.3s";
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+            return;
+        }
+        
+        try {
+            await navigator.clipboard.writeText(userUID);
+            
+            // رسالة نجاح أنيقة
+            const toast = document.createElement("div");
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #34c759;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                box-shadow: 0 8px 30px rgba(52, 199, 89, 0.4);
+                z-index: 9999;
+                animation: fadeInUp 0.3s ease;
+                direction: rtl;
+            `;
+            toast.innerHTML = `
+                <span style="display:flex;align-items:center;gap:8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    تم نسخ UID بنجاح ✅
+                </span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transition = "opacity 0.3s";
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+            
+        } catch (error) {
+            console.error("نسخ UID فشل:", error);
+            alert("❌ فشل نسخ UID");
+        }
+    };
 }
 
-
-
-
-
-
-
-if(copyUid){
-
-
-copyUid.onclick = ()=>{
-
-
-if(userUID){
-
-
-navigator.clipboard.writeText(
-userUID
-);
-
-
-
-alert(
-"تم نسخ UID"
-);
-
-
-
-}
-
-
-
-};
-
-
-
-}
-
-
-
-
-
-
+// ============================
+// إضافة أنيميشن fadeInUp
+// ============================
+const style = document.createElement("style");
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
 
 
 /* ==========================
@@ -894,9 +887,14 @@ function renderProfile() {
     const likes = getList("favorites");
     const views = getList("views");
     
-    if (downloadCount) downloadCount.textContent = downloads.length;
-    if (likeCount) likeCount.textContent = likes.length;
-    if (viewCount) viewCount.textContent = views.length;
+    const downloadCountEl = document.getElementById("downloadCount");
+    if (downloadCountEl) downloadCountEl.textContent = downloads.length;
+    
+    const likeCountEl = document.getElementById("likeCount");
+    if (likeCountEl) likeCountEl.textContent = likes.length;
+    
+    const viewCountEl = document.getElementById("viewCount");
+    if (viewCountEl) viewCountEl.textContent = views.length;
     
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
@@ -919,6 +917,19 @@ function updateUserStats() {
     document.getElementById("likeCount").textContent = favorites.length;
     document.getElementById("viewCount").textContent = views.length;
 }
+
+/* ==========================
+   Sync User Stats (Global)
+========================== */
+
+window.syncUserStats = function(type, id) {
+    let list = JSON.parse(localStorage.getItem(type) || "[]");
+    if (!list.includes(String(id))) {
+        list.push(String(id));
+        localStorage.setItem(type, JSON.stringify(list));
+        console.log(`✅ ${type}:`, list.length);
+    }
+};
 
 /* ==========================
    Render Cards
