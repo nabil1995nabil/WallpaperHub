@@ -153,78 +153,127 @@ person
 
 
 /* ==========================
-   Firebase Listener
+   Firebase Listener - WITH FULL SYNC
 ========================== */
 
-onAuthStateChanged(
-auth,
-(user)=>{
-
-currentUser = user;
-updateLoginState(user);
-
-if(user){
-    // تسجيل الدخول - حفظ بيانات المستخدم
-    localStorage.setItem("userName", user.displayName || "مستخدم");
-    localStorage.setItem("userEmail", user.email || "");
-    localStorage.setItem("userAvatar", user.photoURL || "");
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    updateLoginState(user);
     
-    // تحديث الواجهة
-    document.getElementById("userName").textContent = user.displayName || "مستخدم";
-    document.getElementById("userEmail").textContent = user.email || "غير مسجل";
-    document.getElementById("accountType").textContent = "حساب Google";
-    document.getElementById("joinDate").textContent = new Date().toLocaleDateString("ar-MA");
-    document.getElementById("lastLogin").textContent = new Date().toLocaleString("ar-MA");
-    
-    // تحديث الصورة
-    if(user.photoURL){
-        document.getElementById("userAvatar").src = user.photoURL;
+    if (user) {
+        // ============================
+        // تسجيل الدخول - استعادة كل البيانات
+        // ============================
+        
+        // حفظ بيانات المستخدم الأساسية
+        localStorage.setItem("userName", user.displayName || "مستخدم");
+        localStorage.setItem("userEmail", user.email || "");
+        localStorage.setItem("userAvatar", user.photoURL || "");
+        localStorage.setItem("joinDate", new Date().toLocaleDateString("ar-MA"));
+        localStorage.setItem("lastLogin", new Date().toLocaleString("ar-MA"));
+        
+        // تحديث الواجهة
+        document.getElementById("userName").textContent = user.displayName || "مستخدم";
+        document.getElementById("userEmail").textContent = user.email || "غير مسجل";
+        document.getElementById("infoUserName").textContent = user.displayName || "مستخدم";
+        document.getElementById("infoUserEmail").textContent = user.email || "غير مسجل";
+        document.getElementById("accountType").textContent = "حساب Google";
+        document.getElementById("joinDate").textContent = new Date().toLocaleDateString("ar-MA");
+        document.getElementById("lastLogin").textContent = new Date().toLocaleString("ar-MA");
+        
+        // تحديث الصورة
+        if (user.photoURL) {
+            document.getElementById("userAvatar").src = user.photoURL;
+        }
+        
+        // ============================
+        // استعادة الإحصائيات من localStorage
+        // ============================
+        const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
+        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+        const views = JSON.parse(localStorage.getItem("views") || "[]");
+        
+        document.getElementById("downloadCount").textContent = downloads.length;
+        document.getElementById("likeCount").textContent = favorites.length;
+        document.getElementById("viewCount").textContent = views.length;
+        
+        // عرض الخلفيات المحملة/المفضلة/المرئية
+        loadWallpapers();
+        
+        // تحميل بيانات المستخدم الإضافية (إذا وجدت)
+        if (typeof loadUserProfile === 'function') {
+            loadUserProfile(user.uid);
+        }
+        
+    } else {
+        // ============================
+        // تسجيل الخروج - تصفير كل شيء
+        // ============================
+        resetGuestProfile();
     }
-    
-    // تحميل بيانات المستخدم
-    loadUserProfile(user.uid);
-    
-}else{
-    // تسجيل الخروج - تصفير كل شيء
-    resetGuestProfile();
-}
 });
 
 /* ==========================
-   Reset Guest Profile
+   Reset Guest Profile - FULL RESET
 ========================== */
 
 function resetGuestProfile() {
-    // تصفير النصوص
-    document.getElementById("userName").textContent = "زائر";
-    document.getElementById("userEmail").textContent = "غير مسجل";
-    document.getElementById("infoUserName").textContent = "زائر";
-    document.getElementById("infoUserEmail").textContent = "غير مسجل";
-    document.getElementById("accountType").textContent = "زائر";
-    document.getElementById("joinDate").textContent = "-";
-    document.getElementById("lastLogin").textContent = "-";
-    document.getElementById("userUid").textContent = "••••••••••••••";
+    // 1. تصفير النصوص
+    const textElements = {
+        "userName": "زائر",
+        "userEmail": "غير مسجل",
+        "infoUserName": "زائر",
+        "infoUserEmail": "غير مسجل",
+        "accountType": "زائر",
+        "joinDate": "-",
+        "lastLogin": "-"
+    };
     
-    // تصفير الإحصائيات
-    document.getElementById("downloadCount").textContent = "0";
-    document.getElementById("likeCount").textContent = "0";
-    document.getElementById("viewCount").textContent = "0";
+    Object.keys(textElements).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = textElements[id];
+    });
     
-    // تصفير الصورة
-    document.getElementById("userAvatar").src = "assets/images/user.png";
+    // 2. تصفير UID
+    const uidEl = document.getElementById("userUid");
+    if (uidEl) uidEl.textContent = "••••••••••••••";
     
-    // تصفير الخلفيات
+    // 3. تصفير الإحصائيات (التحميلات، الإعجابات، المشاهدات)
+    const stats = {
+        "downloadCount": "0",
+        "likeCount": "0",
+        "viewCount": "0"
+    };
+    Object.keys(stats).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = stats[id];
+    });
+    
+    // 4. تصفير الصورة الشخصية
+    const avatar = document.getElementById("userAvatar");
+    if (avatar) avatar.src = "assets/images/user.png";
+    
+    // 5. تصفير الخلفيات المعروضة
     ["downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
         const container = document.getElementById(id);
-        if(container) {
+        if (container) {
             container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
         }
     });
     
-    // تنظيف localStorage
-    ["userName", "userEmail", "userAvatar", "joinDate", "lastLogin", "downloads", "favorites", "views"].forEach(key => {
-        localStorage.removeItem(key);
-    });
+    // 6. تنظيف localStorage من جميع بيانات المستخدم
+    const userKeys = [
+        "userName", 
+        "userEmail", 
+        "userAvatar", 
+        "joinDate", 
+        "lastLogin", 
+        "downloads", 
+        "favorites", 
+        "views",
+        "userData"
+    ];
+    userKeys.forEach(key => localStorage.removeItem(key));
 }
 
 /* ==========================
@@ -875,83 +924,36 @@ error
    Render Statistics
 ========================== */
 
-
-function renderProfile(){
-
-
-
-const downloads =
-getList("downloads");
-
-
-
-const likes =
-getList("favorites");
-
-
-
-const views =
-getList("views");
-
-
-
-
-
-if(downloadCount)
-
-downloadCount.textContent =
-downloads.length;
-
-
-
-
-if(likeCount)
-
-likeCount.textContent =
-likes.length;
-
-
-
-
-if(viewCount)
-
-viewCount.textContent =
-views.length;
-
-
-
-
-
-renderWalls(
-downloadedContainer,
-downloads
-);
-
-
-
-renderWalls(
-likedContainer,
-likes
-);
-
-
-
-renderWalls(
-viewedContainer,
-views
-);
-
-
-
+function renderProfile() {
+    const downloads = getList("downloads");
+    const likes = getList("favorites");
+    const views = getList("views");
+    
+    if (downloadCount) downloadCount.textContent = downloads.length;
+    if (likeCount) likeCount.textContent = likes.length;
+    if (viewCount) viewCount.textContent = views.length;
+    
+    renderWalls(downloadedContainer, downloads);
+    renderWalls(likedContainer, likes);
+    renderWalls(viewedContainer, views);
+    
+    // 🔄 تحديث الإحصائيات بعد التحميل
+    updateUserStats();
 }
 
+/* ==========================
+   Update User Stats (after download/like/view)
+========================== */
 
-
-
-
-
-
-
+function updateUserStats() {
+    const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    const views = JSON.parse(localStorage.getItem("views") || "[]");
+    
+    document.getElementById("downloadCount").textContent = downloads.length;
+    document.getElementById("likeCount").textContent = favorites.length;
+    document.getElementById("viewCount").textContent = views.length;
+}
 
 /* ==========================
    Render Cards
