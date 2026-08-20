@@ -2136,6 +2136,30 @@ await response.json();
 
 
 
+if(
+!data.candidates ||
+!data.candidates[0] ||
+!data.candidates[0].content ||
+!data.candidates[0].content.parts ||
+!data.candidates[0].content.parts[0]
+){
+
+console.log(
+"GEMINI RESPONSE ERROR:",
+data
+);
+
+return res.status(500).json({
+
+success:false,
+
+message:"AI response invalid"
+
+});
+
+}
+
+
 const description =
 data.candidates[0]
 .content
