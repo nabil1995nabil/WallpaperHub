@@ -156,125 +156,76 @@ person
    Firebase Listener
 ========================== */
 
-
 onAuthStateChanged(
 auth,
 (user)=>{
 
-
 currentUser = user;
-
-
-
-updateLoginState(
-user
-);
-
-
+updateLoginState(user);
 
 if(user){
-
-
-
-localStorage.setItem(
-"userName",
-user.displayName || "مستخدم"
-);
-
-
-
-localStorage.setItem(
-"userEmail",
-user.email || ""
-);
-
-
-
-localStorage.setItem(
-"userAvatar",
-user.photoURL || ""
-);
-
-
-
-// تحميل بيانات المستخدم
-
-loadUserProfile(user.uid);
-
-
-
+    // تسجيل الدخول - حفظ بيانات المستخدم
+    localStorage.setItem("userName", user.displayName || "مستخدم");
+    localStorage.setItem("userEmail", user.email || "");
+    localStorage.setItem("userAvatar", user.photoURL || "");
+    
+    // تحديث الواجهة
+    document.getElementById("userName").textContent = user.displayName || "مستخدم";
+    document.getElementById("userEmail").textContent = user.email || "غير مسجل";
+    document.getElementById("accountType").textContent = "حساب Google";
+    document.getElementById("joinDate").textContent = new Date().toLocaleDateString("ar-MA");
+    document.getElementById("lastLogin").textContent = new Date().toLocaleString("ar-MA");
+    
+    // تحديث الصورة
+    if(user.photoURL){
+        document.getElementById("userAvatar").src = user.photoURL;
+    }
+    
+    // تحميل بيانات المستخدم
+    loadUserProfile(user.uid);
+    
 }else{
-
-
-localStorage.removeItem(
-"userName"
-);
-
-
-localStorage.removeItem(
-"userEmail"
-);
-
-
-localStorage.removeItem(
-"userAvatar"
-);
-
-
-
-// تصفير بيانات الزائر
-
-document.getElementById("userName").textContent =
-"زائر";
-
-
-document.getElementById("userEmail").textContent =
-"غير مسجل";
-
-
-document.getElementById("accountType").textContent =
-"زائر";
-
-
-document.getElementById("joinDate").textContent =
-"-";
-
-
-document.getElementById("lastLogin").textContent =
-"-";
-
-
-
-document.getElementById("downloadsCount").textContent =
-"0";
-
-
-document.getElementById("favoritesCount").textContent =
-"0";
-
-
-document.getElementById("viewsCount").textContent =
-"0";
-
-
-
-const wallpapers =
-document.getElementById("userWallpapers");
-
-
-if(wallpapers){
-
-wallpapers.innerHTML = "";
-
+    // تسجيل الخروج - تصفير كل شيء
+    resetGuestProfile();
 }
-
-
-
-}
-
-
-
 });
+
+/* ==========================
+   Reset Guest Profile
+========================== */
+
+function resetGuestProfile() {
+    // تصفير النصوص
+    document.getElementById("userName").textContent = "زائر";
+    document.getElementById("userEmail").textContent = "غير مسجل";
+    document.getElementById("infoUserName").textContent = "زائر";
+    document.getElementById("infoUserEmail").textContent = "غير مسجل";
+    document.getElementById("accountType").textContent = "زائر";
+    document.getElementById("joinDate").textContent = "-";
+    document.getElementById("lastLogin").textContent = "-";
+    document.getElementById("userUid").textContent = "••••••••••••••";
+    
+    // تصفير الإحصائيات
+    document.getElementById("downloadCount").textContent = "0";
+    document.getElementById("likeCount").textContent = "0";
+    document.getElementById("viewCount").textContent = "0";
+    
+    // تصفير الصورة
+    document.getElementById("userAvatar").src = "assets/images/user.png";
+    
+    // تصفير الخلفيات
+    ["downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
+        const container = document.getElementById(id);
+        if(container) {
+            container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
+        }
+    });
+    
+    // تنظيف localStorage
+    ["userName", "userEmail", "userAvatar", "joinDate", "lastLogin", "downloads", "favorites", "views"].forEach(key => {
+        localStorage.removeItem(key);
+    });
+}
 
 /* ==========================
    Login / Logout Button
