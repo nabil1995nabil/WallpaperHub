@@ -72,7 +72,7 @@ tokensCollection =
 db.collection("tokens");
 
 
-useFirestore = true;
+useFirestore = false;
 
 
 console.log(
