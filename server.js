@@ -1696,33 +1696,19 @@ wallpapers
 
 
 
-}catch(error){
+catch(error){
 
+console.log("WALLPAPER API ERROR:", error);
 
-console.log(
-"Developer API ERROR:",
-error
-);
+res.status(500).json({
 
+success:false,
 
-
-res.status(500)
-.json({
-
-success:false
+error:error.message
 
 });
-
 
 }
-
-
-
-});
-
-
-
-
 
 // ======================================
 // Download Wallpaper
