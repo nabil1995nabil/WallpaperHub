@@ -10,6 +10,37 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
+// ================================
+// Firebase Admin (Firestore)
+// ================================
+
+const admin = require("firebase-admin");
+
+// Initialize Firebase Admin with service account
+if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(
+        process.env.FIREBASE_SERVICE_ACCOUNT || 
+        '{}'
+    );
+
+    if (serviceAccount.project_id) {
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+    } else {
+        // Fallback: try to initialize without explicit credentials
+        // (works in some Firebase hosting environments)
+        try {
+            admin.initializeApp();
+        } catch(e) {
+            console.log("Firebase Admin not initialized - tokens will use file fallback");
+        }
+    }
+}
+
+const db = admin.apps.length ? admin.firestore() : null;
+const tokensCollection = db ? db.collection("tokens") : null;
+
 
 const app = express();
 
@@ -147,97 +178,57 @@ function saveNotifications(list){
 }
 
 // ================================
-// API Tokens Database
+// API Tokens Database (Firebase Firestore)
+// ================================
+// Tokens are stored in Firebase Firestore (FREE tier: 1GB)
+// No file-based storage needed
+
+// ================================
+// Firestore Helpers
 // ================================
 
-
-const TOKENS_FILE =
-path.join(
-    __dirname,
-    "data",
-    "tokens.json"
-);
-if(!fs.existsSync(TOKENS_FILE)){
-
-
-fs.mkdirSync(
-path.dirname(TOKENS_FILE),
-{
-recursive:true
-}
-);
-
-
-fs.writeFileSync(
-TOKENS_FILE,
-"[]",
-"utf8"
-);
-
-
-}
-
-
-function readTokens(){
-
-    try{
-
-        return JSON.parse(
-            fs.readFileSync(
-                TOKENS_FILE,
-                "utf8"
-            )
-        );
-
-
-    }catch{
-
+async function readTokensFirestore() {
+    if (!tokensCollection) return [];
+    try {
+        const snapshot = await tokensCollection.get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.log("Firestore read error:", error.message);
         return [];
-
     }
-
 }
 
-
-
-function saveTokens(tokens){
-
-
-    const folder =
-    path.dirname(TOKENS_FILE);
-
-
-
-    if(!fs.existsSync(folder)){
-
-
-        fs.mkdirSync(
-            folder,
-            {
-                recursive:true
-            }
-        );
-
-
+async function saveTokenFirestore(tokenData) {
+    if (!tokensCollection) return null;
+    try {
+        const doc = await tokensCollection.add(tokenData);
+        return { id: doc.id, ...tokenData };
+    } catch (error) {
+        console.log("Firestore save error:", error.message);
+        return null;
     }
+}
 
+async function updateTokenFirestore(id, data) {
+    if (!tokensCollection) return false;
+    try {
+        await tokensCollection.doc(id).update(data);
+        return true;
+    } catch (error) {
+        console.log("Firestore update error:", error.message);
+        return false;
+    }
+}
 
-
-    fs.writeFileSync(
-
-        TOKENS_FILE,
-
-        JSON.stringify(
-            tokens,
-            null,
-            2
-        ),
-
-        "utf8"
-
-    );
-
-
+async function deleteTokenFirestore(id) {
+    if (!tokensCollection) return false;
+    try {
+        await tokensCollection.doc(id).delete();
+        return true;
+    } catch (error) {
+        console.log("Firestore delete error:", error.message);
+        return false;
+    }
 }
 
 // ================================
@@ -435,7 +426,7 @@ app.get("/api/wallpapers",(req,res)=>{
 
 app.get(
 "/api/v1/wallpapers",
-(req,res)=>{
+async (req,res)=>{
 
 
 try{
@@ -465,8 +456,7 @@ message:
 
 
 
-let tokens =
-readTokens();
+let tokens = await readTokensFirestore();
 
 
 
@@ -592,7 +582,11 @@ new Date()
 .toISOString();
 
 
-saveTokens(tokens);
+await updateTokenFirestore(apiToken.id, {
+            requests: apiToken.requests,
+            lastRequestDate: apiToken.lastRequestDate,
+            lastUsed: apiToken.lastUsed
+        });
 
 
 
@@ -2700,204 +2694,99 @@ error:error.message
 // ================================
 
 
-app.post(
-"/api/tokens/create",
-(req,res)=>{
-
-
-try{
-
-
-const {
-
-userId,
-
-appName,
-
-domain
-
-}=req.body;
-
-
-
-if(!userId){
-
-return res.status(400).json({
-
-success:false,
-
-message:"User ID required"
-
-});
-
-}
-
-
-
-let tokens =
-readTokens();
-
-
-
-const token =
-"wall_live_" +
-Math.random()
-.toString(36)
-.substring(2)
-+
-Date.now();
-
-
-
-
-
-const newToken = {
-
-id: Date.now(),
-
-userId,
-
-appName: appName || "My App",
-
-domain: domain || "",
-
-token,
-
-limit:200,
-
-requests:0,
-
-lastRequestDate:null,
-
-lastUsed:null,
-
-active:true,
-
-created:new Date().toISOString()
-
-};
-
-
-
-
-
-tokens.push(
-newToken
-);
-
-
-
-saveTokens(
-tokens
-);
-
-
-
-
-
-res.json({
-
-success:true,
-
-token:newToken
-
-});
-
-
-
-}catch(error){
-
-
-console.log(error);
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
+// ================================
+// Create API Token
+// ================================
+
+app.post("/api/tokens/create", async (req, res) => {
+    try {
+        const { userId, appName, domain } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID required"
+            });
+        }
+
+        const tokenValue = "wall_live_" +
+            Math.random().toString(36).substring(2) +
+            Date.now();
+
+        const tokenData = {
+            userId,
+            appName: appName || "My App",
+            domain: domain || "",
+            token: tokenValue,
+            limit: 200,
+            requests: 0,
+            lastRequestDate: null,
+            lastUsed: null,
+            active: true,
+            created: new Date().toISOString()
+        };
+
+        const saved = await saveTokenFirestore(tokenData);
+
+        if (saved) {
+            res.json({
+                success: true,
+                token: saved
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: "Failed to save token"
+            });
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 });
 
 // ================================
 // Get User Tokens
 // ================================
 
+app.get("/api/tokens/:userId", async (req, res) => {
+    try {
+        if (!tokensCollection) {
+            return res.json([]);
+        }
 
-app.get(
-"/api/tokens/:userId",
-(req,res)=>{
+        const snapshot = await tokensCollection
+            .where("userId", "==", String(req.params.userId))
+            .get();
 
+        const tokens = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
 
-const tokens =
-readTokens();
-
-
-
-const result =
-tokens.filter(
-
-t=>
-
-String(t.userId)
-===
-String(req.params.userId)
-
-);
-
-
-
-res.json(result);
-
-
-
+        res.json(tokens);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json([]);
+    }
 });
 
 // ================================
 // Delete Token
 // ================================
 
-
-app.delete(
-"/api/tokens/:id",
-(req,res)=>{
-
-
-let tokens =
-readTokens();
-
-
-
-tokens =
-tokens.filter(
-
-t=>
-
-String(t.id)
-!==
-String(req.params.id)
-
-);
-
-
-
-saveTokens(
-tokens
-);
-
-
-
-res.json({
-
-success:true
-
-});
-
-
+app.delete("/api/tokens/:id", async (req, res) => {
+    try {
+        const deleted = await deleteTokenFirestore(req.params.id);
+        res.json({ success: deleted });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false });
+    }
 });
 
 //=====تشغيل سيرفر===\\
@@ -2915,19 +2804,13 @@ PORT
 
 });
 
-// ================================
-// Auto Import (Production Safe)
-// ================================
-
-const BASE_URL = process.env.RAILWAY_STATIC_URL || process.env.VERCEL_URL || `http://localhost:${PORT}`;
-
 setTimeout(()=>{
 
-fetch(`${BASE_URL}/api/wallhaven/import-ai`,{
+fetch("http://localhost:3000/api/wallhaven/import-ai",{
 method:"POST"
 })
 .then(res=>res.json())
 .then(data=>console.log("AI Import:",data))
-.catch(err=>console.log("Auto-import error:",err.message));
+.catch(err=>console.log(err));
 
 },5000);
