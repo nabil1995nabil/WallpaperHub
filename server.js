@@ -1610,7 +1610,7 @@ lastRequestDate:
 apiToken.lastRequestDate,
 
 lastUsed:
-apiToken.lastUsed
+apiToken.lastUsed,
 lastIp:
 apiToken.lastIp,
 });
