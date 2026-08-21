@@ -1,7 +1,8 @@
 // ======================================
-// WallpaperHub Server v3.2
-// Express + Firebase Firestore Edition
+// WallpaperHub Server v3.1
+// Express Edition
 // ======================================
+
 
 const express = require("express");
 const cors = require("cors");
@@ -29,24 +30,22 @@ try {
                 admin.initializeApp({
                     credential: admin.credential.cert(serviceAccount)
                 });
-                console.log("✅ Firebase Admin initialized with service account");
+                console.log("Firebase Admin initialized");
             } catch (parseError) {
-                console.log("❌ Failed to parse FIREBASE_SERVICE_ACCOUNT:", parseError.message);
-                console.log("📝 Trying default initialization...");
+                console.log("Failed to parse FIREBASE_SERVICE_ACCOUNT:", parseError.message);
                 try {
                     admin.initializeApp();
-                    console.log("✅ Firebase Admin initialized with default credentials");
+                    console.log("Firebase Admin initialized with default credentials");
                 } catch (defaultError) {
-                    console.log("❌ Default initialization failed:", defaultError.message);
+                    console.log("Default initialization failed:", defaultError.message);
                 }
             }
         } else {
-            console.log("⚠️ FIREBASE_SERVICE_ACCOUNT not set, trying default init...");
             try {
                 admin.initializeApp();
-                console.log("✅ Firebase Admin initialized with default credentials");
+                console.log("Firebase Admin initialized with default credentials");
             } catch (e) {
-                console.log("❌ Default initialization failed:", e.message);
+                console.log("Default initialization failed:", e.message);
             }
         }
     }
@@ -55,16 +54,18 @@ try {
         db = admin.firestore();
         tokensCollection = db.collection("tokens");
         useFirestore = true;
-        console.log("✅ Firestore ready");
+        console.log("Firestore ready");
     } else {
-        console.log("⚠️ Firestore not available, using file fallback");
+        console.log("Firestore not available, using file fallback");
     }
 } catch (error) {
-    console.log("❌ Firebase Admin not available:", error.message);
-    console.log("⚠️ Using file-based token storage");
+    console.log("Firebase Admin not available:", error.message);
+    console.log("Using file-based token storage");
 }
 
+
 const app = express();
+
 const PORT = 3000;
 
 
@@ -73,55 +74,133 @@ const PORT = 3000;
 // Middlewares
 // ================================
 
+
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+
+
+app.use(express.json({
+    limit:"10mb"
+}));
+
+
+app.use(express.urlencoded({
+    extended:true
+}));
+
+
 
 // ================================
 // Static Files
 // ================================
 
-app.use(express.static(__dirname));
+
+app.use(
+    express.static(__dirname)
+);
+
+
 
 // ================================
 // Admin Panel
 // ================================
 
-app.get("/admin", (req, res) => {
-    res.sendFile(path.join(__dirname, "admin", "admin.html"));
+
+app.get("/admin",(req,res)=>{
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "admin",
+            "admin.html"
+        )
+    );
+
 });
+
+
 
 // ================================
 // Home
 // ================================
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+
+app.get("/",(req,res)=>{
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "index.html"
+        )
+    );
+
 });
+
+
 
 // ================================
 // Database Path
 // ================================
 
-const DATA_FILE = path.join(__dirname, "data", "wallpapers.json");
-console.log("DATA PATH:", DATA_FILE);
 
-const NOTIFICATIONS_FILE = path.join(__dirname, "data", "notifications.json");
+const DATA_FILE =
+path.join(
+    __dirname,
+    "data",
+    "wallpapers.json"
+);
 
-function readNotifications() {
-    try {
-        return JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, "utf8"));
-    } catch {
+
+
+console.log(
+    "DATA PATH:",
+    DATA_FILE
+);
+
+const NOTIFICATIONS_FILE =
+path.join(
+    __dirname,
+    "data",
+    "notifications.json"
+);
+
+
+function readNotifications(){
+
+    try{
+
+        return JSON.parse(
+            fs.readFileSync(
+                NOTIFICATIONS_FILE,
+                "utf8"
+            )
+        );
+
+    }catch{
+
         return [];
+
     }
+
 }
 
-function saveNotifications(list) {
-    fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(list, null, 2), "utf8");
+
+
+function saveNotifications(list){
+
+    fs.writeFileSync(
+        NOTIFICATIONS_FILE,
+        JSON.stringify(
+            list,
+            null,
+            2
+        ),
+        "utf8"
+    );
+
 }
 
 // ================================
-// API Tokens Database (File Fallback)
+// API Tokens Database (Firestore + File Fallback)
 // ================================
 
 const TOKENS_FILE = path.join(__dirname, "data", "tokens.json");
@@ -140,6 +219,61 @@ function saveTokensFile(tokens) {
         fs.mkdirSync(folder, { recursive: true });
     }
     fs.writeFileSync(TOKENS_FILE, JSON.stringify(tokens, null, 2), "utf8");
+}
+
+async function readTokensFirestore() {
+    if (!tokensCollection) return [];
+    try {
+        const snapshot = await tokensCollection.get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.log("Firestore read error:", error.message);
+        return [];
+    }
+}
+
+async function saveTokenFirestore(tokenData) {
+    if (!tokensCollection) return null;
+    try {
+        const doc = await tokensCollection.add(tokenData);
+        return { id: doc.id, ...tokenData };
+    } catch (error) {
+        console.log("Firestore save error:", error.message);
+        return null;
+    }
+}
+
+async function updateTokenFirestore(id, data) {
+    if (!tokensCollection) return false;
+    try {
+        await tokensCollection.doc(id).update(data);
+        return true;
+    } catch (error) {
+        console.log("Firestore update error:", error.message);
+        return false;
+    }
+}
+
+async function deleteTokenFirestore(id) {
+    if (!tokensCollection) return false;
+    try {
+        await tokensCollection.doc(id).delete();
+        return true;
+    } catch (error) {
+        console.log("Firestore delete error:", error.message);
+        return false;
+    }
+}
+
+async function getTokensByUserFirestore(userId) {
+    if (!tokensCollection) return [];
+    try {
+        const snapshot = await tokensCollection.where("userId", "==", String(userId)).get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.log("Firestore query error:", error.message);
+        return [];
+    }
 }
 
 // ================================
@@ -222,6 +356,7 @@ function readWallpapers() {
 function saveWallpapers(list) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf8");
 }
+
 // ================================
 // Notifications System
 // ================================
@@ -255,7 +390,7 @@ app.delete("/api/notifications", (req, res) => {
         console.log(error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
-});
+});>
 
 // ================================
 // Delete All Notifications
@@ -312,6 +447,7 @@ app.get("/api/wallpapers", (req, res) => {
     const wallpapers = readWallpapers();
     res.json(wallpapers);
 });
+
 // ================================
 // Developer API - Protected Wallpapers
 // ================================
@@ -562,6 +698,7 @@ app.post("/api/wallpapers", (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 });
+
 // ================================
 // Update Wallpaper
 // ================================
@@ -581,6 +718,7 @@ app.put("/api/wallpapers/:id", (req, res) => {
         res.status(500).json({ success: false });
     }
 });
+
 // ================================
 // Delete Wallpaper
 // ================================
@@ -1568,9 +1706,9 @@ app.post("/api/tokens/create", async (req, res) => {
         if (useFirestore) {
             saved = await saveTokenFirestore(tokenData);
             if (saved) {
-                console.log("✅ Token saved to Firestore:", saved.id);
+                console.log("Token saved to Firestore:", saved.id);
             } else {
-                console.log("⚠️ Firestore save failed, trying file fallback");
+                console.log("Firestore save failed, trying file fallback");
             }
         }
 
@@ -1580,7 +1718,7 @@ app.post("/api/tokens/create", async (req, res) => {
             tokens.push(newToken);
             saveTokensFile(tokens);
             saved = newToken;
-            console.log("✅ Token saved to file:", saved.id);
+            console.log("Token saved to file:", saved.id);
         }
 
         res.json({ success: true, token: saved });
@@ -1633,19 +1771,28 @@ app.delete("/api/tokens/:id", async (req, res) => {
     }
 });
 
-//=====تشغيل سيرفر===\
+//=====تشغيل سيرفر===\\
 
-const BASE_URL = process.env.RAILWAY_STATIC_URL || process.env.VERCEL_URL || `http://localhost:${PORT}`;
+app.listen(PORT,()=>{
 
-app.listen(PORT, () => {
-    console.log("WallpaperHub Server Started");
-    console.log("PORT:", PORT);
-    console.log("Storage:", useFirestore ? "Firestore" : "File (fallback)");
+console.log(
+"WallpaperHub Server Started"
+);
+
+console.log(
+"PORT:",
+PORT
+);
+
 });
 
-setTimeout(() => {
-    fetch(`${BASE_URL}/api/wallhaven/import-ai`, { method: "POST" })
-        .then(res => res.json())
-        .then(data => console.log("AI Import:", data))
-        .catch(err => console.log("Auto-import error:", err.message));
-}, 5000);
+setTimeout(()=>{
+
+fetch("http://localhost:3000/api/wallhaven/import-ai",{
+method:"POST"
+})
+.then(res=>res.json())
+.then(data=>console.log("AI Import:",data))
+.catch(err=>console.log(err));
+
+},5000);
