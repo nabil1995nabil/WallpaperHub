@@ -2915,13 +2915,19 @@ PORT
 
 });
 
+// ================================
+// Auto Import (Production Safe)
+// ================================
+
+const BASE_URL = process.env.RAILWAY_STATIC_URL || process.env.VERCEL_URL || `http://localhost:${PORT}`;
+
 setTimeout(()=>{
 
-fetch("http://localhost:3000/api/wallhaven/import-ai",{
+fetch(`${BASE_URL}/api/wallhaven/import-ai`,{
 method:"POST"
 })
 .then(res=>res.json())
 .then(data=>console.log("AI Import:",data))
-.catch(err=>console.log(err));
+.catch(err=>console.log("Auto-import error:",err.message));
 
 },5000);
