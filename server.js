@@ -1003,63 +1003,51 @@ message:
 
 const tokenData = {
 
-
 id:
 Date.now(),
-
-
 
 userId:
 String(userId),
 
-
-
 appName:
 appName ||
 "My App",
-
-
 
 domain:
 domain ||
 "",
 
 
-
 token:
 createTokenValue(),
-
 
 
 limit:
 200,
 
-
-
 requests:
 0,
-
 
 
 lastRequestDate:
 null,
 
 
-
 lastUsed:
 null,
 
+
+lastIp:
+null,
 
 
 active:
 true,
 
 
-
 created:
 new Date()
 .toISOString()
-
 
 };
 
@@ -1393,10 +1381,19 @@ try{
 
 
 const token =
-
-req.query.token ||
-
 req.headers["x-api-key"];
+
+if(req.query.token){
+
+return res.status(400).json({
+
+success:false,
+
+message:"Use X-API-Key header only"
+
+});
+
+}
 
 
 
@@ -1492,7 +1489,40 @@ message:
 
 }
 
+// ================================
+// IP Binding Protection
+// ================================
 
+const clientIp =
+req.headers["x-forwarded-for"] ||
+req.socket.remoteAddress;
+
+
+// أول استعمال: ربط التوكن بالـ IP
+
+if(!apiToken.lastIp){
+
+apiToken.lastIp =
+clientIp;
+
+}else{
+
+
+if(apiToken.lastIp !== clientIp){
+
+return res.status(403)
+.json({
+
+success:false,
+
+message:
+"Token used from another IP"
+
+});
+
+}
+
+}
 
 
 
@@ -1553,6 +1583,8 @@ message:
 
 
 apiToken.requests++;
+apiToken.lastIp =
+req.ip;
 
 apiToken.lastUsed =
 new Date()
@@ -1579,7 +1611,8 @@ apiToken.lastRequestDate,
 
 lastUsed:
 apiToken.lastUsed
-
+lastIp:
+apiToken.lastIp,
 });
 
 
