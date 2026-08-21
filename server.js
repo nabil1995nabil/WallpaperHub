@@ -1680,6 +1680,7 @@ res.json({
 
 success:true,
 
+
 developer:
 req.apiToken.appName,
 
@@ -1696,9 +1697,15 @@ wallpapers
 
 
 
-catch(error){
+}catch(error){
 
-console.log("WALLPAPER API ERROR:", error);
+
+console.log(
+"WALLPAPER API ERROR:",
+error
+);
+
+
 
 res.status(500).json({
 
@@ -1708,7 +1715,12 @@ error:error.message
 
 });
 
+
 }
+
+
+
+});
 
 // ======================================
 // Download Wallpaper
