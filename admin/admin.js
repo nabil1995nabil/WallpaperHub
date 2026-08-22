@@ -91,8 +91,7 @@ let wallpaperType = "image";
 
 let videoThumbnail = "";
 
-
-
+let selectedWallpapers = new Set();
 
 // ============================
 // Cloudinary
@@ -389,6 +388,12 @@ loading="lazy"
 
 card.innerHTML = `
 
+<input 
+type="checkbox"
+class="wall-select"
+data-id="${wall.id}"
+onclick="toggleWallpaperSelect('${wall.id}',this)"
+>
 
 ${media}
 
@@ -1171,11 +1176,13 @@ document
 
 
 
-const category =
+let category =
 
 document
 .getElementById("wallCategory")
-.value;
+.value
+.trim()
+.toLowerCase();
 
 
 
@@ -1197,7 +1204,15 @@ tag=>tag.trim()
 
 
 
+if(!category){
 
+console.warn(
+"Category empty, using other"
+);
+
+category = "other";
+
+}
 
 
 return {
@@ -1790,7 +1805,106 @@ editWallpaper;
 window.deleteWallpaper =
 deleteWallpaper;
 
+// ===============================
+// تحديد خلفية
+// ===============================
 
+function toggleWallpaperSelect(id,checkbox){
+
+if(checkbox.checked){
+
+selectedWallpapers.add(String(id));
+
+}else{
+
+selectedWallpapers.delete(String(id));
+
+}
+
+}
+
+
+
+// ===============================
+// حذف متعدد
+// ===============================
+
+async function deleteSelectedWallpapers(){
+
+
+if(selectedWallpapers.size===0){
+
+alert("اختر خلفيات أولا");
+return;
+
+}
+
+
+
+if(!confirm(
+`حذف ${selectedWallpapers.size} خلفية؟`
+))
+
+return;
+
+
+
+try{
+
+
+for(const id of selectedWallpapers){
+
+
+await fetch(
+
+"/api/wallpapers/"+id,
+
+{
+
+method:"DELETE"
+
+}
+
+);
+
+
+}
+
+
+
+selectedWallpapers.clear();
+
+
+await loadDashboard();
+
+
+
+alert("تم حذف الخلفيات المحددة");
+
+
+
+}catch(error){
+
+
+console.error(error);
+
+alert("فشل الحذف المتعدد");
+
+
+}
+
+
+
+}
+
+
+
+window.toggleWallpaperSelect =
+toggleWallpaperSelect;
+
+
+window.deleteSelectedWallpapers =
+deleteSelectedWallpapers;
 
 
 
