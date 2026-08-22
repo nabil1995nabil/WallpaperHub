@@ -10,6 +10,10 @@ document.getElementById("wallpaperContainer");
 let wallpapers = [];
 
 
+// تخزين الخلفيات المحددة
+let selectedWallpapers = new Set();
+
+
 
 // ===============================
 // تحميل الخلفيات
@@ -90,10 +94,30 @@ wallpaperContainer.innerHTML = "";
 
 
 
+// زر الحذف المتعدد
+
+const bulkButton = document.createElement("button");
+
+bulkButton.className = "delete-selected-btn";
+
+bulkButton.innerHTML =
+"🗑️ حذف المحدد";
+
+
+bulkButton.onclick =
+deleteSelectedWallpapers;
+
+
+wallpaperContainer.appendChild(
+bulkButton
+);
+
+
+
 if(wallpapers.length === 0){
 
 
-wallpaperContainer.innerHTML =
+wallpaperContainer.innerHTML +=
 
 `
 <p>
@@ -106,13 +130,19 @@ return;
 }
 
 
+
+
 // ترتيب الأحدث أولا
+
 wallpapers.sort((a,b)=>{
 
 return new Date(b.date || b.createdAt || 0) -
        new Date(a.date || a.createdAt || 0);
 
 });
+
+
+
 
 wallpapers.forEach(wall=>{
 
@@ -175,12 +205,21 @@ loading="lazy">
 
 
 
-
-
 card.innerHTML =
 
 
 `
+
+<input
+
+type="checkbox"
+
+class="wall-select"
+
+data-id="${wall.id}"
+
+>
+
 
 ${media}
 
@@ -260,6 +299,42 @@ onclick="deleteWallpaper('${wall.id}')"
 
 
 
+
+// متابعة اختيار checkbox
+
+const checkbox =
+card.querySelector(".wall-select");
+
+
+checkbox.addEventListener(
+"change",
+()=>{
+
+
+if(checkbox.checked){
+
+
+selectedWallpapers.add(
+String(wall.id)
+);
+
+
+}else{
+
+
+selectedWallpapers.delete(
+String(wall.id)
+);
+
+
+}
+
+
+}
+);
+
+
+
 wallpaperContainer.appendChild(card);
 
 
@@ -273,7 +348,7 @@ wallpaperContainer.appendChild(card);
 
 
 // ===============================
-// حذف خلفية
+// حذف خلفية واحدة
 // ===============================
 
 
@@ -322,6 +397,95 @@ alert("فشل الحذف");
 
 
 
+
+// ===============================
+// حذف متعدد
+// ===============================
+
+
+async function deleteSelectedWallpapers(){
+
+
+
+if(selectedWallpapers.size === 0){
+
+
+alert(
+"حدد الخلفيات أولا"
+);
+
+
+return;
+
+}
+
+
+
+if(
+!confirm(
+"هل تريد حذف "+selectedWallpapers.size+" خلفية؟"
+)
+
+)
+return;
+
+
+
+try{
+
+
+
+for(
+const id of selectedWallpapers
+){
+
+
+
+await fetch(
+
+"/api/wallpapers/"+id,
+
+{
+
+method:"DELETE"
+
+}
+
+);
+
+
+
+}
+
+
+
+selectedWallpapers.clear();
+
+
+loadWallpapers();
+
+
+
+}catch(error){
+
+
+console.error(error);
+
+alert(
+"فشل الحذف المتعدد"
+);
+
+
+}
+
+
+
+}
+
+
+
+
+
 // ===============================
 // تعديل
 // ===============================
@@ -340,12 +504,17 @@ alert(
 
 
 
+
 window.deleteWallpaper =
 deleteWallpaper;
 
 
 window.editWallpaper =
 editWallpaper;
+
+
+window.deleteSelectedWallpapers =
+deleteSelectedWallpapers;
 
 
 
