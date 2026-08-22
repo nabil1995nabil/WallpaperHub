@@ -705,6 +705,13 @@ app.post(
 try{
 
 
+// Auto-create category if new
+ensureCategoryExists(
+req.body.category,
+req.body.category
+);
+
+
 const wallpapers =
 readWallpapers();
 
@@ -2717,7 +2724,121 @@ data.data.length
 }catch(error){
 
 
-console.log(
+console.log// ======================================
+// Categories Database
+// ======================================
+
+const CATEGORIES_FILE = path.join(__dirname, "data", "categories.json");
+
+function readCategories() {
+    try {
+        return JSON.parse(fs.readFileSync(CATEGORIES_FILE, "utf8"));
+    } catch {
+        const defaults = [
+            { id: "games", name: "ألعاب", nameEn: "Games", icon: "🎮", count: 0 },
+            { id: "animals", name: "حيوانات", nameEn: "Animals", icon: "🐾", count: 0 },
+            { id: "cars", name: "سيارات", nameEn: "Cars", icon: "🚗", count: 0 },
+            { id: "amoled", name: "AMOLED", nameEn: "AMOLED", icon: "🖤", count: 0 },
+            { id: "space", name: "فضاء", nameEn: "Space", icon: "🚀", count: 0 },
+            { id: "nature", name: "طبيعة", nameEn: "Nature", icon: "🌿", count: 0 },
+            { id: "wallhaven", name: "Wallhaven", nameEn: "Wallhaven", icon: "🌌", count: 0 },
+            { id: "other", name: "أخرى", nameEn: "Other", icon: "📁", count: 0 }
+        ];
+        saveCategories(defaults);
+        return defaults;
+    }
+}
+
+function saveCategories(categories) {
+    const folder = path.dirname(CATEGORIES_FILE);
+    if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+    }
+    fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2), "utf8");
+}
+
+function ensureCategoryExists(categoryId, categoryName) {
+    if (!categoryId || categoryId === "other") return;
+    const categories = readCategories();
+    const exists = categories.find(c => c.id === categoryId);
+    if (!exists) {
+        categories.push({
+            id: categoryId,
+            name: categoryName || categoryId,
+            nameEn: categoryId,
+            icon: "📁",
+            count: 0
+        });
+        saveCategories(categories);
+        console.log("New category auto-created:", categoryId);
+    }
+}
+
+function updateCategoryCounts() {
+    const wallpapers = readWallpapers();
+    const categories = readCategories();
+    categories.forEach(cat => {
+        cat.count = wallpapers.filter(w => w.category === cat.id).length;
+    });
+    saveCategories(categories);
+}
+
+// ======================================
+// Categories API
+// ======================================
+
+app.get("/api/categories", (req, res) => {
+    try {
+        updateCategoryCounts();
+        res.json(readCategories());
+    } catch (error) {
+        console.log("Categories Error:", error);
+        res.status(500).json([]);
+    }
+});
+
+app.post("/api/categories", (req, res) => {
+    try {
+        const { id, name, nameEn, icon } = req.body;
+        if (!id || !name) {
+            return res.status(400).json({ success: false, message: "ID and name required" });
+        }
+        const categories = readCategories();
+        if (categories.find(c => c.id === id)) {
+            return res.status(400).json({ success: false, message: "Category already exists" });
+        }
+        categories.push({ id, name, nameEn: nameEn || id, icon: icon || "📁", count: 0 });
+        saveCategories(categories);
+        res.json({ success: true, category: { id, name } });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.delete("/api/categories/:id", (req, res) => {
+    try {
+        let categories = readCategories();
+        const category = categories.find(c => c.id === req.params.id);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found" });
+        }
+        if (category.count > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Cannot delete category with wallpapers" 
+            });
+        }
+        categories = categories.filter(c => c.id !== req.params.id);
+        saveCategories(categories);
+        res.json({ success: true });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false });
+    }
+});
+
+(
 "Wallhaven Error",
 error
 );
