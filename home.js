@@ -280,6 +280,14 @@ const categoryNames = {
     minimal: "✨ Minimal",
     
     wallhaven:"Wallhaven AI 🌐",
+    
+    rain:"🌧️ المطر",
+
+sunset:"🌅 الغروب",
+
+architecture:"🏛️ العمارة",
+
+"deep-space":"🚀 الفضاء العميق"
 
 };
 
@@ -293,28 +301,13 @@ function createDynamicSections() {
     dynamicSections.innerHTML = "";
 
 
-    const categories = [
-
-        "nature",
-        "cars",
-        "games",
-        "space",
-        "ai",
-        "amoled",
-        "animals",
-        "anime",
-        "city",
-        "dark",
-        "4k",
-        "sports",
-        "minimal",
-        "rain",
-        "sunset",
-        "architecture",
-        "deep-space",
-        "wallhaven"
-
-    ];
+const categories = [
+    ...new Set(
+        wallpapers
+        .map(w => String(w.category).trim())
+        .filter(Boolean)
+    )
+];
 
 
 
