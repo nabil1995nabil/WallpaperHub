@@ -1017,10 +1017,8 @@ domain:
 domain ||
 "",
 
-
 token:
 createTokenValue(),
-
 
 limit:
 200,
@@ -1028,22 +1026,17 @@ limit:
 requests:
 0,
 
-
 lastRequestDate:
 null,
-
 
 lastUsed:
 null,
 
-
 lastIp:
 null,
 
-
 active:
 true,
-
 
 created:
 new Date()
