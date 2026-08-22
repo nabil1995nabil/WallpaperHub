@@ -1,7 +1,6 @@
 /* ===================================
    WallpaperHub - home.css
    Part 1
-   ✨ Updated: Unified White Design
 =================================== */
 
 *{
@@ -15,32 +14,25 @@ font-family:Arial,sans-serif;
 
 --primary:#5b5df5;
 --primary2:#7d5fff;
---bg:#ffffff;
---bg-gradient: linear-gradient(180deg, #ffffff 0%, #f8f9fc 50%, #ffffff 100%);
+--bg:#f5f7fb;
 --card:#ffffff;
 --text:#1d1d1f;
 --gray:#777;
 --shadow:0 10px 30px rgba(0,0,0,.08);
---bottom-nav-height: 70px;
 
-}
-
-html {
-    scroll-behavior: smooth;
 }
 
 body{
 
-background: var(--bg-gradient);
-background-attachment: fixed;
+background:var(--bg);
+
 color:var(--text);
-padding-bottom: calc(90px + var(--bottom-nav-height));
-min-height: 100vh;
+
+padding-bottom:90px;
 
 }
 
 /* ================= HEADER ================= */
-/* ✨ UPDATED: Pure white status bar */
 
 .header{
 
@@ -60,11 +52,11 @@ justify-content:space-between;
 
 align-items:center;
 
-background: #ffffff;
+background:rgba(255,255,255,.92);
 
-border-bottom: 1px solid rgba(0,0,0,0.04);
+backdrop-filter:blur(15px);
 
-box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+box-shadow:0 4px 18px rgba(0,0,0,.05);
 
 }
 
@@ -504,9 +496,11 @@ opacity:.9;
 position:absolute;
 
 top:12px;
+
 left:12px;
 
 width:42px;
+
 height:42px;
 
 border-radius:50%;
@@ -941,7 +935,6 @@ body.dark .stats-card{
 
 body.dark .header{
     background:#1b1b1b;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 body.dark input,
@@ -1856,208 +1849,4 @@ body.dark .category{
 
     overflow:hidden;
 
-}
-
-/* ==========================================
-   ✨ NEW: Bottom Navigation Bar (White)
-   ========================================== */
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--bottom-nav-height);
-    background: #ffffff;
-    border-top: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.06);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 1000;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-.bottom-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 16px;
-    color: #999;
-    text-decoration: none;
-}
-
-.bottom-nav-item:hover {
-    color: var(--primary);
-    background: rgba(91, 93, 245, 0.08);
-}
-
-.bottom-nav-item.active {
-    color: var(--primary);
-    background: rgba(91, 93, 245, 0.1);
-}
-
-.bottom-nav-item .material-icons {
-    font-size: 26px;
-    transition: transform 0.3s ease;
-}
-
-.bottom-nav-item:active .material-icons {
-    transform: scale(0.85);
-}
-
-.bottom-nav-item span:last-child {
-    font-size: 11px;
-    font-weight: 600;
-}
-
-/* Indicator dot for active tab */
-.bottom-nav-item.active::after {
-    content: "";
-    position: absolute;
-    bottom: 6px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--primary);
-}
-
-/* ==========================================
-   ✨ NEW: Creative Design Enhancements
-   ========================================== */
-
-/* Smooth section dividers */
-.section-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent);
-    margin: 8px 18px;
-    border: none;
-}
-
-/* Enhanced card hover with lift and glow */
-.wall-card {
-    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.wall-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(91, 93, 245, 0.15), 0 8px 16px rgba(0,0,0,0.08);
-}
-
-/* Subtle gradient text for titles */
-.title h3 {
-    background: linear-gradient(135deg, #1d1d1f, #5b5df5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Glassmorphism effect for favorite button */
-.favorite-btn {
-    background: rgba(255,255,255,0.95);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 1px solid rgba(255,255,255,0.5);
-}
-
-/* Enhanced Today Wallpaper section */
-.today-wallpaper {
-    transition: all 0.4s ease;
-}
-
-.today-wallpaper:hover {
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
-}
-
-/* Smooth scroll snap for horizontal lists */
-.wall-grid {
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-}
-
-.wall-card {
-    scroll-snap-align: start;
-}
-
-.category-list {
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-}
-
-.category {
-    scroll-snap-align: center;
-}
-
-/* Loading shimmer for images */
-.wall-card img,
-.today-wallpaper img {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-.wall-card img[src],
-.today-wallpaper img[src] {
-    animation: none;
-    background: none;
-}
-
-/* Floating action button enhancement */
-.ai-fab {
-    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ai-fab:hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 24px rgba(91, 93, 245, 0.3);
-}
-
-/* Drawer menu items smooth slide */
-.drawer-menu a {
-    position: relative;
-    overflow: hidden;
-}
-
-.drawer-menu a::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: var(--primary);
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
-    border-radius: 0 4px 4px 0;
-}
-
-.drawer-menu a:hover::before {
-    transform: scaleY(1);
-}
-
-/* Dark mode bottom nav */
-body.dark .bottom-nav {
-    background: #1b1b1b;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
-}
-
-body.dark .bottom-nav-item {
-    color: #777;
-}
-
-body.dark .bottom-nav-item:hover,
-body.dark .bottom-nav-item.active {
-    color: #7d5fff;
-    background: rgba(125, 95, 255, 0.1);
 }
