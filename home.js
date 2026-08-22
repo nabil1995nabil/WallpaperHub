@@ -303,7 +303,11 @@ function createDynamicSections() {
 const categories = [
     ...new Set(
         wallpapers
-        .map(w => String(w.category).trim())
+        .map(w =>
+            String(w.category || "")
+            .trim()
+            .toLowerCase()
+        )
         .filter(Boolean)
     )
 ];
@@ -313,12 +317,14 @@ const categories = [
     categories.forEach(category=>{
 
 
-        const exists =
-        wallpapers.some(
-            w =>
-            String(w.category).trim()
-            === category
-        );
+const exists =
+wallpapers.some(
+    w =>
+    String(w.category || "")
+    .trim()
+    .toLowerCase()
+    === category
+);
 
 
         if(!exists)
@@ -397,9 +403,13 @@ container.innerHTML="";
 wallpapers
 
 .filter(w =>
-String(w.category).trim()
+String(w.category || "")
+.trim()
+.toLowerCase()
 ===
-String(category).trim()
+String(category)
+.trim()
+.toLowerCase()
 )
 
 
