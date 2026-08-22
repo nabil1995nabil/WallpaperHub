@@ -1,0 +1,21 @@
+[
+  { "id": "nature", "name": "🌿 الطبيعة", "nameEn": "Nature", "icon": "🌿", "count": 0 },
+  { "id": "cars", "name": "🚗 السيارات", "nameEn": "Cars", "icon": "🚗", "count": 0 },
+  { "id": "games", "name": "🎮 الألعاب", "nameEn": "Games", "icon": "🎮", "count": 0 },
+  { "id": "space", "name": "🌌 الفضاء", "nameEn": "Space", "icon": "🚀", "count": 0 },
+  { "id": "ai", "name": "🤖 الذكاء الاصطناعي", "nameEn": "AI", "icon": "🤖", "count": 0 },
+  { "id": "amoled", "name": "🖤 AMOLED", "nameEn": "AMOLED", "icon": "🖤", "count": 0 },
+  { "id": "animals", "name": "🐾 الحيوانات", "nameEn": "Animals", "icon": "🐾", "count": 0 },
+  { "id": "anime", "name": "🌀 الأنمي", "nameEn": "Anime", "icon": "🌀", "count": 0 },
+  { "id": "city", "name": "🏙️ المدن", "nameEn": "City", "icon": "🏙️", "count": 0 },
+  { "id": "dark", "name": "🖤 Dark", "nameEn": "Dark", "icon": "🖤", "count": 0 },
+  { "id": "4k", "name": "💎 4K", "nameEn": "4K", "icon": "💎", "count": 0 },
+  { "id": "sports", "name": "⚽ الرياضة", "nameEn": "Sports", "icon": "⚽", "count": 0 },
+  { "id": "minimal", "name": "✨ Minimal", "nameEn": "Minimal", "icon": "✨", "count": 0 },
+  { "id": "wallhaven", "name": "🌐 Wallhaven AI", "nameEn": "Wallhaven", "icon": "🌌", "count": 0 },
+  { "id": "rain", "name": "🌧️ المطر", "nameEn": "Rain", "icon": "🌧️", "count": 0 },
+  { "id": "sunset", "name": "🌅 الغروب", "nameEn": "Sunset", "icon": "🌅", "count": 0 },
+  { "id": "architecture", "name": "🏛️ العمارة", "nameEn": "Architecture", "icon": "🏛️", "count": 0 },
+  { "id": "deep-space", "name": "🚀 الفضاء العميق", "nameEn": "Deep Space", "icon": "🚀", "count": 0 },
+  { "id": "other", "name": "📁 أخرى", "nameEn": "Other", "icon": "📁", "count": 0 }
+]
