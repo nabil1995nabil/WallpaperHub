@@ -280,14 +280,6 @@ const categoryNames = {
     minimal: "✨ Minimal",
     
     wallhaven:"Wallhaven AI 🌐",
-    
-    rain:"🌧️ المطر",
-
-sunset:"🌅 الغروب",
-
-architecture:"🏛️ العمارة",
-
-"deep-space":"🚀 الفضاء العميق"
 
 };
 
@@ -301,13 +293,28 @@ function createDynamicSections() {
     dynamicSections.innerHTML = "";
 
 
-const categories = [
-    ...new Set(
-        wallpapers
-        .map(w => String(w.category).trim())
-        .filter(Boolean)
-    )
-];
+    const categories = [
+
+        "nature",
+        "cars",
+        "games",
+        "space",
+        "ai",
+        "amoled",
+        "animals",
+        "anime",
+        "city",
+        "dark",
+        "4k",
+        "sports",
+        "minimal",
+        "rain",
+        "sunset",
+        "architecture",
+        "deep-space",
+        "wallhaven"
+
+    ];
 
 
 
@@ -497,227 +504,71 @@ function getPopularWallpapers() {
 
 }
 
+// =======================================
+// أحدث الخلفيات
+// =======================================
+
+function getLatestWallpapers() {
+
+    return wallpapers
+
+        .slice()
+
+        .reverse();
+
+}
+
 //========
 // عرض خلفية اليوم
-// تتغير عشوائياً كل 24 ساعة
 //========
 
 function loadTodayWallpaper() {
 
+    const today =
+        wallpapers.find(w => w.todayWallpaper)
+        || wallpapers.find(w => w.featured)
+        || wallpapers[0];
 
-    if(!wallpapers || wallpapers.length === 0){
-        return;
-    }
-
-
-
-    const todayKey =
-    new Date()
-    .toISOString()
-    .split("T")[0];
+    if (!today) return;
 
 
-
-    let today = null;
-
-
-
-    // جلب الخلفية المحفوظة لليوم
-    const saved =
-    localStorage.getItem(
-        "dailyWallpaper"
-    );
-
-
-
-    if(saved){
-
-        try{
-
-            const data =
-            JSON.parse(saved);
-
-
-
-            if(data.date === todayKey){
-
-                today =
-                wallpapers.find(
-                    w =>
-                    String(w.id) === String(data.id)
-                );
-
-            }
-
-
-        }catch(error){
-
-            console.log(
-                "Daily wallpaper cache error:",
-                error
-            );
-
-        }
-
-    }
-
-
-
-    // إذا لا توجد خلفية اليوم نختار عشوائياً
-    if(!today){
-
-
-        today =
-        wallpapers[
-            Math.floor(
-                Math.random() *
-                wallpapers.length
-            )
-        ];
-
-
-
-        localStorage.setItem(
-
-            "dailyWallpaper",
-
-            JSON.stringify({
-
-                id:
-                today.id,
-
-                date:
-                todayKey
-
-            })
-
-        );
-
-
-    }
-
-
-
-    if(!today){
-        return;
-    }
-
-
-
-    const img =
-    document.getElementById(
-        "todayImage"
-    );
-
-
-    const title =
-    document.getElementById(
-        "todayTitle"
-    );
-
-
-    const desc =
-    document.getElementById(
-        "todayDescription"
-    );
-
-
-    const view =
-    document.getElementById(
-        "todayView"
-    );
-
-
-    const download =
-    document.getElementById(
-        "todayDownload"
-    );
-
+    const img = document.getElementById("todayImage");
+    const title = document.getElementById("todayTitle");
+    const desc = document.getElementById("todayDescription");
+    const view = document.getElementById("todayView");
+    const download = document.getElementById("todayDownload");
 
 
     if(img){
-
-        img.src =
-        getImageUrl(
-            today.thumbnail ||
-            today.image
-        );
-
+        img.src = getImageUrl(today.thumbnail || today.image);
     }
-
-
 
     if(title){
-
-        title.textContent =
-        today.title ||
-        "خلفية اليوم";
-
+        title.textContent = today.title;
     }
-
-
 
     if(desc){
-
-        desc.textContent =
-        today.category ||
-        "Wallpaper";
-
+        desc.textContent = today.category;
     }
-
-
 
     if(view){
-
-        view.onclick = () => {
-
-            openWallpaper(
-                today.id
-            );
-
-        };
-
+        view.onclick = () => openWallpaper(today.id);
     }
-
-
 
     if(download){
-
         download.onclick = () => {
 
-
-            const a =
-            document.createElement(
-                "a"
-            );
-
-
-            a.href =
-            getImageUrl(
-                today.image
-            );
-
-
-            a.download =
-            (today.title || "wallpaper")
-            + ".jpg";
-
-
-            document.body.appendChild(a);
-
-
+            const a = document.createElement("a");
+            a.href = getImageUrl(today.image);
+            a.download = today.title + ".jpg";
             a.click();
 
-
-            a.remove();
-
-
         };
-
     }
 
-
 }
+
+
 
 // ==============================
 // الأكثر تحميلاً
