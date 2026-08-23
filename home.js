@@ -330,8 +330,22 @@ wallpapers.some(
 );
 
 
-        if(!exists)
-        return;
+if(!exists)
+return;
+
+
+const count =
+wallpapers.filter(w =>
+String(w.category || "")
+.trim()
+.toLowerCase()
+===
+category
+).length;
+
+
+if(count === 0)
+return;
 
 
 
@@ -399,25 +413,37 @@ if(!container)
 return;
 
 
-container.innerHTML="";
+container.innerHTML = "";
 
 
 
-wallpapers
+const sectionWalls = wallpapers.filter(w => {
 
-.filter(w =>
-String(w.category || "")
-.trim()
-.toLowerCase()
-===
-String(category)
-.trim()
-.toLowerCase()
-)
+    const wallCategory =
+    String(w.category || "")
+    .trim()
+    .toLowerCase();
 
 
+    return wallCategory ===
+    String(category)
+    .trim()
+    .toLowerCase();
+
+});
+
+
+
+console.log(
+"SECTION:",
+category,
+sectionWalls
+);
+
+
+
+sectionWalls
 .slice(0,6)
-
 .forEach(wall=>{
 
 
