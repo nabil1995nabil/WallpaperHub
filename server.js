@@ -2748,7 +2748,7 @@ success:false
 });
 
 // ======================================
-// Replicate Real-ESRGAN Enhance
+// Replicate FLUX Enhance
 // ======================================
 
 const Replicate = require("replicate");
@@ -2782,11 +2782,11 @@ app.post("/api/artguru/enhance", async (req, res) => {
 
 
         const output = await replicate.run(
-            "nightmareai/real-esrgan",
+            "black-forest-labs/flux-2-pro",
             {
                 input:{
-                    image:image,
-                    scale:4
+                    prompt:"Enhance this image, improve quality, details and sharpness",
+                    image:image
                 }
             }
         );
