@@ -2773,31 +2773,55 @@ message:"Image required"
 }
 
 
+// تحويل base64 إلى Blob
+const base64Data =
+image.replace(
+(/^data:image\/\w+;base64,/),
+""
+);
+
+
+const buffer =
+Buffer.from(
+base64Data,
+"base64"
+);
+
+
+const formData =
+new FormData();
+
+
+formData.append(
+"image",
+new Blob(
+[buffer],
+{
+type:"image/jpeg"
+}
+),
+"image.jpg"
+);
+
+
 
 const response =
 await fetch(
-"https://api.artguru.ai/v1/enhance",
+
+"https://api.artguru.ai/api/v1/enhance/generate",
+
 {
 
 method:"POST",
 
 headers:{
 
-"Content-Type":"application/json",
-
 "x-api-key":
 process.env.ARTGURU_API_KEY
 
 },
 
-body:JSON.stringify({
-
-image,
-
-mode:
-mode || "enhance"
-
-})
+body:formData
 
 }
 
@@ -2824,17 +2848,17 @@ data
 
 
 console.log(
-"Artguru Error:",
+"Artguru Enhance Error:",
 error
 );
-
 
 
 res.status(500).json({
 
 success:false,
 
-message:"Artguru failed"
+message:
+"Artguru enhance failed"
 
 });
 
@@ -2843,6 +2867,9 @@ message:"Artguru failed"
 
 
 });
+
+
+
 
 // ======================================
 // Artguru Image Upload
@@ -2852,25 +2879,79 @@ app.post(
 "/api/artguru/upload",
 async(req,res)=>{
 
+
 try{
+
 
 const {
 image
 }=req.body;
 
 
+
 if(!image){
 
+
 return res.status(400).json({
+
 success:false,
+
 message:"Image required"
+
 });
+
 
 }
 
 
-const response = await fetch(
+
+// تحويل Base64
+
+const base64Data =
+image.replace(
+(/^data:image\/\w+;base64,/),
+""
+);
+
+
+
+const buffer =
+Buffer.from(
+base64Data,
+"base64"
+);
+
+
+
+const formData =
+new FormData();
+
+
+
+formData.append(
+
+"image",
+
+new Blob(
+[buffer],
+{
+type:"image/jpeg"
+}
+),
+
+"upload.jpg"
+
+);
+
+
+
+
+
+const response =
+await fetch(
+
 "https://api.artguru.ai/api/v1/image/upload",
+
 {
 
 method:"POST",
@@ -2882,14 +2963,18 @@ process.env.ARTGURU_API_KEY
 
 },
 
-body:image
+body:formData
 
 }
 
 );
 
 
-const data = await response.json();
+
+
+const data =
+await response.json();
+
 
 
 res.json({
@@ -2901,17 +2986,26 @@ data
 });
 
 
+
 }catch(error){
 
+
 console.log(
+
 "Artguru Upload Error:",
+
 error
+
 );
+
 
 
 res.status(500).json({
 
-success:false
+success:false,
+
+message:
+"Upload failed"
 
 });
 
