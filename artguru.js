@@ -172,7 +172,7 @@ return;
 enhanceBtn.disabled = true;
 
 
-// تهيئة شريط التقدم بداخل الزر عبر متغَيّر CSS
+// تهيئة شريط التقدم بداخل الزر عبر متغيّر CSS
 let progress = 0;
 
 enhanceBtn.style.setProperty("--progress", "0%");
@@ -235,7 +235,7 @@ await response.json();
 
 
 console.log(
-"Artguru Response:",
+"Artguru Full Response:",
 result
 );
 
@@ -256,18 +256,30 @@ resolve => setTimeout(resolve, 300)
 
 
 
-// قراءة رابط الصورة وتطبيقها في النتيجة
-if(
-result.success &&
-result.data
-){
+// دالة للبحث الذكي عن رابط الصورة داخل رد الـ API
+function findImageUrl(obj) {
+    if (!obj || typeof obj !== 'object') return null;
+    if (typeof obj === 'string' && (obj.startsWith('http://') || obj.startsWith('https://') || obj.startsWith('data:image'))) {
+        return obj;
+    }
+    for (let key in obj) {
+        if (['url', 'result_url', 'image_url', 'image', 'output', 'task_result'].includes(key.toLowerCase())) {
+            const val = obj[key];
+            if (typeof val === 'string' && (val.startsWith('http') || val.startsWith('data:image'))) {
+                return val;
+            }
+        }
+        if (typeof obj[key] === 'object') {
+            const found = findImageUrl(obj[key]);
+            if (found) return found;
+        }
+    }
+    return null;
+}
 
 
-const imageUrl =
-result.data.url ||
-result.data.result_url ||
-result.data.image_url ||
-result.data.image;
+
+const imageUrl = findImageUrl(result);
 
 
 
@@ -280,19 +292,9 @@ resultImage.src = imageUrl;
 
 }else{
 
-alert("تم التحسين لكن لم يتم العثور على رابط الصورة في النتيجة");
+console.error("الاستجابة الحالية من السيرفر:", result);
 
-}
-
-
-}else{
-
-
-alert(
-"فشل التحسين: " +
-(result.message || "خطأ من السيرفر")
-);
-
+alert("تم التحسين لكن لم يتم العثور على رابط الصورة في النتيجة. تفقد الكونسول لمشاهدة البيانات.");
 
 }
 
