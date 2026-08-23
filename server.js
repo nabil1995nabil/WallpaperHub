@@ -2751,46 +2751,60 @@ success:false
 // Artguru Helpers
 // ======================================
 
-function convertBase64ToBuffer(image){
-
-if(!image)
-return null;
-
-
-const cleanBase64 =
-image.replace(
-/^data:image\/\w+;base64,/,
-""
-);
-
-
-return Buffer.from(
-cleanBase64,
-"base64"
-);
-
-}
-
-
-
 function checkArtguruKey(res){
 
-if(!process.env.ARTGURU_API_KEY){
+    const key = process.env.ARTGURU_API_KEY;
 
-res.status(500).json({
+    if(!key || key.trim() === ""){
 
-success:false,
+        console.log("❌ ARTGURU_API_KEY missing");
 
-message:"ARTGURU_API_KEY missing"
+        res.status(500).json({
 
-});
+            success:false,
 
-return false;
+            message:"ARTGURU_API_KEY missing"
 
+        });
+
+        return false;
+    }
+
+
+    console.log("✅ ARTGURU_API_KEY loaded");
+
+    return true;
 }
 
 
-return true;
+
+function convertBase64ToBuffer(base64){
+
+    try{
+
+        const cleanBase64 =
+        base64.replace(
+            /^data:image\/\w+;base64,/,
+            ""
+        );
+
+
+        return Buffer.from(
+            cleanBase64,
+            "base64"
+        );
+
+
+    }catch(error){
+
+        console.log(
+            "Base64 Convert Error:",
+            error
+        );
+
+        return null;
+
+    }
 
 }
 
@@ -2852,22 +2866,6 @@ message:"Invalid image"
 
 
 
-
-if(buffer.length > 10 * 1024 * 1024){
-
-return res.status(413).json({
-
-success:false,
-
-message:"Image too large"
-
-});
-
-}
-
-
-
-
 const form =
 new FormData();
 
@@ -2888,8 +2886,6 @@ contentType:"image/jpeg"
 
 
 
-
-
 const response =
 await fetch(
 
@@ -2904,6 +2900,9 @@ headers:{
 "x-api-key":
 process.env.ARTGURU_API_KEY,
 
+"Accept":
+"application/json",
+
 ...form.getHeaders()
 
 },
@@ -2916,21 +2915,33 @@ body:form
 
 
 
+const text =
+await response.text();
 
 
-const data =
-await response.json();
+
+let data;
 
 
+try{
+
+data =
+JSON.parse(text);
+
+}catch{
+
+data = {
+raw:text
+};
+
+}
 
 
 
 console.log(
-"ARTGURU ENHANCE:",
-JSON.stringify(data,null,2)
+"ARTGURU ENHANCE RESPONSE:",
+data
 );
-
-
 
 
 
@@ -2941,15 +2952,13 @@ return res.status(response.status)
 
 success:false,
 
-message:"Artguru rejected request",
+message:"Artguru API rejected",
 
 data
 
 });
 
 }
-
-
 
 
 
@@ -2960,7 +2969,6 @@ success:true,
 data
 
 });
-
 
 
 
@@ -3031,10 +3039,23 @@ message:"Image required"
 
 
 
-
 const buffer =
 convertBase64ToBuffer(image);
 
+
+
+if(!buffer){
+
+return res.status(400)
+.json({
+
+success:false,
+
+message:"Invalid image"
+
+});
+
+}
 
 
 
@@ -3058,9 +3079,6 @@ contentType:"image/jpeg"
 
 
 
-
-
-
 const response =
 await fetch(
 
@@ -3075,6 +3093,9 @@ headers:{
 "x-api-key":
 process.env.ARTGURU_API_KEY,
 
+"Accept":
+"application/json",
+
 ...form.getHeaders()
 
 },
@@ -3087,21 +3108,33 @@ body:form
 
 
 
+const text =
+await response.text();
 
 
-const data =
-await response.json();
+
+let data;
 
 
+try{
+
+data =
+JSON.parse(text);
+
+}catch{
+
+data={
+raw:text
+};
+
+}
 
 
 
 console.log(
-"ARTGURU UPLOAD:",
-JSON.stringify(data,null,2)
+"ARTGURU UPLOAD RESPONSE:",
+data
 );
-
-
 
 
 
@@ -3122,7 +3155,6 @@ data
 
 
 
-
 res.json({
 
 success:true,
@@ -3130,7 +3162,6 @@ success:true,
 data
 
 });
-
 
 
 
