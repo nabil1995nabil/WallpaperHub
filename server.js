@@ -2748,215 +2748,71 @@ success:false
 });
 
 // ======================================
-// Artguru Helpers
+// Replicate Real-ESRGAN Enhance
 // ======================================
 
-function checkArtguruKey(res){
+const Replicate = require("replicate");
 
-    const key = process.env.ARTGURU_API_KEY;
+const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN
+});
 
-    if(!key || key.trim() === ""){
-
-        console.log("❌ ARTGURU_API_KEY missing");
-
-        res.status(500).json({
-
-            success:false,
-
-            message:"ARTGURU_API_KEY missing"
-
-        });
-
-        return false;
-    }
-
-
-    console.log("✅ ARTGURU_API_KEY loaded");
-
-    return true;
-}
-
-
-
-function convertBase64ToBuffer(base64){
-
-    try{
-
-        const cleanBase64 =
-        base64.replace(
-            /^data:image\/\w+;base64,/,
-            ""
-        );
-
-
-        return Buffer.from(
-            cleanBase64,
-            "base64"
-        );
-
-
-    }catch(error){
-
-        console.log(
-            "Base64 Convert Error:",
-            error
-        );
-
-        return null;
-
-    }
-
-}
-
-
-
-// ======================================
-// Artguru AI Enhance
-// ======================================
 
 app.post(
 "/api/artguru/enhance",
 async(req,res)=>{
 
-
 try{
 
 
-if(!checkArtguruKey(res))
-return;
-
-
-
-const {
-image
-}=req.body;
-
+const { image } = req.body;
 
 
 if(!image){
 
 return res.status(400).json({
-
 success:false,
-
 message:"Image required"
-
 });
 
 }
 
 
 
-const buffer =
-convertBase64ToBuffer(image);
+const output = await replicate.run(
 
+"nightmareai/real-esrgan",
 
-
-if(!buffer){
-
-return res.status(400).json({
-
-success:false,
-
-message:"Invalid image"
-
-});
-
-}
-
-
-
-const form =
-new FormData();
-
-
-
-form.append(
-"image",
-buffer,
 {
-
-filename:"enhance.jpg",
-
-contentType:"image/jpeg"
-
+input:{
+image:image,
+scale:4
+}
 }
 
 );
-
-
-
-const response =
-await fetch(
-
-"https://api.artguru.ai/api/v1/enhance/generate",
-
-{
-
-method:"POST",
-
-headers:{
-
-"x-api-key":
-process.env.ARTGURU_API_KEY,
-
-"Accept":
-"application/json",
-
-...form.getHeaders()
-
-},
-
-body:form
-
-}
-
-);
-
-
-
-const text =
-await response.text();
-
-
-
-let data;
-
-
-try{
-
-data =
-JSON.parse(text);
-
-}catch{
-
-data = {
-raw:text
-};
-
-}
 
 
 
 console.log(
-"ARTGURU ENHANCE RESPONSE:",
-data
+"REPLICATE RESULT:",
+output
 );
 
 
 
-if(!response.ok){
+let imageUrl = null;
 
-return res.status(response.status)
-.json({
 
-success:false,
 
-message:"Artguru API rejected",
+if(typeof output === "string"){
 
-data
+imageUrl = output;
 
-});
+}
+else if(output?.url){
+
+imageUrl = output.url();
 
 }
 
@@ -2966,7 +2822,9 @@ res.json({
 
 success:true,
 
-data
+data:{
+image:imageUrl
+}
 
 });
 
@@ -2974,16 +2832,13 @@ data
 
 }catch(error){
 
-
 console.log(
-"Artguru Enhance Error:",
+"Replicate Error:",
 error
 );
 
 
-
-res.status(500)
-.json({
+res.status(500).json({
 
 success:false,
 
@@ -2993,200 +2848,6 @@ message:error.message
 
 
 }
-
-
-});
-
-
-
-
-
-// ======================================
-// Artguru Upload
-// ======================================
-
-app.post(
-"/api/artguru/upload",
-async(req,res)=>{
-
-
-try{
-
-
-if(!checkArtguruKey(res))
-return;
-
-
-
-const {
-image
-}=req.body;
-
-
-
-if(!image){
-
-return res.status(400)
-.json({
-
-success:false,
-
-message:"Image required"
-
-});
-
-}
-
-
-
-const buffer =
-convertBase64ToBuffer(image);
-
-
-
-if(!buffer){
-
-return res.status(400)
-.json({
-
-success:false,
-
-message:"Invalid image"
-
-});
-
-}
-
-
-
-const form =
-new FormData();
-
-
-
-form.append(
-"image",
-buffer,
-{
-
-filename:"upload.jpg",
-
-contentType:"image/jpeg"
-
-}
-
-);
-
-
-
-const response =
-await fetch(
-
-"https://api.artguru.ai/api/v1/image/upload",
-
-{
-
-method:"POST",
-
-headers:{
-
-"x-api-key":
-process.env.ARTGURU_API_KEY,
-
-"Accept":
-"application/json",
-
-...form.getHeaders()
-
-},
-
-body:form
-
-}
-
-);
-
-
-
-const text =
-await response.text();
-
-
-
-let data;
-
-
-try{
-
-data =
-JSON.parse(text);
-
-}catch{
-
-data={
-raw:text
-};
-
-}
-
-
-
-console.log(
-"ARTGURU UPLOAD RESPONSE:",
-data
-);
-
-
-
-if(!response.ok){
-
-return res.status(response.status)
-.json({
-
-success:false,
-
-message:"Artguru upload failed",
-
-data
-
-});
-
-}
-
-
-
-res.json({
-
-success:true,
-
-data
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"Artguru Upload Error:",
-error
-);
-
-
-
-res.status(500)
-.json({
-
-success:false,
-
-message:error.message
-
-});
-
-
-}
-
 
 });
 

@@ -296,7 +296,7 @@ await response.json();
 
 
 console.log(
-"ARTGURU RESPONSE:",
+"REPLICATE RESPONSE:",
 result
 );
 
@@ -383,7 +383,7 @@ clearInterval(timer);
 
 
 console.log(
-"Artguru Error:",
+"Replicate Error:",
 error
 );
 
@@ -465,7 +465,7 @@ resultImage.src;
 
 
 link.download =
-"artguru-enhanced.jpg";
+"enhanced-image.jpg";
 
 
 document.body.appendChild(link);
