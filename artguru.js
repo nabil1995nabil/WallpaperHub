@@ -172,58 +172,136 @@ return;
 enhanceBtn.disabled = true;
 
 
-enhanceBtn.textContent =
-"جاري الرفع والتحسين...";
+// تهيئة شريط التقدم بداخل الزر عبر متغَيّر CSS
+let progress = 0;
+
+enhanceBtn.style.setProperty("--progress", "0%");
+
+enhanceBtn.textContent = "جاري التحسين... 0%";
+
+
+
+// محاكاة امتلاء الشريط حركياً إلى غاية 90%
+const progressInterval = setInterval(()=>{
+
+if(progress < 90){
+
+progress += Math.floor(Math.random() * 8) + 2;
+
+if(progress > 90) progress = 90;
+
+enhanceBtn.style.setProperty("--progress", `${progress}%`);
+
+enhanceBtn.textContent = `جاري التحسين... ${progress}%`;
+
+}
+
+}, 250);
 
 
 
 try{
 
 
-// رفع الصورة
+// إرسال طلب التحسين إلى السيرفر
+const response =
+await fetch(
+"/api/artguru/enhance",
+{
 
-const uploadResult =
-await uploadToArtguru(
-selectedImageBase64
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json"
+
+},
+
+body:JSON.stringify({
+
+image:selectedImageBase64
+
+})
+
+}
+
 );
 
+
+
+const result =
+await response.json();
 
 
 console.log(
-"Artguru Upload:",
-uploadResult
+"Artguru Response:",
+result
 );
 
 
 
-// هنا نعرض الرد للتأكد
+// إنهاء شريط التقدم عند الاستجابة
+clearInterval(progressInterval);
 
-if(uploadResult.image){
+enhanceBtn.style.setProperty("--progress", "100%");
 
-console.log(
-"Image ID:",
-uploadResult.image
+enhanceBtn.textContent = "اكتمل التحسين! 100%";
+
+
+
+await new Promise(
+resolve => setTimeout(resolve, 300)
 );
+
+
+
+// قراءة رابط الصورة وتطبيقها في النتيجة
+if(
+result.success &&
+result.data
+){
+
+
+const imageUrl =
+result.data.url ||
+result.data.result_url ||
+result.data.image_url ||
+result.data.image;
+
+
+
+if(
+imageUrl &&
+resultImage
+){
+
+resultImage.src = imageUrl;
+
+}else{
+
+alert("تم التحسين لكن لم يتم العثور على رابط الصورة في النتيجة");
 
 }
 
 
+}else{
 
-// مؤقتاً إذا رجعت صورة مباشرة
 
-if(
-uploadResult.url &&
-resultImage
-){
+alert(
+"فشل التحسين: " +
+(result.message || "خطأ من السيرفر")
+);
 
-resultImage.src =
-uploadResult.url;
 
 }
 
 
 
 }catch(error){
+
+
+clearInterval(progressInterval);
 
 
 console.log(
@@ -242,11 +320,12 @@ alert(
 
 
 
-enhanceBtn.disabled=false;
+// إرجاع حالة الزر للشكل الطبيعي
+enhanceBtn.disabled = false;
 
+enhanceBtn.style.setProperty("--progress", "0%");
 
-enhanceBtn.textContent =
-"✨ تحسين بالذكاء الاصطناعي";
+enhanceBtn.textContent = "✨ تحسين بالذكاء الاصطناعي";
 
 
 
@@ -273,6 +352,8 @@ if(
 !resultImage.src
 ){
 
+alert("لا توجد صورة محسنة لتحميلها");
+
 return;
 
 }
@@ -291,7 +372,11 @@ a.download =
 "artguru-enhanced.jpg";
 
 
+document.body.appendChild(a);
+
 a.click();
+
+document.body.removeChild(a);
 
 
 
