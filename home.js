@@ -195,6 +195,9 @@ onclick="event.stopPropagation(); toggleFavorite('${wall.id}')">
 
 }
 
+window.toggleFavorite =
+toggleFavorite;
+
 // =======================================
 // أحدث الخلفيات
 // =======================================
@@ -434,9 +437,13 @@ createWallpaperCard(wall);
 function openWallpaper(id) {
 
     window.location.href =
-        `wallpaper.html?id=${id}`;
+    `wallpaper.html?id=${id}`;
 
 }
+
+
+window.openWallpaper =
+openWallpaper;
 
 // =======================================
 // المفضلة
