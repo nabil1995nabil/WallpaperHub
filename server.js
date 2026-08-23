@@ -2748,270 +2748,102 @@ success:false
 // Artguru AI Enhance
 // ======================================
 
-app.post(
-"/api/artguru/enhance",
-async(req,res)=>{
+app.post("/api/artguru/enhance", async (req, res) => {
+  try {
+    const { image } = req.body;
 
-try{
+    if (!image) {
+      return res.status(400).json({
+        success: false,
+        message: "Image required",
+      });
+    }
 
-const {
-image,
-mode
-}=req.body;
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
 
+    const formData = new FormData();
+    formData.append("image", buffer, {
+      filename: "image.jpg",
+      contentType: "image/jpeg",
+    });
 
-if(!image){
+    const response = await fetch(
+      "https://api.artguru.ai/api/v1/enhance/generate",
+      {
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.ARTGURU_API_KEY || "",
+          ...formData.getHeaders(),
+        },
+        body: formData,
+      }
+    );
 
-return res.status(400).json({
+    const data = await response.json();
 
-success:false,
-
-message:"Image required"
-
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.log("Artguru Enhance Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Artguru enhance failed",
+    });
+  }
 });
-
-}
-
-
-// تحويل base64 إلى Blob
-const base64Data =
-image.replace(
-(/^data:image\/\w+;base64,/),
-""
-);
-
-
-const buffer =
-Buffer.from(
-base64Data,
-"base64"
-);
-
-
-const formData =
-new FormData();
-
-
-formData.append(
-"image",
-new Blob(
-[buffer],
-{
-type:"image/jpeg"
-}
-),
-"image.jpg"
-);
-
-
-
-const response =
-await fetch(
-
-"https://api.artguru.ai/api/v1/enhance/generate",
-
-{
-
-method:"POST",
-
-headers:{
-
-"x-api-key":
-process.env.ARTGURU_API_KEY
-
-},
-
-body:formData
-
-}
-
-);
-
-
-
-const data =
-await response.json();
-
-
-
-res.json({
-
-success:true,
-
-data
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"Artguru Enhance Error:",
-error
-);
-
-
-res.status(500).json({
-
-success:false,
-
-message:
-"Artguru enhance failed"
-
-});
-
-
-}
-
-
-});
-
-
-
 
 // ======================================
 // Artguru Image Upload
 // ======================================
 
-app.post(
-"/api/artguru/upload",
-async(req,res)=>{
-
-
-try{
-
-
-const {
-image
-}=req.body;
-
-
-
-if(!image){
-
-
-return res.status(400).json({
-
-success:false,
-
-message:"Image required"
-
-});
-
-
-}
-
-
-
-// تحويل Base64
-
-const base64Data =
-image.replace(
-(/^data:image\/\w+;base64,/),
-""
-);
-
-
-
-const buffer =
-Buffer.from(
-base64Data,
-"base64"
-);
-
-
-
-const formData =
-new FormData();
-
-
-
-formData.append(
-
-"image",
-
-new Blob(
-[buffer],
-{
-type:"image/jpeg"
-}
-),
-
-"upload.jpg"
-
-);
-
-
-
-
-
-const response =
-await fetch(
-
-"https://api.artguru.ai/api/v1/image/upload",
-
-{
-
-method:"POST",
-
-headers:{
-
-"x-api-key":
-process.env.ARTGURU_API_KEY
-
-},
-
-body:formData
-
-}
-
-);
-
-
-
-
-const data =
-await response.json();
-
-
-
-res.json({
-
-success:true,
-
-data
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-
-"Artguru Upload Error:",
-
-error
-
-);
-
-
-
-res.status(500).json({
-
-success:false,
-
-message:
-"Upload failed"
-
-});
-
-
-}
-
+app.post("/api/artguru/upload", async (req, res) => {
+  try {
+    const { image } = req.body;
+
+    if (!image) {
+      return res.status(400).json({
+        success: false,
+        message: "Image required",
+      });
+    }
+
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    const formData = new FormData();
+    formData.append("image", buffer, {
+      filename: "upload.jpg",
+      contentType: "image/jpeg",
+    });
+
+    const response = await fetch(
+      "https://api.artguru.ai/api/v1/image/upload",
+      {
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.ARTGURU_API_KEY || "",
+          ...formData.getHeaders(),
+        },
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.log("Artguru Upload Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Upload failed",
+    });
+  }
 });
 
 // ======================================
