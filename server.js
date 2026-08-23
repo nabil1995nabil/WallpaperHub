@@ -2758,96 +2758,75 @@ const replicate = new Replicate({
 });
 
 
-app.post(
-"/api/artguru/enhance",
-async(req,res)=>{
+app.post("/api/artguru/enhance", async (req, res) => {
 
-try{
+    try {
 
-
-const { image } = req.body;
-
-
-if(!image){
-
-return res.status(400).json({
-success:false,
-message:"Image required"
-});
-
-}
+        if(!process.env.REPLICATE_API_TOKEN){
+            return res.status(500).json({
+                success:false,
+                message:"REPLICATE_API_TOKEN missing"
+            });
+        }
 
 
-
-const output = await replicate.run(
-
-"nightmareai/real-esrgan",
-
-{
-input:{
-image:image,
-scale:4
-}
-}
-
-);
+        const { image } = req.body;
 
 
-
-console.log(
-"REPLICATE RESULT:",
-output
-);
-
-
-
-let imageUrl = null;
+        if(!image){
+            return res.status(400).json({
+                success:false,
+                message:"Image required"
+            });
+        }
 
 
-
-if(typeof output === "string"){
-
-imageUrl = output;
-
-}
-else if(output?.url){
-
-imageUrl = output.url();
-
-}
+        const output = await replicate.run(
+            "nightmareai/real-esrgan",
+            {
+                input:{
+                    image:image,
+                    scale:4
+                }
+            }
+        );
 
 
-
-res.json({
-
-success:true,
-
-data:{
-image:imageUrl
-}
-
-});
+        console.log("REPLICATE RESULT:", output);
 
 
-
-}catch(error){
-
-console.log(
-"Replicate Error:",
-error
-);
+        let imageUrl = null;
 
 
-res.status(500).json({
+        if(typeof output === "string"){
+            imageUrl = output;
+        }
+        else if(Array.isArray(output)){
+            imageUrl = output[0];
+        }
+        else if(output?.url){
+            imageUrl = output.url();
+        }
 
-success:false,
 
-message:error.message
+        return res.json({
+            success:true,
+            data:{
+                image:imageUrl
+            }
+        });
 
-});
 
+    } catch(error){
 
-}
+        console.log("Replicate Error:", error);
+
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        });
+
+    }
 
 });
 
