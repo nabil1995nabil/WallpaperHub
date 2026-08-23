@@ -2745,55 +2745,234 @@ success:false
 });
 
 // ======================================
+// Artguru Helpers
+// ======================================
+
+function convertBase64ToBuffer(image){
+
+if(!image)
+return null;
+
+
+const cleanBase64 =
+image.replace(
+/^data:image\/\w+;base64,/,
+""
+);
+
+
+return Buffer.from(
+cleanBase64,
+"base64"
+);
+
+}
+
+
+
+function checkArtguruKey(res){
+
+if(!process.env.ARTGURU_API_KEY){
+
+res.status(500).json({
+
+success:false,
+
+message:"ARTGURU_API_KEY missing"
+
+});
+
+return false;
+
+}
+
+
+return true;
+
+}
+
+
+
+// ======================================
 // Artguru AI Enhance
 // ======================================
 
-app.post("/api/artguru/enhance", async (req, res) => {
-  try {
-    const { image } = req.body;
+app.post(
+"/api/artguru/enhance",
+async(req,res)=>{
 
-    if (!image) {
-      return res.status(400).json({
-        success: false,
-        message: "Image required",
-      });
-    }
 
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
+try{
 
-    const formData = new FormData();
-    formData.append("image", buffer, {
-      filename: "image.jpg",
-      contentType: "image/jpeg",
-    });
 
-    const response = await fetch(
-      "https://api.artguru.ai/api/v1/enhance/generate",
-      {
-        method: "POST",
-        headers: {
-          "x-api-key": process.env.ARTGURU_API_KEY || "",
-          ...formData.getHeaders(),
-        },
-        body: formData,
-      }
-    );
+if(!checkArtguruKey(res))
+return;
 
-    const data = await response.json();
 
-    res.json({
-      success: true,
-      data,
-    });
-catch(error){
+
+const {
+image
+}=req.body;
+
+
+
+if(!image){
+
+return res.status(400).json({
+
+success:false,
+
+message:"Image required"
+
+});
+
+}
+
+
+
+const buffer =
+convertBase64ToBuffer(image);
+
+
+
+if(!buffer){
+
+return res.status(400).json({
+
+success:false,
+
+message:"Invalid image"
+
+});
+
+}
+
+
+
+
+if(buffer.length > 10 * 1024 * 1024){
+
+return res.status(413).json({
+
+success:false,
+
+message:"Image too large"
+
+});
+
+}
+
+
+
+
+const form =
+new FormData();
+
+
+
+form.append(
+"image",
+buffer,
+{
+
+filename:"enhance.jpg",
+
+contentType:"image/jpeg"
+
+}
+
+);
+
+
+
+
+
+const response =
+await fetch(
+
+"https://api.artguru.ai/api/v1/enhance/generate",
+
+{
+
+method:"POST",
+
+headers:{
+
+"x-api-key":
+process.env.ARTGURU_API_KEY,
+
+...form.getHeaders()
+
+},
+
+body:form
+
+}
+
+);
+
+
+
+
+
+const data =
+await response.json();
+
+
+
+
+
+console.log(
+"ARTGURU ENHANCE:",
+JSON.stringify(data,null,2)
+);
+
+
+
+
+
+if(!response.ok){
+
+return res.status(response.status)
+.json({
+
+success:false,
+
+message:"Artguru rejected request",
+
+data
+
+});
+
+}
+
+
+
+
+
+res.json({
+
+success:true,
+
+data
+
+});
+
+
+
+
+}catch(error){
+
 
 console.log(
 "Artguru Enhance Error:",
-error.message
+error
 );
 
-res.status(500).json({
+
+
+res.status(500)
+.json({
 
 success:false,
 
@@ -2801,57 +2980,180 @@ message:error.message
 
 });
 
+
 }
 
+
+});
+
+
+
+
+
 // ======================================
-// Artguru Image Upload
+// Artguru Upload
 // ======================================
 
-app.post("/api/artguru/upload", async (req, res) => {
-  try {
-    const { image } = req.body;
+app.post(
+"/api/artguru/upload",
+async(req,res)=>{
 
-    if (!image) {
-      return res.status(400).json({
-        success: false,
-        message: "Image required",
-      });
-    }
 
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
+try{
 
-    const formData = new FormData();
-    formData.append("image", buffer, {
-      filename: "upload.jpg",
-      contentType: "image/jpeg",
-    });
 
-    const response = await fetch(
-      "https://api.artguru.ai/api/v1/image/upload",
-      {
-        method: "POST",
-        headers: {
-          "x-api-key": process.env.ARTGURU_API_KEY || "",
-          ...formData.getHeaders(),
-        },
-        body: formData,
-      }
-    );
+if(!checkArtguruKey(res))
+return;
 
-    const data = await response.json();
 
-    res.json({
-      success: true,
-      data,
-    });
-  } catch (error) {
-    console.log("Artguru Upload Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Upload failed",
-    });
-  }
+
+const {
+image
+}=req.body;
+
+
+
+if(!image){
+
+return res.status(400)
+.json({
+
+success:false,
+
+message:"Image required"
+
+});
+
+}
+
+
+
+
+const buffer =
+convertBase64ToBuffer(image);
+
+
+
+
+const form =
+new FormData();
+
+
+
+form.append(
+"image",
+buffer,
+{
+
+filename:"upload.jpg",
+
+contentType:"image/jpeg"
+
+}
+
+);
+
+
+
+
+
+
+const response =
+await fetch(
+
+"https://api.artguru.ai/api/v1/image/upload",
+
+{
+
+method:"POST",
+
+headers:{
+
+"x-api-key":
+process.env.ARTGURU_API_KEY,
+
+...form.getHeaders()
+
+},
+
+body:form
+
+}
+
+);
+
+
+
+
+
+const data =
+await response.json();
+
+
+
+
+
+console.log(
+"ARTGURU UPLOAD:",
+JSON.stringify(data,null,2)
+);
+
+
+
+
+
+if(!response.ok){
+
+return res.status(response.status)
+.json({
+
+success:false,
+
+message:"Artguru upload failed",
+
+data
+
+});
+
+}
+
+
+
+
+res.json({
+
+success:true,
+
+data
+
+});
+
+
+
+
+}catch(error){
+
+
+console.log(
+"Artguru Upload Error:",
+error
+);
+
+
+
+res.status(500)
+.json({
+
+success:false,
+
+message:error.message
+
+});
+
+
+}
+
+
 });
 
 // ======================================
