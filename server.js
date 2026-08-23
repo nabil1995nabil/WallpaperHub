@@ -11,10 +11,9 @@ const path = require("path");
 const fetch = require("node-fetch");
 const FormData = require("form-data");
 console.log(
-  "ARTGURU TEST:",
-  process.env.ARTGURU_API_KEY
+"ARTGURU KEY:",
+process.env.ARTGURU_API_KEY ? "FOUND" : "MISSING"
 );
-
 
 // ======================================
 // Firebase Admin
