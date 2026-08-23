@@ -292,9 +292,10 @@ resultImage.src = imageUrl;
 
 }else{
 
-console.error("الاستجابة الحالية من السيرفر:", result);
+// طباعة رد السيرفر مباشرة للمستخدم لسرعة التشخيص
+const responseString = JSON.stringify(result);
 
-alert("تم التحسين لكن لم يتم العثور على رابط الصورة في النتيجة. تفقد الكونسول لمشاهدة البيانات.");
+alert("الاستجابة القادمة من السيرفر هي:\n" + responseString);
 
 }
 
