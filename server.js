@@ -2748,7 +2748,7 @@ success:false
 });
 
 // ======================================
-// Replicate FLUX Enhance
+// Replicate AI Enhance
 // ======================================
 
 const Replicate = require("replicate");
@@ -2758,15 +2758,17 @@ const replicate = new Replicate({
 });
 
 
-app.post("/api/artguru/enhance", async (req, res) => {
+app.post("/api/artguru/enhance", async (req,res)=>{
 
     try {
 
         if(!process.env.REPLICATE_API_TOKEN){
+
             return res.status(500).json({
                 success:false,
                 message:"REPLICATE_API_TOKEN missing"
             });
+
         }
 
 
@@ -2774,56 +2776,94 @@ app.post("/api/artguru/enhance", async (req, res) => {
 
 
         if(!image){
+
             return res.status(400).json({
                 success:false,
                 message:"Image required"
             });
+
         }
 
 
+        console.log("Starting AI Enhance...");
+
+
         const output = await replicate.run(
-            "black-forest-labs/flux-2-pro",
+            "nightmareai/real-esrgan",
             {
                 input:{
-                    prompt:"Enhance this image, improve quality, details and sharpness",
-                    image:image
+                    image:image,
+                    scale:4,
+                    face_enhance:false
                 }
             }
         );
 
 
-        console.log("REPLICATE RESULT:", output);
+        console.log(
+            "REPLICATE RESULT:",
+            output
+        );
 
 
         let imageUrl = null;
 
 
         if(typeof output === "string"){
+
             imageUrl = output;
+
         }
         else if(Array.isArray(output)){
+
             imageUrl = output[0];
+
         }
         else if(output?.url){
+
             imageUrl = output.url();
+
         }
 
 
-        return res.json({
+
+        if(!imageUrl){
+
+            return res.status(500).json({
+                success:false,
+                message:"No image returned"
+            });
+
+        }
+
+
+
+        res.json({
+
             success:true,
+
             data:{
                 image:imageUrl
             }
+
         });
 
 
-    } catch(error){
 
-        console.log("Replicate Error:", error);
+    }catch(error){
 
-        return res.status(500).json({
+        console.log(
+            "Replicate Enhance Error:",
+            error
+        );
+
+
+        res.status(500).json({
+
             success:false,
+
             message:error.message
+
         });
 
     }
