@@ -2748,127 +2748,129 @@ success:false
 });
 
 // ======================================
-// Replicate AI Enhance
+// Artguru AI Enhance (بدون Replicate)
 // ======================================
-
-const Replicate = require("replicate");
-
-const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_TOKEN
-});
-
 
 app.post("/api/artguru/enhance", async (req,res)=>{
 
     try {
 
-        if(!process.env.REPLICATE_API_TOKEN){
-
+        // التحقق من وجود مفتاح Artguru
+        if(!process.env.ARTGURU_API_KEY){
             return res.status(500).json({
                 success:false,
-                message:"REPLICATE_API_TOKEN missing"
+                message:"ARTGURU_API_KEY missing - يرجى إضافة المفتاح"
             });
-
         }
-
 
         const { image } = req.body;
 
-
         if(!image){
-
             return res.status(400).json({
                 success:false,
                 message:"Image required"
             });
-
         }
 
+        console.log("🚀 Starting Artguru AI Enhance...");
 
-        console.log("Starting AI Enhance...");
+        // استخدام Artguru API
+        const response = await fetch("https://api.artguru.ai/v1/enhance", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.ARTGURU_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                image: image,
+                scale: 4,           // تحسين الجودة 4x
+                denoise: true,       // إزالة الضوضاء
+                face_enhance: false  // تحسين الوجه (اختياري)
+            })
+        });
 
-
-        const output = await replicate.run(
-            "nightmareai/real-esrgan",
-            {
-                input:{
-                    image:image,
-                    scale:4,
-                    face_enhance:false
-                }
-            }
-        );
-
-
-        console.log(
-            "REPLICATE RESULT:",
-            output
-        );
-
-
-        let imageUrl = null;
-
-
-        if(typeof output === "string"){
-
-            imageUrl = output;
-
-        }
-        else if(Array.isArray(output)){
-
-            imageUrl = output[0];
-
-        }
-        else if(output?.url){
-
-            imageUrl = output.url();
-
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Artguru API error");
         }
 
+        const data = await response.json();
+        
+        console.log("✅ Artguru Response:", data);
 
+        // استخراج رابط الصورة المحسنة
+        let imageUrl = data.enhanced_image || data.url || data.data?.url || data.image;
 
         if(!imageUrl){
-
-            return res.status(500).json({
-                success:false,
-                message:"No image returned"
-            });
-
+            // محاولة البحث في البيانات
+            imageUrl = findImageUrl(data);
         }
 
-
+        if(!imageUrl){
+            return res.status(500).json({
+                success:false,
+                message:"لم يتم العثور على الصورة المحسنة"
+            });
+        }
 
         res.json({
-
-            success:true,
-
-            data:{
-                image:imageUrl
+            success: true,
+            data: {
+                image: imageUrl
             }
-
         });
 
-
-
-    }catch(error){
-
-        console.log(
-            "Replicate Enhance Error:",
-            error
-        );
-
-
+    } catch(error) {
+        console.log("❌ Artguru Enhance Error:", error);
+        
         res.status(500).json({
-
-            success:false,
-
-            message:error.message
-
+            success: false,
+            message: error.message || "حدث خطأ في التحسين"
         });
-
     }
 
 });
+
+// دالة مساعدة للبحث عن الرابط
+function findImageUrl(data) {
+    if (!data) return null;
+
+    if (typeof data === "string") {
+        if (data.startsWith("http") || data.startsWith("data:image")) {
+            return data;
+        }
+        return null;
+    }
+
+    if (Array.isArray(data)) {
+        for (const item of data) {
+            const result = findImageUrl(item);
+            if (result) return result;
+        }
+        return null;
+    }
+
+    if (typeof data === "object") {
+        const priorityKeys = [
+            "enhanced_image", "url", "image", "image_url", 
+            "result_url", "output", "download_url", "data"
+        ];
+
+        for (const key of priorityKeys) {
+            if (data[key]) {
+                const result = findImageUrl(data[key]);
+                if (result) return result;
+            }
+        }
+
+        for (const key in data) {
+            const result = findImageUrl(data[key]);
+            if (result) return result;
+        }
+    }
+
+    return null;
+}
 
 // ======================================
 // Start Server

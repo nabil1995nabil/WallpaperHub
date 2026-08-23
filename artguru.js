@@ -482,3 +482,43 @@ document.body.removeChild(link);
 
 
 }
+
+// =================================
+// التحقق من حالة API عند التحميل
+// =================================
+
+async function checkApiStatus() {
+    try {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        
+        if (!data.artguruKey) {
+            console.warn('⚠️ Artguru API Key مفقود');
+            enhanceBtn.textContent = '🔑 أضف مفتاح API';
+            enhanceBtn.disabled = true;
+            
+            // عرض رسالة للمستخدم
+            const msg = document.createElement('div');
+            msg.style.cssText = `
+                background: #fff3cd;
+                color: #856404;
+                padding: 10px;
+                border-radius: 8px;
+                margin: 10px 0;
+                text-align: center;
+            `;
+            msg.innerHTML = `
+                ⚠️ يرجى إضافة مفتاح Artguru API في الإعدادات<br>
+                <small>اتصل بالمسؤول لإضافة المفتاح</small>
+            `;
+            document.querySelector('.upload-zone').after(msg);
+        }
+    } catch(e) {
+        console.log('Status check failed:', e);
+    }
+}
+
+// استدعاء عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    checkApiStatus();
+});
