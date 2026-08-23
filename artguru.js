@@ -42,27 +42,18 @@ imageInput.addEventListener(
 "change",
 function(){
 
-
-const file =
-this.files[0];
-
+const file = this.files[0];
 
 if(!file)
 return;
 
 
-
-const reader =
-new FileReader();
-
+const reader = new FileReader();
 
 
 reader.onload = function(e){
 
-
-selectedImageBase64 =
-e.target.result;
-
+selectedImageBase64 = e.target.result;
 
 
 if(previewImage){
@@ -72,14 +63,10 @@ selectedImageBase64;
 
 }
 
-
 };
 
 
-
 reader.readAsDataURL(file);
-
-
 
 });
 
@@ -104,54 +91,119 @@ imageInput.click();
 
 
 // =================================
-// رفع الصورة إلى Artguru API
+// البحث عن رابط الصورة من رد API
 // =================================
 
-async function uploadToArtguru(image){
+function findImageUrl(data){
 
 
-const response =
-await fetch(
-"/api/artguru/upload",
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":
-"application/json"
-
-},
-
-body:JSON.stringify({
-
-image:image
-
-})
-
-}
-
-);
+if(!data)
+return null;
 
 
 
-const data =
-await response.json();
+if(typeof data === "string"){
 
+if(
+data.startsWith("http") ||
+data.startsWith("data:image")
+){
 
 return data;
 
+}
+
+return null;
 
 }
 
 
+
+if(Array.isArray(data)){
+
+
+for(const item of data){
+
+const result =
+findImageUrl(item);
+
+if(result)
+return result;
+
+}
+
+
+return null;
+
+}
+
+
+
+if(typeof data === "object"){
+
+
+const priorityKeys = [
+
+"url",
+"image",
+"image_url",
+"result_url",
+"output",
+"download_url"
+
+];
+
+
+
+for(const key of priorityKeys){
+
+
+if(data[key]){
+
+
+const result =
+findImageUrl(data[key]);
+
+
+if(result)
+return result;
+
+
+}
+
+}
+
+
+
+for(const key in data){
+
+
+const result =
+findImageUrl(data[key]);
+
+
+if(result)
+return result;
+
+
+}
+
+
+}
+
+
+
+return null;
+
+
+}
 
 
 
 // =================================
 // تحسين الصورة عبر Artguru
 // =================================
+
 
 if(enhanceBtn){
 
@@ -169,44 +221,50 @@ return;
 
 
 
-enhanceBtn.disabled = true;
-
-
-// تهيئة شريط التقدم بداخل الزر عبر متغيّر CSS
-let progress = 0;
-
-enhanceBtn.style.setProperty("--progress", "0%");
-
-enhanceBtn.textContent = "جاري التحسين... 0%";
+enhanceBtn.disabled=true;
 
 
 
-// محاكاة امتلاء الشريط حركياً إلى غاية 90%
-const progressInterval = setInterval(()=>{
+let progress=0;
+
+
+enhanceBtn.textContent =
+"جاري التحسين... 0%";
+
+
+
+const timer =
+setInterval(()=>{
+
 
 if(progress < 90){
 
-progress += Math.floor(Math.random() * 8) + 2;
+progress += 5;
 
-if(progress > 90) progress = 90;
+enhanceBtn.textContent =
+`جاري التحسين... ${progress}%`;
 
-enhanceBtn.style.setProperty("--progress", `${progress}%`);
-
-enhanceBtn.textContent = `جاري التحسين... ${progress}%`;
+enhanceBtn.style.setProperty(
+"--progress",
+progress+"%"
+);
 
 }
 
-}, 250);
+
+},300);
+
 
 
 
 try{
 
 
-// إرسال طلب التحسين إلى السيرفر
 const response =
 await fetch(
+
 "/api/artguru/enhance",
+
 {
 
 method:"POST",
@@ -230,56 +288,50 @@ image:selectedImageBase64
 
 
 
+
+
 const result =
 await response.json();
 
 
+
 console.log(
-"Artguru Full Response:",
+"ARTGURU RESPONSE:",
 result
 );
 
 
 
-// إنهاء شريط التقدم عند الاستجابة
-clearInterval(progressInterval);
 
-enhanceBtn.style.setProperty("--progress", "100%");
 
-enhanceBtn.textContent = "اكتمل التحسين! 100%";
+clearInterval(timer);
 
 
 
-await new Promise(
-resolve => setTimeout(resolve, 300)
+if(!response.ok){
+
+
+throw new Error(
+result.message ||
+"API Error"
 );
 
 
-
-// دالة للبحث الذكي عن رابط الصورة داخل رد الـ API
-function findImageUrl(obj) {
-    if (!obj || typeof obj !== 'object') return null;
-    if (typeof obj === 'string' && (obj.startsWith('http://') || obj.startsWith('https://') || obj.startsWith('data:image'))) {
-        return obj;
-    }
-    for (let key in obj) {
-        if (['url', 'result_url', 'image_url', 'image', 'output', 'task_result'].includes(key.toLowerCase())) {
-            const val = obj[key];
-            if (typeof val === 'string' && (val.startsWith('http') || val.startsWith('data:image'))) {
-                return val;
-            }
-        }
-        if (typeof obj[key] === 'object') {
-            const found = findImageUrl(obj[key]);
-            if (found) return found;
-        }
-    }
-    return null;
 }
 
 
 
-const imageUrl = findImageUrl(result);
+
+const imageUrl =
+findImageUrl(result);
+
+
+
+console.log(
+"FOUND IMAGE:",
+imageUrl
+);
+
 
 
 
@@ -288,23 +340,46 @@ imageUrl &&
 resultImage
 ){
 
-resultImage.src = imageUrl;
+
+resultImage.src =
+imageUrl;
+
+
+resultImage.style.display =
+"block";
+
+
 
 }else{
 
-// طباعة رد السيرفر مباشرة للمستخدم لسرعة التشخيص
-const responseString = JSON.stringify(result);
 
-alert("الاستجابة القادمة من السيرفر هي:\n" + responseString);
+console.log(
+"No image found",
+result
+);
+
+
+
+alert(
+"تم التحسين لكن لم يتم العثور على رابط الصورة"
+);
+
 
 }
+
+
+
+
+enhanceBtn.textContent =
+"اكتمل التحسين 100%";
+
 
 
 
 }catch(error){
 
 
-clearInterval(progressInterval);
+clearInterval(timer);
 
 
 console.log(
@@ -313,8 +388,9 @@ error
 );
 
 
+
 alert(
-"حدث خطأ أثناء الاتصال بـ Artguru"
+error.message
 );
 
 
@@ -323,12 +399,26 @@ alert(
 
 
 
-// إرجاع حالة الزر للشكل الطبيعي
-enhanceBtn.disabled = false;
 
-enhanceBtn.style.setProperty("--progress", "0%");
 
-enhanceBtn.textContent = "✨ تحسين بالذكاء الاصطناعي";
+setTimeout(()=>{
+
+
+enhanceBtn.disabled=false;
+
+
+enhanceBtn.textContent =
+"✨ تحسين بالذكاء الاصطناعي";
+
+
+enhanceBtn.style.setProperty(
+"--progress",
+"0%"
+);
+
+
+
+},1000);
 
 
 
@@ -341,21 +431,24 @@ enhanceBtn.textContent = "✨ تحسين بالذكاء الاصطناعي";
 
 
 // =================================
-// تحميل النتيجة
+// تحميل الصورة
 // =================================
 
 if(downloadBtn){
 
 
-downloadBtn.onclick=()=>{
+downloadBtn.onclick = ()=>{
 
 
 if(
 !resultImage ||
-!resultImage.src
+!resultImage.src ||
+resultImage.src === window.location.href
 ){
 
-alert("لا توجد صورة محسنة لتحميلها");
+alert(
+"لا توجد صورة محسنة"
+);
 
 return;
 
@@ -363,23 +456,25 @@ return;
 
 
 
-const a =
+const link =
 document.createElement("a");
 
 
-a.href =
+link.href =
 resultImage.src;
 
 
-a.download =
+link.download =
 "artguru-enhanced.jpg";
 
 
-document.body.appendChild(a);
+document.body.appendChild(link);
 
-a.click();
 
-document.body.removeChild(a);
+link.click();
+
+
+document.body.removeChild(link);
 
 
 
