@@ -2786,14 +2786,22 @@ app.post("/api/artguru/enhance", async (req, res) => {
       success: true,
       data,
     });
-  } catch (error) {
-    console.log("Artguru Enhance Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Artguru enhance failed",
-    });
-  }
+catch(error){
+
+console.log(
+"Artguru Enhance Error:",
+error.message
+);
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
 });
+
+}
 
 // ======================================
 // Artguru Image Upload
