@@ -744,8 +744,9 @@ req.body.image ||
 
 
 category:
-req.body.category ||
-"other",
+String(req.body.category || "other")
+.trim()
+.toLowerCase(),
 
 
 
@@ -878,15 +879,20 @@ success:false
 
 wallpapers[index] = {
 
-
 ...wallpapers[index],
-
 
 ...req.body,
 
+category:
+req.body.category
+?
+String(req.body.category)
+.trim()
+.toLowerCase()
+:
+wallpapers[index].category,
 
 id
-
 
 };
 
@@ -2738,11 +2744,181 @@ success:false
 
 });
 
+// ======================================
+// Artguru AI Enhance
+// ======================================
+
+app.post(
+"/api/artguru/enhance",
+async(req,res)=>{
+
+try{
+
+const {
+image,
+mode
+}=req.body;
+
+
+if(!image){
+
+return res.status(400).json({
+
+success:false,
+
+message:"Image required"
+
+});
+
+}
 
 
 
+const response =
+await fetch(
+"https://api.artguru.ai/v1/enhance",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json",
+
+"x-api-key":
+process.env.ARTGURU_API_KEY
+
+},
+
+body:JSON.stringify({
+
+image,
+
+mode:
+mode || "enhance"
+
+})
+
+}
+
+);
 
 
+
+const data =
+await response.json();
+
+
+
+res.json({
+
+success:true,
+
+data
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"Artguru Error:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false,
+
+message:"Artguru failed"
+
+});
+
+
+}
+
+
+});
+
+// ======================================
+// Artguru Image Upload
+// ======================================
+
+app.post(
+"/api/artguru/upload",
+async(req,res)=>{
+
+try{
+
+const {
+image
+}=req.body;
+
+
+if(!image){
+
+return res.status(400).json({
+success:false,
+message:"Image required"
+});
+
+}
+
+
+const response = await fetch(
+"https://api.artguru.ai/api/v1/image/upload",
+{
+
+method:"POST",
+
+headers:{
+
+"x-api-key":
+process.env.ARTGURU_API_KEY
+
+},
+
+body:image
+
+}
+
+);
+
+
+const data = await response.json();
+
+
+res.json({
+
+success:true,
+
+data
+
+});
+
+
+}catch(error){
+
+console.log(
+"Artguru Upload Error:",
+error
+);
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+});
 
 // ======================================
 // Start Server

@@ -1,0 +1,658 @@
+/* =================================
+   Artguru AI Enhancer CSS
+   White Premium Version
+================================= */
+
+
+:root {
+
+    --bg-color:#f8fafc;
+
+    --card-bg:#ffffff;
+
+    --border-color:#e2e8f0;
+
+    --accent-color:#4f46e5;
+
+    --glow-color:#818cf8;
+
+    --text-color:#111827;
+
+    --muted:#64748b;
+
+}
+
+
+
+/* ===============================
+   Body
+=============================== */
+
+body {
+
+    background:
+
+    linear-gradient(
+        180deg,
+        #ffffff,
+        #f1f5f9
+    );
+
+
+    color:var(--text-color);
+
+
+    font-family:
+
+    "Cairo",
+    "Segoe UI",
+    sans-serif;
+
+
+    margin:0;
+
+    padding:0;
+
+    overflow-x:hidden;
+
+}
+
+
+
+/* خلفية خفيفة */
+
+body::before {
+
+    content:"";
+
+
+    position:fixed;
+
+
+    inset:0;
+
+
+    background:
+
+    radial-gradient(
+        circle at top right,
+        rgba(79,70,229,.12),
+        transparent 35%
+    );
+
+
+    z-index:-1;
+
+}
+
+
+
+
+
+/* ===============================
+   Header
+=============================== */
+
+
+header {
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    padding:20px 8%;
+
+
+    background:
+
+    rgba(255,255,255,.85);
+
+
+    backdrop-filter:blur(12px);
+
+
+    border-bottom:
+
+    1px solid var(--border-color);
+
+
+    position:sticky;
+
+
+    top:0;
+
+
+    z-index:100;
+
+}
+
+
+
+.logo {
+
+
+    font-size:22px;
+
+
+    font-weight:bold;
+
+
+    color:#111827;
+
+}
+
+
+
+
+
+/* ===============================
+   AI Button
+=============================== */
+
+
+.ai-btn {
+
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #4f46e5,
+        #9333ea
+    );
+
+
+    color:white;
+
+
+    border:none;
+
+
+    padding:12px 24px;
+
+
+    border-radius:30px;
+
+
+    font-weight:bold;
+
+
+    cursor:pointer;
+
+
+    box-shadow:
+
+    0 10px 25px rgba(79,70,229,.25);
+
+
+    transition:.3s;
+
+}
+
+
+
+.ai-btn:hover {
+
+
+    transform:
+
+    translateY(-3px);
+
+
+}
+
+
+
+
+
+
+/* ===============================
+   Container
+=============================== */
+
+
+.container {
+
+
+    max-width:1200px;
+
+
+    margin:40px auto;
+
+
+    padding:0 20px;
+
+
+}
+
+
+
+
+
+
+/* ===============================
+   Main Card
+=============================== */
+
+
+.main-card {
+
+
+    background:
+
+    var(--card-bg);
+
+
+    border:
+
+    1px solid var(--border-color);
+
+
+    border-radius:28px;
+
+
+    padding:40px;
+
+
+    text-align:center;
+
+
+    box-shadow:
+
+
+    0 20px 50px rgba(15,23,42,.08);
+
+
+    margin-bottom:50px;
+
+
+}
+
+
+
+.main-card h2 {
+
+
+    color:#111827;
+
+}
+
+
+
+.description {
+
+
+    color:var(--muted);
+
+
+    margin-bottom:30px;
+
+}
+
+
+
+
+
+
+/* ===============================
+   Upload Zone
+=============================== */
+
+
+.upload-zone {
+
+
+    border:
+
+    2px dashed #cbd5e1;
+
+
+    border-radius:22px;
+
+
+    padding:60px 20px;
+
+
+    cursor:pointer;
+
+
+    background:#f8fafc;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.upload-zone:hover {
+
+
+    border-color:
+
+    var(--accent-color);
+
+
+    background:#eef2ff;
+
+
+}
+
+
+
+
+.camera-icon {
+
+
+    font-size:45px;
+
+
+    margin-bottom:15px;
+
+
+}
+
+
+
+
+
+/* ===============================
+   Images Preview
+=============================== */
+
+
+#previewImage,
+#resultImage {
+
+
+    max-width:100%;
+
+
+    max-height:350px;
+
+
+    margin-top:20px;
+
+
+    border-radius:20px;
+
+
+    object-fit:cover;
+
+
+    box-shadow:
+
+    0 15px 35px rgba(0,0,0,.12);
+
+
+}
+
+
+
+
+
+/* ===============================
+   Gallery
+=============================== */
+
+
+.gallery-title {
+
+
+    font-size:24px;
+
+
+    margin-bottom:25px;
+
+
+    color:#111827;
+
+
+}
+
+
+
+
+.gallery-grid {
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+    repeat(
+        auto-fill,
+        minmax(280px,1fr)
+    );
+
+
+    gap:25px;
+
+
+}
+
+
+
+
+
+
+.gallery-item {
+
+
+    position:relative;
+
+
+    border-radius:22px;
+
+
+    overflow:hidden;
+
+
+    background:white;
+
+
+    border:
+
+    1px solid var(--border-color);
+
+
+    box-shadow:
+
+    0 10px 30px rgba(15,23,42,.08);
+
+
+    transition:.35s;
+
+
+}
+
+
+
+.gallery-item:hover {
+
+
+    transform:
+
+    translateY(-8px);
+
+
+    box-shadow:
+
+    0 20px 40px rgba(79,70,229,.18);
+
+
+}
+
+
+
+
+
+
+.gallery-item img {
+
+
+    width:100%;
+
+
+    height:260px;
+
+
+    object-fit:cover;
+
+
+    display:block;
+
+
+}
+
+
+
+
+
+
+/* ===============================
+   Download Overlay
+=============================== */
+
+
+.download-overlay {
+
+
+    position:absolute;
+
+
+    inset:0;
+
+
+    background:
+
+    linear-gradient(
+        to top,
+        rgba(15,23,42,.75),
+        transparent
+    );
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:flex-end;
+
+
+    padding-bottom:20px;
+
+
+    opacity:0;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+
+.gallery-item:hover 
+.download-overlay {
+
+
+    opacity:1;
+
+
+}
+
+
+
+
+
+
+.download-btn {
+
+
+    background:white;
+
+
+    color:#111827;
+
+
+    border:none;
+
+
+    padding:12px 22px;
+
+
+    border-radius:25px;
+
+
+    font-weight:bold;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+
+.download-btn:hover {
+
+
+    transform:scale(1.05);
+
+
+}
+
+
+
+
+
+
+/* ===============================
+   Mobile
+=============================== */
+
+
+@media(max-width:600px){
+
+
+header {
+
+
+    padding:15px;
+
+
+}
+
+
+.main-card {
+
+
+    padding:20px;
+
+
+}
+
+
+.ai-btn {
+
+
+    padding:10px 15px;
+
+
+}
+
+
+}
