@@ -435,6 +435,11 @@ function renderHistory(){
 
 
 
+        // ربط الضغط المطول بالحذف التكتيكي
+        bindLongPressDelete(item, chat.id);
+
+
+
         chatHistory.appendChild(
             item
         );
@@ -446,11 +451,6 @@ function renderHistory(){
 
 
 }
-
-
-
-
-
 
 
 // ===============================
@@ -2086,6 +2086,96 @@ text;
 
 }
 
+// ===============================
+// Delete Chat Popover (Long-Press)
+// ===============================
+
+// دالة ربط الضغط المطول بالـ History Item
+function bindLongPressDelete(itemElement, chatId) {
+    let pressTimer;
+
+    const startPress = () => {
+        // إزالة أي فقاعة مفتوحة سابقاً
+        document.querySelectorAll(".delete-popover").forEach(el => el.remove());
+
+        pressTimer = setTimeout(() => {
+            showDeletePopover(itemElement, chatId);
+        }, 500); // إظهار الفقاعة بعد نصف ثانية ضغط
+    };
+
+    const cancelPress = () => {
+        clearTimeout(pressTimer);
+    };
+
+    itemElement.addEventListener("touchstart", startPress, { passive: true });
+    itemElement.addEventListener("touchend", cancelPress);
+    itemElement.addEventListener("touchmove", cancelPress);
+    itemElement.addEventListener("mousedown", startPress);
+    itemElement.addEventListener("mouseup", cancelPress);
+    itemElement.addEventListener("mouseleave", cancelPress);
+}
+
+// إنشاء وإظهار فقاعة الحذف
+function showDeletePopover(itemElement, chatId) {
+    document.querySelectorAll(".delete-popover").forEach(el => el.remove());
+
+    const popover = document.createElement("div");
+    popover.className = "delete-popover";
+    popover.innerHTML = `
+        <button class="delete-popover-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            حذف
+        </button>
+    `;
+
+    itemElement.appendChild(popover);
+
+    requestAnimationFrame(() => {
+        popover.classList.add("active");
+    });
+
+    // عند النقر على زر "حذف"
+    popover.querySelector(".delete-popover-btn").onclick = (e) => {
+        e.stopPropagation(); // منع فتح المحادثة أثناء الضغط على الحذف
+        deleteChat(chatId, itemElement);
+    };
+
+    // إغلاق الفقاعة عند النقر في أي مكان آخر
+    setTimeout(() => {
+        const closeOnClickOutside = (e) => {
+            if (!popover.contains(e.target)) {
+                popover.remove();
+                document.removeEventListener("click", closeOnClickOutside);
+            }
+        };
+        document.addEventListener("click", closeOnClickOutside);
+    }, 100);
+}
+
+// تنفيذ الحذف وتحديث القائمة
+function deleteChat(chatId, itemElement) {
+    // أنيميشن الاختفاء
+    itemElement.style.transition = "all 0.3s ease";
+    itemElement.style.opacity = "0";
+    itemElement.style.transform = "translateX(40px)";
+
+    setTimeout(() => {
+        // حذف المحادثة من المصفوفة
+        chats = chats.filter(c => c.id !== chatId);
+        saveChats();
+
+        // إذا كانت المحادثة المحذوفة هي المفتوحة حالياً، قم بتفريغ الشاشة
+        if (currentChat && currentChat.id === chatId) {
+            currentChat = null;
+            if (chatContainer) chatContainer.innerHTML = "";
+        }
+
+        renderHistory();
+    }, 300);
+}
 
 
 // ===============================
