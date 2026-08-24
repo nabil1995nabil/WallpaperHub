@@ -1701,144 +1701,49 @@ message.remove();
 // Buttons
 // ===============================
 
-
-if(sendBtn){
-
-
-sendBtn.onclick =
-sendMessage;
-
-
+if (sendBtn) {
+    sendBtn.onclick = sendMessage;
 }
 
-if(userInput){
-
-
-userInput.addEventListener(
-"keydown",
-(e)=>{
-
-
-if(e.key==="Enter"){
-
-
-sendMessage();
-
-
-}
-
-
-
-});
-
-
+if (userInput) {
+    userInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
 }
 
 // ===============================
 // Suggestions
 // ===============================
 
-
-document
-.querySelectorAll(".chip")
-.forEach(chip=>{
-
-
-chip.onclick=()=>{
-
-
-userInput.value =
-chip.innerText;
-
-
-
-sendMessage();
-
-
-
-};
-
-
-
+document.querySelectorAll(".chip").forEach(chip => {
+    chip.onclick = () => {
+        userInput.value = chip.innerText;
+        sendMessage();
+    };
 });
 
 // ===============================
 // Welcome Time
 // ===============================
 
-
-function updateWelcome(){
-
-
-
-const hour =
-new Date()
-.getHours();
-
-
-
-
-let text;
-
-
-
-
-
-if(hour >=5 && hour <12){
-
-
-text =
-"صباح الخير";
-
-
-}
-
-else if(hour >=12 && hour <18){
-
-
-text =
-"نهارك سعيد";
-
-
-}
-
-else{
-
-
-text =
-"مساء الخير";
-
-
-}
-
-
-
-
-
-
-
-const el =
-document.getElementById(
-"welcomeText"
-);
-
-
-
-
-
-if(el){
-
-
-el.innerHTML =
-text;
-
-
-}
-
-
-
-
-
+function updateWelcome() {
+    const hour = new Date().getHours();
+    let text;
+    
+    if (hour >= 5 && hour < 12) {
+        text = "صباح الخير";
+    } else if (hour >= 12 && hour < 18) {
+        text = "نهارك سعيد";
+    } else {
+        text = "مساء الخير";
+    }
+    
+    const el = document.getElementById("welcomeText");
+    if (el) {
+        el.innerHTML = text;
+    }
 }
 
 // ===============================
@@ -1854,7 +1759,7 @@ function bindLongPressDelete(itemElement, chatId) {
         clearTimeout(pressTimer);
         pressTimer = setTimeout(() => {
             showDeletePopover(itemElement, chatId);
-        }, 400); 
+        }, 400);
     };
 
     const cancelPress = () => {
@@ -1892,7 +1797,6 @@ function showDeletePopover(itemElement, chatId) {
 
     const deleteBtn = popover.querySelector(".delete-popover-btn");
 
-    // منع تداخل الأحداث عند الضغط على زر الحذف
     const executeDelete = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1922,32 +1826,24 @@ function deleteChat(chatId, itemElement) {
     itemElement.style.transform = "translateX(40px)";
 
     setTimeout(() => {
-        // حذف مع مطابقة النصوص لضمان عدم حدوث خطأ في نوع البيانات
         chats = chats.filter(c => String(c.id) !== String(chatId));
         saveChats();
 
         if (currentChat && String(currentChat.id) === String(chatId)) {
             currentChat = null;
-            if (chatContainer) chatContainer.innerHTML = "";
+            if (chatContainer) {
+                chatContainer.innerHTML = "";
+            }
         }
 
         renderHistory();
     }, 300);
 }
 
-
-
 // ===============================
 // Start
 // ===============================
 
-
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-
-updateWelcome();
-
-
+document.addEventListener("DOMContentLoaded", () => {
+    updateWelcome();
 });
