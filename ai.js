@@ -379,78 +379,28 @@ if(newChat){
 // Render History
 // ===============================
 
-
 function renderHistory(){
-
-
-
-    if(!chatHistory)
-    return;
-
-
-
+    if(!chatHistory) return;
     chatHistory.innerHTML="";
 
-
-
-
-
     chats.forEach(chat=>{
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `<span>${chat.title}</span>`;
 
-
-
-        const item =
-        document.createElement(
-            "div"
-        );
-
-
-
-        item.className =
-        "history-item";
-
-
-
-        item.innerHTML = `
-
-        <span>
-
-        ${chat.title}
-
-        </span>
-
-        `;
-
-
-
-        item.onclick=()=>{
-
-
-            loadChat(
-                chat.id
-            );
-
-
+        item.onclick = (e)=>{
+            // إذا كان الضغط على الفقاعة أو أزرارها، يتم التجاهل كي لا تفتح المحادثة أثناء الحذف
+            if (e.target.closest('.delete-popover')) return;
+            loadChat(chat.id);
         };
 
-
-
-        // ربط الضغط المطول بالحذف التكتيكي
+        // ربط الضغط المطول بالـ Item
         bindLongPressDelete(item, chat.id);
 
-
-
-        chatHistory.appendChild(
-            item
-        );
-
-
-
+        chatHistory.appendChild(item);
     });
-
-
-
 }
+
 
 
 // ===============================
@@ -2087,20 +2037,19 @@ text;
 }
 
 // ===============================
-// Delete Chat Popover (Long-Press)
+// Fixed Delete Chat Popover (Long-Press)
 // ===============================
 
-// دالة ربط الضغط المطول بالـ History Item
 function bindLongPressDelete(itemElement, chatId) {
-    let pressTimer;
+    let pressTimer = null;
 
-    const startPress = () => {
-        // إزالة أي فقاعة مفتوحة سابقاً
-        document.querySelectorAll(".delete-popover").forEach(el => el.remove());
+    const startPress = (e) => {
+        if (e.target.closest('.delete-popover')) return;
 
+        clearTimeout(pressTimer);
         pressTimer = setTimeout(() => {
             showDeletePopover(itemElement, chatId);
-        }, 500); // إظهار الفقاعة بعد نصف ثانية ضغط
+        }, 400); 
     };
 
     const cancelPress = () => {
@@ -2115,8 +2064,6 @@ function bindLongPressDelete(itemElement, chatId) {
     itemElement.addEventListener("mouseleave", cancelPress);
 }
 
-// إنشاء وإظهار فقاعة الحذف
-// إنشاء وإظهار فقاعة الحذف (نسخة محسنة ومضمونة)
 function showDeletePopover(itemElement, chatId) {
     document.querySelectorAll(".delete-popover").forEach(el => el.remove());
 
@@ -2138,41 +2085,43 @@ function showDeletePopover(itemElement, chatId) {
         popover.classList.add("active");
     });
 
-    // ربط الحدث بالفقاعة بأكملها لمنع المشاكل
     const deleteBtn = popover.querySelector(".delete-popover-btn");
-    
-    deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        deleteChat(chatId, itemElement);
-    });
 
-    // إغلاق الفقاعة عند النقر في أي مكان آخر
+    // منع تداخل الأحداث عند الضغط على زر الحذف
+    const executeDelete = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        deleteChat(chatId, itemElement);
+    };
+
+    deleteBtn.addEventListener("click", executeDelete);
+    deleteBtn.addEventListener("touchend", executeDelete);
+
     setTimeout(() => {
         const closeOnClickOutside = (e) => {
             if (!popover.contains(e.target)) {
                 popover.remove();
                 document.removeEventListener("click", closeOnClickOutside);
+                document.removeEventListener("touchstart", closeOnClickOutside);
             }
         };
         document.addEventListener("click", closeOnClickOutside);
+        document.addEventListener("touchstart", closeOnClickOutside);
     }, 100);
 }
 
-// تنفيذ الحذف وتحديث القائمة
 function deleteChat(chatId, itemElement) {
-    // أنيميشن الاختفاء
     itemElement.style.transition = "all 0.3s ease";
     itemElement.style.opacity = "0";
     itemElement.style.transform = "translateX(40px)";
 
     setTimeout(() => {
-        // حذف المحادثة من المصفوفة
-        chats = chats.filter(c => c.id !== chatId);
+        // حذف مع مطابقة النصوص لضمان عدم حدوث خطأ في نوع البيانات
+        chats = chats.filter(c => String(c.id) !== String(chatId));
         saveChats();
 
-        // إذا كانت المحادثة المحذوفة هي المفتوحة حالياً، قم بتفريغ الشاشة
-        if (currentChat && currentChat.id === chatId) {
+        if (currentChat && String(currentChat.id) === String(chatId)) {
             currentChat = null;
             if (chatContainer) chatContainer.innerHTML = "";
         }
@@ -2180,6 +2129,7 @@ function deleteChat(chatId, itemElement) {
         renderHistory();
     }, 300);
 }
+
 
 
 // ===============================
