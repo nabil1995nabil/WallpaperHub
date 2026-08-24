@@ -1,6 +1,5 @@
 /* =========================================================
-   WARZONE 8D HUD SYSTEM - CHATGPT ULTIMATE REDESIGN
-   All functional selectors preserved perfectly.
+   WARZONE 8D HUD SYSTEM - FULLY FIXED CSS
 ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Tajawal:wght@400;700;900&display=swap');
@@ -12,8 +11,8 @@
     --secondary-glow: rgba(0, 229, 255, 0.3);
     --accent-red: #ff2a2a;
     --bg-dark: #070a0e;
-    --panel-bg: rgba(14, 20, 27, 0.75);
-    --panel-border: rgba(0, 255, 102, 0.25);
+    --panel-bg: rgba(14, 20, 27, 0.85);
+    --panel-border: rgba(0, 255, 102, 0.3);
     --glass: rgba(18, 26, 36, 0.65);
     --font-tactical: 'Orbitron', 'Tajawal', sans-serif;
 }
@@ -108,11 +107,12 @@ body {
     background: linear-gradient(180deg, rgba(0, 255, 102, 0.08) 0%, transparent 100%);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     padding: 0 15px;
-
+    z-index: 40;
+}
 
 .menu-btn {
     position: absolute;
-    right: 15px; /* ضبط المكان ليتناسب مع الاتجاه العربي */
+    right: 15px;
     left: auto;
     top: 50%;
     transform: translateY(-50%);
@@ -128,12 +128,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
 
 .menu-btn:hover {
     background: var(--primary);
     color: var(--bg-dark);
     box-shadow: 0 0 25px var(--primary);
-    transform: scale(1.05);
 }
 
 .ai-brand {
@@ -151,7 +151,7 @@ body {
 }
 
 /* ===============================
-   Warzone Chat Container & Grid
+   Warzone Chat Container
 ================================ */
 
 .chat-container {
@@ -174,7 +174,7 @@ body {
 }
 
 /* ===============================
-   8D Tactical Bubbles & Messages
+   8D Tactical Messages
 ================================ */
 
 .message {
@@ -202,7 +202,6 @@ body {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* AI Message Styling */
 .message.ai .bubble {
     background: var(--panel-bg);
     color: #00ffcc;
@@ -211,7 +210,6 @@ body {
     box-shadow: -5px 5px 20px rgba(0, 229, 255, 0.15);
 }
 
-/* User Message Styling */
 .message.user .bubble {
     background: rgba(0, 255, 102, 0.1);
     color: #fff;
@@ -234,7 +232,7 @@ body {
 }
 
 /* ===============================
-   Tactical Input Bar (Warzone Loadout Style)
+   Tactical Input Bar
 ================================ */
 
 .chat-input {
@@ -258,14 +256,14 @@ body {
 
 .chat-input input[type="text"] {
     flex: 1;
-    min-width: 0; /* منع تجاوز العرض */
+    min-width: 0;
     height: 42px;
     border: 1px solid rgba(0, 255, 102, 0.3);
     outline: none;
     background: rgba(0, 0, 0, 0.6);
     color: #fff;
     padding: 0 12px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .chat-input input[type="text"]:focus {
@@ -276,7 +274,7 @@ body {
 .input-btn, .send-btn {
     width: 42px;
     height: 42px;
-    flex-shrink: 0; /* حماية الأزرار من الانكماش */
+    flex-shrink: 0;
     border: 1px solid var(--primary);
     background: var(--panel-bg);
     color: var(--primary);
@@ -292,7 +290,7 @@ body {
 }
 
 .input-btn:hover, .send-btn:hover {
-    transform: scale(1.08) rotate(2deg);
+    transform: scale(1.08);
     box-shadow: 0 0 20px var(--primary);
 }
 
@@ -302,6 +300,7 @@ body {
 
 .model-selector {
     position: relative;
+}
 
 #modelBtn {
     height: 38px;
@@ -335,24 +334,26 @@ body {
     display: none;
     overflow: hidden;
     z-index: 1000;
+}
 
 .model-menu.active {
     display: block;
+}
 
 .model-menu div {
-    padding: 14px 16px;
+    padding: 12px 16px;
     cursor: pointer;
     font-size: 13px;
     color: #fff;
     border-bottom: 1px solid rgba(0, 229, 255, 0.1);
     transition: 0.2s;
+    text-align: right;
 }
 
 .model-menu div:hover {
     background: var(--secondary);
     color: var(--bg-dark);
     font-weight: bold;
-    padding-left: 22px;
 }
 
 /* ===============================
@@ -362,20 +363,21 @@ body {
 .sidebar {
     position: fixed;
     top: 0;
-    left: -320px;
+    right: -320px;
+    left: auto;
     width: 320px;
     height: 100%;
     background: rgba(7, 10, 14, 0.95);
-    border-right: 2px solid var(--primary);
+    border-left: 2px solid var(--primary);
     z-index: 100;
-    box-shadow: 10px 0 50px rgba(0, 0, 0, 0.9);
+    box-shadow: -10px 0 50px rgba(0, 0, 0, 0.9);
     transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 25px 20px;
     backdrop-filter: blur(15px);
 }
 
 .sidebar.active {
-    left: 0;
+    right: 0;
 }
 
 .sidebar-header {
