@@ -1168,10 +1168,10 @@ return bubble;
 }
 
 // ===============================
-// Send Message - تم التصحيح
+// Send Message (Model Isolation Fixed)
 // ===============================
 
-async function sendMessage(){  // ✅ أضف async هنا
+async function sendMessage(){
 
     const text = userInput.value.trim();
 
@@ -1190,19 +1190,26 @@ async function sendMessage(){  // ✅ أضف async هنا
     const typing = typingEffect();
 
     // ==========================================
-    // 1. Stable Diffusion
+    // 1. Stable Diffusion (توليد الصور المبتكرة)
     // ==========================================
     if(selectedModel === "stable"){
         try {
-            const encodedPrompt = encodeURIComponent(text);
-            const seed = Math.floor(Math.random() * 999999);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${seed}&nologo=true`;
-            
+            const response = await fetch("/api/generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: text, model: "stable" })
+            });
+            const data = await response.json();
             removeTyping(typing);
-            addMessage(imageUrl, "ai");
-            return;
+
+            if(data.image){
+                addMessage(data.image, "ai");
+            } else {
+                addMessage("⚠️ لم يتم إنشاء الصورة بواسطة Stable Diffusion", "ai");
+            }
+            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
         } catch(error) {
-            console.error("Stable Error:", error);
+            console.error("Stable Diffusion Error:", error);
             removeTyping(typing);
             addMessage("⚠️ خطأ أثناء توليد الصورة", "ai");
             return;
@@ -1210,16 +1217,24 @@ async function sendMessage(){  // ✅ أضف async هنا
     }
 
     // ==========================================
-    // 2. Unsplash / Picsum
+    // 2. Unsplash (البحث عن الخلفيات والصور)
     // ==========================================
     if(selectedModel === "unsplash"){
         try {
-            const randomId = Math.floor(Math.random() * 1000);
-            const imageUrl = `https://picsum.photos/1080/1920?random=${randomId}`;
-
+            const response = await fetch("/api/generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: text, model: "unsplash" })
+            });
+            const data = await response.json();
             removeTyping(typing);
-            addMessage(imageUrl, "ai");
-            return;
+
+            if(data.image){
+                addMessage(data.image, "ai");
+            } else {
+                addMessage("⚠️ لم يتم العثور على خلفية مطابقة", "ai");
+            }
+            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
         } catch(error) {
             console.error("Unsplash Error:", error);
             removeTyping(typing);
@@ -1229,36 +1244,23 @@ async function sendMessage(){  // ✅ أضف async هنا
     }
 
     // ==========================================
-    // 3. Gemini AI
+    // 3. Gemini AI (الدردشة والإجابة النصية)
     // ==========================================
-    const processGemini = (imageData) => {
-        askGemini(text, imageData, selectedImage)
-            .then(reply => {
-                removeTyping(typing);
-                addMessage(reply, "ai");
-            })
-            .catch(error => {
-                console.error("Gemini Error:", error);
-                removeTyping(typing);
-                addMessage("⚠️ حدث خطأ في التواصل مع Gemini", "ai");
-            })
-            .finally(() => {
-                selectedImage = null;
-                if(imageInput){
-                    imageInput.value = "";
-                }
-            });
-    };
-
+    let imageData = null;
     if(selectedImage){
-        imageToBase64(selectedImage)
-            .then(imageData => processGemini(imageData))
-            .catch(() => processGemini(null));
-    } else {
-        processGemini(null);
+        imageData = await imageToBase64(selectedImage);
     }
-};
 
+    const reply = await askGemini(text, imageData, selectedImage);
+
+    removeTyping(typing);
+    addMessage(reply, "ai");
+
+    selectedImage = null;
+    if(imageInput){
+        imageInput.value = "";
+    }
+}
 
 
 
