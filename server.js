@@ -2748,15 +2748,26 @@ success:false
 });
 
 // ==========================================
-// IMAGE UPSCALE API - مجاني بدون مفتاح
+// CLARITY PRO UPSCALER - دقة 8K حقيقية
+// ==========================================
+
+// 🔑 مفتاح Replicate API
+const REPLICATE_API_TOKEN = "r8_Pmdzf73AeG3NYJcBy3QmiYWd76QVjNA29DcwV";
+
+// ==========================================
+// نقطة نهاية التحسين إلى 8K
 // ==========================================
 
 app.post("/api/artguru/enhance", async (req, res) => {
     const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    console.log(`[${requestId}] 🚀 بدء طلب التحسين (Free API)`);
+    console.log(`[${requestId}] 🚀 بدء تحسين الصورة إلى 8K`);
 
     try {
         const { image } = req.body;
+
+        // ======================================
+        // 1. التحقق من الصورة
+        // ======================================
 
         if (!image) {
             return res.status(400).json({
@@ -2765,43 +2776,106 @@ app.post("/api/artguru/enhance", async (req, res) => {
             });
         }
 
-        console.log(`[${requestId}] 📡 إرسال طلب إلى Free Upscale API...`);
+        console.log(`[${requestId}] ✅ تم استلام الصورة، جاري الإرسال إلى Replicate...`);
 
-        // استخدم خدمة مجانية بدون مفتاح
-        const response = await fetch("https://api.upscale.it/v1/upscale", {
+        // ======================================
+        // 2. إرسال الطلب إلى Replicate (Clarity Pro)
+        // ======================================
+
+        const response = await fetch("https://api.replicate.com/v1/predictions", {
             method: "POST",
             headers: {
+                "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                image: image,
-                scale: 2 // أو 4
+                version: "philz1337x/clarity-upscaler:1.0.0", // نموذج Clarity Pro
+                input: {
+                    image: image,
+                    scale: 4,          // 4x = 8K من صورة 1080p
+                    creativity: 3,      // تحكم في الإبداع (0-10)
+                    output_format: "jpg"
+                }
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`[${requestId}] ❌ خطأ:`, errorText);
+            console.error(`[${requestId}] ❌ خطأ Replicate:`, errorText);
             
-            // في حالة الفشل، استخدم المحاكاة
-            return res.json({
-                success: true,
-                data: {
-                    image: image,
-                    mode: 'fallback',
-                    message: "تم استخدام الصورة الأصلية (الخدمة غير متاحة)"
-                }
+            // محاولة تحليل الخطأ
+            try {
+                const errorJson = JSON.parse(errorText);
+                return res.status(response.status).json({
+                    success: false,
+                    message: errorJson.detail || errorJson.error || "فشل في تحسين الصورة"
+                });
+            } catch(e) {
+                return res.status(response.status).json({
+                    success: false,
+                    message: errorText || "فشل في تحسين الصورة"
+                });
+            }
+        }
+
+        const prediction = await response.json();
+        console.log(`[${requestId}] ✅ تم إنشاء المهمة: ${prediction.id}`);
+        console.log(`[${requestId}] 📊 الحالة: ${prediction.status}`);
+
+        // ======================================
+        // 3. انتظار اكتمال المعالجة
+        // ======================================
+
+        let result = await waitForReplicateResult(prediction.id, REPLICATE_API_TOKEN);
+        
+        if (!result) {
+            return res.status(504).json({
+                success: false,
+                message: "انتهت مهلة انتظار النتيجة"
             });
         }
 
-        const data = await response.json();
-        const enhancedImage = data.url || data.image || data.result;
+        // ======================================
+        // 4. استخراج الصورة المحسنة
+        // ======================================
+
+        let enhancedImage = null;
+
+        console.log(`[${requestId}] 📦 Result output:`, JSON.stringify(result.output).substring(0, 200));
+
+        // Clarity Pro يعيد النتيجة كمصفوفة أو كائن
+        if (result.output) {
+            if (Array.isArray(result.output) && result.output.length > 0) {
+                enhancedImage = result.output[0];
+            } else if (typeof result.output === 'string') {
+                enhancedImage = result.output;
+            } else if (typeof result.output === 'object') {
+                enhancedImage = result.output.url || result.output.image || result.output.output;
+            }
+        }
+
+        if (!enhancedImage) {
+            console.error(`[${requestId}] ❌ لم يتم العثور على الصورة المحسنة`);
+            return res.status(500).json({
+                success: false,
+                message: "لم يتم العثور على الصورة المحسنة"
+            });
+        }
+
+        console.log(`[${requestId}] ✅ تم تحسين الصورة إلى 8K بنجاح!`);
+        console.log(`[${requestId}] 📸 الرابط: ${enhancedImage.substring(0, 80)}...`);
+
+        // ======================================
+        // 5. إعادة النتيجة
+        // ======================================
 
         res.json({
             success: true,
             data: {
-                image: enhancedImage || image,
-                mode: 'free_api',
+                image: enhancedImage,
+                mode: 'clarity-pro-8k',
+                scale: 4,
+                message: "✅ تم تحسين الصورة إلى 8K",
                 enhancedAt: new Date().toISOString()
             }
         });
@@ -2809,74 +2883,109 @@ app.post("/api/artguru/enhance", async (req, res) => {
     } catch (error) {
         console.error(`[${requestId}] ❌ خطأ:`, error.message);
         
-        // في حالة أي خطأ، أعد الصورة الأصلية
+        // في حالة الفشل، استخدم المحاكاة كـ fallback
+        console.log(`[${requestId}] 🔄 استخدام المحاكاة كـ fallback`);
+        
         res.json({
             success: true,
             data: {
                 image: req.body.image,
                 mode: 'fallback',
-                message: "حدث خطأ، تم استخدام الصورة الأصلية"
-            }
-        });
-    }
-});
-
-// ==========================================
-// محاكاة تحسين سريعة - تعمل فوراً
-// ==========================================
-
-app.post("/api/artguru/enhance", async (req, res) => {
-    const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    console.log(`[${requestId}] 🚀 تحسين سريع`);
-
-    try {
-        const { image } = req.body;
-
-        if (!image) {
-            return res.status(400).json({
-                success: false,
-                message: "الصورة مطلوبة"
-            });
-        }
-
-        // محاكاة معالجة سريعة
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // إرجاع الصورة مع علامة محسنة
-        res.json({
-            success: true,
-            data: {
-                image: image,
-                mode: 'enhanced',
-                message: "✅ تم تحسين الصورة بنجاح",
+                message: "⚠️ تم استخدام الصورة الأصلية (حدث خطأ في المعالجة)",
                 enhancedAt: new Date().toISOString()
             }
         });
-
-    } catch (error) {
-        console.error(`[${requestId}] ❌ خطأ:`, error.message);
-        res.json({
-            success: true,
-            data: {
-                image: req.body.image,
-                mode: 'fallback'
-            }
-        });
     }
 });
+
+// ==========================================
+// دالة انتظار النتيجة من Replicate
+// ==========================================
+
+async function waitForReplicateResult(predictionId, token) {
+    const maxAttempts = 40; // زيادة المحاولات للصور الكبيرة
+    const delayMs = 2000;
+    const url = `https://api.replicate.com/v1/predictions/${predictionId}`;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            console.log(`⏳ محاولة ${attempt + 1}/${maxAttempts} - جلب الحالة...`);
+            
+            const response = await fetch(url, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.log(`⚠️ محاولة ${attempt + 1}: فشل في جلب الحالة (${response.status})`);
+                await sleep(delayMs);
+                continue;
+            }
+
+            const data = await response.json();
+            console.log(`📊 محاولة ${attempt + 1}: الحالة = ${data.status}`);
+
+            if (data.status === 'succeeded') {
+                console.log(`✅ اكتملت المعالجة بنجاح!`);
+                return data;
+            }
+
+            if (data.status === 'failed') {
+                console.error('❌ فشلت المعالجة:', data.error);
+                return null;
+            }
+
+            // لا تزال قيد المعالجة
+            await sleep(delayMs);
+
+        } catch (error) {
+            console.log(`⚠️ محاولة ${attempt + 1}: خطأ في الاتصال - ${error.message}`);
+            await sleep(delayMs);
+        }
+    }
+
+    console.error('❌ انتهت المهلة في انتظار النتيجة');
+    return null;
+}
+
+// ==========================================
+// دالة مساعدة للتأخير
+// ==========================================
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // ==========================================
 // نقطة نهاية للتحقق من الحالة
 // ==========================================
 
 app.get("/api/artguru/status", (req, res) => {
+    const hasKey = REPLICATE_API_TOKEN && REPLICATE_API_TOKEN !== "your_replicate_api_token_here";
+    
     res.json({
         success: true,
-        provider: 'mock',
-        status: 'ready',
+        provider: 'replicate-clarity-pro',
+        apiKey: {
+            exists: hasKey,
+            prefix: hasKey ? REPLICATE_API_TOKEN.substring(0, 10) + "..." : null
+        },
+        model: "philz1337x/clarity-upscaler",
+        maxScale: "4x (حتى 8K)",
+        status: hasKey ? 'ready' : 'missing_key',
         serverTime: new Date().toISOString()
     });
 });
+
+console.log("=".repeat(60));
+console.log("🔐 CLARITY PRO 8K - SYSTEM READY");
+console.log("=".repeat(60));
+console.log(`✅ API Key: ${REPLICATE_API_TOKEN ? 'موجود ✓' : 'مفقود ✗'}`);
+console.log(`🤖 Model: Clarity Pro Upscaler`);
+console.log(`📐 Max Scale: 4x (حتى 8K)`);
+console.log(`📌 Status: ${REPLICATE_API_TOKEN ? '🟢 جاهز' : '🔴 بحاجة لمفتاح'}`);
+console.log("=".repeat(60));
 
 // ======================================
 // Start Server
