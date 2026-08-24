@@ -1168,10 +1168,10 @@ return bubble;
 }
 
 // ===============================
-// Send Message (مغلقة ومصصحة بالكامل)
+// Send Message - تم التصحيح
 // ===============================
 
-async function sendMessage(){
+async function sendMessage(){  // ✅ أضف async هنا
 
     const text = userInput.value.trim();
 
@@ -1190,7 +1190,7 @@ async function sendMessage(){
     const typing = typingEffect();
 
     // ==========================================
-    // 1. Stable Diffusion (توليد الصور المبتكرة)
+    // 1. Stable Diffusion
     // ==========================================
     if(selectedModel === "stable"){
         try {
@@ -1210,7 +1210,7 @@ async function sendMessage(){
     }
 
     // ==========================================
-    // 2. Unsplash / Picsum (البحث عن الخلفيات)
+    // 2. Unsplash / Picsum
     // ==========================================
     if(selectedModel === "unsplash"){
         try {
@@ -1229,30 +1229,36 @@ async function sendMessage(){
     }
 
     // ==========================================
-    // 3. Gemini AI (الدردشة والإجابة النصية)
+    // 3. Gemini AI
     // ==========================================
-    try {
-        let imageData = null;
-        if(selectedImage){
-            imageData = await imageToBase64(selectedImage);
-        }
+    const processGemini = (imageData) => {
+        askGemini(text, imageData, selectedImage)
+            .then(reply => {
+                removeTyping(typing);
+                addMessage(reply, "ai");
+            })
+            .catch(error => {
+                console.error("Gemini Error:", error);
+                removeTyping(typing);
+                addMessage("⚠️ حدث خطأ في التواصل مع Gemini", "ai");
+            })
+            .finally(() => {
+                selectedImage = null;
+                if(imageInput){
+                    imageInput.value = "";
+                }
+            });
+    };
 
-        const reply = await askGemini(text, imageData, selectedImage);
-
-        removeTyping(typing);
-        addMessage(reply, "ai");
-
-    } catch(error) {
-        console.error("Gemini Error:", error);
-        removeTyping(typing);
-        addMessage("⚠️ حدث خطأ في التواصل مع Gemini", "ai");
-    } finally {
-        selectedImage = null;
-        if(imageInput){
-            imageInput.value = "";
-        }
+    if(selectedImage){
+        imageToBase64(selectedImage)
+            .then(imageData => processGemini(imageData))
+            .catch(() => processGemini(null));
+    } else {
+        processGemini(null);
     }
-} // <-- هذا القوس كان مفقوداً وهو ما أوقف الصفحة بالكامل
+};
+
 
 
 
