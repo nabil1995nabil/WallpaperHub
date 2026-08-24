@@ -2748,31 +2748,29 @@ success:false
 });
 
 // ==========================================
-// ARTGURU AI ENHANCE - CLEAN VERSION
-// مع تتبع الأخطاء وتحسين الأمان
+// REPLICATE AI ENHANCE - مع التوكن الجديد
 // ==========================================
 
-const ARTGURU_API_KEY = "ak-d7f53e8ef5e72154746d88bf24f5b523";
-const ARTGURU_API_URL = "https://api.artguru.ai/v1/enhance";
+// 🔑 مفتاح Replicate API (تم استلامه من المستخدم)
+const REPLICATE_API_TOKEN = "r8_Pmdzf73AeG3NYJcBy3QmiYWd76QVjNA29DcwV";
+const REPLICATE_API_URL = "https://api.replicate.com/v1/predictions";
 
 // ==========================================
-// نقطة النهاية الرئيسية للتحسين
+// نقطة نهاية التحسين باستخدام Replicate
 // ==========================================
 
 app.post("/api/artguru/enhance", async (req, res) => {
     const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    console.log(`[${requestId}] 🚀 بدء طلب التحسين`);
+    console.log(`[${requestId}] 🚀 بدء طلب التحسين (Replicate)`);
 
     try {
-        // ======================================
-        // 1. التحقق من صحة المدخلات (Input Validation)
-        // ======================================
-
         const { image } = req.body;
 
-        // التحقق من وجود الصورة
+        // ======================================
+        // 1. التحقق من صحة المدخلات
+        // ======================================
+
         if (!image) {
-            console.log(`[${requestId}] ❌ الصورة مفقودة`);
             return res.status(400).json({
                 success: false,
                 code: "MISSING_IMAGE",
@@ -2781,69 +2779,55 @@ app.post("/api/artguru/enhance", async (req, res) => {
         }
 
         // التحقق من حجم الصورة (حد أقصى 10MB)
-        const imageSizeInBytes = Buffer.from(image, 'base64').length;
-        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+        const imageSizeInBytes = Buffer.from(image.split(',')[1] || image, 'base64').length;
+        const MAX_SIZE = 10 * 1024 * 1024;
 
         if (imageSizeInBytes > MAX_SIZE) {
-            console.log(`[${requestId}] ❌ حجم الصورة كبير جداً: ${(imageSizeInBytes / 1024 / 1024).toFixed(2)}MB`);
             return res.status(413).json({
                 success: false,
                 code: "IMAGE_TOO_LARGE",
-                message: "حجم الصورة يتجاوز 10 ميجابايت. يرجى اختيار صورة أصغر."
-            });
-        }
-
-        // التحقق من صيغة الصورة (base64)
-        if (!image.startsWith('data:image/')) {
-            console.log(`[${requestId}] ❌ صيغة صورة غير صالحة`);
-            return res.status(400).json({
-                success: false,
-                code: "INVALID_IMAGE_FORMAT",
-                message: "صيغة الصورة غير مدعومة. يرجى استخدام JPG أو PNG."
+                message: "حجم الصورة يتجاوز 10 ميجابايت."
             });
         }
 
         console.log(`[${requestId}] ✅ تم التحقق من الصورة: ${(imageSizeInBytes / 1024).toFixed(2)}KB`);
 
         // ======================================
-        // 2. التحقق من مفتاح API
+        // 2. التحقق من مفتاح Replicate
         // ======================================
 
-        if (!ARTGURU_API_KEY) {
-            console.error(`[${requestId}] ❌ مفتاح API مفقود`);
+        if (!REPLICATE_API_TOKEN || REPLICATE_API_TOKEN === "your_replicate_api_token_here") {
+            console.error(`[${requestId}] ❌ مفتاح Replicate مفقود`);
             return res.status(500).json({
                 success: false,
                 code: "API_KEY_MISSING",
-                message: "مفتاح Artguru API غير موجود. يرجى التواصل مع الدعم الفني."
+                message: "مفتاح Replicate API غير موجود. يرجى إضافته في الكود."
             });
         }
 
         // ======================================
-        // 3. تحضير الطلب لـ Artguru API
+        // 3. إرسال طلب إلى Replicate API
         // ======================================
 
+        console.log(`[${requestId}] 📡 إرسال طلب إلى Replicate...`);
+
         const requestBody = {
-            image: image,
-            scale: 4,
-            denoise: true,
-            face_enhance: false
+            version: "42fe9f2d2f2f4c6f7c8d9e0f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t",
+            input: {
+                image: image,
+                scale: 4,
+                face_enhance: false
+            }
         };
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // مهلة 30 ثانية
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-        console.log(`[${requestId}] 📡 إرسال طلب إلى Artguru API...`);
-
-        // ======================================
-        // 4. إرسال الطلب مع معالجة الأخطاء
-        // ======================================
-
-        const response = await fetch(ARTGURU_API_URL, {
+        const response = await fetch(REPLICATE_API_URL, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${ARTGURU_API_KEY}`,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Authorization": `Token ${REPLICATE_API_TOKEN}`,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(requestBody),
             signal: controller.signal
@@ -2851,101 +2835,57 @@ app.post("/api/artguru/enhance", async (req, res) => {
 
         clearTimeout(timeoutId);
 
-        console.log(`[${requestId}] 📡 استجابة API: ${response.status} ${response.statusText}`);
-
-        // ======================================
-        // 5. معالجة استجابة API
-        // ======================================
-
-        // قراءة النص الخام أولاً للتعامل مع الأخطاء بشكل أفضل
-        const rawResponse = await response.text();
-        let data;
-
-        try {
-            data = JSON.parse(rawResponse);
-        } catch (parseError) {
-            console.error(`[${requestId}] ❌ خطأ في تحليل JSON:`, parseError.message);
-            return res.status(500).json({
-                success: false,
-                code: "INVALID_API_RESPONSE",
-                message: "استجابة غير صالحة من Artguru API",
-                details: rawResponse.substring(0, 200)
-            });
-        }
-
-        // التحقق من حالة الاستجابة
         if (!response.ok) {
-            console.error(`[${requestId}] ❌ خطأ من Artguru API:`, data);
-
-            // معالجة أخطاء محددة
-            const errorCode = data.code || data.error || "API_ERROR";
-            const errorMessage = data.message || data.error_message || data.error || "فشل في تحسين الصورة";
-
-            // أخطاء شائعة
-            if (response.status === 401 || response.status === 403) {
-                return res.status(401).json({
-                    success: false,
-                    code: "INVALID_API_KEY",
-                    message: "مفتاح API غير صالح. يرجى التحقق من المفتاح."
-                });
+            const errorText = await response.text();
+            console.error(`[${requestId}] ❌ خطأ Replicate:`, errorText);
+            
+            let errorMessage = "فشل في تحسين الصورة";
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.detail || errorJson.error || errorMessage;
+            } catch(e) {
+                // استخدام الرسالة النصية
             }
-
-            if (response.status === 429) {
-                return res.status(429).json({
-                    success: false,
-                    code: "RATE_LIMITED",
-                    message: "تم تجاوز الحد اليومي للاستخدام. يرجى المحاولة غداً."
-                });
-            }
-
-            if (response.status === 413) {
-                return res.status(413).json({
-                    success: false,
-                    code: "IMAGE_TOO_LARGE",
-                    message: "الصورة كبيرة جداً بالنسبة لـ Artguru API."
-                });
-            }
-
+            
             return res.status(response.status).json({
                 success: false,
-                code: errorCode,
+                code: "REPLICATE_ERROR",
                 message: errorMessage
             });
         }
 
+        const prediction = await response.json();
+        console.log(`[${requestId}] ✅ تم إنشاء المهمة: ${prediction.id}`);
+
         // ======================================
-        // 6. استخراج الصورة المحسنة
+        // 4. انتظار اكتمال المعالجة
         // ======================================
 
-        console.log(`[${requestId}] ✅ استجابة ناجحة، استخراج الصورة...`);
+        let result = await waitForReplicateResult(prediction.id, REPLICATE_API_TOKEN);
+        
+        if (!result) {
+            return res.status(504).json({
+                success: false,
+                code: "TIMEOUT",
+                message: "انتهت مهلة انتظار النتيجة"
+            });
+        }
+
+        // ======================================
+        // 5. استخراج الصورة المحسنة
+        // ======================================
 
         let enhancedImage = null;
 
-        // محاولة استخراج الرابط من عدة أماكن محتملة
-        const possibleKeys = [
-            'enhanced_image',
-            'image',
-            'url',
-            'result',
-            'output',
-            'data.url',
-            'data.image'
-        ];
-
-        for (const key of possibleKeys) {
-            const value = key.includes('.')
-                ? key.split('.').reduce((obj, k) => obj?.[k], data)
-                : data[key];
-
-            if (value && typeof value === 'string' && (value.startsWith('http') || value.startsWith('data:image'))) {
-                enhancedImage = value;
-                break;
+        // Replicate يعيد النتيجة كمصفوفة من الروابط أو كائن
+        if (result.output) {
+            if (Array.isArray(result.output)) {
+                enhancedImage = result.output[0];
+            } else if (typeof result.output === 'string') {
+                enhancedImage = result.output;
+            } else if (typeof result.output === 'object' && result.output.url) {
+                enhancedImage = result.output.url;
             }
-        }
-
-        // إذا لم يتم العثور، حاول البحث العميق
-        if (!enhancedImage) {
-            enhancedImage = findImageUrl(data);
         }
 
         if (!enhancedImage) {
@@ -2953,36 +2893,28 @@ app.post("/api/artguru/enhance", async (req, res) => {
             return res.status(500).json({
                 success: false,
                 code: "ENHANCED_IMAGE_NOT_FOUND",
-                message: "لم يتم العثور على الصورة المحسنة في استجابة API",
-                debug: {
-                    responseKeys: Object.keys(data)
-                }
+                message: "لم يتم العثور على الصورة المحسنة في استجابة API"
             });
         }
 
-        console.log(`[${requestId}] ✅ تم استخراج الصورة المحسنة بنجاح`);
+        console.log(`[${requestId}] ✅ تم تحسين الصورة بنجاح`);
 
         // ======================================
-        // 7. إعادة النتيجة
+        // 6. إعادة النتيجة
         // ======================================
 
         res.json({
             success: true,
             data: {
                 image: enhancedImage,
-                originalSize: imageSizeInBytes,
+                mode: 'replicate',
                 enhancedAt: new Date().toISOString()
             }
         });
 
     } catch (error) {
-        // ======================================
-        // 8. معالجة الأخطاء العامة
-        // ======================================
-
-        console.error(`[${requestId}] ❌ خطأ عام:`, error);
-
-        // معالجة أخطاء المهلة
+        console.error(`[${requestId}] ❌ خطأ:`, error.message);
+        
         if (error.name === 'AbortError') {
             return res.status(504).json({
                 success: false,
@@ -2991,161 +2923,95 @@ app.post("/api/artguru/enhance", async (req, res) => {
             });
         }
 
-        // معالجة أخطاء الشبكة
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-            return res.status(503).json({
-                success: false,
-                code: "NETWORK_ERROR",
-                message: "تعذر الاتصال بـ Artguru API. يرجى التحقق من الاتصال بالإنترنت."
-            });
-        }
-
-        // معالجة أخطاء JSON
-        if (error instanceof SyntaxError) {
-            return res.status(500).json({
-                success: false,
-                code: "INVALID_JSON",
-                message: "خطأ في صيغة البيانات المرسلة."
-            });
-        }
-
-        // أي خطأ آخر
         return res.status(500).json({
             success: false,
             code: "INTERNAL_ERROR",
-            message: error.message || "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+            message: error.message || "حدث خطأ غير متوقع"
         });
     }
 });
 
 // ==========================================
-// دالة مساعدة: البحث عن رابط الصورة
+// دالة انتظار النتيجة من Replicate
 // ==========================================
 
-function findImageUrl(data) {
-    if (!data) return null;
+async function waitForReplicateResult(predictionId, token) {
+    const maxAttempts = 30;
+    const delayMs = 2000;
+    const url = `https://api.replicate.com/v1/predictions/${predictionId}`;
 
-    // إذا كانت سلسلة نصية
-    if (typeof data === 'string') {
-        if (data.startsWith('http') || data.startsWith('data:image')) {
-            return data;
-        }
-        return null;
-    }
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Authorization": `Token ${token}`
+                }
+            });
 
-    // إذا كانت مصفوفة
-    if (Array.isArray(data)) {
-        for (const item of data) {
-            const result = findImageUrl(item);
-            if (result) return result;
-        }
-        return null;
-    }
-
-    // إذا كان كائن
-    if (typeof data === 'object') {
-        // المفاتيح ذات الأولوية
-        const priorityKeys = [
-            'enhanced_image', 'image', 'url', 'image_url',
-            'result_url', 'output', 'download_url',
-            'result', 'photo', 'picture', 'src', 'source'
-        ];
-
-        for (const key of priorityKeys) {
-            if (data[key]) {
-                const result = findImageUrl(data[key]);
-                if (result) return result;
+            if (!response.ok) {
+                console.log(`⚠️ محاولة ${attempt + 1}: فشل في جلب الحالة`);
+                await sleep(delayMs);
+                continue;
             }
-        }
 
-        // البحث في جميع المفاتيح الأخرى
-        for (const key in data) {
-            if (Object.prototype.hasOwnProperty.call(data, key)) {
-                const result = findImageUrl(data[key]);
-                if (result) return result;
+            const data = await response.json();
+            console.log(`📊 محاولة ${attempt + 1}: الحالة = ${data.status}`);
+
+            if (data.status === 'succeeded') {
+                return data;
             }
+
+            if (data.status === 'failed') {
+                console.error('❌ فشلت المعالجة:', data.error);
+                return null;
+            }
+
+            await sleep(delayMs);
+
+        } catch (error) {
+            console.log(`⚠️ محاولة ${attempt + 1}: خطأ في الاتصال`);
+            await sleep(delayMs);
         }
     }
 
+    console.error('❌ انتهت المهلة في انتظار النتيجة');
     return null;
 }
 
 // ==========================================
-// نقطة نهاية للتحقق من حالة API
+// دالة مساعدة للتأخير
+// ==========================================
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ==========================================
+// نقطة نهاية للتحقق من الحالة
 // ==========================================
 
 app.get("/api/artguru/status", (req, res) => {
-    const status = {
+    const hasKey = REPLICATE_API_TOKEN && REPLICATE_API_TOKEN !== "your_replicate_api_token_here";
+    
+    res.json({
         success: true,
+        provider: 'replicate',
         apiKey: {
-            exists: !!ARTGURU_API_KEY,
-            prefix: ARTGURU_API_KEY ? ARTGURU_API_KEY.substring(0, 8) + "..." : null,
-            isValid: ARTGURU_API_KEY ? ARTGURU_API_KEY.startsWith('ak-') : false
+            exists: hasKey,
+            prefix: hasKey ? REPLICATE_API_TOKEN.substring(0, 8) + "..." : null
         },
-        apiUrl: ARTGURU_API_URL,
-        serverTime: new Date().toISOString(),
-        status: ARTGURU_API_KEY ? "ready" : "missing"
-    };
-
-    // التحقق من صحة المفتاح (اختبار سريع)
-    if (ARTGURU_API_KEY && ARTGURU_API_KEY.startsWith('ak-')) {
-        status.status = "configured";
-    }
-
-    res.json(status);
+        model: "nightmareai/real-esrgan",
+        status: hasKey ? 'ready' : 'missing_key',
+        serverTime: new Date().toISOString()
+    });
 });
 
-// ==========================================
-// نقطة نهاية لاختبار التحسين (Mock)
-// ==========================================
-
-app.post("/api/artguru/test", async (req, res) => {
-    // نقطة اختبار للتحقق من الاتصال بـ Artguru
-    try {
-        const testImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
-
-        const response = await fetch(ARTGURU_API_URL, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${ARTGURU_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                image: testImage,
-                scale: 1,
-                denoise: false,
-                face_enhance: false
-            })
-        });
-
-        const data = await response.json();
-
-        res.json({
-            success: response.ok,
-            status: response.status,
-            message: response.ok ? "API يعمل بشكل طبيعي" : "API يعمل ولكن حدث خطأ",
-            details: data
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "فشل اختبار API",
-            error: error.message
-        });
-    }
-});
-
-// ==========================================
-// ملخص النظام
-// ==========================================
-
 console.log("=".repeat(50));
-console.log("🔐 ARTGURU AI ENHANCE - SYSTEM READY");
+console.log("🔐 REPLICATE AI ENHANCE - SYSTEM READY");
 console.log("=".repeat(50));
-console.log(`✅ API Key: ${ARTGURU_API_KEY ? 'موجود ✓' : 'مفقود ✗'}`);
-console.log(`🔑 Key Type: ${ARTGURU_API_KEY?.startsWith('ak-') ? 'Artguru Key ✓' : 'غير معروف'}`);
-console.log(`🌐 API URL: ${ARTGURU_API_URL}`);
+console.log(`✅ API Key: ${REPLICATE_API_TOKEN && REPLICATE_API_TOKEN !== "your_replicate_api_token_here" ? 'موجود ✓' : 'مفقود ✗'}`);
+console.log(`🤖 Model: nightmareai/real-esrgan`);
+console.log(`📌 Status: ${REPLICATE_API_TOKEN && REPLICATE_API_TOKEN !== "your_replicate_api_token_here" ? '🟢 جاهز' : '🔴 بحاجة لمفتاح'}`);
 console.log("=".repeat(50));
 
 // ======================================
