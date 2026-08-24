@@ -1168,97 +1168,147 @@ return bubble;
 }
 
 // ===============================
-// Send Message (Model Isolation Fixed)
+// Send Message (الإصلاح الرئيسي)
 // ===============================
 
-async function sendMessage(){
-
+async function sendMessage() {
     const text = userInput.value.trim();
-
-    if(text === "" && !selectedImage) return;
-
-    if(text){
+    
+    if (text === "" && !selectedImage) return;
+    
+    if (text) {
         addMessage(text, "user");
     }
-
+    
     const welcome = document.querySelector(".welcome-screen");
-    if(welcome){
+    if (welcome) {
         welcome.style.display = "none";
     }
-
+    
     userInput.value = "";
     const typing = typingEffect();
 
-    // ==========================================
-    // 1. Stable Diffusion (توليد الصور المبتكرة)
-    // ==========================================
-    if(selectedModel === "stable"){
-        try {
-            const response = await fetch("/api/generate-image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: text, model: "stable" })
-            });
-            const data = await response.json();
-            removeTyping(typing);
+    try {
+        // Stable Diffusion
+        if (selectedModel === "stable") {
+            try {
+                const response = await fetch("/api/generate-image", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: text, model: "stable" })
+                });
+                const data = await response.json();
+                removeTyping(typing);
 
-            if(data.image){
-                addMessage(data.image, "ai");
-            } else {
-                addMessage("⚠️ لم يتم إنشاء الصورة بواسطة Stable Diffusion", "ai");
+                if (data.image) {
+                    addMessage(data.image, "ai");
+                } else {
+                    addMessage("⚠️ لم يتم إنشاء الصورة بواسطة Stable Diffusion", "ai");
+                }
+            } catch (error) {
+                console.error("Stable Diffusion Error:", error);
+                removeTyping(typing);
+                addMessage("⚠️ خطأ أثناء توليد الصورة", "ai");
             }
-            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
-        } catch(error) {
-            console.error("Stable Diffusion Error:", error);
-            removeTyping(typing);
-            addMessage("⚠️ خطأ أثناء توليد الصورة", "ai");
             return;
         }
-    }
 
-    // ==========================================
-    // 2. Unsplash (البحث عن الخلفيات والصور)
-    // ==========================================
-    if(selectedModel === "unsplash"){
-        try {
-            const response = await fetch("/api/generate-image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: text, model: "unsplash" })
-            });
-            const data = await response.json();
-            removeTyping(typing);
+        // Unsplash
+        if (selectedModel === "unsplash") {
+            try {
+                const response = await fetch("/api/generate-image", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: text, model: "unsplash" })
+                });
+                const data = await response.json();
+                removeTyping(typing);
 
-            if(data.image){
-                addMessage(data.image, "ai");
-            } else {
-                addMessage("⚠️ لم يتم العثور على خلفية مطابقة", "ai");
+                if (data.image) {
+                    addMessage(data.image, "ai");
+                } else {
+                    addMessage("⚠️ لم يتم العثور على خلفية مطابقة", "ai");
+                }
+            } catch (error) {
+                console.error("Unsplash Error:", error);
+                removeTyping(typing);
+                addMessage("⚠️ خطأ في جلب الخلفية", "ai");
             }
-            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
-        } catch(error) {
-            console.error("Unsplash Error:", error);
-            removeTyping(typing);
-            addMessage("⚠️ خطأ في جلب الخلفية", "ai");
             return;
         }
+
+        // Gemini
+        let imageData = null;
+        if (selectedImage) {
+            imageData = await imageToBase64(selectedImage);
+        }
+
+        const reply = await askGemini(text, imageData, selectedImage);
+        
+        removeTyping(typing);
+        addMessage(reply, "ai");
+
+        selectedImage = null;
+        if (imageInput) {
+            imageInput.value = "";
+        }
+    } catch (error) {
+        console.error("Send Message Error:", error);
+        removeTyping(typing);
+        addMessage("⚠️ خطأ غير متوقع", "ai");
     }
+}
 
-    // ==========================================
-    // 3. Gemini AI (الدردشة والإجابة النصية)
-    // ==========================================
-    let imageData = null;
-    if(selectedImage){
-        imageData = await imageToBase64(selectedImage);
-    }
+// ===============================
+// Convert Image Base64
+// ===============================
 
-    const reply = await askGemini(text, imageData, selectedImage);
+function imageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = () => {
+            resolve(reader.result.split(",")[1]);
+        };
+        
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
 
-    removeTyping(typing);
-    addMessage(reply, "ai");
+// ===============================
+// Gemini AI
+// ===============================
 
-    selectedImage = null;
-    if(imageInput){
-        imageInput.value = "";
+async function askGemini(message, imageData = null, imageFile = null) {
+    try {
+        const userLocale = navigator.language;
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: message,
+                imageData: imageData,
+                mimeType: imageFile ? imageFile.type : null,
+                locale: userLocale,
+                timezone: userTimezone
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            return data.message || "⚠️ وقع مشكل في السيرفر";
+        }
+        
+        return data.reply || "⚠️ ماقدرتش نجيب جواب";
+    } catch (error) {
+        console.error("Gemini Error:", error);
+        return "⚠️ وقع خطأ مؤقت";
     }
 }
 
@@ -1585,26 +1635,14 @@ selectedImage
 
 );
 
-
-
-
-
 removeTyping(
 typing
 );
-
-
-
-
 
 addMessage(
 reply,
 "ai"
 );
-
-
-
-
 
 selectedImage=null;
 
@@ -1621,12 +1659,6 @@ imageInput.value="";
 
 
 }
-
-
-
-
-
-
 
 // ===============================
 // Remove Thinking
@@ -1679,9 +1711,6 @@ sendMessage;
 
 }
 
-
-
-
 if(userInput){
 
 
@@ -1704,13 +1733,6 @@ sendMessage();
 
 
 }
-
-
-
-
-
-
-
 
 // ===============================
 // Suggestions
@@ -1739,240 +1761,6 @@ sendMessage();
 
 
 });
-
-
-
-
-
-
-
-
-
-// ===============================
-// Convert Image Base64
-// ===============================
-
-
-function imageToBase64(file){
-
-
-return new Promise(
-(resolve,reject)=>{
-
-
-const reader =
-new FileReader();
-
-
-
-
-reader.onload=()=>{
-
-
-resolve(
-
-reader.result
-.split(",")[1]
-
-);
-
-
-};
-
-
-
-
-
-reader.onerror =
-reject;
-
-
-
-
-reader.readAsDataURL(
-file
-);
-
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-
-
-// ===============================
-// Gemini AI
-// ===============================
-
-
-async function askGemini(
-message,
-imageData=null,
-imageFile=null
-){
-
-
-
-try{
-
-
-
-const userLocale =
-navigator.language;
-
-
-
-const userTimezone =
-Intl.DateTimeFormat()
-.resolvedOptions()
-.timeZone;
-
-
-
-
-
-
-const response =
-await fetch(
-"/api/chat",
-{
-
-
-method:"POST",
-
-
-headers:{
-
-
-"Content-Type":
-"application/json"
-
-
-},
-
-
-
-body:JSON.stringify({
-
-
-message:message,
-
-
-
-imageData:imageData,
-
-
-
-mimeType:
-
-imageFile ?
-
-imageFile.type :
-
-null,
-
-
-
-locale:userLocale,
-
-
-
-timezone:userTimezone
-
-
-
-})
-
-
-
-}
-
-);
-
-
-
-
-
-
-
-
-const data =
-await response.json();
-
-
-
-
-
-
-
-if(!response.ok){
-
-
-
-return (
-
-data.message ||
-
-"⚠️ وقع مشكل في السيرفر"
-
-);
-
-
-
-}
-
-
-
-
-
-
-return (
-
-data.reply ||
-
-"⚠️ ماقدرتش نجيب جواب"
-
-);
-
-
-
-}catch(error){
-
-
-
-console.error(
-"Gemini Error:",
-error
-);
-
-
-
-return "⚠️ وقع خطأ مؤقت";
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
 
 // ===============================
 // Welcome Time
