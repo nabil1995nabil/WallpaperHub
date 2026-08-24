@@ -1,8 +1,8 @@
 /* =========================================================
-   WARZONE 8D HUD SYSTEM - FULLY FIXED CSS
+   WARZONE 8D HUD SYSTEM - COMPLETE & FIXED CSS
 ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Tajawal:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Tajawal:wght@400;700;900&family=Fira+Code:wght@300;400;500&display=swap');
 
 :root {
     --primary: #00ff66;
@@ -158,7 +158,7 @@ body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 25px 20px 140px;
+    padding: 20px 10px 140px;
     display: flex;
     flex-direction: column;
     scroll-behavior: smooth;
@@ -182,6 +182,7 @@ body {
     margin-bottom: 22px;
     animation: HUDIn 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
     transform-style: preserve-3d;
+    width: 100%;
 }
 
 .message.ai {
@@ -193,10 +194,11 @@ body {
 }
 
 .bubble {
-    max-width: 75%;
-    padding: 16px 22px;
+    max-width: 96% !important;
+    width: 100%;
+    padding: 14px 18px;
     line-height: 1.7;
-    font-size: 15px;
+    font-size: 14px;
     position: relative;
     backdrop-filter: blur(12px);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -206,7 +208,7 @@ body {
     background: var(--panel-bg);
     color: #00ffcc;
     border: 1px solid var(--secondary);
-    clip-path: polygon(0 0, 97% 0, 100% 12%, 100% 100%, 3% 100%, 0 88%);
+    clip-path: polygon(0 0, 98% 0, 100% 8px, 100% 100%, 2% 100%, 0 calc(100% - 8px));
     box-shadow: -5px 5px 20px rgba(0, 229, 255, 0.15);
 }
 
@@ -214,8 +216,9 @@ body {
     background: rgba(0, 255, 102, 0.1);
     color: #fff;
     border: 1px solid var(--primary);
-    clip-path: polygon(3% 0, 100% 0, 100% 88%, 97% 100%, 0 100%, 0 12%);
+    clip-path: polygon(2% 0, 100% 0, 100% calc(100% - 8px), 98% 100%, 0 100%, 0 8px);
     box-shadow: 5px 5px 20px var(--primary-glow);
+    max-width: 85% !important;
 }
 
 .bubble strong {
@@ -229,6 +232,94 @@ body {
     margin-top: 10px;
     border: 1px solid var(--primary);
     box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+}
+
+/* ===============================
+   3D TACTICAL CODE BOX (SLIM FONT & FULL WIDTH)
+================================ */
+
+.code-block {
+    width: 100% !important;
+    margin: 14px 0;
+    background: linear-gradient(135deg, rgba(8, 12, 18, 0.95), rgba(4, 6, 9, 0.98));
+    border: 1px solid rgba(0, 255, 102, 0.4);
+    border-radius: 8px;
+    box-shadow: 
+        0 10px 25px -5px rgba(0, 0, 0, 0.8),
+        0 0 15px rgba(0, 255, 102, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    transform: perspective(800px) rotateX(1deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.code-block:hover {
+    transform: perspective(800px) rotateX(0deg) translateY(-2px);
+    box-shadow: 
+        0 15px 30px -5px rgba(0, 0, 0, 0.9),
+        0 0 20px rgba(0, 255, 102, 0.25);
+}
+
+.code-header {
+    padding: 8px 14px;
+    background: rgba(0, 255, 102, 0.08);
+    color: var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 255, 102, 0.25);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.copy-btn {
+    background: rgba(0, 255, 102, 0.12);
+    color: var(--primary);
+    border: 1px solid rgba(0, 255, 102, 0.5);
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 400;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.copy-btn:hover {
+    background: var(--primary);
+    color: var(--bg-dark);
+    box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.code-block pre {
+    padding: 14px;
+    margin: 0;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+}
+
+.code-block code {
+    font-family: 'Fira Code', 'Consolas', 'Courier New', monospace !important;
+    font-size: 12.5px !important;
+    font-weight: 300 !important;
+    line-height: 1.5;
+    color: #66ffb3;
+    text-shadow: 0 0 2px rgba(0, 255, 102, 0.3);
+}
+
+.code-block pre::-webkit-scrollbar {
+    height: 4px;
+}
+
+.code-block pre::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 102, 0.3);
+    border-radius: 2px;
 }
 
 /* ===============================
@@ -435,44 +526,6 @@ body {
     border-color: var(--primary);
     color: #fff;
     background: rgba(0, 255, 102, 0.1);
-}
-
-/* ===============================
-   Code Block (Terminal Style)
-================================ */
-
-.code-block {
-    margin: 15px 0;
-    border: 1px solid var(--primary);
-    background: #000;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
-}
-
-.code-header {
-    padding: 10px 15px;
-    background: rgba(0, 255, 102, 0.15);
-    color: var(--primary);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    border-bottom: 1px solid var(--primary);
-}
-
-.copy-btn {
-    background: var(--primary);
-    color: var(--bg-dark);
-    border: none;
-    padding: 4px 10px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.code-block pre {
-    padding: 15px;
-    overflow-x: auto;
-    color: #00ff66;
-    font-family: 'Courier New', monospace;
 }
 
 /* ===============================
