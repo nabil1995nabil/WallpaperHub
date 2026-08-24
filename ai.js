@@ -1168,7 +1168,7 @@ return bubble;
 }
 
 // ===============================
-// Send Message (Model Isolation Fixed)
+// Send Message (مغلقة ومصصحة بالكامل)
 // ===============================
 
 async function sendMessage(){
@@ -1194,9 +1194,9 @@ async function sendMessage(){
     // ==========================================
     if(selectedModel === "stable"){
         try {
-            // استخدام Pollinations AI كخدمة توليد مجانية مباشرة دون الحاجة لمفاتيح API
             const encodedPrompt = encodeURIComponent(text);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true`;
+            const seed = Math.floor(Math.random() * 999999);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${seed}&nologo=true`;
             
             removeTyping(typing);
             addMessage(imageUrl, "ai");
@@ -1210,13 +1210,12 @@ async function sendMessage(){
     }
 
     // ==========================================
-    // 2. Unsplash (البحث عن الخلفيات والصور)
+    // 2. Unsplash / Picsum (البحث عن الخلفيات)
     // ==========================================
     if(selectedModel === "unsplash"){
         try {
-            // جلب خلفية عالية الجودة مباشرة من Unsplash بناءً على كلمة البحث
-            const encodedQuery = encodeURIComponent(text);
-            const imageUrl = `https://source.unsplash.com/1600x900/?${encodedQuery}`;
+            const randomId = Math.floor(Math.random() * 1000);
+            const imageUrl = `https://picsum.photos/1080/1920?random=${randomId}`;
 
             removeTyping(typing);
             addMessage(imageUrl, "ai");
@@ -1229,25 +1228,32 @@ async function sendMessage(){
         }
     }
 
-
     // ==========================================
     // 3. Gemini AI (الدردشة والإجابة النصية)
     // ==========================================
-    let imageData = null;
-    if(selectedImage){
-        imageData = await imageToBase64(selectedImage);
+    try {
+        let imageData = null;
+        if(selectedImage){
+            imageData = await imageToBase64(selectedImage);
+        }
+
+        const reply = await askGemini(text, imageData, selectedImage);
+
+        removeTyping(typing);
+        addMessage(reply, "ai");
+
+    } catch(error) {
+        console.error("Gemini Error:", error);
+        removeTyping(typing);
+        addMessage("⚠️ حدث خطأ في التواصل مع Gemini", "ai");
+    } finally {
+        selectedImage = null;
+        if(imageInput){
+            imageInput.value = "";
+        }
     }
+} // <-- هذا القوس كان مفقوداً وهو ما أوقف الصفحة بالكامل
 
-    const reply = await askGemini(text, imageData, selectedImage);
-
-    removeTyping(typing);
-    addMessage(reply, "ai");
-
-    selectedImage = null;
-    if(imageInput){
-        imageInput.value = "";
-    }
-}
 
 
 // ===============================
