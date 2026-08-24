@@ -1194,22 +1194,15 @@ async function sendMessage(){
     // ==========================================
     if(selectedModel === "stable"){
         try {
-            const response = await fetch("/api/generate-image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: text, model: "stable" })
-            });
-            const data = await response.json();
+            // استخدام Pollinations AI كخدمة توليد مجانية مباشرة دون الحاجة لمفاتيح API
+            const encodedPrompt = encodeURIComponent(text);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true`;
+            
             removeTyping(typing);
-
-            if(data.image){
-                addMessage(data.image, "ai");
-            } else {
-                addMessage("⚠️ لم يتم إنشاء الصورة بواسطة Stable Diffusion", "ai");
-            }
-            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
+            addMessage(imageUrl, "ai");
+            return;
         } catch(error) {
-            console.error("Stable Diffusion Error:", error);
+            console.error("Stable Error:", error);
             removeTyping(typing);
             addMessage("⚠️ خطأ أثناء توليد الصورة", "ai");
             return;
@@ -1221,20 +1214,13 @@ async function sendMessage(){
     // ==========================================
     if(selectedModel === "unsplash"){
         try {
-            const response = await fetch("/api/generate-image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: text, model: "unsplash" })
-            });
-            const data = await response.json();
-            removeTyping(typing);
+            // جلب خلفية عالية الجودة مباشرة من Unsplash بناءً على كلمة البحث
+            const encodedQuery = encodeURIComponent(text);
+            const imageUrl = `https://source.unsplash.com/1600x900/?${encodedQuery}`;
 
-            if(data.image){
-                addMessage(data.image, "ai");
-            } else {
-                addMessage("⚠️ لم يتم العثور على خلفية مطابقة", "ai");
-            }
-            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
+            removeTyping(typing);
+            addMessage(imageUrl, "ai");
+            return;
         } catch(error) {
             console.error("Unsplash Error:", error);
             removeTyping(typing);
@@ -1242,6 +1228,7 @@ async function sendMessage(){
             return;
         }
     }
+
 
     // ==========================================
     // 3. Gemini AI (الدردشة والإجابة النصية)
