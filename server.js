@@ -2748,18 +2748,21 @@ success:false
 });
 
 // ======================================
-// Artguru AI Enhance (بدون Replicate)
+// Artguru AI Enhance - مع المفتاح المباشر
 // ======================================
+
+// 🔑 مفتاح Artguru API (موجود مباشرة في الكود)
+const ARTGURU_API_KEY = "ak-d7f53e8ef5e72154746d88bf24f5b523";
 
 app.post("/api/artguru/enhance", async (req,res)=>{
 
     try {
 
-        // التحقق من وجود مفتاح Artguru
-        if(!process.env.ARTGURU_API_KEY){
+        // التحقق من وجود المفتاح
+        if(!ARTGURU_API_KEY){
             return res.status(500).json({
                 success:false,
-                message:"ARTGURU_API_KEY missing - يرجى إضافة المفتاح"
+                message:"ARTGURU_API_KEY missing - يرجى إضافة المفتاح في الكود"
             });
         }
 
@@ -2768,17 +2771,18 @@ app.post("/api/artguru/enhance", async (req,res)=>{
         if(!image){
             return res.status(400).json({
                 success:false,
-                message:"Image required"
+                message:"Image required - يرجى اختيار صورة أولاً"
             });
         }
 
         console.log("🚀 Starting Artguru AI Enhance...");
+        console.log("📸 Image size:", image.length);
 
-        // استخدام Artguru API
+        // استخدام Artguru API مع المفتاح المباشر
         const response = await fetch("https://api.artguru.ai/v1/enhance", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${process.env.ARTGURU_API_KEY}`,
+                "Authorization": `Bearer ${ARTGURU_API_KEY}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -2789,17 +2793,20 @@ app.post("/api/artguru/enhance", async (req,res)=>{
             })
         });
 
+        console.log("📡 Artguru API Status:", response.status);
+
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || "Artguru API error");
+            console.log("❌ Artguru Error:", errorData);
+            throw new Error(errorData.message || errorData.error || "Artguru API error");
         }
 
         const data = await response.json();
         
-        console.log("✅ Artguru Response:", data);
+        console.log("✅ Artguru Response received");
 
         // استخراج رابط الصورة المحسنة
-        let imageUrl = data.enhanced_image || data.url || data.data?.url || data.image;
+        let imageUrl = data.enhanced_image || data.url || data.data?.url || data.image || data.result?.url;
 
         if(!imageUrl){
             // محاولة البحث في البيانات
@@ -2807,11 +2814,15 @@ app.post("/api/artguru/enhance", async (req,res)=>{
         }
 
         if(!imageUrl){
+            console.log("⚠️ No image URL found in response:", JSON.stringify(data).substring(0, 200));
             return res.status(500).json({
                 success:false,
-                message:"لم يتم العثور على الصورة المحسنة"
+                message:"لم يتم العثور على الصورة المحسنة في الرد",
+                debug: data
             });
         }
+
+        console.log("✅ Enhanced image URL:", imageUrl.substring(0, 100) + "...");
 
         res.json({
             success: true,
@@ -2821,7 +2832,7 @@ app.post("/api/artguru/enhance", async (req,res)=>{
         });
 
     } catch(error) {
-        console.log("❌ Artguru Enhance Error:", error);
+        console.log("❌ Artguru Enhance Error:", error.message);
         
         res.status(500).json({
             success: false,
@@ -2853,7 +2864,8 @@ function findImageUrl(data) {
     if (typeof data === "object") {
         const priorityKeys = [
             "enhanced_image", "url", "image", "image_url", 
-            "result_url", "output", "download_url", "data"
+            "result_url", "output", "download_url", "data",
+            "result", "urls", "photo", "picture"
         ];
 
         for (const key of priorityKeys) {
@@ -2871,6 +2883,19 @@ function findImageUrl(data) {
 
     return null;
 }
+
+// ======================================
+// إضافة نقطة للتحقق من حالة API
+// ======================================
+
+app.get("/api/artguru/status", (req,res)=>{
+    res.json({
+        success: true,
+        hasKey: !!ARTGURU_API_KEY,
+        keyPrefix: ARTGURU_API_KEY ? ARTGURU_API_KEY.substring(0, 8) + "..." : "none",
+        status: ARTGURU_API_KEY ? "ready" : "missing"
+    });
+});
 
 // ======================================
 // Start Server
