@@ -2747,112 +2747,293 @@ success:false
 
 });
 
-// ======================================
-// Artguru AI Enhance - مع المفتاح المباشر
-// ======================================
+// ==========================================
+// ARTGURU AI ENHANCE - CLEAN VERSION
+// مع تتبع الأخطاء وتحسين الأمان
+// ==========================================
 
-// 🔑 مفتاح Artguru API (موجود مباشرة في الكود)
 const ARTGURU_API_KEY = "ak-d7f53e8ef5e72154746d88bf24f5b523";
+const ARTGURU_API_URL = "https://api.artguru.ai/v1/enhance";
 
-app.post("/api/artguru/enhance", async (req,res)=>{
+// ==========================================
+// نقطة النهاية الرئيسية للتحسين
+// ==========================================
+
+app.post("/api/artguru/enhance", async (req, res) => {
+    const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+    console.log(`[${requestId}] 🚀 بدء طلب التحسين`);
 
     try {
-
-        // التحقق من وجود المفتاح
-        if(!ARTGURU_API_KEY){
-            return res.status(500).json({
-                success:false,
-                message:"ARTGURU_API_KEY missing - يرجى إضافة المفتاح في الكود"
-            });
-        }
+        // ======================================
+        // 1. التحقق من صحة المدخلات (Input Validation)
+        // ======================================
 
         const { image } = req.body;
 
-        if(!image){
+        // التحقق من وجود الصورة
+        if (!image) {
+            console.log(`[${requestId}] ❌ الصورة مفقودة`);
             return res.status(400).json({
-                success:false,
-                message:"Image required - يرجى اختيار صورة أولاً"
+                success: false,
+                code: "MISSING_IMAGE",
+                message: "الصورة مطلوبة. يرجى اختيار صورة أولاً."
             });
         }
 
-        console.log("🚀 Starting Artguru AI Enhance...");
-        console.log("📸 Image size:", image.length);
+        // التحقق من حجم الصورة (حد أقصى 10MB)
+        const imageSizeInBytes = Buffer.from(image, 'base64').length;
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
-        // استخدام Artguru API مع المفتاح المباشر
-        const response = await fetch("https://api.artguru.ai/v1/enhance", {
+        if (imageSizeInBytes > MAX_SIZE) {
+            console.log(`[${requestId}] ❌ حجم الصورة كبير جداً: ${(imageSizeInBytes / 1024 / 1024).toFixed(2)}MB`);
+            return res.status(413).json({
+                success: false,
+                code: "IMAGE_TOO_LARGE",
+                message: "حجم الصورة يتجاوز 10 ميجابايت. يرجى اختيار صورة أصغر."
+            });
+        }
+
+        // التحقق من صيغة الصورة (base64)
+        if (!image.startsWith('data:image/')) {
+            console.log(`[${requestId}] ❌ صيغة صورة غير صالحة`);
+            return res.status(400).json({
+                success: false,
+                code: "INVALID_IMAGE_FORMAT",
+                message: "صيغة الصورة غير مدعومة. يرجى استخدام JPG أو PNG."
+            });
+        }
+
+        console.log(`[${requestId}] ✅ تم التحقق من الصورة: ${(imageSizeInBytes / 1024).toFixed(2)}KB`);
+
+        // ======================================
+        // 2. التحقق من مفتاح API
+        // ======================================
+
+        if (!ARTGURU_API_KEY) {
+            console.error(`[${requestId}] ❌ مفتاح API مفقود`);
+            return res.status(500).json({
+                success: false,
+                code: "API_KEY_MISSING",
+                message: "مفتاح Artguru API غير موجود. يرجى التواصل مع الدعم الفني."
+            });
+        }
+
+        // ======================================
+        // 3. تحضير الطلب لـ Artguru API
+        // ======================================
+
+        const requestBody = {
+            image: image,
+            scale: 4,
+            denoise: true,
+            face_enhance: false
+        };
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // مهلة 30 ثانية
+
+        console.log(`[${requestId}] 📡 إرسال طلب إلى Artguru API...`);
+
+        // ======================================
+        // 4. إرسال الطلب مع معالجة الأخطاء
+        // ======================================
+
+        const response = await fetch(ARTGURU_API_URL, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${ARTGURU_API_KEY}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Accept": "application/json"
             },
-            body: JSON.stringify({
-                image: image,
-                scale: 4,           // تحسين الجودة 4x
-                denoise: true,       // إزالة الضوضاء
-                face_enhance: false  // تحسين الوجه (اختياري)
-            })
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
         });
 
-        console.log("📡 Artguru API Status:", response.status);
+        clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.log("❌ Artguru Error:", errorData);
-            throw new Error(errorData.message || errorData.error || "Artguru API error");
-        }
+        console.log(`[${requestId}] 📡 استجابة API: ${response.status} ${response.statusText}`);
 
-        const data = await response.json();
-        
-        console.log("✅ Artguru Response received");
+        // ======================================
+        // 5. معالجة استجابة API
+        // ======================================
 
-        // استخراج رابط الصورة المحسنة
-        let imageUrl = data.enhanced_image || data.url || data.data?.url || data.image || data.result?.url;
+        // قراءة النص الخام أولاً للتعامل مع الأخطاء بشكل أفضل
+        const rawResponse = await response.text();
+        let data;
 
-        if(!imageUrl){
-            // محاولة البحث في البيانات
-            imageUrl = findImageUrl(data);
-        }
-
-        if(!imageUrl){
-            console.log("⚠️ No image URL found in response:", JSON.stringify(data).substring(0, 200));
+        try {
+            data = JSON.parse(rawResponse);
+        } catch (parseError) {
+            console.error(`[${requestId}] ❌ خطأ في تحليل JSON:`, parseError.message);
             return res.status(500).json({
-                success:false,
-                message:"لم يتم العثور على الصورة المحسنة في الرد",
-                debug: data
+                success: false,
+                code: "INVALID_API_RESPONSE",
+                message: "استجابة غير صالحة من Artguru API",
+                details: rawResponse.substring(0, 200)
             });
         }
 
-        console.log("✅ Enhanced image URL:", imageUrl.substring(0, 100) + "...");
+        // التحقق من حالة الاستجابة
+        if (!response.ok) {
+            console.error(`[${requestId}] ❌ خطأ من Artguru API:`, data);
+
+            // معالجة أخطاء محددة
+            const errorCode = data.code || data.error || "API_ERROR";
+            const errorMessage = data.message || data.error_message || data.error || "فشل في تحسين الصورة";
+
+            // أخطاء شائعة
+            if (response.status === 401 || response.status === 403) {
+                return res.status(401).json({
+                    success: false,
+                    code: "INVALID_API_KEY",
+                    message: "مفتاح API غير صالح. يرجى التحقق من المفتاح."
+                });
+            }
+
+            if (response.status === 429) {
+                return res.status(429).json({
+                    success: false,
+                    code: "RATE_LIMITED",
+                    message: "تم تجاوز الحد اليومي للاستخدام. يرجى المحاولة غداً."
+                });
+            }
+
+            if (response.status === 413) {
+                return res.status(413).json({
+                    success: false,
+                    code: "IMAGE_TOO_LARGE",
+                    message: "الصورة كبيرة جداً بالنسبة لـ Artguru API."
+                });
+            }
+
+            return res.status(response.status).json({
+                success: false,
+                code: errorCode,
+                message: errorMessage
+            });
+        }
+
+        // ======================================
+        // 6. استخراج الصورة المحسنة
+        // ======================================
+
+        console.log(`[${requestId}] ✅ استجابة ناجحة، استخراج الصورة...`);
+
+        let enhancedImage = null;
+
+        // محاولة استخراج الرابط من عدة أماكن محتملة
+        const possibleKeys = [
+            'enhanced_image',
+            'image',
+            'url',
+            'result',
+            'output',
+            'data.url',
+            'data.image'
+        ];
+
+        for (const key of possibleKeys) {
+            const value = key.includes('.')
+                ? key.split('.').reduce((obj, k) => obj?.[k], data)
+                : data[key];
+
+            if (value && typeof value === 'string' && (value.startsWith('http') || value.startsWith('data:image'))) {
+                enhancedImage = value;
+                break;
+            }
+        }
+
+        // إذا لم يتم العثور، حاول البحث العميق
+        if (!enhancedImage) {
+            enhancedImage = findImageUrl(data);
+        }
+
+        if (!enhancedImage) {
+            console.error(`[${requestId}] ❌ لم يتم العثور على الصورة المحسنة`);
+            return res.status(500).json({
+                success: false,
+                code: "ENHANCED_IMAGE_NOT_FOUND",
+                message: "لم يتم العثور على الصورة المحسنة في استجابة API",
+                debug: {
+                    responseKeys: Object.keys(data)
+                }
+            });
+        }
+
+        console.log(`[${requestId}] ✅ تم استخراج الصورة المحسنة بنجاح`);
+
+        // ======================================
+        // 7. إعادة النتيجة
+        // ======================================
 
         res.json({
             success: true,
             data: {
-                image: imageUrl
+                image: enhancedImage,
+                originalSize: imageSizeInBytes,
+                enhancedAt: new Date().toISOString()
             }
         });
 
-    } catch(error) {
-        console.log("❌ Artguru Enhance Error:", error.message);
-        
-        res.status(500).json({
+    } catch (error) {
+        // ======================================
+        // 8. معالجة الأخطاء العامة
+        // ======================================
+
+        console.error(`[${requestId}] ❌ خطأ عام:`, error);
+
+        // معالجة أخطاء المهلة
+        if (error.name === 'AbortError') {
+            return res.status(504).json({
+                success: false,
+                code: "TIMEOUT",
+                message: "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى."
+            });
+        }
+
+        // معالجة أخطاء الشبكة
+        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+            return res.status(503).json({
+                success: false,
+                code: "NETWORK_ERROR",
+                message: "تعذر الاتصال بـ Artguru API. يرجى التحقق من الاتصال بالإنترنت."
+            });
+        }
+
+        // معالجة أخطاء JSON
+        if (error instanceof SyntaxError) {
+            return res.status(500).json({
+                success: false,
+                code: "INVALID_JSON",
+                message: "خطأ في صيغة البيانات المرسلة."
+            });
+        }
+
+        // أي خطأ آخر
+        return res.status(500).json({
             success: false,
-            message: error.message || "حدث خطأ في التحسين"
+            code: "INTERNAL_ERROR",
+            message: error.message || "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
         });
     }
-
 });
 
-// دالة مساعدة للبحث عن الرابط
+// ==========================================
+// دالة مساعدة: البحث عن رابط الصورة
+// ==========================================
+
 function findImageUrl(data) {
     if (!data) return null;
 
-    if (typeof data === "string") {
-        if (data.startsWith("http") || data.startsWith("data:image")) {
+    // إذا كانت سلسلة نصية
+    if (typeof data === 'string') {
+        if (data.startsWith('http') || data.startsWith('data:image')) {
             return data;
         }
         return null;
     }
 
+    // إذا كانت مصفوفة
     if (Array.isArray(data)) {
         for (const item of data) {
             const result = findImageUrl(item);
@@ -2861,11 +3042,13 @@ function findImageUrl(data) {
         return null;
     }
 
-    if (typeof data === "object") {
+    // إذا كان كائن
+    if (typeof data === 'object') {
+        // المفاتيح ذات الأولوية
         const priorityKeys = [
-            "enhanced_image", "url", "image", "image_url", 
-            "result_url", "output", "download_url", "data",
-            "result", "urls", "photo", "picture"
+            'enhanced_image', 'image', 'url', 'image_url',
+            'result_url', 'output', 'download_url',
+            'result', 'photo', 'picture', 'src', 'source'
         ];
 
         for (const key of priorityKeys) {
@@ -2875,27 +3058,95 @@ function findImageUrl(data) {
             }
         }
 
+        // البحث في جميع المفاتيح الأخرى
         for (const key in data) {
-            const result = findImageUrl(data[key]);
-            if (result) return result;
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                const result = findImageUrl(data[key]);
+                if (result) return result;
+            }
         }
     }
 
     return null;
 }
 
-// ======================================
-// إضافة نقطة للتحقق من حالة API
-// ======================================
+// ==========================================
+// نقطة نهاية للتحقق من حالة API
+// ==========================================
 
-app.get("/api/artguru/status", (req,res)=>{
-    res.json({
+app.get("/api/artguru/status", (req, res) => {
+    const status = {
         success: true,
-        hasKey: !!ARTGURU_API_KEY,
-        keyPrefix: ARTGURU_API_KEY ? ARTGURU_API_KEY.substring(0, 8) + "..." : "none",
+        apiKey: {
+            exists: !!ARTGURU_API_KEY,
+            prefix: ARTGURU_API_KEY ? ARTGURU_API_KEY.substring(0, 8) + "..." : null,
+            isValid: ARTGURU_API_KEY ? ARTGURU_API_KEY.startsWith('ak-') : false
+        },
+        apiUrl: ARTGURU_API_URL,
+        serverTime: new Date().toISOString(),
         status: ARTGURU_API_KEY ? "ready" : "missing"
-    });
+    };
+
+    // التحقق من صحة المفتاح (اختبار سريع)
+    if (ARTGURU_API_KEY && ARTGURU_API_KEY.startsWith('ak-')) {
+        status.status = "configured";
+    }
+
+    res.json(status);
 });
+
+// ==========================================
+// نقطة نهاية لاختبار التحسين (Mock)
+// ==========================================
+
+app.post("/api/artguru/test", async (req, res) => {
+    // نقطة اختبار للتحقق من الاتصال بـ Artguru
+    try {
+        const testImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+        const response = await fetch(ARTGURU_API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${ARTGURU_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                image: testImage,
+                scale: 1,
+                denoise: false,
+                face_enhance: false
+            })
+        });
+
+        const data = await response.json();
+
+        res.json({
+            success: response.ok,
+            status: response.status,
+            message: response.ok ? "API يعمل بشكل طبيعي" : "API يعمل ولكن حدث خطأ",
+            details: data
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "فشل اختبار API",
+            error: error.message
+        });
+    }
+});
+
+// ==========================================
+// ملخص النظام
+// ==========================================
+
+console.log("=".repeat(50));
+console.log("🔐 ARTGURU AI ENHANCE - SYSTEM READY");
+console.log("=".repeat(50));
+console.log(`✅ API Key: ${ARTGURU_API_KEY ? 'موجود ✓' : 'مفقود ✗'}`);
+console.log(`🔑 Key Type: ${ARTGURU_API_KEY?.startsWith('ak-') ? 'Artguru Key ✓' : 'غير معروف'}`);
+console.log(`🌐 API URL: ${ARTGURU_API_URL}`);
+console.log("=".repeat(50));
 
 // ======================================
 // Start Server
