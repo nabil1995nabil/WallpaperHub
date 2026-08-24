@@ -1167,84 +1167,100 @@ return bubble;
 
 }
 
-
-
-
-
-
 // ===============================
-// Send Message
+// Send Message (Model Isolation Fixed)
 // ===============================
-
 
 async function sendMessage(){
 
+    const text = userInput.value.trim();
 
+    if(text === "" && !selectedImage) return;
 
-const text =
-userInput.value.trim();
+    if(text){
+        addMessage(text, "user");
+    }
 
+    const welcome = document.querySelector(".welcome-screen");
+    if(welcome){
+        welcome.style.display = "none";
+    }
 
+    userInput.value = "";
+    const typing = typingEffect();
 
+    // ==========================================
+    // 1. Stable Diffusion (توليد الصور المبتكرة)
+    // ==========================================
+    if(selectedModel === "stable"){
+        try {
+            const response = await fetch("/api/generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: text, model: "stable" })
+            });
+            const data = await response.json();
+            removeTyping(typing);
 
+            if(data.image){
+                addMessage(data.image, "ai");
+            } else {
+                addMessage("⚠️ لم يتم إنشاء الصورة بواسطة Stable Diffusion", "ai");
+            }
+            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
+        } catch(error) {
+            console.error("Stable Diffusion Error:", error);
+            removeTyping(typing);
+            addMessage("⚠️ خطأ أثناء توليد الصورة", "ai");
+            return;
+        }
+    }
 
-if(
-text === "" &&
-!selectedImage
-)
-return;
+    // ==========================================
+    // 2. Unsplash (البحث عن الخلفيات والصور)
+    // ==========================================
+    if(selectedModel === "unsplash"){
+        try {
+            const response = await fetch("/api/generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: text, model: "unsplash" })
+            });
+            const data = await response.json();
+            removeTyping(typing);
 
+            if(data.image){
+                addMessage(data.image, "ai");
+            } else {
+                addMessage("⚠️ لم يتم العثور على خلفية مطابقة", "ai");
+            }
+            return; // إنهاء التنفيذ فوراً لعدم المرور على Gemini
+        } catch(error) {
+            console.error("Unsplash Error:", error);
+            removeTyping(typing);
+            addMessage("⚠️ خطأ في جلب الخلفية", "ai");
+            return;
+        }
+    }
 
+    // ==========================================
+    // 3. Gemini AI (الدردشة والإجابة النصية)
+    // ==========================================
+    let imageData = null;
+    if(selectedImage){
+        imageData = await imageToBase64(selectedImage);
+    }
 
+    const reply = await askGemini(text, imageData, selectedImage);
 
+    removeTyping(typing);
+    addMessage(reply, "ai");
 
-if(text){
-
-
-addMessage(
-text,
-"user"
-);
-
-
+    selectedImage = null;
+    if(imageInput){
+        imageInput.value = "";
+    }
 }
-
-
-
-
-
-const welcome =
-document.querySelector(
-".welcome-screen"
-);
-
-
-
-if(welcome){
-
-
-welcome.style.display =
-"none";
-
-
-}
-
-
-
-
-
-userInput.value="";
-
-
-
-
-
-const typing =
-typingEffect();
-
-
-
-
 
 
 // ===============================
