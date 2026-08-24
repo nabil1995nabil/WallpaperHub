@@ -2116,18 +2116,19 @@ function bindLongPressDelete(itemElement, chatId) {
 }
 
 // إنشاء وإظهار فقاعة الحذف
+// إنشاء وإظهار فقاعة الحذف (نسخة محسنة ومضمونة)
 function showDeletePopover(itemElement, chatId) {
     document.querySelectorAll(".delete-popover").forEach(el => el.remove());
 
     const popover = document.createElement("div");
     popover.className = "delete-popover";
     popover.innerHTML = `
-        <button class="delete-popover-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="delete-popover-btn" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
-            حذف
+            <span style="pointer-events: none;">حذف</span>
         </button>
     `;
 
@@ -2137,11 +2138,14 @@ function showDeletePopover(itemElement, chatId) {
         popover.classList.add("active");
     });
 
-    // عند النقر على زر "حذف"
-    popover.querySelector(".delete-popover-btn").onclick = (e) => {
-        e.stopPropagation(); // منع فتح المحادثة أثناء الضغط على الحذف
+    // ربط الحدث بالفقاعة بأكملها لمنع المشاكل
+    const deleteBtn = popover.querySelector(".delete-popover-btn");
+    
+    deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         deleteChat(chatId, itemElement);
-    };
+    });
 
     // إغلاق الفقاعة عند النقر في أي مكان آخر
     setTimeout(() => {
