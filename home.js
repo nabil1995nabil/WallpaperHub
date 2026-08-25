@@ -84,7 +84,9 @@ async function loadWallpapers() {
 
     try {
 
-        const response = await fetch("/api/wallpapers");
+        const response = await fetch(
+    "/api/wallpapers?_=" + Date.now()
+);
 
         const text = await response.text();
 
@@ -1060,7 +1062,8 @@ try{
 
 
 const res =
-await fetch("/api/wallpapers");
+await fetch("/api/wallpapers?_=" + Date.now());
+
 
 
 
