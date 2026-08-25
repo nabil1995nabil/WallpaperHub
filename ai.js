@@ -1312,55 +1312,6 @@ async function askGemini(message, imageData = null, imageFile = null) {
     }
 }
 
-
-
-// ===============================
-// Image Request
-// ===============================
-
-
-const imageWords = [
-
-"خلفية",
-
-"صورة",
-
-"ولد",
-
-"اصنع",
-
-"انشئ",
-
-"صمم",
-
-"generate",
-
-"wallpaper"
-
-];
-
-
-
-
-
-const isImageRequest =
-imageWords.some(word=>
-
-text.toLowerCase()
-.includes(
-word.toLowerCase()
-)
-
-);
-
-
-
-
-
-
-
-
-
 // ===============================
 // Stable Diffusion
 // ===============================
