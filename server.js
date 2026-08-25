@@ -15,32 +15,6 @@ console.log(
 process.env.ARTGURU_API_KEY ? "FOUND" : "MISSING"
 );
 
-const PROJECT_CONTEXT_FILE =
-path.join(__dirname,"project_context.json");
-
-
-function loadProjectContext(){
-
-    try{
-
-        return JSON.parse(
-            fs.readFileSync(
-                PROJECT_CONTEXT_FILE,
-                "utf8"
-            )
-        );
-
-    }catch(error){
-
-        return {
-            project:"WallpaperHub AI",
-            description:"AI Wallpaper Platform"
-        };
-
-    }
-
-}
-
 // ======================================
 // Firebase Admin
 // ======================================
@@ -2231,7 +2205,7 @@ timezone
 
 }=req.body;
 
-const projectContext = loadProjectContext();
+
 
 let parts=[];
 
@@ -2242,20 +2216,11 @@ parts.push({
 text:
 
 `
-أنت مساعد داخلي لمشروع WallpaperHub AI.
+أنت WallpaperHub AI.
 
-معلومات المشروع:
-${JSON.stringify(projectContext,null,2)}
+جاوب المستخدم بنفس لغته.
 
-تعليمات:
-- افهم المشروع قبل الإجابة.
-- ساعد في البرمجة والتطوير.
-- تعامل كمهندس Full Stack داخل المشروع.
-- جاوب المستخدم بنفس لغته.
-- إذا كان من المغرب استعمل الدارجة المغربية.
-
-سؤال المستخدم:
-${message}
+إذا كان من المغرب استعمل الدارجة المغربية.
 
 اللغة:
 ${locale}
@@ -2336,6 +2301,50 @@ parts
 
 const data =
 await response.json();
+
+
+let imageUrl = null;
+
+
+// استخراج الصورة إذا رجعها Gemini
+if(
+    data.candidates &&
+    data.candidates[0] &&
+    data.candidates[0].content &&
+    data.candidates[0].content.parts
+){
+
+    const parts =
+    data.candidates[0].content.parts;
+
+
+    for(const part of parts){
+
+        if(part.inlineData){
+
+            imageUrl =
+            "data:" +
+            part.inlineData.mimeType +
+            ";base64," +
+            part.inlineData.data;
+
+        }
+
+    }
+
+}
+
+
+
+res.json({
+
+    success:true,
+
+    image:imageUrl,
+
+    raw:data
+
+});
 
 
 
@@ -2911,6 +2920,115 @@ app.get("/api/artguru/status", (req, res) => {
         status: 'ready',
         serverTime: new Date().toISOString()
     });
+});
+
+// ======================================
+// Gemini Image Generation
+// ======================================
+
+app.post(
+"/api/generate-image",
+async(req,res)=>{
+
+try{
+
+const {prompt}=req.body;
+
+
+if(!prompt){
+
+return res.status(400).json({
+
+success:false,
+message:"Prompt required"
+
+});
+
+}
+
+
+
+const response = await fetch(
+
+`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_IMAGE_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+contents:[
+
+{
+
+parts:[
+
+{
+
+text:
+`Create a high quality wallpaper image:
+
+${prompt}`
+
+}
+
+]
+
+}
+
+]
+
+})
+
+}
+
+);
+
+
+
+const data =
+await response.json();
+
+
+
+res.json({
+
+success:true,
+
+data:data
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"Gemini Image Error:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false,
+
+message:"Image generation failed"
+
+});
+
+
+}
+
 });
 
 // ======================================

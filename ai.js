@@ -62,19 +62,6 @@ name="🧠 Gemini";
 
 }
 
-else if(selectedModel==="stable"){
-
-name="🎨 Stable Diffusion";
-
-}
-
-else if(selectedModel==="unsplash"){
-
-name="🖼️ Unsplash";
-
-}
-
-
 
 modelBtn.innerHTML =
 name+" ▼";
@@ -1249,281 +1236,139 @@ typingEffect();
 // Image Request
 // ===============================
 
-
 const imageWords = [
 
-"خلفية",
-
-"صورة",
-
-"ولد",
-
-"اصنع",
-
-"انشئ",
-
-"صمم",
-
-"generate",
-
-"wallpaper"
+    "خلفية",
+    "صورة",
+    "صور",
+    "ارسم",
+    "رسم",
+    "اصنع",
+    "انشئ",
+    "أنشئ",
+    "صمم",
+    "تصميم",
+    "ولد",
+    "توليد",
+    "generate",
+    "create",
+    "draw",
+    "make",
+    "wallpaper",
+    "background"
 
 ];
 
 
-
-
-
 const isImageRequest =
-imageWords.some(word=>
+imageWords.some(word =>
 
-text.toLowerCase()
-.includes(
-word.toLowerCase()
-)
+    text
+    .toLowerCase()
+    .includes(
+        word.toLowerCase()
+    )
 
 );
-
-
-
-
-
-
-
 
 
 // ===============================
-// Stable Diffusion
+// Gemini Image Generation
 // ===============================
 
+if(isImageRequest){
 
-if(
-isImageRequest &&
-selectedModel==="stable"
-){
+    try{
 
+        const imageResponse =
+        await fetch(
+            "/api/generate-image",
+            {
 
-try{
+            method:"POST",
 
+            headers:{
+                "Content-Type":"application/json"
+            },
 
-const response =
-await fetch(
-"/api/generate-image",
-{
+            body:JSON.stringify({
 
+                prompt:text
 
-method:"POST",
+            })
 
+        });
 
-headers:{
 
+        const imageResult =
+        await imageResponse.json();
 
-"Content-Type":
-"application/json"
 
+        removeTyping(typing);
 
-},
 
+        if(imageResult.success){
 
 
-body:JSON.stringify({
+            addMessage(
+                "🖼️ تم إنشاء الصورة بنجاح",
+                "ai"
+            );
 
 
-prompt:text,
+            if(imageResult.image){
 
+                addMessage(
+                    imageResult.image,
+                    "ai"
+                );
 
-model:"stable"
+            }
 
 
-})
+        }else{
 
 
+            addMessage(
+                "⚠️ لم أستطع إنشاء الصورة حاليا",
+                "ai"
+            );
 
-});
 
+        }
 
-const data =
-await response.json();
 
+        selectedImage=null;
 
+        if(imageInput){
+            imageInput.value="";
+        }
 
 
-removeTyping(
-typing
-);
+        return;
 
 
+    }catch(error){
 
 
+        console.error(
+            "Image Generation Error:",
+            error
+        );
 
-if(data.image){
 
+        removeTyping(typing);
 
-addMessage(
-data.image,
-"ai"
-);
 
+        addMessage(
+            "⚠️ حدث خطأ أثناء إنشاء الصورة",
+            "ai"
+        );
 
 
-}else{
+        return;
 
-
-addMessage(
-"⚠️ لم يتم إنشاء الصورة",
-"ai"
-);
-
-
-}
-
-
-
-return;
-
-
-
-}catch(error){
-
-
-console.error(error);
-
-
-
-removeTyping(
-typing
-);
-
-
-
-addMessage(
-"⚠️ خطأ أثناء توليد الصورة",
-"ai"
-);
-
-
-
-return;
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-// ===============================
-// Unsplash / Ready Wallpapers
-// ===============================
-
-
-if(
-isImageRequest &&
-selectedModel==="unsplash"
-){
-
-
-try{
-
-
-const response =
-await fetch(
-"/api/generate-image",
-{
-
-
-method:"POST",
-
-
-headers:{
-
-
-"Content-Type":
-"application/json"
-
-
-},
-
-
-body:JSON.stringify({
-
-prompt:text,
-
-model:"unsplash"
-
-})
-
-
-});
-
-
-const data =
-await response.json();
-
-
-
-removeTyping(
-typing
-);
-
-
-
-if(data.image){
-
-
-addMessage(
-data.image,
-"ai"
-);
-
-
-}else{
-
-
-addMessage(
-"⚠️ لم أجد خلفية",
-"ai"
-);
-
-
-}
-
-
-
-return;
-
-
-
-}catch(error){
-
-
-console.log(error);
-
-
-
-removeTyping(
-typing
-);
-
-
-
-addMessage(
-"⚠️ خطأ في البحث عن الخلفية",
-"ai"
-);
-
-
-
-return;
-
-
-}
-
+    }
 
 }
 
@@ -1548,10 +1393,6 @@ selectedImage
 
 
 }
-
-
-
-
 
 
 
