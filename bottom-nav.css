@@ -1,0 +1,202 @@
+/* ===================================================
+   WallpaperHub - LIQUID GLOW Navigation
+   =================================================== */
+
+.bottom-nav {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 420px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    /* زجاج سائل ضبابي */
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-radius: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+
+    box-shadow:
+        0 15px 40px rgba(80, 96, 255, 0.18),
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+    z-index: 9999;
+}
+
+/* الحافة المتدرجة المتحركة (الهالة تدور حول الشريط) */
+.bottom-nav::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: 27px;
+    padding: 1.5px;
+    background: conic-gradient(
+        from var(--edge-angle, 0deg),
+        transparent 0deg,
+        transparent 240deg,
+        rgba(80, 96, 255, 0.7) 300deg,
+        rgba(168, 85, 247, 0.7) 340deg,
+        transparent 360deg
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: edgeSpin 5s linear infinite;
+    pointer-events: none;
+}
+
+@property --edge-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes edgeSpin {
+    to { --edge-angle: 360deg; }
+}
+
+/* القطرة السائلة — قلب التصميم */
+.liquid-blob {
+    position: absolute;
+    top: 50%;
+    height: 52px;
+    width: 64px;
+    background: linear-gradient(135deg, #5060ff, #a855f7);
+    border-radius: 18px;
+    transform: translate(-50%, -50%);
+    transition:
+        left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),   /* نطة مرنة */
+        width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow:
+        0 8px 22px rgba(80, 96, 255, 0.45),
+        inset 0 2px 4px rgba(255, 255, 255, 0.35);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* نبض خفيف دائم للقطرة */
+.liquid-blob::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    filter: blur(12px);
+    opacity: 0.5;
+    animation: blobBreath 2.5s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes blobBreath {
+    0%, 100% { transform: scale(1); opacity: 0.45; }
+    50%      { transform: scale(1.12); opacity: 0.65; }
+}
+
+/* لحظة "التمدد" عند التنقل */
+.liquid-blob.stretch {
+    width: 90px;
+}
+
+/* العناصر */
+.nav-item {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: #8a93a8;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-item span {
+    font-size: 24px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-item p {
+    margin: 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.nav-item.active {
+    color: #ffffff;
+    transform: translateY(-3px);
+}
+
+.nav-item.active span {
+    transform: scale(1.18) translateY(-2px);
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+}
+
+/* موجة اللمس */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(80, 96, 255, 0.35), transparent 70%);
+    transform: scale(0);
+    animation: rippleOut 0.6s ease-out forwards;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes rippleOut {
+    to { transform: scale(3.5); opacity: 0; }
+}
+
+/* الوضع الليلي */
+body.dark .bottom-nav {
+    background: rgba(18, 20, 30, 0.72);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.dark .nav-item {
+    color: #7a819c;
+}
+
+body.dark .nav-item.active {
+    color: #ffffff;
+}
+
+/* ===================================================
+   FIX: تباين أقوى على الخلفيات الفاتحة
+=================================================== */
+
+.bottom-nav {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(80, 96, 255, 0.15);
+    box-shadow:
+        0 15px 45px rgba(80, 96, 255, 0.25),
+        0 6px 18px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.nav-item {
+    color: #5b6478;
+}
+
+.nav-item.active {
+    color: #ffffff;
+    font-weight: 900;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.nav-item.active span {
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
