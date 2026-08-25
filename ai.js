@@ -54,47 +54,56 @@ document.getElementById("chatHistory");
 
 
 
-// فتح القائمة
+// ===============================
+// Model Selector
+// ===============================
 
-if(menuBtn && sidebar){
+const modelBtn = document.getElementById("modelBtn");
+const modelMenu = document.getElementById("modelMenu");
 
+let currentModel = localStorage.getItem("selectedModel") || "gemini";
 
-    menuBtn.onclick = ()=>{
-
-
-        sidebar.classList.add(
-            "active"
-        );
-
-
-    };
-
-
+function updateModelBtn() {
+    if (!modelBtn) return;
+    if (currentModel === "pollinations") {
+        modelBtn.textContent = "Pollinations 🎨";
+    } else {
+        modelBtn.textContent = "Gemini 🧠";
+    }
 }
 
+if (modelBtn && modelMenu) {
 
+    updateModelBtn();
 
+    // بناء خيارات القائمة
+    modelMenu.innerHTML = `
+        <div data-model="gemini">🧠 Gemini</div>
+        <div data-model="pollinations">🎨 Pollinations (مجاني)</div>
+    `;
 
-// إغلاق القائمة
-
-if(closeSidebar && sidebar){
-
-
-    closeSidebar.onclick = ()=>{
-
-
-        sidebar.classList.remove(
-            "active"
-        );
-
-
+    // فتح/إغلاق القائمة
+    modelBtn.onclick = (e) => {
+        e.stopPropagation();
+        modelMenu.classList.toggle("active");
     };
 
+    // إغلاق عند الضغط خارجاً
+    document.addEventListener("click", () => {
+        modelMenu.classList.remove("active");
+    });
 
+    // اختيار نموذج
+    modelMenu.querySelectorAll("div").forEach(option => {
+        option.onclick = (e) => {
+            e.stopPropagation();
+            currentModel = option.dataset.model;
+            localStorage.setItem("selectedModel", currentModel);
+            updateModelBtn();
+            modelMenu.classList.remove("active");
+        };
+    });
 }
-
-
-
 
 
 // ===============================
@@ -1166,104 +1175,88 @@ imageWords.some(word =>
 
 
 // ===============================
-// Gemini Image Generation
+// Image Generation (Gemini أو Pollinations)
 // ===============================
 
 if(isImageRequest){
 
     try{
 
-        const imageResponse =
-        await fetch(
-            "/api/generate-image",
-            {
+        let imageUrl = null;
 
-            method:"POST",
+        if(currentModel === "pollinations"){
 
-            headers:{
-                "Content-Type":"application/json"
-            },
+            // ✨ Pollinations - مجاني مباشر بدون سيرفر
+            imageUrl =
+                "https://image.pollinations.ai/prompt/"
+                + encodeURIComponent(text)
+                + "?width=1080&height=1920&nologo=true&seed="
+                + Math.floor(Math.random() * 100000);
 
-            body:JSON.stringify({
-
-                prompt:text
-
-            })
-
-        });
-
-
-        const imageResult =
-        await imageResponse.json();
-
-
-        removeTyping(typing);
-
-
-        if(imageResult.success){
-
-
+            removeTyping(typing);
             addMessage(
-                "🖼️ تم إنشاء الصورة بنجاح",
+                "🖼️ تم إنشاء الصورة بواسطة Pollinations",
                 "ai"
             );
+            addMessage(imageUrl, "ai");
 
+        } else {
 
-            if(imageResult.image){
+            // 🧠 Gemini - عبر السيرفر
+            const imageResponse =
+            await fetch("/api/generate-image", {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    prompt:text
+                })
+            });
 
+            const imageResult =
+            await imageResponse.json();
+            removeTyping(typing);
+
+            if(imageResult.success){
                 addMessage(
-                    imageResult.image,
+                    "🖼️ تم إنشاء الصورة بنجاح",
                     "ai"
                 );
-
+                if(imageResult.image){
+                    addMessage(
+                        imageResult.image,
+                        "ai"
+                    );
+                }
+            } else {
+                addMessage(
+                    "⚠️ لم أستطع إنشاء الصورة حاليا",
+                    "ai"
+                );
             }
-
-
-        }else{
-
-
-            addMessage(
-                "⚠️ لم أستطع إنشاء الصورة حاليا",
-                "ai"
-            );
-
-
         }
 
-
         selectedImage=null;
-
         if(imageInput){
             imageInput.value="";
         }
-
-
         return;
 
-
     }catch(error){
-
-
         console.error(
             "Image Generation Error:",
             error
         );
-
-
         removeTyping(typing);
-
-
         addMessage(
             "⚠️ حدث خطأ أثناء إنشاء الصورة",
             "ai"
         );
-
-
         return;
-
     }
-
 }
+
 
 // ===============================
 // Gemini Chat
