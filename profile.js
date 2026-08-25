@@ -1,6 +1,6 @@
 /* ===================================================
-   WallpaperHub Profile JS
-   Part 1/4
+   WallpaperHub Profile JS - FIXED VERSION
+   Part 1/2
 =================================================== */
 
 
@@ -8,340 +8,226 @@
    Firebase
 ========================== */
 
-
 import { auth } from "./firebase.js";
 
-
 import {
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
-GoogleAuthProvider,
-signInWithPopup,
-signOut,
-onAuthStateChanged
-
-}
-
-from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-
-
-
-
-
-console.log(
-"WallpaperHub Profile Loaded"
-);
-
-
-
+console.log("WallpaperHub Profile Loaded");
 
 
 /* ==========================
    Provider
 ========================== */
 
-
-const provider =
-new GoogleAuthProvider();
-
-
-
-
+const provider = new GoogleAuthProvider();
 
 
 /* ==========================
    User State
 ========================== */
 
-
 let currentUser = null;
-
-
-
-
+let userUID = "";
+let uidVisible = false;
 
 
 /* ==========================
-   DOM
+   DOM Elements
 ========================== */
 
+const loginBtn      = document.getElementById("loginBtn");
+const userName      = document.getElementById("userName");
+const userEmail     = document.getElementById("userEmail");
+const userAvatar    = document.getElementById("userAvatar");
+const infoUserName  = document.getElementById("infoUserName");
+const infoUserEmail = document.getElementById("infoUserEmail");
+const accountType   = document.getElementById("accountType");
+const joinDateEl    = document.getElementById("joinDate");
+const lastLoginEl   = document.getElementById("lastLogin");
 
-const loginBtn =
-document.getElementById(
-"loginBtn"
-);
+const downloadedContainer = document.getElementById("downloadedWallpapers");
+const likedContainer      = document.getElementById("likedWallpapers");
+const viewedContainer     = document.getElementById("viewedWallpapers");
 
+const uidText   = document.getElementById("userUid");
+const toggleUid = document.getElementById("toggleUid");
+const copyUid   = document.getElementById("copyUid");
 
-
-const userName =
-document.getElementById(
-"userName"
-);
-
-
-
-const userEmail =
-document.getElementById(
-"userEmail"
-);
-
-
-
-const userAvatar =
-document.getElementById(
-"userAvatar"
-);
-
-
-
-
-
+const editProfileBtn = document.getElementById("editProfileBtn");
+const editModal      = document.getElementById("editModal");
+const closeEditBtn   = document.getElementById("closeEditBtn");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const editName       = document.getElementById("editName");
+const avatarInput    = document.getElementById("avatarInput");
+const coverInput     = document.getElementById("coverInput");
+const changeAvatarBtn = document.getElementById("changeAvatarBtn");
+const coverImage      = document.getElementById("coverImage"); // ✅ إصلاح: كان غير معرّف
 
 
 /* ==========================
    Update Login Button
 ========================== */
 
+function updateLoginState(user) {
+    if (!loginBtn) return;
 
-function updateLoginState(user){
-
-
-
-if(!loginBtn)
-
-return;
-
-
-
-
-
-if(user){
-
-
-loginBtn.innerHTML = `
-
-<span class="material-icons">
-logout
-</span>
-
-`;
-
-
-
-}else{
-
-
-loginBtn.innerHTML = `
-
-<span class="material-icons">
-person
-</span>
-
-`;
-
-
+    if (user) {
+        loginBtn.innerHTML = `<span class="material-icons">logout</span>`;
+    } else {
+        loginBtn.innerHTML = `<span class="material-icons">person</span>`;
+    }
 }
-
-
-
-}
-
-
-
-
-
-
 
 
 /* ==========================
-   Firebase Listener - WITH FULL DATA RESTORE
+   Firebase Listener - SINGLE LISTENER (مدمج)
 ========================== */
 
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
     updateLoginState(user);
-    
+
     if (user) {
+
         // ============================
-        // تسجيل الدخول - استعادة كل البيانات
+        // تسجيل الدخول - حفظ البيانات
         // ============================
-        
-        // حفظ بيانات المستخدم الأساسية
+
         localStorage.setItem("userName", user.displayName || "مستخدم");
         localStorage.setItem("userEmail", user.email || "");
         localStorage.setItem("userAvatar", user.photoURL || "");
-        localStorage.setItem("joinDate", new Date().toLocaleDateString("ar-MA"));
         localStorage.setItem("lastLogin", new Date().toLocaleString("ar-MA"));
-        
-        // تحديث الواجهة - البيانات الشخصية
-        const userNameEl = document.getElementById("userName");
-        if (userNameEl) userNameEl.textContent = user.displayName || "مستخدم";
-        
-        const userEmailEl = document.getElementById("userEmail");
-        if (userEmailEl) userEmailEl.textContent = user.email || "غير مسجل";
-        
-        const infoUserNameEl = document.getElementById("infoUserName");
-        if (infoUserNameEl) infoUserNameEl.textContent = user.displayName || "مستخدم";
-        
-        const infoUserEmailEl = document.getElementById("infoUserEmail");
-        if (infoUserEmailEl) infoUserEmailEl.textContent = user.email || "غير مسجل";
-        
-        const accountTypeEl = document.getElementById("accountType");
-        if (accountTypeEl) accountTypeEl.textContent = "حساب Google";
-        
-        const joinDateEl = document.getElementById("joinDate");
-        if (joinDateEl) joinDateEl.textContent = new Date().toLocaleDateString("ar-MA");
-        
-        const lastLoginEl = document.getElementById("lastLogin");
-        if (lastLoginEl) lastLoginEl.textContent = new Date().toLocaleString("ar-MA");
-        
-        // تحديث الصورة
-        const avatarEl = document.getElementById("userAvatar");
-        if (avatarEl && user.photoURL) {
-            avatarEl.src = user.photoURL;
+
+        // ✅ إصلاح: تاريخ الانضمام يُحفظ مرة واحدة فقط
+        if (!localStorage.getItem("joinDate")) {
+            localStorage.setItem("joinDate", new Date().toLocaleDateString("ar-MA"));
         }
-        
+
+        userUID = user.uid;
+        if (uidText) uidText.textContent = "••••••••••••••";
+
         // ============================
-        // استعادة الإحصائيات من localStorage
+        // تحديث الواجهة - البيانات الشخصية
         // ============================
-        const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        const views = JSON.parse(localStorage.getItem("views") || "[]");
-        
-        const downloadCountEl = document.getElementById("downloadCount");
-        if (downloadCountEl) downloadCountEl.textContent = downloads.length;
-        
-        const likeCountEl = document.getElementById("likeCount");
-        if (likeCountEl) likeCountEl.textContent = favorites.length;
-        
-        const viewCountEl = document.getElementById("viewCount");
-        if (viewCountEl) viewCountEl.textContent = views.length;
-        
+
+        if (userName)      userName.textContent = user.displayName || "مستخدم";
+        if (userEmail)     userEmail.textContent = user.email || "غير مسجل";
+        if (infoUserName)  infoUserName.textContent = user.displayName || "مستخدم";
+        if (infoUserEmail) infoUserEmail.textContent = user.email || "غير مسجل";
+        if (accountType)   accountType.textContent = "حساب Google";
+
+        if (joinDateEl)  joinDateEl.textContent = localStorage.getItem("joinDate") || "-";
+        if (lastLoginEl) lastLoginEl.textContent = localStorage.getItem("lastLogin") || "-";
+
+        if (userAvatar && user.photoURL) {
+            userAvatar.src = user.photoURL;
+        }
+
         // ============================
-        // تحميل الخلفيات وعرضها
+        // تحديث الإحصائيات + تحميل الخلفيات
         // ============================
+
+        updateUserStats();
         loadWallpapers();
-        
+
+        const downloads = getList("downloads");
         console.log("✅ تم تسجيل الدخول واستعادة البيانات:");
         console.log("📥 تحميلات:", downloads.length);
-        console.log("❤️ إعجابات:", favorites.length);
-        console.log("👁️ مشاهدات:", views.length);
-        
+
     } else {
+
         // ============================
         // تسجيل الخروج - تصفير كل شيء
         // ============================
+
         resetGuestProfile();
     }
 });
 
-// استعادة الإحصائيات من localStorage
-const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-const views = JSON.parse(localStorage.getItem("views") || "[]");
+/* ===================================================
+   WallpaperHub Profile JS - FIXED VERSION
+   Part 2/2
+=================================================== */
 
-document.getElementById("downloadCount").textContent = downloads.length;
-document.getElementById("likeCount").textContent = favorites.length;
-document.getElementById("viewCount").textContent = views.length;;
 
 /* ==========================
    Reset Guest Profile - FULL RESET
 ========================== */
 
 function resetGuestProfile() {
+
     // 1. تصفير النصوص
     const textElements = {
-        "userName": "زائر",
-        "userEmail": "غير مسجل",
-        "infoUserName": "زائر",
+        "userName":      "زائر",
+        "userEmail":     "غير مسجل",
+        "infoUserName":  "زائر",
         "infoUserEmail": "غير مسجل",
-        "accountType": "زائر",
-        "joinDate": "-",
-        "lastLogin": "-"
+        "accountType":   "زائر",
+        "joinDate":      "-",
+        "lastLogin":     "-"
     };
-    
+
     Object.keys(textElements).forEach(id => {
         const el = document.getElementById(id);
         if (el) el.textContent = textElements[id];
     });
-    
+
     // 2. تصفير UID
-    const uidEl = document.getElementById("userUid");
-    if (uidEl) uidEl.textContent = "••••••••••••••";
-    
+    userUID = "";
+    if (uidText) uidText.textContent = "••••••••••••••";
+
     // 3. تصفير الإحصائيات
     ["downloadCount", "likeCount", "viewCount"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.textContent = "0";
     });
-    
+
     // 4. تصفير الصورة الشخصية
-    const avatar = document.getElementById("userAvatar");
-    if (avatar) avatar.src = "assets/images/user.png";
-    
+    if (userAvatar) userAvatar.src = "assets/images/user.png";
+
     // 5. تصفير الخلفيات المعروضة
     ["downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
         const container = document.getElementById(id);
-        if (container) {
-            container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
-        }
+        if (container) container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
     });
-    
-    // 6. تنظيف localStorage من بيانات المستخدم
+
+    // 6. تنظيف localStorage (بدون joinDate حتى لا يُفقد تاريخ الانضمام)
     const userKeys = [
-        "userName", 
-        "userEmail", 
-        "userAvatar", 
-        "joinDate", 
-        "lastLogin", 
-        "downloads", 
-        "favorites", 
+        "userName",
+        "userEmail",
+        "userAvatar",
+        "lastLogin",
+        "downloads",
+        "favorites",
         "views",
         "userData"
     ];
     userKeys.forEach(key => localStorage.removeItem(key));
-    
+
     console.log("👋 تم تسجيل الخروج وتصفير البيانات");
 }
 
+
 /* ==========================
-   Login / Logout Button - FIXED
+   Login / Logout Button
 ========================== */
 
 if (loginBtn) {
     loginBtn.onclick = async () => {
         try {
             if (currentUser) {
-                // ============================
-                // تسجيل الخروج
-                // ============================
                 await signOut(auth);
-                resetGuestProfile(); // تصفير كل شيء فوراً
-                
-                // تنظيف localStorage من بيانات المستخدم
-                const userKeys = [
-                    "joinDate", 
-                    "lastLogin", 
-                    "downloads", 
-                    "favorites", 
-                    "views",
-                    "userName",
-                    "userEmail",
-                    "userAvatar",
-                    "userData"
-                ];
-                userKeys.forEach(key => localStorage.removeItem(key));
-                
-                // تحديث الصفحة بعد الخروج
                 location.reload();
                 return;
             }
-            
-            // ============================
-            // تسجيل الدخول
-            // ============================
+
             await signInWithPopup(auth, provider);
-            // بعد تسجيل الدخول، onAuthStateChanged سيتولى الباقي
-            
+
         } catch (error) {
             console.error("AUTH ERROR", error);
             alert("حدث خطأ في تسجيل الدخول");
@@ -349,137 +235,48 @@ if (loginBtn) {
     };
 }
 
+
 /* ===================================================
-   User Profile Data
-   Part 2/4
+   UID Buttons
 =================================================== */
 
-
-/* ==========================
-   UID - Professional Style
-========================== */
-
-let userUID = "";
-let uidVisible = false;
-
-const uidText = document.getElementById("userUid");
-const toggleUid = document.getElementById("toggleUid");
-const copyUid = document.getElementById("copyUid");
-
-// تحديث UID عند تغيير حالة المستخدم
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        userUID = user.uid;
-        if (uidText) uidText.textContent = "••••••••••••••";
-    } else {
-        userUID = "";
-        if (uidText) uidText.textContent = "••••••••••••••";
-    }
-});
-
-// ============================
-// زر إظهار/إخفاء UID (احترافي)
-// ============================
+// زر إظهار/إخفاء UID
 if (toggleUid) {
     toggleUid.onclick = () => {
         uidVisible = !uidVisible;
-        
+
         if (uidVisible) {
-            // إظهار UID
             uidText.textContent = userUID || "لا يوجد UID";
             toggleUid.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
                     <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-            `;
+                </svg>`;
             toggleUid.title = "إخفاء UID";
         } else {
-            // إخفاء UID
             uidText.textContent = "••••••••••••••";
             toggleUid.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                     <circle cx="12" cy="12" r="3"/>
-                </svg>
-            `;
+                </svg>`;
             toggleUid.title = "إظهار UID";
         }
     };
 }
 
-// ============================
-// زر نسخ UID (احترافي)
-// ============================
+// زر نسخ UID
 if (copyUid) {
     copyUid.onclick = async () => {
         if (!userUID) {
-            // رسالة خطأ أنيقة
-            const toast = document.createElement("div");
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #ff3b30;
-                color: white;
-                padding: 12px 24px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 600;
-                box-shadow: 0 8px 30px rgba(255, 59, 48, 0.4);
-                z-index: 9999;
-                animation: fadeInUp 0.3s ease;
-                direction: rtl;
-            `;
-            toast.textContent = "⚠️ لا يوجد UID لتنسخه";
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transition = "opacity 0.3s";
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
+            showToast("⚠️ لا يوجد UID لتنسخه", "#ff3b30", true);
             return;
         }
-        
+
         try {
             await navigator.clipboard.writeText(userUID);
-            
-            // رسالة نجاح أنيقة
-            const toast = document.createElement("div");
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #34c759;
-                color: white;
-                padding: 12px 24px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 600;
-                box-shadow: 0 8px 30px rgba(52, 199, 89, 0.4);
-                z-index: 9999;
-                animation: fadeInUp 0.3s ease;
-                direction: rtl;
-            `;
-            toast.innerHTML = `
-                <span style="display:flex;align-items:center;gap:8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    تم نسخ UID بنجاح ✅
-                </span>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transition = "opacity 0.3s";
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-            
+            showToast("تم نسخ UID بنجاح ✅", "#34c759", false, true);
+
         } catch (error) {
             console.error("نسخ UID فشل:", error);
             alert("❌ فشل نسخ UID");
@@ -487,443 +284,124 @@ if (copyUid) {
     };
 }
 
-// ============================
-// إضافة أنيميشن fadeInUp
-// ============================
-const style = document.createElement("style");
-style.textContent = `
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+// رسائل Toast أنيقة
+function showToast(message, color, plainText = false, withCheck = false) {
+    const toast = document.createElement("div");
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${color};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 8px 30px ${color}66;
+        z-index: 9999;
+        animation: fadeInUp 0.3s ease;
+        direction: rtl;`;
+
+    if (withCheck) {
+        toast.innerHTML = `
+            <span style="display:flex;align-items:center;gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                ${message}
+            </span>`;
+    } else {
+        toast.textContent = message;
     }
-`;
-document.head.appendChild(style);
 
+    document.body.appendChild(toast);
 
-/* ==========================
-   Profile Elements
-========================== */
-
-
-const infoUserName =
-document.getElementById(
-"infoUserName"
-);
-
-
-
-const infoUserEmail =
-document.getElementById(
-"infoUserEmail"
-);
-
-
-
-const accountType =
-document.getElementById(
-"accountType"
-);
-
-
-
-const joinDate =
-document.getElementById(
-"joinDate"
-);
-
-
-
-const lastLogin =
-document.getElementById(
-"lastLogin"
-);
-
-
-
-
-
-
-
-
-/* ==========================
-   Load User Data
-========================== */
-
-
-function loadUserData(){
-
-
-
-const name =
-
-localStorage.getItem(
-"userName"
-)
-||
-"زائر";
-
-
-
-
-const email =
-
-localStorage.getItem(
-"userEmail"
-)
-||
-"غير مسجل";
-
-
-
-
-const avatar =
-
-localStorage.getItem(
-"userAvatar"
-);
-
-
-
-
-
-
-
-if(userName)
-
-userName.textContent =
-name;
-
-
-
-
-if(userEmail)
-
-userEmail.textContent =
-email;
-
-
-
-
-
-if(userAvatar)
-
-userAvatar.src =
-avatar ||
-"assets/images/user.png";
-
-
-
-
-
-
-
-if(infoUserName)
-
-infoUserName.textContent =
-name;
-
-
-
-
-
-if(infoUserEmail)
-
-infoUserEmail.textContent =
-email;
-
-
-
-
-
-
-
-if(email !== "غير مسجل"){
-
-
-if(accountType)
-
-accountType.textContent =
-"حساب Google";
-
-
-}else{
-
-
-if(accountType)
-
-accountType.textContent =
-"زائر";
-
-
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s";
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
 }
 
+// أنيميشن fadeInUp
+const animStyle = document.createElement("style");
+animStyle.textContent = `
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }`;
+document.head.appendChild(animStyle);
 
-
-
-
-
-let join =
-
-localStorage.getItem(
-"joinDate"
-);
-
-
-
-
-
-if(joinDate)
-
-joinDate.textContent =
-join ||
-"-";
-
-
-
-
-
-if(lastLogin)
-
-lastLogin.textContent =
-new Date()
-.toLocaleString(
-"ar-MA"
-);
-
-
-
-}
 
 /* ===================================================
    Wallpapers + Statistics
-   Part 3/4
 =================================================== */
 
-
-/* ==========================
-   API
-========================== */
-
-
-const API =
-"/api/wallpapers";
-
-
-
+const API = "/api/wallpapers";
 let wallpapers = [];
 
 
-
-
-
-
-
 /* ==========================
-   Containers
+   Local Data Helpers
 ========================== */
 
-
-const downloadedContainer =
-document.getElementById(
-"downloadedWallpapers"
-);
-
-
-
-const likedContainer =
-document.getElementById(
-"likedWallpapers"
-);
-
-
-
-const viewedContainer =
-document.getElementById(
-"viewedWallpapers"
-);
-
-
-
-
-
-
-const downloadCount =
-document.getElementById(
-"downloadCount"
-);
-
-
-
-const likeCount =
-document.getElementById(
-"likeCount"
-);
-
-
-
-const viewCount =
-document.getElementById(
-"viewCount"
-);
-
-
-
-
-
-
-
-
-/* ==========================
-   Local Data
-========================== */
-
-
-function getList(key){
-
-
-return JSON.parse(
-
-localStorage.getItem(key)
-
-||
-
-"[]"
-
-);
-
-
+function getList(key) {
+    return JSON.parse(localStorage.getItem(key) || "[]");
 }
-
-
-
-
-
-
-
-
-function clearUserStats(){
-
-
-localStorage.removeItem(
-"downloads"
-);
-
-
-localStorage.removeItem(
-"favorites"
-);
-
-
-localStorage.removeItem(
-"views"
-);
-
-
-}
-
-
-
-
-
-
 
 
 /* ==========================
    Load Wallpapers
 ========================== */
 
-
-async function loadWallpapers(){
-
-
-try{
-
-
-const res =
-await fetch(API);
-
-
-
-wallpapers =
-await res.json();
-
-
-
-renderProfile();
-
-
-
+async function loadWallpapers() {
+    try {
+        const res = await fetch(API);
+        wallpapers = await res.json();
+        renderProfile();
+    } catch (error) {
+        console.log("Wallpapers Error", error);
+    }
 }
-
-catch(error){
-
-
-console.log(
-"Wallpapers Error",
-error
-);
-
-
-}
-
-
-
-}
-
 
 
 /* ==========================
-   Render Statistics
+   Render Profile
 ========================== */
 
 function renderProfile() {
     const downloads = getList("downloads");
     const likes = getList("favorites");
     const views = getList("views");
-    
-    const downloadCountEl = document.getElementById("downloadCount");
-    if (downloadCountEl) downloadCountEl.textContent = downloads.length;
-    
-    const likeCountEl = document.getElementById("likeCount");
-    if (likeCountEl) likeCountEl.textContent = likes.length;
-    
-    const viewCountEl = document.getElementById("viewCount");
-    if (viewCountEl) viewCountEl.textContent = views.length;
-    
+
+    setStat("downloadCount", downloads.length);
+    setStat("likeCount", likes.length);
+    setStat("viewCount", views.length);
+
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
     renderWalls(viewedContainer, views);
-    
-    // 🔄 تحديث الإحصائيات بعد التحميل
-    updateUserStats();
 }
 
-/* ==========================
-   Update User Stats (after download/like/view)
-========================== */
+function setStat(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
 
 function updateUserStats() {
-    const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    const views = JSON.parse(localStorage.getItem("views") || "[]");
-    
-    document.getElementById("downloadCount").textContent = downloads.length;
-    document.getElementById("likeCount").textContent = favorites.length;
-    document.getElementById("viewCount").textContent = views.length;
+    setStat("downloadCount", getList("downloads").length);
+    setStat("likeCount", getList("favorites").length);
+    setStat("viewCount", getList("views").length);
 }
+
 
 /* ==========================
    Sync User Stats (Global)
 ========================== */
 
 window.syncUserStats = function(type, id) {
-    let list = JSON.parse(localStorage.getItem(type) || "[]");
+    let list = getList(type);
     if (!list.includes(String(id))) {
         list.push(String(id));
         localStorage.setItem(type, JSON.stringify(list));
@@ -931,507 +409,137 @@ window.syncUserStats = function(type, id) {
     }
 };
 
+
 /* ==========================
    Render Cards
 ========================== */
 
+function renderWalls(container, ids) {
 
-function renderWalls(
-container,
-ids
-){
+    if (!container) return;
 
+    container.innerHTML = "";
 
+    if (ids.length === 0) {
+        container.innerHTML = `<div class="empty-profile">لا توجد خلفيات حاليا</div>`;
+        return;
+    }
 
-if(!container)
+    let foundAny = false;
 
-return;
+    ids.forEach(id => {
+        const wall = wallpapers.find(item => String(item.id) === String(id));
+        if (!wall) return;
 
+        foundAny = true;
 
+        const card = document.createElement("div");
+        card.className = "profile-wall-card";
 
+        card.innerHTML = `
+            <img src="wall.thumbnail∣∣wall.image"alt="{wall.thumbnail || wall.image}" alt="wall.thumbnail∣∣wall.image"alt="{wall.title || ""}">
+            <div class="profile-wall-info">
+                <h3>${wall.title || "بدون اسم"}</h3>
+            </div>`;
 
-container.innerHTML = "";
+        card.onclick = () => {
+            location.href = "wallpaper.html?id=" + wall.id;
+        };
 
+        container.appendChild(card);
+    });
 
-
-
-if(ids.length===0){
-
-
-container.innerHTML = `
-
-<div class="empty-profile">
-
-لا توجد خلفيات حاليا
-
-</div>
-
-`;
-
-
-return;
-
-
+    // إذا لم نجد أي خلفية مطابقة في الـ API
+    if (!foundAny) {
+        container.innerHTML = `<div class="empty-profile">لا توجد خلفيات حاليا</div>`;
+    }
 }
 
-
-
-
-
-ids.forEach(id=>{
-
-
-const wall =
-
-wallpapers.find(
-
-item =>
-
-String(item.id)
-===
-String(id)
-
-);
-
-
-
-
-if(!wall)
-
-return;
-
-
-
-
-
-const card =
-document.createElement(
-"div"
-);
-
-
-
-card.className =
-"profile-wall-card";
-
-
-
-card.innerHTML = `
-
-<img src="${
-
-wall.thumbnail ||
-
-wall.image
-
-}">
-
-
-<h3>
-
-${wall.title || "بدون اسم"}
-
-</h3>
-
-`;
-
-
-
-card.onclick = ()=>{
-
-
-location.href =
-"wallpaper.html?id="
-+
-wall.id;
-
-
-};
-
-
-
-container.appendChild(card);
-
-
-
-});
-
-
-
-}
 
 /* ===================================================
-   Edit Profile + Start
-   Part 4/4
+   Edit Profile Modal
 =================================================== */
 
-
-/* ==========================
-   Edit Elements
-========================== */
-
-
-const editProfileBtn =
-document.getElementById(
-"editProfileBtn"
-);
-
-
-const editModal =
-document.getElementById(
-"editModal"
-);
-
-
-const closeEditBtn =
-document.getElementById(
-"closeEditBtn"
-);
-
-
-const saveProfileBtn =
-document.getElementById(
-"saveProfileBtn"
-);
-
-
-const editName =
-document.getElementById(
-"editName"
-);
-
-
-const avatarInput =
-document.getElementById(
-"avatarInput"
-);
-
-
-const coverInput =
-document.getElementById(
-"coverInput"
-);
-
-
-const changeAvatarBtn =
-document.getElementById(
-"changeAvatarBtn"
-);
-
-
-
-
-
-/* ==========================
-   Open Edit
-========================== */
-
-
-if(editProfileBtn){
-
-
-editProfileBtn.onclick = ()=>{
-
-
-if(editModal)
-
-editModal.classList.add(
-"show"
-);
-
-
-
-if(editName)
-
-editName.value =
-userName.textContent;
-
-
-
-};
-
-
+if (editProfileBtn) {
+    editProfileBtn.onclick = () => {
+        if (editModal) editModal.classList.add("show");
+        if (editName && userName) editName.value = userName.textContent;
+    };
 }
 
-
-
-
-
-
-
-
-/* ==========================
-   Close Edit
-========================== */
-
-
-if(closeEditBtn){
-
-
-closeEditBtn.onclick = ()=>{
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-};
-
-
+if (closeEditBtn) {
+    closeEditBtn.onclick = () => {
+        if (editModal) editModal.classList.remove("show");
+    };
 }
 
+if (saveProfileBtn) {
+    saveProfileBtn.onclick = () => {
+        const name = editName.value.trim();
 
+        if (name) {
+            localStorage.setItem("userName", name);
+            if (userName) userName.textContent = name;
+            if (infoUserName) infoUserName.textContent = name;
+        }
 
-
-
-
-
-
-/* ==========================
-   Save Name
-========================== */
-
-
-if(saveProfileBtn){
-
-
-saveProfileBtn.onclick = ()=>{
-
-
-const name =
-editName.value.trim();
-
-
-
-if(name){
-
-
-localStorage.setItem(
-"userName",
-name
-);
-
-
-
-if(userName)
-
-userName.textContent =
-name;
-
-
-
-if(infoUserName)
-
-infoUserName.textContent =
-name;
-
-
+        if (editModal) editModal.classList.remove("show");
+    };
 }
-
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-
-};
-
-
-}
-
-
-
-
-
-
 
 
 /* ==========================
    Image Reader
 ========================== */
 
+function readImage(file, callback) {
+    if (!file) return;
 
-function readImage(
-file,
-callback
-){
-
-
-if(!file)
-
-return;
-
-
-
-const reader =
-new FileReader();
-
-
-
-reader.onload = ()=>{
-
-
-callback(
-reader.result
-);
-
-
-};
-
-
-
-reader.readAsDataURL(
-file
-);
-
-
+    const reader = new FileReader();
+    reader.onload = () => callback(reader.result);
+    reader.readAsDataURL(file);
 }
 
 
-
-
-
-
-
-
 /* ==========================
-   Avatar
+   Avatar Upload
 ========================== */
 
-
-if(changeAvatarBtn && avatarInput){
-
-
-changeAvatarBtn.onclick = ()=>{
-
-
-avatarInput.click();
-
-
-};
-
-
+if (changeAvatarBtn && avatarInput) {
+    changeAvatarBtn.onclick = () => avatarInput.click();
 }
 
-
-
-
-if(avatarInput){
-
-
-avatarInput.onchange = ()=>{
-
-
-const file =
-avatarInput.files[0];
-
-
-
-readImage(
-file,
-(src)=>{
-
-
-userAvatar.src =
-src;
-
-
-
-localStorage.setItem(
-"userAvatar",
-src
-);
-
-
-
+if (avatarInput) {
+    avatarInput.onchange = () => {
+        const file = avatarInput.files[0];
+        readImage(file, (src) => {
+            if (userAvatar) userAvatar.src = src;
+            localStorage.setItem("userAvatar", src);
+        });
+    };
 }
-);
-
-
-};
-
-
-
-}
-
-
-
-
-
-
 
 
 /* ==========================
-   Cover
+   Cover Upload
 ========================== */
 
-
-if(coverInput){
-
-
-coverInput.onchange = ()=>{
-
-
-const file =
-coverInput.files[0];
-
-
-
-readImage(
-file,
-(src)=>{
-
-
-coverImage.src =
-src;
-
-
-
-localStorage.setItem(
-"userCover",
-src
-);
-
-
-
-}
-);
-
-
-
-};
-
-
+if (coverInput) {
+    coverInput.onchange = () => {
+        const file = coverInput.files[0];
+        readImage(file, (src) => {
+            if (coverImage) coverImage.src = src;  // ✅ إصلاح: كان ReferenceError
+            localStorage.setItem("userCover", src);
+        });
+    };
 }
 
 
-
-
-
-
-
-
-/* ==========================
+/* ===================================================
    Start App
-========================== */
+=================================================== */
 
-
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-
-loadUserData();
-
-
-loadWallpapers();
-
-
+document.addEventListener("DOMContentLoaded", () => {
+    loadWallpapers();
+    updateUserStats();
 });
