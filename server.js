@@ -15,6 +15,32 @@ console.log(
 process.env.ARTGURU_API_KEY ? "FOUND" : "MISSING"
 );
 
+const PROJECT_CONTEXT_FILE =
+path.join(__dirname,"project_context.json");
+
+
+function loadProjectContext(){
+
+    try{
+
+        return JSON.parse(
+            fs.readFileSync(
+                PROJECT_CONTEXT_FILE,
+                "utf8"
+            )
+        );
+
+    }catch(error){
+
+        return {
+            project:"WallpaperHub AI",
+            description:"AI Wallpaper Platform"
+        };
+
+    }
+
+}
+
 // ======================================
 // Firebase Admin
 // ======================================
@@ -2205,7 +2231,7 @@ timezone
 
 }=req.body;
 
-
+const projectContext = loadProjectContext();
 
 let parts=[];
 
@@ -2216,11 +2242,20 @@ parts.push({
 text:
 
 `
-أنت WallpaperHub AI.
+أنت مساعد داخلي لمشروع WallpaperHub AI.
 
-جاوب المستخدم بنفس لغته.
+معلومات المشروع:
+${JSON.stringify(projectContext,null,2)}
 
-إذا كان من المغرب استعمل الدارجة المغربية.
+تعليمات:
+- افهم المشروع قبل الإجابة.
+- ساعد في البرمجة والتطوير.
+- تعامل كمهندس Full Stack داخل المشروع.
+- جاوب المستخدم بنفس لغته.
+- إذا كان من المغرب استعمل الدارجة المغربية.
+
+سؤال المستخدم:
+${message}
 
 اللغة:
 ${locale}

@@ -1,0 +1,29 @@
+{
+  "project": "WallpaperHub AI",
+  "description": "منصة ذكاء اصطناعي لإنشاء وإدارة الخلفيات.",
+  "frontend": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "ai.js"
+  ],
+  "backend": {
+    "runtime": "Node.js",
+    "framework": "Express",
+    "main_file": "server.js"
+  },
+  "features": [
+    "Gemini Chat",
+    "توليد صور",
+    "تحليل الخلفيات",
+    "استيراد Wallhaven",
+    "نظام Tokens",
+    "حفظ المحادثات",
+    "API للمطورين"
+  ],
+  "rules": [
+    "تصرف كمساعد داخلي للمشروع",
+    "افهم بنية WallpaperHub AI",
+    "اقترح حلول برمجية مرتبطة بالمشروع"
+  ]
+}
