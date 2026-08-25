@@ -1,0 +1,322 @@
+/* ==========================================
+   🎮 WallpaperHub - Graphics 20D Engine
+   طبقة جرافيك ثلاثية الأبعاد فوق التصميم الحالي
+   لا تمس أي عنصر وظيفي
+========================================== */
+
+:root{
+    --g3d-primary:#5b5df5;
+    --g3d-glow:#7d5fff;
+    --g3d-depth:1200px;
+}
+
+/* ===== تفعيل منظور 3D عام ===== */
+body{
+    perspective:var(--g3d-depth);
+    transform-style:preserve-3d;
+}
+
+/* ==========================================
+   ✨ بطاقات الخلفيات - عمق لعبة حقيقية
+========================================== */
+
+.wall-card{
+    transform-style:preserve-3d;
+    transition:
+        transform .45s cubic-bezier(.22,1,.36,1),
+        box-shadow .45s ease;
+    will-change:transform;
+}
+
+.wall-card:hover{
+    transform:
+        translateY(-12px)
+        rotateX(8deg)
+        rotateY(-6deg)
+        scale(1.04);
+    box-shadow:
+        0 30px 60px rgba(91,93,245,.25),
+        0 10px 20px rgba(0,0,0,.15),
+        inset 0 1px 2px rgba(255,255,255,.4);
+    z-index:50;
+}
+
+/* انعكاس ضوئي يمر على البطاقة (Game Shine) */
+.wall-card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-80%;
+    width:60%;
+    height:100%;
+    background:linear-gradient(
+        100deg,
+        transparent,
+        rgba(255,255,255,.45),
+        transparent
+    );
+    transform:skewX(-20deg);
+    transition:left .7s ease;
+    z-index:30;
+    pointer-events:none;
+}
+
+.wall-card:hover::before{
+    left:130%;
+}
+
+/* حافة مضيئة Neon حول البطاقة */
+.wall-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:22px;
+    border:1px solid rgba(125,95,255,0);
+    transition:.4s;
+    pointer-events:none;
+    z-index:29;
+}
+
+.wall-card:hover::after{
+    border-color:rgba(125,95,255,.6);
+    box-shadow:
+        0 0 18px rgba(125,95,255,.35),
+        inset 0 0 12px rgba(125,95,255,.15);
+}
+
+/* ==========================================
+   🔥 خلفية اليوم - Hero بأسلوب الألعاب
+========================================== */
+
+.today-wallpaper{
+    transform-style:preserve-3d;
+    transition:transform .5s cubic-bezier(.22,1,.36,1);
+}
+
+.today-wallpaper:hover{
+    transform:
+        translateY(-6px)
+        rotateX(4deg)
+        scale(1.01);
+}
+
+/* هالة ضوئية متحركة أسفل القسم */
+.today-wallpaper::after{
+    content:"";
+    position:absolute;
+    bottom:-20px;
+    left:10%;
+    right:10%;
+    height:40px;
+    background:radial-gradient(
+        ellipse at center,
+        rgba(91,93,245,.35),
+        transparent 70%
+    );
+    filter:blur(14px);
+    z-index:-1;
+    animation:heroGlowPulse 3s ease-in-out infinite;
+    pointer-events:none;
+}
+
+@keyframes heroGlowPulse{
+    0%,100%{opacity:.5;transform:scaleX(.9);}
+    50%{opacity:1;transform:scaleX(1);}
+}
+
+/* شارة خلفية اليوم بتأثير معدني */
+.today-badge{
+    background:linear-gradient(
+        135deg,#ffd54f,#ff9800,#ffd54f
+    ) !important;
+    background-size:200% 100% !important;
+    animation:badgeShine 2.5s linear infinite !important;
+    box-shadow:
+        0 4px 14px rgba(255,179,0,.5),
+        inset 0 1px 2px rgba(255,255,255,.7) !important;
+    text-shadow:0 1px 1px rgba(255,255,255,.4);
+}
+
+@keyframes badgeShine{
+    to{background-position:200% 0;}
+}
+
+/* ==========================================
+   🎯 أزرار 3D ضغط فيزيائي (Game Buttons)
+========================================== */
+
+.today-actions button{
+    transform-style:preserve-3d;
+    text-shadow:0 1px 2px rgba(0,0,0,.3);
+    transition:transform .2s ease, box-shadow .2s ease;
+}
+
+.today-actions button:hover{
+    transform:translateZ(30px) translateY(-3px);
+    box-shadow:
+        0 16px 32px rgba(0,0,0,.3),
+        0 0 24px rgba(125,95,255,.4),
+        inset 0 2px 4px rgba(255,255,255,.5),
+        inset 0 -5px 10px rgba(0,0,0,.25);
+}
+
+/* ==========================================
+   📂 الأقسام - مكعبات دوارة
+========================================== */
+
+.categories-grid .category,
+.category{
+    transform-style:preserve-3d;
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+
+.categories-grid .category:hover,
+.category:hover{
+    transform:
+        translateY(-8px)
+        rotateX(10deg)
+        rotateY(8deg)
+        scale(1.08);
+    z-index:20;
+}
+
+/* ظل ملون تحت كل قسم */
+.category::marker{content:none;}
+
+/* ==========================================
+   🌌 Header - زجاجي عائم
+========================================== */
+
+.header{
+    background:rgba(255,255,255,.75) !important;
+    backdrop-filter:blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter:blur(20px) saturate(180%) !important;
+    border-bottom:1px solid rgba(125,95,255,.12) !important;
+}
+
+.logo h2{
+    text-shadow:
+        0 0 12px rgba(91,93,245,.35),
+        0 2px 4px rgba(0,0,0,.1);
+}
+
+/* ==========================================
+   🧊 Bottom Nav - شريط زجاجي عائم
+========================================== */
+
+.bottom-nav{
+    background:rgba(255,255,255,.8) !important;
+    backdrop-filter:blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter:blur(24px) saturate(180%) !important;
+    border-top:1px solid rgba(125,95,255,.1) !important;
+}
+
+.bottom-nav-item.active .material-icons{
+    filter:drop-shadow(0 0 8px rgba(91,93,245,.6));
+    transform:translateY(-4px) scale(1.15);
+}
+
+/* ==========================================
+   💫 القائمة الجانبية - دخول سينمائي
+========================================== */
+
+.side-drawer{
+    box-shadow:
+        -20px 0 60px rgba(0,0,0,.25),
+        inset 1px 0 0 rgba(125,95,255,.15) !important;
+}
+
+.drawer-header{
+    position:relative;
+    overflow:hidden;
+}
+
+/* موجات ضوء متحركة داخل الهيدر */
+.drawer-header::after{
+    content:"";
+    position:absolute;
+    top:-100%;
+    left:-100%;
+    width:300%;
+    height:300%;
+    background:conic-gradient(
+        from 0deg,
+        transparent,
+        rgba(255,255,255,.25),
+        transparent 30%
+    );
+    animation:drawerLightSweep 5s linear infinite;
+    pointer-events:none;
+}
+
+@keyframes drawerLightSweep{
+    to{transform:rotate(360deg);}
+}
+
+/* ==========================================
+   🎬 دخول الأقسام بحركة Parallax
+========================================== */
+
+.wall-section{
+    opacity:0;
+    transform:translateY(40px) rotateX(6deg);
+    transition:
+        opacity .7s ease,
+        transform .7s cubic-bezier(.22,1,.36,1);
+}
+
+.wall-section.visible{
+    opacity:1;
+    transform:translateY(0) rotateX(0deg);
+}
+
+/* ==========================================
+   🌠 جزيئات ضوئية في الخلفية (Ambient)
+========================================== */
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:
+        radial-gradient(circle at 15% 20%, rgba(91,93,245,.06), transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(125,95,255,.05), transparent 40%);
+    pointer-events:none;
+    z-index:0;
+    animation:ambientFloat 12s ease-in-out infinite alternate;
+}
+
+@keyframes ambientFloat{
+    from{transform:translate(0,0);}
+    to{transform:translate(-20px,20px);}
+}
+
+/* ==========================================
+   🌙 الوضع الليلي - Neon Mode
+========================================== */
+
+body.dark .wall-card:hover{
+    box-shadow:
+        0 30px 60px rgba(125,95,255,.35),
+        0 0 30px rgba(125,95,255,.2);
+}
+
+body.dark .header{
+    background:rgba(27,27,27,.75) !important;
+    backdrop-filter:blur(20px) saturate(160%) !important;
+}
+
+body.dark .bottom-nav{
+    background:rgba(27,27,27,.8) !important;
+}
+
+/* ==========================================
+   ⚡ أداء: تعطيل التأثيرات على الأجهزة الضعيفة
+========================================== */
+
+@media (prefers-reduced-motion:reduce){
+    *{
+        animation-duration:.01ms !important;
+        transition-duration:.01ms !important;
+    }
+}
