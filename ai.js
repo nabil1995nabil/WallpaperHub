@@ -379,79 +379,27 @@ if(newChat){
 // Render History
 // ===============================
 
-
 function renderHistory(){
-
-
-
-    if(!chatHistory)
-    return;
-
-
-
+    if(!chatHistory) return;
     chatHistory.innerHTML="";
 
-
-
-
-
     chats.forEach(chat=>{
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `<span>${chat.title}</span>`;
 
-
-
-        const item =
-        document.createElement(
-            "div"
-        );
-
-
-
-        item.className =
-        "history-item";
-
-
-
-        item.innerHTML = `
-
-        <span>
-
-        ${chat.title}
-
-        </span>
-
-        `;
-
-
-
-        item.onclick=()=>{
-
-
-            loadChat(
-                chat.id
-            );
-
-
+        item.onclick = (e)=>{
+            // إذا كان الضغط على الفقاعة أو أزرارها، يتم التجاهل كي لا تفتح المحادثة أثناء الحذف
+            if (e.target.closest('.delete-popover')) return;
+            loadChat(chat.id);
         };
 
+        // ربط الضغط المطول بالـ Item
+        bindLongPressDelete(item, chat.id);
 
-
-        chatHistory.appendChild(
-            item
-        );
-
-
-
+        chatHistory.appendChild(item);
     });
-
-
-
 }
-
-
-
-
-
-
 
 // ===============================
 // Load Chat
@@ -2086,6 +2034,99 @@ text;
 
 }
 
+// ===============================
+// Fixed Delete Chat Popover (Long-Press)
+// ===============================
+
+function bindLongPressDelete(itemElement, chatId) {
+    let pressTimer = null;
+
+    const startPress = (e) => {
+        if (e.target.closest('.delete-popover')) return;
+
+        clearTimeout(pressTimer);
+        pressTimer = setTimeout(() => {
+            showDeletePopover(itemElement, chatId);
+        }, 400); 
+    };
+
+    const cancelPress = () => {
+        clearTimeout(pressTimer);
+    };
+
+    itemElement.addEventListener("touchstart", startPress, { passive: true });
+    itemElement.addEventListener("touchend", cancelPress);
+    itemElement.addEventListener("touchmove", cancelPress);
+    itemElement.addEventListener("mousedown", startPress);
+    itemElement.addEventListener("mouseup", cancelPress);
+    itemElement.addEventListener("mouseleave", cancelPress);
+}
+
+function showDeletePopover(itemElement, chatId) {
+    document.querySelectorAll(".delete-popover").forEach(el => el.remove());
+
+    const popover = document.createElement("div");
+    popover.className = "delete-popover";
+    popover.innerHTML = `
+        <button class="delete-popover-btn" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span style="pointer-events: none;">حذف</span>
+        </button>
+    `;
+
+    itemElement.appendChild(popover);
+
+    requestAnimationFrame(() => {
+        popover.classList.add("active");
+    });
+
+    const deleteBtn = popover.querySelector(".delete-popover-btn");
+
+    // منع تداخل الأحداث عند الضغط على زر الحذف
+    const executeDelete = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        deleteChat(chatId, itemElement);
+    };
+
+    deleteBtn.addEventListener("click", executeDelete);
+    deleteBtn.addEventListener("touchend", executeDelete);
+
+    setTimeout(() => {
+        const closeOnClickOutside = (e) => {
+            if (!popover.contains(e.target)) {
+                popover.remove();
+                document.removeEventListener("click", closeOnClickOutside);
+                document.removeEventListener("touchstart", closeOnClickOutside);
+            }
+        };
+        document.addEventListener("click", closeOnClickOutside);
+        document.addEventListener("touchstart", closeOnClickOutside);
+    }, 100);
+}
+
+function deleteChat(chatId, itemElement) {
+    itemElement.style.transition = "all 0.3s ease";
+    itemElement.style.opacity = "0";
+    itemElement.style.transform = "translateX(40px)";
+
+    setTimeout(() => {
+        // حذف مع مطابقة النصوص لضمان عدم حدوث خطأ في نوع البيانات
+        chats = chats.filter(c => String(c.id) !== String(chatId));
+        saveChats();
+
+        if (currentChat && String(currentChat.id) === String(chatId)) {
+            currentChat = null;
+            if (chatContainer) chatContainer.innerHTML = "";
+        }
+
+        renderHistory();
+    }, 300);
+}
 
 
 // ===============================
