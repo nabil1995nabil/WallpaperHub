@@ -1,28 +1,27 @@
 /* =========================================================
-   CLEAN LIGHT EDITION - Pure White Design
+   WARZONE 8D HUD SYSTEM - ULTIMATE 3D DEPTH & ROTATING BORDER
 ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Fira+Code:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Tajawal:wght@400;700;900&family=Fira+Code:wght@300;400;500&display=swap');
 
 :root {
-    --primary: #10b981;
-    --primary-soft: rgba(16, 185, 129, 0.12);
-    --secondary: #0ea5e9;
-    --accent-red: #ef4444;
-    --bg-page: #ffffff;
-    --surface: #f6f8fa;
-    --border: #e4e7ec;
-    --text-main: #1a1f36;
-    --text-dim: #6b7280;
-    --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.07);
-    --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.09);
+    --primary: #00ff66;
+    --primary-glow: rgba(0, 255, 102, 0.45);
+    --secondary: #00e5ff;
+    --secondary-glow: rgba(0, 229, 255, 0.35);
+    --accent-red: #ff2a2a;
+    --bg-dark: #05080c;
+    --panel-bg: rgba(10, 16, 24, 0.88);
+    --panel-border: rgba(0, 255, 102, 0.35);
+    --glass-3d: linear-gradient(135deg, rgba(16, 25, 36, 0.85), rgba(6, 10, 16, 0.95));
+    --font-tactical: 'Orbitron', 'Tajawal', sans-serif;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Tajawal', sans-serif;
+    font-family: var(--font-tactical);
     user-select: none;
 }
 
@@ -30,26 +29,50 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: var(--bg-page);
-    color: var(--text-main);
+    background-color: var(--bg-dark);
+    color: #e0e6ed;
 }
 
 body {
     height: 100dvh;
+    perspective: 1000px;
 }
 
 /* ===============================
-   Background (نظيف - بدون شبكة)
+   8D Tactical Dynamic Background
 ================================ */
 
 .ai-bg {
     position: fixed;
     inset: 0;
-    background: var(--bg-page);
+    background: 
+        radial-gradient(circle at 50% 120%, var(--secondary-glow), transparent 65%),
+        radial-gradient(circle at 10% 10%, var(--primary-glow), transparent 45%),
+        linear-gradient(rgba(0, 255, 102, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 102, 0.02) 1px, transparent 1px),
+        var(--bg-dark);
+    background-size: 100% 100%, 100% 100%, 35px 35px, 35px 35px;
     z-index: -1;
+    transform: translateZ(-80px) scale(1.3);
+    filter: contrast(125%);
 }
 
-/* =================   Main Page Layout
+.ai-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.2),
+        rgba(0, 0, 0, 0.2) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+}
+
+/* ===============================
+   Main Page Layout
 ================================ */
 
 .ai-page {
@@ -58,72 +81,74 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
-.chat {
+.chat-main {
     flex: 1;
     display: flex;
-   -direction: column;
-    height: calc(100dvh - 60px);
+    flex-direction: column;
+    height: calc(100dvh - 60px); /* تخصيص الارتفاع بدون الشريط العلوي */
     position: relative;
     overflow: hidden;
 }
 
- ===============================
-   Top Bar
+/* ===============================
+   HUD Top Bar & Brand
 ================================ */
 
 .top-bar {
     height: 60px;
     width: 100%;
-    display: flex    align-items: center;
+    display: flex;
+    align-items: center;
     justify-content: space-between;
-   : 0 15px;
-    border-bottom: 1 solid var(--border);
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: var(--shadow-sm);
+    padding: 0 15px;
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(5, 8, 12, 0.95);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
     z-index: 50;
-    flex-shrink: ;
-    position: relative;
+    flex-shrink: 0;
+    position: relative; /* لضمان احتواء العناصر بداخله */
 }
 
 .menu-btn {
-    position: static;
+    position: static; /* إزالة absolute لمنعه من الانزلاق لمنتصف الشاشة */
     transform: none;
     width: 42px;
-   : 42px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: #;
+    height: 42px;
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    background: var(--panel-bg);
     font-size: 20px;
-    color: var(--);
-    box-shadow: var(--shadow-sm);
+    color: var(--primary);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 8px var(--primary-glow);
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify: center;
-    transition: all 0.25s ease}
+    justify-content: center;
+    transition: all 0.25s ease;
+}
 
 .menu-btn:hover {
     background: var(--primary);
-    color: #ffffff;
-    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
- transform: translateY(-2px);
+    color: var(--bg-dark);
+    box-shadow: 0 0 25px var(--primary);
 }
 
 /* ===============================
-   Container
+   Warzone Chat Container (FIXED SCROLL)
 ================================ */
 
 .chat-container {
     flex: 1;
- overflow-y: auto;
+    overflow-y: auto !important;
     overflow-x: hidden;
-    padding:15px 12px 20px;
+    padding: 15px 12px 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-   -behavior: smooth;
+    scroll-behavior: smooth;
     z-index: 10;
 }
 
@@ -131,20 +156,22 @@ body {
     width: 4px;
 }
 
-.chat::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+.chat-container::-webkit-scrollbar-thumb {
+    background: var(--primary);
     border-radius: 2px;
 }
 
 /* ===============================
-   & Bubbles
+   8D Tactical Messages & Bubbles
 ================================ */
 
 .message {
     display: flex;
     margin-bottom: 20px;
-    animation: msgIn 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
-    width: 100}
+    animation: HUDIn 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
+    transform-style: preserve-3d;
+    width: 100%;
+}
 
 .message.ai {
     justify-content: flex-start;
@@ -155,31 +182,38 @@ body {
 }
 
 .bubble {
-    width auto;
-    max-width: 90%;
+    width: auto;
+    max-width: 90% !important;
     padding: 14px 16px;
     line-height: 1.6;
-   -size: 13.5px;
+    font-size: 13.5px;
     position: relative;
-    transition: transform 0.3s ease, box-shadow 03s ease;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     word-break: break-word;
 }
 
-.message.aibubble {
-    background: var(--surface);
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 16px 16px 16px 4px;
-    box-shadow: var(--shadow-sm);
+.message.ai .bubble {
+    background: var(--glass-3d);
+    color: #00ffcc;
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    border-radius: 8px;
+    box-shadow: 
+        -8px 12px 25px rgba(0, 0, 0, 0.7),
+        0 0 15px rgba(0, 229, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.message.userbubble {
-    background: var(--primary-soft);
-    color:(--text-main);
-    border: 1px solid rgba(, 185, 129, 0.4);
-    border-radius: 16px 16px 4px 16px;
-    box-shadow: var(--shadow-sm);
-    max-width: %;
+.message.user .bubble {
+    background: linear-gradient(135deg, rgba(0, 255, 102, 0.12), rgba(0, 20, 10, 0.85));
+    color: #fff;
+    border: 1px solid var(--primary);
+    box-shadow: 
+        8px 12px 25px rgba(0, 0, 0, 0.7),
+        0 0 15px var(--primary-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    max-width: 85% !important;
+    border-radius: 8px;
 }
 
 .bubble strong {
@@ -188,226 +222,265 @@ body {
 }
 
 /* ===============================
-   Code Box (داكن للقراءة)
+   PRO 3D TACTICAL CODE BOX
 ================================ */
 
 .code-block {
-    width: 100%;
+    width: 100% !important;
     margin: 14px 0;
-    background: #1e2430;
-    border: 1px solid #333c4e;
-    border-radius: 12px;
-    box-shadow: var(--shadow-md);
+    background: #030508;
+    border: 1px solid rgba(0, 255, 102, 0.45);
+    border-radius: 6px;
+    box-shadow: 
+        0 15px 35px -5px rgba(0, 0, 0, 0.9),
+        0 0 18px rgba(0, 255, 102, 0.15),
+        inset 0 1px 1px rgba(0, 255, 102, 0.2);
+    backdrop-filter: blur(14px);
     overflow: hidden;
-    transition: all 0.3s ease;
+    transform: perspective(1000px) rotateX(1.5deg);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.code-block {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+.code-block:hover {
+    transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    box-shadow: 
+        0 20px 40px -5px rgba(0, 0, 0, 0.95),
+        0 0 25px rgba(0, 255, 102, 0.3);
 }
 
 .code-header {
     padding: 8px 14px;
- background: rgba(255, 255, 255, 0.06);
-    color: #9ca3af;
-    display flex;
+    background: linear-gradient(90deg, rgba(0, 255, 102, 0.15), rgba(0, 229, 255, 0.05));
+    color: var(--primary);
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #333c4e;
- font-size: 11.5px;
-    font-weight:500;
+    border-bottom: 1px solid rgba(0, 255, 102, 0.3);
+    font-size: 11.5px;
+    font-weight: 500;
     letter-spacing: 1px;
 }
 
 .copy-btn {
-    background: rgba(255, 255, 255, 0.08);
-    color: #d1d5db;
-    border: 1px solid #444e63;
-    padding:3px 12px;
+    background: rgba(0, 255, 102, 0.15);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 3px 12px;
     font-size: 11px;
- font-weight: 400;
-    border-radius: 6px    cursor: pointer;
-    transition: all 0.2s;
+    font-weight: 400;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
 }
 
 .copy-btn:hover {
     background: var(--primary);
-    color: #ffffff;
-    border-color: var(--primary);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px var(--primary);
 }
 
--block pre {
+.code-block pre {
     padding: 12px 14px;
     margin: 0;
     overflow-x: auto;
-    direction: l;
+    direction: ltr;
     text-align: left;
     white-space: pre;
- word-spacing: normal;
+    word-spacing: normal;
     word-break: normal;
 }
 
 .code-block code {
-    font-family: 'Fira Code', 'Consolas', monospace !important;
+    font-family: 'Fira Code', 'Consolas', 'Courier New', monospace !important;
     font-size: 12px !important;
- font-weight: 300 !important;
-    line-height: .55;
-    color: #a5d6ff;
-   -shadow: none;
+    font-weight: 300 !important;
+    line-height: 1.55;
+    color: #00ffaa;
+    text-shadow: 0 0 2px rgba(0, 255, 102, 0.25);
 }
 
 .code-block pre::-webkit-scrollbar {
-   : 4px;
+    height: 4px;
 }
 
 .code-block pre::-webkit-scrollbar-thumb {
-    background: #444e63;
+    background: var(--primary);
     border-radius: 2px;
 }
 
 /* =========================================================
-   Input Bar (عادي في التخطيط - لا يغطي الرسائل!)
+   WARZONE CUT-CORNER INPUT BAR WITH ROTATING GLOW BORDER
 ========================================================= */
 
 .chat-input {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    right: auto;
+    position: absolute;
+    bottom: 15px;
+    left: 10px;
+    right: 10px;
+    width: auto;
     max-width: 900px;
-    width: calc(100% - 20px);
-    margin: 0 auto 15px;
-    flex-shrink: 0;
+    margin: 0 auto;
     z-index: 50;
- display: flex;
+    display: flex;
     align-items: center;
-    gap 8px;
+    gap: 8px;
     padding: 8px;
-    background: #ffffff;
-    border: 1px solid var(--border);
-   -radius: 18px;
-    box-shadow: var(--shadow-sm);
-    overflow: visible;
-    transition: all 0.3s ease;
+    background: #070a0e;
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+    overflow: hidden;
+    transform: perspective(800px) rotateX(-1deg);
+    transition: transform 0.3s ease;
 }
 
 .chat-input:focus-within {
-    border-color:(--primary);
-    box-shadow: 0 0 0 px rgba(16, 185, 129, 0.12), var(--shadow-md);
+    transform: perspective(800px) rotateX(0deg);
+}
+
+.chat-input::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        transparent 0deg,
+        transparent 280deg,
+        rgba(0, 255, 102, 0.2) 320deg,
+        #00ff66 360deg
+    );
+    animation: rotateBorder 6s linear infinite;
+    z-index: -2;
+}
+
+.chat-input::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: #070a0e;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    z-index: -1;
+}
+
+@keyframes rotateBorder {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .chat-input input[type="text"] {
     flex: 1;
     min-width: 0;
     height: 42px;
-    border: 1px solid transparent;
+    border: 1px solid rgba(0, 255, 102, 0.3);
     outline: none;
-    background: var(--surface);
-   : var(--text-main);
-    padding: 0 14px    font-size: 14px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 0 14px;
+    font-size: 14px;
     text-align: right;
-    border-radius: 12px;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
 
-.chat-input input[type=""]:focus {
-    background: #ffffff;
+.chat-input input[type="text"]:focus {
     border-color: var(--primary);
+    box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.3);
 }
 
 .input-btn, .send-btn {
-    width:42px;
+    width: 42px;
     height: 42px;
     flex-shrink: 0;
-    border: 1px solid var(--border);
-    background: #ffffff;
+    border: 1px solid var(--primary);
+    background: rgba(0, 255, 102, 0.1);
     color: var(--primary);
-    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
     transition: all 0.2s ease;
 }
 
 .send-btn {
-    background:(--primary);
-    color: #ffffff;
-    border-color var(--primary);
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 03);
+    background: var(--primary);
+    color: var(--bg-dark);
 }
 
 .input-btn:hover, .send-btn:hover {
-    transform scale(1.05);
+    box-shadow: 0 0 15px var(--primary);
+    transform: scale(1.05);
 }
 
 /* ===============================
-   Model Selector
- */
+   Model Selector HUD Dropdown
+================================ */
 
 .model-selector {
     position: relative;
 }
 
-#modelBtn    height: 38px;
-    border: 1px solid var(--border);
-    background: #ffffff;
-    padding: 016px;
+#modelBtn {
+    height: 38px;
+    border: 1px solid var(--primary);
+    background: rgba(0, 255, 102, 0.1);
+    padding: 0 16px;
     font-size: 12.5px;
     color: var(--primary);
     cursor: pointer;
     font-weight: bold;
     letter-spacing: 1px;
-    border-radius: px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 12px var(--primary-glow);
 }
 
-#modelBtn:hover    background: var(--primary-soft);
-    border-color:(--primary);
+#modelBtn:hover {
+    background: var(--secondary);
+    color: var(--bg-dark);
+    box-shadow: 0 0 20px var(--secondary-glow);
 }
 
 .model-menu {
     position: absolute;
-   : 48px;
+    top: 48px;
     left: 50%;
     transform: translateX(-50%);
-    background: #ffffff;
-    border: 1px solid var(--border);
-    width: 200px;
-    box-shadow: var(--shadow-md);
+    background: rgba(8, 12, 18, 0.98);
+    border: 1px solid var(--primary);
+    width: 190px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 255, 102, 0.2);
     display: none;
-    border-radius: 14px;
+    border-radius: 4px;
     overflow: hidden;
     z-index: 1000;
 }
 
 .model-menu.active {
     display: block;
-    animation: menuIn 0.2s ease;
 }
 
 .model-menu div {
     padding: 12px 16px;
     cursor: pointer;
     font-size: 12.5px;
-    color: var(--text-main);
-    border-bottom: px solid #f0f2f5;
-    transition: .2s;
+    color: #fff;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+    transition: 0.2s;
     text-align: right;
 }
 
-.model-menu div:last-child {
-    border-bottom: none;
-}
-
-.model-menu div {
-    background: var(--primary-soft);
-    color: var(--primary);
+.model-menu div:hover {
+    background: var(--secondary);
+    color: var(--bg-dark);
     font-weight: bold;
 }
 
 /* ===============================
-   Sidebar
+   Warzone Sidebar
 ================================ */
 
 .sidebar {
@@ -415,17 +488,18 @@ body {
     top: 0;
     right: -320px;
     left: auto;
-   : 320px;
+    width: 320px;
     height: 100%;
-    background: #ffffff;
-    border-left: 1px solid var(--border);
+    background: rgba(5, 8, 12, 0.97);
+    border-left: 2px solid var(--primary);
     z-index: 200;
-    box-shadow: -15px  50px rgba(0, 0, 0, 0.1);
+    box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95);
     transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 25px 20px;
+    backdrop-filter: blur(20px);
 }
 
-.sidebar {
+.sidebar.active {
     right: 0;
 }
 
@@ -434,57 +508,51 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--panel-border);
     padding-bottom: 10px;
 }
 
 .sidebar-header h3 {
-    color: var(--text-main);
+    color: var(--primary);
     letter-spacing: 2px;
 }
 
 .sidebar button#closeSidebar {
-    border: 1px solid #fecaca;
-    background: #fef2f2;
+    border: 1px solid var(--accent-red);
+    background: transparent;
     color: var(--accent-red);
     padding: 6px 12px;
-    border-radius: 8px;
-    cursor:;
-    transition: 0.2s;
-}
-
-.sidebar button#closeSidebar:hover {
-    background: var(--accent-red);
-    color: #ffffff;
+    cursor: pointer;
 }
 
 .new-chat {
     width: 100%;
- margin-bottom: 20px;
+    margin-bottom: 20px;
     background: var(--primary);
-    color: #ffffff;
+    color: var(--bg-dark);
     border: none;
-    padding: px;
+    padding: 12px;
     font-weight: 900;
     letter-spacing: 1px;
     cursor: pointer;
-    border-radius: 12px;
+    border-radius: 4px;
     transition: 0.2s;
-    box-shadow:0 6px 18px rgba(16, 185,129, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .new-chat:hover {
+    box-shadow: 0 0 20px var(--primary);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
 }
 
 .history-item {
     padding: 12px 15px;
     margin-bottom: 8px;
-    background:(--surface);
-    border: 1px solid var(--border    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 255, 102, 0.1);
+    color: #aaa;
     cursor: pointer;
- border-radius: 12px;
+    border-radius: 4px;
     transition: 0.2s;
     position: relative;
     user-select: none;
@@ -493,8 +561,8 @@ body {
 
 .history-item:hover {
     border-color: var(--primary);
-    color: var(--text-main);
- background: var(--primary-soft);
+    color: #fff;
+    background: rgba(0, 255, 102, 0.1);
 }
 
 /* ===============================
@@ -505,7 +573,7 @@ body {
     position: absolute;
     top: 35%;
     left: 0;
- right: 0;
+    right: 0;
     text-align: center;
     pointer-events: none;
     z-index: 1;
@@ -513,77 +581,75 @@ body {
 
 #welcomeText {
     font-size: 28px;
-    color: #d1d5db;
-    text-shadow: none;
+    color: var(--primary);
+    text-shadow: 0 0 25px var(--primary-glow);
     font-weight: 900;
     letter-spacing: 3px;
+    text-transform: uppercase;
 }
 
-@keyframes msgIn {
+@keyframes HUDIn {
     from {
         opacity: 0;
-        transform translateY(25px) scale(0.96);
+        transform: translateY(25px) rotateX(-12deg) scale(0.96);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0) rotateX(0) scale(1);
     }
 }
 
-@keyframes menuIn {
-    { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-    to   { opacity: 1;: translateX(-50%) translateY(0); }
-}
-
 /* =========================================================
-   Delete Popover
+   TACTICAL DELETE POPOVER
 ========================================================= */
 
 .delete-popover {
     position: absolute;
     left: -55px;
-    top:50%;
+    top: 50%;
     transform: translateY(-50%) scale(0.8);
-    background: #ffffff;
-    border: 1px solid #fecaca;
-    box-shadow: var(--shadow-md);
-    border: 10px;
+    background: #0d131a;
+    border: 1px solid var(--accent-red);
+    box-shadow: 
+        0 0 15px rgba(255, 42, 42, 0.4),
+        0 8px 20px rgba(0, 0, 0, 0.8);
+    border-radius: 6px;
     padding: 6px 10px;
     display: flex;
     align-items: center;
     gap: 8px;
     z-index: 300;
-    opacity: ;
+    opacity: 0;
     pointer-events: none;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .delete-popover.active {
     opacity: 1;
-    pointer-events:;
+    pointer-events: auto;
     transform: translateY(-50%) scale(1);
 }
 
 .delete-popover::after {
     content: '';
     position: absolute;
-   : -7px;
+    right: -7px;
     top: 50%;
     transform: translateY(-50%);
     width: 0;
     height: 0;
     border-top: 6px solid transparent;
-    border-bottom 6px solid transparent;
-    border-left: 7px solid #fecaca;
+    border-bottom: 6px solid transparent;
+    border-left: 7px solid var(--accent-red);
 }
 
 .delete-popover-btn {
-    background: #2f2;
+    background: rgba(255, 42, 42, 0.15);
     color: var(--accent-red);
-    border: 1px solid #fecaca;
-    border-radius: 8px;
+    border: 1px solid var(--accent-red);
+    border-radius: 4px;
     padding: 5px 8px;
-    font-size 12px;
+    font-size: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -593,58 +659,65 @@ body {
 }
 
 .delete-popover-btn:hover {
-    background: var(---red);
-    color: #ffffff;
+    background: var(--accent-red);
+    color: #fff;
+    box-shadow: 0 0 10px var(--accent-red);
 }
 
 /* =========================================================
-   Image Card & Viewer
+   WARZONE TACTICAL IMAGE CARD & PREVIEW
 ========================================================= */
 
 .ai-image-card {
-    width:100%;
+    width: 100%;
     max-width: 320px;
     margin: 10px 0;
     padding: 6px;
-    background #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: var(--shadow-md);
+    background: rgba(8, 14, 22, 0.85);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.8),
+        0 0 12px var(--primary-glow);
+    backdrop-filter: blur(8px);
     overflow: hidden;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 
 .ai-image-card img {
-   : 100%;
+    width: 100%;
     height: auto;
-    max-height:280px;
+    max-height: 280px;
     object-fit: cover;
     display: block;
-    border-radius: 10px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.3s ease, filter 0.3s ease}
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
 
 .ai-image-card img:hover {
     transform: scale(1.02);
-    filter: brightness(1.05);
+    filter: brightness(1.1);
 }
 
--viewer {
+.image-viewer {
     position: fixed;
     inset: 0;
-    background: rgba(255, 255, 255, .94);
+    background: rgba(3, 5, 8, 0.92);
     backdrop-filter: blur(15px);
     display: flex;
     align-items: center;
-    justify-content: center    z-index: 9999;
+    justify-content: center;
+    z-index: 9999;
     padding: 20px;
-    animation: msgIn 0.25s ease;
+    animation: HUDIn 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 .image-viewer img {
     max-width: 90vw;
-    max: 85vh;
-    border: 1px solid var(--);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    border-radius: 12px;
+    max-height: 85vh;
+    border: 1px solid var(--primary);
+    box-shadow: 0 0 30px var(--primary-glow);
+    border-radius: 8px;
     object-fit: contain;
 }
