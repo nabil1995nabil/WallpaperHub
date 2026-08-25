@@ -1203,7 +1203,8 @@ imageWords.some(word =>
 
 
 // ===============================
-// Image Generation (Gemini أو Pollinations)
+// توليد الصور — Pollinations فقط
+// (Gemini مخصص للمحادثة النصية)
 // ===============================
 
 if(isImageRequest){
@@ -1212,62 +1213,55 @@ if(isImageRequest){
 
         let imageUrl = null;
 
-        if(currentModel === "pollinations"){
+        // 🌍 الخطوة 1: ترجمة الوصف للإنجليزية
+        // (Pollinations يفهم الإنجليزية أفضل بكثير)
+        let englishPrompt = text;
 
-            // ✨ Pollinations - مجاني مباشر بدون سيرفر
-            imageUrl =
-                "https://image.pollinations.ai/prompt/"
+        try{
+            const translateRes = await fetch(
+                "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q="
                 + encodeURIComponent(text)
-                + "?width=1080&height=1920&nologo=true&seed="
-                + Math.floor(Math.random() * 100000);
-
-            removeTyping(typing);
-            addMessage(
-                "🖼️ تم إنشاء الصورة بواسطة Pollinations",
-                "ai"
             );
-            addMessage(imageUrl, "ai");
-
-        } else {
-
-            // 🧠 Gemini - عبر السيرفر
-            const imageResponse =
-            await fetch("/api/generate-image", {
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    prompt:text
-                })
-            });
-
-            const imageResult =
-            await imageResponse.json();
-            removeTyping(typing);
-
-            if(imageResult.success){
-                addMessage(
-                    "🖼️ تم إنشاء الصورة بنجاح",
-                    "ai"
-                );
-                if(imageResult.image){
-                    addMessage(
-                        imageResult.image,
-                        "ai"
-                    );
-                }
-            } else {
-                addMessage(
-                    "⚠️ لم أستطع إنشاء الصورة حاليا",
-                    "ai"
-                );
+            const translateData = await translateRes.json();
+            if(translateData && translateData[0] && translateData[0][0]){
+                englishPrompt = translateData[0][0][0];
             }
+        }catch(translateError){
+            console.warn("Translate failed, using original text");
         }
 
-        selectedImage=null;
+        console.log("🌍 Translated prompt:", englishPrompt);
+
+        // ✨ الخطوة 2: تحسين الوصف + توليد الصورة
+        const enhanced =
+            englishPrompt
+            + ", wallpaper, highly detailed, 8k, masterpiece";
+
+        imageUrl =
+            "https://image.pollinations.ai/prompt/"
+            + encodeURIComponent(enhanced)
+            + "?width=1080&height=1920&nologo=true&seed="
+            + Math.floor(Math.random() * 100000);
+
+        removeTyping(typing);
+
+        if(currentModel === "gemini"){
+            addMessage(
+                "💡 Gemini للمحادثة — استخدمت Pollinations لتوليد الصورة",
+                "ai"
+            );
+        }
+
+        addMessage(
+            "🖼️ تم إنشاء صورتك بنجاح",
+            "ai"
+        );
+
+        addMessage(imageUrl, "ai");
+
+        selectedImage = null;
         if(imageInput){
-            imageInput.value="";
+            imageInput.value = "";
         }
         return;
 
@@ -1284,6 +1278,7 @@ if(isImageRequest){
         return;
     }
 }
+
 
 
 // ===============================
