@@ -1,0 +1,264 @@
+/* ==========================================
+   🌌 WallpaperHub - Wallpaper 5D Engine
+   طبقة عمق فائقة - Additive فقط
+========================================== */
+
+:root{
+    --w5d-1:#5b5df5;
+    --w5d-2:#a855f7;
+    --w5d-3:#06b6d4;
+}
+
+/* ==========================================
+   🌠 Nebula خلفية متحركة (عمق 5D)
+========================================== */
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:-50%;
+    background:
+        radial-gradient(circle at 25% 25%, rgba(91,93,245,.10), transparent 45%),
+        radial-gradient(circle at 75% 65%, rgba(168,85,247,.08), transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(6,182,212,.07), transparent 45%);
+    animation:nebula5d 20s ease-in-out infinite alternate;
+    pointer-events:none;
+    z-index:0;
+@keyframes nebula5d{
+    0% transform:translate(0,0) rotate(0deg) scale(1);}
+    50% {transform:translate(40px,-50px) rotate(4deg) scale(1.06);}
+ 100%{transform:translate(-40px,40px)(-4deg) scale(1);}
+}
+
+/* كل المحت فوق الخلفية */
+.top-bar,.preview,.info,.tags,.{
+    position:relative;
+    z-index:2;
+}
+
+/* ==========================================
+   🖼️ المعاينة الرئيسية - إطار طاقة
+========================================== */
+
+.wallpaper-preview-wrapper{
+    position:relative;
+    transform:preserve-3d;
+    transition:transform .5 cubic-bezier(.22,1,.36,1);
+}
+
+/* إطار متدرج دوّار حول المعاينة */
+.wall-preview-wrapper::after{
+    content:"";
+    position:absolute;
+ inset:-2px;
+    border-radius:32px;
+    backgroundconic-gradient(
+        from var(--angle,0deg),
+        var(--w5d-1),
+        var(--w5d-2),
+        var(--w5d-3),
+        var(--w5d-1)
+    );
+    z-index:-1;
+    animation:angleSpin 5s linear infinite;
+    opacity:.55;
+    filter:blur(6px);
+    pointer-events:none;
+}
+
+@property --angle{
+    syntax:"<angle>";
+ initial-value:0deg;
+    inherits:false;
+}
+
+@key angleSpin{
+    to{--angle:360deg;}
+}
+
+/*=========
+   💎 بطاقات المعلومات - Glass 5D========================================== */
+
+.info-item{
+    position:relative;
+    transform-stylepreserve-3d;
+    transition:
+        transform .4s cubic-bezier(.22,1,.36,1),
+        box-shadow4s ease,
+        border-color .4s ease;
+}
+
+.info:hover{
+    transform:translateX(-6px) translateZ20px);
+    border-color:rgba(125,95,255,.5) !important;
+    box-shadow:
+        0 15px 35px rgba(91,93,245,.18),
+        inset0 0 20px rgba(91,93,,.05);
+}
+
+/* خط ضوئي على يمين الباقة */
+.info-item::before{
+    content:"";
+    position;
+    top:20%;
+    bottom:20%;
+    right:;
+    width:3px;
+    border-radius:4px;
+    background:linear-gradient(180deg,var(--w5d-),var(--w5d-2),var(--w5d3));
+    opacity:0;
+    transition:.4s;
+}
+
+-item:hover::before{
+    opacity:1;
+    box-shadow:0 0 14px rgba(125,95,255,.7);
+}
+
+/* ==========================================
+   🏷️ الوسوم - أزرار نيون
+========================================== */
+
+.tag{
+    transition:.3s cubiczier(.34,1.56,.64,1);
+    cursor;
+}
+
+.tag:hover{
+    transform:translateY(-4px) scale(1.08);
+    border-color:var(--w5d1) !important;
+    box-shadow:
+        0 0 16px rgba(91,93,245,.45),
+        inset0 0 8px rgba(91,93,245,.15}
+
+/* دوائر الألوان - نبض */
+#colorPalette{
+    transition:.35s cubic-bezier(.34,1.56,.64,1);
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,0,0,.5}
+
+#colorPalette div:hover{
+    transform:scale(1.) translateY(-4px);
+    box-shadow:
+        0 px 20px rgba(0,0,0,.6),
+ 0 0 16px rgba(255,255,25525);
+}
+
+/* ==========================================
+   🃏 الخلفيات المشابهة - عمق لعبة
+========================================== */
+
+.similar-card{
+   -style:preserve-3d;
+    transition:transform .45s cubic-bezier(.22,1,.36,1), box-shadow .s ease;
+}
+
+.similar-card:hover{
+    transform:translateY(-10px) rotateX(6deg) scale(1.04);
+    box-shadow:
+        0 25px 50px rgba91,93,245,.25),
+        0 0 px rgba(125,95,255,.15);
+    z-index10;
+}
+
+/* لمعة تمر على البطاقة */
+.similar-card::after{
+    content:"";
+    position:absolute;
+    top0;
+    left:-80%;
+    width:55%;
+    height100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent);
+    transform:skewX(-20deg);
+    transition:left .7s ease;
+    pointer-events:none;
+}
+
+.similar-card:hover::after{
+    left:130%;
+}
+
+/* ==========================================
+   ⭐ النجوم - توه ذهبي
+========================================== */
+
+.star{
+    transition:.25s cubic-bezier(.34,1.56,.64,1);
+}
+
+.star:hover{
+    transform:scale(1.3) rotate(10deg);
+    text-shadow:0 0 14px rgba(255196,0,.8);
+}
+
+.star.active{
+    text-shadow: 0 12px rgba(255,196,0,.6}
+
+/* ==========================================
+   🔘 أزرار الهيدر -الة
+========================================== */
+
+.icon-btn{
+    transition:.3s cubic-bezier(.34,1.56,.64,1);
+}
+
+.icon:hover{
+    transform:translateY(-3px) scale(1.08);
+    box-shadow:
+        0 8px 20 rgba(0,0,0,.6),
+        0  18px rgba(91,93,245,.35);
+   :1px solid rgba(125,95,255,.4);
+}
+
+/* زر التحميل - نبض جذب */
+.download-image-btn{
+    animation:dlPulse 3s ease-in-out infinite;
+}
+
+@keyframes dlPulse{
+    0%,100%box-shadow:0 0 0 0 rgba(91,,245,.5);}
+    50%{box-shadow:00 0 10px rgba(91,93,245,);}
+}
+
+/* شارة الجودة - معدنية لامعة */
+-badge{
+    background:linear-gradient(135deg,#5b55,#a855f7,#5b5df5)important;
+    background-size:200% 100% !important;
+ animation:badgeShine 3s linear infinite;
+    box-shadow:0 4px 16px rgba(125,95,255,.5);
+    border:1px solid rgba(255,255,255,.25);
+}
+
+@keyframes badgeShine{
+    to{background:200% 0;}
+}
+
+/* ==========================================
+   🎬ول سينمائي متدرج
+========================================== */
+
+.preview{:w5dIn .6s ease both;}
+.info{animation:wdIn .7s .1s ease both;}
+.tags{animation:w5dIn .8s .2s ease both;}
+.similaranimation:w5dIn .9s .3s ease both;}
+
+keyframes w5dIn{
+    from{opacity:0;:translateY(35px) rotateX(5deg);}
+    to{opacity:1;transform:translateY(0) rotateX(0);}
+}
+
+/* ==========================================
+   ⚡ احترام تقل الحركة + الجوال
+========================================== */
+
+@media (prefers-re-motion:reduce){
+    *{animation-duration:.01ms !importanttransition-duration:.01ms !important;}
+}
+
+@media(max-width:600){
+    /* على الجوال: تأثيرات خفيفة بدونمالة ثقيلة */
+    .wallpaper-preview-wrapper::after{opacity:.35;}
+    .similar-card:hover{transform:translateY(-5px);}
+    .info-item:hover{transform:translateX3px);}
+}
