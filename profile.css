@@ -1,994 +1,1306 @@
 /* ===================================================
    WallpaperHub Profile CSS
-   GAMING 8D EDITION - Depth & Glow
-   Part 1/3
+   Clean Normal Design
+   Part 1/4
 =================================================== */
 
 
-/* ==========================
-   Reset & Variables
-========================== */
+/* Reset */
 
-:root {
-    --bg-deep: #f2f4fb;
-    --bg-layer: #e8ebf7;
-    --neon-primary: #6c3df4;
-    --neon-cyan: #00b8d9;
-    --neon-pink: #ff2e88;
-    --glow-purple: rgba(108, 61, 244, .30);
-    --glow-cyan: rgba(0, 184, 217, .25);
-    --card-bg: rgba(255, 255, 255, .82);
-    --card-border: rgba(108, 61, 244, .18);
-    --text-main: #1a1f36;      /* ← نص داكن بدل الأبيض */
-    --text-dim: #6b7194;       /* ← نص ثانوي رمادي */
+*{
+
+margin:0;
+
+padding:0;
+
+box-sizing:border-box;
+
+font-family:"Cairo",Arial,sans-serif;
+
 }
 
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Cairo", Arial, sans-serif;
-}
 
-html {
-    scroll-behavior: smooth;
-}
+html{
 
-body {
-    background: var(--bg-deep);
-    color: var(--text-main);
-    width: 100%;
-    overflow-x: hidden;
-    padding-bottom: 110px;
-    min-height: 100vh;
+scroll-behavior:smooth;
+
 }
 
 
-/* ==========================
-   Deep Background Layers (8D Atmosphere)
-========================== */
 
-/* طبقة التوهج الخلفية العميقة */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -3;
-    background:
-        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(108, 61, 244, .12), transparent 60%),
-        radial-gradient(ellipse 70% 50% at 85% 15%, rgba(0, 184, 217, .10), transparent 55%),
-        radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255, 46, 136, .07), transparent 60%),
-        linear-gradient(180deg, #f2f4fb 0%, #e8ebf7 50%, #eef0fa 100%);
-    pointer-events: none;
+body{
+
+background:#f4f6ff;
+
+color:#161824;
+
+width:100%;
+
+overflow-x:hidden;
+
+padding-bottom:100px;
+
 }
 
-
-/* شبكة عمق متحركة (Grid Floor - إحساس الألعاب) */
-body::after {
-    content: "";
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200%;
-    height: 45vh;
-    z-index: -2;
-    background-image:
-        linear-gradient(rgba(108, 61, 244, .09) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(108, 61, 244, .09) 1px, transparent 1px);
-    background-size: 42px 42px;
-    transform-origin: top;
-    perspective: 400px;
-    mask-image: linear-gradient(to top, rgba(0,0,0,.9), transparent 75%);
-    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,.9), transparent 75%);
-    animation: gridMove 14s linear infinite;
-    pointer-events: none;
-}
-
-
-@keyframes gridMove {
-    from { background-position-y: 0; }
-    to   { background-position-y: 42px; }
-}
 
 
 /* ==========================
-   Header - Glass HUD Style
+ Header
 ========================== */
 
-.profile-header {
-    height: 74px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 18px;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(8, 10, 24, .78);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border-bottom: 1px solid rgba(124, 140, 255, .15);
-    box-shadow:
-        0 10px 40px rgba(124, 77, 255, .18),
-        inset 0 -1px 0 rgba(0, 229, 255, .08);
+
+.profile-header{
+
+height:70px;
+
+width:100%;
+
+display:flex;
+
+align-items:center;
+
+justify-content:space-between;
+
+padding:0 18px;
+
+position:sticky;
+
+top:0;
+
+z-index:50;
+
+background:rgba(255,255,255,.85);
+
+backdrop-filter:blur(15px);
+
+border-bottom:1px solid rgba(0,0,0,.05);
+
+box-shadow:0 5px 20px rgba(0,0,0,.05);
+
 }
 
-.profile-header h2 {
-    font-size: 21px;
-    font-weight: 900;
-    letter-spacing: .5px;
-    text-shadow:
-        0 0 20px var(--glow-purple),
-        0 0 60px rgba(124, 77, 255, .25);
+
+
+.profile-header h2{
+
+font-size:22px;
+
+font-weight:800;
+
 }
 
-.profile-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+
+
+.profile-actions{
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
 }
+
+
 
 
 .back-btn,
 .edit-btn,
-.login-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 16px;
-    border: 1px solid var(--card-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background: linear-gradient(145deg, rgba(124, 77, 255, .15), rgba(0, 229, 255, .06));
-    color: #b9a8ff;
-    transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
-    box-shadow:
-        0 6px 20px rgba(124, 77, 255, .2),
-        inset 0 1px 0 rgba(255, 255, 255, .1);
+.login-btn{
+
+width:42px;
+
+height:42px;
+
+border-radius:50%;
+
+border:none;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+cursor:pointer;
+
+background:#eef2ff;
+
+color:#5060ff;
+
 }
 
-.back-btn:hover,
-.edit-btn:hover,
-.login-btn:hover {
-    transform: translateY(-3px) scale(1.06);
-    color: white;
-    box-shadow:
-        0 12px 35px var(--glow-purple),
-        0 0 0 1px rgba(124, 77, 255, .4);
+
+
+
+/* ==========================
+ Cover
+========================== */
+
+
+.profile-cover{
+
+position:relative;
+
+width:100%;
+
+height:260px;
+
+text-align:center;
+
+overflow:hidden;
+
+border-radius:0 0 40px 40px;
+
+background:white;
+
+box-shadow:0 15px 35px rgba(0,0,0,.06);
+
 }
 
-.back-btn:active,
-.edit-btn:active,
-.login-btn:active {
-    transform: translateY(0) scale(.95);
+
+
+.cover-image{
+
+width:100%;
+
+height:170px;
+
+object-fit:cover;
+
+display:block;
+
+}
+
+
+
+.profile-avatar-box{
+
+position:absolute;
+
+top:105px;
+
+left:50%;
+
+transform:translateX(-50%);
+
+}
+
+
+
+.profile-avatar{
+
+width:110px;
+
+height:110px;
+
+border-radius:50%;
+
+object-fit:cover;
+
+border:4px solid white;
+
+box-shadow:0 10px 30px rgba(0,0,0,.18);
+
+}
+
+
+
+.avatar-edit{
+
+position:absolute;
+
+right:0;
+
+bottom:5px;
+
+width:36px;
+
+height:36px;
+
+border-radius:50%;
+
+border:2px solid white;
+
+background:#5060ff;
+
+color:white;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+cursor:pointer;
+
+}
+
+
+
+.profile-cover h2{
+
+margin-top:55px;
+
+font-size:24px;
+
+font-weight:800;
+
+}
+
+
+
+.profile-cover p{
+
+margin-top:5px;
+
+color:#6e758a;
+
+font-size:14px;
+
 }
 
 /* ===================================================
-   WallpaperHub Profile CSS
-   GAMING 8D EDITION
-   Part 2/3
+   User Cards + Statistics
+   Part 2/4
 =================================================== */
 
 
 /* ==========================
-   Cover - Cinematic Hero
+ User Information
 ========================== */
 
-.profile-cover {
-    position: relative;
-    width: 100%;
-    height: 280px;
-    text-align: center;
-    overflow: visible;
-    border-radius: 0 0 36px 36px;
-    background: linear-gradient(180deg, rgba(124, 77, 255, .12), transparent 70%), var(--bg-layer);
-    box-shadow:
-        0 30px 60px rgba(0, 0, 0, .5),
-        inset 0 1px 0 rgba(0, 229, 255, .1);
+
+.user-info{
+
+padding:20px 18px;
+
+display:flex;
+
+flex-direction:column;
+
+gap:14px;
+
 }
 
-.cover-image {
-    width: 100%;
-    height: 175px;
-    object-fit: cover;
-    display: block;
-    filter: saturate(130%) contrast(115%) brightness(.85);
-    mask-image: linear-gradient(to bottom, black 55%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent);
+
+
+
+
+.info-card{
+
+display:flex;
+
+align-items:center;
+
+gap:16px;
+
+padding:16px;
+
+border-radius:24px;
+
+background:rgba(255,255,255,.75);
+
+backdrop-filter:blur(15px);
+
+-webkit-backdrop-filter:blur(15px);
+
+border:1px solid rgba(255,255,255,.8);
+
+box-shadow:
+
+0 10px 30px rgba(0,0,0,.06);
+
 }
 
-/* خط توهج تحت الغلاف */
-.profile-cover::before {
-    content: "";
-    position: absolute;
-    top: 172px;
-    left: 10%;
-    right: 10%;
-    height: 2px;
-    z-index: 2;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-primary), var(--neon-pink), transparent);
-    filter: blur(1px);
-    opacity: .8;
-    animation: linePulse 3s ease-in-out infinite;
+
+
+
+
+
+.info-card .material-icons{
+
+width:45px;
+
+height:45px;
+
+flex-shrink:0;
+
+border-radius:50%;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+background:rgba(80,96,255,.12);
+
+color:#5060ff;
+
 }
 
-@keyframes linePulse {
-    0%, 100% { opacity: .5; }
-    50%      { opacity: 1; }
+
+
+
+
+.info-card h4{
+
+font-size:13px;
+
+color:#6e758a;
+
+margin-bottom:5px;
+
+font-weight:600;
+
 }
 
-.profile-avatar-box {
-    position: absolute;
-    top: 118px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
+
+
+
+
+.info-card p{
+
+font-size:16px;
+
+color:#161824;
+
+font-weight:800;
+
 }
 
-/* هالة دوّارة حول الصورة الشخصية */
-.profile-avatar-box::before {
-    content: "";
-    position: absolute;
-    top: -6px;
-    left: -6px;
-    right: -6px;
-    bottom: -6px;
-    border-radius: 50%;
-    background: conic-gradient(var(--neon-cyan), var(--neon-primary), var(--neon-pink), var(--neon-cyan));
-    animation: spinHalo 4s linear infinite;
-    z-index: -1;
-    filter: blur(2px);
-    opacity: .9;
-}
 
-@keyframes spinHalo {
-    to { transform: rotate(360deg); }
-}
 
-.profile-avatar {
-    width: 112px;
-    height: 112px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid rgba(10, 13, 31, .95);
-    box-shadow:
-        0 15px 45px rgba(0, 0, 0, .6),
-        0 0 35px var(--glow-purple);
-    animation: avatarFloat 4s ease-in-out infinite;
-}
 
-@keyframes avatarFloat {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-7px); }
-}
 
-.avatar-edit {
-    position: absolute;
-    right: 2px;
-    bottom: 8px;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 2px solid var(--bg-deep);
-    background: linear-gradient(135deg, var(--neon-primary), #5b2ee0);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow:
-        0 6px 20px var(--glow-purple),
-        0 0 15px rgba(124, 77, 255, .5);
-    transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
-    z-index: 4;
-}
-
-.avatar-edit:hover {
-    transform: scale(1.15) rotate(10deg);
-}
-
-.profile-cover h2 {
-    margin-top: 62px;
-    font-size: 26px;
-    font-weight: 900;
-    text-shadow:
-        0 0 25px var(--glow-purple),
-        0 4px 15px rgba(0, 0, 0, .6);
-}
-
-.profile-cover p {
-    margin-top: 6px;
-    color: var(--text-dim);
-    font-size: 14px;
-    letter-spacing: .3px;
-}
 
 
 /* ==========================
-   Cards - 3D Floating Panels
+ UID Card
 ========================== */
 
-.user-info {
-    padding: 26px 18px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    /* عمق ثلاثي الأبعاد للصفحة كلها */
-    perspective: 1200px;
+
+.uid-box{
+
+display:flex;
+
+flex-direction:column;
+
+gap:12px;
+
+padding:16px;
+
+border-radius:24px;
+
+background:rgba(255,255,255,.75);
+
+backdrop-filter:blur(15px);
+
+-webkit-backdrop-filter:blur(15px);
+
+border:1px solid rgba(255,255,255,.8);
+
+box-shadow:
+
+0 10px 30px rgba(0,0,0,.06);
+
 }
 
-.info-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 17px;
-    border-radius: 22px;
-    position: relative;
-    background: var(--card-bg);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--card-border);
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, .45),
-        inset 0 1px 0 rgba(255, 255, 255, .07);
-    transition: transform .4s cubic-bezier(.34, 1.56, .64, 1), box-shadow .4s, border-color .4s;
-    transform-style: preserve-3d;
-    animation: cardEnter .7s cubic-bezier(.22, 1, .36, 1) backwards;
+
+
+.uid-title{
+
+font-size:13px;
+
+color:#6e758a;
+
+font-weight:600;
+
 }
 
-.info-card:nth-child(1) { animation-delay: .05s; }
-.info-card:nth-child(2) { animation-delay: .12s; }
-.info-card:nth-child(3) { animation-delay: .19s; }
-.info-card:nth-child(4) { animation-delay: .26s; }
-.info-card:nth-child(5) { animation-delay: .33s; }
-.info-card:nth-child(6) { animation-delay: .40s; }
 
-@keyframes cardEnter {
-    from {
-        opacity: 0;
-        transform: translateY(35px) rotateX(-12deg);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) rotateX(0);
-    }
+
+.uid-content{
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
+direction:ltr;
+
 }
 
-/* شريط توهج جانبي عند المرور */
-.info-card::before {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 15%;
-    bottom: 15%;
-    width: 3px;
-    border-radius: 4px;
-    background: linear-gradient(180deg, var(--neon-cyan), var(--neon-primary));
-    opacity: 0;
-    transition: opacity .35s;
-    filter: drop-shadow(0 0 8px var(--glow-cyan));
+
+
+
+
+#userUid{
+
+flex:1;
+
+font-family:monospace;
+
+font-size:15px;
+
+color:#161824;
+
+overflow:hidden;
+
+text-overflow:ellipsis;
+
 }
 
-.info-card:hover {
-    transform: translateY(-4px) translateZ(25px) scale(1.015);
-    border-color: rgba(0, 229, 255, .35);
-    box-shadow:
-        0 25px 60px rgba(0, 0, 0, .55),
-        0 0 30px rgba(124, 77, 255, .25),
-        inset 0 1px 0 rgba(255, 255, 255, .12);
+
+
+
+
+.uid-content button{
+
+width:42px;
+
+height:42px;
+
+border:none;
+
+border-radius:50%;
+
+background:#eef2ff;
+
+color:#5060ff;
+
+font-size:17px;
+
+cursor:pointer;
+
 }
 
-.info-card:hover::before {
-    opacity: 1;
-}
 
-.info-card .material-icons {
-    width: 48px;
-    height: 48px;
-    flex-shrink: 0;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(145deg, rgba(124, 77, 255, .22), rgba(0, 229, 255, .08));
-    color: #b9a8ff;
-    box-shadow:
-        0 6px 18px rgba(124, 77, 255, .25),
-        inset 0 1px 0 rgba(255, 255, 255, .12);
-}
 
-.info-card h4 {
-    font-size: 12.5px;
-    color: var(--text-dim);
-    margin-bottom: 5px;
-    font-weight: 700;
-    letter-spacing: .4px;
-}
 
-.info-card p {
-    font-size: 16px;
-    color: var(--text-main);
-    font-weight: 800;
-    direction: ltr;
-    text-align: right;
-    word-break: break-all;
-}
+
+
 
 
 /* ==========================
-   UID Card
+ Statistics
 ========================== */
 
-.uid-title {
-    font-size: 12.5px;
-    color: var(--text-dim);
-    font-weight: 700;
-    letter-spacing: .4px;
-}
 
-.uid-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    direction: ltr;
-    margin-top: 10px;
-}
+.profile-stats{
 
-#userUid {
-    flex: 1;
-    font-family: "Courier New", monospace;
-    font-size: 14.5px;
-    font-weight: 700;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 12px var(--glow-cyan);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    letter-spacing: 1px;
-}
+width:100%;
 
-.uid-content button {
-    width: 44px;
-    height: 44px;
-    border: 1px solid var(--card-border);
-    border-radius: 14px;
-    background: linear-gradient(145deg, rgba(124, 77, 255, .15), rgba(0, 229, 255, .06));
-    color: #b9a8ff;
-    font-size: 17px;
-    cursor: pointer;
-    transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
-}
+display:grid;
 
-.uid-content button:hover {
-    transform: translateY(-3px) scale(1.08);
-    box-shadow: 0 8px 25px var(--glow-purple);
-    color: white;
-}
+grid-template-columns:repeat(3,1fr);
 
-.uid-content button:active {
-    transform: scale(.92);
+gap:12px;
+
+padding:10px 18px 25px;
+
 }
 
 
-/* ==========================
-   Statistics - Power-Up Counters
-========================== */
 
-.profile-stats {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    padding: 20px 18px 15px;
-    perspective: 1000px;
+
+
+
+.stat-card{
+
+text-align:center;
+
+padding:20px 5px;
+
+border-radius:24px;
+
+background:rgba(255,255,255,.75);
+
+backdrop-filter:blur(15px);
+
+-webkit-backdrop-filter:blur(15px);
+
+border:1px solid rgba(255,255,255,.8);
+
+box-shadow:
+
+0 10px 30px rgba(0,0,0,.06);
+
 }
 
-.stat-card {
-    text-align: center;
-    padding: 22px 5px;
-    border-radius: 22px;
-    position: relative;
-    overflow: hidden;
-    background: var(--card-bg);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--card-border);
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, .45),
-        inset 0 1px 0 rgba(255, 255, 255, .07);
-    transition: transform .4s cubic-bezier(.34, 1.56, .64, 1);
-    animation: cardEnter .7s cubic-bezier(.22, 1, .36, 1) backwards;
+
+
+
+
+
+.stat-card h3{
+
+font-size:26px;
+
+font-weight:900;
+
+color:#5060ff;
+
 }
 
-.stat-card:nth-child(1) { animation-delay: .45s; }
-.stat-card:nth-child(2) { animation-delay: .52s; }
-.stat-card:nth-child(3) { animation-delay: .59s; }
 
-/* توهج سفلي يظهر عند الهوفر */
-.stat-card::after {
-    content: "";
-    position: absolute;
-    bottom: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: 55px;
-    border-radius: 50%;
-    background: var(--neon-primary);
-    filter: blur(28px);
-    opacity: 0;
-    transition: opacity .4s, bottom .4s;
-}
 
-.stat-card:hover {
-    transform: translateY(-8px) scale(1.04);
-}
 
-.stat-card:hover::after {
-    opacity: .55;
-    bottom: -15px;
-}
 
-.stat-card h3 {
-    font-size: 30px;
-    font-weight: 900;
-    color: white;
-    text-shadow:
-        0 0 18px var(--glow-purple),
-        0 0 45px rgba(124, 77, 255, .3);
-    position: relative;
-    z-index: 1;
-}
 
-.stat-card p {
-    margin-top: 6px;
-    font-size: 12.5px;
-    color: var(--text-dim);
-    font-weight: 700;
-    position: relative;
-    z-index: 1;
+.stat-card p{
+
+margin-top:5px;
+
+font-size:13px;
+
+color:#6e758a;
+
+font-weight:600;
+
 }
 
 /* ===================================================
-   WallpaperHub Profile CSS
-   GAMING 8D EDITION
-   Part 3/3
+   Wallpapers + Edit Modal
+   Part 3/4
 =================================================== */
 
 
 /* ==========================
-   Wallpapers Section
+ Wallpapers Content
 ========================== */
 
-.profile-content {
-    padding: 0 18px;
-    perspective: 1400px;
-}
 
-.section-title {
-    margin: 32px 0 18px;
-}
+.profile-content{
 
-.section-title h2 {
-    font-size: 19px;
-    font-weight: 900;
-    color: var(--text-main);
-    text-shadow: 0 0 20px rgba(124, 77, 255, .3);
+padding:0 18px;
+
 }
 
 
-.profile-grid {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    padding: 10px 4px 28px;
-    scroll-snap-type: x mandatory;
-}
 
-.profile-grid::-webkit-scrollbar {
-    display: none;
+.section-title{
+
+margin:30px 0 18px;
+
 }
 
 
-/* بطاقة خلفية - 3D Tilt Card */
 
-.profile-wall-card {
-    flex: 0 0 82%;
-    min-width: 82%;
-    scroll-snap-align: center;
-    overflow: hidden;
-    border-radius: 26px;
-    position: relative;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    box-shadow:
-        0 20px 50px rgba(0, 0, 0, .55);
-    cursor: pointer;
-    transition:
-        transform .45s cubic-bezier(.34, 1.56, .64, 1),
-        box-shadow .45s,
-        border-color .45s;
-    transform-style: preserve-3d;
-    animation: cardEnter .7s cubic-bezier(.22, 1, .36, 1) backwards;
+.section-title h2{
+
+font-size:20px;
+
+font-weight:800;
+
+color:#161824;
+
 }
 
-/* إطار توهج يظهر عند الهوفر */
-.profile-wall-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 26px;
-    border: 1.5px solid transparent;
-    background:
-        linear-gradient(135deg, var(--neon-cyan), var(--neon-primary), var(--neon-pink)) border-box;
-    mask: linear-gradient(black, black) content-box, linear-gradient(black, black);
-    mask-composite: exclude;
-    -webkit-mask-composite: xor;
-    padding: 1.5px;
-    opacity: 0;
-    transition: opacity .4s;
-    pointer-events: none;
-}
 
-.profile-wall-card:hover {
-    transform: translateY(-8px) translateZ(35px) scale(1.03);
-    box-shadow:
-        0 35px 70px rgba(0, 0, 0, .65),
-        0 0 40px rgba(124, 77, 255, .3);
-}
 
-.profile-wall-card:hover::after {
-    opacity: 1;
-}
-
-.profile-wall-card:active {
-    transform: translateY(-3px) scale(.98);
-}
-
-.profile-wall-card img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    display: block;
-    filter: saturate(125%);
-    transition: transform .5s ease, filter .4s;
-}
-
-.profile-wall-card:hover img {
-    transform: scale(1.07);
-    filter: saturate(150%) brightness(1.05);
-}
-
-.profile-wall-info {
-    padding: 15px 17px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(180deg, transparent, rgba(124, 77, 255, .06));
-}
-
-.profile-wall-info h3 {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--text-main);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 
 
 /* ==========================
-   Empty State
+ Wallpaper Grid
 ========================== */
 
-.empty-profile {
-    flex: 1;
-    min-width: 100%;
-    padding: 38px 20px;
-    text-align: center;
-    border-radius: 22px;
-    background: rgba(16, 19, 40, .5);
-    border: 1.5px dashed rgba(124, 140, 255, .25);
-    color: var(--text-dim);
-    font-weight: 700;
-    letter-spacing: .3px;
-    animation: cardEnter .7s cubic-bezier(.22, 1, .36, 1) backwards;
+
+.profile-grid{
+
+display:flex;
+
+gap:18px;
+
+overflow-x:auto;
+
+padding:10px 5px 25px;
+
 }
+
+
+
+.profile-grid::-webkit-scrollbar{
+
+display:none;
+
+}
+
+
+
+
+
+
+.profile-wall-card{
+
+flex:0 0 85%;
+
+min-width:85%;
+
+overflow:hidden;
+
+border-radius:28px;
+
+background:rgba(255,255,255,.75);
+
+backdrop-filter:blur(15px);
+
+-webkit-backdrop-filter:blur(15px);
+
+border:1px solid rgba(255,255,255,.8);
+
+box-shadow:
+
+0 15px 40px rgba(0,0,0,.08);
+
+cursor:pointer;
+
+}
+
+
+
+
+
+.profile-wall-card img{
+
+width:100%;
+
+height:300px;
+
+object-fit:cover;
+
+display:block;
+
+}
+
+
+
+
+
+.profile-wall-info{
+
+padding:16px;
+
+}
+
+
+
+.profile-wall-info h3{
+
+font-size:17px;
+
+font-weight:800;
+
+color:#161824;
+
+overflow:hidden;
+
+text-overflow:ellipsis;
+
+white-space:nowrap;
+
+}
+
+
+
+.profile-wall-info p{
+
+margin-top:6px;
+
+color:#6e758a;
+
+font-size:13px;
+
+}
+
+
+
 
 
 /* ==========================
-   Edit Modal - Hologram Panel
+ Empty
 ========================== */
 
-.edit-modal {
-    position: fixed;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 200;
-    background: rgba(3, 4, 12, .75);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
 
-.edit-modal.show {
-    display: flex;
-    animation: modalFadeIn .35s ease;
-}
+.empty-profile{
 
-@keyframes modalFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
+padding:30px;
 
-.edit-box {
-    width: 100%;
-    max-width: 420px;
-    padding: 32px 28px;
-    border-radius: 30px;
-    position: relative;
-    background: linear-gradient(160deg, #12152b, #0c0f22);
-    border: 1px solid rgba(124, 140, 255, .25);
-    box-shadow:
-        0 40px 90px rgba(0, 0, 0, .7),
-        0 0 50px rgba(124, 77, 255, .2),
-        inset 0 1px 0 rgba(255, 255, 255, .08);
-    animation: modalPop .45s cubic-bezier(.34, 1.56, .64, 1);
-}
+text-align:center;
 
-@keyframes modalPop {
-    from {
-        opacity: 0;
-        transform: translateY(50px) scale(.9) rotateX(-10deg);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1) rotateX(0);
-    }
-}
+border-radius:25px;
 
-/* خط توهج علوي للمودال */
-.edit-box::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 15%;
-    right: 15%;
-    height: 2.5px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-primary), transparent);
-    filter: blur(1px);
-}
+background:white;
 
-.edit-box h2 {
-    text-align: center;
-    margin-bottom: 26px;
-    font-size: 23px;
-    font-weight: 900;
-    text-shadow: 0 0 20px var(--glow-purple);
+color:#8990a8;
+
 }
 
 
-.edit-input {
-    margin-bottom: 18px;
-}
-
-.edit-input label {
-    display: block;
-    margin-bottom: 9px;
-    color: var(--text-dim);
-    font-size: 13.5px;
-    font-weight: 700;
-}
-
-.edit-input input {
-    width: 100%;
-    height: 54px;
-    border-radius: 16px;
-    border: 1px solid rgba(124, 140, 255, .2);
-    padding: 0 16px;
-    outline: none;
-    font-size: 15px;
-    background: rgba(8, 10, 24, .7);
-    color: white;
-    transition: all .3s;
-}
-
-.edit-input input:focus {
-    border-color: var(--neon-primary);
-    box-shadow:
-        0 0 0 3px rgba(124, 77, 255, .15),
-        0 0 25px rgba(124, 77, 255, .2);
-}
 
 
-.edit-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 26px;
-}
 
-.edit-buttons button {
-    flex: 1;
-    height: 54px;
-    border: none;
-    border-radius: 18px;
-    font-size: 15.5px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
-}
 
-#saveProfileBtn {
-    background: linear-gradient(135deg, var(--neon-primary), #5b2ee0);
-    color: white;
-    box-shadow:
-        0 10px 30px var(--glow-purple),
-        inset 0 1px 0 rgba(255, 255, 255, .2);
-}
-
-#saveProfileBtn:hover {
-    transform: translateY(-3px);
-    box-shadow:
-        0 15px 40px var(--glow-purple),
-        0 0 25px rgba(124, 77, 255, .4);
-}
-
-#saveProfileBtn:active {
-    transform: scale(.96);
-}
-
-#closeEditBtn {
-    background: rgba(124, 140, 255, .1);
-    color: #b9a8ff;
-    border: 1px solid rgba(124, 140, 255, .2) !important;
-}
-
-#closeEditBtn:hover {
-    transform: translateY(-3px);
-    background: rgba(124, 140, 255, .16);
-}
 
 
 /* ==========================
-   Mobile Optimization
+ Edit Modal
 ========================== */
 
-@media(max-width:600px) {
 
-    .profile-header { height: 68px; }
+.edit-modal{
 
-    .profile-cover { height: 260px; }
+position:fixed;
 
-    .cover-image { height: 158px; }
+inset:0;
 
-    .profile-cover::before { top: 156px; }
+display:none;
 
-    .profile-avatar-box { top: 106px; }
+align-items:center;
 
-    .profile-avatar { width: 98px; height: 98px; }
+justify-content:center;
 
-    .profile-cover h2 { margin-top: 56px; font-size: 23px; }
+padding:20px;
 
-    .stat-card { padding: 18px 5px; border-radius: 18px; }
-    .stat-card h3 { font-size: 25px; }
+z-index:200;
 
-    .info-card { padding: 15px; }
-    .info-card .material-icons { width: 43px; height: 43px; }
+background:rgba(10,12,20,.45);
 
-    .uid-content button { width: 40px; height: 40px; font-size: 15px; }
-    #userUid { font-size: 12.5px; }
+backdrop-filter:blur(10px);
 
-    .profile-wall-card { flex: 0 0 88%; min-width: 88%; }
-    .profile-wall-card img { height: 250px; }
+-webkit-backdrop-filter:blur(10px);
 
-    .section-title h2 { font-size: 17px; }
 }
 
-@media(max-width:380px) {
 
-    .back-btn, .edit-btn, .login-btn {
-        width: 40px;
-        height: 40px;
-    }
 
-    .profile-wall-card { flex-basis: 94%; }
+.edit-modal.show{
+
+display:flex;
+
 }
+
+
+
+
+
+.edit-box{
+
+width:100%;
+
+max-width:420px;
+
+padding:30px;
+
+border-radius:32px;
+
+background:white;
+
+box-shadow:
+
+0 30px 80px rgba(0,0,0,.25);
+
+}
+
+
+
+
+
+.edit-box h2{
+
+text-align:center;
+
+margin-bottom:25px;
+
+font-size:24px;
+
+}
+
+
+
+
+
+
+.edit-input{
+
+margin-bottom:18px;
+
+}
+
+
+
+
+
+.edit-input label{
+
+display:block;
+
+margin-bottom:8px;
+
+color:#6e758a;
+
+font-size:14px;
+
+font-weight:700;
+
+}
+
+
+
+
+
+.edit-input input{
+
+width:100%;
+
+height:52px;
+
+border-radius:18px;
+
+border:1px solid #e2e5f0;
+
+padding:0 16px;
+
+outline:none;
+
+font-size:15px;
+
+}
+
+
+
+.edit-input input:focus{
+
+border-color:#5060ff;
+
+}
+
+
+
+
+
+.edit-buttons{
+
+display:flex;
+
+gap:12px;
+
+margin-top:25px;
+
+}
+
+
+
+
+
+.edit-buttons button{
+
+flex:1;
+
+height:52px;
+
+border:none;
+
+border-radius:20px;
+
+font-size:16px;
+
+font-weight:800;
+
+cursor:pointer;
+
+}
+
+
+
+
+
+#saveProfileBtn{
+
+background:#5060ff;
+
+color:white;
+
+}
+
+
+
+
+
+#closeEditBtn{
+
+background:#f1f3ff;
+
+color:#5060ff;
+
+}
+
+/* ===================================================
+   Dark Mode + Mobile
+   Part 4/4
+=================================================== */
 
 
 /* ==========================
-   Reduced Motion (احترام المستخدم)
+ Dark Mode
 ========================== */
 
-@media(prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-    }
+
+body.dark{
+
+background:#0b0d12;
+
+color:white;
+
 }
+
+
+
+body.dark .profile-header{
+
+background:rgba(20,22,30,.9);
+
+border-color:rgba(255,255,255,.08);
+
+}
+
+
+
+body.dark .profile-cover{
+
+background:#14161f;
+
+}
+
+
+
+body.dark .info-card,
+body.dark .uid-box,
+body.dark .stat-card,
+body.dark .profile-wall-card,
+body.dark .edit-box,
+body.dark .empty-profile{
+
+
+background:#181b24;
+
+border-color:rgba(255,255,255,.08);
+
+}
+
+
+
+body.dark .profile-header h2,
+body.dark .profile-cover h2,
+body.dark .section-title h2,
+body.dark .info-card p,
+body.dark .profile-wall-info h3,
+body.dark #userUid{
+
+
+color:white;
+
+}
+
+
+
+body.dark .profile-cover p,
+body.dark .info-card h4,
+body.dark .uid-title,
+body.dark .stat-card p,
+body.dark .profile-wall-info p{
+
+
+color:#9da4b8;
+
+}
+
+
+
+body.dark .back-btn,
+body.dark .edit-btn,
+body.dark .login-btn{
+
+
+background:#1b1e2b;
+
+color:#8b96ff;
+
+}
+
+
+
+body.dark .uid-content button{
+
+
+background:#252a3a;
+
+color:#8b96ff;
+
+}
+
+
+
+body.dark .edit-input input{
+
+
+background:#181b24;
+
+color:white;
+
+border-color:#303546;
+
+}
+
+
+
+body.dark #closeEditBtn{
+
+
+background:#252a3a;
+
+color:#8b96ff;
+
+}
+
+
+
+
+
+
+
 
 /* ==========================
-   Light Mode Fixes
+ Mobile
 ========================== */
 
-/* الهيدر الزجاجي */
-.profile-header {
-    background: rgba(255, 255, 255, .78);
-    border-bottom-color: rgba(108, 61, 244, .15);
+
+@media(max-width:600px){
+
+
+
+.profile-header{
+
+height:65px;
+
 }
 
-/* ظلال البطاقات أخف */
+
+
+.profile-header h2{
+
+font-size:20px;
+
+}
+
+
+
+
+.profile-cover{
+
+height:240px;
+
+}
+
+
+
+
+.cover-image{
+
+height:155px;
+
+}
+
+
+
+
+
+.profile-avatar{
+
+width:95px;
+
+height:95px;
+
+}
+
+
+
+.profile-avatar-box{
+
+top:95px;
+
+}
+
+
+
+
+
+.profile-cover h2{
+
+margin-top:50px;
+
+font-size:22px;
+
+}
+
+
+
+
+
+.profile-stats{
+
+gap:10px;
+
+padding:15px;
+
+}
+
+
+
+
+.stat-card{
+
+border-radius:20px;
+
+padding:16px 5px;
+
+}
+
+
+
+.stat-card h3{
+
+font-size:22px;
+
+}
+
+
+
+.stat-card p{
+
+font-size:12px;
+
+}
+
+
+
+
+
 .info-card,
-.stat-card {
-    box-shadow:
-        0 12px 35px rgba(108, 61, 244, .10),
-        inset 0 1px 0 rgba(255, 255, 255, .9);
+.uid-box{
+
+padding:14px;
+
 }
 
-/* حقل الإدخال في المودال */
-.edit-input input {
-    background: rgba(255, 255, 255, .9);
-    color: var(--text-main);
-    border-color: rgba(108, 61, 244, .22);
+
+
+
+.info-card .material-icons{
+
+width:40px;
+
+height:40px;
+
 }
 
-/* المودال نفسه */
-.edit-box {
-    background: linear-gradient(160deg, #ffffff, #f4f2ff);
-    box-shadow:
-        0 40px 90px rgba(50, 40, 120, .25),
-        0 0 50px rgba(108, 61, 244, .12);
+
+
+
+
+.uid-content button{
+
+width:38px;
+
+height:38px;
+
+font-size:15px;
+
 }
 
-/* خلفية المودال عند الفتح */
-.edit-modal {
-    background: rgba(240, 240, 250, .75);
+
+
+
+
+#userUid{
+
+font-size:13px;
+
 }
 
-/* بطاقات الخلفيات */
-.profile-wall-card {
-    box-shadow: 0 18px 45px rgba(50, 40, 120, .14);
+
+
+
+
+.profile-wall-card{
+
+flex:0 0 90%;
+
+min-width:90%;
+
 }
 
-/* حالة الفراغ */
-.empty-profile {
-    background: rgba(255, 255, 255, .6);
-    border-color: rgba(108, 61, 244, .28);
+
+
+
+
+.profile-wall-card img{
+
+height:240px;
+
 }
 
-/* ==========================
-   UID Overflow Fix
-========================== */
 
-#userUid {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    word-break: break-all;
-    min-width: 0; /* مهم جداً داخل flex */
+
+
+.section-title h2{
+
+font-size:18px;
+
 }
 
-/* منع الصفحة كلها من التمدد أفقياً */
-html, body {
-    max-width: 100%;
-    overflow-x: hidden;
+
+
 }
 
-/* بطاقة الـ UID نفسها لا تتمدد */
-.info-card {
-    min-width: 0;
-    overflow: hidden;
+
+
+
+
+
+@media(max-width:380px){
+
+
+
+.profile-actions{
+
+gap:6px;
+
 }
 
-.uid-content {
-    max-width: 100%;
+
+
+.back-btn,
+.edit-btn,
+.login-btn{
+
+width:38px;
+
+height:38px;
+
+}
+
+
+
+.profile-wall-card{
+
+flex-basis:95%;
+
+}
+
+
+
 }
