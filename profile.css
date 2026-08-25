@@ -10,18 +10,19 @@
 ========================== */
 
 :root {
-    --bg-deep: #05060f;
-    --bg-layer: #0a0d1f;
-    --neon-primary: #7c4dff;
-    --neon-cyan: #00e5ff;
+    --bg-deep: #f2f4fb;
+    --bg-layer: #e8ebf7;
+    --neon-primary: #6c3df4;
+    --neon-cyan: #00b8d9;
     --neon-pink: #ff2e88;
-    --glow-purple: rgba(124, 77, 255, .45);
-    --glow-cyan: rgba(0, 229, 255, .35);
-    --card-bg: rgba(16, 19, 40, .72);
-    --card-border: rgba(124, 140, 255, .18);
-    --text-main: #eef0ff;
-    --text-dim: #8b93b8;
+    --glow-purple: rgba(108, 61, 244, .30);
+    --glow-cyan: rgba(0, 184, 217, .25);
+    --card-bg: rgba(255, 255, 255, .82);
+    --card-border: rgba(108, 61, 244, .18);
+    --text-main: #1a1f36;      /* ← نص داكن بدل الأبيض */
+    --text-dim: #6b7194;       /* ← نص ثانوي رمادي */
 }
+
 
 * {
     margin: 0;
@@ -55,12 +56,13 @@ body::before {
     inset: 0;
     z-index: -3;
     background:
-        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124, 77, 255, .22), transparent 60%),
-        radial-gradient(ellipse 70% 50% at 85% 15%, rgba(0, 229, 255, .12), transparent 55%),
-        radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255, 46, 136, .10), transparent 60%),
-        linear-gradient(180deg, #05060f 0%, #0a0d1f 50%, #070814 100%);
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(108, 61, 244, .12), transparent 60%),
+        radial-gradient(ellipse 70% 50% at 85% 15%, rgba(0, 184, 217, .10), transparent 55%),
+        radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255, 46, 136, .07), transparent 60%),
+        linear-gradient(180deg, #f2f4fb 0%, #e8ebf7 50%, #eef0fa 100%);
     pointer-events: none;
 }
+
 
 /* شبكة عمق متحركة (Grid Floor - إحساس الألعاب) */
 body::after {
@@ -73,8 +75,8 @@ body::after {
     height: 45vh;
     z-index: -2;
     background-image:
-        linear-gradient(rgba(124, 77, 255, .07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124, 77, 255, .07) 1px, transparent 1px);
+        linear-gradient(rgba(108, 61, 244, .09) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(108, 61, 244, .09) 1px, transparent 1px);
     background-size: 42px 42px;
     transform-origin: top;
     perspective: 400px;
@@ -83,6 +85,7 @@ body::after {
     animation: gridMove 14s linear infinite;
     pointer-events: none;
 }
+
 
 @keyframes gridMove {
     from { background-position-y: 0; }
@@ -910,4 +913,53 @@ body::after {
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
     }
+}
+
+/* ==========================
+   Light Mode Fixes
+========================== */
+
+/* الهيدر الزجاجي */
+.profile-header {
+    background: rgba(255, 255, 255, .78);
+    border-bottom-color: rgba(108, 61, 244, .15);
+}
+
+/* ظلال البطاقات أخف */
+.info-card,
+.stat-card {
+    box-shadow:
+        0 12px 35px rgba(108, 61, 244, .10),
+        inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+/* حقل الإدخال في المودال */
+.edit-input input {
+    background: rgba(255, 255, 255, .9);
+    color: var(--text-main);
+    border-color: rgba(108, 61, 244, .22);
+}
+
+/* المودال نفسه */
+.edit-box {
+    background: linear-gradient(160deg, #ffffff, #f4f2ff);
+    box-shadow:
+        0 40px 90px rgba(50, 40, 120, .25),
+        0 0 50px rgba(108, 61, 244, .12);
+}
+
+/* خلفية المودال عند الفتح */
+.edit-modal {
+    background: rgba(240, 240, 250, .75);
+}
+
+/* بطاقات الخلفيات */
+.profile-wall-card {
+    box-shadow: 0 18px 45px rgba(50, 40, 120, .14);
+}
+
+/* حالة الفراغ */
+.empty-profile {
+    background: rgba(255, 255, 255, .6);
+    border-color: rgba(108, 61, 244, .28);
 }
