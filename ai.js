@@ -51,6 +51,34 @@ const chatHistory =
 document.getElementById("chatHistory");
 
 
+// ===============================
+// Sidebar Open / Close
+// ===============================
+
+if(menuBtn){
+    menuBtn.onclick = () => {
+        sidebar.classList.add("active");
+    };
+}
+
+if(closeSidebar){
+    closeSidebar.onclick = () => {
+        sidebar.classList.remove("active");
+    };
+}
+
+// إغلاق السايدبار عند الضغط خارجه
+document.addEventListener("click", (e) => {
+    if(
+        sidebar &&
+        sidebar.classList.contains("active") &&
+        !sidebar.contains(e.target) &&
+        e.target !== menuBtn &&
+        !menuBtn.contains(e.target)
+    ){
+        sidebar.classList.remove("active");
+    }
+});
 
 
 
