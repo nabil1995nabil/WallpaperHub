@@ -96,26 +96,25 @@ body {
 /* ===============================
    HUD Top Bar & Brand
 ================================ */
+
 .top-bar {
-    height:60px;
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 15px;
-    border-bottom:1px solid var(--panel-border);
-    background:rgba(5,8,12,0.95);
-    box-shadow:0 4px 20px rgba(0,0,0,0.8);
-    z-index:50;
-    flex-shrink:0;
+    height: 60px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(5, 8, 12, 0.95);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+    z-index: 50;
+    flex-shrink: 0;
+    position: relative; /* لضمان احتواء العناصر بداخله */
 }
 
 .menu-btn {
-    position:absolute;
-    right:15px;
-    left: auto;
-    top: 50%;
-    transform:translateY(-50%);
+    position: static; /* إزالة absolute لمنعه من الانزلاق لمنتصف الشاشة */
+    transform: none;
     width: 42px;
     height: 42px;
     border: 1px solid var(--primary);
@@ -422,11 +421,7 @@ body {
 ================================ */
 
 .model-selector {
-
-    position:relative;
-
-    margin:auto;
-
+    position: relative;
 }
 
 #modelBtn {
