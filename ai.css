@@ -86,11 +86,11 @@ body {
 
 .chat-main {
     flex: 1;
+    height: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 60px); /* تخصيص الارتفاع بدون الشريط العلوي */
     position: relative;
-    overflow: hidden;
 }
 
 /* ===============================
@@ -99,16 +99,15 @@ body {
 
 .top-bar {
     height: 60px;
-    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 15px;
+    justify-content: center;
+    position: relative;
     border-bottom: 1px solid var(--panel-border);
-    background: rgba(5, 8, 12, 0.95);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-    z-index: 50;
-    flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(0, 255, 102, 0.12) 0%, rgba(5, 8, 12, 0.9) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(0, 255, 102, 0.2);
+    padding: 0 15px;
+    z-index: 40;
 }
 
 .menu-btn {
@@ -139,28 +138,26 @@ body {
 }
 
 /* ===============================
-   Warzone Chat Container (FIXED SCROLL)
+   Warzone Chat Container
 ================================ */
 
 .chat-container {
     flex: 1;
-    overflow-y: auto !important;
-    overflow-x: hidden;
-    padding: 15px 12px 20px;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 8px 140px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
     scroll-behavior: smooth;
-    z-index: 10;
 }
 
 .chat-container::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
 }
 
 .chat-container::-webkit-scrollbar-thumb {
     background: var(--primary);
-    border-radius: 2px;
+    box-shadow: 0 0 10px var(--primary);
 }
 
 /* ===============================
@@ -184,22 +181,20 @@ body {
 }
 
 .bubble {
-    width: auto;
-    max-width: 90% !important;
+    width: 100%;
+    max-width: 98% !important;
     padding: 14px 16px;
     line-height: 1.6;
     font-size: 13.5px;
     position: relative;
     backdrop-filter: blur(12px);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    word-break: break-word;
 }
 
 .message.ai .bubble {
     background: var(--glass-3d);
     color: #00ffcc;
     border: 1px solid rgba(0, 229, 255, 0.4);
-    border-radius: 8px;
     box-shadow: 
         -8px 12px 25px rgba(0, 0, 0, 0.7),
         0 0 15px rgba(0, 229, 255, 0.15),
@@ -215,7 +210,7 @@ body {
         0 0 15px var(--primary-glow),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
     max-width: 85% !important;
-    border-radius: 8px;
+    border-radius: 4px;
 }
 
 .bubble strong {
@@ -224,7 +219,7 @@ body {
 }
 
 /* ===============================
-   PRO 3D TACTICAL CODE BOX
+   PRO 3D TACTICAL CODE BOX (FULL-WIDTH & SLIM FONT)
 ================================ */
 
 .code-block {
@@ -316,7 +311,7 @@ body {
 ========================================================= */
 
 .chat-input {
-    position: absolute;
+    position: fixed;
     bottom: 15px;
     left: 10px;
     right: 10px;
@@ -329,7 +324,10 @@ body {
     gap: 8px;
     padding: 8px;
     background: #070a0e;
+    
+    /* قص الزاويتين العلوية اليسرى والسفلية اليمنى */
     clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+    
     overflow: hidden;
     transform: perspective(800px) rotateX(-1deg);
     transition: transform 0.3s ease;
@@ -339,6 +337,7 @@ body {
     transform: perspective(800px) rotateX(0deg);
 }
 
+/* محاكاة الحد الأخضر المتحرك حول الشريط ببطء */
 .chat-input::before {
     content: '';
     position: absolute;
@@ -356,6 +355,7 @@ body {
     z-index: -2;
 }
 
+/* طبقة داخلية سوداء لإبراز الخط المضيء حول الحواف فقط */
 .chat-input::after {
     content: '';
     position: absolute;
@@ -556,9 +556,6 @@ body {
     cursor: pointer;
     border-radius: 4px;
     transition: 0.2s;
-    position: relative;
-    user-select: none;
-    -webkit-touch-callout: none;
 }
 
 .history-item:hover {
@@ -573,12 +570,11 @@ body {
 
 .welcome-screen {
     position: absolute;
-    top: 35%;
+    top: 40%;
     left: 0;
     right: 0;
     text-align: center;
     pointer-events: none;
-    z-index: 1;
 }
 
 #welcomeText {
@@ -602,12 +598,20 @@ body {
 }
 
 /* =========================================================
-   TACTICAL DELETE POPOVER
+   TACTICAL DELETE POPOVER (TOOLTIP WITH ARROW)
 ========================================================= */
 
+/* جعل عنصر المحادثة قابلاً لاحتواء القائمة المطلوبة */
+.history-item {
+    position: relative;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* الفقائمة العائمة (Pop-up Bubble) */
 .delete-popover {
     position: absolute;
-    left: -55px;
+    left: -55px; /* تظهر على اليسار لتكون واضحة بجانب القائمة */
     top: 50%;
     transform: translateY(-50%) scale(0.8);
     background: #0d131a;
@@ -626,12 +630,14 @@ body {
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* تفعيل ظهور الفقاعة مع أنيميشن */
 .delete-popover.active {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(-50%) scale(1);
 }
 
+/* السهم الموجه نحو المحادثة (Pointer Arrow) */
 .delete-popover::after {
     content: '';
     position: absolute;
@@ -645,6 +651,7 @@ body {
     border-left: 7px solid var(--accent-red);
 }
 
+/* زر الحذف الداخلي للفقاعة */
 .delete-popover-btn {
     background: rgba(255, 42, 42, 0.15);
     color: var(--accent-red);
@@ -670,9 +677,10 @@ body {
    WARZONE TACTICAL IMAGE CARD & PREVIEW
 ========================================================= */
 
+/* كارت الصورة داخل المحادثة */
 .ai-image-card {
     width: 100%;
-    max-width: 320px;
+    max-width: 320px; /* تحديد أقصى عرض كي لا تتمدد الشاشة */
     margin: 10px 0;
     padding: 6px;
     background: rgba(8, 14, 22, 0.85);
@@ -686,6 +694,7 @@ body {
     clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 
+/* التنسيق الخاص بالصورة نفسها */
 .ai-image-card img {
     width: 100%;
     height: auto;
@@ -702,6 +711,7 @@ body {
     filter: brightness(1.1);
 }
 
+/* عارض الصور المطبّق عند الضغط المكبر (Full Screen Lightbox) */
 .image-viewer {
     position: fixed;
     inset: 0;
