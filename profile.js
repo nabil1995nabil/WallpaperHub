@@ -436,7 +436,7 @@ function renderWalls(container, ids) {
         const card = document.createElement("div");
         card.className = "profile-wall-card";
 
-        card.innerHTML = `
+                card.innerHTML = `
             <img src="wall.thumbnail∣∣wall.image"alt="{wall.thumbnail || wall.image}" alt="wall.thumbnail∣∣wall.image"alt="{wall.title || ""}">
             <div class="profile-wall-info">
                 <h3>${wall.title || "بدون اسم"}</h3>

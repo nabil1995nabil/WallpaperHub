@@ -963,3 +963,32 @@ body::after {
     background: rgba(255, 255, 255, .6);
     border-color: rgba(108, 61, 244, .28);
 }
+
+/* ==========================
+   UID Overflow Fix
+========================== */
+
+#userUid {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+    min-width: 0; /* مهم جداً داخل flex */
+}
+
+/* منع الصفحة كلها من التمدد أفقياً */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* بطاقة الـ UID نفسها لا تتمدد */
+.info-card {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.uid-content {
+    max-width: 100%;
+}
