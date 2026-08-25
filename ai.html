@@ -2,139 +2,77 @@
 <html lang="ar" dir="rtl">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WallpaperHub AI</title>
 
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>WallpaperHub AI</title>
-
-
-<link rel="stylesheet" href="ai.css">
-
-<link rel="stylesheet" href="css/theme.css">
-
-
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-
+    <link rel="stylesheet" href="ai.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 
 <body>
 
+    <div class="ai-bg"></div>
 
-<div class="ai-bg"></div>
+    <div class="ai-page">
 
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button id="closeSidebar">✕</button>
+                <h3>المحادثات</h3>
+            </div>
+            <button class="new-chat" id="newChat">+ محادثة جديدة</button>
+            <div id="chatHistory"></div>
+        </div>
 
-<div class="ai-page">
+        <!-- Main -->
+        <div class="chat-main">
 
+            <!-- Header موحد ونظيف -->
+            <header class="top-bar">
+                <div class="model-selector">
+                    <button id="modelBtn">Gemini 🧠</button>
+                    <div class="model-menu" id="modelMenu">
+                        <!-- القائمة -->
+                    </div>
+                </div>
 
-<!-- Sidebar -->
+                <button class="menu-btn" id="openSidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </header>
 
-<div class="sidebar" id="sidebar">
+            <!-- منطقة المحادثة -->
+            <div class="chat-container" id="chatContainer">
+                <div class="welcome-screen">
+                    <h1 id="welcomeText">كيف يمكنني مساعدتك</h1>
+                </div>
+            </div>
 
+            <!-- صندوق الكتابة السفلي -->
+            <div class="chat-input">
+                <button id="imageBtn" class="input-btn">
+                    <span class="material-icons">image</span>
+                </button>
+                <input type="file" id="imageInput" accept="image/*" hidden>
 
-<div class="sidebar-header">
+                <input type="text" id="userInput" placeholder="بماذا تفكر..." autocomplete="off">
 
-<button id="closeSidebar">
-✕
-</button>
+                <button id="sendBtn" class="send-btn">
+                    <span class="material-icons">send</span>
+                </button>
+            </div>
 
-<h3>
-المحادثات
-</h3>
+        </div> <!-- إغلاق chat-main -->
 
-</div>
+    </div> <!-- إغلاق ai-page -->
 
-
-<button class="new-chat" id="newChat">
-
-+ محادثة جديدة
-
-</button>
-
-
-
-<div id="chatHistory">
-
-</div>
-
-
-</div>
-
-
-
-
-<!-- Main -->
-<div class="chat-main">
-
-<div class="top-bar">
-
-<button id="menuBtn" class="menu-btn">
-☰
-</button>
-
-<!-- Gemini AI Identity -->
-
-<div class="model-selector">
-
-<button id="modelBtn">
-🧠 Gemini
-</button>
-
-</div>
-
-<!-- منطقة المحادثة -->
-<div class="chat-container" id="chatContainer">
-
-    <div class="welcome-screen">
-        <h1 id="welcomeText">
-            كيف يمكنني مساعدتك
-        </h1>
-    </div>
-
-</div>
-
-
-<!-- صندوق الكتابة السفلي المعدل -->
-<div class="chat-input">
-
-<button 
-id="imageBtn"
-class="input-btn">
-<span class="material-icons">image</span>
-</button>
-
-<input 
-type="file"
-id="imageInput"
-accept="image/*"
-hidden>
-
-<input
-type="text"
-id="userInput"
-placeholder="بماذا تفكر..."
-autocomplete="off"
->
-
-<button 
-id="sendBtn"
-class="send-btn">
-<span class="material-icons">send</span>
-</button>
-
-</div>
-
-</div>
-
-
-
-<script src="ai-fab.js"></script>
-<script src="ai.js"></script>
-<script src="theme.js"></script>
+    <script src="ai-fab.js"></script>
+    <script src="ai.js"></script>
+    <script src="theme.js"></script>
 
 </body>
-
 </html>
