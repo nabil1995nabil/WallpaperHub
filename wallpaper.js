@@ -123,6 +123,15 @@ const optionsMenu =
 document.getElementById("optionsMenu");
 const wallDescription =
 document.getElementById("wallDescription");
+const captureLocation =
+document.getElementById("captureLocation");
+const captureDate =
+document.getElementById("captureDate");
+const captureTime =
+document.getElementById("captureTime");
+const imageSource =
+document.getElementById("imageSource");
+
 
 if(moreOptionsBtn){
 
@@ -519,6 +528,46 @@ if(
 }
 
 // ===============================
+// Image Origin Detection
+// ===============================
+if(imageSource){
+
+
+let source =
+currentWallpaper.source ||
+"unknown";
+
+if(source === "ai"){
+
+
+imageSource.textContent =
+"🤖 مولدة بالذكاء الاصطناعي";
+
+
+}
+
+else if(source === "camera"){
+
+
+imageSource.textContent =
+"📷 تصوير بشري";
+
+
+}
+
+else{
+
+
+imageSource.textContent =
+"غير معروف";
+
+
+}
+
+
+}
+
+// ===============================
 // Information
 // ===============================
 
@@ -560,7 +609,39 @@ wallDate.textContent =
 
 currentWallpaper.date || "";
 
+// ===============================
+// Photo Metadata
+// ===============================
 
+if(captureLocation){
+
+captureLocation.textContent =
+
+currentWallpaper.location ||
+
+"غير معروف";
+
+}
+
+if(captureDate){
+
+captureDate.textContent =
+
+currentWallpaper.captureDate ||
+
+"غير معروف";
+
+}
+
+if(captureTime){
+
+captureTime.textContent =
+
+currentWallpaper.captureTime ||
+
+"غير معروف";
+
+}
 
 if(wallRating)
 
@@ -1318,47 +1399,152 @@ if (downloadBtn) {
 }
 
 // ===============================
-// Favorite
+// Favorite System Fixed
 // ===============================
 
 const favoriteBtn = document.getElementById("favoriteBtn");
 
-function updateFavorite() {
-    if (!favoriteBtn || !currentWallpaper) return;
 
-    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
+function getFavorites(){
 
-    if (favorites.includes(String(currentWallpaper.id))) {
-        favoriteBtn.innerHTML = `
-            <span class="material-icons">
-                favorite
-            </span>
-        `;
-    } else {
-        favoriteBtn.innerHTML = `
-            <span class="material-icons">
-                favorite_border
-            </span>
-        `;
+    try{
+
+        return JSON.parse(
+            localStorage.getItem("favorites") || "[]"
+        ).map(String);
+
+    }catch(error){
+
+        console.error("FAVORITES READ ERROR", error);
+        return [];
+
     }
+
 }
 
-if (favoriteBtn) {
-    favoriteBtn.onclick = () => {
-        let favorites = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
+
+
+function updateFavorite(){
+
+    try{
+
+        if(!favoriteBtn || !currentWallpaper)
+            return;
+
+
+        const favorites = getFavorites();
+
         const id = String(currentWallpaper.id);
 
-        if (favorites.includes(id)) {
-            favorites = favorites.filter(item => item !== id);
-        } else {
-            favorites.push(id);
-            // ✅ حفظ الإعجاب في الإحصائيات
-            window.syncUserStats("favorites", currentWallpaper.id);
+
+        if(favorites.includes(id)){
+
+            favoriteBtn.innerHTML = `
+                <span class="material-icons">
+                    favorite
+                </span>
+            `;
+
+            favoriteBtn.classList.add("liked");
+
+
+        }else{
+
+            favoriteBtn.innerHTML = `
+                <span class="material-icons">
+                    favorite_border
+                </span>
+            `;
+
+            favoriteBtn.classList.remove("liked");
+
         }
 
-        localStorage.setItem("favorites", JSON.stringify(favorites));
-        updateFavorite();
-    };
+
+    }catch(error){
+
+        console.error("UPDATE FAVORITE ERROR", error);
+
+    }
+
+}
+
+
+
+
+if(favoriteBtn){
+
+    favoriteBtn.addEventListener("click",()=>{
+
+
+        try{
+
+
+            if(!currentWallpaper)
+                return;
+
+
+            let favorites = getFavorites();
+
+
+            const id = String(currentWallpaper.id);
+
+
+
+            if(favorites.includes(id)){
+
+
+                favorites =
+                favorites.filter(
+                    item => item !== id
+                );
+
+
+            }else{
+
+
+                favorites.push(id);
+
+
+                if(window.syncUserStats){
+
+                    window.syncUserStats(
+                        "favorites",
+                        currentWallpaper.id
+                    );
+
+                }
+
+
+            }
+
+
+
+            localStorage.setItem(
+                "favorites",
+                JSON.stringify(favorites)
+            );
+
+
+            updateFavorite();
+
+
+
+        }catch(error){
+
+
+            console.error(
+                "FAVORITE CLICK ERROR",
+                error
+            );
+
+
+        }
+
+
+    });
+
+
 }
 
 // ===============================

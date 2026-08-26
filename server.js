@@ -3,7 +3,7 @@
 // Clean Stable Version
 // ======================================
 
-
+const exifParser = require("exif-parser");
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -352,9 +352,247 @@ null,
 
 }
 
+// ======================================
+// Read Image EXIF Metadata
+// ======================================
+
+async function getImageMetadata(imageUrl){
+
+    try{
+
+        if(!imageUrl){
+            return {};
+        }
+
+
+        const response =
+        await fetch(imageUrl);
+
+
+        if(!response.ok){
+            return {};
+        }
+
+
+        const buffer =
+        await response.arrayBuffer();
 
 
 
+        const result =
+        exifParser
+        .create(
+            Buffer.from(buffer)
+        )
+        .parse();
+
+
+
+        let location =
+        "غير معروف";
+
+
+        if(
+            result.tags.GPSLatitude &&
+            result.tags.GPSLongitude
+        ){
+
+            location =
+            `${result.tags.GPSLatitude}, ${result.tags.GPSLongitude}`;
+
+        }
+
+
+
+        let captureDate = null;
+
+
+
+        if(result.tags.DateTimeOriginal){
+
+            captureDate =
+            new Date(
+                result.tags.DateTimeOriginal * 1000
+            )
+            .toISOString()
+            .split("T")[0];
+
+        }
+
+
+
+        return {
+
+            location,
+
+            captureDate,
+
+            camera:
+            result.tags.Model || null
+
+        };
+
+
+
+    }catch(error){
+
+        console.log(
+            "EXIF ERROR:",
+            error.message
+        );
+
+
+        return {};
+
+    }
+
+}
+
+// ======================================
+// Detect AI Image Or Camera
+// ======================================
+
+async function detectImageSource(imageUrl){
+
+    try{
+
+
+        const image =
+        await fetch(imageUrl);
+
+
+
+        if(!image.ok){
+
+            return "unknown";
+
+        }
+
+
+
+        const buffer =
+        await image.arrayBuffer();
+
+
+
+        const base64 =
+        Buffer.from(buffer)
+        .toString("base64");
+
+
+
+        const response =
+        await fetch(
+
+        `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+        {
+
+        method:"POST",
+
+        headers:{
+
+        "Content-Type":"application/json"
+
+        },
+
+        body:JSON.stringify({
+
+        contents:[{
+
+        parts:[
+
+        {
+
+        text:
+        `
+        Analyze this image.
+
+        Return only one word:
+
+        ai
+        camera
+
+        Decide if the image looks AI generated
+        or captured by a real camera.
+        `
+
+        },
+
+        {
+
+        inlineData:{
+
+        mimeType:"image/jpeg",
+
+        data:base64
+
+        }
+
+        }
+
+        ]
+
+        }]
+
+        })
+
+        }
+
+        );
+
+
+
+        const data =
+        await response.json();
+
+
+
+        const result =
+        data
+        .candidates?.[0]
+        ?.content
+        ?.parts?.[0]
+        ?.text
+        ?.trim()
+        ?.toLowerCase();
+
+
+
+        if(result.includes("ai")){
+
+            return "ai";
+
+        }
+
+
+
+        if(result.includes("camera")){
+
+            return "camera";
+
+        }
+
+
+
+        return "unknown";
+
+
+
+    }catch(error){
+
+
+        console.log(
+        "AI SOURCE ERROR:",
+        error.message
+        );
+
+
+        return "unknown";
+
+    }
+
+}
 
 // ======================================
 // Notifications Storage
@@ -713,7 +951,7 @@ wallpapers
 
 app.post(
 "/api/wallpapers",
-(req,res)=>{
+async(req,res)=>{
 
 
 try{
@@ -722,7 +960,15 @@ try{
 const wallpapers =
 readWallpapers();
 
+const metadata =
+await getImageMetadata(
+    req.body.image
+);
 
+const source =
+await detectImageSource(
+req.body.image
+);
 
 const wallpaper = {
 
@@ -768,23 +1014,33 @@ type:
 req.body.type ||
 "image",
 
+// ===============================
+// Photo Metadata
+// ===============================
 
+location:
+req.body.location ||
+"غير معروف",
+
+
+captureDate:
+req.body.captureDate ||
+null,
+
+
+captureTime:
+req.body.captureTime ||
+null,
+
+
+source:
+source,
 
 downloads:0,
-
-
 likes:0,
-
-
 views:0,
-
-
 rating:0,
-
-
 ratingCount:0,
-
-
 ratingSum:0,
 
 

@@ -10,14 +10,11 @@
 <title>WallpaperHub</title>
 
 <link rel="stylesheet" href="wallpaper.css">
-<link rel="stylesheet" href="css/wallpaper-5d.css">
 <link rel="stylesheet" href="effects.css">
 <link rel="stylesheet" href="css/bottom-nav.css">
 <link rel="stylesheet" href="css/theme.css">
-
-
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 
@@ -232,7 +229,32 @@ preload="metadata"
 
 
 
+<!-- زر تعيين كخلفية داخل التكبير -->
 
+<button
+
+id="fullscreenSetWallpaperBtn"
+
+class="fullscreen-set-btn"
+
+type="button"
+
+>
+
+<span class="material-icons">
+
+wallpaper
+
+</span>
+
+تعيين كخلفية
+
+</button>
+
+
+
+
+<!-- زر الإغلاق -->
 
 <button
 
@@ -251,26 +273,6 @@ close
 </span>
 
 </button>
-
-
-<span class="material-icons">
-
-wallpaper
-
-</span>
-
-
-
-<span>
-
-تعيين كخلفية
-
-</span>
-
-
-</button>
-
-
 
 
 </div>
@@ -343,9 +345,6 @@ wallpaper
 <span>
 التقييم
 </span>
-
-
-
 <div>
 
 
@@ -429,8 +428,65 @@ wallpaper
 </div>
 
 
+<div class="info-item">
+
+<span>
+📍 مكان الالتقاط
+</span>
 
 
+<span id="captureLocation">
+غير معروف
+</span>
+
+
+</div>
+
+
+
+<div class="info-item">
+
+<span>
+📅 تاريخ الالتقاط
+</span>
+
+
+<span id="captureDate">
+غير معروف
+</span>
+
+
+</div>
+
+
+
+<div class="info-item">
+
+<span>
+⏰ وقت الالتقاط
+</span>
+
+
+<span id="captureTime">
+غير معروف
+</span>
+
+
+</div>
+
+<div class="info-item">
+
+<span>
+🤖 مصدر الصورة
+</span>
+
+
+<span id="imageSource">
+غير معروف
+</span>
+
+
+</div>
 
 <div class="info-item image-link-item">
 
@@ -567,7 +623,7 @@ class="similar-grid"
 
 
 <script type="module" src="wallpaper.js"></script>
-<script src="js/wallpaper-5d.js"></script>
+
 <script src="effects.js"></script>
 <script src="theme.js"></script>
 <script src="js/bottom-nav.js"></script>
