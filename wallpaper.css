@@ -1516,3 +1516,86 @@ body{
     scale(.95);
 
 }
+
+/* ============================
+ WHITE THEME TEXT FIX
+============================= */
+
+
+body{
+    background:#ffffff !important;
+    color:#222 !important;
+}
+
+
+
+.info h2,
+.tags h3,
+.section-title h3,
+.section-title a,
+.similar h3{
+
+    color:#111 !important;
+
+}
+
+
+
+.info-item span:first-child{
+
+    color:#777 !important;
+
+}
+
+
+
+.info-item span:last-child{
+
+    color:#111 !important;
+
+}
+
+
+
+.description-box span{
+
+    color:#777 !important;
+
+}
+
+
+
+.description-box p{
+
+    color:#333 !important;
+
+}
+
+
+
+.rating-stars .star{
+
+    color:#999;
+
+}
+
+
+
+#wallRating,
+#ratingCount{
+
+    color:#333 !important;
+
+}
+
+
+
+.tag{
+
+    color:#333 !important;
+
+    background:#f5f5f5;
+
+    border:1px solid #ddd;
+
+}
