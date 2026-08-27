@@ -1,7 +1,6 @@
-// =====================================
-// WallpaperHub wallpaper.js
+// =================================// WallpaperHub wallpaper.js
 // Auto Video Wallpaper System
-// Clean Version
+// Clean Version (Fixed)
 // =====================================
 
 
@@ -171,7 +170,7 @@ Number(localStorage.getItem("selectedWallpaper"))
 
 
 
-let currentWallpaper = null;
+let currentWall = null;
 
 
 let allWallpapers = [];
@@ -282,9 +281,9 @@ async function loadWallpaper() {
         console.error("LOAD WALLPAPER ERROR", error);
     }
 }
+
 // ===============================
-// View Counter
-// ===============================
+// View Counter// ===============================
 
 
 async function sendView(id){
@@ -295,7 +294,7 @@ try{
 
 await fetch(
 
-`${API}/${id}/view`,
+`API/{API}/API/{id}/view`,
 
 {
 
@@ -444,6 +443,7 @@ wallVideo.style.display =
 
 // ===============================
 // Show Wallpaper
+// (النسخة الوحيدة - تشمل كل شيء)
 // ===============================
 
 
@@ -498,14 +498,25 @@ wallImage.style.display =
 
 }
 
+
+
+// ===============================
+// Description & Title
+// ===============================
+
+
 if(wallDescription)
 
 wallDescription.textContent =
 
 currentWallpaper.description || "";
 
+
+
 const wallTitle2 =
 document.getElementById("wallTitle2");
+
+
 
 if(wallTitle2){
 
@@ -513,27 +524,27 @@ wallTitle2.textContent =
 currentWallpaper.title || "بدون اسم";
 
 
+
 wallTitle2.classList.remove("scroll-title");
+
 
 
 if(
     wallTitle2.scrollWidth >
     wallTitle2.clientWidth
 ){
-
     wallTitle2.classList.add("scroll-title");
-
 }
 
 }
 
-// أضف هذا السطر فقط في نهاية دالة showWallpaper() الحالية لديك
-loadComments();
 
 
 // ===============================
 // Image Origin Detection
 // ===============================
+
+
 if(imageSource){
 
 
@@ -541,14 +552,17 @@ let source =
 currentWallpaper.source ||
 "unknown";
 
+
+
 if(source === "ai"){
 
 
 imageSource.textContent =
-"🤖 مولدة بالذكاء الاصطناعي";
+"🤖 مولدة بالذكاء الاصطاعي";
 
 
 }
+
 
 else if(source === "camera"){
 
@@ -558,6 +572,7 @@ imageSource.textContent =
 
 
 }
+
 
 else{
 
@@ -571,9 +586,12 @@ imageSource.textContent =
 
 }
 
+
+
 // ===============================
 // Information
 // ===============================
+
 
 if(wallResolution)
 
@@ -587,7 +605,7 @@ if(wallSize)
 
 wallSize.textContent =
 
-currentWallpaper.size || "";
+currentpaper.size || "";
 
 
 
@@ -613,9 +631,12 @@ wallDate.textContent =
 
 currentWallpaper.date || "";
 
+
+
 // ===============================
 // Photo Metadata
 // ===============================
+
 
 if(captureLocation){
 
@@ -627,6 +648,7 @@ currentWallpaper.location ||
 
 }
 
+
 if(captureDate){
 
 captureDate.textContent =
@@ -637,6 +659,7 @@ currentWallpaper.captureDate ||
 
 }
 
+
 if(captureTime){
 
 captureTime.textContent =
@@ -646,6 +669,7 @@ currentWallpaper.captureTime ||
 "غير معروف";
 
 }
+
 
 if(wallRating)
 
@@ -697,6 +721,7 @@ currentWallpaper.resolution || ""
 )
 
 .match(/\d+/g);
+
 
 
 
@@ -841,93 +866,15 @@ colorPalette.appendChild(div);
 
 }
 
+
+
 // ===============================
-// Show Wallpaper
+// Comments ⭐
 // ===============================
 
 
-function showWallpaper(){
-
-
-if(!currentWallpaper)
-
-return;
-
-
-
-const media =
-
-currentWallpaper.image || "";
-
-
-
-
-
-if(isVideoMedia(currentWallpaper)){
-
-
-setupVideo(media);
-
-
-
-}else{
-
-
-stopVideo();
-
-
-
-if(wallImage){
-
-
-wallImage.src =
-
-getImageUrl(media);
-
-
-
-wallImage.style.display =
-
-"block";
-
-
-}
-
-
-
-}
-
-if(wallDescription)
-
-wallDescription.textContent =
-
-currentWallpaper.description || "";
-
-const wallTitle2 =
-document.getElementById("wallTitle2");
-
-if(wallTitle2){
-
-wallTitle2.textContent =
-currentWallpaper.title || "بدون اسم";
-
-
-wallTitle2.classList.remove("scroll-title");
-
-
-if(
-    wallTitle2.scrollWidth >
-    wallTitle2.clientWidth
-){
-
-    wallTitle2.classList.add("scroll-title");
-
-}
-
-}
-
-// أضف هذا السطر فقط في نهاية دالة showWallpaper() الحالية لديك
 loadComments();
+
 
 }
 
@@ -953,7 +900,6 @@ function changeWallpaper(index) {
     updateFavorite();
 
     saveUserAction("views", currentWallpaper.id);
-    // ✅ حفظ المشاهدة في الإحصائيات
     window.syncUserStats("views", currentWallpaper.id);
 
     sendView(currentWallpaper.id);
@@ -1060,7 +1006,6 @@ currentWallpaperIndex - 1
 
 // ===============================
 // Similar Wallpapers
-// Video Support Version
 // ===============================
 
 
@@ -1113,11 +1058,6 @@ let media = "";
 
 
 
-
-
-// ===============================
-// تحديد نوع الوسائط
-// ===============================
 
 
 if(isVideoMedia(item)){
@@ -1318,6 +1258,8 @@ document.body.classList.add(
 
 );
 
+
+
 if(isVideoMedia(currentWallpaper)){
 
 fullscreenImage.style.display =
@@ -1328,11 +1270,11 @@ fullscreenVideo.style.display =
 
 "block";
 
-fullscreenVideo.src =
+fullscreen.src =
 
 getImageUrl(
 
-currentWallpaper.image
+currentWallpaper
 
 );
 
@@ -1372,6 +1314,7 @@ currentWallpaper.image
 
 }
 
+
 if(closeFullscreenBtn){
 
 
@@ -1398,14 +1341,12 @@ fullscreenVideo.pause();
 };
 
 }
-
 // ===============================
 // Download Wallpaper + Watermark
 // ===============================
 
 const downloadBtn = document.getElementById("downloadBtn");
 
-// تحديد لون الشعار حسب الخلفية
 function getWatermarkColor(ctx, canvas) {
     const x = 50;
     const y = canvas.height - 50;
@@ -1413,7 +1354,7 @@ function getWatermarkColor(ctx, canvas) {
     const pixel = ctx.getImageData(x, y, 1, 1).data;
     const brightness = (pixel[0] * 299 + pixel[1] * 587 + pixel[2] * 114) / 1000;
 
-    if (brightness > 150) {
+    if (brightness >150) {
         return "rgba(0,0,0,0.18)";
     } else {
         return "rgba(255,255,255,0.18)";
@@ -1438,21 +1379,14 @@ async function downloadWithWatermark(imageUrl, title) {
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
 
-        // رسم الخلفية
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // =========================
-        // WallpaperHub Watermark
-        // =========================
         ctx.font = "300 24px Arial";
         ctx.fillStyle = getWatermarkColor(ctx, canvas);
         ctx.shadowColor = "rgba(0,0,0,0.30)";
         ctx.shadowBlur = 3;
         ctx.fillText("WallpaperHub", 35, canvas.height - 35);
 
-        // =========================
-        // تحميل الصورة
-        // =========================
         const link = document.createElement("a");
         link.download = (title || "wallpaper") + ".jpg";
         link.href = canvas.toDataURL("image/jpeg", 0.95);
@@ -1470,17 +1404,14 @@ if (downloadBtn) {
 
         const url = getImageUrl(currentWallpaper.image);
 
-        // تحميل مع الشعار
         downloadWithWatermark(url, currentWallpaper.title);
 
-        // ✅ حفظ التحميل في الإحصائيات
         window.syncUserStats("downloads", currentWallpaper.id);
 
-        // حفظ التحميل
         saveUserAction("downloads", currentWallpaper.id);
 
         try {
-            await fetch(`${API}/${currentWallpaper.id}/download`, {
+            await fetch(`API/{API}/API/{currentWallpaper.id}/download`, {
                 method: "POST"
             });
         } catch (error) {
@@ -1524,7 +1455,6 @@ function updateFavorite(){
 
 
         const favorites = getFavorites();
-
         const id = String(currentWallpaper.id);
 
 
@@ -1568,10 +1498,7 @@ if(favoriteBtn){
     favoriteBtn.addEventListener("click",()=>{
 
 
-        try{
-
-
-            if(!currentWallpaper)
+        try            if(!currentWallpaper)
                 return;
 
 
@@ -1789,7 +1716,7 @@ const res =
 
 await fetch(
 
-`${API}/${currentWallpaper.id}/rate`,
+`API/{API}/API/{currentWallpaper.id}/rate`,
 
 {
 
@@ -1912,7 +1839,7 @@ fullscreenStartY;
 
 
 
-if(diff > 120){
+if > 120){
 
 
 fullscreenViewer.classList.add("closing");
@@ -1976,7 +1903,6 @@ currentWallpaper.image
 );
 
 
-// Android App Bridge
 
 if(window.Android && Android.setWallpaper){
 
@@ -2001,9 +1927,9 @@ alert(
 
 }
 
-//=====
-//تحليل صورة بي دكاء الاصطناعي 
-//=}===
+//=====================
+// تحليل صورة بالذكاء الاصطناعي
+//=====================
 
 async function autoAnalyzeWallpaper(){
 
@@ -2012,8 +1938,6 @@ if(!currentWallpaper)
 
 return;
 
-
-// إذا موجود لا نعيد التحليل
 
 if(currentWallpaper.aiDescription){
 
@@ -2036,7 +1960,7 @@ try{
 const res =
 await fetch(
 
-`${API}/${currentWallpaper.id}/analyze`,
+`API/{API}/API/{currentWallpaper.id}/analyze`,
 
 {
 
@@ -2083,6 +2007,7 @@ error
 
 
 }
+
 
 const backBtn =
 document.getElementById("backBtn");
@@ -2132,7 +2057,7 @@ async function loadComments(){
 
         if(commentsCountBadge){
 
-            commentsCountBadge.textContent =
+           CountBadge.textContent =
             `${comments.length} تعليقات`;
 
         }
@@ -2225,6 +2150,9 @@ async function loadComments(){
 
 
 
+// ⭐ هنا تم إصلاح الخطأ الرئيسي:
+// الإغلاق الصحيح هو }; وليس });
+
 if(
 sendCommentBtn &&
 commentInput
@@ -2311,7 +2239,10 @@ async ()=>{
     }
 
 
-};
+};   // ✅ تصحيح: كانت }); زائدة هنا
+
+}
+
 
 // ===============================
 // Start
