@@ -1999,113 +1999,52 @@ const commentsCountBadge = document.getElementById("commentsCountBadge");
 
 async function loadComments(){
 
-    if(
-        !commentsContainer ||
-        !currentWallpaper
-    ) return;
-
+    if(!commentsContainer || !currentWallpaper)
+        return;
 
     try{
 
-
-        const response =
-        await fetch(
+        const response = await fetch(
             `/api/wallpapers/${currentWallpaper.id}/comments`
         );
 
+        if(!response.ok)
+            throw new Error("COMMENTS API ERROR");
 
-        const comments =
-        await response.json();
-
-
+        const comments = await response.json();
 
         if(commentsCountBadge){
-
-           commentsCountBadge.textContent =
+            commentsCountBadge.textContent =
             `${comments.length} تعليقات`;
-
         }
-
-
-
-        if(comments.length === 0){
-
-            commentsContainer.innerHTML =
-            `
-            <div class="no-comments">
-            لا توجد تعليقات بعد، كن أول من يعلق!
-            </div>
-            `;
-
-            return;
-
-        }
-
-
 
         commentsContainer.innerHTML = "";
 
+        if(comments.length === 0){
+            commentsContainer.innerHTML =
+            `<div class="no-comments">
+            لا توجد تعليقات بعد، كن أول من يعلق!
+            </div>`;
+            return;
+        }
 
+        comments.reverse().forEach(comment=>{
 
-        comments
-        .slice()
-        .reverse()
-        .forEach(comment=>{
+            const card=document.createElement("div");
 
+            card.className="comment-card";
 
-            const card =
-            document.createElement("div");
-
-
-            card.className =
-            "comment-card";
-
-
-            card.innerHTML =
-            `
-            <div class="user-avatar">
-            ${comment.user ? comment.user.charAt(0) : "👤"}
-            </div>
-
-            <div class="comment-content">
-
-            <div class="comment-header">
-
-            <span class="comment-author">
-            ${comment.user || "مستخدم"}
-            </span>
-
-            <span class="comment-date">
-            ${comment.date || ""}
-            </span>
-
-            </div>
-
-
-            <p class="comment-text">
-            ${comment.text}
-            </p>
-
-
-            </div>
-            `;
-
+            card.textContent =
+            `${comment.user || "مستخدم"}: ${comment.text || ""}`;
 
             commentsContainer.appendChild(card);
-
 
         });
 
 
-
     }catch(error){
 
-
-        console.log(
-            "LOAD COMMENTS ERROR",
-            error
-        );
-
+        console.log("COMMENTS ERROR",error);
 
     }
 
