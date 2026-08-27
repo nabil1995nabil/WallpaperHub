@@ -717,3 +717,152 @@ MOBILE
 
 
 }
+
+/* =========================
+   COMMENTS SECTION
+========================= */
+
+.comments-section {
+    margin: 20px;
+    background: #ffffff;
+}
+
+.comments-count {
+    font-size: 14px;
+    color: #777;
+    font-weight: 500;
+}
+
+/* نموذج إضافة تعليق */
+.add-comment-box {
+    background: #f9f9f9;
+    border: 1px solid #e8e8e8;
+    border-radius: 20px;
+    padding: 14px;
+    margin-bottom: 20px;
+}
+
+.input-container {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.user-avatar-icon {
+    font-size: 38px;
+    color: #ccc;
+    flex-shrink: 0;
+}
+
+.add-comment-box textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    outline: none;
+    resize: none;
+    background: #fff;
+    transition: border-color 0.3s;
+}
+
+.add-comment-box textarea:focus {
+    border-color: #111;
+}
+
+.add-comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.send-comment-btn {
+    background: #111;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.send-comment-btn .material-icons {
+    font-size: 16px;
+    transform: rotate(180deg); /* للغة العربية */
+}
+
+.send-comment-btn:active {
+    transform: scale(0.95);
+    background: #333;
+}
+
+/* قائمة التعليقات */
+.comments-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.comment-card {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 16px;
+    border: 1px solid #eee;
+}
+
+.comment-card .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.comment-author {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+}
+
+.comment-date {
+    font-size: 11px;
+    color: #888;
+}
+
+.comment-text {
+    font-size: 13.5px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.no-comments {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    padding: 20px 0;
+}

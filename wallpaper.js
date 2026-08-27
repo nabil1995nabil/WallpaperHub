@@ -527,6 +527,10 @@ if(
 
 }
 
+// أضف هذا السطر فقط في نهاية دالة showWallpaper() الحالية لديك
+loadComments();
+
+
 // ===============================
 // Image Origin Detection
 // ===============================
@@ -837,6 +841,93 @@ colorPalette.appendChild(div);
 
 }
 
+// ===============================
+// Show Wallpaper
+// ===============================
+
+
+function showWallpaper(){
+
+
+if(!currentWallpaper)
+
+return;
+
+
+
+const media =
+
+currentWallpaper.image || "";
+
+
+
+
+
+if(isVideoMedia(currentWallpaper)){
+
+
+setupVideo(media);
+
+
+
+}else{
+
+
+stopVideo();
+
+
+
+if(wallImage){
+
+
+wallImage.src =
+
+getImageUrl(media);
+
+
+
+wallImage.style.display =
+
+"block";
+
+
+}
+
+
+
+}
+
+if(wallDescription)
+
+wallDescription.textContent =
+
+currentWallpaper.description || "";
+
+const wallTitle2 =
+document.getElementById("wallTitle2");
+
+if(wallTitle2){
+
+wallTitle2.textContent =
+currentWallpaper.title || "بدون اسم";
+
+
+wallTitle2.classList.remove("scroll-title");
+
+
+if(
+    wallTitle2.scrollWidth >
+    wallTitle2.clientWidth
+){
+
+    wallTitle2.classList.add("scroll-title");
+
+}
+
+}
+
+// أضف هذا السطر فقط في نهاية دالة showWallpaper() الحالية لديك
+loadComments();
 
 }
 
@@ -2006,6 +2097,225 @@ history.back();
 };
 
 }
+
+// ===============================
+// SERVER COMMENTS SYSTEM
+// ===============================
+
+const commentInput = document.getElementById("commentInput");
+const sendCommentBtn = document.getElementById("sendCommentBtn");
+const commentsContainer = document.getElementById("commentsContainer");
+const commentsCountBadge = document.getElementById("commentsCountBadge");
+
+
+async function loadComments(){
+
+    if(
+        !commentsContainer ||
+        !currentWallpaper
+    ) return;
+
+
+    try{
+
+
+        const response =
+        await fetch(
+            `/api/wallpapers/${currentWallpaper.id}/comments`
+        );
+
+
+        const comments =
+        await response.json();
+
+
+
+        if(commentsCountBadge){
+
+            commentsCountBadge.textContent =
+            `${comments.length} تعليقات`;
+
+        }
+
+
+
+        if(comments.length === 0){
+
+            commentsContainer.innerHTML =
+            `
+            <div class="no-comments">
+            لا توجد تعليقات بعد، كن أول من يعلق!
+            </div>
+            `;
+
+            return;
+
+        }
+
+
+
+        commentsContainer.innerHTML = "";
+
+
+
+        comments
+        .slice()
+        .reverse()
+        .forEach(comment=>{
+
+
+            const card =
+            document.createElement("div");
+
+
+            card.className =
+            "comment-card";
+
+
+            card.innerHTML =
+            `
+            <div class="user-avatar">
+            ${comment.user ? comment.user.charAt(0) : "👤"}
+            </div>
+
+            <div class="comment-content">
+
+            <div class="comment-header">
+
+            <span class="comment-author">
+            ${comment.user || "مستخدم"}
+            </span>
+
+            <span class="comment-date">
+            ${comment.date || ""}
+            </span>
+
+            </div>
+
+
+            <p class="comment-text">
+            ${comment.text}
+            </p>
+
+
+            </div>
+            `;
+
+
+            commentsContainer.appendChild(card);
+
+
+        });
+
+
+
+    }catch(error){
+
+
+        console.log(
+            "LOAD COMMENTS ERROR",
+            error
+        );
+
+
+    }
+
+}
+
+
+
+
+if(
+sendCommentBtn &&
+commentInput
+){
+
+
+sendCommentBtn.onclick =
+async ()=>{
+
+
+    try{
+
+
+        if(!currentWallpaper)
+        return;
+
+
+
+        const text =
+        commentInput.value.trim();
+
+
+
+        if(!text)
+        return;
+
+
+
+        const response =
+        await fetch(
+        `/api/wallpapers/${currentWallpaper.id}/comments`,
+        {
+
+            method:"POST",
+
+            headers:{
+
+                "Content-Type":
+                "application/json"
+
+            },
+
+
+            body:
+            JSON.stringify({
+
+                user:"مستخدم",
+
+                text:text
+
+            })
+
+        });
+
+
+
+        const result =
+        await response.json();
+
+
+
+        if(result.success){
+
+
+            commentInput.value="";
+
+
+            loadComments();
+
+
+        }
+
+
+
+    }catch(error){
+
+
+        console.log(
+            "SEND COMMENT ERROR",
+            error
+        );
+
+
+    }
+
+
+};
+
+
+}
+
 
 // ===============================
 // Start

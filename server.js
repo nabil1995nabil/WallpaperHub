@@ -247,7 +247,12 @@ __dirname,
 "tokens.json"
 );
 
-
+const COMMENTS_FILE =
+path.join(
+__dirname,
+"data",
+"comments.json"
+);
 
 
 
@@ -293,7 +298,19 @@ TOKENS_FILE,
 
 }
 
+if(
+!fs.existsSync(
+COMMENTS_FILE
+)
+){
 
+fs.writeFileSync(
+COMMENTS_FILE,
+"[]",
+"utf8"
+);
+
+}
 
 
 
@@ -301,12 +318,9 @@ TOKENS_FILE,
 // Wallpapers Storage
 // ======================================
 
-
 function readWallpapers(){
 
-
 try{
-
 
 return JSON.parse(
 
@@ -329,9 +343,6 @@ return [];
 
 }
 
-
-
-
 function saveWallpapers(data){
 
 
@@ -349,6 +360,60 @@ null,
 
 );
 
+
+}
+
+// =========================
+// Comments Storage
+// =========================
+
+function readComments(){
+
+try{
+
+return JSON.parse(
+fs.readFileSync(
+COMMENTS_FILE,
+"utf8"
+)
+);
+
+}catch(error){
+
+console.log(
+"READ COMMENTS ERROR",
+error
+);
+
+return [];
+
+}
+
+}
+
+
+function saveComments(data){
+
+try{
+
+fs.writeFileSync(
+COMMENTS_FILE,
+JSON.stringify(
+data,
+null,
+2
+),
+"utf8"
+);
+
+}catch(error){
+
+console.log(
+"SAVE COMMENTS ERROR",
+error
+);
+
+}
 
 }
 
@@ -3290,6 +3355,144 @@ res.status(500).json({
 success:false,
 
 message:"Image generation failed"
+
+});
+
+
+}
+
+});
+
+// =========================
+// Comments API
+// =========================
+
+
+app.get(
+"/api/wallpapers/:id/comments",
+(req,res)=>{
+
+try{
+
+const wallpaperId =
+Number(req.params.id);
+
+
+const comments =
+readComments()
+.filter(
+comment =>
+comment.wallpaperId === wallpaperId
+);
+
+
+res.json(comments);
+
+
+}catch(error){
+
+console.log(
+"GET COMMENTS ERROR",
+error
+);
+
+
+res.status(500).json([]);
+
+}
+
+});
+
+
+
+
+
+app.post(
+"/api/wallpapers/:id/comments",
+(req,res)=>{
+
+try{
+
+const wallpaperId =
+Number(req.params.id);
+
+
+const text =
+String(
+req.body.text || ""
+).trim();
+
+
+
+if(!text){
+
+return res.status(400).json({
+
+success:false,
+message:"Empty comment"
+
+});
+
+}
+
+
+
+const comments =
+readComments();
+
+
+
+const newComment = {
+
+id:Date.now(),
+
+wallpaperId,
+
+user:
+req.body.user ||
+"مستخدم",
+
+text,
+
+date:
+new Date()
+.toLocaleDateString("ar-EG")
+
+};
+
+
+
+comments.push(newComment);
+
+
+saveComments(
+comments
+);
+
+
+
+res.json({
+
+success:true,
+
+comment:newComment
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"POST COMMENTS ERROR",
+error
+);
+
+
+res.status(500).json({
+
+success:false
 
 });
 
