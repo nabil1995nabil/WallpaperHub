@@ -1315,7 +1315,7 @@ app.post("/api/tokens/create",async (req,res)=>{
         let saved = false;
 
         // Firestore
-        (useFirestore) {
+        if (useFirestore) {
             const result = await saveTokenFirestore(tokenData);
             if (result) {
                 saved = true;
@@ -1352,7 +1352,7 @@ app.get("/api/tokens/:userId", async (req, res) => {
 
         const userId = String(req.params.userId);
 
-        let tokens [];
+        let tokens = [];
 
         if (useFirestore) {
             tokens = getUserTokensFirestore(userId);
@@ -1360,7 +1360,7 @@ app.get("/api/tokens/:userId", async (req, res) => {
 
         if (tokens.length === 0) {
             tokens = readTokensFile().filter(
-                t => String(t.userId === userId
+                t => String(t.userId) === userId
             );
         }
 
@@ -1385,19 +1385,19 @@ app.delete("/api/t/:id", async (req, res) => {
         let deleted = false;
 
         if (useFirestore) {
-            deleted await deleteTokenFirestore(id);
+            deleted = await deleteTokenFirestore(id);
         }
 
         if (!deleted) {
             let tokens = readTokensFile();
-            tokens =.filter(
+            tokens = tokens.filter(
                 t => String(t.id) !== String(id)
             );
             saveTokensFile(tokens);
             deleted = true;
         }
 
-        res({
+        res.json({
             success: deleted
         });
 
@@ -1411,7 +1411,7 @@ app.delete("/api/t/:id", async (req, res) => {
 // API Token Middleware
 // ======================================
 
-async functionApiToken(req,, next) {
+async function verifyApiToken(req, res, next) {
 
     {
 
@@ -1424,7 +1424,7 @@ async functionApiToken(req,, next) {
             });
         }
 
-        if (!) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
                 message: "API Token required"
@@ -1433,9 +1433,14 @@ async functionApiToken(req,, next) {
 
         let apiToken = null;
 
-        if (useFirestore)            const snap = await tokensCollection
-                .where("token", "==", token)
-                .limit(1                .get();
+        if (useFirestore) {
+
+    const snap = await tokensCollection
+        .where("token", "==", token)
+        .limit(1)
+        .get();
+
+}
 
             if (!snap.empty) {
                 apiToken = snap.docs[0].data();
@@ -1457,8 +1462,8 @@ async functionApiToken(req,, next) {
         // ================================
 
         const clientIp =
-           .headers["x-forwarded-for"] ||
-           .socket.remoteAddress;
+req.headers["x-forwarded-for"] ||
+req.socket.remoteAddress;
 
         // أولعمال: ربط التوكن بالـ IP
         if (!apiToken.lastIp) {
@@ -1472,7 +1477,7 @@ async functionApiToken(req,, next) {
             }
         }
 
-        const today = new().toISOString().split("T")[0];
+        const today = new Date().toISOString().split("T")[0];
 
         if (apiToken.lastRequestDate !== today) {
             apiToken.requests 0;
@@ -1496,19 +1501,21 @@ async functionApiToken(req,, next) {
 
         if (useFirestore) {
             await tokensCollection
-                .doc(apiToken.id))
+                .doc(apiToken.id)
                 .update({
-                    requests: apiToken.requests                    lastRequestDate: apiToken.lastRequestDate,
-                    lastUsed: apiToken.lastUsed                    lastIp: apiToken.lastIp
+                    requests: apiToken.requests,
+lastRequestDate: apiToken.lastRequestDate,
+lastUsed: apiToken.lastUsed,
+lastIp: apiToken.lastIp
                 });
         } else {
-            let tokens readTokensFile();
+            let tokens = readTokensFile();
 
             const index = tokens.findIndex(
                 t => t.token === token
             );
 
-            if (index !== -1 {
+            if (index !== -1) {
                 tokens[index] = apiToken;
                 saveTokensFile(tokens);
             }
@@ -1528,7 +1535,10 @@ async functionApiToken(req,, next) {
 // Developer Protected Wall API
 //=====
 
-app.get("/api/v1/wallpapers", verifyApiToken (req, res) => {
+app.get(
+"/api/v1/wallpapers",
+verifyApiToken,
+(req,res)=>{
 
     try {
 
