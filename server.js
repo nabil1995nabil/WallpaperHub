@@ -1276,7 +1276,7 @@ success:false
 
 function createTokenValue() {
     return "wall_live_" +
-        Math.randomtoString(36).substring(2) +
+        Math.random().toString(36).substring(2) +
         Date.now();
 }
 
@@ -1284,11 +1284,11 @@ function createTokenValue() {
 // Create API Token
 // ======================================
 
-app.postapi/tokens/create", async (req, res) => {
+app.post("/api/tokens/create",async (req,res)=>{
 
     try {
 
-        const { userId appName, domain } = req.body;
+        const { userId, appName, domain } = req.body;
 
         if (!userId) {
             return res.status(400).json({
@@ -1299,10 +1299,10 @@ app.postapi/tokens/create", async (req, res) => {
 
         const tokenData = {
             id: Date.now(),
-           : String(userId),
+           userId: String(userId),
             appName: appName || "My App",
             domain: domain || "",
-           : createTokenValue(),
+           token: createTokenValue(),
             limit: 200,
             requests: 0,
             lastRequestDate: null,
@@ -1335,7 +1335,7 @@ app.postapi/tokens/create", async (req, res) => {
  });
 
     } catch (error) {
-        console.log("CREATE TOKEN ERROR error);
+        console.log("CREATE TOKEN ERROR", error);
         res.status(500).json({
             success: false
         });
