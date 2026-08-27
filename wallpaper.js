@@ -267,6 +267,7 @@ async function loadWallpaper() {
         currentWallpaperIndex = categoryWallpapers.findIndex(w => w.id === currentWallpaper.id);
 
         showWallpaper();
+        loadComments();
         autoAnalyzeWallpaper();
         loadSimilar();
         updateFavorite();
@@ -837,9 +838,6 @@ tagsContainer.appendChild(span);
             colorPalette.appendChild(div);
         });
     }
-
-    // ⭐ التعليقات
-    loadComments();
 }
 
 // ===============================
@@ -1996,81 +1994,179 @@ const sendCommentBtn = document.getElementById("sendCommentBtn");
 const commentsContainer = document.getElementById("commentsContainer");
 const commentsCountBadge = document.getElementById("commentsCountBadge");
 
+let commentsLoading = false;
+let commentSending = false;
+
+
+// ===============================
+// LOAD COMMENTS
+// ===============================
 
 async function loadComments(){
 
-    if(!commentsContainer || !currentWallpaper)
+    if(
+        commentsLoading ||
+        !commentsContainer ||
+        !currentWallpaper
+    ){
         return;
+    }
+
+
+    commentsLoading = true;
+
 
     try{
+
 
         const response = await fetch(
             `/api/wallpapers/${currentWallpaper.id}/comments`
         );
 
-        if(!response.ok)
-            throw new Error("COMMENTS API ERROR");
+
+        if(!response.ok){
+
+            throw new Error(
+                "COMMENTS API ERROR"
+            );
+
+        }
+
+
 
         const comments = await response.json();
 
+
+
+        if(!Array.isArray(comments)){
+
+            throw new Error(
+                "INVALID COMMENTS DATA"
+            );
+
+        }
+
+
+
         if(commentsCountBadge){
+
             commentsCountBadge.textContent =
             `${comments.length} تعليقات`;
+
         }
+
+
 
         commentsContainer.innerHTML = "";
 
+
+
         if(comments.length === 0){
-            commentsContainer.innerHTML =
-            `<div class="no-comments">
+
+
+            commentsContainer.innerHTML = `
+
+            <div class="no-comments">
+
             لا توجد تعليقات بعد، كن أول من يعلق!
-            </div>`;
+
+            </div>
+
+            `;
+
+
             return;
+
         }
 
-        comments.reverse().forEach(comment=>{
 
-            const card=document.createElement("div");
 
-            card.className="comment-card";
+        // لا نعدل المصفوفة الأصلية
+        [...comments]
+        .reverse()
+        .forEach(comment=>{
+
+
+            const card =
+            document.createElement("div");
+
+
+            card.className =
+            "comment-card";
+
+
+
+            const user =
+            comment.user || "مستخدم";
+
+
+            const text =
+            comment.text || "";
+
+
 
             card.textContent =
-            `${comment.user || "مستخدم"}: ${comment.text || ""}`;
+            `${user}: ${text}`;
+
+
 
             commentsContainer.appendChild(card);
+
 
         });
 
 
-    }catch(error){
-
-        console.log("COMMENTS ERROR",error);
 
     }
+    catch(error){
+
+
+        console.error(
+            "LOAD COMMENTS ERROR",
+            error
+        );
+
+
+    }
+    finally{
+
+
+        commentsLoading = false;
+
+
+    }
+
 
 }
 
 
 
+// ===============================
+// SEND COMMENT
+// ===============================
 
-// ⭐ هنا تم إصلاح الخطأ الرئيسي:
-// الإغلاق الصحيح هو }; وليس });
 
 if(
-sendCommentBtn &&
-commentInput
+    sendCommentBtn &&
+    commentInput
 ){
+
 
 
 sendCommentBtn.onclick =
 async ()=>{
 
 
+    if(commentSending)
+        return;
+
+
+
     try{
 
 
         if(!currentWallpaper)
-        return;
+            return;
 
 
 
@@ -2080,16 +2176,26 @@ async ()=>{
 
 
         if(!text)
-        return;
+            return;
+
+
+
+        commentSending = true;
+
+
+        sendCommentBtn.disabled = true;
 
 
 
         const response =
         await fetch(
+
         `/api/wallpapers/${currentWallpaper.id}/comments`,
+
         {
 
             method:"POST",
+
 
             headers:{
 
@@ -2100,6 +2206,7 @@ async ()=>{
 
 
             body:
+
             JSON.stringify({
 
                 user:"مستخدم",
@@ -2108,7 +2215,18 @@ async ()=>{
 
             })
 
+
         });
+
+
+
+        if(!response.ok){
+
+            throw new Error(
+                "SEND COMMENT API ERROR"
+            );
+
+        }
 
 
 
@@ -2120,32 +2238,44 @@ async ()=>{
         if(result.success){
 
 
-            commentInput.value="";
+            commentInput.value = "";
 
 
-            loadComments();
+            await loadComments();
 
 
         }
 
 
 
-    }catch(error){
+    }
+    catch(error){
 
 
-        console.log(
+        console.error(
             "SEND COMMENT ERROR",
             error
         );
 
 
     }
+    finally{
 
 
-};   // ✅ تصحيح: كانت }); زائدة هنا
+        commentSending = false;
+
+
+        sendCommentBtn.disabled = false;
+
+
+    }
+
+
+
+};
+
 
 }
-
 
 // ===============================
 // Start
