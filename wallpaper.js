@@ -605,7 +605,7 @@ if(wallSize)
 
 wallSize.textContent =
 
-currentpaper.size || "";
+currentWallpaper.size || "";
 
 
 
@@ -821,61 +821,25 @@ tagsContainer.appendChild(span);
 
 
 
-// ===============================
 // Colors
-// ===============================
+    if(colorPalette){
+        colorPalette.innerHTML = "";
+        (currentWallpaper.colors || []).forEach(color=>{
+            const div = document.createElement("div");
+            div.style.cssText = `
+                width:40px;
+                height:40px;
+                border-radius:50%;
+                background:${color};
+                display:inline-block;
+                margin:5px;
+            `;
+            colorPalette.appendChild(div);
+        });
+    }
 
-
-if(colorPalette){
-
-
-colorPalette.innerHTML = "";
-
-
-
-(currentWallpaper.colors || [])
-
-.forEach(color=>{
-
-
-const div =
-
-document.createElement("div");
-
-
-
-div.style.cssText = `
-
-width:40px;
-height:40px;
-border-radius:50%;
-background:${color};
-display:inline-block;
-margin:5px;
-
-`;
-
-
-
-colorPalette.appendChild(div);
-
-
-
-});
-
-
-}
-
-
-
-// ===============================
-// Comments ⭐
-// ===============================
-
-
-loadComments();
-
-
+    // ⭐ التعليقات
+    loadComments();
 }
 
 // ===============================
@@ -1839,7 +1803,7 @@ fullscreenStartY;
 
 
 
-if > 120){
+if(diff > 120){
 
 
 fullscreenViewer.classList.add("closing");
@@ -2057,7 +2021,7 @@ async function loadComments(){
 
         if(commentsCountBadge){
 
-           CountBadge.textContent =
+           commentsCountBadge.textContent =
             `${comments.length} تعليقات`;
 
         }
