@@ -75,7 +75,9 @@ tokensCollection =
 db.collection("tokens");
 
 
-useFirestore = false;
+// ✅
+useFirestore = true;
+
 
 
 console.log(
@@ -1272,821 +1274,279 @@ success:false
 // TOKEN SYSTEM
 // ======================================
 
-
-function createTokenValue(){
-
-
-return (
-
-"wall_live_" +
-
-Math.random()
-.toString(36)
-.substring(2)
-
-+
-
-Date.now()
-
-);
-
-
+function createTokenValue() {
+    return "wall_live_" +
+        Math.randomtoString(36).substring(2) +
+        Date.now();
 }
-
-
-
-
 
 // ======================================
 // Create API Token
 // ======================================
 
+app.postapi/tokens/create", async (req, res) => {
 
-app.post(
-"/api/tokens/create",
-async(req,res)=>{
+    try {
 
+        const { userId appName, domain } = req.body;
 
-try{
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID required"
+            });
+        }
 
+        const tokenData = {
+            id: Date.now(),
+           : String(userId),
+            appName: appName || "My App",
+            domain: domain || "",
+           : createTokenValue(),
+            limit: 200,
+            requests: 0,
+            lastRequestDate: null,
+            lastUsed: null,
+            lastIp: null,
+            active: true,
+            created: new Date().toISOString()
+        };
 
-const {
+        let saved = false;
 
-userId,
+        // Firestore
+        (useFirestore) {
+            const result = await saveTokenFirestore(tokenData);
+            if (result) {
+                saved = true;
+            }
+        }
 
-appName,
+        // File fallback
+        if (!saved) {
+            let tokens = readTokensFile();
+            tokens.push(tokenData);
+            saveTokensFile(tokens);
+        }
 
-domain
+        res.json({
+            success: true,
+            token: tokenData
+ });
 
-}=req.body;
-
-
-
-if(!userId){
-
-
-return res.status(400)
-.json({
-
-success:false,
-
-message:
-"User ID required"
-
+    } catch (error) {
+        console.log("CREATE TOKEN ERROR error);
+        res.status(500).json({
+            success: false
+        });
+    }
 });
-
-
-}
-
-
-
-
-
-const tokenData = {
-
-id:
-Date.now(),
-
-userId:
-String(userId),
-
-appName:
-appName ||
-"My App",
-
-domain:
-domain ||
-"",
-
-token:
-createTokenValue(),
-
-limit:
-200,
-
-requests:
-0,
-
-lastRequestDate:
-null,
-
-lastUsed:
-null,
-
-lastIp:
-null,
-
-active:
-true,
-
-created:
-new Date()
-.toISOString()
-
-};
-
-
-
-
-
-
-
-let saved =
-false;
-
-
-
-
-
-// Firestore
-
-if(useFirestore){
-
-
-const result =
-await saveTokenFirestore(
-tokenData
-);
-
-
-
-if(result){
-
-saved=true;
-
-}
-
-
-}
-
-
-
-
-
-// File fallback
-
-if(!saved){
-
-
-let tokens =
-readTokensFile();
-
-
-
-tokens.push(
-tokenData
-);
-
-
-
-saveTokensFile(
-tokens
-);
-
-
-
-}
-
-
-
-
-
-
-
-res.json({
-
-success:true,
-
-token:tokenData
-
-});
-
-
-
-
-
-}catch(error){
-
-
-console.log(
-"CREATE TOKEN ERROR:",
-error
-);
-
-
-
-res.status(500)
-.json({
-
-success:false
-
-});
-
-
-}
-
-
-
-});
-
-
-
-
-
-
 
 // ======================================
 // Get User Tokens
 // ======================================
 
+app.get("/api/tokens/:userId", async (req, res) => {
 
-app.get(
-"/api/tokens/:userId",
-async(req,res)=>{
+    try {
 
+        const userId = String(req.params.userId);
 
-try{
+        let tokens [];
 
+        if (useFirestore) {
+            tokens = getUserTokensFirestore(userId);
+        }
 
-const userId =
-String(
-req.params.userId
-);
+        if (tokens.length === 0) {
+            tokens = readTokensFile().filter(
+                t => String(t.userId === userId
+            );
+        }
 
+        res.json(tokens);
 
-
-let tokens=[];
-
-
-
-
-
-if(useFirestore){
-
-
-tokens =
-await getUserTokensFirestore(
-userId
-);
-
-
-}
-
-
-
-
-
-if(tokens.length===0){
-
-
-tokens =
-readTokensFile()
-.filter(
-
-t=>
-
-String(t.userId)
-===
-userId
-
-);
-
-
-}
-
-
-
-
-res.json(
-tokens
-);
-
-
-
-}catch(error){
-
-
-console.log(
-"GET TOKEN ERROR:",
-error
-);
-
-
-res.status(500)
-.json([]);
-
-
-}
-
-
-
+    } catch (error) {
+        console.log("GET TOKEN ERROR:", error);
+        res.status(500).json([]);
+    }
 });
-
-
-
-
-
-
-
 
 // ======================================
 // Delete Token
 // ======================================
 
-
-app.delete(
-"/api/tokens/:id",
-async(req,res)=>{
-
-
-try{
-
-
-const id =
-req.params.id;
-
-
-
-let deleted =
-false;
-
-
-
-
-if(useFirestore){
-
-
-deleted =
-await deleteTokenFirestore(
-id
-);
-
-
-}
-
-
-
-
-
-if(!deleted){
-
-
-let tokens =
-readTokensFile();
-
-
-
-tokens =
-tokens.filter(
-
-t=>
-
-String(t.id)
-!==
-String(id)
-
-);
-
-
-
-saveTokensFile(
-tokens
-);
-
-
-
-deleted=true;
-
-
-}
-
-
-
-
-res.json({
-
-success:
-deleted
-
-});
-
-
-
-
-}catch(error){
-
-
-console.log(
-"DELETE TOKEN ERROR:",
-error
-);
-
-
-
-res.status(500)
-.json({
-
-success:false
-
-});
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-
+app.delete("/api/t/:id", async (req, res) => {
+
+    try {
+
+        const id = req.params.id;
+
+        let deleted = false;
+
+        if (useFirestore) {
+            deleted await deleteTokenFirestore(id);
+        }
+
+        if (!deleted) {
+            let tokens = readTokensFile();
+            tokens =.filter(
+                t => String(t.id) !== String(id)
+            );
+            saveTokensFile(tokens);
+            deleted = true;
+        }
+
+        res({
+            success: deleted
+        });
+
+    } catch (error) {
+        console.log("DELETE ERROR:", error);
+        res.status(500).json({
+           : false
+        });
+    }
 // ======================================
 // API Token Middleware
 // ======================================
 
-
-async function verifyApiToken(req,res,next){
-
-
-try{
-
-
-const token =
-req.headers["x-api-key"];
-
-if(req.query.token){
-
-return res.status(400).json({
-
-success:false,
-
-message:"Use X-API-Key header only"
-
-});
-
-}
-
-
-
-
-
-if(!token){
-
-
-return res.status(401)
-.json({
-
-success:false,
-
-message:
-"API Token required"
-
-});
-
-
-}
-
-
-
-
-
-
-let apiToken =
-null;
-
-
-
-
-
-if(useFirestore){
-
-
-const snap =
-await tokensCollection
-.where(
-"token",
-"==",
-token
-)
-.limit(1)
-.get();
-
-
-
-if(!snap.empty){
-
-
-apiToken =
-snap.docs[0]
-.data();
-
-
-}
-
-
-}else{
-
-
-apiToken =
-readTokensFile()
-.find(
-
-t=>
-
-t.token===token
-
-);
-
-
-}
-
-
-
-
-
-if(!apiToken || !apiToken.active){
-
-
-return res.status(403)
-.json({
-
-success:false,
-
-message:
-"Invalid Token"
-
-});
-
-
-}
-
-// ================================
-// IP Binding Protection
-// ================================
-
-const clientIp =
-req.headers["x-forwarded-for"] ||
-req.socket.remoteAddress;
-
-
-// أول استعمال: ربط التوكن بالـ IP
-
-if(!apiToken.lastIp){
-
-apiToken.lastIp =
-clientIp;
-
-}else{
-
-
-if(apiToken.lastIp !== clientIp){
-
-return res.status(403)
-.json({
-
-success:false,
-
-message:
-"Token used from another IP"
-
-});
-
-}
-
-}
-
-
-
-
-const today =
-
-new Date()
-.toISOString()
-.split("T")[0];
-
-
-
-
-
-if(
-apiToken.lastRequestDate
-!==
-
-today
-
-){
-
-
-apiToken.requests=0;
-
-apiToken.lastRequestDate=today;
-
-
-}
-
-
-
-
-
-
-if(
-apiToken.requests >=
-apiToken.limit
-
-){
-
-
-return res.status(429)
-.json({
-
-success:false,
-
-message:
-"Daily limit reached"
-
-});
-
-
-}
-
-
-
-
-
-apiToken.requests++;
-apiToken.lastIp =
-req.ip;
-
-apiToken.lastUsed =
-new Date()
-.toISOString();
-
-
-
-
-
-if(useFirestore){
-
-
-await tokensCollection
-.doc(
-String(apiToken.id)
-)
-.update({
-
-requests:
-apiToken.requests,
-
-lastRequestDate:
-apiToken.lastRequestDate,
-
-lastUsed:
-apiToken.lastUsed,
-lastIp:
-apiToken.lastIp,
-});
-
-
-}else{
-
-
-let tokens =
-readTokensFile();
-
-
-
-const index =
-tokens.findIndex(
-
-t=>
-
-t.token===token
-
-);
-
-
-
-if(index!==-1){
-
-
-tokens[index]=apiToken;
-
-
-saveTokensFile(
-tokens
-);
-
-
-}
-
-
-}
-
-
-
-
-
-req.apiToken =
-apiToken;
-
-
-
-next();
-
-
-
-
-
-}catch(error){
-
-
-console.log(
-"TOKEN VERIFY ERROR:",
-error
-);
-
-
-
-res.status(500)
-.json({
-
-success:false
-
-});
-
-
-}
-
-
-
+async functionApiToken(req,, next) {
+
+    {
+
+        const token = req.headers["x-api-key"];
+
+        if (req.query.token) {
+            return res.status(400).json({
+                success: false,
+                message:Use X-API-Key header only"
+            });
+        }
+
+        if (!) {
+            return res.status(401).json({
+                success: false,
+                message: "API Token required"
+            });
+        }
+
+        let apiToken = null;
+
+        if (useFirestore)            const snap = await tokensCollection
+                .where("token", "==", token)
+                .limit(1                .get();
+
+            if (!snap.empty) {
+                apiToken = snap.docs[0].data();
+            }
+        } else            apiToken = readTokensFile().find(
+                t => t.token === token
+            );
+        }
+
+ (!apiToken || !apiToken.active) {
+            return res.status(3).json({
+                success: false,
+                message: "Invalid"
+            });
+        }
+
+        // ================================
+        // IP Binding Protection
+        // ================================
+
+        const clientIp =
+           .headers["x-forwarded-for"] ||
+           .socket.remoteAddress;
+
+        // أولعمال: ربط التوكن بالـ IP
+        if (!apiToken.lastIp) {
+            apiToken.lastIp =Ip;
+        } else {
+            if (apiToken.lastIp !== clientIp {
+                return res.status(403).json({
+                    success: false,
+ message: "Token used from another IP"
+                });
+            }
+        }
+
+        const today = new().toISOString().split("T")[0];
+
+        if (apiToken.lastRequestDate !== today) {
+            apiToken.requests 0;
+            apiToken.lastRequestDate = today;
+        }
+
+        if (apiToken.requests >= apiToken.limit) {
+            return res(429).json({
+                success: false,
+                message: "Daily limit reached"
+            });
+        }
+
+        apiToken.requests++;
+
+        // ✅ الإلاح : حُذف السطر apiToken.lastIp = req.ip;
+        // لأنه كان يُسجل IP بصيغة مختلفة (::ffff:127.0.0.1)
+        // فيُرف التوكن في الطلب التالي رغم أنه من نفس الجهاز
+
+       Token.lastUsed = new Date().toISOString();
+
+        if (useFirestore) {
+            await tokensCollection
+                .doc(apiToken.id))
+                .update({
+                    requests: apiToken.requests                    lastRequestDate: apiToken.lastRequestDate,
+                    lastUsed: apiToken.lastUsed                    lastIp: apiToken.lastIp
+                });
+        } else {
+            let tokens readTokensFile();
+
+            const index = tokens.findIndex(
+                t => t.token === token
+            );
+
+            if (index !== -1 {
+                tokens[index] = apiToken;
+                saveTokensFile(tokens);
+            }
+               req.apiToken = apiToken;
+
+        next();
+
+    catch (error) {
+        console.log("TOKEN VERIFY ERROR:", error);
+        res.status(500).json({
+            success: false
+        });
+    }
 }
 
 // ======================================
-// Developer Protected Wallpapers API
-// ======================================
+// Developer Protected Wall API
+//=====
 
+app.get("/api/v1/wallpapers", verifyApiToken (req, res) => {
 
-app.get(
-"/api/v1/wallpapers",
-verifyApiToken,
-(req,res)=>{
+    try {
 
+        const = readWallpapers();
 
-try{
+        res.json({
+            success true,
+            developer: req.apiToken.appName,
+            count: wallpapers.length            data: wallpapers
+        });
 
-
-const wallpapers =
-readWallpapers();
-
-
-
-res.json({
-
-success:true,
-
-
-developer:
-req.apiToken.appName,
-
-
-count:
-wallpapers.length,
-
-
-data:
-wallpapers
-
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"WALLPAPER API ERROR:",
-error
-);
-
-
-
-res.status(500).json({
-
-success:false,
-
-error:error.message
-
-});
-
-
-}
-
-
-
+    } catch (error) {
+        console.log("ALLPAPER API ERROR:", error);
+        res.status(500).json({
+            success false,
+            error: error.message
+        });
+    }
 });
 
 // ======================================
@@ -2668,55 +2128,18 @@ if(
 
 
 
-res.json({
-
-    success:true,
-
-    image:imageUrl,
-
-    raw:data
-
-});
-
-
-
-
-
-if(
-!data.candidates ||
-!data.candidates[0]
-){
-
-
-return res.json({
-
-reply:
-"لم يرجع Gemini جواب"
-
-});
-
-
+// ✅ الكود الجديد
+if (!data.candidates || !data.candidates[0    return res({
+        success: true,
+        reply: "لم يرجع Gemini جواب",
+        image: null
+    });
 }
 
-
-
-
-
 res.json({
-
-reply:
-
-data
-.candidates[0]
-.content
-.parts[0]
-.text
-
-});
-
-
-
-
+ success: true,
+   : data.candidates[0content.parts[0].text,
+    image: imageUrl
 
 }catch(error){
 
@@ -3121,80 +2544,6 @@ success:false
 
 
 
-});
-
-// ==========================================
-// IMAGE UPSCALE API - مجاني بدون مفتاح
-// ==========================================
-
-app.post("/api/artguru/enhance", async (req, res) => {
-    const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    console.log(`[${requestId}] 🚀 بدء طلب التحسين (Free API)`);
-
-    try {
-        const { image } = req.body;
-
-        if (!image) {
-            return res.status(400).json({
-                success: false,
-                message: "الصورة مطلوبة"
-            });
-        }
-
-        console.log(`[${requestId}] 📡 إرسال طلب إلى Free Upscale API...`);
-
-        // استخدم خدمة مجانية بدون مفتاح
-        const response = await fetch("https://api.upscale.it/v1/upscale", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                image: image,
-                scale: 2 // أو 4
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[${requestId}] ❌ خطأ:`, errorText);
-            
-            // في حالة الفشل، استخدم المحاكاة
-            return res.json({
-                success: true,
-                data: {
-                    image: image,
-                    mode: 'fallback',
-                    message: "تم استخدام الصورة الأصلية (الخدمة غير متاحة)"
-                }
-            });
-        }
-
-        const data = await response.json();
-        const enhancedImage = data.url || data.image || data.result;
-
-        res.json({
-            success: true,
-            data: {
-                image: enhancedImage || image,
-                mode: 'free_api',
-                enhancedAt: new Date().toISOString()
-            }
-        });
-
-    } catch (error) {
-        console.error(`[${requestId}] ❌ خطأ:`, error.message);
-        
-        // في حالة أي خطأ، أعد الصورة الأصلية
-        res.json({
-            success: true,
-            data: {
-                image: req.body.image,
-                mode: 'fallback',
-                message: "حدث خطأ، تم استخدام الصورة الأصلية"
-            }
-        });
-    }
 });
 
 // ==========================================
