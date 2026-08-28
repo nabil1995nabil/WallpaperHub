@@ -719,150 +719,480 @@ MOBILE
 }
 
 /* =========================
-   COMMENTS SECTION
+   COMMENTS SECTION NEW
 ========================= */
 
+
 .comments-section {
-    margin: 20px;
-    background: #ffffff;
+
+    margin:20px;
+
+    background:#ffffff;
+
 }
+
+
+
+
+.section-title {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.section-title h3 {
+
+    font-size:24px;
+
+    font-weight:800;
+
+    margin:0;
+
+}
+
+
 
 .comments-count {
-    font-size: 14px;
-    color: #777;
-    font-weight: 500;
+
+    font-size:14px;
+
+    color:#777;
+
+    font-weight:500;
+
 }
 
-/* نموذج إضافة تعليق */
+
+
+
+
+/* =========================
+   ADD COMMENT BOX
+========================= */
+
+
 .add-comment-box {
-    background: #f9f9f9;
-    border: 1px solid #e8e8e8;
-    border-radius: 20px;
-    padding: 14px;
-    margin-bottom: 20px;
+
+    background:#f1f1f1;
+
+    border:1px solid #e5e5e5;
+
+    border-radius:22px;
+
+    padding:16px;
+
+    margin-bottom:20px;
+
 }
 
-.input-container {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
+
+
+
+
+.comment-user-preview {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:15px;
+
 }
 
-.user-avatar-icon {
-    font-size: 38px;
-    color: #ccc;
-    flex-shrink: 0;
+
+
+.comment-user-preview strong {
+
+    display:block;
+
+    font-size:15px;
+
+    color:#111;
+
 }
+
+
+
+.comment-user-preview small {
+
+    display:block;
+
+    font-size:12px;
+
+    color:#888;
+
+}
+
+
+
+
+
+.user-avatar {
+
+    width:45px;
+
+    height:45px;
+
+    border-radius:50%;
+
+    background:#ddd;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    overflow:hidden;
+
+}
+
+
+
+.user-avatar .material-icons {
+
+    color:#999;
+
+    font-size:35px;
+
+}
+
+
+
+
 
 .add-comment-box textarea {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 14px;
-    padding: 10px 14px;
-    font-size: 14px;
-    font-family: 'Cairo', sans-serif;
-    outline: none;
-    resize: none;
-    background: #fff;
-    transition: border-color 0.3s;
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    border:1px solid #ddd;
+
+    border-radius:18px;
+
+    padding:14px;
+
+    font-size:15px;
+
+    font-family:'Cairo',sans-serif;
+
+    resize:none;
+
+    outline:none;
+
+    background:#fff;
+
 }
+
+
 
 .add-comment-box textarea:focus {
-    border-color: #111;
+
+    border-color:#111;
+
 }
 
-.add-comment-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
+
+
+
+
+.comment-tools {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-top:12px;
+
 }
+
+
+
+.emoji-hint {
+
+    color:#888;
+
+    font-size:12px;
+
+}
+
+
+
+
 
 .send-comment-btn {
-    background: #111;
-    color: #fff;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: 'Cairo', sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: 0.3s;
+
+    background:#111;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 22px;
+
+    border-radius:25px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    cursor:pointer;
+
+    font-family:'Cairo',sans-serif;
+
 }
+
+
 
 .send-comment-btn .material-icons {
-    font-size: 16px;
-    transform: rotate(180deg); /* للغة العربية */
+
+    font-size:18px;
+
 }
 
-.send-comment-btn:active {
-    transform: scale(0.95);
-    background: #333;
-}
 
-/* قائمة التعليقات */
+
+
+
+/* =========================
+   COMMENTS LIST
+========================= */
+
+
 .comments-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:14px;
+
 }
+
+
+
+
 
 .comment-card {
-    display: flex;
-    gap: 12px;
-    padding: 12px;
-    background: #f8f8f8;
-    border-radius: 16px;
-    border: 1px solid #eee;
+
+    display:flex;
+
+    gap:14px;
+
+    padding:18px;
+
+    background:#fff;
+
+    border-radius:22px;
+
+    border:1px solid #ededed;
+
 }
 
-.comment-card .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #555;
-    font-weight: bold;
-    flex-shrink: 0;
-}
+
+
+
 
 .comment-content {
-    flex: 1;
+
+    flex:1;
+
 }
+
+
+
+
 
 .comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
 }
+
+
+
+
 
 .comment-author {
-    font-size: 14px;
-    font-weight: 700;
-    color: #111;
+
+    font-size:16px;
+
+    font-weight:800;
+
+    color:#111;
+
 }
 
-.comment-date {
-    font-size: 11px;
-    color: #888;
+
+
+.comment-email {
+
+    display:block;
+
+    font-size:12px;
+
+    color:#888;
+
+    margin-top:3px;
+
 }
+
+
+
+
 
 .comment-text {
-    font-size: 13.5px;
-    color: #333;
-    line-height: 1.5;
+
+    margin-top:12px;
+
+    font-size:15px;
+
+    color:#333;
+
+    line-height:1.7;
+
 }
 
+
+
+
+
+.comment-footer {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-top:15px;
+
+}
+
+
+
+
+
+.comment-date {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:5px;
+
+    color:#888;
+
+    font-size:12px;
+
+}
+
+
+
+
+
+.comment-like {
+
+    border:none;
+
+    background:none;
+
+    cursor:pointer;
+
+    color:#e91e63;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:4px;
+
+    font-size:14px;
+
+}
+
+
+
+.comment-like .material-icons {
+
+    font-size:20px;
+
+}
+
+
+
+
+
 .no-comments {
-    text-align: center;
-    color: #888;
-    font-size: 14px;
-    padding: 20px 0;
+
+    text-align:center;
+
+    color:#888;
+
+    padding:20px;
+
+    font-size:14px;
+
+}
+
+
+
+
+
+@media(max-width:600px){
+
+
+.comments-section{
+
+    margin:10px;
+
+}
+
+
+
+.comment-card{
+
+    padding:14px;
+
+}
+
+
+
+.comment-tools{
+
+    flex-direction:column;
+
+    gap:12px;
+
+    align-items:stretch;
+
+}
+
+
+.send-comment-btn{
+
+    justify-content:center;
+
+}
+
+
 }

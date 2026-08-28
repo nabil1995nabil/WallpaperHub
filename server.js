@@ -2689,22 +2689,17 @@ req.body.text || ""
 
 
 
-
 if(!text){
-
 
 return res.status(400).json({
 
 success:false,
 
-message:
-"Empty comment"
+message:"Empty comment"
 
 });
 
-
 }
-
 
 
 
@@ -2721,24 +2716,56 @@ id:
 Date.now(),
 
 
+
 wallpaperId,
 
 
-user:
-req.body.user ||
+
+// بيانات المستخدم
+user:{
+
+name:
+req.body.user?.name ||
 "مستخدم",
+
+
+email:
+req.body.user?.email ||
+"user@email.com"
+
+},
+
 
 
 text,
 
 
+
+// نظام الإعجاب لاحقاً
+likes:0,
+
+likedBy:[],
+
+
+
+// التاريخ والساعة
 date:
 new Date()
-.toLocaleDateString("ar-EG")
+.toLocaleDateString("ar-MA"),
+
+
+time:
+new Date()
+.toLocaleTimeString(
+"ar-MA",
+{
+hour:"2-digit",
+minute:"2-digit"
+}
+)
 
 
 };
-
 
 
 
@@ -2775,6 +2802,7 @@ error
 );
 
 
+
 res.status(500).json({
 
 success:false
@@ -2786,12 +2814,6 @@ success:false
 
 
 });
-
-
-
-
-
-
 
 // ======================================
 // Start Server

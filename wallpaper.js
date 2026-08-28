@@ -2008,7 +2008,7 @@ history.back();
 }
 
 // ===============================
-// COMMENTS SYSTEM
+// COMMENTS SYSTEM NEW
 // ===============================
 
 
@@ -2033,11 +2033,11 @@ document.getElementById("commentsCountBadge");
 
 async function loadComments(){
 
-    if(!currentWallpaper)
-        return;
 
-
-    if(!commentsContainer)
+    if(
+        !currentWallpaper ||
+        !commentsContainer
+    )
         return;
 
 
@@ -2049,6 +2049,7 @@ async function loadComments(){
         await fetch(
         `${API}/${currentWallpaper.id}/comments`
         );
+
 
 
         const comments =
@@ -2063,13 +2064,14 @@ async function loadComments(){
         if(commentsCountBadge){
 
             commentsCountBadge.textContent =
-            comments.length;
+            `${comments.length} تعليق`;
 
         }
 
 
 
         if(comments.length === 0){
+
 
             commentsContainer.innerHTML =
             `
@@ -2078,12 +2080,19 @@ async function loadComments(){
             </p>
             `;
 
+
             return;
+
         }
 
 
 
-        comments.forEach(comment=>{
+
+
+        comments
+        .slice()
+        .reverse()
+        .forEach(comment=>{
 
 
             const box =
@@ -2091,27 +2100,125 @@ async function loadComments(){
 
 
             box.className =
-            "comment-box";
+            "comment-card";
+
+
+
+            const user =
+            typeof comment.user === "object"
+
+            ?
+
+            comment.user
+
+            :
+
+            {
+
+                name:
+                comment.user || "مستخدم",
+
+                email:
+                "user@email.com"
+
+            };
+
 
 
 
             box.innerHTML =
+
+
             `
-            <strong>
-            ${comment.user}
-            </strong>
+            <div class="user-avatar">
 
-            <p>
-            ${comment.text}
-            </p>
+                <span class="material-icons">
+                account_circle
+                </span>
 
-            <small>
-            ${comment.date}
-            </small>
+            </div>
+
+
+
+            <div class="comment-content">
+
+
+
+                <div class="comment-header">
+
+
+                    <div>
+
+
+                        <div class="comment-author">
+
+                        ${user.name}
+
+                        </div>
+
+
+                        <span class="comment-email">
+
+                        ${user.email}
+
+                        </span>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+
+                <div class="comment-text">
+
+                ${comment.text || ""}
+
+                </div>
+
+
+
+
+                <div class="comment-footer">
+
+
+                    <div class="comment-date">
+
+                    ⏱
+                    ${comment.date || ""}
+                    ${comment.time || ""}
+
+                    </div>
+
+
+
+
+                    <button 
+                    class="comment-like"
+                    onclick="likeComment(${comment.id})">
+
+
+                    ❤️
+
+                    ${comment.likes || 0}
+
+
+                    </button>
+
+
+
+                </div>
+
+
+            </div>
             `;
 
 
+
             commentsContainer.appendChild(box);
+
 
 
         });
@@ -2120,14 +2227,19 @@ async function loadComments(){
 
     }catch(error){
 
+
         console.log(
         "LOAD COMMENTS ERROR",
         error
         );
 
+
     }
 
+
 }
+
+
 
 
 
@@ -2138,8 +2250,13 @@ async function loadComments(){
 async function sendComment(){
 
 
-    if(!currentWallpaper)
+
+    if(
+        !currentWallpaper ||
+        !commentInput
+    )
         return;
+
 
 
 
@@ -2148,12 +2265,20 @@ async function sendComment(){
 
 
 
+
     if(!text)
         return;
 
 
 
+
     try{
+
+
+        const now =
+        new Date();
+
+
 
 
         const res =
@@ -2165,6 +2290,7 @@ async function sendComment(){
 
             method:"POST",
 
+
             headers:{
 
                 "Content-Type":
@@ -2173,21 +2299,53 @@ async function sendComment(){
             },
 
 
-            body:
-            JSON.stringify({
+            body:JSON.stringify({
 
-                text:text,
 
-                user:
-                "مستخدم"
+                user:{
+
+                    name:
+                    "مستخدم",
+
+
+                    email:
+                    "user@email.com"
+
+                },
+
+
+                text,
+
+
+                likes:0,
+
+
+                date:
+                now.toLocaleDateString("ar-MA"),
+
+
+                time:
+                now.toLocaleTimeString(
+                    "ar-MA",
+                    {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                )
+
 
             })
 
         });
 
 
+
+
+
         const data =
         await res.json();
+
+
 
 
 
@@ -2206,10 +2364,12 @@ async function sendComment(){
 
     }catch(error){
 
+
         console.log(
         "SEND COMMENT ERROR",
         error
         );
+
 
     }
 
@@ -2219,11 +2379,35 @@ async function sendComment(){
 
 
 
+
+
+
 if(sendCommentBtn){
 
 
     sendCommentBtn.onclick =
     sendComment;
+
+
+}
+
+
+
+
+
+
+// =================================
+// LIKE COMMENT (جاهز للربط بالسيرفر)
+// =================================
+
+
+async function likeComment(id){
+
+
+    console.log(
+    "LIKE COMMENT:",
+    id
+    );
 
 
 }

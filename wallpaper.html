@@ -571,33 +571,133 @@ content_copy
 </section>
 
 <!-- =========================
-     COMMENTS SECTION
+     COMMENTS SECTION NEW
 ========================= -->
+
 <section class="comments-section">
-  <div class="section-title">
-    <h3>التعليقات</h3>
-    <span id="commentsCountBadge" class="comments-count">0 تعليقات</span>
-  </div>
 
-  <!-- نموذج كتابة تعليق -->
-  <div class="add-comment-box">
-    <div class="input-container">
-      <span class="material-icons user-avatar-icon">account_circle</span>
-      <textarea id="commentInput" placeholder="اكتب تعليقك هنا..." rows="2"></textarea>
-    </div>
-    <div class="add-comment-actions">
-      <button id="sendCommentBtn" class="send-comment-btn" type="button">
-        <span class="material-icons">send</span>
-        نشر التعليق
-      </button>
-    </div>
-  </div>
 
-  <!-- قائمة التعليقات -->
-  <div id="commentsContainer" class="comments-container">
-    <!-- سيتم إضافة التعليقات ديناميكياً عن طريق JS -->
-    <div class="no-comments">لا توجد تعليقات بعد، كن أول من يعلق!</div>
-  </div>
+    <div class="section-title">
+
+        <h3>
+            💬 التعليقات
+        </h3>
+
+
+        <span 
+        id="commentsCountBadge"
+        class="comments-count">
+            0 تعليق
+        </span>
+
+
+    </div>
+
+
+
+
+    <!-- كتابة تعليق -->
+
+    <div class="add-comment-box">
+
+
+        <div class="comment-user-preview">
+
+
+            <div class="user-avatar">
+
+                <span class="material-icons">
+                    account_circle
+                </span>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    مستخدم
+                </strong>
+
+                <small>
+                    user@email.com
+                </small>
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+        <textarea
+
+        id="commentInput"
+
+        placeholder="اكتب تعليقك هنا..."
+
+        rows="3"
+
+        ></textarea>
+
+
+
+
+        <div class="comment-tools">
+
+
+            <span class="emoji-hint">
+                😊 يمكنك استخدام الرموز التعبيرية
+            </span>
+
+
+
+            <button
+
+            id="sendCommentBtn"
+
+            class="send-comment-btn"
+
+            type="button"
+
+            >
+
+                <span class="material-icons">
+                    send
+                </span>
+
+
+                نشر التعليق
+
+
+            </button>
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+
+    <!-- التعليقات -->
+
+    <div
+
+    id="commentsContainer"
+
+    class="comments-container">
+
+
+    </div>
+
+
+
 </section>
 
 
