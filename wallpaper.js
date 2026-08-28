@@ -271,7 +271,7 @@ async function loadWallpaper() {
         autoAnalyzeWallpaper();
         loadSimilar();
         updateFavorite();
-
+loadComments();
         saveUserAction("views", currentWallpaper.id);
         // ✅ حفظ المشاهدة في الإحصائيات
         window.syncUserStats("views", currentWallpaper.id);
@@ -2004,6 +2004,227 @@ backBtn.onclick = ()=>{
 history.back();
 
 };
+
+}
+
+// ===============================
+// COMMENTS SYSTEM
+// ===============================
+
+
+const commentInput =
+document.getElementById("commentInput");
+
+
+const sendCommentBtn =
+document.getElementById("sendCommentBtn");
+
+
+const commentsContainer =
+document.getElementById("commentsContainer");
+
+
+const commentsCountBadge =
+document.getElementById("commentsCountBadge");
+
+
+
+
+
+async function loadComments(){
+
+    if(!currentWallpaper)
+        return;
+
+
+    if(!commentsContainer)
+        return;
+
+
+
+    try{
+
+
+        const res =
+        await fetch(
+        `${API}/${currentWallpaper.id}/comments`
+        );
+
+
+        const comments =
+        await res.json();
+
+
+
+        commentsContainer.innerHTML="";
+
+
+
+        if(commentsCountBadge){
+
+            commentsCountBadge.textContent =
+            comments.length;
+
+        }
+
+
+
+        if(comments.length === 0){
+
+            commentsContainer.innerHTML =
+            `
+            <p class="no-comments">
+            لا توجد تعليقات بعد، كن أول من يعلق!
+            </p>
+            `;
+
+            return;
+        }
+
+
+
+        comments.forEach(comment=>{
+
+
+            const box =
+            document.createElement("div");
+
+
+            box.className =
+            "comment-box";
+
+
+
+            box.innerHTML =
+            `
+            <strong>
+            ${comment.user}
+            </strong>
+
+            <p>
+            ${comment.text}
+            </p>
+
+            <small>
+            ${comment.date}
+            </small>
+            `;
+
+
+            commentsContainer.appendChild(box);
+
+
+        });
+
+
+
+    }catch(error){
+
+        console.log(
+        "LOAD COMMENTS ERROR",
+        error
+        );
+
+    }
+
+}
+
+
+
+
+
+
+
+async function sendComment(){
+
+
+    if(!currentWallpaper)
+        return;
+
+
+
+    const text =
+    commentInput.value.trim();
+
+
+
+    if(!text)
+        return;
+
+
+
+    try{
+
+
+        const res =
+        await fetch(
+
+        `${API}/${currentWallpaper.id}/comments`,
+
+        {
+
+            method:"POST",
+
+            headers:{
+
+                "Content-Type":
+                "application/json"
+
+            },
+
+
+            body:
+            JSON.stringify({
+
+                text:text,
+
+                user:
+                "مستخدم"
+
+            })
+
+        });
+
+
+        const data =
+        await res.json();
+
+
+
+        if(data.success){
+
+
+            commentInput.value="";
+
+
+            loadComments();
+
+
+        }
+
+
+
+    }catch(error){
+
+        console.log(
+        "SEND COMMENT ERROR",
+        error
+        );
+
+    }
+
+
+}
+
+
+
+
+if(sendCommentBtn){
+
+
+    sendCommentBtn.onclick =
+    sendComment;
+
 
 }
 
