@@ -2640,9 +2640,7 @@ comment.wallpaperId === wallpaperId
 
 
 
-res.json(
-comments
-);
+res.json(comments);
 
 
 
@@ -2704,8 +2702,10 @@ message:"Empty comment"
 
 
 
+
 const comments =
 readComments();
+
 
 
 
@@ -2722,18 +2722,22 @@ wallpaperId,
 
 
 // بيانات المستخدم
-user:{
-
-name:
-req.body.user?.name ||
+user:
+req.body.user ||
 "مستخدم",
 
 
-email:
-req.body.user?.email ||
-"user@email.com"
 
-},
+email:
+req.body.email ||
+"",
+
+
+
+avatar:
+req.body.avatar ||
+"",
+
 
 
 
@@ -2741,10 +2745,13 @@ text,
 
 
 
-// نظام الإعجاب لاحقاً
-likes:0,
+// نظام الإعجاب
+likes:
+0,
 
-likedBy:[],
+
+likedBy:
+[],
 
 
 
@@ -2752,6 +2759,7 @@ likedBy:[],
 date:
 new Date()
 .toLocaleDateString("ar-MA"),
+
 
 
 time:
@@ -2766,6 +2774,8 @@ minute:"2-digit"
 
 
 };
+
+
 
 
 

@@ -2088,7 +2088,6 @@ async function loadComments(){
 
 
 
-
         comments
         .slice()
         .reverse()
@@ -2104,44 +2103,34 @@ async function loadComments(){
 
 
 
-            const user =
-            typeof comment.user === "object"
-
-            ?
-
-            comment.user
-
-            :
-
-            {
-
-                name:
-                comment.user || "مستخدم",
-
-                email:
-                "user@email.com"
-
-            };
-
-
-
-
             box.innerHTML =
 
-
             `
+
             <div class="user-avatar">
 
+                ${
+                comment.avatar
+
+                ?
+
+                `<img src="${comment.avatar}">`
+
+                :
+
+                `
                 <span class="material-icons">
                 account_circle
                 </span>
+                `
+                }
 
             </div>
 
 
 
-            <div class="comment-content">
 
+            <div class="comment-content">
 
 
                 <div class="comment-header">
@@ -2152,14 +2141,15 @@ async function loadComments(){
 
                         <div class="comment-author">
 
-                        ${user.name}
+                        ${comment.user || "مستخدم"}
 
                         </div>
 
 
+
                         <span class="comment-email">
 
-                        ${user.email}
+                        ${comment.email || ""}
 
                         </span>
 
@@ -2181,6 +2171,7 @@ async function loadComments(){
 
 
 
+
                 <div class="comment-footer">
 
 
@@ -2195,14 +2186,13 @@ async function loadComments(){
 
 
 
+
                     <button 
                     class="comment-like"
                     onclick="likeComment(${comment.id})">
 
 
-                    ❤️
-
-                    ${comment.likes || 0}
+                    ❤️ ${comment.likes || 0}
 
 
                     </button>
@@ -2212,7 +2202,9 @@ async function loadComments(){
                 </div>
 
 
+
             </div>
+
             `;
 
 
@@ -2250,7 +2242,6 @@ async function loadComments(){
 async function sendComment(){
 
 
-
     if(
         !currentWallpaper ||
         !commentInput
@@ -2259,10 +2250,8 @@ async function sendComment(){
 
 
 
-
     const text =
     commentInput.value.trim();
-
 
 
 
@@ -2290,7 +2279,6 @@ async function sendComment(){
 
             method:"POST",
 
-
             headers:{
 
                 "Content-Type":
@@ -2299,22 +2287,32 @@ async function sendComment(){
             },
 
 
-            body:JSON.stringify({
+            body:
+
+            JSON.stringify({
+
+                text:text,
 
 
-                user:{
-
-                    name:
-                    "مستخدم",
-
-
-                    email:
-                    "user@email.com"
-
-                },
+                user:
+                localStorage.getItem("userName")
+                ||
+                "مستخدم",
 
 
-                text,
+
+                email:
+                localStorage.getItem("userEmail")
+                ||
+                "",
+
+
+
+                avatar:
+                localStorage.getItem("userAvatar")
+                ||
+                "",
+
 
 
                 likes:0,
@@ -2322,6 +2320,7 @@ async function sendComment(){
 
                 date:
                 now.toLocaleDateString("ar-MA"),
+
 
 
                 time:
@@ -2333,18 +2332,15 @@ async function sendComment(){
                     }
                 )
 
-
             })
+
 
         });
 
 
 
-
-
         const data =
         await res.json();
-
 
 
 
@@ -2381,7 +2377,6 @@ async function sendComment(){
 
 
 
-
 if(sendCommentBtn){
 
 
@@ -2397,7 +2392,7 @@ if(sendCommentBtn){
 
 
 // =================================
-// LIKE COMMENT (جاهز للربط بالسيرفر)
+// LIKE COMMENT
 // =================================
 
 
