@@ -1,0 +1,360 @@
+/* ===========================
+   Side Drawer
+=========================== */
+
+
+.drawer-overlay{
+
+    position:fixed;
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,.45);
+
+    opacity:0;
+    visibility:hidden;
+
+    transition:.3s;
+
+    z-index:9998;
+
+}
+
+
+
+.drawer-overlay.show{
+
+    opacity:1;
+    visibility:visible;
+
+}
+
+
+
+
+.side-drawer{
+
+    position:fixed;
+
+    top:10px;
+    right:0;
+
+    width:270px;
+
+    max-width:82%;
+
+    height:calc(100% - 20px);
+
+
+    background:#fff;
+
+
+    box-shadow:
+    -8px 0 30px rgba(0,0,0,.18);
+
+
+    z-index:9999;
+
+
+    overflow-y:auto;
+
+
+    transform:translateX(105%);
+
+
+    transition:
+    transform .35s cubic-bezier(.22,1,.36,1);
+
+
+    will-change:transform;
+
+
+    border-radius:24px 0 0 24px;
+
+}
+
+
+
+.side-drawer.show{
+
+    transform:translateX(0);
+
+}
+
+
+
+
+/* إخفاء AI FAB عند فتح القائمة */
+
+.ai-fab.drawer-open{
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+
+    transform:scale(.7);
+
+
+    transition:
+
+    opacity .25s ease,
+
+    transform .25s ease,
+
+    visibility .25s;
+
+}
+
+
+
+
+
+/* Header القائمة */
+
+.drawer-header{
+
+    padding:30px 20px;
+
+    background:
+    linear-gradient(
+    135deg,
+    #5a5cff,
+    #7b5cff
+    );
+
+
+    color:#fff;
+
+    text-align:center;
+
+    position:relative;
+
+}
+
+
+
+.drawer-header img{
+
+    width:82px;
+
+    height:82px;
+
+
+    border-radius:50%;
+
+
+    object-fit:cover;
+
+
+    background:#fff;
+
+
+    border:
+    3px solid rgba(255,255,255,.9);
+
+}
+
+
+
+.drawer-header h3{
+
+    margin-top:12px;
+
+
+    font-size:20px;
+
+
+    font-weight:700;
+
+
+    color:#fff;
+
+
+    white-space:nowrap;
+
+
+    overflow:hidden;
+
+
+    text-overflow:ellipsis;
+
+}
+
+
+
+#drawerClose{
+
+    position:absolute;
+
+    left:15px;
+
+    top:15px;
+
+
+    font-size:24px;
+
+    cursor:pointer;
+
+}
+
+
+
+
+/* القائمة */
+
+.drawer-menu{
+
+    padding:10px 0;
+
+}
+
+
+
+.drawer-menu a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+
+    padding:16px 20px;
+
+
+    color:#333;
+
+
+    text-decoration:none;
+
+
+    font-size:17px;
+
+
+    transition:.25s;
+
+}
+
+
+
+.drawer-menu a:hover{
+
+    background:#f5f5ff;
+
+    color:#5a5cff;
+
+
+    padding-right:28px;
+
+}
+
+
+
+
+.drawer-menu hr{
+
+    border:none;
+
+    height:1px;
+
+
+    background:#eee;
+
+
+    margin:10px 18px;
+
+}
+
+
+
+
+
+/* ===========================
+   Menu Button Animation
+=========================== */
+
+
+.menu-btn{
+
+    width:30px;
+
+    height:30px;
+
+
+    border:none;
+
+    background:none;
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    justify-content:center;
+
+
+    gap:6px;
+
+
+    cursor:pointer;
+
+}
+
+
+
+.menu-btn span{
+
+    width:15px;
+
+    height:3px;
+
+
+    background:#222;
+
+
+    border-radius:5px;
+
+
+    transition:.28s;
+
+}
+
+
+
+
+
+/* يتحول إلى X */
+
+
+.menu-btn.active span:nth-child(1){
+
+    transform:
+    translateY(9px)
+    rotate(45deg);
+
+}
+
+
+
+.menu-btn.active span:nth-child(2){
+
+    opacity:0;
+
+}
+
+
+
+.menu-btn.active span:nth-child(3){
+
+    transform:
+    translateY(-9px)
+    rotate(-45deg);
+
+}

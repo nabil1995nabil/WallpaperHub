@@ -9,6 +9,7 @@
 <title>WallpaperHub</title>
 
 <link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="sidebar.css">
 <link rel="stylesheet" href="css/slider.css">
 <link rel="stylesheet" href="css/home-categories.css">
 <link rel="stylesheet" href="effects.css">
@@ -24,41 +25,9 @@
 
 <body>
 
-<!-- خلفية شفافة -->
-<div id="drawerOverlay" class="drawer-overlay"></div>
+<!-- قائمة جانبية-->
 
-<!-- القائمة الجانبية -->
-<div id="sideDrawer" class="side-drawer">
-
-    <div class="drawer-header">
-        <img src="assets/images/user.png" id="drawerAvatar">
-        <h3 id="drawerName">زائر</h3>
-        <span id="drawerClose">✕</span>
-    </div>
-
-    <div class="drawer-menu">
-
-<a href="#">📱 مشاركة التطبيق</a>
-<a href="#">⭐ تقييم التطبيق</a>
-<a href="artguru.html">
-✨ تحسين الصور بالذكاء الاصطناعي
-</a>
-
-<hr>
-
-<a href="developers.html">
-🔑 API Developer
-</a>
-<a href="settings.html">
-⚙️ الإعدادات
-</a>
-<a href="about.html">
-ℹ️ حول التطبيق
-</a>
-
-    </div>
-
-</div>
+<div id="sidebar-container"></div>
 
 <!-- Header -->
 
@@ -272,10 +241,9 @@
 <script src="js/slider.js"></script>
 <script src="js/performance-engine.js"></script>
 <script type="module" src="home.js"></script>
-
 <script src="theme.js"></script>
 <script src="effects.js"></script>
 <script src="ai-fab.js"></script>
-
+<script src="sidebar.js"></script>
 </body>
 </html>
