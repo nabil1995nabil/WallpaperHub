@@ -10,7 +10,15 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
+// ===============================
+// Gemini API KEY
+// ===============================
 
+const GEMINI_API_KEY =
+"AQ.Ab8RN6I5IHaQ9oMjF0L3gjReTeATad9owoYsP3iYoeh9Aqb6Mg";
+
+const GEMINI_MODEL = "gemini-3.5-flash";
+const GEMINI_IMAGE_MODEL = "gemini-3.5-flash-exp";
 // ======================================
 // Firebase Admin
 // ======================================
@@ -562,7 +570,7 @@ async function detectImageSource(imageUrl){
     try{
 
 
-        if(!process.env.GEMINI_API_KEY)
+        if(!GEMINI_API_KEY)
             return "unknown";
 
 
@@ -591,7 +599,7 @@ async function detectImageSource(imageUrl){
         const response =
         await fetch(
 
-        `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
 
         {
 
@@ -1785,7 +1793,7 @@ imageData
 const response =
 await fetch(
 
-`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
 
 {
 
@@ -1937,7 +1945,7 @@ message:
 const response =
 await fetch(
 
-`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_IMAGE_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`
 
 {
 
@@ -2134,7 +2142,7 @@ Buffer.from(buffer)
 const response =
 await fetch(
 
-`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
 
 {
 
@@ -2618,12 +2626,10 @@ new Date()
 // =========================
 
 
-// GET COMMENTS
-// =========================
-
 app.get(
 "/api/wallpapers/:id/comments",
 (req,res)=>{
+
 
 try{
 
@@ -2665,8 +2671,8 @@ res.status(500).json([]);
 
 
 
-// POST COMMENT
-// =========================
+
+
 
 app.post(
 "/api/wallpapers/:id/comments",
@@ -2691,30 +2697,22 @@ req.body.text || ""
 
 if(!text){
 
-
 return res.status(400).json({
 
 success:false,
 
-message:
-"Empty comment"
+message:"Empty comment"
 
 });
-
 
 }
 
 
 
 
-const now =
-new Date();
-
-
 
 const comments =
 readComments();
-
 
 
 
@@ -2731,8 +2729,7 @@ wallpaperId,
 
 
 
-// معلومات المستخدم
-
+// بيانات المستخدم
 user:
 req.body.user ||
 "مستخدم",
@@ -2741,7 +2738,7 @@ req.body.user ||
 
 email:
 req.body.email ||
-"user@email.com",
+"",
 
 
 
@@ -2752,16 +2749,11 @@ req.body.avatar ||
 
 
 
-
-// محتوى التعليق
-
 text,
 
 
 
-
-// الإعجاب
-
+// نظام الإعجاب
 likes:
 0,
 
@@ -2771,25 +2763,22 @@ likedBy:
 
 
 
-
-// التاريخ والوقت
-
+// التاريخ والساعة
 date:
-now.toLocaleDateString(
-"ar-MA"
-),
+new Date()
+.toLocaleDateString("ar-MA"),
 
 
 
 time:
-now.toLocaleTimeString(
+new Date()
+.toLocaleTimeString(
 "ar-MA",
 {
 hour:"2-digit",
 minute:"2-digit"
 }
 )
-
 
 
 };
@@ -2811,7 +2800,6 @@ comments
 
 
 
-
 res.json({
 
 success:true,
@@ -2820,8 +2808,6 @@ comment:
 newComment
 
 });
-
-
 
 
 
@@ -2837,10 +2823,7 @@ error
 
 res.status(500).json({
 
-success:false,
-
-message:
-"Server error"
+success:false
 
 });
 
