@@ -527,6 +527,11 @@ unreadCount.style.opacity="0.5";
 
 }
 
+
+
+
+
+
 // تشغيل جلب الإعلانات
 
 loadAnnouncements();
