@@ -1932,51 +1932,28 @@ message:
 
 const response =
 await fetch(
-
-`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`
-
+`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
 {
+    method:"POST",
 
-method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
 
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-contents:[
-
-{
-
-parts:[
-
-{
-
-text:
-`Create wallpaper image:
-
+    body:JSON.stringify({
+        contents:[
+            {
+                parts:[
+                    {
+                        text:
+                        `Create wallpaper image:
 ${prompt}`
-
-}
-
-]
-
-}
-
-]
-
-})
-
-}
-
-);
-
-
-
-
+                    }
+                ]
+            }
+        ]
+    })
+});
 
 const data =
 await response.json();
