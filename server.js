@@ -483,6 +483,81 @@ function saveNotifications(data){
 }
 
 // ======================================
+// Announcements Storage
+// ======================================
+
+
+const ANNOUNCEMENTS_FILE =
+path.join(
+    __dirname,
+    "data",
+    "announcements.json"
+);
+
+
+
+
+createFileIfMissing(
+    ANNOUNCEMENTS_FILE
+);
+
+
+
+
+function readAnnouncements(){
+
+    try{
+
+
+        return JSON.parse(
+            fs.readFileSync(
+                ANNOUNCEMENTS_FILE,
+                "utf8"
+            )
+        );
+
+
+    }catch(error){
+
+
+        console.log(
+            "READ ANNOUNCEMENTS ERROR:",
+            error.message
+        );
+
+
+        return [];
+
+
+    }
+
+}
+
+
+
+
+
+function saveAnnouncements(data){
+
+
+    fs.writeFileSync(
+
+        ANNOUNCEMENTS_FILE,
+
+        JSON.stringify(
+            data,
+            null,
+            2
+        ),
+
+        "utf8"
+
+    );
+
+
+}
+
+// ======================================
 // Read Image EXIF Metadata
 // ======================================
 
@@ -2781,6 +2856,259 @@ newComment
 
 console.log(
 "POST COMMENTS ERROR:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+});
+
+// ======================================
+// Admin Announcements API
+// ======================================
+
+
+// إنشاء إعلان جديد
+
+app.post(
+"/api/admin/announcements",
+(req,res)=>{
+
+
+try{
+
+
+const announcements =
+readAnnouncements();
+
+
+
+const newAnnouncement = {
+
+
+id:
+Date.now(),
+
+
+
+type:
+req.body.category ||
+"admin",
+
+
+
+title:
+req.body.title ||
+"",
+
+
+
+content:
+req.body.content ||
+"",
+
+
+
+image:
+req.body.image ||
+"",
+
+
+
+likes:0,
+
+
+views:0,
+
+
+
+date:
+new Date()
+.toLocaleString("ar-MA")
+
+
+
+};
+
+
+
+announcements.unshift(
+newAnnouncement
+);
+
+
+
+saveAnnouncements(
+announcements
+);
+
+
+
+res.json({
+
+success:true,
+
+announcement:
+newAnnouncement
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"CREATE ANNOUNCEMENT ERROR:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+});
+
+
+
+
+
+
+
+
+
+// جلب الإعلانات للأدمن
+
+app.get(
+"/api/admin/announcements",
+(req,res)=>{
+
+
+res.json(
+readAnnouncements()
+);
+
+
+});
+
+
+
+
+
+
+
+
+
+// حذف إعلان
+
+app.delete(
+"/api/admin/announcements/:id",
+(req,res)=>{
+
+
+try{
+
+
+const id =
+Number(req.params.id);
+
+
+
+let announcements =
+readAnnouncements();
+
+
+
+announcements =
+announcements.filter(
+a=>a.id !== id
+);
+
+
+
+saveAnnouncements(
+announcements
+);
+
+
+
+res.json({
+
+success:true
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"DELETE ANNOUNCEMENT ERROR:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+});
+
+// ======================================
+// Public Announcements API
+// ======================================
+
+
+app.get(
+"/api/announcements",
+(req,res)=>{
+
+
+try{
+
+
+const announcements =
+readAnnouncements();
+
+
+
+res.json(
+announcements
+);
+
+
+
+}catch(error){
+
+
+console.log(
+"LOAD ANNOUNCEMENTS ERROR:",
 error
 );
 
