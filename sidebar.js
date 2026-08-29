@@ -63,66 +63,43 @@ document.getElementById("aiFab");
 
 
 
-
-// فتح القائمة
-
-if(menuBtn && sideDrawer && drawerOverlay){
+function openDrawer(){
 
 
-    menuBtn.onclick = () => {
-
+    if(menuBtn){
 
         menuBtn.classList.add("active");
 
+    }
 
 
-        setTimeout(()=>{
+    if(sideDrawer){
+
+        sideDrawer.classList.add("show");
+
+    }
 
 
-            sideDrawer.classList.add("show");
+    if(drawerOverlay){
+
+        drawerOverlay.classList.add("show");
+
+    }
 
 
-            drawerOverlay.classList.add("show");
-
-
-            document.body.classList.add(
-                "drawer-open"
-            );
-
-
-
-        },120);
-
-
-
-
-        if(aiFab){
-
-            aiFab.classList.add(
-                "drawer-open"
-            );
-
-        }
-
-
-    };
-
-
-}
+    document.body.classList.add(
+        "drawer-open"
+    );
 
 
 
+    if(aiFab){
 
+        aiFab.classList.add(
+            "drawer-open"
+        );
 
-
-
-// زر الإغلاق
-
-if(drawerClose){
-
-
-    drawerClose.onclick =
-    closeDrawer;
+    }
 
 
 }
@@ -130,28 +107,8 @@ if(drawerClose){
 
 
 
-
-
-// الضغط على الخلفية
-
-if(drawerOverlay){
-
-
-    drawerOverlay.onclick =
-    closeDrawer;
-
-
-}
-
-
-
-
-
-
-// إغلاق القائمة
 
 function closeDrawer(){
-
 
 
     if(sideDrawer){
@@ -200,6 +157,157 @@ function closeDrawer(){
 
 
 }
+
+
+
+
+
+
+// ======================
+// Button Open
+// ======================
+
+
+if(menuBtn){
+
+
+    menuBtn.onclick = () => {
+
+
+        openDrawer();
+
+
+    };
+
+
+}
+
+
+
+
+
+// ======================
+// Close Button
+// ======================
+
+
+if(drawerClose){
+
+
+    drawerClose.onclick =
+    closeDrawer;
+
+
+}
+
+
+
+
+
+// ======================
+// Overlay Close
+// ======================
+
+
+if(drawerOverlay){
+
+
+    drawerOverlay.onclick =
+    closeDrawer;
+
+
+}
+
+
+
+
+
+
+
+// ======================
+// Swipe Control
+// ======================
+
+
+let touchStartX = 0;
+
+
+document.addEventListener(
+"touchstart",
+function(e){
+
+
+    touchStartX =
+    e.touches[0].clientX;
+
+
+},
+{passive:true});
+
+
+
+
+
+document.addEventListener(
+"touchend",
+function(e){
+
+
+    let touchEndX =
+    e.changedTouches[0].clientX;
+
+
+    let distance =
+    touchEndX - touchStartX;
+
+
+
+    // فتح من اليمين
+
+    if(
+
+        !sideDrawer.classList.contains("show")
+
+        &&
+
+        touchStartX >
+        window.innerWidth - 50
+
+        &&
+
+        distance < -70
+
+    ){
+
+        openDrawer();
+
+    }
+
+
+
+
+
+    // إغلاق بالسحب لليمين
+
+
+    if(
+
+        sideDrawer.classList.contains("show")
+
+        &&
+
+        distance > 80
+
+    ){
+
+        closeDrawer();
+
+    }
+
+
+
+},
+{passive:true});
 
 
 
