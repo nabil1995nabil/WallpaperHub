@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>الإشعارات</title>
+
+  <link rel="stylesheet" href="notice.css">
+</head>
+
+<body>
+
+<div class="notifications-wrapper">
+
+  <!-- Header -->
+  <header class="notif-header">
+
+    <div class="header-top">
+
+      <div class="title-area">
+        <h1>
+          الإشعارات
+          <span class="badge-count" id="unread-count">2</span>
+        </h1>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="mark-all-btn">
+          ✓✓
+        </button>
+
+        <button class="icon-btn">
+          ⚙️
+        </button>
+      </div>
+
+    </div>
+
+
+    <!-- Filters -->
+
+    <nav class="notif-tabs">
+
+      <button class="tab-btn active" data-filter="all">
+        الكل
+      </button>
+
+      <button class="tab-btn" data-filter="mention">
+        الإشارات (@)
+      </button>
+
+      <button class="tab-btn" data-filter="like">
+        الخلفيات
+      </button>
+
+      <button class="tab-btn" data-filter="admin">
+        الإعلانات
+      </button>
+
+    </nav>
+
+
+  </header>
+
+
+
+  <!-- Notifications Feed -->
+
+  <main class="notif-feed">
+
+
+    <!-- Mention Notification -->
+
+    <article class="notif-card unread" data-category="mention">
+
+      <div class="card-side-indicator"></div>
+
+
+      <div class="avatar-container">
+
+        <img src="https://i.pravatar.cc/100?img=33"
+             class="avatar"
+             alt="user">
+
+        <span class="type-badge mention">
+          @
+        </span>
+
+      </div>
+
+
+      <div class="notif-body">
+
+        <p class="notif-text">
+
+          قام
+          <a href="#" class="user-tag">
+            @أمين_اليعقوبي
+          </a>
+
+          بالإشارة إليك في تعليق على خلفية
+
+          <a href="#" class="item-link">
+            Cyberpunk City 2099
+          </a>
+
+        </p>
+
+
+        <div class="comment-quote">
+
+          "تصميم خرافي يا صديقي! هل تستخدم ألوان Neon RGB هنا؟"
+
+        </div>
+
+
+        <div class="notif-meta">
+
+          <span>
+            منذ 3 دقائق
+          </span>
+
+          <span>
+            •
+          </span>
+
+          <button class="inline-action-btn reply-toggle-btn">
+            رد سريع
+          </button>
+
+        </div>
+
+
+
+        <div class="quick-reply-box">
+
+          <div class="reply-input-wrapper">
+
+            <input class="reply-input"
+                   placeholder="اكتب ردك هنا...">
+
+            <button class="send-reply-btn">
+              إرسال
+            </button>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="media-thumb">
+
+        <img src="https://picsum.photos/100/100?random=1"
+             alt="preview">
+
+      </div>
+
+
+    </article>
+
+
+
+
+
+    <!-- Admin Notification -->
+
+
+    <article class="notif-card admin-post unread"
+             data-category="admin">
+
+
+      <div class="card-side-indicator"></div>
+
+
+      <div class="admin-header">
+
+
+        <div class="avatar-container">
+
+
+          <img src="https://i.pravatar.cc/100?img=60"
+               class="avatar gold-border">
+
+
+          <span class="type-badge admin">
+            📢
+          </span>
+
+
+        </div>
+
+
+
+        <div class="admin-info">
+
+
+          <div class="admin-name">
+
+            فريق التطوير
+
+            <span class="verified-badge">
+              ✓
+            </span>
+
+          </div>
+
+
+          <span class="time">
+            منذ ساعة واحدة • عام
+          </span>
+
+
+        </div>
+
+
+      </div>
+
+
+
+
+
+      <div class="broadcast-content">
+
+
+        <h3 class="post-title">
+          🚀 إطلاق المحرك الجديد لخلفيات الـ 8D!
+        </h3>
+
+
+
+        <p class="post-text">
+
+          يسعدنا أن نعلن عن إتاحة محرك Render المطور لجميع المستخدمين ابتداءً من اليوم.
+
+          يمكنك الآن رفع واستعراض الخلفيات بدقات عالية مع تأثيرات العمق ثلاثي الأبعاد.
+
+        </p>
+
+
+
+        <div class="post-media-container">
+
+          <img src="https://picsum.photos/600/300?random=2"
+               class="post-image">
+
+
+          <div class="overlay-glass">
+
+            انقر لتكبير العرض
+
+          </div>
+
+
+        </div>
+
+
+      </div>
+
+
+
+
+      <div class="post-reactions-bar">
+
+
+        <div class="stats">
+
+          ❤️
+          <span class="count-num">
+            248
+          </span>
+
+          إعجاب
+
+          • 💬 42 تعليق
+
+        </div>
+
+
+
+        <div class="action-buttons">
+
+
+          <button class="react-btn like-btn">
+            ❤️ إعجاب
+          </button>
+
+
+          <button class="react-btn">
+            💬 تعليق
+          </button>
+
+
+          <button class="react-btn share">
+            🔗 مشاركة
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+
+    </article>
+
+
+
+
+
+
+    <!-- Like Notification -->
+
+
+    <article class="notif-card"
+             data-category="like">
+
+
+      <div class="avatar-container">
+
+
+        <img src="https://i.pravatar.cc/100?img=12"
+             class="avatar">
+
+
+        <span class="type-badge like">
+          ❤️
+        </span>
+
+
+      </div>
+
+
+
+      <div class="notif-body">
+
+
+        <p class="notif-text">
+
+          أعجبت
+
+          <a href="#" class="user-tag">
+            سارة خالد
+          </a>
+
+          وخلفيات أخرى لك في معروضات هذا الأسبوع.
+
+        </p>
+
+
+        <div class="notif-meta">
+
+          أمس الساعة 22:15
+
+        </div>
+
+
+      </div>
+
+
+
+      <div class="media-thumb">
+
+        <img src="https://picsum.photos/100/100?random=3">
+
+      </div>
+
+
+    </article>
+
+
+
+  </main>
+
+
+</div>
+
+
+
+<script src="notice.js"></script>
+
+</body>
+</html>
