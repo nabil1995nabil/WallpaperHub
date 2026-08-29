@@ -154,7 +154,7 @@ count;
 function loadAds(){
 
 
-fetch("/api/admin/notifications")
+fetch("/api/admin/announcements")
 
 .then(res=>res.json())
 
@@ -310,7 +310,7 @@ function deleteAd(id,element){
 
 
 fetch(
-"/api/admin/notifications/" + id,
+"/api/admin/announcements/" + id,
 {
 
 method:"DELETE"
@@ -422,7 +422,7 @@ urlImage
 
 
 fetch(
-"/api/admin/notifications",
+"/api/admin/announcements",
 {
 
 
@@ -463,7 +463,7 @@ if(data.success){
 
 
 createAdCard(
-data.notification
+data.announcement
 );
 
 
