@@ -4,20 +4,28 @@
 
 .bottom-nav {
     position: fixed;
-    left: 50%;
+
+    left: 0;
+    right: 0;
+    margin: auto;
+
     bottom: 22px;
-    transform: translateX(-50%);
+
     width: 90%;
     max-width: 420px;
     height: 72px;
+
     display: flex;
     align-items: center;
     justify-content: space-around;
 
-    /* زجاج سائل ضبابي */
+    direction: rtl;
+
     background: rgba(255, 255, 255, 0.72);
+
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
+
     border-radius: 26px;
     border: 1px solid rgba(255, 255, 255, 0.6);
 
@@ -172,4 +180,31 @@ body.dark .nav-item {
 
 body.dark .nav-item.active {
     color: #ffffff;
+}
+
+/* ===================================================
+   FIX: تباين أقوى على الخلفيات الفاتحة
+=================================================== */
+
+.bottom-nav {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(80, 96, 255, 0.15);
+    box-shadow:
+        0 15px 45px rgba(80, 96, 255, 0.25),
+        0 6px 18px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.nav-item {
+    color: #5b6478;
+}
+
+.nav-item.active {
+    color: #ffffff;
+    font-weight: 900;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.nav-item.active span {
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
