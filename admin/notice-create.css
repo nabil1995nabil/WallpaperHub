@@ -1,0 +1,597 @@
+/* =================================
+   WallpaperHub Admin Notice Creator
+================================= */
+
+
+:root {
+
+    --bg-main:#f8fafc;
+
+    --panel-bg:#ffffff;
+
+    --panel-border:rgba(0,0,0,.08);
+
+    --accent-cyan:#0099ff;
+
+    --accent-purple:#7c3aed;
+
+    --danger-red:#ef4444;
+
+    --text-primary:#0f172a;
+
+    --text-secondary:#64748b;
+
+    --shadow:
+    0 12px 32px rgba(0,0,0,.05),
+    0 2px 6px rgba(0,0,0,.03);
+
+}
+
+
+
+*{
+
+    box-sizing:border-box;
+
+}
+
+
+
+
+body{
+
+    margin:0;
+
+    padding:30px 20px;
+
+    background:var(--bg-main);
+
+    color:var(--text-primary);
+
+    font-family:
+    'Segoe UI',
+    system-ui,
+    sans-serif;
+
+}
+
+
+
+
+
+.admin-wrapper{
+
+    max-width:1000px;
+
+    margin:auto;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:24px;
+
+}
+
+
+
+
+
+/* Header */
+
+.admin-header{
+
+    background:
+    rgba(255,255,255,.9);
+
+    border:1px solid var(--panel-border);
+
+    border-radius:24px;
+
+    padding:24px 30px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    box-shadow:var(--shadow);
+
+}
+
+
+
+
+
+.admin-title h1{
+
+    margin:0 0 6px;
+
+    font-size:24px;
+
+}
+
+
+
+.admin-title p{
+
+    margin:0;
+
+    font-size:14px;
+
+    color:var(--text-secondary);
+
+}
+
+
+
+
+
+.admin-badge{
+
+    background:
+
+    linear-gradient(
+    135deg,
+    var(--accent-purple),
+    var(--accent-cyan)
+    );
+
+    color:white;
+
+    padding:6px 16px;
+
+    border-radius:20px;
+
+    font-size:13px;
+
+    font-weight:700;
+
+}
+
+
+
+
+
+/* Stats */
+
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+
+    gap:16px;
+
+}
+
+
+
+.stat-card{
+
+    background:white;
+
+    border:1px solid var(--panel-border);
+
+    border-radius:20px;
+
+    padding:20px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    box-shadow:var(--shadow);
+
+}
+
+
+
+.stat-icon{
+
+    width:48px;
+
+    height:48px;
+
+    border-radius:14px;
+
+    background:
+    rgba(0,153,255,.1);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:20px;
+
+}
+
+
+
+.stat-info h4{
+
+    margin:0;
+
+    font-size:22px;
+
+}
+
+
+
+.stat-info span{
+
+    color:var(--text-secondary);
+
+    font-size:13px;
+
+}
+
+
+
+
+
+
+
+/* Layout */
+
+
+.dashboard-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    1fr 1.2fr;
+
+    gap:24px;
+
+}
+
+
+
+@media(max-width:850px){
+
+    .dashboard-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+
+}
+
+
+
+
+
+/* Panels */
+
+
+.panel-box{
+
+    background:white;
+
+    border:1px solid var(--panel-border);
+
+    border-radius:24px;
+
+    padding:24px;
+
+    box-shadow:var(--shadow);
+
+}
+
+
+
+.panel-box h2{
+
+    margin:0 0 20px;
+
+    font-size:18px;
+
+    padding-bottom:12px;
+
+    border-bottom:1px solid var(--panel-border);
+
+}
+
+
+
+
+
+
+/* Form */
+
+
+.form-group{
+
+    margin-bottom:16px;
+
+}
+
+
+
+.form-group label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-size:13px;
+
+    font-weight:700;
+
+}
+
+
+
+
+
+.form-control{
+
+    width:100%;
+
+    padding:12px 16px;
+
+    border-radius:14px;
+
+    border:
+
+    1px solid var(--panel-border);
+
+    background:#f8fafc;
+
+    outline:none;
+
+    font-size:14px;
+
+}
+
+
+
+.form-control:focus{
+
+    background:white;
+
+    border-color:var(--accent-cyan);
+
+}
+
+
+
+
+
+textarea.form-control{
+
+    min-height:100px;
+
+    resize:vertical;
+
+}
+
+
+
+
+
+
+/* File */
+
+.file-input{
+
+    display:none;
+
+}
+
+
+
+.file-upload-btn{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:12px;
+
+    border-radius:14px;
+
+    border:2px dashed #ddd;
+
+    cursor:pointer;
+
+    font-size:13px;
+
+    color:var(--text-secondary);
+
+}
+
+
+
+.file-upload-btn:hover{
+
+    border-color:var(--accent-cyan);
+
+    color:var(--accent-cyan);
+
+}
+
+
+
+.file-name-preview{
+
+    margin-top:6px;
+
+    color:var(--accent-cyan);
+
+    font-size:12px;
+
+}
+
+
+
+
+
+/* Button */
+
+
+.btn-submit{
+
+    width:100%;
+
+    border:0;
+
+    padding:14px;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:700;
+
+    background:
+
+    linear-gradient(
+    135deg,
+    #0099ff,
+    #2563eb
+    );
+
+}
+
+
+
+
+
+/* Ads List */
+
+
+.ads-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:14px;
+
+    max-height:520px;
+
+    overflow:auto;
+
+}
+
+
+
+
+
+.ad-item{
+
+    background:#f8fafc;
+
+    border:1px solid var(--panel-border);
+
+    border-radius:16px;
+
+    padding:14px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+}
+
+
+
+
+
+.ad-thumb{
+
+    width:60px;
+
+    height:60px;
+
+    border-radius:12px;
+
+    object-fit:cover;
+
+}
+
+
+
+.ad-details{
+
+    flex:1;
+
+}
+
+
+
+.ad-details h4{
+
+    margin:0 0 5px;
+
+    font-size:14px;
+
+}
+
+
+
+.ad-details p{
+
+    margin:0;
+
+    font-size:12px;
+
+    color:var(--text-secondary);
+
+}
+
+
+
+.ad-date{
+
+    font-size:11px;
+
+    color:#94a3b8;
+
+}
+
+
+
+
+
+.action-btn{
+
+    width:32px;
+
+    height:32px;
+
+    border:0;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+}
+
+
+
+.action-btn.delete{
+
+    background:#fef2f2;
+
+    color:var(--danger-red);
+
+}

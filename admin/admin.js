@@ -1928,6 +1928,20 @@ location.href =
 window.openWallpapers =
 openWallpapers;
 
+// ==========================================
+// فتح صفحة نشر الإعلانات
+// ==========================================
+
+function openNoticeCreator(){
+
+    location.href =
+    "notice-create.html";
+
+}
+
+
+window.openNoticeCreator =
+openNoticeCreator;
 
 // ==========================================
 // فتح صفحة الذكاء الاصطناعي
@@ -1939,7 +1953,6 @@ function openAIControl(){
     "ai-control.html";
 
 }
-
 
 window.openAIControl =
 openAIControl;
