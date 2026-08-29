@@ -596,44 +596,37 @@ async function detectImageSource(imageUrl){
 
 
 
-const response =
-await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-  {
-    method: "POST",
+const response = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/" 
+    + GEMINI_MODEL 
+    + ":generateContent?key=" 
+    + GEMINI_API_KEY,
+    {
+        method: "POST",
 
-    headers: {
-      "Content-Type": "application/json"
-    },
+        headers:{
+            "Content-Type":"application/json"
+        },
 
-    body: JSON.stringify({
-                contents:[{
-
+        body: JSON.stringify({
+            contents:[
+                {
                     parts:[
-
                         {
-                            text:
-                            "Analyze image. Reply only ai or camera."
+                            text:"Analyze image. Reply only ai or camera."
                         },
-
-
                         {
                             inlineData:{
-
                                 mimeType:"image/jpeg",
-
                                 data:base64
-
                             }
                         }
-
                     ]
-
-                }]
-
-            })
-
-        });
+                }
+            ]
+        })
+    }
+);
 
 
 
