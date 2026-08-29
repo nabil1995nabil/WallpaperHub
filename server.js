@@ -596,22 +596,17 @@ async function detectImageSource(imageUrl){
 
 
 
-        const response =
-        await fetch(
+const response =
+await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+  {
+    method: "POST",
 
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
+    headers: {
+      "Content-Type": "application/json"
+    },
 
-        {
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-
-            body:JSON.stringify({
-
+    body: JSON.stringify({
                 contents:[{
 
                     parts:[
