@@ -2618,10 +2618,12 @@ new Date()
 // =========================
 
 
+// GET COMMENTS
+// =========================
+
 app.get(
 "/api/wallpapers/:id/comments",
 (req,res)=>{
-
 
 try{
 
@@ -2663,8 +2665,8 @@ res.status(500).json([]);
 
 
 
-
-
+// POST COMMENT
+// =========================
 
 app.post(
 "/api/wallpapers/:id/comments",
@@ -2689,22 +2691,30 @@ req.body.text || ""
 
 if(!text){
 
+
 return res.status(400).json({
 
 success:false,
 
-message:"Empty comment"
+message:
+"Empty comment"
 
 });
+
 
 }
 
 
 
 
+const now =
+new Date();
+
+
 
 const comments =
 readComments();
+
 
 
 
@@ -2721,7 +2731,8 @@ wallpaperId,
 
 
 
-// بيانات المستخدم
+// معلومات المستخدم
+
 user:
 req.body.user ||
 "مستخدم",
@@ -2730,7 +2741,7 @@ req.body.user ||
 
 email:
 req.body.email ||
-"",
+"user@email.com",
 
 
 
@@ -2741,11 +2752,16 @@ req.body.avatar ||
 
 
 
+
+// محتوى التعليق
+
 text,
 
 
 
-// نظام الإعجاب
+
+// الإعجاب
+
 likes:
 0,
 
@@ -2755,22 +2771,25 @@ likedBy:
 
 
 
-// التاريخ والساعة
+
+// التاريخ والوقت
+
 date:
-new Date()
-.toLocaleDateString("ar-MA"),
+now.toLocaleDateString(
+"ar-MA"
+),
 
 
 
 time:
-new Date()
-.toLocaleTimeString(
+now.toLocaleTimeString(
 "ar-MA",
 {
 hour:"2-digit",
 minute:"2-digit"
 }
 )
+
 
 
 };
@@ -2792,6 +2811,7 @@ comments
 
 
 
+
 res.json({
 
 success:true,
@@ -2800,6 +2820,8 @@ comment:
 newComment
 
 });
+
+
 
 
 
@@ -2815,7 +2837,10 @@ error
 
 res.status(500).json({
 
-success:false
+success:false,
+
+message:
+"Server error"
 
 });
 

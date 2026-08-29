@@ -722,182 +722,139 @@ MOBILE
    COMMENTS SECTION NEW
 ========================= */
 
-
-.comments-section {
+.comments-section{
 
     margin:20px;
-
-    background:#ffffff;
-
-}
-
-
-
-
-.section-title {
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:15px;
-
-}
-
-
-
-.section-title h3 {
-
-    font-size:24px;
-
-    font-weight:800;
-
-    margin:0;
-
-}
-
-
-
-.comments-count {
-
-    font-size:14px;
-
-    color:#777;
-
-    font-weight:500;
-
-}
-
-
-
-
-
-/* =========================
-   ADD COMMENT BOX
-========================= */
-
-
-.add-comment-box {
-
-    background:#f1f1f1;
-
-    border:1px solid #e5e5e5;
-
-    border-radius:22px;
-
-    padding:16px;
-
-    margin-bottom:20px;
-
-}
-
-
-
-
-
-.comment-user-preview {
-
-    display:flex;
-
-    align-items:center;
-
-    gap:12px;
-
-    margin-bottom:15px;
-
-}
-
-
-
-.comment-user-preview strong {
-
-    display:block;
-
-    font-size:15px;
-
-    color:#111;
-
-}
-
-
-
-.comment-user-preview small {
-
-    display:block;
-
-    font-size:12px;
-
-    color:#888;
-
-}
-
-
-
-
-
-.user-avatar {
-
-    width:45px;
-
-    height:45px;
-
-    border-radius:50%;
-
-    background:#ddd;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    overflow:hidden;
-
-}
-
-
-
-.user-avatar .material-icons {
-
-    color:#999;
-
-    font-size:35px;
-
-}
-
-
-
-
-
-.add-comment-box textarea {
-
-    width:100%;
-
-    box-sizing:border-box;
-
-    border:1px solid #ddd;
-
-    border-radius:18px;
-
-    padding:14px;
-
-    font-size:15px;
-
-    font-family:'Cairo',sans-serif;
-
-    resize:none;
-
-    outline:none;
-
     background:#fff;
 
 }
 
 
 
-.add-comment-box textarea:focus {
+.section-title{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+
+}
+
+
+
+.section-title h3{
+
+    font-size:26px;
+    font-weight:900;
+    margin:0;
+
+}
+
+
+
+.comments-count{
+
+    color:#888;
+    font-size:15px;
+
+}
+
+
+
+/* =========================
+ USER PREVIEW
+========================= */
+
+
+.add-comment-box{
+
+    background:#f3f3f3;
+    border:1px solid #e5e5e5;
+    border-radius:24px;
+    padding:18px;
+    margin-bottom:22px;
+
+}
+
+
+
+.comment-user-preview{
+
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+
+}
+
+
+
+.comment-user-avatar{
+
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    object-fit:cover;
+    background:#ddd;
+
+}
+
+
+
+.comment-user-info strong{
+
+    display:block;
+    font-size:17px;
+    font-weight:800;
+
+}
+
+
+
+.comment-user-info small{
+
+    display:block;
+    margin-top:5px;
+    color:#888;
+    font-size:13px;
+
+}
+
+
+
+/* =========================
+ TEXT AREA
+========================= */
+
+
+.add-comment-box textarea{
+
+    width:100%;
+    min-height:120px;
+
+    border-radius:20px;
+
+    border:1px solid #ddd;
+
+    background:#fff;
+
+    padding:16px;
+
+    box-sizing:border-box;
+
+    resize:none;
+
+    font-family:Cairo,sans-serif;
+
+    font-size:15px;
+
+    outline:none;
+
+}
+
+
+
+.add-comment-box textarea:focus{
 
     border-color:#111;
 
@@ -907,7 +864,9 @@ MOBILE
 
 
 
-.comment-tools {
+.comment-tools{
+
+    margin-top:15px;
 
     display:flex;
 
@@ -915,25 +874,20 @@ MOBILE
 
     align-items:center;
 
-    margin-top:12px;
-
 }
 
 
 
-.emoji-hint {
+.emoji-hint{
 
     color:#888;
-
-    font-size:12px;
+    font-size:13px;
 
 }
 
 
 
-
-
-.send-comment-btn {
+.send-comment-btn{
 
     background:#111;
 
@@ -941,27 +895,19 @@ MOBILE
 
     border:none;
 
-    padding:10px 22px;
+    border-radius:30px;
 
-    border-radius:25px;
+    padding:12px 28px;
+
+    font-family:Cairo,sans-serif;
+
+    font-size:15px;
 
     display:flex;
 
     align-items:center;
 
-    gap:6px;
-
-    cursor:pointer;
-
-    font-family:'Cairo',sans-serif;
-
-}
-
-
-
-.send-comment-btn .material-icons {
-
-    font-size:18px;
+    gap:8px;
 
 }
 
@@ -970,37 +916,35 @@ MOBILE
 
 
 /* =========================
-   COMMENTS LIST
+ COMMENT CARD
 ========================= */
 
 
-.comments-container {
+.comments-container{
 
     display:flex;
 
     flex-direction:column;
 
-    gap:14px;
+    gap:15px;
 
 }
 
 
 
-
-
-.comment-card {
-
-    display:flex;
-
-    gap:14px;
-
-    padding:18px;
+.comment-card{
 
     background:#fff;
 
+    border:1px solid #ededed;
+
     border-radius:22px;
 
-    border:1px solid #ededed;
+    padding:18px;
+
+    display:flex;
+
+    gap:15px;
 
 }
 
@@ -1008,7 +952,37 @@ MOBILE
 
 
 
-.comment-content {
+.comment-card .user-avatar{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    overflow:hidden;
+
+    flex-shrink:0;
+
+}
+
+
+
+.comment-card .user-avatar img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+
+
+
+
+.comment-content{
 
     flex:1;
 
@@ -1018,41 +992,35 @@ MOBILE
 
 
 
-.comment-header {
+.comment-header{
 
     display:flex;
 
     justify-content:space-between;
 
-    align-items:flex-start;
-
 }
 
 
 
+.comment-author{
 
-
-.comment-author {
-
-    font-size:16px;
+    font-size:17px;
 
     font-weight:800;
 
-    color:#111;
-
 }
 
 
 
-.comment-email {
+.comment-email{
 
     display:block;
 
-    font-size:12px;
-
     color:#888;
 
-    margin-top:3px;
+    font-size:13px;
+
+    margin-top:4px;
 
 }
 
@@ -1060,23 +1028,23 @@ MOBILE
 
 
 
-.comment-text {
+.comment-text{
 
-    margin-top:12px;
+    margin-top:15px;
 
-    font-size:15px;
-
-    color:#333;
+    font-size:16px;
 
     line-height:1.7;
 
+    color:#333;
+
 }
 
 
 
 
 
-.comment-footer {
+.comment-footer{
 
     display:flex;
 
@@ -1084,25 +1052,17 @@ MOBILE
 
     align-items:center;
 
-    margin-top:15px;
+    margin-top:18px;
 
 }
 
 
 
-
-
-.comment-date {
-
-    display:flex;
-
-    align-items:center;
-
-    gap:5px;
+.comment-date{
 
     color:#888;
 
-    font-size:12px;
+    font-size:13px;
 
 }
 
@@ -1110,31 +1070,17 @@ MOBILE
 
 
 
-.comment-like {
+.comment-like{
 
     border:none;
 
     background:none;
 
-    cursor:pointer;
-
     color:#e91e63;
 
-    display:flex;
+    font-size:15px;
 
-    align-items:center;
-
-    gap:4px;
-
-    font-size:14px;
-
-}
-
-
-
-.comment-like .material-icons {
-
-    font-size:20px;
+    cursor:pointer;
 
 }
 
@@ -1142,15 +1088,13 @@ MOBILE
 
 
 
-.no-comments {
+.no-comments{
 
     text-align:center;
 
-    color:#888;
+    padding:25px;
 
-    padding:20px;
-
-    font-size:14px;
+    color:#999;
 
 }
 
@@ -1171,7 +1115,7 @@ MOBILE
 
 .comment-card{
 
-    padding:14px;
+    padding:15px;
 
 }
 
@@ -1181,14 +1125,15 @@ MOBILE
 
     flex-direction:column;
 
-    gap:12px;
-
-    align-items:stretch;
+    gap:15px;
 
 }
 
 
+
 .send-comment-btn{
+
+    width:100%;
 
     justify-content:center;
 

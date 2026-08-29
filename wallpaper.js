@@ -2030,14 +2030,14 @@ document.getElementById("commentsCountBadge");
 
 
 
+// ===============================
+// LOAD COMMENTS
+// ===============================
 
 async function loadComments(){
 
 
-    if(
-        !currentWallpaper ||
-        !commentsContainer
-    )
+    if(!currentWallpaper || !commentsContainer)
         return;
 
 
@@ -2057,7 +2057,7 @@ async function loadComments(){
 
 
 
-        commentsContainer.innerHTML="";
+        commentsContainer.innerHTML = "";
 
 
 
@@ -2070,16 +2070,16 @@ async function loadComments(){
 
 
 
+
         if(comments.length === 0){
 
-
             commentsContainer.innerHTML =
+
             `
             <p class="no-comments">
             لا توجد تعليقات بعد، كن أول من يعلق!
             </p>
             `;
-
 
             return;
 
@@ -2092,6 +2092,7 @@ async function loadComments(){
         .slice()
         .reverse()
         .forEach(comment=>{
+
 
 
             const box =
@@ -2110,19 +2111,23 @@ async function loadComments(){
             <div class="user-avatar">
 
                 ${
-                comment.avatar
+                    comment.avatar
 
-                ?
+                    ?
 
-                `<img src="${comment.avatar}">`
+                    `
+                    <img 
+                    src="${comment.avatar}">
+                    `
 
-                :
+                    :
 
-                `
-                <span class="material-icons">
-                account_circle
-                </span>
-                `
+                    `
+                    <span class="material-icons">
+                    account_circle
+                    </span>
+                    `
+
                 }
 
             </div>
@@ -2149,7 +2154,7 @@ async function loadComments(){
 
                         <span class="comment-email">
 
-                        ${comment.email || ""}
+                        ${comment.email || "غير مسجل"}
 
                         </span>
 
@@ -2164,10 +2169,9 @@ async function loadComments(){
 
                 <div class="comment-text">
 
-                ${comment.text || ""}
+                ${comment.text}
 
                 </div>
-
 
 
 
@@ -2185,15 +2189,11 @@ async function loadComments(){
 
 
 
-
-
-                    <button 
+                    <button
                     class="comment-like"
                     onclick="likeComment(${comment.id})">
 
-
                     ❤️ ${comment.likes || 0}
-
 
                     </button>
 
@@ -2202,8 +2202,8 @@ async function loadComments(){
                 </div>
 
 
-
             </div>
+
 
             `;
 
@@ -2236,16 +2236,15 @@ async function loadComments(){
 
 
 
-
+// ===============================
+// SEND COMMENT
+// ===============================
 
 
 async function sendComment(){
 
 
-    if(
-        !currentWallpaper ||
-        !commentInput
-    )
+    if(!currentWallpaper || !commentInput)
         return;
 
 
@@ -2269,6 +2268,28 @@ async function sendComment(){
 
 
 
+        const userName =
+        localStorage.getItem("userName")
+        ||
+        "مستخدم";
+
+
+
+        const userEmail =
+        localStorage.getItem("userEmail")
+        ||
+        "user@email.com";
+
+
+
+        const userAvatar =
+        localStorage.getItem("userAvatar")
+        ||
+        "";
+
+
+
+
 
         const res =
         await fetch(
@@ -2277,63 +2298,48 @@ async function sendComment(){
 
         {
 
-            method:"POST",
+        method:"POST",
 
-            headers:{
+        headers:{
 
-                "Content-Type":
-                "application/json"
+            "Content-Type":
+            "application/json"
 
-            },
-
-
-            body:
-
-            JSON.stringify({
-
-                text:text,
+        },
 
 
-                user:
-                localStorage.getItem("userName")
-                ||
-                "مستخدم",
+        body:JSON.stringify({
+
+            text:text,
 
 
-
-                email:
-                localStorage.getItem("userEmail")
-                ||
-                "",
+            user:userName,
 
 
+            email:userEmail,
 
-                avatar:
-                localStorage.getItem("userAvatar")
-                ||
-                "",
+
+            avatar:userAvatar,
+
+
+            likes:0,
+
+
+            date:
+            now.toLocaleDateString("ar-MA"),
 
 
 
-                likes:0,
-
-
-                date:
-                now.toLocaleDateString("ar-MA"),
-
-
-
-                time:
-                now.toLocaleTimeString(
-                    "ar-MA",
-                    {
-                        hour:"2-digit",
-                        minute:"2-digit"
-                    }
-                )
-
+            time:
+            now.toLocaleTimeString(
+            "ar-MA",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
             })
 
+
+        })
 
         });
 
@@ -2348,13 +2354,14 @@ async function sendComment(){
         if(data.success){
 
 
-            commentInput.value="";
+            commentInput.value = "";
 
 
             loadComments();
 
 
         }
+
 
 
 
@@ -2376,31 +2383,27 @@ async function sendComment(){
 
 
 
-
 if(sendCommentBtn){
 
 
     sendCommentBtn.onclick =
     sendComment;
 
-
 }
 
 
 
 
-
-
-// =================================
-// LIKE COMMENT
-// =================================
+// ===============================
+// LIKE COMMENT READY
+// ===============================
 
 
 async function likeComment(id){
 
 
     console.log(
-    "LIKE COMMENT:",
+    "LIKE COMMENT",
     id
     );
 

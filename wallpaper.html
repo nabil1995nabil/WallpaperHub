@@ -596,90 +596,111 @@ content_copy
 
 
 
-    <!-- كتابة تعليق -->
+<!-- كتابة تعليق -->
 
-    <div class="add-comment-box">
-
-
-        <div class="comment-user-preview">
+<div class="add-comment-box">
 
 
-            <div class="user-avatar">
+    <!-- بيانات المستخدم الحالي -->
 
-                <span class="material-icons">
-                    account_circle
-                </span>
-
-            </div>
+    <div class="comment-user-preview">
 
 
-            <div>
+        <img
 
-                <strong>
-                    مستخدم
-                </strong>
+        id="commentUserAvatar"
 
-                <small>
-                    user@email.com
-                </small>
+        class="comment-user-avatar"
+
+        src="assets/images/user.png"
+
+        >
 
 
-            </div>
+
+        <div class="comment-user-info">
+
+
+            <strong id="commentUserName">
+
+                مستخدم
+
+            </strong>
+
+
+
+            <small id="commentUserEmail">
+
+                user@email.com
+
+            </small>
 
 
         </div>
 
 
-
-
-        <textarea
-
-        id="commentInput"
-
-        placeholder="اكتب تعليقك هنا..."
-
-        rows="3"
-
-        ></textarea>
+    </div>
 
 
 
 
-        <div class="comment-tools">
+
+    <textarea
+
+    id="commentInput"
+
+    placeholder="اكتب تعليقك هنا..."
+
+    rows="3"
+
+    ></textarea>
 
 
-            <span class="emoji-hint">
-                😊 يمكنك استخدام الرموز التعبيرية
+
+
+
+    <div class="comment-tools">
+
+
+        <span class="emoji-hint">
+
+            😊 يمكنك استخدام الرموز التعبيرية
+
+        </span>
+
+
+
+
+        <button
+
+        id="sendCommentBtn"
+
+        class="send-comment-btn"
+
+        type="button"
+
+        >
+
+
+            <span class="material-icons">
+
+                send
+
             </span>
 
 
-
-            <button
-
-            id="sendCommentBtn"
-
-            class="send-comment-btn"
-
-            type="button"
-
-            >
-
-                <span class="material-icons">
-                    send
-                </span>
+            نشر التعليق
 
 
-                نشر التعليق
-
-
-            </button>
-
-
-        </div>
+        </button>
 
 
 
     </div>
+
+
+
+</div>
 
 
 
