@@ -864,7 +864,7 @@ MOBILE
 
 
 
-.comment-tools{
+comment-tools{
 
     margin-top:15px;
 
@@ -875,6 +875,7 @@ MOBILE
     align-items:center;
 
 }
+
 
 
 
@@ -889,31 +890,50 @@ MOBILE
 
 .send-comment-btn{
 
-    background:#111;
+    width:45px;
 
-    color:white;
+    height:45px;
+
+    border-radius:50%;
 
     border:none;
 
-    border-radius:30px;
+    background:#f1f1f1;
 
-    padding:12px 28px;
-
-    font-family:Cairo,sans-serif;
-
-    font-size:15px;
+    color:#111;
 
     display:flex;
 
     align-items:center;
 
-    gap:8px;
+    justify-content:center;
+
+}
+
+
+.send-comment-btn .material-icons{
+
+    font-size:16px;
 
 }
 
 
 
+.emoji-btn{
 
+    width:45px;
+
+    height:45px;
+
+    border-radius:50%;
+
+    border:1px solid #ddd;
+
+    background:#fff;
+
+    font-size:16px;
+
+}
 
 /* =========================
  COMMENT CARD
