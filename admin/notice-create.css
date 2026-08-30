@@ -595,3 +595,20 @@ textarea.form-control{
     color:var(--danger-red);
 
 }
+
+.action-btn.edit{
+
+background:#eff6ff;
+
+color:#2563eb;
+
+}
+
+
+.action-btn.edit:hover{
+
+background:#2563eb;
+
+color:white;
+
+}

@@ -140,11 +140,52 @@ count;
 
 }
 
+if(window.editingAnnouncementId){
 
 
+fetch(
+"/api/admin/announcements/" 
++
+window.editingAnnouncementId,
+{
+
+method:"PUT",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+title,
+category,
+content,
+image
+
+})
+
+}
+
+)
+
+.then(res=>res.json())
+
+.then(()=>{
 
 
+alert("تم تعديل الإعلان");
 
+
+window.location.reload();
+
+
+});
+
+
+return;
+
+
+}
 
 // ================================
 // Load Ads From Server
@@ -253,9 +294,16 @@ ${ad.date || "الآن"}
 <div class="ad-actions">
 
 
-<button
+<button 
+class="action-btn edit"
+data-id="${ad.id}">
+✏️
+</button>
+
+
+<button 
 class="action-btn delete"
->
+data-id="${ad.id}">
 🗑️
 </button>
 
@@ -273,7 +321,17 @@ adItem.querySelector(
 ".delete"
 );
 
+const editBtn =
+adItem.querySelector(
+".edit"
+);
 
+
+editBtn.onclick = ()=>{
+
+    editAdvertisement(ad);
+
+};
 
 deleteBtn.onclick =
 ()=>{
@@ -301,63 +359,59 @@ adItem
 
 
 
+/// ================================
+// Delete Advertisement From Server
 // ================================
-// Delete Advertisement
-// ================================
+
+function deleteAdvertisement(id, card){
+
+    if(!confirm("هل تريد حذف هذا الإعلان؟")){
+        return;
+    }
 
 
-function deleteAd(id,element){
+    fetch(
+        `/api/admin/announcements/${id}`,
+        {
+            method:"DELETE"
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
 
 
-fetch(
-"/api/admin/announcements/" + id,
-{
+        if(data.success){
 
-method:"DELETE"
+
+            card.remove();
+
+            updateCounter();
+
+
+        }else{
+
+            alert("فشل حذف الإعلان");
+
+        }
+
+
+    })
+
+    .catch(error=>{
+
+        console.log(
+            "DELETE ERROR:",
+            error
+        );
+
+        alert("خطأ في الاتصال بالسيرفر");
+
+    });
+
 
 }
-
-)
-
-.then(res=>res.json())
-
-.then(data=>{
-
-
-if(data.success){
-
-
-element.remove();
-
-
-updateCounter();
-
-
-}
-
-
-})
-
-.catch(error=>{
-
-
-console.log(
-"DELETE ERROR:",
-error
-);
-
-
-});
-
-
-}
-
-
-
-
-
-
-
 
 // ================================
 // Create Advertisement
@@ -421,38 +475,25 @@ urlImage
 
 
 
-fetch(
-"/api/admin/announcements",
-{
-
+fetch("/api/admin/announcements",{
 
 method:"POST",
 
-
 headers:{
-
-"Content-Type":
-"application/json"
-
+"Content-Type":"application/json"
 },
-
 
 body:JSON.stringify({
 
 title,
-
 category,
-
 content,
-
 image
 
 })
 
+})
 
-}
-
-)
 
 .then(res=>res.json())
 
@@ -462,9 +503,23 @@ image
 if(data.success){
 
 
-createAdCard(
-data.announcement
+const announcement =
+data.announcement;
+
+
+// هنا نبني الكارد مع ID الحقيقي
+
+
+console.log(
+"تم الحفظ:",
+notification.id
 );
+
+
+}
+
+
+});
 
 
 updateCounter();
@@ -500,6 +555,51 @@ error
 
 
 });
+
+
+}
+
+// =================================
+// Edit Advertisement
+// =================================
+
+function editAdvertisement(ad){
+
+
+document.getElementById(
+"ad-title"
+).value = ad.title;
+
+
+
+document.getElementById(
+"ad-category"
+).value = ad.type;
+
+
+
+document.getElementById(
+"ad-content"
+).value = ad.content;
+
+
+
+document.getElementById(
+"ad-image"
+).value = ad.image || "";
+
+
+
+window.editingAnnouncementId =
+ad.id;
+
+
+
+document.querySelector(
+".btn-submit"
+).textContent =
+"💾 حفظ التعديل";
+
 
 
 }
