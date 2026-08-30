@@ -84,25 +84,14 @@ MAIN PREVIEW
 }
 
 
-..preview img,
+.preview img,
 .preview video{
-
     width:100%;
-
     height:65vh;
-
     display:block;
-
     object-fit:cover;
-
     border-radius:30px;
-
     background:#eee;
-
-    pointer-events:none;
-
-    user-select:none;
-
 }
 
 
