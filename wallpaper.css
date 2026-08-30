@@ -1143,21 +1143,25 @@ MOBILE
 
 .show-all-comments-btn{
 
-    width:100%;
+    width:35px;
 
-    margin-top:12px;
+    height:35px;
 
-    padding:12px;
+    margin:12px auto 0;
 
-    border-radius:15px;
+    display:flex;
 
-    border:1px solid #ddd;
+    align-items:center;
 
-    background:#fff;
+    justify-content:center;
 
-    color:#555;
+    border:none;
 
-    font-size:12px;
+    background:none;
+
+    color:#888;
+
+    font-size:28px;
 
     cursor:pointer;
 

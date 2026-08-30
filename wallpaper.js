@@ -2244,16 +2244,16 @@ async function loadComments(){
         if(allComments.length > 2 && !showAllComments){
 
 
-            const btn =
-            document.createElement("button");
+const btn =
+document.createElement("button");
 
 
-            btn.className =
-            "show-all-comments-btn";
+btn.className =
+"show-all-comments-btn";
 
 
-            btn.textContent =
-            "💬 عرض كل التعليقات";
+btn.innerHTML =
+"⋯";
 
 
 
