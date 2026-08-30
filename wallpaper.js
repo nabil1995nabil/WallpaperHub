@@ -2505,24 +2505,16 @@ async function likeComment(id){
 
 try{
 
-
 const user =
 localStorage.getItem("userName")
 ||
 "مستخدم";
 
 
-const avatar =
-localStorage.getItem("userAvatar")
-||
-"";
-
-
 const res =
 await fetch(
 `/api/comments/${id}/like`,
 {
-
 method:"POST",
 
 headers:{
@@ -2530,10 +2522,7 @@ headers:{
 },
 
 body:JSON.stringify({
-
-user:user,
-avatar:avatar
-
+user:user
 })
 
 });
@@ -2541,7 +2530,6 @@ avatar:avatar
 
 const data =
 await res.json();
-
 
 
 if(data.success){
@@ -2561,6 +2549,10 @@ error
 }
 
 }
+
+
+// مهم جدا
+window.likeComment = likeComment;
 
 // ===============================
 // Start
