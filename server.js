@@ -3343,27 +3343,177 @@ success:false
 
 });
 
-// ======================================
-// Public Announcements API
+/// ======================================
+// LIKE COMMENT
 // ======================================
 
 
-app.get(
-"/api/announcements",
+app.post(
+"/api/comments/:id/like",
 (req,res)=>{
 
 
 try{
 
 
-const announcements =
-readAnnouncements();
+const commentId =
+Number(req.params.id);
 
 
 
-res.json(
-announcements
+let comments =
+readComments();
+
+
+
+const index =
+comments.findIndex(
+c=>c.id === commentId
 );
+
+
+
+if(index === -1){
+
+return res.json({
+
+success:false
+
+});
+
+}
+
+
+
+const comment =
+comments[index];
+
+
+
+const user =
+req.body.user ||
+"مستخدم";
+
+
+
+// حماية التعليقات القديمة
+
+if(!comment.likedBy){
+
+comment.likedBy=[];
+
+}
+
+
+
+
+// منع تكرار الإعجاب
+
+if(
+!comment.likedBy.includes(user)
+){
+
+
+comment.likedBy.push(user);
+
+
+comment.likes =
+(comment.likes || 0) + 1;
+
+
+
+
+// إنشاء إشعار لصاحب التعليق
+
+let notifications =
+readNotifications();
+
+
+
+notifications.unshift({
+
+id:
+Date.now(),
+
+
+type:
+"comment_like",
+
+
+category:
+"like_comment",
+
+
+title:
+"إعجاب بتعليقك ❤️",
+
+
+content:
+`${user} أعجب بتعليقك`,
+
+
+commentText:
+comment.text,
+
+
+commentId:
+comment.id,
+
+
+wallpaperId:
+comment.wallpaperId || "",
+
+
+user:
+comment.user,
+
+
+email:
+comment.email || "",
+
+
+avatar:
+req.body.avatar || "",
+
+
+date:
+new Date()
+.toLocaleString("ar-MA"),
+
+
+read:false
+
+
+});
+
+
+
+saveNotifications(
+notifications
+);
+
+
+
+saveComments(
+comments
+);
+
+
+
+}
+
+
+
+res.json({
+
+success:true,
+
+
+likes:
+comment.likes || 0
+
+
+});
 
 
 
@@ -3371,8 +3521,11 @@ announcements
 
 
 console.log(
-"LOAD ANNOUNCEMENTS ERROR:",
+
+"LIKE COMMENT ERROR:",
+
 error
+
 );
 
 
@@ -3388,37 +3541,6 @@ success:false
 
 
 });
-
-// اعجاب بي تعليقات//
-notifications.unshift({
-
-id:Date.now(),
-
-type:"comment_like",
-
-category:"like_comment",
-
-title:"إعجاب بتعليقك ❤️",
-
-content:
-`${user} أعجب بتعليقك`,
-
-commentText:
-comment.text,
-
-wallpaperId:
-comment.wallpaperId,
-
-avatar:
-req.body.avatar || "",
-
-date:
-new Date().toLocaleString("ar-MA"),
-
-read:false
-
-});
-
 
 // ======================================
 // Start Server
