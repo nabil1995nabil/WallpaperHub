@@ -744,7 +744,7 @@ MOBILE
 
 .section-title h3{
 
-    font-size:26px;
+    font-size:17px;
     font-weight:900;
     margin:0;
 
@@ -755,7 +755,7 @@ MOBILE
 .comments-count{
 
     color:#888;
-    font-size:15px;
+    font-size:12px;
 
 }
 
@@ -864,43 +864,33 @@ MOBILE
 
 
 
-comment-tools{
-
+.comment-tools{
     margin-top:15px;
-
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
-
 }
-
-
-
 
 .emoji-hint{
-
     color:#888;
-    font-size:13px;
-
+    font-size:10px;
 }
+
 
 
 
 .send-comment-btn{
 
     width:45px;
-
     height:45px;
 
     border-radius:50%;
 
     border:none;
 
-    background:#f1f1f1;
+    background:#111;
 
-    color:#111;
+    color:white;
 
     display:flex;
 
@@ -913,25 +903,7 @@ comment-tools{
 
 .send-comment-btn .material-icons{
 
-    font-size:16px;
-
-}
-
-
-
-.emoji-btn{
-
-    width:45px;
-
-    height:45px;
-
-    border-radius:50%;
-
-    border:1px solid #ddd;
-
-    background:#fff;
-
-    font-size:16px;
+    font-size:17px;
 
 }
 
