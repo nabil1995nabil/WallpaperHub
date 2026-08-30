@@ -2,10 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-/*
-    Load Admin Announcements
-*/
-
+// ===============================
+// Load Admin Announcements
+// ===============================
 
 async function loadAnnouncements(){
 
@@ -24,11 +23,20 @@ await response.json();
 
 
 const feed =
-document.querySelector(".notif-feed");
+document.getElementById(
+"notificationsFeed"
+);
 
 
 
 if(!feed) return;
+
+
+
+// تنظيف أي محتوى قديم
+
+feed.innerHTML = "";
+
 
 
 
@@ -86,6 +94,7 @@ background:#fff;
 
 
 
+
 <div class="admin-info">
 
 
@@ -99,6 +108,7 @@ WallpaperHub
 
 
 </div>
+
 
 
 <span class="time">
@@ -117,6 +127,7 @@ ${ad.date || "الآن"}
 
 
 
+
 <div class="broadcast-content">
 
 
@@ -125,6 +136,7 @@ ${ad.date || "الآن"}
 ${ad.title}
 
 </h3>
+
 
 
 
@@ -145,9 +157,12 @@ ad.image ?
 
 <div class="post-media-container">
 
-<img 
+<img
+
 src="${ad.image}"
+
 class="post-image"
+
 >
 
 </div>
@@ -159,6 +174,7 @@ class="post-image"
 ""
 
 }
+
 
 
 
@@ -191,41 +207,185 @@ error
 
 }
 
+// ===============================
+// Load User Notifications
+// ===============================
+
+async function loadUserNotifications(){
+
+
+try{
+
+
+const response =
+await fetch("/api/notifications");
+
+
+
+const notifications =
+await response.json();
+
+
+
+const feed =
+document.getElementById(
+"notificationsFeed"
+);
+
+
+
+if(!feed) return;
+
+
+
+notifications.forEach(notif=>{
+
+
+if(notif.type !== "comment_like")
+return;
+
+
+
+const card =
+document.createElement("article");
+
+
+
+card.className =
+"notif-card unread";
+
+
+
+card.dataset.category =
+"like";
+
+
+
+card.innerHTML = `
+
+
+<div class="card-side-indicator"></div>
+
+
+
+<div class="avatar-container">
+
+
+<img
+
+src="${notif.avatar || 'assets/images/user.png'}"
+
+class="avatar"
+
+>
+
+
+
+<span class="type-badge like">
+❤️
+</span>
+
+
+</div>
 
 
 
 
 
+<div class="notif-body">
+
+
+<p class="notif-text">
+
+${notif.content}
+
+</p>
 
 
 
-/*
-    Notification Filters
-*/
+<div class="comment-quote">
+
+"${notif.commentText || ""}"
+
+</div>
+
+
+
+<div class="notif-meta">
+
+${notif.date || "الآن"}
+
+</div>
+
+
+
+</div>
+
+
+`;
+
+
+
+feed.prepend(card);
+
+
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"USER NOTIFICATIONS ERROR:",
+error
+);
+
+
+}
+
+
+}
+
+// ===============================
+// Notification Filters
+// ===============================
 
 
 const tabs =
 document.querySelectorAll(".tab-btn");
 
 
-tabs.forEach(tab => {
+
+tabs.forEach(tab=>{
 
 
-tab.addEventListener("click",()=>{
+tab.addEventListener(
+"click",
+()=>{
 
 
-tabs.forEach(t =>
-t.classList.remove("active")
+tabs.forEach(t=>{
+
+t.classList.remove(
+"active"
+);
+
+});
+
+
+
+tab.classList.add(
+"active"
 );
 
 
 
-tab.classList.add("active");
-
-
-
 const filter =
-tab.getAttribute("data-filter");
+tab.getAttribute(
+"data-filter"
+);
 
 
 
@@ -240,15 +400,13 @@ cards.forEach(card=>{
 
 
 const category =
-card.getAttribute(
-"data-category"
-);
+card.dataset.category;
 
 
 
 if(
-filter==="all" ||
-category===filter
+filter === "all" ||
+category === filter
 ){
 
 
@@ -268,7 +426,6 @@ card.classList.add(
 }
 
 
-
 });
 
 
@@ -285,10 +442,9 @@ card.classList.add(
 
 
 
-
-/*
-    Quick Reply
-*/
+// ===============================
+// Quick Reply
+// ===============================
 
 
 const replyButtons =
@@ -342,114 +498,9 @@ replyBox.classList.toggle(
 
 
 
-/*
-    Like Button
-*/
-
-
-const likeButtons =
-document.querySelectorAll(
-".like-btn"
-);
-
-
-
-likeButtons.forEach(btn=>{
-
-
-btn.addEventListener(
-"click",
-()=>{
-
-
-const card =
-btn.closest(
-".notif-card"
-);
-
-
-
-const counter =
-card.querySelector(
-".count-num"
-);
-
-
-
-if(!counter) return;
-
-
-
-let likes =
-parseInt(
-counter.textContent
-);
-
-
-
-if(
-btn.classList.contains(
-"liked"
-)
-){
-
-
-btn.classList.remove(
-"liked"
-);
-
-
-
-btn.textContent =
-"❤️ إعجاب";
-
-
-
-counter.textContent =
-likes - 1;
-
-
-
-}else{
-
-
-btn.classList.add(
-"liked"
-);
-
-
-
-btn.textContent =
-"💖 تم الإعجاب";
-
-
-
-counter.textContent =
-likes + 1;
-
-
-
-}
-
-
-
-});
-
-
-});
-
-
-
-
-
-
-
-
-
-
-/*
-    Mark All As Read
-*/
+// ===============================
+// Mark All Read
+// ===============================
 
 
 const markBtn =
@@ -499,7 +550,8 @@ card.querySelector(
 
 if(indicator){
 
-indicator.style.opacity="0";
+indicator.style.opacity =
+"0";
 
 }
 
@@ -511,12 +563,11 @@ indicator.style.opacity="0";
 
 if(unreadCount){
 
+unreadCount.textContent =
+"0";
 
-unreadCount.textContent="0";
-
-
-unreadCount.style.opacity="0.5";
-
+unreadCount.style.opacity =
+"0.5";
 
 }
 
@@ -532,9 +583,15 @@ unreadCount.style.opacity="0.5";
 
 
 
-// تشغيل جلب الإعلانات
+
+// ===============================
+// Start
+// ===============================
+
 
 loadAnnouncements();
+
+loadUserNotifications();
 
 
 

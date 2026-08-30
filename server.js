@@ -2874,6 +2874,172 @@ success:false
 });
 
 // ======================================
+// LIKE COMMENT
+// ======================================
+
+
+app.post(
+"/api/comments/:id/like",
+(req,res)=>{
+
+
+try{
+
+
+const commentId =
+Number(req.params.id);
+
+
+
+let comments =
+readComments();
+
+
+
+const index =
+comments.findIndex(
+c=>c.id === commentId
+);
+
+
+
+if(index === -1){
+
+return res.json({
+
+success:false
+
+});
+
+}
+
+
+
+const comment =
+comments[index];
+
+
+
+const user =
+req.body.user ||
+"مستخدم";
+
+
+
+// منع تكرار الإعجاب
+
+if(
+!comment.likedBy.includes(user)
+){
+
+
+comment.likedBy.push(user);
+
+
+comment.likes =
+(comment.likes || 0) + 1;
+
+
+
+// إنشاء إشعار لصاحب التعليق
+
+let notifications =
+readNotifications();
+
+
+
+notifications.unshift({
+
+id:
+Date.now(),
+
+
+type:
+"comment_like",
+
+
+title:
+"إعجاب جديد ❤️",
+
+
+content:
+`${user} أعجب بتعليقك`,
+
+
+user:
+comment.user,
+
+
+email:
+comment.email,
+
+
+commentId:
+comment.id,
+
+
+date:
+new Date()
+.toLocaleString("ar-MA"),
+
+
+read:false
+
+
+});
+
+
+
+saveNotifications(
+notifications
+);
+
+
+
+saveComments(
+comments
+);
+
+
+
+}
+
+
+
+res.json({
+
+success:true,
+
+likes:
+comment.likes
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"LIKE COMMENT ERROR:",
+error
+);
+
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+});
+
+// ======================================
 // Admin Announcements API
 // ======================================
 
@@ -3222,6 +3388,37 @@ success:false
 
 
 });
+
+// اعجاب بي تعليقات//
+notifications.unshift({
+
+id:Date.now(),
+
+type:"comment_like",
+
+category:"like_comment",
+
+title:"إعجاب بتعليقك ❤️",
+
+content:
+`${user} أعجب بتعليقك`,
+
+commentText:
+comment.text,
+
+wallpaperId:
+comment.wallpaperId,
+
+avatar:
+req.body.avatar || "",
+
+date:
+new Date().toLocaleString("ar-MA"),
+
+read:false
+
+});
+
 
 // ======================================
 // Start Server
