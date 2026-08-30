@@ -334,78 +334,70 @@ error
 // Video Auto Play
 // ===============================
 
-
 function setupVideo(src){
 
 
-if(!wallVideo)
-
-return;
-
-
-
-wallVideo.src =
-
-getImageUrl(src);
+    if(!wallVideo)
+        return;
 
 
 
-wallVideo.style.display =
-
-"block";
-
-
-
-if(wallImage)
-
-wallImage.style.display =
-
-"none";
+    wallVideo.src =
+    getImageUrl(src);
 
 
 
+    wallVideo.style.display =
+    "block";
 
 
-wallVideo.muted = true;
+    wallVideo.style.pointerEvents =
+    "none";
 
-wallVideo.loop = true;
 
-wallVideo.playsInline = true;
+
+    if(wallImage)
+
+        wallImage.style.display =
+        "none";
 
 
 
 
+    wallVideo.muted = true;
 
-wallVideo.load();
+    wallVideo.loop = true;
 
-
-
-
-wallVideo.play()
-
-.catch(error=>{
+    wallVideo.playsInline = true;
 
 
-console.log(
 
-"Video autoplay blocked",
-
-error
-
-);
+    wallVideo.setAttribute(
+        "playsinline",
+        ""
+    );
 
 
-});
 
+    wallVideo.load();
+
+
+
+    wallVideo.play()
+
+    .catch(error=>{
+
+
+        console.log(
+        "Video autoplay blocked",
+        error
+        );
+
+
+    });
 
 
 }
-
-
-
-
-
-
 
 // ===============================
 // Stop Video
@@ -845,27 +837,83 @@ colorPalette.appendChild(div);
 // ===============================
 
 function changeWallpaper(index) {
+
     if (!categoryWallpapers.length) return;
 
-    if (index >= categoryWallpapers.length) index = 0;
-    if (index < 0) index = categoryWallpapers.length - 1;
+
+    if (index >= categoryWallpapers.length)
+        index = 0;
+
+
+    if (index < 0)
+        index = categoryWallpapers.length - 1;
+
+
 
     currentWallpaperIndex = index;
+
     currentWallpaper = categoryWallpapers[index];
+
     wallpaperId = currentWallpaper.id;
 
-    localStorage.setItem("selectedWallpaper", currentWallpaper.id);
-    history.replaceState({}, "", "wallpaper.html?id=" + currentWallpaper.id);
+
+
+    localStorage.setItem(
+        "selectedWallpaper",
+        currentWallpaper.id
+    );
+
+
+    history.replaceState(
+        {},
+        "",
+        "wallpaper.html?id=" + currentWallpaper.id
+    );
+
+
 
     showWallpaper();
+
     loadSimilar();
+
     updateFavorite();
 
-    saveUserAction("views", currentWallpaper.id);
-    // ✅ حفظ المشاهدة في الإحصائيات
-    window.syncUserStats("views", currentWallpaper.id);
 
-    sendView(currentWallpaper.id);
+
+    // تحديث تعليقات الخلفية الجديدة
+    if(typeof showAllComments !== "undefined"){
+
+        showAllComments = false;
+
+    }
+
+
+    if(typeof loadComments === "function"){
+
+        loadComments();
+
+    }
+
+
+
+
+    saveUserAction(
+        "views",
+        currentWallpaper.id
+    );
+
+
+    // ✅ حفظ المشاهدة في الإحصائيات
+    window.syncUserStats(
+        "views",
+        currentWallpaper.id
+    );
+
+
+    sendView(
+        currentWallpaper.id
+    );
+
 }
 
 // ===============================
