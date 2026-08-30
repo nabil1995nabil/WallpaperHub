@@ -2034,12 +2034,15 @@ document.getElementById("commentsCountBadge");
 // LOAD COMMENTS
 // ===============================
 
+let allComments = [];
+let showAllComments = false;
+
+
 async function loadComments(){
 
 
     if(!currentWallpaper || !commentsContainer)
         return;
-
 
 
     try{
@@ -2051,9 +2054,12 @@ async function loadComments(){
         );
 
 
-
         const comments =
         await res.json();
+
+
+        allComments =
+        comments.slice().reverse();
 
 
 
@@ -2071,7 +2077,9 @@ async function loadComments(){
 
 
 
-        if(comments.length === 0){
+
+        if(allComments.length === 0){
+
 
             commentsContainer.innerHTML =
 
@@ -2081,6 +2089,7 @@ async function loadComments(){
             </p>
             `;
 
+
             return;
 
         }
@@ -2088,11 +2097,24 @@ async function loadComments(){
 
 
 
-        comments
-        .slice()
-        .reverse()
-        .forEach(comment=>{
 
+        const displayComments =
+        showAllComments
+
+        ?
+
+        allComments
+
+        :
+
+        allComments.slice(0,2);
+
+
+
+
+
+
+        displayComments.forEach(comment=>{
 
 
             const box =
@@ -2110,25 +2132,24 @@ async function loadComments(){
 
             <div class="user-avatar">
 
-                ${
-                    comment.avatar
+            ${
+                comment.avatar
 
-                    ?
+                ?
 
-                    `
-                    <img 
-                    src="${comment.avatar}">
-                    `
+                `
+                <img src="${comment.avatar}">
+                `
 
-                    :
+                :
 
-                    `
-                    <span class="material-icons">
-                    account_circle
-                    </span>
-                    `
+                `
+                <span class="material-icons">
+                account_circle
+                </span>
+                `
 
-                }
+            }
 
             </div>
 
@@ -2142,7 +2163,6 @@ async function loadComments(){
 
 
                     <div>
-
 
                         <div class="comment-author">
 
@@ -2181,8 +2201,8 @@ async function loadComments(){
 
                     <div class="comment-date">
 
-                    ⏱
-                    ${comment.date || ""}
+                    ⏱ ${comment.date || ""}
+
                     ${comment.time || ""}
 
                     </div>
@@ -2198,7 +2218,6 @@ async function loadComments(){
                     </button>
 
 
-
                 </div>
 
 
@@ -2212,8 +2231,52 @@ async function loadComments(){
             commentsContainer.appendChild(box);
 
 
-
         });
+
+
+
+
+
+
+
+        // زر عرض الكل
+
+        if(allComments.length > 2 && !showAllComments){
+
+
+            const btn =
+            document.createElement("button");
+
+
+            btn.className =
+            "show-all-comments-btn";
+
+
+            btn.textContent =
+            "💬 عرض كل التعليقات";
+
+
+
+            btn.onclick = ()=>{
+
+
+                showAllComments = true;
+
+
+                loadComments();
+
+
+            };
+
+
+
+            commentsContainer.appendChild(btn);
+
+
+        }
+
+
+
 
 
 
@@ -2230,11 +2293,6 @@ async function loadComments(){
 
 
 }
-
-
-
-
-
 
 // ===============================
 // SEND COMMENT

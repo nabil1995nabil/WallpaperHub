@@ -596,7 +596,7 @@ content_copy
 
 
 
-<!-- كتابة تعليق -->
+<!-- صندوق التعليقات -->
 
 <div class="add-comment-box">
 
@@ -607,13 +607,9 @@ content_copy
 
 
         <img
-
         id="commentUserAvatar"
-
         class="comment-user-avatar"
-
         src="assets/images/user.png"
-
         >
 
 
@@ -622,17 +618,13 @@ content_copy
 
 
             <strong id="commentUserName">
-
                 مستخدم
-
             </strong>
 
 
 
             <small id="commentUserEmail">
-
                 user@email.com
-
             </small>
 
 
@@ -644,6 +636,8 @@ content_copy
 
 
 
+
+    <!-- كتابة التعليق -->
 
     <textarea
 
@@ -659,35 +653,41 @@ content_copy
 
 
 
-<div class="comment-tools">
 
-    <span class="emoji-hint">
-        😊 يمكنك استخدام الرموز التعبيرية
-    </span>
+    <!-- أدوات الإرسال -->
+
+    <div class="comment-tools">
 
 
-    <button
-    id="sendCommentBtn"
-    class="send-comment-btn"
-    type="button">
-
-        <span class="material-icons">
-            send
+        <span class="emoji-hint">
+            😊 يمكنك استخدام الرموز التعبيرية
         </span>
 
-    </button>
-
-</div>
 
 
+        <button
+        id="sendCommentBtn"
+        class="send-comment-btn"
+        type="button">
 
-</div>
+
+            <span class="material-icons">
+                send
+            </span>
+
+
+        </button>
+
+
+    </div>
 
 
 
 
 
-    <!-- التعليقات -->
+
+
+    <!-- تعليقات المستخدمين داخل نفس الإطار -->
 
     <div
 
@@ -697,6 +697,20 @@ content_copy
 
 
     </div>
+
+<!-- زر عرض كل تعليقات-->
+
+<button 
+id="showAllCommentsBtn"
+class="show-all-comments-btn">
+
+💬 عرض كل التعليقات
+
+</button>
+
+
+</div>
+
 
 
 
