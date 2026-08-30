@@ -3081,6 +3081,103 @@ success:false
 });
 
 // ======================================
+// تعديل إعلان
+// ======================================
+
+app.put(
+"/api/admin/notifications/:id",
+(req,res)=>{
+
+try{
+
+const id = Number(req.params.id);
+
+
+let notifications = readNotifications();
+
+
+const index = notifications.findIndex(
+n => n.id === id
+);
+
+
+
+if(index === -1){
+
+return res.status(404).json({
+success:false,
+message:"Notification not found"
+});
+
+}
+
+
+
+notifications[index] = {
+
+...notifications[index],
+
+title:
+req.body.title || notifications[index].title,
+
+
+type:
+req.body.category || notifications[index].type,
+
+
+content:
+req.body.content || notifications[index].content,
+
+
+image:
+req.body.image || notifications[index].image,
+
+
+updated:
+new Date().toLocaleString("ar-MA")
+
+};
+
+
+
+saveNotifications(
+notifications
+);
+
+
+
+res.json({
+
+success:true,
+
+notification:
+notifications[index]
+
+});
+
+
+}catch(error){
+
+
+console.log(
+"UPDATE ERROR:",
+error
+);
+
+
+res.status(500).json({
+
+success:false
+
+});
+
+
+}
+
+
+});
+
+// ======================================
 // Public Announcements API
 // ======================================
 
