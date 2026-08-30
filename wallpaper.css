@@ -723,12 +723,9 @@ MOBILE
 ========================= */
 
 .comments-section{
-
     margin:20px;
     background:#fff;
-
 }
-
 
 
 .section-title{
@@ -741,7 +738,6 @@ MOBILE
 }
 
 
-
 .section-title h3{
 
     font-size:17px;
@@ -749,7 +745,6 @@ MOBILE
     margin:0;
 
 }
-
 
 
 .comments-count{
@@ -777,7 +772,6 @@ MOBILE
 }
 
 
-
 .comment-user-preview{
 
     display:flex;
@@ -788,11 +782,10 @@ MOBILE
 }
 
 
-
 .comment-user-avatar{
 
-    width:58px;
-    height:58px;
+    width:40px;
+    height:40px;
     border-radius:50%;
     object-fit:cover;
     background:#ddd;
@@ -800,15 +793,13 @@ MOBILE
 }
 
 
-
 .comment-user-info strong{
 
     display:block;
-    font-size:17px;
+    font-size:14px;
     font-weight:800;
 
 }
-
 
 
 .comment-user-info small{
@@ -830,6 +821,7 @@ MOBILE
 .add-comment-box textarea{
 
     width:100%;
+
     min-height:120px;
 
     border-radius:20px;
@@ -853,7 +845,6 @@ MOBILE
 }
 
 
-
 .add-comment-box textarea:focus{
 
     border-color:#111;
@@ -862,18 +853,30 @@ MOBILE
 
 
 
+/* =========================
+ COMMENT TOOLS
+========================= */
 
 
 .comment-tools{
+
     margin-top:15px;
+
     display:flex;
-    justify-content:space-between;
+
     align-items:center;
+
+    justify-content:space-between;
+
 }
 
+
 .emoji-hint{
+
     color:#888;
-    font-size:10px;
+
+    font-size:13px;
+
 }
 
 
@@ -881,8 +884,9 @@ MOBILE
 
 .send-comment-btn{
 
-    width:45px;
-    height:45px;
+    width:46px;
+
+    height:46px;
 
     border-radius:50%;
 
@@ -890,7 +894,7 @@ MOBILE
 
     background:#111;
 
-    color:white;
+    color:#fff;
 
     display:flex;
 
@@ -898,14 +902,29 @@ MOBILE
 
     justify-content:center;
 
+    cursor:pointer;
+
+    transition:.2s;
+
 }
+
+
+
+.send-comment-btn:hover{
+
+    transform:scale(1.05);
+
+}
+
 
 
 .send-comment-btn .material-icons{
 
-    font-size:17px;
+    font-size:20px;
 
 }
+
+
 
 /* =========================
  COMMENT CARD
@@ -942,8 +961,6 @@ MOBILE
 
 
 
-
-
 .comment-card .user-avatar{
 
     width:55px;
@@ -972,15 +989,11 @@ MOBILE
 
 
 
-
-
 .comment-content{
 
     flex:1;
 
 }
-
-
 
 
 
@@ -996,7 +1009,7 @@ MOBILE
 
 .comment-author{
 
-    font-size:17px;
+    font-size:14px;
 
     font-weight:800;
 
@@ -1010,7 +1023,7 @@ MOBILE
 
     color:#888;
 
-    font-size:13px;
+    font-size:11px;
 
     margin-top:4px;
 
@@ -1018,21 +1031,17 @@ MOBILE
 
 
 
-
-
 .comment-text{
 
     margin-top:15px;
 
-    font-size:16px;
+    font-size:13px;
 
     line-height:1.7;
 
     color:#333;
 
 }
-
-
 
 
 
@@ -1054,11 +1063,9 @@ MOBILE
 
     color:#888;
 
-    font-size:13px;
+    font-size:10px;
 
 }
-
-
 
 
 
@@ -1070,13 +1077,11 @@ MOBILE
 
     color:#e91e63;
 
-    font-size:15px;
+    font-size:12px;
 
     cursor:pointer;
 
 }
-
-
 
 
 
@@ -1092,6 +1097,9 @@ MOBILE
 
 
 
+/* =========================
+ MOBILE
+========================= */
 
 
 @media(max-width:600px){
@@ -1104,7 +1112,6 @@ MOBILE
 }
 
 
-
 .comment-card{
 
     padding:15px;
@@ -1112,22 +1119,22 @@ MOBILE
 }
 
 
+/* لا نغير اتجاه الأدوات */
 
 .comment-tools{
 
-    flex-direction:column;
+    flex-direction:row;
 
-    gap:15px;
+    gap:10px;
 
 }
 
 
-
 .send-comment-btn{
 
-    width:100%;
+    width:46px;
 
-    justify-content:center;
+    height:46px;
 
 }
 
