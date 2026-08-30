@@ -42,6 +42,8 @@ document.getElementById(
 
 let uploadedImageBase64 = "";
 
+let editingAnnouncementId = null;
+
 
 
 
@@ -140,55 +142,16 @@ count;
 
 }
 
-if(window.editingAnnouncementId){
 
 
-fetch(
-"/api/admin/announcements/" 
-+
-window.editingAnnouncementId,
-{
-
-method:"PUT",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-title,
-category,
-content,
-image
-
-})
-
-}
-
-)
-
-.then(res=>res.json())
-
-.then(()=>{
 
 
-alert("تم تعديل الإعلان");
 
 
-window.location.reload();
 
-
-});
-
-
-return;
-
-
-}
 
 // ================================
-// Load Ads From Server
+// Load Ads
 // ================================
 
 
@@ -241,13 +204,14 @@ error
 
 
 
+
+
 // ================================
 // Create Card
 // ================================
 
 
 function createAdCard(ad){
-
 
 
 const adItem =
@@ -264,6 +228,7 @@ adItem.className =
 
 adItem.innerHTML = `
 
+
 <img
 src="${ad.image || 'https://picsum.photos/600/300'}"
 class="ad-thumb"
@@ -271,6 +236,7 @@ class="ad-thumb"
 
 
 <div class="ad-details">
+
 
 <h4>
 ${ad.title}
@@ -295,15 +261,14 @@ ${ad.date || "الآن"}
 
 
 <button 
-class="action-btn edit"
-data-id="${ad.id}">
+class="action-btn edit">
 ✏️
 </button>
 
 
+
 <button 
-class="action-btn delete"
-data-id="${ad.id}">
+class="action-btn delete">
 🗑️
 </button>
 
@@ -315,29 +280,38 @@ data-id="${ad.id}">
 
 
 
-
-const deleteBtn =
-adItem.querySelector(
-".delete"
-);
-
 const editBtn =
 adItem.querySelector(
 ".edit"
 );
 
 
-editBtn.onclick = ()=>{
 
-    editAdvertisement(ad);
+editBtn.onclick =
+()=>{
+
+editAdvertisement(ad);
 
 };
+
+
+
+
+const deleteBtn =
+adItem.querySelector(
+".delete"
+);
+
+
 
 deleteBtn.onclick =
 ()=>{
 
 
-deleteAd(ad.id,adItem);
+deleteAdvertisement(
+ad.id,
+adItem
+);
 
 
 };
@@ -359,62 +333,84 @@ adItem
 
 
 
-/// ================================
-// Delete Advertisement From Server
+
+// ================================
+// Delete Advertisement
 // ================================
 
-function deleteAdvertisement(id, card){
 
-    if(!confirm("هل تريد حذف هذا الإعلان؟")){
-        return;
-    }
+function deleteAdvertisement(id,card){
 
 
-    fetch(
-        `/api/admin/announcements/${id}`,
-        {
-            method:"DELETE"
-        }
-    )
-
-    .then(res => res.json())
-
-    .then(data => {
+if(!confirm(
+"هل تريد حذف الإعلان؟"
+)) return;
 
 
-        if(data.success){
+
+fetch(
+`/api/admin/announcements/${id}`,
+{
+
+method:"DELETE"
+
+}
+
+)
 
 
-            card.remove();
-
-            updateCounter();
+.then(res=>res.json())
 
 
-        }else{
-
-            alert("فشل حذف الإعلان");
-
-        }
+.then(data=>{
 
 
-    })
+if(data.success){
 
-    .catch(error=>{
 
-        console.log(
-            "DELETE ERROR:",
-            error
-        );
+card.remove();
 
-        alert("خطأ في الاتصال بالسيرفر");
 
-    });
+updateCounter();
+
+
+}else{
+
+
+alert(
+"فشل الحذف"
+);
 
 
 }
 
+
+})
+
+
+.catch(error=>{
+
+
+console.log(
+error
+);
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+
 // ================================
-// Create Advertisement
+// Submit Create / Update
 // ================================
 
 
@@ -458,44 +454,83 @@ document.getElementById(
 
 
 
-
 const image =
-
-uploadedImageBase64
-
-||
-
-urlImage
-
-||
-
+uploadedImageBase64 ||
+urlImage ||
 "https://picsum.photos/600/300";
 
 
 
 
 
-fetch("/api/admin/announcements",{
+let url =
+"/api/admin/announcements";
 
-method:"POST",
+
+
+let method =
+"POST";
+
+
+
+
+
+if(editingAnnouncementId){
+
+
+url =
+"/api/admin/announcements/"
++
+editingAnnouncementId;
+
+
+
+method =
+"PUT";
+
+
+}
+
+
+
+
+fetch(
+url,
+{
+
+
+method:method,
+
 
 headers:{
-"Content-Type":"application/json"
+
+"Content-Type":
+"application/json"
+
 },
+
 
 body:JSON.stringify({
 
 title,
+
 category,
+
 content,
+
 image
 
 })
 
-})
+
+}
+
+)
+
 
 
 .then(res=>res.json())
+
 
 .then(data=>{
 
@@ -503,26 +538,25 @@ image
 if(data.success){
 
 
-const announcement =
-data.announcement;
 
-
-// هنا نبني الكارد مع ID الحقيقي
-
-
-console.log(
-"تم الحفظ:",
-notification.id
+alert(
+editingAnnouncementId
+?
+"تم تعديل الإعلان"
+:
+"تم نشر الإعلان"
 );
 
 
-}
+
+editingAnnouncementId=null;
 
 
-});
 
-
-updateCounter();
+document.querySelector(
+".btn-submit"
+).textContent =
+"🚀 نشر الإعلان الآن";
 
 
 
@@ -535,10 +569,23 @@ uploadedImageBase64="";
 fileNamePreview.textContent="";
 
 
+loadAds();
+
+
+
+}else{
+
+
+alert(
+"حدث خطأ"
+);
+
+
 }
 
 
 })
+
 
 
 .catch(error=>{
@@ -559,38 +606,41 @@ error
 
 }
 
-// =================================
+// ================================
 // Edit Advertisement
-// =================================
+// ================================
+
 
 function editAdvertisement(ad){
 
 
 document.getElementById(
 "ad-title"
-).value = ad.title;
+).value =
+ad.title;
 
 
 
 document.getElementById(
 "ad-category"
-).value = ad.type;
+).value =
+ad.type;
 
 
 
 document.getElementById(
 "ad-content"
-).value = ad.content;
+).value =
+ad.content;
 
 
 
 document.getElementById(
 "ad-image"
-).value = ad.image || "";
+).value =
+ad.image || "";
 
-
-
-window.editingAnnouncementId =
+editingAnnouncementId =
 ad.id;
 
 
@@ -601,13 +651,9 @@ document.querySelector(
 "💾 حفظ التعديل";
 
 
-
 }
 
-// ================================
 // Start
-// ================================
-
 
 loadAds();
 
