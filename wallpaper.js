@@ -2428,7 +2428,8 @@ async function sendComment(){
             avatar:userAvatar,
 
 
-            likes:0,
+            likes:0, 
+            likedBy:[],
 
 
             date:
@@ -2500,19 +2501,64 @@ if(sendCommentBtn){
 
 
 
-// ===============================
-// LIKE COMMENT READY
-// ===============================
-
-
 async function likeComment(id){
 
+try{
 
-    console.log(
-    "LIKE COMMENT",
-    id
-    );
 
+const user =
+localStorage.getItem("userName")
+||
+"مستخدم";
+
+
+const avatar =
+localStorage.getItem("userAvatar")
+||
+"";
+
+
+const res =
+await fetch(
+`/api/comments/${id}/like`,
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+user:user,
+avatar:avatar
+
+})
+
+});
+
+
+const data =
+await res.json();
+
+
+
+if(data.success){
+
+loadComments();
+
+}
+
+
+}catch(error){
+
+console.log(
+"LIKE COMMENT ERROR",
+error
+);
+
+}
 
 }
 
