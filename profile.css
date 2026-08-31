@@ -903,10 +903,9 @@ body.dark #closeEditBtn{
     color:#8b96ff;
 
 }
-
-
-
-
+body.dark .info-card:not(:last-child)::after{
+    background:rgba(255,255,255,0.08);
+}
 /* ==========================
    Mobile Adjustments
 ========================== */
@@ -1100,5 +1099,30 @@ body.dark #closeEditBtn{
         flex-basis:95%;
 
     }
+
+}
+/* Thin separators between profile information */
+
+.info-card{
+    position:relative;
+    padding-bottom:18px;
+}
+
+
+.info-card:not(:last-child)::after{
+
+    content:"";
+
+    position:absolute;
+
+    bottom:0;
+
+    right:0;
+
+    width:100%;
+
+    height:1px;
+
+    background:rgba(0,0,0,0.06);
 
 }
