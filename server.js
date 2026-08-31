@@ -1,4 +1,4 @@
-// ======================================
+=// ======================================
 // WallpaperHub Server v4
 // Clean Stable Version
 // ======================================
@@ -9,6 +9,13 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
+
+const { createClient } = require("@supabase/supabase-js");
+
+const supabase = createClient(
+process.env.SUPABASE_URL,
+process.env.SUPABASE_KEY
+);
 
 // ===============================
 // Gemini API KEY
@@ -2662,14 +2669,14 @@ new Date()
 
 
 // =========================
-// Comments API
+// Comments API (Supabase)
 // =========================
 
 
+// جلب التعليقات
 app.get(
 "/api/wallpapers/:id/comments",
-(req,res)=>{
-
+async (req,res)=>{
 
 try{
 
@@ -2679,16 +2686,26 @@ Number(req.params.id);
 
 
 
-const comments =
-readComments()
-.filter(
-comment =>
-comment.wallpaperId === wallpaperId
-);
+const { data, error } =
+await supabase
+.from("comments")
+.select("*")
+.eq("wallpaperId", wallpaperId)
+.order("id", {
+ascending:false
+});
 
 
 
-res.json(comments);
+if(error){
+
+throw error;
+
+}
+
+
+
+res.json(data);
 
 
 
@@ -2701,7 +2718,9 @@ error
 );
 
 
+
 res.status(500).json([]);
+
 
 }
 
@@ -2712,12 +2731,10 @@ res.status(500).json([]);
 
 
 
-
-
+// إضافة تعليق
 app.post(
 "/api/wallpapers/:id/comments",
-(req,res)=>{
-
+async (req,res)=>{
 
 try{
 
@@ -2750,26 +2767,15 @@ message:"Empty comment"
 
 
 
-
-const comments =
-readComments();
-
-
-
-
 const newComment = {
 
 
-id:
-Date.now(),
-
+// لا نضع id لأن Supabase ينشئه تلقائياً
 
 
 wallpaperId,
 
 
-
-// بيانات المستخدم
 user:
 req.body.user ||
 "مستخدم",
@@ -2788,22 +2794,18 @@ req.body.avatar ||
 
 
 
-
 text,
 
 
 
-// نظام الإعجاب
-likes:
-0,
-
-
-likedBy:
-[],
+likes:0,
 
 
 
-// التاريخ والساعة
+likedBy:[],
+
+
+
 date:
 new Date()
 .toLocaleDateString("ar-MA"),
@@ -2820,22 +2822,27 @@ minute:"2-digit"
 }
 )
 
-
 };
 
 
 
 
 
-comments.push(
-newComment
-);
+const { data, error } =
+await supabase
+.from("comments")
+.insert([newComment])
+.select()
+.single();
 
 
 
-saveComments(
-comments
-);
+
+if(error){
+
+throw error;
+
+}
 
 
 
@@ -2844,8 +2851,7 @@ res.json({
 
 success:true,
 
-comment:
-newComment
+comment:data
 
 });
 
