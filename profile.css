@@ -17,13 +17,14 @@ html{
 }
 
 body{
-    background:#eef2f7;
+    background:#ffffff; /* بدلاً من #eef2f7 */
     color:#161824;
     width:100%;
     overflow-x:hidden;
     padding-bottom:100px;
     -webkit-font-smoothing:antialiased;
 }
+
 
 /* ==========================
    Header
@@ -38,9 +39,10 @@ body{
     position:sticky;
     top:0;
     z-index:50;
-    background:#eef2f7;
+    background:#ffffff; /* بدلاً من #eef2f7 */
     border-bottom:1px solid rgba(0,0,0,0.05);
 }
+
 
 .profile-header h2{
     font-size:22px;
@@ -94,7 +96,7 @@ body{
     height:260px;
     text-align:center;
     overflow:hidden;
-    background:#eef2f7;
+    background:#ffffff; /* بدلاً من #eef2f7 */
 }
 
 .cover-image{
@@ -299,31 +301,29 @@ body{
     padding:20px 18px;
 }
 
+/* الإطار الخارجي يصبح عادياً وبسيطاً */
 .stat-card{
     text-align:center;
     padding:16px 8px;
     background:#eef2f7;
-    border:none;
+    border:1px solid rgba(0, 0, 0, 0.05);
     border-radius:18px;
-    box-shadow: 
-        0px 5px 0px #d0d7e3,
-        -2px 8px 12px rgba(166, 180, 200, 0.4),
-        inset 0px 2px 4px rgba(255, 255, 255, 0.9),
-        inset 0px -3px 5px rgba(166, 180, 200, 0.35);
+    box-shadow:none;
     transition:transform 0.15s ease;
 }
 
 .stat-card:active{
     transform:translateY(2px);
-    box-shadow:
-        0px 3px 0px #d0d7e3,
-        inset 0px 2px 3px rgba(255, 255, 255, 0.8);
 }
 
+/* تطبيق تأثير الـ 3D البارز (Clay) على الرقم (h3) نفسه */
 .stat-card h3{
-    font-size:24px;
-    font-weight:600;
+    font-size:26px;
+    font-weight:700;
     color:#5060ff;
+    text-shadow: 
+        0px 2px 0px #d0d7e3,
+        0px 4px 6px rgba(166, 180, 200, 0.6);
 }
 
 .stat-card p{
@@ -331,6 +331,7 @@ body{
     font-size:13px;
     color:#777777;
 }
+
 
 /* ==========================
    Wallpapers Content
