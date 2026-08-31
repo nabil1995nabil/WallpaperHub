@@ -1,981 +1,482 @@
 /* ===================================================
    WallpaperHub Profile CSS
-   Clean Normal Design
-   Part 1/4
+   Full Clean Code - Part 1/4
 =================================================== */
 
-
-/* Reset */
-
+/* Reset & Fonts */
 *{
-
-margin:0;
-
-padding:0;
-
-box-sizing:border-box;
-
-font-family:"Cairo",Arial,sans-serif;
-
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Cairo", Arial, sans-serif;
+    font-weight:400;
 }
-
-
 
 html{
-
-scroll-behavior:smooth;
-
+    scroll-behavior:smooth;
 }
-
-
 
 body{
-
-background:#f4f6ff;
-
-color:#161824;
-
-width:100%;
-
-overflow-x:hidden;
-
-padding-bottom:100px;
-
+    background:#f4f6ff;
+    color:#161824;
+    width:100%;
+    overflow-x:hidden;
+    padding-bottom:100px;
+    -webkit-font-smoothing:antialiased;
 }
-
-
 
 /* ==========================
- Header
+   Header
 ========================== */
-
-
 .profile-header{
-
-height:70px;
-
-width:100%;
-
-display:flex;
-
-align-items:center;
-
-justify-content:space-between;
-
-padding:0 18px;
-
-position:sticky;
-
-top:0;
-
-z-index:50;
-
-background:rgba(255,255,255,.85);
-
-backdrop-filter:blur(15px);
-
-border-bottom:1px solid rgba(0,0,0,.05);
-
-box-shadow:0 5px 20px rgba(0,0,0,.05);
-
+    height:70px;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 18px;
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
+    border-bottom:1px solid rgba(0,0,0,.05);
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
 }
-
-
 
 .profile-header h2{
-
-font-size:22px;
-
-font-weight:800;
-
+    font-size:22px;
+    font-weight:600;
 }
-
-
 
 .profile-actions{
-
-display:flex;
-
-align-items:center;
-
-gap:10px;
-
+    display:flex;
+    align-items:center;
+    gap:10px;
 }
-
-
-
 
 .back-btn,
 .edit-btn,
 .login-btn{
-
-width:42px;
-
-height:42px;
-
-border-radius:50%;
-
-border:none;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-cursor:pointer;
-
-background:#eef2ff;
-
-color:#5060ff;
-
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    background:#eef2ff;
+    color:#5060ff;
+    transition:.2s ease;
 }
 
-
-
+.back-btn:active,
+.edit-btn:active,
+.login-btn:active{
+    transform:scale(.95);
+}
 
 /* ==========================
- Cover
+   Cover
 ========================== */
-
-
 .profile-cover{
-
-position:relative;
-
-width:100%;
-
-height:260px;
-
-text-align:center;
-
-overflow:hidden;
-
-border-radius:0 0 40px 40px;
-
-background:white;
-
-box-shadow:0 15px 35px rgba(0,0,0,.06);
-
+    position:relative;
+    width:100%;
+    height:260px;
+    text-align:center;
+    overflow:hidden;
+    border-radius:0 0 40px 40px;
+    background:#ffffff;
+    box-shadow:0 15px 35px rgba(0,0,0,.06);
 }
-
-
 
 .cover-image{
-
-width:100%;
-
-height:170px;
-
-object-fit:cover;
-
-display:block;
-
+    width:100%;
+    height:170px;
+    object-fit:cover;
+    display:block;
 }
-
-
 
 .profile-avatar-box{
-
-position:absolute;
-
-top:105px;
-
-left:50%;
-
-transform:translateX(-50%);
-
+    position:absolute;
+    top:105px;
+    left:50%;
+    transform:translateX(-50%);
 }
-
-
 
 .profile-avatar{
-
-width:110px;
-
-height:110px;
-
-border-radius:50%;
-
-object-fit:cover;
-
-border:4px solid white;
-
-box-shadow:0 10px 30px rgba(0,0,0,.18);
-
+    width:110px;
+    height:110px;
+    border-radius:50%;
+    object-fit:cover;
+    border:4px solid #ffffff;
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
 }
-
-
 
 .avatar-edit{
-
-position:absolute;
-
-right:0;
-
-bottom:5px;
-
-width:36px;
-
-height:36px;
-
-border-radius:50%;
-
-border:2px solid white;
-
-background:#5060ff;
-
-color:white;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-cursor:pointer;
-
+    position:absolute;
+    right:0;
+    bottom:5px;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:2px solid #ffffff;
+    background:#5060ff;
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
 }
-
-
 
 .profile-cover h2{
-
-margin-top:55px;
-
-font-size:24px;
-
-font-weight:800;
-
+    margin-top:55px;
+    font-size:24px;
+    font-weight:600;
 }
-
-
 
 .profile-cover p{
-
-margin-top:5px;
-
-color:#6e758a;
-
-font-size:14px;
-
+    margin-top:5px;
+    color:#6e758a;
+    font-size:14px;
+    font-weight:400;
 }
-
 /* ===================================================
    User Cards + Statistics
-   Part 2/4
+   Full Clean Code - Part 2/4
 =================================================== */
 
-
 /* ==========================
- User Information
+   User Information
 ========================== */
-
-
 .user-info{
-
-padding:20px 18px;
-
-display:flex;
-
-flex-direction:column;
-
-gap:14px;
-
+    padding:20px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
 }
-
-
-
-
 
 .info-card{
-
-display:flex;
-
-align-items:center;
-
-gap:16px;
-
-padding:16px;
-
-border-radius:24px;
-
-background:rgba(255,255,255,.75);
-
-backdrop-filter:blur(15px);
-
--webkit-backdrop-filter:blur(15px);
-
-border:1px solid rgba(255,255,255,.8);
-
-box-shadow:
-
-0 10px 30px rgba(0,0,0,.06);
-
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:16px;
+    border-radius:24px;
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,.8);
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
 }
-
-
-
-
-
 
 .info-card .material-icons{
-
-width:45px;
-
-height:45px;
-
-flex-shrink:0;
-
-border-radius:50%;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-background:rgba(80,96,255,.12);
-
-color:#5060ff;
-
+    width:45px;
+    height:45px;
+    flex-shrink:0;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(80,96,255,.12);
+    color:#5060ff;
 }
-
-
-
-
 
 .info-card h4{
-
-font-size:13px;
-
-color:#6e758a;
-
-margin-bottom:5px;
-
-font-weight:600;
-
+    font-size:13px;
+    color:#6e758a;
+    margin-bottom:5px;
+    font-weight:400;
 }
-
-
-
-
 
 .info-card p{
-
-font-size:16px;
-
-color:#161824;
-
-font-weight:800;
-
+    font-size:16px;
+    color:#161824;
+    font-weight:500;
 }
-
-
-
-
-
-
 
 /* ==========================
- UID Card
+   UID Card
 ========================== */
-
-
 .uid-box{
-
-display:flex;
-
-flex-direction:column;
-
-gap:12px;
-
-padding:16px;
-
-border-radius:24px;
-
-background:rgba(255,255,255,.75);
-
-backdrop-filter:blur(15px);
-
--webkit-backdrop-filter:blur(15px);
-
-border:1px solid rgba(255,255,255,.8);
-
-box-shadow:
-
-0 10px 30px rgba(0,0,0,.06);
-
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:16px;
+    border-radius:24px;
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,.8);
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
 }
-
-
 
 .uid-title{
-
-font-size:13px;
-
-color:#6e758a;
-
-font-weight:600;
-
+    font-size:13px;
+    color:#6e758a;
+    font-weight:400;
 }
-
-
 
 .uid-content{
-
-display:flex;
-
-align-items:center;
-
-gap:10px;
-
-direction:ltr;
-
+    display:flex;
+    align-items:center;
+    gap:10px;
+    direction:ltr;
 }
-
-
-
-
 
 #userUid{
-
-flex:1;
-
-font-family:monospace;
-
-font-size:15px;
-
-color:#161824;
-
-overflow:hidden;
-
-text-overflow:ellipsis;
-
+    flex:1;
+    font-family:monospace;
+    font-size:15px;
+    color:#161824;
+    font-weight:400;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
-
-
-
-
 
 .uid-content button{
-
-width:42px;
-
-height:42px;
-
-border:none;
-
-border-radius:50%;
-
-background:#eef2ff;
-
-color:#5060ff;
-
-font-size:17px;
-
-cursor:pointer;
-
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:50%;
+    background:#eef2ff;
+    color:#5060ff;
+    font-size:17px;
+    cursor:pointer;
 }
-
-
-
-
-
-
-
 
 /* ==========================
- Statistics
+   Statistics
 ========================== */
-
-
 .profile-stats{
-
-width:100%;
-
-display:grid;
-
-grid-template-columns:repeat(3,1fr);
-
-gap:12px;
-
-padding:10px 18px 25px;
-
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    padding:10px 18px 25px;
 }
-
-
-
-
-
 
 .stat-card{
-
-text-align:center;
-
-padding:20px 5px;
-
-border-radius:24px;
-
-background:rgba(255,255,255,.75);
-
-backdrop-filter:blur(15px);
-
--webkit-backdrop-filter:blur(15px);
-
-border:1px solid rgba(255,255,255,.8);
-
-box-shadow:
-
-0 10px 30px rgba(0,0,0,.06);
-
+    text-align:center;
+    padding:20px 5px;
+    border-radius:24px;
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,.8);
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
 }
-
-
-
-
-
 
 .stat-card h3{
-
-font-size:26px;
-
-font-weight:900;
-
-color:#5060ff;
-
+    font-size:24px;
+    font-weight:600;
+    color:#5060ff;
 }
-
-
-
-
-
 
 .stat-card p{
-
-margin-top:5px;
-
-font-size:13px;
-
-color:#6e758a;
-
-font-weight:600;
-
+    margin-top:5px;
+    font-size:13px;
+    color:#6e758a;
+    font-weight:400;
 }
-
 /* ===================================================
    Wallpapers + Edit Modal
-   Part 3/4
+   Full Clean Code - Part 3/4
 =================================================== */
 
-
 /* ==========================
- Wallpapers Content
+   Wallpapers Content
 ========================== */
-
-
 .profile-content{
-
-padding:0 18px;
-
+    padding:0 18px;
 }
-
-
 
 .section-title{
-
-margin:30px 0 18px;
-
+    margin:30px 0 18px;
 }
-
-
 
 .section-title h2{
-
-font-size:20px;
-
-font-weight:800;
-
-color:#161824;
-
+    font-size:20px;
+    font-weight:600;
+    color:#161824;
 }
-
-
-
-
 
 /* ==========================
- Wallpaper Grid
+   Wallpaper Grid
 ========================== */
-
-
 .profile-grid{
-
-display:flex;
-
-gap:18px;
-
-overflow-x:auto;
-
-padding:10px 5px 25px;
-
+    display:flex;
+    gap:18px;
+    overflow-x:auto;
+    padding:10px 5px 25px;
 }
-
-
 
 .profile-grid::-webkit-scrollbar{
-
-display:none;
-
+    display:none;
 }
-
-
-
-
-
 
 .profile-wall-card{
-
-flex:0 0 85%;
-
-min-width:85%;
-
-overflow:hidden;
-
-border-radius:28px;
-
-background:rgba(255,255,255,.75);
-
-backdrop-filter:blur(15px);
-
--webkit-backdrop-filter:blur(15px);
-
-border:1px solid rgba(255,255,255,.8);
-
-box-shadow:
-
-0 15px 40px rgba(0,0,0,.08);
-
-cursor:pointer;
-
+    flex:0 0 85%;
+    min-width:85%;
+    overflow:hidden;
+    border-radius:28px;
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,.8);
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+    cursor:pointer;
 }
-
-
-
-
 
 .profile-wall-card img{
-
-width:100%;
-
-height:300px;
-
-object-fit:cover;
-
-display:block;
-
+    width:100%;
+    height:300px;
+    object-fit:cover;
+    display:block;
 }
-
-
-
-
 
 .profile-wall-info{
-
-padding:16px;
-
+    padding:16px;
 }
-
-
 
 .profile-wall-info h3{
-
-font-size:17px;
-
-font-weight:800;
-
-color:#161824;
-
-overflow:hidden;
-
-text-overflow:ellipsis;
-
-white-space:nowrap;
-
+    font-size:17px;
+    font-weight:500;
+    color:#161824;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
-
-
 
 .profile-wall-info p{
-
-margin-top:6px;
-
-color:#6e758a;
-
-font-size:13px;
-
+    margin-top:6px;
+    color:#6e758a;
+    font-size:13px;
+    font-weight:400;
 }
 
-
-
-
-
 /* ==========================
- Empty
+   Empty State
 ========================== */
-
-
 .empty-profile{
-
-padding:30px;
-
-text-align:center;
-
-border-radius:25px;
-
-background:white;
-
-color:#8990a8;
-
+    padding:30px;
+    text-align:center;
+    border-radius:25px;
+    background:#ffffff;
+    color:#8990a8;
+    font-weight:400;
 }
-
-
-
-
-
-
-
 
 /* ==========================
- Edit Modal
+   Edit Modal
 ========================== */
-
-
 .edit-modal{
-
-position:fixed;
-
-inset:0;
-
-display:none;
-
-align-items:center;
-
-justify-content:center;
-
-padding:20px;
-
-z-index:200;
-
-background:rgba(10,12,20,.45);
-
-backdrop-filter:blur(10px);
-
--webkit-backdrop-filter:blur(10px);
-
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:200;
+    background:rgba(10,12,20,.45);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
 }
-
-
 
 .edit-modal.show{
-
-display:flex;
-
+    display:flex;
 }
-
-
-
-
 
 .edit-box{
-
-width:100%;
-
-max-width:420px;
-
-padding:30px;
-
-border-radius:32px;
-
-background:white;
-
-box-shadow:
-
-0 30px 80px rgba(0,0,0,.25);
-
+    width:100%;
+    max-width:420px;
+    padding:30px;
+    border-radius:32px;
+    background:#ffffff;
+    box-shadow:0 30px 80px rgba(0,0,0,.25);
 }
-
-
-
-
 
 .edit-box h2{
-
-text-align:center;
-
-margin-bottom:25px;
-
-font-size:24px;
-
+    text-align:center;
+    margin-bottom:25px;
+    font-size:24px;
+    font-weight:600;
 }
-
-
-
-
-
 
 .edit-input{
-
-margin-bottom:18px;
-
+    margin-bottom:18px;
 }
-
-
-
-
 
 .edit-input label{
-
-display:block;
-
-margin-bottom:8px;
-
-color:#6e758a;
-
-font-size:14px;
-
-font-weight:700;
-
+    display:block;
+    margin-bottom:8px;
+    color:#6e758a;
+    font-size:14px;
+    font-weight:400;
 }
-
-
-
-
 
 .edit-input input{
-
-width:100%;
-
-height:52px;
-
-border-radius:18px;
-
-border:1px solid #e2e5f0;
-
-padding:0 16px;
-
-outline:none;
-
-font-size:15px;
-
+    width:100%;
+    height:52px;
+    border-radius:18px;
+    border:1px solid #e2e5f0;
+    padding:0 16px;
+    outline:none;
+    font-size:15px;
+    font-weight:400;
 }
-
-
 
 .edit-input input:focus{
-
-border-color:#5060ff;
-
+    border-color:#5060ff;
 }
-
-
-
-
 
 .edit-buttons{
-
-display:flex;
-
-gap:12px;
-
-margin-top:25px;
-
+    display:flex;
+    gap:12px;
+    margin-top:25px;
 }
-
-
-
-
 
 .edit-buttons button{
-
-flex:1;
-
-height:52px;
-
-border:none;
-
-border-radius:20px;
-
-font-size:16px;
-
-font-weight:800;
-
-cursor:pointer;
-
+    flex:1;
+    height:52px;
+    border:none;
+    border-radius:20px;
+    font-size:16px;
+    font-weight:500;
+    cursor:pointer;
 }
-
-
-
-
 
 #saveProfileBtn{
-
-background:#5060ff;
-
-color:white;
-
+    background:#5060ff;
+    color:#ffffff;
 }
-
-
-
-
 
 #closeEditBtn{
-
-background:#f1f3ff;
-
-color:#5060ff;
-
+    background:#f1f3ff;
+    color:#5060ff;
 }
-
 /* ===================================================
    Dark Mode + Mobile
-   Part 4/4
+   Full Clean Code - Part 4/4
 =================================================== */
 
-
 /* ==========================
- Dark Mode
+   Dark Mode
 ========================== */
-
-
 body.dark{
-
-background:#0b0d12;
-
-color:white;
-
+    background:#0b0d12;
+    color:#ffffff;
 }
-
-
 
 body.dark .profile-header{
-
-background:rgba(20,22,30,.9);
-
-border-color:rgba(255,255,255,.08);
-
+    background:rgba(20,22,30,.9);
+    border-color:rgba(255,255,255,.08);
 }
-
-
 
 body.dark .profile-cover{
-
-background:#14161f;
-
+    background:#14161f;
 }
-
-
 
 body.dark .info-card,
 body.dark .uid-box,
@@ -983,15 +484,9 @@ body.dark .stat-card,
 body.dark .profile-wall-card,
 body.dark .edit-box,
 body.dark .empty-profile{
-
-
-background:#181b24;
-
-border-color:rgba(255,255,255,.08);
-
+    background:#181b24;
+    border-color:rgba(255,255,255,.08);
 }
-
-
 
 body.dark .profile-header h2,
 body.dark .profile-cover h2,
@@ -999,308 +494,139 @@ body.dark .section-title h2,
 body.dark .info-card p,
 body.dark .profile-wall-info h3,
 body.dark #userUid{
-
-
-color:white;
-
+    color:#ffffff;
 }
-
-
 
 body.dark .profile-cover p,
 body.dark .info-card h4,
 body.dark .uid-title,
 body.dark .stat-card p,
 body.dark .profile-wall-info p{
-
-
-color:#9da4b8;
-
+    color:#9da4b8;
 }
-
-
 
 body.dark .back-btn,
 body.dark .edit-btn,
 body.dark .login-btn{
-
-
-background:#1b1e2b;
-
-color:#8b96ff;
-
+    background:#1b1e2b;
+    color:#8b96ff;
 }
-
-
 
 body.dark .uid-content button{
-
-
-background:#252a3a;
-
-color:#8b96ff;
-
+    background:#252a3a;
+    color:#8b96ff;
 }
-
-
 
 body.dark .edit-input input{
-
-
-background:#181b24;
-
-color:white;
-
-border-color:#303546;
-
+    background:#181b24;
+    color:#ffffff;
+    border-color:#303546;
 }
-
-
 
 body.dark #closeEditBtn{
-
-
-background:#252a3a;
-
-color:#8b96ff;
-
+    background:#252a3a;
+    color:#8b96ff;
 }
-
-
-
-
-
-
-
 
 /* ==========================
- Mobile
+   Mobile Adjustments
 ========================== */
-
-
 @media(max-width:600px){
+    .profile-header{
+        height:65px;
+    }
 
+    .profile-header h2{
+        font-size:20px;
+    }
 
+    .profile-cover{
+        height:240px;
+    }
 
-.profile-header{
+    .cover-image{
+        height:155px;
+    }
 
-height:65px;
+    .profile-avatar{
+        width:95px;
+        height:95px;
+    }
 
+    .profile-avatar-box{
+        top:95px;
+    }
+
+    .profile-cover h2{
+        margin-top:50px;
+        font-size:22px;
+    }
+
+    .profile-stats{
+        gap:10px;
+        padding:15px;
+    }
+
+    .stat-card{
+        border-radius:20px;
+        padding:16px 5px;
+    }
+
+    .stat-card h3{
+        font-size:22px;
+    }
+
+    .stat-card p{
+        font-size:12px;
+    }
+
+    .info-card,
+    .uid-box{
+        padding:14px;
+    }
+
+    .info-card .material-icons{
+        width:40px;
+        height:40px;
+    }
+
+    .uid-content button{
+        width:38px;
+        height:38px;
+        font-size:15px;
+    }
+
+    #userUid{
+        font-size:13px;
+    }
+
+    .profile-wall-card{
+        flex:0 0 90%;
+        min-width:90%;
+    }
+
+    .profile-wall-card img{
+        height:240px;
+    }
+
+    .section-title h2{
+        font-size:18px;
+    }
 }
-
-
-
-.profile-header h2{
-
-font-size:20px;
-
-}
-
-
-
-
-.profile-cover{
-
-height:240px;
-
-}
-
-
-
-
-.cover-image{
-
-height:155px;
-
-}
-
-
-
-
-
-.profile-avatar{
-
-width:95px;
-
-height:95px;
-
-}
-
-
-
-.profile-avatar-box{
-
-top:95px;
-
-}
-
-
-
-
-
-.profile-cover h2{
-
-margin-top:50px;
-
-font-size:22px;
-
-}
-
-
-
-
-
-.profile-stats{
-
-gap:10px;
-
-padding:15px;
-
-}
-
-
-
-
-.stat-card{
-
-border-radius:20px;
-
-padding:16px 5px;
-
-}
-
-
-
-.stat-card h3{
-
-font-size:22px;
-
-}
-
-
-
-.stat-card p{
-
-font-size:12px;
-
-}
-
-
-
-
-
-.info-card,
-.uid-box{
-
-padding:14px;
-
-}
-
-
-
-
-.info-card .material-icons{
-
-width:40px;
-
-height:40px;
-
-}
-
-
-
-
-
-.uid-content button{
-
-width:38px;
-
-height:38px;
-
-font-size:15px;
-
-}
-
-
-
-
-
-#userUid{
-
-font-size:13px;
-
-}
-
-
-
-
-
-.profile-wall-card{
-
-flex:0 0 90%;
-
-min-width:90%;
-
-}
-
-
-
-
-
-.profile-wall-card img{
-
-height:240px;
-
-}
-
-
-
-
-.section-title h2{
-
-font-size:18px;
-
-}
-
-
-
-}
-
-
-
-
-
 
 @media(max-width:380px){
+    .profile-actions{
+        gap:6px;
+    }
 
+    .back-btn,
+    .edit-btn,
+    .login-btn{
+        width:38px;
+        height:38px;
+    }
 
-
-.profile-actions{
-
-gap:6px;
-
-}
-
-
-
-.back-btn,
-.edit-btn,
-.login-btn{
-
-width:38px;
-
-height:38px;
-
-}
-
-
-
-.profile-wall-card{
-
-flex-basis:95%;
-
-}
-
-
-
+    .profile-wall-card{
+        flex-basis:95%;
+    }
 }
