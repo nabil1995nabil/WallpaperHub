@@ -1,420 +1,346 @@
 /* ==========================
-   WallpaperHub Favorites
+   WallpaperHub Favorites (3D Clay Edition)
 ========================== */
-
 
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,sans-serif;
+    font-family:system-ui, -apple-system, sans-serif;
 }
-
-
 
 body{
-
-    background:#f7f8fc;
-    color:#222;
-    padding-bottom:90px;
+    background:#eef2f7;
+    color:#1a253c;
+    padding-bottom:100px;
     transition:.3s;
-
+    -webkit-font-smoothing: antialiased;
 }
-
-
 
 /* ==========================
    Header
 ========================== */
 
-
 .header{
-
     position:sticky;
     top:0;
     z-index:100;
-
     height:70px;
-
-    background:#fff;
-
+    background:rgba(238, 242, 247, 0.85);
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
     display:flex;
     align-items:center;
-
     gap:15px;
-
     padding:0 18px;
-
-    box-shadow:0 2px 12px rgba(0,0,0,.05);
-
 }
 
-
-
+/* زر الرجوع 3D Clay */
 .back-btn{
-
     width:45px;
     height:45px;
-
     border:none;
     border-radius:50%;
-
-    background:#f3f3f3;
-
+    background:#eef2f7;
+    color:#1a253c;
     display:flex;
     justify-content:center;
     align-items:center;
-
     cursor:pointer;
+    
+    box-shadow: 
+        0px 4px 0px #d0d7e3,
+        -2px 8px 10px rgba(166, 180, 200, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
 
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
 
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0px 6px 0px #d0d7e3,
+        -3px 12px 12px rgba(166, 180, 200, 0.5),
+        inset 0px 3px 4px rgba(255, 255, 255, 1),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
+}
 
+.back-btn:active{
+    transform: translateY(2px);
+    box-shadow: 
+        0px 2px 0px #d0d7e3,
+        -1px 4px 6px rgba(166, 180, 200, 0.3),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.6),
+        inset 0px -2px 4px rgba(166, 180, 200, 0.5);
+}
 
 .back-btn span{
-
     font-size:24px;
-
 }
-
-
 
 .header h2{
-
     font-size:22px;
     font-weight:bold;
-
+    color:#1a253c;
 }
 
-
-
-
-
 /* ==========================
-   Favorites
+   Favorites Grid & Cards
 ========================== */
-
 
 .favorites-container{
-
     padding:18px;
-
 }
-
-
 
 .favorites-grid{
-
     display:grid;
-
     grid-template-columns:repeat(2,1fr);
-
     gap:16px;
-
 }
 
-
-
-
-
-/* ==========================
-   Image Card Only
-========================== */
-
-
+/* بطاقة الخلفية 3D Clay */
 .favorite-card{
-
     overflow:hidden;
-
     border-radius:22px;
-
     cursor:pointer;
-
-    background:transparent;
-
-    transition:.3s;
-
+    background:#e8e8e8;
     animation:fade .5s;
+    
+    box-shadow: 
+        0px 8px 0px #d0d7e3,
+        -4px 14px 15px rgba(166, 180, 200, 0.4),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
+        inset 0px -4px 6px rgba(0, 0, 0, 0.2);
 
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
 }
 
-
+.favorite-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0px 12px 0px #d0d7e3,
+        -5px 18px 20px rgba(166, 180, 200, 0.5),
+        inset 0px 4px 5px rgba(255, 255, 255, 0.6),
+        inset 0px -4px 6px rgba(0, 0, 0, 0.2);
+}
 
 .favorite-card:active{
-
-    transform:scale(.96);
-
+    transform: translateY(3px);
+    box-shadow: 
+        0px 4px 0px #d0d7e3,
+        -2px 8px 10px rgba(166, 180, 200, 0.3),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
 }
-
-
 
 .favorite-card img{
-
     width:100%;
-
     height:260px;
-
     object-fit:cover;
-
     display:block;
-
     border-radius:22px;
-
 }
 
-
-
-
-
-
 /* ==========================
-   Empty
+   Empty State
 ========================== */
-
 
 .empty-state{
-
     display:none;
-
     padding:70px 20px;
-
     text-align:center;
-
 }
-
-
 
 .empty-state span{
-
     font-size:80px;
-
     color:#bbb;
-
 }
-
-
 
 .empty-state h3{
-
     margin-top:20px;
-
     font-size:22px;
-
 }
-
-
 
 .empty-state p{
-
     margin-top:10px;
-
     color:#777;
-
     line-height:1.7;
-
 }
 
-
-
+/* زر الصفحة الفارغة 3D Clay */
 .empty-state button{
-
     margin-top:25px;
-
     height:50px;
-
     padding:0 28px;
-
     border:none;
-
-    border-radius:15px;
-
+    border-radius:18px;
     background:#5b5ce9;
-
     color:#fff;
-
     font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    
+    box-shadow: 
+        0px 5px 0px #3c3dbb,
+        0px 8px 15px rgba(91, 92, 233, 0.35),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
 
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
 
+.empty-state button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0px 7px 0px #3c3dbb,
+        0px 12px 18px rgba(91, 92, 233, 0.45),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+}
 
-
-
+.empty-state button:active {
+    transform: translateY(2px);
+    box-shadow: 
+        0px 2px 0px #3c3dbb,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
+        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
+}
 
 /* ==========================
-   Bottom Navigation
+   Bottom Navigation (3D Clay Bar & Items)
 ========================== */
 
-
 .bottom-nav{
-
     position:fixed;
-
-    bottom:0;
-
-    left:0;
-
-    width:100%;
-
-    height:70px;
-
-    background:#fff;
-
+    bottom:12px;
+    left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 32px);
+    max-width:500px;
+    height:66px;
+    background:#eef2f7;
     display:flex;
-
     justify-content:space-around;
-
     align-items:center;
-
-    box-shadow:0 -2px 15px rgba(0,0,0,.08);
-
+    border-radius:24px;
     z-index:200;
-
+    
+    box-shadow: 
+        0px 6px 0px #d0d7e3,
+        0px 10px 20px rgba(166, 180, 200, 0.45),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.3);
 }
-
-
 
 .nav-item{
-
     display:flex;
-
     flex-direction:column;
-
     align-items:center;
-
-    font-size:12px;
-
+    justify-content:center;
+    padding:6px 16px;
+    border-radius:16px;
+    font-size:11px;
+    font-weight:bold;
     color:#777;
-
+    cursor:pointer;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
-
-
 
 .nav-item span{
-
-    font-size:27px;
-
-    margin-bottom:3px;
-
+    font-size:24px;
+    margin-bottom:2px;
 }
 
-
-
+/* العنصر النشط في الشريط السفلي */
 .nav-item.active{
-
     color:#5b5ce9;
-
+    background:#eef2f7;
+    
+    box-shadow: 
+        0px 3px 0px #d0d7e3,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.8),
+        inset 0px -2px 4px rgba(166, 180, 200, 0.4);
 }
 
-
-
-
+.nav-item:active{
+    transform:scale(0.92);
+}
 
 /* ==========================
    Animation
 ========================== */
 
-
 @keyframes fade{
-
-from{
-
-    opacity:0;
-
-    transform:translateY(20px);
-
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
 }
-
-
-to{
-
-    opacity:1;
-
-    transform:translateY(0);
-
-}
-
-}
-
-
-
-
-
 
 /* ==========================
-   PURE BLACK DARK MODE
+   DARK MODE (3D Clay OLED)
 ========================== */
 
-
 body.dark{
-
-    background:#000;
-
+    background:#0d0f17;
     color:#fff;
-
 }
-
-
-
-
 
 body.dark .header{
-
-    background:#000;
-
+    background:rgba(13,15,23,.95);
     color:#fff;
-
-    box-shadow:none;
-
 }
 
-
+body.dark .header h2{
+    color:#fff;
+}
 
 body.dark .back-btn{
-
-    background:#111;
-
+    background:#2b3145;
     color:#fff;
-
+    box-shadow: 
+        0px 4px 0px #1a1e2c,
+        -2px 8px 10px rgba(0, 0, 0, 0.5),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.25),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
 }
-
-
 
 body.dark .favorite-card{
-
-    background:transparent;
-
+    background:#2b3145;
+    box-shadow: 
+        0px 8px 0px #1a1e2c,
+        -4px 14px 15px rgba(0, 0, 0, 0.5),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.2),
+        inset 0px -4px 6px rgba(0, 0, 0, 0.4);
 }
-
-
 
 body.dark .bottom-nav{
-
-    background:#000;
-
-    border-top:1px solid #222;
-
+    background:#1c202e;
+    box-shadow: 
+        0px 6px 0px #12151f,
+        0px 10px 20px rgba(0, 0, 0, 0.6),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.15),
+        inset 0px -3px 5px rgba(0, 0, 0, 0.5);
 }
-
-
 
 body.dark .nav-item{
-
-    color:#aaa;
-
+    color:#8a94a6;
 }
-
-
 
 body.dark .nav-item.active{
-
-    color:#fff;
-
+    color:#8d9aff;
+    background:#1c202e;
+    box-shadow: 
+        0px 3px 0px #12151f,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.15),
+        inset 0px -2px 4px rgba(0, 0, 0, 0.5);
 }
 
-
-
 body.dark .empty-state p{
-
     color:#aaa;
-
 }
