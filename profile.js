@@ -1019,19 +1019,9 @@ card.className =
 card.innerHTML = `
 
 <img src="${
-
-wall.thumbnail ||
-
-wall.image
-
+    wall.thumbnail ||
+    wall.image
 }">
-
-
-<h3>
-
-${wall.title || "بدون اسم"}
-
-</h3>
 
 `;
 
