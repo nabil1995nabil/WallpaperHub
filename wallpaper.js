@@ -1447,45 +1447,41 @@ if (downloadBtn) {
 }
 
 // ===============================
-// Favorite System Fixed
+// Like System (Wallpaper)
 // ===============================
 
 const favoriteBtn = document.getElementById("favoriteBtn");
 
 
-function getFavorites(){
+async function likeWallpaper(){
 
     try{
 
-        return JSON.parse(
-            localStorage.getItem("favorites") || "[]"
-        ).map(String);
-
-    }catch(error){
-
-        console.error("FAVORITES READ ERROR", error);
-        return [];
-
-    }
-
-}
-
-
-
-function updateFavorite(){
-
-    try{
-
-        if(!favoriteBtn || !currentWallpaper)
+        if(!currentWallpaper || !favoriteBtn)
             return;
 
 
-        const favorites = getFavorites();
-
-        const id = String(currentWallpaper.id);
+        const userId = "guest";
 
 
-        if(favorites.includes(id)){
+        const response = await fetch(
+            "/api/wallpapers/" + currentWallpaper.id + "/like",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    userId:userId
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if(data.success){
 
             favoriteBtn.innerHTML = `
                 <span class="material-icons">
@@ -1496,22 +1492,20 @@ function updateFavorite(){
             favoriteBtn.classList.add("liked");
 
 
-        }else{
-
-            favoriteBtn.innerHTML = `
-                <span class="material-icons">
-                    favorite_border
-                </span>
-            `;
-
-            favoriteBtn.classList.remove("liked");
+            console.log(
+                "Likes:",
+                data.likes
+            );
 
         }
 
 
     }catch(error){
 
-        console.error("UPDATE FAVORITE ERROR", error);
+        console.error(
+            "LIKE ERROR",
+            error
+        );
 
     }
 
@@ -1519,79 +1513,12 @@ function updateFavorite(){
 
 
 
-
 if(favoriteBtn){
 
-    favoriteBtn.addEventListener("click",()=>{
-
-
-        try{
-
-
-            if(!currentWallpaper)
-                return;
-
-
-            let favorites = getFavorites();
-
-
-            const id = String(currentWallpaper.id);
-
-
-
-            if(favorites.includes(id)){
-
-
-                favorites =
-                favorites.filter(
-                    item => item !== id
-                );
-
-
-            }else{
-
-
-                favorites.push(id);
-
-
-                if(window.syncUserStats){
-
-                    window.syncUserStats(
-                        "favorites",
-                        currentWallpaper.id
-                    );
-
-                }
-
-
-            }
-
-
-
-            localStorage.setItem(
-                "favorites",
-                JSON.stringify(favorites)
-            );
-
-
-            updateFavorite();
-
-
-
-        }catch(error){
-
-
-            console.error(
-                "FAVORITE CLICK ERROR",
-                error
-            );
-
-
-        }
-
-
-    });
-
+    favoriteBtn.addEventListener(
+        "click",
+        likeWallpaper
+    );
 
 }
 

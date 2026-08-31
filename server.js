@@ -831,9 +831,186 @@ app.get(
 
 });
 
+// ======================================
+// Like Wallpaper API
+// ======================================
+
+app.post(
+"/api/wallpapers/:id/like",
+(req,res)=>{
+
+try{
+
+const id = Number(req.params.id);
+
+let wallpapers = readWallpapers();
+
+
+const index = wallpapers.findIndex(
+w => w.id === id
+);
+
+
+if(index === -1){
+
+return res.status(404).json({
+success:false
+});
+
+}
+
+
+if(!wallpapers[index].likedBy){
+    wallpapers[index].likedBy = [];
+}
+
+
+const userId = req.body.userId || "guest";
+
+
+if(wallpapers[index].likedBy.includes(userId)){
+
+wallpapers[index].likedBy =
+wallpapers[index].likedBy.filter(
+u => u !== userId
+);
+
+}else{
+
+wallpapers[index].likedBy.push(userId);
+
+}
+
+
+wallpapers[index].likes =
+wallpapers[index].likedBy.length;
+
+
+saveWallpapers(wallpapers);
+
+
+res.json({
+
+success:true,
+
+likes:
+wallpapers[index].likes
+
+});
+
+
+}catch(error){
+
+console.log(
+"LIKE WALLPAPER ERROR:",
+error
+);
+
+res.status(500).json({
+success:false
+});
+
+}
+
+});
+
+// ======================================
+// Like Wallpaper API
+// ======================================
+
+app.post(
+"/api/wallpapers/:id/like",
+(req,res)=>{
+
+try{
+
+const id = Number(req.params.id);
+
+let wallpapers = readWallpapers();
+
+
+const index = wallpapers.findIndex(
+w => w.id === id
+);
+
+
+if(index === -1){
+
+return res.status(404).json({
+success:false
+});
+
+}
 
 
 
+if(!wallpapers[index].likedBy){
+wallpapers[index].likedBy=[];
+}
+
+
+
+const user =
+req.body.userId || "guest";
+
+
+
+// إزالة أو إضافة الإعجاب
+
+if(
+wallpapers[index].likedBy.includes(user)
+){
+
+wallpapers[index].likedBy =
+wallpapers[index].likedBy.filter(
+u=>u!==user
+);
+
+}else{
+
+wallpapers[index].likedBy.push(user);
+
+}
+
+
+
+wallpapers[index].likes =
+wallpapers[index].likedBy.length;
+
+
+
+saveWallpapers(
+wallpapers
+);
+
+
+
+res.json({
+
+success:true,
+
+likes:
+wallpapers[index].likes
+
+});
+
+
+}catch(error){
+
+console.log(
+"LIKE WALLPAPER ERROR:",
+error
+);
+
+
+res.status(500).json({
+success:false
+});
+
+
+}
+
+});
 
 // ======================================
 // Add Wallpaper
