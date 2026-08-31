@@ -2983,43 +2983,27 @@ success:false
 });
 
 // ======================================
-// Admin Announcements API
+// Admin Announcements API (Supabase)
 // ======================================
 
 
 // إنشاء إعلان جديد
-
 app.post(
 "/api/admin/announcements",
-(req,res)=>{
-
+async (req,res)=>{
 
 try{
 
 
-const announcements =
-readAnnouncements();
-
-
-
 const newAnnouncement = {
-
-
-id:
-Date.now(),
-
-
 
 type:
 req.body.category ||
 "admin",
 
-
-
 title:
 req.body.title ||
 "",
-
 
 
 content:
@@ -3027,39 +3011,37 @@ req.body.content ||
 "",
 
 
-
 image:
 req.body.image ||
 "",
 
 
-
 likes:0,
 
-
 views:0,
-
 
 
 date:
 new Date()
 .toLocaleString("ar-MA")
 
-
-
 };
 
 
 
-announcements.unshift(
-newAnnouncement
-);
+
+const { data, error } =
+await supabase
+.from("announcements")
+.insert(newAnnouncement)
+.select()
+.single();
 
 
 
-saveAnnouncements(
-announcements
-);
+if(error){
+throw error;
+}
 
 
 
@@ -3067,8 +3049,7 @@ res.json({
 
 success:true,
 
-announcement:
-newAnnouncement
+announcement:data
 
 });
 
@@ -3083,12 +3064,67 @@ error
 );
 
 
-
 res.status(500).json({
 
-success:false
+success:false,
+error:error.message
 
 });
+
+
+}
+
+});
+
+
+
+
+
+
+
+// جلب الإعلانات للأدمن
+
+app.get(
+"/api/admin/announcements",
+async (req,res)=>{
+
+
+try{
+
+
+const { data, error } =
+await supabase
+.from("announcements")
+.select("*")
+.order(
+"created_at",
+{
+ascending:false
+}
+);
+
+
+
+if(error){
+throw error;
+}
+
+
+
+res.json(data);
+
+
+
+}catch(error){
+
+
+console.log(
+"GET ANNOUNCEMENTS ERROR:",
+error
+);
+
+
+res.status(500).json([]);
 
 
 }
@@ -3103,34 +3139,11 @@ success:false
 
 
 
-
-// جلب الإعلانات للأدمن
-
-app.get(
-"/api/admin/announcements",
-(req,res)=>{
-
-
-res.json(
-readAnnouncements()
-);
-
-
-});
-
-
-
-
-
-
-
-
-
 // حذف إعلان
 
 app.delete(
 "/api/admin/announcements/:id",
-(req,res)=>{
+async (req,res)=>{
 
 
 try{
@@ -3141,21 +3154,20 @@ Number(req.params.id);
 
 
 
-let announcements =
-readAnnouncements();
-
-
-
-announcements =
-announcements.filter(
-a=>a.id !== id
+const { error } =
+await supabase
+.from("announcements")
+.delete()
+.eq(
+"id",
+id
 );
 
 
 
-saveAnnouncements(
-announcements
-);
+if(error){
+throw error;
+}
 
 
 
