@@ -1,8 +1,7 @@
 /* ==========================
-   WallpaperHub Profile CSS
-   Simple Clean Design
+   WallpaperHub Profile CSS - Clay Block 3D Full Code
+   Part 1
 ========================== */
-
 
 /* Reset */
 *{
@@ -13,14 +12,12 @@
     font-weight:400;
 }
 
-
 html{
     scroll-behavior:smooth;
 }
 
-
 body{
-    background:#ffffff;
+    background:#eef2f7;
     color:#161824;
     width:100%;
     overflow-x:hidden;
@@ -28,806 +25,526 @@ body{
     -webkit-font-smoothing:antialiased;
 }
 
-
 /* ==========================
    Header
 ========================== */
-
 .profile-header{
-
     height:70px;
     width:100%;
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
     padding:0 18px;
-
     position:sticky;
     top:0;
-
     z-index:50;
-
-    background:#ffffff;
-
-    border-bottom:1px solid #eeeeee;
-
+    background:#eef2f7;
+    border-bottom:1px solid rgba(0,0,0,0.05);
 }
-
 
 .profile-header h2{
-
     font-size:22px;
     font-weight:600;
-
 }
 
-
-
 .profile-actions{
-
     display:flex;
     align-items:center;
     gap:10px;
-
 }
 
-
-
+/* زر رجوع، زر تسجيل خروج، زر قلم (الهيدر) - Clay 3D */
 .back-btn,
 .edit-btn,
 .login-btn{
-
     width:42px;
     height:42px;
-
     border-radius:50%;
-
     border:none;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     cursor:pointer;
-
-    background:#f1f3ff;
-
+    background:#eef2f7;
     color:#5060ff;
-
+    box-shadow: 
+        0px 4px 0px #d0d7e3,
+        -2px 8px 10px rgba(166, 180, 200, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
 }
-
-
 
 .back-btn:active,
 .edit-btn:active,
 .login-btn:active{
-
-    opacity:.7;
-
+    transform:translateY(2px);
+    box-shadow: 
+        0px 2px 0px #d0d7e3,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.6);
+    opacity:1;
 }
-
-
 
 /* ==========================
    Cover
 ========================== */
-
-
 .profile-cover{
-
     position:relative;
-
     width:100%;
-
     height:260px;
-
     text-align:center;
-
     overflow:hidden;
-
-    background:#ffffff;
-
+    background:#eef2f7;
 }
-
-
 
 .cover-image{
-
     width:100%;
-
     height:170px;
-
     object-fit:cover;
-
     display:block;
-
 }
-
-
 
 .profile-avatar-box{
-
     position:absolute;
-
     top:105px;
-
     left:50%;
-
     transform:translateX(-50%);
-
 }
-
-
 
 .profile-avatar{
-
     width:110px;
-
     height:110px;
-
     border-radius:50%;
-
     object-fit:cover;
-
-    border:4px solid #ffffff;
-
+    border:4px solid #eef2f7;
+    box-shadow: 
+        0px 6px 0px #d0d7e3,
+        0px 10px 15px rgba(166, 180, 200, 0.5);
 }
 
-
-
+/* زر قلم الصورة الشخصية - Clay 3D */
 .avatar-edit{
-
     position:absolute;
-
     right:0;
-
     bottom:5px;
-
-
     width:36px;
-
     height:36px;
-
-
     border-radius:50%;
-
-
-    border:2px solid #ffffff;
-
-
+    border:none;
     background:#5060ff;
-
     color:#ffffff;
-
-
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
-
     cursor:pointer;
-
+    box-shadow: 
+        0px 3px 0px #3845c4,
+        -1px 4px 6px rgba(80, 96, 255, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.5),
+        inset 0px -2px 4px rgba(0, 0, 0, 0.2);
+    transition:transform 0.15s ease;
 }
 
-
+.avatar-edit:active{
+    transform:translateY(2px);
+    box-shadow:0px 1px 0px #3845c4;
+}
 
 .profile-cover h2{
-
     margin-top:55px;
-
     font-size:24px;
-
     font-weight:600;
-
 }
 
-
-
 .profile-cover p{
-
     margin-top:5px;
-
     color:#777777;
-
     font-size:14px;
-
 }
 
 /* ==========================
    User Information
 ========================== */
-
-
 .user-info{
-
     padding:20px 18px;
-
     display:flex;
-
     flex-direction:column;
-
     gap:20px;
-
 }
-
-
 
 .info-card{
-
     display:flex;
-
     align-items:center;
-
     gap:16px;
-
-    padding:10px 0;
-
+    padding:10px 0 18px 0;
     background:transparent;
-
     border:none;
-
     box-shadow:none;
-
+    position:relative;
 }
 
+.info-card:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    right:0;
+    width:100%;
+    height:1px;
+    background:rgba(0,0,0,0.06);
+}
 
-
+/* أيقونات (اسم المستخدم، البريد، نوع الحساب، التاريخ، آخر دخول) - Clay 3D */
 .info-card .material-icons{
-
-    width:40px;
-
-    height:40px;
-
+    width:42px;
+    height:42px;
     flex-shrink:0;
-
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     color:#5060ff;
-
-    background:transparent;
-
+    background:#eef2f7;
+    border-radius:12px;
+    box-shadow: 
+        0px 3px 0px #d0d7e3,
+        -2px 5px 8px rgba(166, 180, 200, 0.35),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -2px 4px rgba(166, 180, 200, 0.3);
 }
-
-
 
 .info-card h4{
-
     font-size:13px;
-
     color:#777777;
-
     margin-bottom:5px;
-
 }
-
-
 
 .info-card p{
-
     font-size:16px;
-
     color:#161824;
-
     font-weight:500;
-
 }
-
-
+/* ==========================
+   WallpaperHub Profile CSS - Clay Block 3D Full Code
+   Part 2
+========================== */
 
 /* ==========================
    UID
 ========================== */
-
-
 .uid-box{
-
     display:flex;
-
     flex-direction:column;
-
     gap:12px;
-
     padding:10px 18px;
-
     background:transparent;
-
     border:none;
-
     box-shadow:none;
-
 }
-
-
 
 .uid-title{
-
     font-size:13px;
-
     color:#777777;
-
 }
-
-
 
 .uid-content{
-
     display:flex;
-
     align-items:center;
-
     gap:14px;
-
     direction:ltr;
-
 }
-
-
 
 #userUid{
-
     flex:1;
-
     font-family:monospace;
-
     font-size:15px;
-
     color:#161824;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
-
 }
 
-
-
+/* رموز/أزرار الـ ID - Clay 3D */
 .uid-content button{
-
-    width:auto;
-
-    height:auto;
-
-    padding:5px;
-
+    width:38px;
+    height:38px;
+    padding:0;
     border:none;
-
-    border-radius:0;
-
-    background:transparent;
-
+    border-radius:10px;
+    background:#eef2f7;
     color:#5060ff;
-
-    font-size:20px;
-
+    font-size:18px;
     cursor:pointer;
-
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 
+        0px 3px 0px #d0d7e3,
+        -2px 5px 8px rgba(166, 180, 200, 0.35),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -2px 4px rgba(166, 180, 200, 0.3);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-
+.uid-content button:active{
+    transform:translateY(2px);
+    box-shadow:0px 1px 0px #d0d7e3;
+}
 
 /* ==========================
-   Statistics
+   Statistics (أرقام التحميل، الإعجاب، المشاهدة)
 ========================== */
-
-
 .profile-stats{
-
     width:100%;
-
     display:grid;
-
     grid-template-columns:repeat(3,1fr);
-
-    gap:10px;
-
+    gap:12px;
     padding:20px 18px;
-
 }
-
-
 
 .stat-card{
-
     text-align:center;
-
-    padding:15px 5px;
-
-    background:transparent;
-
+    padding:16px 8px;
+    background:#eef2f7;
     border:none;
-
-    box-shadow:none;
-
+    border-radius:18px;
+    box-shadow: 
+        0px 5px 0px #d0d7e3,
+        -2px 8px 12px rgba(166, 180, 200, 0.4),
+        inset 0px 2px 4px rgba(255, 255, 255, 0.9),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.35);
+    transition:transform 0.15s ease;
 }
 
-
+.stat-card:active{
+    transform:translateY(2px);
+    box-shadow:
+        0px 3px 0px #d0d7e3,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.8);
+}
 
 .stat-card h3{
-
     font-size:24px;
-
     font-weight:600;
-
     color:#5060ff;
-
 }
-
-
 
 .stat-card p{
-
     margin-top:5px;
-
     font-size:13px;
-
     color:#777777;
-
 }
+
 /* ==========================
    Wallpapers Content
 ========================== */
-
-
 .profile-content{
-
     padding:0 18px;
-
 }
-
-
 
 .section-title{
-
     margin:30px 0 18px;
-
 }
-
-
 
 .section-title h2{
-
     font-size:20px;
-
     font-weight:600;
-
     color:#161824;
-
 }
-
-
 
 /* ==========================
-   Wallpaper Grid
+   Wallpaper Grid & Cards (الخلفيات)
 ========================== */
-
-
 .profile-grid{
-
     display:flex;
-
     gap:18px;
-
     overflow-x:auto;
-
-    padding:10px 0 25px;
-
+    padding:10px 5px 25px;
 }
-
-
 
 .profile-grid::-webkit-scrollbar{
-
     display:none;
-
 }
-
-
-
-/* ==========================
-   Wallpaper Card
-========================== */
-
 
 .profile-wall-card{
-
     flex:0 0 85%;
-
     min-width:85%;
-
     overflow:hidden;
-
-    background:transparent;
-
+    background:#eef2f7;
     border:none;
-
-    border-radius:0;
-
-    box-shadow:none;
-
+    border-radius:24px;
+    padding:8px;
+    box-shadow: 
+        0px 6px 0px #d0d7e3,
+        -3px 10px 15px rgba(166, 180, 200, 0.4),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.9),
+        inset 0px -4px 6px rgba(166, 180, 200, 0.35);
     cursor:pointer;
-
+    transition:transform 0.15s ease;
 }
 
-
+.profile-wall-card:active{
+    transform:scale(0.98) translateY(2px);
+}
 
 .profile-wall-card img{
-
     width:100%;
-
     height:300px;
-
     object-fit:cover;
-
     display:block;
-
-    border-radius:0;
-
+    border-radius:18px;
 }
-
-
 
 .profile-wall-info{
-
-    padding:12px 0;
-
+    padding:12px 6px 4px;
 }
-
-
 
 .profile-wall-info h3{
-
     font-size:17px;
-
     font-weight:500;
-
     color:#161824;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
-
 }
-
-
 
 .profile-wall-info p{
-
     margin-top:6px;
-
     color:#777777;
-
     font-size:13px;
-
 }
-
-
-
-/* ==========================
-   Empty State
-========================== */
-
 
 .empty-profile{
-
     padding:30px 0;
-
     text-align:center;
-
     background:transparent;
-
     border:none;
-
     border-radius:0;
-
     color:#8990a8;
-
 }
+/* ==========================
+   WallpaperHub Profile CSS - Clay Block 3D Full Code
+   Part 3
+========================== */
+
 /* ==========================
    Edit Modal
 ========================== */
-
-
 .edit-modal{
-
     position:fixed;
-
     inset:0;
-
     display:none;
-
     align-items:center;
-
     justify-content:center;
-
     padding:20px;
-
     z-index:200;
-
     background:rgba(0,0,0,.35);
-
 }
-
-
 
 .edit-modal.show{
-
     display:flex;
-
 }
-
-
 
 .edit-box{
-
     width:100%;
-
     max-width:420px;
-
     padding:25px;
-
-    border-radius:15px;
-
-    background:#ffffff;
-
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
-
+    border-radius:24px;
+    background:#eef2f7;
+    box-shadow: 
+        0px 10px 0px #d0d7e3,
+        0px 20px 40px rgba(0,0,0,.2),
+        inset 0px 3px 5px rgba(255, 255, 255, 0.9);
 }
-
-
 
 .edit-box h2{
-
     text-align:center;
-
     margin-bottom:25px;
-
     font-size:24px;
-
     font-weight:600;
-
 }
-
-
 
 .edit-input{
-
     margin-bottom:18px;
-
 }
-
-
 
 .edit-input label{
-
     display:block;
-
     margin-bottom:8px;
-
     color:#777777;
-
     font-size:14px;
-
 }
-
-
 
 .edit-input input{
-
     width:100%;
-
     height:52px;
-
-    border-radius:10px;
-
-    border:1px solid #dddddd;
-
+    border-radius:14px;
+    border:none;
+    background:#e6ebf2;
     padding:0 16px;
-
     outline:none;
-
     font-size:15px;
-
+    box-shadow:inset 0px 2px 4px rgba(0,0,0,0.1);
 }
-
-
 
 .edit-input input:focus{
-
-    border-color:#5060ff;
-
+    box-shadow:
+        inset 0px 2px 4px rgba(0,0,0,0.1),
+        0 0 0 2px #5060ff;
 }
-
-
 
 .edit-buttons{
-
     display:flex;
-
     gap:12px;
-
     margin-top:25px;
-
 }
-
-
 
 .edit-buttons button{
-
     flex:1;
-
     height:50px;
-
     border:none;
-
-    border-radius:10px;
-
+    border-radius:14px;
     font-size:16px;
-
     cursor:pointer;
-
+    transition:transform 0.15s ease;
 }
-
-
 
 #saveProfileBtn{
-
     background:#5060ff;
-
     color:#ffffff;
-
+    box-shadow: 
+        0px 4px 0px #3845c4,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4);
 }
 
-
+#saveProfileBtn:active{
+    transform:translateY(2px);
+    box-shadow:0px 2px 0px #3845c4;
+}
 
 #closeEditBtn{
-
-    background:#eeeeee;
-
+    background:#e1e6ef;
     color:#5060ff;
-
+    box-shadow: 
+        0px 4px 0px #c0c8d8,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.8);
 }
+
+#closeEditBtn:active{
+    transform:translateY(2px);
+    box-shadow:0px 2px 0px #c0c8d8;
+}
+
 /* ==========================
    Dark Mode
 ========================== */
-
-
 body.dark{
-
     background:#0b0d12;
-
     color:#ffffff;
-
 }
 
-
-
-body.dark .profile-header{
-
-    background:#0b0d12;
-
-    border-color:#22252f;
-
-}
-
-
-
+body.dark .profile-header,
 body.dark .profile-cover{
-
     background:#0b0d12;
-
+    border-color:#22252f;
 }
-
-
 
 body.dark .profile-header h2,
 body.dark .profile-cover h2,
@@ -835,294 +552,170 @@ body.dark .section-title h2,
 body.dark .info-card p,
 body.dark .profile-wall-info h3,
 body.dark #userUid{
-
     color:#ffffff;
-
 }
-
-
 
 body.dark .profile-cover p,
 body.dark .info-card h4,
 body.dark .uid-title,
 body.dark .stat-card p,
 body.dark .profile-wall-info p{
-
     color:#9da4b8;
-
 }
-
-
 
 body.dark .back-btn,
 body.dark .edit-btn,
-body.dark .login-btn{
-
-    background:transparent;
-
-    color:#8b96ff;
-
-}
-
-
-
+body.dark .login-btn,
+body.dark .info-card .material-icons,
 body.dark .uid-content button{
-
-    background:transparent;
-
+    background:#141722;
     color:#8b96ff;
-
+    box-shadow: 
+        0px 4px 0px #05060a,
+        -2px 6px 10px rgba(0, 0, 0, 0.6),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.1),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.6);
 }
 
+body.dark .profile-avatar{
+    border-color:#0b0d12;
+    box-shadow: 
+        0px 6px 0px #05060a,
+        0px 10px 15px rgba(0, 0, 0, 0.7);
+}
 
+body.dark .stat-card,
+body.dark .profile-wall-card{
+    background:#141722;
+    box-shadow: 
+        0px 5px 0px #05060a,
+        -2px 8px 15px rgba(0, 0, 0, 0.6),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.08),
+        inset 0px -3px 5px rgba(0, 0, 0, 0.5);
+}
 
 body.dark .edit-box{
-
-    background:#181b24;
-
+    background:#141722;
+    box-shadow: 
+        0px 10px 0px #05060a,
+        0px 20px 40px rgba(0, 0, 0, 0.8);
 }
-
-
 
 body.dark .edit-input input{
-
-    background:#181b24;
-
+    background:#0b0d12;
     color:#ffffff;
-
-    border-color:#303546;
-
+    border:1px solid #252a3a;
+    box-shadow:inset 0px 2px 4px rgba(0,0,0,0.5);
 }
-
-
 
 body.dark #closeEditBtn{
-
-    background:#252a3a;
-
+    background:#1f2434;
     color:#8b96ff;
-
+    box-shadow: 
+        0px 4px 0px #0a0c12,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.08);
 }
+
 body.dark .info-card:not(:last-child)::after{
     background:rgba(255,255,255,0.08);
 }
+
 /* ==========================
    Mobile Adjustments
 ========================== */
-
-
 @media(max-width:600px){
-
-
     .profile-header{
-
         height:65px;
-
     }
-
-
 
     .profile-header h2{
-
         font-size:20px;
-
     }
-
-
 
     .profile-cover{
-
         height:240px;
-
     }
-
-
 
     .cover-image{
-
         height:155px;
-
     }
-
-
 
     .profile-avatar{
-
         width:95px;
-
         height:95px;
-
     }
-
-
 
     .profile-avatar-box{
-
         top:95px;
-
     }
-
-
 
     .profile-cover h2{
-
         margin-top:50px;
-
         font-size:22px;
-
     }
-
-
 
     .profile-stats{
-
         gap:10px;
-
         padding:15px;
-
     }
-
-
 
     .stat-card{
-
-        padding:16px 5px;
-
+        padding:14px 4px;
     }
-
-
 
     .stat-card h3{
-
-        font-size:22px;
-
+        font-size:20px;
     }
-
-
 
     .stat-card p{
-
         font-size:12px;
-
     }
-
-
 
     .info-card,
     .uid-box{
-
         padding:10px 0;
-
     }
-
-
 
     .info-card .material-icons{
-
-        width:35px;
-
-        height:35px;
-
+        width:38px;
+        height:38px;
     }
-
-
 
     .uid-content button{
-
         font-size:18px;
-
     }
-
-
 
     #userUid{
-
         font-size:13px;
-
     }
-
-
 
     .profile-wall-card{
-
         flex:0 0 90%;
-
         min-width:90%;
-
     }
-
-
 
     .profile-wall-card img{
-
         height:240px;
-
     }
-
-
 
     .section-title h2{
-
         font-size:18px;
-
     }
-
 }
 
-
-
 @media(max-width:380px){
-
-
     .profile-actions{
-
         gap:6px;
-
     }
-
-
 
     .back-btn,
     .edit-btn,
     .login-btn{
-
         width:38px;
-
         height:38px;
-
     }
-
-
 
     .profile-wall-card{
-
         flex-basis:95%;
-
     }
-
-}
-/* Thin separators between profile information */
-
-.info-card{
-    position:relative;
-    padding-bottom:18px;
-}
-
-
-.info-card:not(:last-child)::after{
-
-    content:"";
-
-    position:absolute;
-
-    bottom:0;
-
-    right:0;
-
-    width:100%;
-
-    height:1px;
-
-    background:rgba(0,0,0,0.06);
-
 }
