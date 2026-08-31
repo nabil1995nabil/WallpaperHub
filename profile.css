@@ -305,7 +305,7 @@ body{
 .stat-card{
     text-align:center;
     padding:16px 8px;
-    background:#eef2f7;
+    background:#ffffff;
     border:1px solid rgba(0, 0, 0, 0.05);
     border-radius:18px;
     box-shadow:none;
@@ -329,7 +329,7 @@ body{
 .stat-card p{
     margin-top:5px;
     font-size:13px;
-    color:#ffffff;
+    color:#777777;
 }
 
 
