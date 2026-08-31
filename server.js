@@ -3202,6 +3202,50 @@ success:false
 });
 
 // ======================================
+// User Announcements API
+// ======================================
+
+app.get(
+"/api/announcements",
+async (req,res)=>{
+
+try{
+
+const { data, error } =
+await supabase
+.from("announcements")
+.select("*")
+.order(
+"created_at",
+{
+ascending:false
+}
+);
+
+
+if(error){
+throw error;
+}
+
+
+res.json(data);
+
+
+}catch(error){
+
+console.log(
+"USER ANNOUNCEMENTS ERROR:",
+error
+);
+
+
+res.status(500).json([]);
+
+}
+
+});
+
+// ======================================
 // تعديل إعلان
 // ======================================
 
