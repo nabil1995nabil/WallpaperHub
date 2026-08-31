@@ -2879,6 +2879,109 @@ success:false
 
 });
 
+// =========================
+// Like Comment API
+// =========================
+
+app.post(
+"/api/comments/:id/like",
+async (req,res)=>{
+
+try{
+
+const commentId = Number(req.params.id);
+
+const userId = req.body.userId || "guest";
+
+
+// جلب التعليق
+const { data: comment, error } =
+await supabase
+.from("comments")
+.select("*")
+.eq("id", commentId)
+.single();
+
+
+if(error || !comment){
+
+return res.status(404).json({
+success:false,
+message:"Comment not found"
+});
+
+}
+
+
+// هل ضغط إعجاب من قبل؟
+let likedBy = comment.likedBy || [];
+
+
+if(likedBy.includes(userId)){
+
+// إزالة الإعجاب
+likedBy =
+likedBy.filter(
+id => id !== userId
+);
+
+
+}else{
+
+// إضافة إعجاب
+likedBy.push(userId);
+
+}
+
+
+// تحديث الرقم
+const newLikes = likedBy.length;
+
+
+
+const { error:updateError } =
+await supabase
+.from("comments")
+.update({
+
+likes:newLikes,
+likedBy:likedBy
+
+})
+.eq("id",commentId);
+
+
+
+if(updateError)
+throw updateError;
+
+
+
+res.json({
+
+success:true,
+likes:newLikes
+
+});
+
+
+}catch(error){
+
+console.log(
+"LIKE COMMENT ERROR:",
+error
+);
+
+
+res.status(500).json({
+success:false
+});
+
+
+}
+
+});
+
 // ======================================
 // Admin Announcements API
 // ======================================
