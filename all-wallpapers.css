@@ -1,21 +1,21 @@
 /* ============================
    WallpaperHub
-   All Wallpapers Page
+   All Wallpapers Page (3D Clay Upgrade)
 ============================ */
 
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,sans-serif;
+    font-family:system-ui, -apple-system, sans-serif;
 }
 
 body{
-    background:#f8f9fc;
-    color:#222;
+    background:#eef2f7;
+    color:#1a253c;
     padding-bottom:40px;
+    -webkit-font-smoothing: antialiased;
 }
-
 
 /* ============================
    HEADER
@@ -25,314 +25,276 @@ body{
     position:sticky;
     top:0;
     z-index:100;
-
     min-height:70px;
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
     padding:8px 16px;
-
-    background:rgba(255,255,255,.94);
-
+    background:rgba(238, 242, 247, 0.85);
     backdrop-filter:blur(15px);
-
-    box-shadow:
-        0 2px 12px rgba(0,0,0,.06);
+    -webkit-backdrop-filter:blur(15px);
 }
-
 
 .header-info{
     flex:1;
     text-align:center;
 }
 
-
 .header-info h2{
     font-size:20px;
     color:#3f51b5;
-
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-
 #wallpaperCount{
     display:block;
-
     margin-top:3px;
-
     color:#888;
-
     font-size:12px;
 }
 
-
+/* --- أزرار الهيدر ثلاثية الأبعاد (Back & Search Buttons) --- */
 .back-btn,
 .search-btn{
     width:42px;
     height:42px;
-
     flex-shrink:0;
-
     border:none;
-
     border-radius:50%;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
-    background:#f3f3f3;
-
-    color:#222;
-
+    background:#eef2f7;
+    color:#1a253c;
     cursor:pointer;
+    
+    box-shadow: 
+        0px 4px 0px #d0d7e3,
+        -2px 8px 10px rgba(166, 180, 200, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
 
-    transition:.2s;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
 
+.back-btn:hover,
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0px 6px 0px #d0d7e3,
+        -3px 12px 12px rgba(166, 180, 200, 0.5),
+        inset 0px 3px 4px rgba(255, 255, 255, 1),
+        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
+}
 
 .back-btn:active,
 .search-btn:active{
-    transform:scale(.92);
+    transform: translateY(2px);
+    box-shadow: 
+        0px 2px 0px #d0d7e3,
+        -1px 4px 6px rgba(166, 180, 200, 0.3),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.6),
+        inset 0px -2px 4px rgba(166, 180, 200, 0.5);
 }
 
-
 /* ============================
-   SEARCH
+   SEARCH (بدون تأثير Clay)
 ============================ */
 
 .search-box{
     margin:15px 16px 5px;
-
     height:52px;
-
     display:flex;
     align-items:center;
-
     gap:10px;
-
     padding:0 15px;
-
     background:#fff;
-
     border-radius:18px;
-
     box-shadow:
         0 5px 18px rgba(0,0,0,.05);
 }
-
 
 .search-box span{
     color:#777;
 }
 
-
 .search-box input{
     flex:1;
-
     width:100%;
-
     border:none;
     outline:none;
-
     background:transparent;
-
     color:#222;
-
     font-size:15px;
 }
 
-
 /* ============================
-   FILTERS
+   FILTERS (أزرار الفلاتر 3D Clay)
 ============================ */
 
 .filters{
     display:flex;
-
-    gap:9px;
-
+    gap:10px;
     overflow-x:auto;
-
-    padding:14px 16px;
-
+    padding:16px;
     scrollbar-width:none;
 }
-
 
 .filters::-webkit-scrollbar{
     display:none;
 }
 
-
 .filter-btn{
     flex-shrink:0;
-
     border:none;
-
-    padding:10px 17px;
-
-    border-radius:25px;
-
-    background:#fff;
-
+    padding:10px 18px;
+    border-radius:20px;
+    background:#eef2f7;
     color:#555;
-
     font-size:13px;
     font-weight:bold;
-
-    box-shadow:
-        0 4px 13px rgba(0,0,0,.05);
-
     cursor:pointer;
+    
+    box-shadow: 
+        0px 4px 0px #d0d7e3,
+        -2px 8px 10px rgba(166, 180, 200, 0.35),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0px -3px 4px rgba(166, 180, 200, 0.3);
 
-    transition:.25s;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, background 0.2s ease;
 }
 
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0px 6px 0px #d0d7e3,
+        -3px 10px 12px rgba(166, 180, 200, 0.45),
+        inset 0px 3px 4px rgba(255, 255, 255, 1),
+        inset 0px -3px 4px rgba(166, 180, 200, 0.3);
+}
 
+.filter-btn:active{
+    transform: translateY(2px);
+    box-shadow: 
+        0px 2px 0px #d0d7e3,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.6),
+        inset 0px -2px 3px rgba(166, 180, 200, 0.4);
+}
+
+/* الزر النشط مثل "الكل" أو "4K" */
 .filter-btn.active{
     background:#3f51b5;
     color:#fff;
+    box-shadow: 
+        0px 4px 0px #2c3983,
+        -2px 8px 10px rgba(63, 81, 181, 0.35),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
 }
 
-
-.filter-btn:active{
-    transform:scale(.94);
+.filter-btn.active:hover {
+    box-shadow: 
+        0px 6px 0px #2c3983,
+        -3px 10px 12px rgba(63, 81, 181, 0.45),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
 }
-
 
 /* ============================
-   WALLPAPER GRID
+   WALLPAPER GRID & CARDS
 ============================ */
 
 .wallpapers-grid{
     display:grid;
-
-    grid-template-columns:
-        repeat(2,minmax(0,1fr));
-
-    gap:12px;
-
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
     padding:8px 14px 30px;
 }
 
-
-/* ============================
-   WALLPAPER CARD
-============================ */
-
 .wallpaper-card{
     position:relative;
-
     overflow:hidden;
-
     width:100%;
-
     aspect-ratio:9 / 16;
-
-    border-radius:20px;
-
+    border-radius:22px;
     background:#e8e8e8;
-
-    box-shadow:
-        0 7px 18px rgba(0,0,0,.09);
-
     cursor:pointer;
+    
+    /* نمط 3D Clay للبطاقات */
+    box-shadow: 
+        0px 8px 0px #d0d7e3,
+        -4px 14px 15px rgba(166, 180, 200, 0.4),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
+        inset 0px -4px 6px rgba(0, 0, 0, 0.2);
 
-    transform:translateZ(0);
-
-    animation:
-        wallpaperFade .45s ease;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
+    animation: wallpaperFade .45s ease;
 }
-
 
 .wallpaper-card img{
     width:100%;
     height:100%;
-
     display:block;
-
     object-fit:cover;
-
-    /*
-      لا نستعمل pixelated.
-      المتصفح يعرض الصورة بشكل طبيعي.
-    */
     image-rendering:auto;
-
-    transition:
-        transform .35s ease;
+    transition: transform .35s ease;
 }
 
+.wallpaper-card:hover{
+    transform: translateY(-4px);
+    box-shadow: 
+        0px 12px 0px #d0d7e3,
+        -5px 18px 20px rgba(166, 180, 200, 0.5),
+        inset 0px 4px 5px rgba(255, 255, 255, 0.6),
+        inset 0px -4px 6px rgba(0, 0, 0, 0.2);
+}
 
 .wallpaper-card:active{
-    transform:scale(.97);
+    transform: translateY(3px);
+    box-shadow: 
+        0px 4px 0px #d0d7e3,
+        -2px 8px 10px rgba(166, 180, 200, 0.3),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
 }
-
 
 .wallpaper-card:hover img{
-    transform:scale(1.035);
+    transform:scale(1.04);
 }
 
-
 /* ============================
-   CARD OVERLAY
+   CARD OVERLAY & BADGES
 ============================ */
 
 .wallpaper-overlay{
     position:absolute;
-
     right:0;
     left:0;
     bottom:0;
-
     padding:35px 11px 11px;
-
     color:#fff;
-
-    background:
-        linear-gradient(
-            transparent,
-            rgba(0,0,0,.75)
-        );
+    background:linear-gradient(transparent, rgba(0,0,0,.8));
 }
-
 
 .wallpaper-title{
     font-size:14px;
     font-weight:bold;
-
     white-space:nowrap;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
 }
 
-
-/* معلومات صغيرة */
-
 .wallpaper-meta{
     margin-top:5px;
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
     gap:5px;
-
     font-size:11px;
-
     color:rgba(255,255,255,.9);
 }
-
-/* ============================
-   WALLPAPER STATS
-============================ */
 
 .wallpaper-stats{
     display:flex;
@@ -344,7 +306,6 @@ body{
     display:flex;
     align-items:center;
     gap:2px;
-
     font-size:11px;
     color:rgba(255,255,255,.95);
 }
@@ -358,307 +319,270 @@ body{
     white-space:nowrap;
 }
 
-/* ============================
-   QUALITY BADGE
-============================ */
-
+/* --- شارة الدقة ثلاثية الأبعاد (3D Clay Quality Badge) --- */
 .quality-badge{
     position:absolute;
-
     top:9px;
     left:9px;
-
     z-index:5;
-
-    padding:5px 9px;
-
-    border-radius:15px;
-
-    background:
-        rgba(0,0,0,.60);
-
-    backdrop-filter:blur(8px);
-
+    padding:5px 10px;
+    border-radius:12px;
+    background:#2b3145;
     color:#fff;
-
     font-size:10px;
     font-weight:bold;
-
-    box-shadow:
-        0 3px 10px rgba(0,0,0,.15);
+    
+    box-shadow: 
+        0px 3px 0px #1a1e2c,
+        0px 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
+        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
 }
 
-
-/* ============================
-   FAVORITE BUTTON
-============================ */
-
+/* --- زر المفضلة ثلاثي الأبعاد (3D Clay Favorite Button) --- */
 .card-favorite{
     position:absolute;
-
     top:8px;
     right:8px;
-
     z-index:6;
-
-    width:34px;
-    height:34px;
-
+    width:36px;
+    height:36px;
     border:none;
-
     border-radius:50%;
-
     display:flex;
     justify-content:center;
     align-items:center;
-
-    background:rgba(0,0,0,.45);
-
-    backdrop-filter:blur(8px);
-
+    background:#ff5277;
     color:#fff;
-
     cursor:pointer;
+    
+    box-shadow: 
+        0px 3px 0px #b82e4d,
+        0px 5px 10px rgba(0, 0, 0, 0.35),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.card-favorite:hover {
+    transform: scale(1.08);
+}
+
+.card-favorite:active {
+    transform: translateY(2px) scale(0.95);
+    box-shadow: 
+        0px 1px 0px #b82e4d,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.2),
+        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
+}
 
 .card-favorite span{
-    font-size:20px;
+    font-size:18px;
 }
 
-
 /* ============================
-   LOADING
+   LOADING & EMPTY STATE
 ============================ */
 
 .loading{
     min-height:220px;
-
     display:flex;
     flex-direction:column;
-
     justify-content:center;
     align-items:center;
-
     gap:15px;
-
     color:#777;
 }
-
 
 .loader{
     width:38px;
     height:38px;
-
     border-radius:50%;
-
     border:4px solid #ddd;
-
     border-top-color:#3f51b5;
-
-    animation:
-        loadingSpin .8s linear infinite;
+    animation:loadingSpin .8s linear infinite;
 }
-
 
 @keyframes loadingSpin{
-
-    to{
-        transform:rotate(360deg);
-    }
-
+    to{ transform:rotate(360deg); }
 }
-
-
-/* ============================
-   EMPTY STATE
-============================ */
 
 .empty-state{
     padding:70px 20px;
-
     text-align:center;
-
     color:#777;
 }
 
-
 .empty-state > span{
     display:block;
-
     margin-bottom:15px;
-
     color:#aaa;
-
     font-size:60px;
 }
 
-
 .empty-state h3{
     margin-bottom:8px;
-
     color:#333;
 }
-
 
 .empty-state p{
     font-size:14px;
 }
 
-
 /* ============================
-   SCROLL TOP
+   SCROLL TOP BUTTON (3D Clay)
 ============================ */
 
 .scroll-top{
     position:fixed;
-
     right:18px;
     bottom:22px;
-
     z-index:80;
-
     width:48px;
     height:48px;
-
     display:none;
-
     align-items:center;
     justify-content:center;
-
     border:none;
-
     border-radius:50%;
-
     background:#3f51b5;
-
     color:#fff;
-
-    box-shadow:
-        0 7px 20px rgba(63,81,181,.35);
-
     cursor:pointer;
+    
+    box-shadow: 
+        0px 5px 0px #2c3983,
+        0px 8px 16px rgba(63, 81, 181, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
 
+.scroll-top:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0px 7px 0px #2c3983,
+        0px 12px 20px rgba(63, 81, 181, 0.5),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+}
+
+.scroll-top:active {
+    transform: translateY(3px);
+    box-shadow: 
+        0px 2px 0px #2c3983,
+        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
+        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
+}
 
 /* ============================
-   ANIMATION
+   ANIMATIONS & MEDIA QUERIES
 ============================ */
 
 @keyframes wallpaperFade{
-
     from{
         opacity:0;
         transform:translateY(15px);
     }
-
     to{
         opacity:1;
         transform:translateY(0);
     }
-
 }
-
-
-/* ============================
-   TABLET / LARGE SCREEN
-============================ */
 
 @media(min-width:700px){
-
     .wallpapers-grid{
-
-        grid-template-columns:
-            repeat(3,minmax(0,1fr));
-
+        grid-template-columns:repeat(3,minmax(0,1fr));
         gap:16px;
-
         max-width:1000px;
-
         margin:auto;
-
     }
-
 }
-
-
-/* ============================
-   DESKTOP
-============================ */
 
 @media(min-width:1100px){
-
     .wallpapers-grid{
-
-        grid-template-columns:
-            repeat(4,minmax(0,1fr));
-
+        grid-template-columns:repeat(4,minmax(0,1fr));
     }
-
 }
 
-
-/* ============================
-   SMALL PHONE
-============================ */
-
 @media(max-width:380px){
-
     .wallpapers-grid{
         gap:8px;
         padding-left:9px;
         padding-right:9px;
     }
-
     .wallpaper-card{
         border-radius:16px;
     }
-
     .wallpaper-title{
         font-size:12px;
     }
-
 }
 
-
 /* ============================
-   DARK MODE
+   DARK MODE (3D Clay OLED)
 ============================ */
 
 body.dark{
-    background:#121212;
+    background:#0d0f17;
     color:#fff;
 }
 
-
 body.dark .header{
-    background:rgba(27,27,27,.95);
+    background:rgba(13,15,23,.95);
 }
-
 
 body.dark .header-info h2{
     color:#8d9aff;
 }
 
-
 body.dark .back-btn,
-body.dark .search-btn,
-body.dark .search-box,
-body.dark .filter-btn{
-    background:#1e1e1e;
+body.dark .search-btn{
+    background:#2b3145;
     color:#fff;
+    box-shadow: 
+        0px 4px 0px #1a1e2c,
+        -2px 8px 10px rgba(0, 0, 0, 0.5),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.25),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
 }
 
+body.dark .search-box{
+    background:#1e1e1e;
+}
 
 body.dark .search-box input{
     color:#fff;
 }
 
+body.dark .filter-btn{
+    background:#2b3145;
+    color:#fff;
+    box-shadow: 
+        0px 4px 0px #1a1e2c,
+        -2px 8px 10px rgba(0, 0, 0, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.2),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
+}
 
 body.dark .filter-btn.active{
     background:#4c5cff;
+    box-shadow: 
+        0px 4px 0px #2533b8,
+        -2px 8px 10px rgba(76, 92, 255, 0.4),
+        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
+        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
 }
 
+body.dark .wallpaper-card{
+    background:#2b3145;
+    box-shadow: 
+        0px 8px 0px #1a1e2c,
+        -4px 14px 15px rgba(0, 0, 0, 0.5),
+        inset 0px 3px 4px rgba(255, 255, 255, 0.2),
+        inset 0px -4px 6px rgba(0, 0, 0, 0.4);
+}
 
 body.dark .empty-state h3{
     color:#fff;
