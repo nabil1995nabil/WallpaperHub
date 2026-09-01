@@ -268,9 +268,10 @@ async function loadWallpaper() {
         currentWallpaperIndex = categoryWallpapers.findIndex(w => w.id === currentWallpaper.id);
 
         showWallpaper();
-        autoAnalyzeWallpaper();
-        loadSimilar();
-        updateFavorite();
+autoAnalyzeWallpaper();
+loadSimilar();
+updateFavorite();
+checkLikeStatus();
 loadComments();
         saveUserAction("views", currentWallpaper.id);
         // ✅ حفظ المشاهدة في الإحصائيات
@@ -1453,7 +1454,8 @@ if (downloadBtn) {
 const favoriteBtn = document.getElementById("favoriteBtn");
 
 
-async function likeWallpaper(){
+// فحص هل المستخدم ضغط إعجاب سابقاً
+async function checkLikeStatus(){
 
     try{
 
@@ -1464,13 +1466,70 @@ async function likeWallpaper(){
         const userId = "guest";
 
 
+        const res = await fetch(
+            `/api/wallpapers/${currentWallpaper.id}/like-status?userId=${userId}`
+        );
+
+
+        const data = await res.json();
+
+
+        if(data.liked){
+
+            favoriteBtn.innerHTML = `
+            <span class="material-icons">
+            favorite
+            </span>
+            `;
+
+            favoriteBtn.classList.add("liked");
+
+        }else{
+
+            favoriteBtn.innerHTML = `
+            <span class="material-icons">
+            favorite_border
+            </span>
+            `;
+
+            favoriteBtn.classList.remove("liked");
+
+        }
+
+
+    }catch(error){
+
+        console.error(
+            "LIKE STATUS ERROR",
+            error
+        );
+
+    }
+
+}
+
+// الضغط على القلب
+async function likeWallpaper(){
+
+    try{
+
+
+        if(!currentWallpaper || !favoriteBtn)
+            return;
+
+
+        const userId = "guest";
+
+
         const response = await fetch(
-            "/api/wallpapers/" + currentWallpaper.id + "/like",
+            `/api/wallpapers/${currentWallpaper.id}/like`,
             {
                 method:"POST",
+
                 headers:{
                     "Content-Type":"application/json"
                 },
+
                 body:JSON.stringify({
                     userId:userId
                 })
@@ -1483,19 +1542,7 @@ async function likeWallpaper(){
 
         if(data.success){
 
-            favoriteBtn.innerHTML = `
-                <span class="material-icons">
-                    favorite
-                </span>
-            `;
-
-            favoriteBtn.classList.add("liked");
-
-
-            console.log(
-                "Likes:",
-                data.likes
-            );
+            checkLikeStatus();
 
         }
 

@@ -832,69 +832,58 @@ app.get(
 });
 
 // ======================================
-// Like Wallpaper API
+// Wallpaper Likes (Supabase)
 // ======================================
 
+
+// إضافة إعجاب
 app.post(
 "/api/wallpapers/:id/like",
-(req,res)=>{
+async(req,res)=>{
 
 try{
 
-const id = Number(req.params.id);
-
-let wallpapers = readWallpapers();
-
-
-const index = wallpapers.findIndex(
-w => w.id === id
-);
-
-
-if(index === -1){
-
-return res.status(404).json({
-success:false
-});
-
-}
-
-
-if(!wallpapers[index].likedBy){
-    wallpapers[index].likedBy = [];
-}
-
+const wallpaperId = Number(req.params.id);
 
 const userId = req.body.userId || "guest";
 
 
-if(wallpapers[index].likedBy.includes(userId)){
+const {data,error}=await supabase
+.from("likes")
+.insert([
+{
+wallpaper_id: wallpaperId,
+user_id: userId
+}
+])
+.select();
 
-wallpapers[index].likedBy =
-wallpapers[index].likedBy.filter(
-u => u !== userId
-);
 
-}else{
+if(error){
 
-wallpapers[index].likedBy.push(userId);
+// إذا كان موجود مسبقاً
+if(error.code==="23505"){
+
+return res.json({
+success:true,
+liked:true,
+message:"Already liked"
+});
 
 }
 
+throw error;
 
-wallpapers[index].likes =
-wallpapers[index].likedBy.length;
-
-
-saveWallpapers(wallpapers);
+}
 
 
 res.json({
 
 success:true,
 
-likes:
-wallpapers[index].likes
+liked:true,
+
+data
 
 });
 
@@ -902,113 +891,85 @@ wallpapers[index].likes
 }catch(error){
 
 console.log(
-"LIKE WALLPAPER ERROR:",
+"LIKE SUPABASE ERROR:",
 error
 );
 
+
 res.status(500).json({
-success:false
+
+success:false,
+
+error:error.message
+
 });
+
 
 }
 
 });
 
-// ======================================
-// Like Wallpaper API
-// ======================================
 
-app.post(
-"/api/wallpapers/:id/like",
-(req,res)=>{
+
+
+// معرفة حالة الإعجاب
+app.get(
+"/api/wallpapers/:id/like-status",
+async(req,res)=>{
+
 
 try{
 
-const id = Number(req.params.id);
 
-let wallpapers = readWallpapers();
-
-
-const index = wallpapers.findIndex(
-w => w.id === id
-);
+const wallpaperId =
+Number(req.params.id);
 
 
-if(index === -1){
-
-return res.status(404).json({
-success:false
-});
-
-}
+const userId =
+req.query.userId || "guest";
 
 
 
-if(!wallpapers[index].likedBy){
-wallpapers[index].likedBy=[];
-}
+const {data,error}=await supabase
+.from("likes")
+.select("id")
+.eq("wallpaper_id", wallpaperId)
+.eq("user_id", userId)
+.maybeSingle();
 
 
 
-const user =
-req.body.userId || "guest";
-
-
-
-// إزالة أو إضافة الإعجاب
-
-if(
-wallpapers[index].likedBy.includes(user)
-){
-
-wallpapers[index].likedBy =
-wallpapers[index].likedBy.filter(
-u=>u!==user
-);
-
-}else{
-
-wallpapers[index].likedBy.push(user);
-
-}
-
-
-
-wallpapers[index].likes =
-wallpapers[index].likedBy.length;
-
-
-
-saveWallpapers(
-wallpapers
-);
+if(error)
+throw error;
 
 
 
 res.json({
 
-success:true,
-
-likes:
-wallpapers[index].likes
+liked:!!data
 
 });
 
 
+
 }catch(error){
 
+
 console.log(
-"LIKE WALLPAPER ERROR:",
+"LIKE STATUS ERROR:",
 error
 );
 
 
 res.status(500).json({
-success:false
+
+liked:false
+
 });
 
 
 }
+
 
 });
 
