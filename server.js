@@ -3045,7 +3045,9 @@ avatar:
 req.body.avatar ||
 "",
 
-
+    userId:
+    req.body.userId ||
+    "",
 
 text,
 
