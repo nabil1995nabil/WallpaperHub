@@ -206,25 +206,27 @@ error
 
 
 }
-
 // ===============================
 // Load User Notifications
 // ===============================
 
 async function loadUserNotifications(){
 
-
 try{
+
+const OWNER_UID =
+"SmlHXIuh5tM50ttFsZqujvFhm5s1";
 
 
 const response =
-await fetch("/api/notifications");
-
+await fetch(
+"/api/notifications?recipientUID=" +
+encodeURIComponent(OWNER_UID)
+);
 
 
 const notifications =
 await response.json();
-
 
 
 const feed =
@@ -233,43 +235,55 @@ document.getElementById(
 );
 
 
-
 if(!feed) return;
 
-
+// ===============================
+// عرض الإشعارات
+// ===============================
 
 notifications.forEach(notif=>{
 
 
-if(notif.type !== "comment_like")
+// نعرض إعجاب التعليق
+// أو إعجاب الخلفية
+
+if(
+notif.type !== "comment_like" &&
+notif.type !== "wallpaper_like"
+){
 return;
+}
 
 
+// ===============================
+// إنشاء بطاقة الإشعار
+// ===============================
 
 const card =
 document.createElement("article");
-
 
 
 card.className =
 "notif-card unread";
 
 
-
 card.dataset.category =
 "like";
 
 
+// ===============================
+// إذا كان إعجاب خلفية
+// ===============================
+
+if(
+notif.type === "wallpaper_like"
+){
 
 card.innerHTML = `
 
-
 <div class="card-side-indicator"></div>
 
-
-
 <div class="avatar-container">
-
 
 <img
 
@@ -279,21 +293,14 @@ class="avatar"
 
 >
 
-
-
 <span class="type-badge like">
 ❤️
 </span>
 
-
 </div>
 
 
-
-
-
 <div class="notif-body">
-
 
 <p class="notif-text">
 
@@ -301,6 +308,61 @@ ${notif.content}
 
 </p>
 
+
+<div class="comment-quote">
+
+❤️ ${notif.wallpaperTitle || "خلفيتك"}
+
+</div>
+
+
+<div class="notif-meta">
+
+${notif.date || "الآن"}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+// ===============================
+// إذا كان إعجاب تعليق
+// ===============================
+
+else{
+
+card.innerHTML = `
+
+<div class="card-side-indicator"></div>
+
+<div class="avatar-container">
+
+<img
+
+src="${notif.avatar || 'assets/images/user.png'}"
+
+class="avatar"
+
+>
+
+<span class="type-badge like">
+❤️
+</span>
+
+</div>
+
+
+<div class="notif-body">
+
+<p class="notif-text">
+
+${notif.content}
+
+</p>
 
 
 <div class="comment-quote">
@@ -310,41 +372,37 @@ ${notif.content}
 </div>
 
 
-
 <div class="notif-meta">
 
 ${notif.date || "الآن"}
 
 </div>
 
-
-
 </div>
-
 
 `;
 
+}
 
+
+// ===============================
+// إضافة البطاقة
+// ===============================
 
 feed.prepend(card);
-
 
 
 });
 
 
-
 }catch(error){
 
-
 console.log(
-"USER NOTIFICATIONS ERROR:",
+"USER NOTIFICATIONS ERROR",
 error
 );
 
-
 }
-
 
 }
 
