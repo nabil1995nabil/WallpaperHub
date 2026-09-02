@@ -929,63 +929,62 @@ w => Number(w.id) === wallpaperId
 // إنشاء إشعار لصاحب الخلفية
 // ======================================
 
-// لا نرسل إشعاراً إذا صاحب الخلفية
-// هو نفسه الذي ضغط إعجاب
+// صاحب الخلفية الحقيقي
+const wallpaperOwnerUID =
+    wall?.ownerUID || WALLPAPER_OWNER_UID;
 
-if(userId !== WALLPAPER_OWNER_UID){
+// لا نرسل إشعاراً إذا المستخدم أعجب بخلفيته هو
+if(
+    userId !== wallpaperOwnerUID &&
+    wallpaperOwnerUID
+){
+    let notifications =
+        readNotifications();
 
-let notifications =
-readNotifications();
+    notifications.unshift({
+        id:
+        Date.now(),
 
+        type:
+        "wallpaper_like",
 
-notifications.unshift({
+        category:
+        "like_wallpaper",
 
-id:
-Date.now(),
+        title:
+        "إعجاب بخلفيتك ❤️",
 
-type:
-"wallpaper_like",
+        content:
+        `${userName} أعجب بخلفيتك`,
 
-category:
-"like_wallpaper",
+        wallpaperId:
+        wallpaperId,
 
-title:
-"إعجاب بخلفيتك ❤️",
+        wallpaperTitle:
+        wall?.title || "خلفية",
 
-content:
-`${userName} أعجب بخلفيتك`,
+        userId:
+        userId,
 
-wallpaperId:
-wallpaperId,
+        userName:
+        userName,
 
-wallpaperTitle:
-wall?.title || "خلفية",
+        date:
+        new Date()
+        .toLocaleString("ar-MA"),
 
-userId:
-userId,
+        read:
+        false,
 
-userName:
-userName,
+        // الإشعار يذهب لصاحب هذه الخلفية فقط
+        recipientUID:
+        wallpaperOwnerUID
+    });
 
-date:
-new Date()
-.toLocaleString("ar-MA"),
-
-read:
-false,
-
-recipientUID:
-WALLPAPER_OWNER_UID
-
-});
-
-
-saveNotifications(
-notifications
-);
-
+    saveNotifications(
+        notifications
+    );
 }
-
 
 // ======================================
 // النتيجة
@@ -1124,12 +1123,16 @@ try{
 
 
         id:
-        Date.now(),
+Date.now(),
 
+ownerUID:
+req.body.ownerUID ||
+req.body.userId ||
+"SmlHXIuh5tM50ttFsZqujvFhm5s1",
 
-        title:
-        req.body.title ||
-        "Untitled",
+title:
+req.body.title ||
+"Untitled",
 
 
         description:
