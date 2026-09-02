@@ -763,74 +763,49 @@ const response = await fetch(
 // Notifications API
 // ======================================
 
-
 app.get(
-"/api/notifications",
-(req,res)=>{
+    "/api/notifications",
+    (req, res) => {
 
-    const notifications =
-        readNotifications();
+        try {
 
-    const recipientUID =
-        req.query.recipientUID;
+            const notifications =
+                readNotifications();
 
-    // إذا لم يتم تحديد مستخدم
-    if(!recipientUID){
-        return res.json(notifications);
-    }
+            const recipientUID =
+                req.query.recipientUID;
 
-    // الإشعارات الموجهة لهذا المستخدم
-    // والإشعارات القديمة التي لا تحتوي recipientUID
-    const filtered =
-        notifications.filter(notif =>
-            !notif.recipientUID ||
-            notif.recipientUID === recipientUID
-        );
+            // لا نسمح بجلب الإشعارات بدون تحديد المستخدم
+            if (!recipientUID) {
 
-    res.json(filtered);
-});
+                return res.json([]);
 
+            }
 
+            // كل مستخدم يرى فقط الإشعارات
+            // الموجهة إلى UID الخاص به
+            const filtered =
+                notifications.filter(
+                    notif =>
+                        String(notif.recipientUID || "") ===
+                        String(recipientUID)
+                );
 
+            res.json(filtered);
 
-app.delete(
-"/api/notifications",
-(req,res)=>{
+        } catch (error) {
 
+            console.log(
+                "GET NOTIFICATIONS ERROR:",
+                error
+            );
 
-    try{
+            res.status(500).json([]);
 
-
-        saveNotifications([]);
-
-
-        res.json({
-
-            success:true
-
-        });
-
-
-
-    }catch(error){
-
-
-        res.status(500).json({
-
-            success:false
-
-        });
-
+        }
 
     }
-
-
-});
-
-
-
-
-
+);
 // ======================================
 // Wallpapers API
 // ======================================

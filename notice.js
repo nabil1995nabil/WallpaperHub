@@ -1,7 +1,11 @@
+import { auth } from "./firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+
 document.addEventListener("DOMContentLoaded", () => {
-
-
-
 // ===============================
 // Load Admin Announcements
 // ===============================
@@ -166,21 +170,28 @@ error
 
 async function loadUserNotifications(){
 
-try{
+    try{
 
-const OWNER_UID =
-"SmlHXIuh5tM50ttFsZqujvFhm5s1";
+        const currentUser =
+            auth.currentUser;
 
+        if(!currentUser){
+            return;
+        }
 
-const response =
-await fetch(
-"/api/notifications?recipientUID=" +
-encodeURIComponent(OWNER_UID)
-);
+        const OWNER_UID =
+            currentUser.uid;
 
+        const response =
+            await fetch(
+                "/api/notifications?recipientUID=" +
+                encodeURIComponent(OWNER_UID)
+            );
 
-const notifications =
-await response.json();
+        const notifications =
+            await response.json();
+
+        // باقي الكود كما هو...
 
 
 const feed =
@@ -610,11 +621,33 @@ unreadCount.style.opacity =
 // Start
 // ===============================
 
-
 loadAnnouncements();
 
-loadUserNotifications();
+// ننتظر Firebase حتى يتأكد من المستخدم الحالي
+onAuthStateChanged(
+    auth,
+    (user) => {
 
+        if (user) {
 
+            // المستخدم معروف الآن
+            loadUserNotifications();
+
+        } else {
+
+            // لا يوجد مستخدم مسجل الدخول
+            const feed =
+                document.getElementById(
+                    "userNotificationsFeed"
+                );
+
+            if (feed) {
+                feed.innerHTML = "";
+            }
+
+        }
+
+    }
+);
 
 });
