@@ -8,202 +8,156 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadAnnouncements(){
 
-
 try{
-
 
 const response =
 await fetch("/api/announcements");
-
 
 
 const announcements =
 await response.json();
 
 
-
 const feed =
 document.getElementById(
-"notificationsFeed"
+"announcementsFeed"
 );
-
 
 
 if(!feed) return;
 
 
-
-// تنظيف أي محتوى قديم
-
+// تنظيف الإعلانات فقط
 feed.innerHTML = "";
 
 
-
+// ===============================
+// إنشاء الإعلانات
+// ===============================
 
 announcements.forEach(ad=>{
 
-
 const card =
 document.createElement("article");
-
 
 
 card.className =
 "notif-card admin-post unread";
 
 
-
 card.dataset.category =
 "admin";
 
 
-
 card.innerHTML = `
-
 
 <div class="card-side-indicator"></div>
 
 
-
 <div class="admin-header">
 
+    <div class="avatar-container">
 
-<div class="avatar-container">
+        <div
+        class="avatar gold-border"
+        style="
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:25px;
+        background:#fff;
+        "
+        >
+        📢
+        </div>
 
+        <span class="type-badge admin">
+        📢
+        </span>
 
-<div 
-class="avatar gold-border"
-style="
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:25px;
-background:#fff;
-"
->
-📢
-</div>
-
-
-<span class="type-badge admin">
-📢
-</span>
-
-
-</div>
+    </div>
 
 
+    <div class="admin-info">
+
+        <div class="admin-name">
+
+            WallpaperHub
+
+            <span class="verified-badge">
+            ✓
+            </span>
+
+        </div>
 
 
-<div class="admin-info">
+        <span class="time">
 
+            ${ad.date || "الآن"}
 
-<div class="admin-name">
+        </span>
 
-WallpaperHub
-
-<span class="verified-badge">
-✓
-</span>
-
-
-</div>
-
-
-
-<span class="time">
-
-${ad.date || "الآن"}
-
-</span>
-
+    </div>
 
 </div>
-
-
-</div>
-
-
-
-
 
 
 <div class="broadcast-content">
 
+    <h3 class="post-title">
 
-<h3 class="post-title">
+        ${ad.title}
 
-${ad.title}
-
-</h3>
-
+    </h3>
 
 
+    <p class="post-text">
 
-<p class="post-text">
+        ${ad.content}
 
-${ad.content}
-
-</p>
-
+    </p>
 
 
+    ${
+        ad.image ?
 
+        `
 
-${
-ad.image ?
+        <div class="post-media-container">
 
-`
+            <img
+            src="${ad.image}"
+            class="post-image"
+            >
 
-<div class="post-media-container">
+        </div>
 
-<img
+        `
 
-src="${ad.image}"
+        :
 
-class="post-image"
+        ""
 
->
-
-</div>
-
-`
-
-:
-
-""
-
-}
-
-
-
+    }
 
 </div>
-
 
 `;
 
 
-
-feed.prepend(card);
-
-
+feed.appendChild(card);
 
 });
 
 
-
 }catch(error){
-
 
 console.log(
 "ANNOUNCEMENTS ERROR:",
 error
 );
 
-
 }
-
 
 }
 // ===============================
@@ -231,11 +185,16 @@ await response.json();
 
 const feed =
 document.getElementById(
-"notificationsFeed"
+"userNotificationsFeed"
 );
 
 
 if(!feed) return;
+
+
+// تنظيف الإشعارات الشخصية فقط
+feed.innerHTML = "";
+
 
 // ===============================
 // عرض الإشعارات
@@ -251,13 +210,11 @@ if(
 notif.type !== "comment_like" &&
 notif.type !== "wallpaper_like"
 ){
+
 return;
+
 }
 
-
-// ===============================
-// إنشاء بطاقة الإشعار
-// ===============================
 
 const card =
 document.createElement("article");
@@ -272,7 +229,7 @@ card.dataset.category =
 
 
 // ===============================
-// إذا كان إعجاب خلفية
+// إعجاب الخلفية
 // ===============================
 
 if(
@@ -283,44 +240,51 @@ card.innerHTML = `
 
 <div class="card-side-indicator"></div>
 
+
 <div class="avatar-container">
 
-<img
+    <img
 
-src="${notif.avatar || 'assets/images/user.png'}"
+    src="${
+        notif.avatar ||
+        'assets/images/user.png'
+    }"
 
-class="avatar"
+    class="avatar"
 
->
+    >
 
-<span class="type-badge like">
-❤️
-</span>
+    <span class="type-badge like">
+        ❤️
+    </span>
 
 </div>
 
 
 <div class="notif-body">
 
-<p class="notif-text">
+    <p class="notif-text">
 
-${notif.content}
+        ${notif.content}
 
-</p>
-
-
-<div class="comment-quote">
-
-❤️ ${notif.wallpaperTitle || "خلفيتك"}
-
-</div>
+    </p>
 
 
-<div class="notif-meta">
+    <div class="comment-quote">
 
-${notif.date || "الآن"}
+        ❤️ ${
+            notif.wallpaperTitle ||
+            "خلفيتك"
+        }
 
-</div>
+    </div>
+
+
+    <div class="notif-meta">
+
+        ${notif.date || "الآن"}
+
+    </div>
 
 </div>
 
@@ -330,7 +294,7 @@ ${notif.date || "الآن"}
 
 
 // ===============================
-// إذا كان إعجاب تعليق
+// إعجاب التعليق
 // ===============================
 
 else{
@@ -339,44 +303,48 @@ card.innerHTML = `
 
 <div class="card-side-indicator"></div>
 
+
 <div class="avatar-container">
 
-<img
+    <img
 
-src="${notif.avatar || 'assets/images/user.png'}"
+    src="${
+        notif.avatar ||
+        'assets/images/user.png'
+    }"
 
-class="avatar"
+    class="avatar"
 
->
+    >
 
-<span class="type-badge like">
-❤️
-</span>
+    <span class="type-badge like">
+        ❤️
+    </span>
 
 </div>
 
 
 <div class="notif-body">
 
-<p class="notif-text">
+    <p class="notif-text">
 
-${notif.content}
+        ${notif.content}
 
-</p>
-
-
-<div class="comment-quote">
-
-"${notif.commentText || ""}"
-
-</div>
+    </p>
 
 
-<div class="notif-meta">
+    <div class="comment-quote">
 
-${notif.date || "الآن"}
+        "${notif.commentText || ""}"
 
-</div>
+    </div>
+
+
+    <div class="notif-meta">
+
+        ${notif.date || "الآن"}
+
+    </div>
 
 </div>
 
@@ -385,12 +353,8 @@ ${notif.date || "الآن"}
 }
 
 
-// ===============================
-// إضافة البطاقة
-// ===============================
-
-feed.prepend(card);
-
+// إضافة الإشعار
+feed.appendChild(card);
 
 });
 
@@ -398,7 +362,7 @@ feed.prepend(card);
 }catch(error){
 
 console.log(
-"USER NOTIFICATIONS ERROR",
+"USER NOTIFICATIONS ERROR:",
 error
 );
 
