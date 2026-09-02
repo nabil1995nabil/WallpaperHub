@@ -267,10 +267,9 @@ async function loadWallpaper() {
         categoryWallpapers = allWallpapers.filter(w => w.category === currentWallpaper.category);
         currentWallpaperIndex = categoryWallpapers.findIndex(w => w.id === currentWallpaper.id);
 
-        showWallpaper();
+showWallpaper();
 autoAnalyzeWallpaper();
 loadSimilar();
-updateFavorite();
 checkLikeStatus();
 loadComments();
         saveUserAction("views", currentWallpaper.id);
@@ -1507,59 +1506,6 @@ async function checkLikeStatus(){
     }
 
 }
-
-// الضغط على القلب
-async function likeWallpaper(){
-
-    try{
-
-
-        if(!currentWallpaper || !favoriteBtn)
-            return;
-
-
-        const userId = "guest";
-
-
-        const response = await fetch(
-            `/api/wallpapers/${currentWallpaper.id}/like`,
-            {
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify({
-                    userId:userId
-                })
-            }
-        );
-
-
-        const data = await response.json();
-
-
-        if(data.success){
-
-            checkLikeStatus();
-
-        }
-
-
-    }catch(error){
-
-        console.error(
-            "LIKE ERROR",
-            error
-        );
-
-    }
-
-}
-
-
-
 if(favoriteBtn){
 
     favoriteBtn.addEventListener(
