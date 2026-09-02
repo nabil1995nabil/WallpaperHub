@@ -235,7 +235,8 @@ path.join(
     "notifications.json"
 );
 
-
+const WALLPAPER_OWNER_UID =
+"SmlHXIuh5tM50ttFsZqujvFhm5s1";
 
 
 // ======================================
@@ -767,10 +768,26 @@ app.get(
 "/api/notifications",
 (req,res)=>{
 
-    res.json(
-        readNotifications()
-    );
+    const notifications =
+        readNotifications();
 
+    const recipientUID =
+        req.query.recipientUID;
+
+    // إذا لم يتم تحديد مستخدم
+    if(!recipientUID){
+        return res.json(notifications);
+    }
+
+    // الإشعارات الموجهة لهذا المستخدم
+    // والإشعارات القديمة التي لا تحتوي recipientUID
+    const filtered =
+        notifications.filter(notif =>
+            !notif.recipientUID ||
+            notif.recipientUID === recipientUID
+        );
+
+    res.json(filtered);
 });
 
 
@@ -835,39 +852,65 @@ app.get(
 // Wallpaper Likes (Supabase)
 // ======================================
 
+const WALLPAPER_OWNER_UID =
+"SmlHXIuh5tM50ttFsZqujvFhm5s1";
 
+
+// ======================================
 // إضافة إعجاب
+// ======================================
+
 app.post(
 "/api/wallpapers/:id/like",
 async(req,res)=>{
 
 try{
 
-const wallpaperId = Number(req.params.id);
+const wallpaperId =
+Number(req.params.id);
 
-const userId = req.body.userId || "guest";
+const userId =
+req.body.userId || "guest";
+
+const userName =
+req.body.userName || "مستخدم";
 
 
-const {data,error}=await supabase
+// ======================================
+// إضافة الإعجاب إلى Supabase
+// ======================================
+
+const {data,error} =
+await supabase
+
 .from("likes")
+
 .insert([
 {
 wallpaper_id: wallpaperId,
 user_id: userId
 }
 ])
+
 .select();
 
 
+// ======================================
+// إذا كان الإعجاب موجوداً مسبقاً
+// ======================================
+
 if(error){
 
-// إذا كان موجود مسبقاً
 if(error.code==="23505"){
 
 return res.json({
+
 success:true,
+
 liked:true,
+
 message:"Already liked"
+
 });
 
 }
@@ -876,6 +919,85 @@ throw error;
 
 }
 
+
+// ======================================
+// جلب معلومات الخلفية
+// ======================================
+
+const wallpapers =
+readWallpapers();
+
+const wall =
+wallpapers.find(
+w => Number(w.id) === wallpaperId
+);
+
+
+// ======================================
+// إنشاء إشعار لصاحب الخلفية
+// ======================================
+
+// لا نرسل إشعاراً إذا صاحب الخلفية
+// هو نفسه الذي ضغط إعجاب
+
+if(userId !== WALLPAPER_OWNER_UID){
+
+let notifications =
+readNotifications();
+
+
+notifications.unshift({
+
+id:
+Date.now(),
+
+type:
+"wallpaper_like",
+
+category:
+"like_wallpaper",
+
+title:
+"إعجاب بخلفيتك ❤️",
+
+content:
+`${userName} أعجب بخلفيتك`,
+
+wallpaperId:
+wallpaperId,
+
+wallpaperTitle:
+wall?.title || "خلفية",
+
+userId:
+userId,
+
+userName:
+userName,
+
+date:
+new Date()
+.toLocaleString("ar-MA"),
+
+read:
+false,
+
+recipientUID:
+WALLPAPER_OWNER_UID
+
+});
+
+
+saveNotifications(
+notifications
+);
+
+}
+
+
+// ======================================
+// النتيجة
+// ======================================
 
 res.json({
 
@@ -895,7 +1017,6 @@ console.log(
 error
 );
 
-
 res.status(500).json({
 
 success:false,
@@ -904,62 +1025,66 @@ error:error.message
 
 });
 
-
 }
 
 });
 
 
-
-
+// ======================================
 // معرفة حالة الإعجاب
+// ======================================
+
 app.get(
 "/api/wallpapers/:id/like-status",
 async(req,res)=>{
 
-
 try{
-
 
 const wallpaperId =
 Number(req.params.id);
-
 
 const userId =
 req.query.userId || "guest";
 
 
+const {data,error} =
+await supabase
 
-const {data,error}=await supabase
 .from("likes")
-.select("id")
-.eq("wallpaper_id", wallpaperId)
-.eq("user_id", userId)
-.maybeSingle();
 
+.select("id")
+
+.eq(
+"wallpaper_id",
+wallpaperId
+)
+
+.eq(
+"user_id",
+userId
+)
+
+.maybeSingle();
 
 
 if(error)
 throw error;
 
 
-
 res.json({
 
-liked:!!data
+liked:
+!!data
 
 });
 
 
-
 }catch(error){
-
 
 console.log(
 "LIKE STATUS ERROR:",
 error
 );
-
 
 res.status(500).json({
 
@@ -967,9 +1092,7 @@ liked:false
 
 });
 
-
 }
-
 
 });
 

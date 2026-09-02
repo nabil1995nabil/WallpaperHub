@@ -1438,8 +1438,14 @@ async function likeWallpaper(){
                 },
 
                 body: JSON.stringify({
-                    userId: userId
-                })
+
+    userId: userId,
+
+    userName:
+        localStorage.getItem("userName")
+        || "مستخدم"
+
+})
             }
         );
 
