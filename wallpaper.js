@@ -1,19 +1,11 @@
 // =====================================
 // WallpaperHub wallpaper.js
-// Auto Video Wallpaper System
-// Clean Version
 // =====================================
-
-
+import { auth } from "./firebase.js";
 console.log("WallpaperHub Player Loaded");
-
-
-
 // ===============================
 // URL Helper
 // ===============================
-
-
 function getImageUrl(url){
 
     if(!url)
@@ -29,66 +21,32 @@ function getImageUrl(url){
     return "/" + url.replace(/^\/+/, "");
 
 }
-
 // ===============================
 // Media Detector
 // ===============================
-
-
 function isVideoMedia(wallpaper){
-
-
     if(!wallpaper)
-
         return false;
-
-
-
     if(wallpaper.type === "video")
-
         return true;
-
-
-
     const url =
     wallpaper.image || "";
-
-
-
     return [
-
         ".mp4",
         ".webm",
         ".mov",
         ".m3u8"
-
     ].some(ext =>
-
         url.toLowerCase().includes(ext)
-
     );
-
-
 }
-
-
-
-
-
-
-
 // ===============================
 // API
 // ===============================
-
 const API = "/api/wallpapers";
-
-
 // ===============================
 // Elements
 // ===============================
-
-
 const wallImage =
 document.getElementById("wallImage");
 const wallVideo =
@@ -131,25 +89,14 @@ const captureTime =
 document.getElementById("captureTime");
 const imageSource =
 document.getElementById("imageSource");
-
-
 if(moreOptionsBtn){
-
-
 moreOptionsBtn.onclick = ()=>{
-
 optionsMenu.classList.toggle("active");
-
 };
-
-
 }
-
 // ===============================
 // Variables
 // ===============================
-
-
 const params =
 
 new URLSearchParams(location.search);
@@ -167,60 +114,23 @@ Number(localStorage.getItem("selectedWallpaper"))
 ||
 
 1;
-
-
-
-
 let currentWallpaper = null;
-
-
 let allWallpapers = [];
-
-
 let categoryWallpapers = [];
-
-
 let currentWallpaperIndex = -1;
-
-
-
-
-
-
-
 // ===============================
 // User Actions
 // ===============================
-
-
 function saveUserAction(key,id){
-
-
 let list =
-
 JSON.parse(
-
 localStorage.getItem(key)
-
 ||
-
 "[]"
-
 );
-
-
-
 id = String(id);
-
-
-
 if(!list.map(String).includes(id)){
-
-
 list.push(id);
-
-
-
 localStorage.setItem(
 
 key,
@@ -234,14 +144,6 @@ JSON.stringify(list)
 
 
 }
-
-
-
-
-
-
-
-
 // ===============================
 // Load Wallpaper
 // ===============================
@@ -1502,6 +1404,76 @@ async function checkLikeStatus(){
     }
 
 }
+
+// ===============================
+// Like Wallpaper
+// ===============================
+
+async function likeWallpaper(){
+
+    try{
+
+        if(!currentWallpaper || !favoriteBtn)
+            return;
+
+
+        const userId = "guest";
+
+
+        const response = await fetch(
+            `/api/wallpapers/${currentWallpaper.id}/like`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    userId: userId
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        console.log("LIKE RESPONSE:", data);
+
+
+        if(data.success){
+
+            // إظهار القلب مباشرة
+            favoriteBtn.innerHTML = `
+                <span class="material-icons">
+                    favorite
+                </span>
+            `;
+
+            favoriteBtn.classList.add("liked");
+
+        }else{
+
+            console.error(
+                "LIKE FAILED:",
+                data
+            );
+
+        }
+
+
+    }catch(error){
+
+        console.error(
+            "LIKE ERROR:",
+            error
+        );
+
+    }
+
+}
+
 if(favoriteBtn){
 
     favoriteBtn.addEventListener(
