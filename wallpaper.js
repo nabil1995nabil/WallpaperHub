@@ -2318,20 +2318,20 @@ async function sendComment(){
 
         body:JSON.stringify({
 
-            text:text,
+    text:text,
 
+    user:userName,
 
-            user:userName,
+    email:userEmail,
 
+    avatar:userAvatar,
 
-            email:userEmail,
+    userId:
+        auth.currentUser?.uid || "",
 
+    likes:0,
 
-            avatar:userAvatar,
-
-
-            likes:0, 
-            likedBy:[],
+    likedBy:[],
 
 
             date:
@@ -2412,6 +2412,9 @@ localStorage.getItem("userName")
 ||
 "مستخدم";
 
+const userId =
+auth.currentUser?.uid || "";
+
 
 const res =
 await fetch(
@@ -2424,7 +2427,8 @@ headers:{
 },
 
 body:JSON.stringify({
-user:user
+    user:user,
+    userId:userId
 })
 
 });

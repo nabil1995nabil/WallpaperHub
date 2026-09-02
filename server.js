@@ -3170,19 +3170,22 @@ message:"Comment not found"
 let likedBy = comment.likedBy || [];
 
 
+let isNewLike = false;
+
 if(likedBy.includes(userId)){
 
-// إزالة الإعجاب
-likedBy =
-likedBy.filter(
-id => id !== userId
-);
-
+    // إزالة الإعجاب
+    likedBy =
+    likedBy.filter(
+        id => id !== userId
+    );
 
 }else{
 
-// إضافة إعجاب
-likedBy.push(userId);
+    // إضافة الإعجاب
+    likedBy.push(userId);
+
+    isNewLike = true;
 
 }
 
@@ -3208,7 +3211,69 @@ likedBy:likedBy
 if(updateError)
 throw updateError;
 
+// ===============================
+// Notification: Comment Like
+// ===============================
 
+if(
+    isNewLike &&
+    comment.userId &&
+    comment.userId !== userId
+){
+
+    let notifications =
+    readNotifications();
+
+    notifications.unshift({
+
+        id:
+        Date.now(),
+
+        type:
+        "comment_like",
+
+        category:
+        "like_comment",
+
+        title:
+        "إعجاب بتعليقك ❤️",
+
+        content:
+        `${req.body.user || "مستخدم"} أعجب بتعليقك`,
+
+        commentText:
+        comment.text || "",
+
+        commentId:
+        comment.id,
+
+        wallpaperId:
+        comment.wallpaperId || "",
+
+        user:
+        req.body.user || "مستخدم",
+
+        userId:
+        userId,
+
+        avatar:
+        req.body.avatar || "",
+
+        recipientUID:
+        comment.userId,
+
+        date:
+        new Date()
+        .toLocaleString("ar-MA"),
+
+        read:false
+
+    });
+
+    saveNotifications(
+        notifications
+    );
+}
 
 res.json({
 
