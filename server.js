@@ -2962,155 +2962,214 @@ res.status(500).json([]);
 
 
 
-// إضافة تعليق
+// ======================================
+// إضافة تعليق على خلفية
+// ======================================
+
 app.post(
-"/api/wallpapers/:id/comments",
-async (req,res)=>{
+    "/api/wallpapers/:id/comments",
+    async (req, res) => {
 
-try{
+        try {
 
+            const wallpaperId =
+                Number(req.params.id);
 
-const wallpaperId =
-Number(req.params.id);
+            const text =
+                String(req.body.text || "")
+                    .trim();
 
+            if (!text) {
 
+                return res.status(400).json({
+                    success: false,
+                    message: "Empty comment"
+                });
 
-const text =
-String(
-req.body.text || ""
-)
-.trim();
+            }
 
+            // ======================================
+            // بيانات صاحب التعليق
+            // ======================================
 
+            const commenterUID =
+                req.body.userId || "";
 
-if(!text){
+            const commenterName =
+                req.body.user || "مستخدم";
 
-return res.status(400).json({
+            const commenterEmail =
+                req.body.email || "";
 
-success:false,
+            const commenterAvatar =
+                req.body.avatar || "";
 
-message:"Empty comment"
+            // ======================================
+            // إنشاء التعليق
+            // ======================================
 
-});
+            const newComment = {
 
-}
+                wallpaperId,
 
+                user:
+                    commenterName,
 
+                email:
+                    commenterEmail,
 
+                avatar:
+                    commenterAvatar,
 
-const newComment = {
+                userId:
+                    commenterUID,
 
+                text,
 
-// لا نضع id لأن Supabase ينشئه تلقائياً
+                likes: 0,
 
+                likedBy: [],
 
-wallpaperId,
+                date:
+                    new Date()
+                        .toLocaleDateString("ar-MA"),
 
+                time:
+                    new Date()
+                        .toLocaleTimeString(
+                            "ar-MA",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            }
+                        )
+            };
 
-user:
-req.body.user ||
-"مستخدم",
+            // ======================================
+            // حفظ التعليق في Supabase
+            // ======================================
 
+            const { data, error } =
+                await supabase
+                    .from("comments")
+                    .insert([newComment])
+                    .select()
+                    .single();
 
+            if (error) {
+                throw error;
+            }
 
-email:
-req.body.email ||
-"",
+            // ======================================
+            // معرفة صاحب الخلفية
+            // ======================================
 
+            const wallpapers =
+                readWallpapers();
 
+            const wallpaper =
+                wallpapers.find(
+                    w =>
+                        Number(w.id) === wallpaperId
+                );
 
-avatar:
-req.body.avatar ||
-"",
+            const wallpaperOwnerUID =
+                wallpaper?.ownerUID ||
+                wallpaper?.userId ||
+                "";
 
-    userId:
-    req.body.userId ||
-    "",
+            // ======================================
+            // إنشاء إشعار لصاحب الخلفية فقط
+            // ======================================
 
-text,
+            if (
+                commenterUID &&
+                wallpaperOwnerUID &&
+                commenterUID !== wallpaperOwnerUID
+            ) {
 
+                let notifications =
+                    readNotifications();
 
+                notifications.unshift({
 
-likes:0,
+                    id: Date.now(),
 
+                    type:
+                        "wallpaper_comment",
 
+                    category:
+                        "comment_wallpaper",
 
-likedBy:[],
+                    title:
+                        "تعليق جديد على خلفيتك 💬",
 
+                    content:
+                        `${commenterName} علق على خلفيتك`,
 
+                    wallpaperId:
+                        wallpaperId,
 
-date:
-new Date()
-.toLocaleDateString("ar-MA"),
+                    wallpaperTitle:
+                        wallpaper?.title ||
+                        "خلفية",
 
+                    userId:
+                        commenterUID,
 
+                    userName:
+                        commenterName,
 
-time:
-new Date()
-.toLocaleTimeString(
-"ar-MA",
-{
-hour:"2-digit",
-minute:"2-digit"
-}
-)
+                    date:
+                        new Date()
+                            .toLocaleString("ar-MA"),
 
-};
+                    read: false,
 
+                    // مهم جداً:
+                    // الإشعار يذهب لصاحب الخلفية فقط
+                    recipientUID:
+                        wallpaperOwnerUID
+                });
 
+                saveNotifications(
+                    notifications
+                );
+            }
 
+            // ======================================
+            // الرد
+            // ======================================
 
+            res.json({
 
-const { data, error } =
-await supabase
-.from("comments")
-.insert([newComment])
-.select()
-.single();
+                success: true,
 
+                comment: data
 
+            });
 
+        } catch (error) {
 
-if(error){
+            console.log(
+                "ADD COMMENT ERROR:",
+                error
+            );
 
-throw error;
+            res.status(500).json({
 
-}
+                success: false,
 
+                message:
+                    error.message ||
+                    "Failed to add comment"
 
+            });
 
+        }
 
-res.json({
-
-success:true,
-
-comment:data
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"POST COMMENTS ERROR:",
-error
+    }
 );
-
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-});
 
 // =========================
 // Like Comment API
