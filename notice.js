@@ -6,6 +6,8 @@ import {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+
+
 // ===============================
 // Load Admin Announcements
 // ===============================
@@ -164,6 +166,8 @@ error
 }
 
 }
+
+
 // ===============================
 // Load User Notifications
 // ===============================
@@ -175,12 +179,18 @@ async function loadUserNotifications(){
         const currentUser =
             auth.currentUser;
 
+
         if(!currentUser){
+
             return;
+
         }
 
+
+        // UID المستخدم الحالي
         const OWNER_UID =
             currentUser.uid;
+
 
         const response =
             await fetch(
@@ -188,433 +198,471 @@ async function loadUserNotifications(){
                 encodeURIComponent(OWNER_UID)
             );
 
+
         const notifications =
             await response.json();
 
-        // باقي الكود كما هو...
+
+        const feed =
+            document.getElementById(
+                "userNotificationsFeed"
+            );
 
 
-const feed =
-document.getElementById(
-"userNotificationsFeed"
-);
+        if(!feed) return;
 
 
-if(!feed) return;
+        // تنظيف الإشعارات الشخصية فقط
+        feed.innerHTML = "";
 
 
-// تنظيف الإشعارات الشخصية فقط
-feed.innerHTML = "";
+        // ===============================
+        // عرض الإشعارات
+        // ===============================
+
+        notifications.forEach(notif=>{
 
 
-// ===============================
-// عرض الإشعارات
-// ===============================
+            // ======================================
+            // السماح بأنواع الإشعارات المطلوبة فقط
+            // ======================================
 
-notifications.forEach(notif=>{
+            if(
+                notif.type !== "comment_like" &&
+                notif.type !== "wallpaper_like" &&
+                notif.type !== "wallpaper_comment"
+            ){
+
+                return;
+
+            }
 
 
-// نعرض إعجاب التعليق
-// أو إعجاب الخلفية
+            const card =
+                document.createElement("article");
 
-if(
-notif.type !== "comment_like" &&
-notif.type !== "wallpaper_like"
-){
 
-return;
+            card.className =
+                "notif-card unread";
+
+
+            // ===============================
+            // إعجاب الخلفية
+            // ===============================
+
+            if(
+                notif.type === "wallpaper_like"
+            ){
+
+                card.dataset.category =
+                    "like";
+
+
+                card.innerHTML = `
+
+                <div class="card-side-indicator"></div>
+
+
+                <div class="avatar-container">
+
+                    <img
+
+                    src="${
+                        notif.avatar ||
+                        'assets/images/user.png'
+                    }"
+
+                    class="avatar"
+
+                    >
+
+                    <span class="type-badge like">
+                        ❤️
+                    </span>
+
+                </div>
+
+
+                <div class="notif-body">
+
+                    <p class="notif-text">
+
+                        ${notif.content}
+
+                    </p>
+
+
+                    <div class="comment-quote">
+
+                        ❤️ ${
+                            notif.wallpaperTitle ||
+                            "خلفيتك"
+                        }
+
+                    </div>
+
+
+                    <div class="notif-meta">
+
+                        ${notif.date || "الآن"}
+
+                    </div>
+
+                </div>
+
+                `;
+
+            }
+
+
+            // ===============================
+            // إعجاب التعليق
+            // ===============================
+
+            else if(
+                notif.type === "comment_like"
+            ){
+
+                card.dataset.category =
+                    "like";
+
+
+                card.innerHTML = `
+
+                <div class="card-side-indicator"></div>
+
+
+                <div class="avatar-container">
+
+                    <img
+
+                    src="${
+                        notif.avatar ||
+                        'assets/images/user.png'
+                    }"
+
+                    class="avatar"
+
+                    >
+
+                    <span class="type-badge like">
+                        ❤️
+                    </span>
+
+                </div>
+
+
+                <div class="notif-body">
+
+                    <p class="notif-text">
+
+                        ${notif.content}
+
+                    </p>
+
+
+                    <div class="comment-quote">
+
+                        "${notif.commentText || ""}"
+
+                    </div>
+
+
+                    <div class="notif-meta">
+
+                        ${notif.date || "الآن"}
+
+                    </div>
+
+                </div>
+
+                `;
+
+            }
+
+
+            // ===============================
+            // تعليق على الخلفية
+            // ===============================
+
+            else if(
+                notif.type === "wallpaper_comment"
+            ){
+
+                card.dataset.category =
+                    "comment";
+
+
+                card.innerHTML = `
+
+                <div class="card-side-indicator"></div>
+
+
+                <div class="avatar-container">
+
+                    <img
+
+                    src="${
+                        notif.avatar ||
+                        'assets/images/user.png'
+                    }"
+
+                    class="avatar"
+
+                    >
+
+                    <span class="type-badge">
+                        💬
+                    </span>
+
+                </div>
+
+
+                <div class="notif-body">
+
+                    <p class="notif-text">
+
+                        ${notif.content}
+
+                    </p>
+
+
+                    <div class="comment-quote">
+
+                        💬 ${
+                            notif.wallpaperTitle ||
+                            "خلفيتك"
+                        }
+
+                    </div>
+
+
+                    <div class="notif-meta">
+
+                        ${notif.date || "الآن"}
+
+                    </div>
+
+                </div>
+
+                `;
+
+            }
+
+
+            // ===============================
+            // إضافة الإشعار
+            // ===============================
+
+            feed.appendChild(card);
+
+        });
+
+
+    }catch(error){
+
+        console.log(
+            "USER NOTIFICATIONS ERROR:",
+            error
+        );
+
+    }
 
 }
 
-
-const card =
-document.createElement("article");
-
-
-card.className =
-"notif-card unread";
-
-
-card.dataset.category =
-"like";
-
-
-// ===============================
-// إعجاب الخلفية
-// ===============================
-
-if(
-notif.type === "wallpaper_like"
-){
-
-card.innerHTML = `
-
-<div class="card-side-indicator"></div>
-
-
-<div class="avatar-container">
-
-    <img
-
-    src="${
-        notif.avatar ||
-        'assets/images/user.png'
-    }"
-
-    class="avatar"
-
-    >
-
-    <span class="type-badge like">
-        ❤️
-    </span>
-
-</div>
-
-
-<div class="notif-body">
-
-    <p class="notif-text">
-
-        ${notif.content}
-
-    </p>
-
-
-    <div class="comment-quote">
-
-        ❤️ ${
-            notif.wallpaperTitle ||
-            "خلفيتك"
-        }
-
-    </div>
-
-
-    <div class="notif-meta">
-
-        ${notif.date || "الآن"}
-
-    </div>
-
-</div>
-
-`;
-
-}
-
-
-// ===============================
-// إعجاب التعليق
-// ===============================
-
-else{
-
-card.innerHTML = `
-
-<div class="card-side-indicator"></div>
-
-
-<div class="avatar-container">
-
-    <img
-
-    src="${
-        notif.avatar ||
-        'assets/images/user.png'
-    }"
-
-    class="avatar"
-
-    >
-
-    <span class="type-badge like">
-        ❤️
-    </span>
-
-</div>
-
-
-<div class="notif-body">
-
-    <p class="notif-text">
-
-        ${notif.content}
-
-    </p>
-
-
-    <div class="comment-quote">
-
-        "${notif.commentText || ""}"
-
-    </div>
-
-
-    <div class="notif-meta">
-
-        ${notif.date || "الآن"}
-
-    </div>
-
-</div>
-
-`;
-
-}
-
-
-// إضافة الإشعار
-feed.appendChild(card);
-
-});
-
-
-}catch(error){
-
-console.log(
-"USER NOTIFICATIONS ERROR:",
-error
-);
-
-}
-
-}
 
 // ===============================
 // Notification Filters
 // ===============================
 
-
 const tabs =
-document.querySelectorAll(".tab-btn");
-
+document.querySelectorAll(
+    ".tab-btn"
+);
 
 
 tabs.forEach(tab=>{
 
 
-tab.addEventListener(
-"click",
-()=>{
+    tab.addEventListener(
+        "click",
+        ()=>{
 
 
-tabs.forEach(t=>{
+            tabs.forEach(t=>{
 
-t.classList.remove(
-"active"
-);
+                t.classList.remove(
+                    "active"
+                );
 
-});
-
-
-
-tab.classList.add(
-"active"
-);
+            });
 
 
-
-const filter =
-tab.getAttribute(
-"data-filter"
-);
+            tab.classList.add(
+                "active"
+            );
 
 
-
-const cards =
-document.querySelectorAll(
-".notif-card"
-);
-
+            const filter =
+                tab.getAttribute(
+                    "data-filter"
+                );
 
 
-cards.forEach(card=>{
+            const cards =
+                document.querySelectorAll(
+                    ".notif-card"
+                );
 
 
-const category =
-card.dataset.category;
+            cards.forEach(card=>{
 
 
-
-if(
-filter === "all" ||
-category === filter
-){
+                const category =
+                    card.dataset.category;
 
 
-card.classList.remove(
-"hidden"
-);
+                if(
+                    filter === "all" ||
+                    category === filter
+                ){
+
+                    card.classList.remove(
+                        "hidden"
+                    );
+
+                }else{
+
+                    card.classList.add(
+                        "hidden"
+                    );
+
+                }
+
+            });
 
 
-}else{
-
-
-card.classList.add(
-"hidden"
-);
-
-
-}
-
+        }
+    );
 
 });
-
-
-});
-
-
-});
-
-
-
-
-
-
-
 
 
 // ===============================
 // Quick Reply
 // ===============================
 
-
 const replyButtons =
 document.querySelectorAll(
-".reply-toggle-btn"
+    ".reply-toggle-btn"
 );
-
 
 
 replyButtons.forEach(btn=>{
 
 
-btn.addEventListener(
-"click",
-e=>{
+    btn.addEventListener(
+        "click",
+        e=>{
 
 
-const card =
-e.target.closest(
-".notif-card"
-);
+            const card =
+                e.target.closest(
+                    ".notif-card"
+                );
 
 
-
-const replyBox =
-card.querySelector(
-".quick-reply-box"
-);
-
+            const replyBox =
+                card.querySelector(
+                    ".quick-reply-box"
+                );
 
 
-if(replyBox){
+            if(replyBox){
 
-replyBox.classList.toggle(
-"active"
-);
+                replyBox.classList.toggle(
+                    "active"
+                );
 
-}
+            }
 
 
-});
-
+        }
+    );
 
 });
-
-
-
-
-
-
-
 
 
 // ===============================
 // Mark All Read
 // ===============================
 
-
 const markBtn =
 document.getElementById(
-"mark-all-btn"
+    "mark-all-btn"
 );
-
 
 
 const unreadCount =
 document.getElementById(
-"unread-count"
+    "unread-count"
 );
-
 
 
 if(markBtn){
 
 
-markBtn.addEventListener(
-"click",
-()=>{
+    markBtn.addEventListener(
+        "click",
+        ()=>{
 
 
-const unreadCards =
-document.querySelectorAll(
-".notif-card.unread"
-);
+            const unreadCards =
+                document.querySelectorAll(
+                    ".notif-card.unread"
+                );
 
 
-
-unreadCards.forEach(card=>{
-
-
-card.classList.remove(
-"unread"
-);
+            unreadCards.forEach(card=>{
 
 
-
-const indicator =
-card.querySelector(
-".card-side-indicator"
-);
+                card.classList.remove(
+                    "unread"
+                );
 
 
-
-if(indicator){
-
-indicator.style.opacity =
-"0";
-
-}
+                const indicator =
+                    card.querySelector(
+                        ".card-side-indicator"
+                    );
 
 
-});
+                if(indicator){
+
+                    indicator.style.opacity =
+                        "0";
+
+                }
 
 
+            });
 
 
-if(unreadCount){
+            if(unreadCount){
 
-unreadCount.textContent =
-"0";
+                unreadCount.textContent =
+                    "0";
 
-unreadCount.style.opacity =
-"0.5";
+                unreadCount.style.opacity =
+                    "0.5";
 
-}
+            }
 
 
-
-});
-
+        }
+    );
 
 }
-
-
-
-
-
 
 
 // ===============================
@@ -623,17 +671,19 @@ unreadCount.style.opacity =
 
 loadAnnouncements();
 
+
 // ننتظر Firebase حتى يتأكد من المستخدم الحالي
 onAuthStateChanged(
     auth,
     (user) => {
 
-        if (user) {
+
+        if(user){
 
             // المستخدم معروف الآن
             loadUserNotifications();
 
-        } else {
+        }else{
 
             // لا يوجد مستخدم مسجل الدخول
             const feed =
@@ -641,8 +691,11 @@ onAuthStateChanged(
                     "userNotificationsFeed"
                 );
 
-            if (feed) {
+
+            if(feed){
+
                 feed.innerHTML = "";
+
             }
 
         }
