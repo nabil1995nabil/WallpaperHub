@@ -876,10 +876,6 @@ function changeWallpaper(index) {
 
     loadSimilar();
 
-    updateFavorite();
-
-
-
     // تحديث تعليقات الخلفية الجديدة
     if(typeof showAllComments !== "undefined"){
 
