@@ -773,10 +773,11 @@ function changeWallpaper(index) {
     );
 
 
+showWallpaper();
 
-    showWallpaper();
+loadSimilar();
 
-    loadSimilar();
+checkLikeStatus();
 
     // تحديث تعليقات الخلفية الجديدة
     if(typeof showAllComments !== "undefined"){
@@ -1360,16 +1361,23 @@ async function checkLikeStatus(){
             return;
 
 
-        const userId = "guest";
+        const wallpaperCheckId = currentWallpaper.id;
 
+const userId = auth.currentUser?.uid || "guest";
 
-        const res = await fetch(
-            `/api/wallpapers/${currentWallpaper.id}/like-status?userId=${userId}`
-        );
+const res = await fetch(
+    `/api/wallpapers/${wallpaperCheckId}/like-status?userId=${userId}`
+);
 
 
         const data = await res.json();
 
+if(
+    !currentWallpaper ||
+    currentWallpaper.id !== wallpaperCheckId
+){
+    return;
+}
 
         if(data.liked){
 
@@ -1417,7 +1425,7 @@ async function likeWallpaper(){
             return;
 
 
-        const userId = "guest";
+        const userId = auth.currentUser?.uid || "guest";
 
 
         const response = await fetch(
