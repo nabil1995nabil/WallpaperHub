@@ -1,21 +1,37 @@
 /* =========================================================
    WallpaperHub — Clean White Categories
-   تصميم أبيض نظيف بدون أنيميشن أو انتقالات
+   3 Columns / Clean 1px Border
+   بدون Animation أو Transition
    ========================================================= */
 
-.categories {
+.category {
     width: 100%;
-    margin: 24px 0 28px;
+    min-width: 0;
+
+    min-height: 150px;
+
+    padding: 14px 8px;
+
     box-sizing: border-box;
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Helvetica,
-        Arial,
-        sans-serif;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
     background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    box-shadow: none;
+
+    cursor: pointer;
+
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -29,7 +45,7 @@
     align-items: center;
 
     padding: 0 16px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .categories-header h3 {
@@ -43,6 +59,7 @@
 
 .categories-header .see-all {
     color: #5060ff;
+
     font-size: 13px;
     font-weight: 600;
 
@@ -56,50 +73,48 @@
 
 /* =========================================================
    Categories Grid
-   صفين أفقيين قابلين للتمرير
    ========================================================= */
 
 .category-grid {
     display: grid;
 
-    grid-template-rows: repeat(2, auto);
-    grid-auto-flow: column;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
     gap: 10px;
 
     padding: 2px 16px 10px;
 
-    overflow-x: auto;
+    box-sizing: border-box;
 
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-
-.category-grid::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
 }
 
 
 /* =========================================================
-   Category
+   Category Card
    ========================================================= */
 
 .category {
-    background: #ffffff;
+    width: 100%;
+    min-width: 0;
 
-    min-width: 140px;
+    min-height: 150px;
 
-    padding: 10px 14px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
+    padding: 14px 8px;
 
     box-sizing: border-box;
 
-    border: 1px solid #eef2f7;
-    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
 
     cursor: pointer;
 
@@ -109,12 +124,12 @@
 
 
 /* =========================================================
-   Icon
+   Category Icon
    ========================================================= */
 
 .emoji-box {
-    width: 38px;
-    height: 38px;
+    width: 52px;
+    height: 52px;
 
     border-radius: 50%;
 
@@ -122,7 +137,7 @@
     align-items: center;
     justify-content: center;
 
-    font-size: 17px;
+    font-size: 22px;
 
     flex-shrink: 0;
 }
@@ -210,9 +225,12 @@
 .cat-info {
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
 
     min-width: 0;
+
+    text-align: center;
 }
 
 .cat-title {
@@ -220,25 +238,29 @@
 
     color: #202020;
 
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 600;
 
     line-height: 1.2;
+
+    text-align: center;
 }
 
 .cat-count {
     color: #777777;
 
-    font-size: 11.5px;
+    font-size: 12px;
 
-    margin-top: 3px;
+    margin-top: 4px;
 
     font-weight: 400;
+
+    text-align: center;
 }
 
 
 /* =========================================================
-   Small Phones
+   Mobile
    ========================================================= */
 
 @media (max-width: 480px) {
@@ -249,45 +271,49 @@
     }
 
     .categories-header {
-        padding: 0 14px;
-        margin-bottom: 12px;
+        padding: 0 16px;
+        margin-bottom: 14px;
     }
 
     .categories-header h3 {
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .categories-header .see-all {
-        font-size: 12.5px;
+        font-size: 13px;
     }
 
     .category-grid {
-        gap: 8px;
-        padding: 2px 14px 8px;
-    }
-
-    .category {
-        min-width: 130px;
-
-        padding: 9px 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
 
         gap: 10px;
 
-        border-radius: 9px;
+        padding: 2px 16px 10px;
+    }
+
+    .category {
+        min-height: 150px;
+
+        padding: 12px 5px;
+
+        gap: 8px;
+
+        border-radius: 12px;
     }
 
     .emoji-box {
-        width: 34px;
-        height: 34px;
+        width: 50px;
+        height: 50px;
 
-        font-size: 15px;
+        font-size: 19px;
     }
 
     .cat-title {
-        font-size: 12.5px;
+        font-size: 12px;
     }
 
     .cat-count {
-        font-size: 10.5px;
+        font-size: 10px;
+        margin-top: 3px;
     }
 }
