@@ -6,7 +6,7 @@
 .slider-section{
 
     width:100%;
-    padding:20px 55px;
+    padding:20px 100px;
     overflow:hidden;
 
 }
@@ -62,8 +62,8 @@
 
     object-fit:cover;
 
-    filter:
-    brightness(.55);
+    /* صورة فاتحة وواضحة */
+    filter:brightness(.92);
 
 }
 
@@ -152,7 +152,7 @@
 
     position:absolute;
 
-    top:140px;
+    top:150px;
     right:9px;
 
     padding:10px 20px;
@@ -167,26 +167,11 @@
 
     font-weight:bold;
 
-    font-size:9px;
+    font-size:10px;
 
     box-shadow:0 8px 20px rgba(0,0,0,.25);
 
     backdrop-filter:blur(5px);
-
-}
-
-/* مكان العنوان ثابت */
-.title-marquee {
-
-    position:relative;
-
-    top:55px;
-
-    width:100%;
-
-    overflow:hidden;
-
-    white-space:nowrap;
 
 }
 
@@ -289,34 +274,6 @@
     height:100%;
 
     object-fit:cover;
-
-}
-
-
-
-/* اسم الخلفية */
-
-.mini-card span{
-
-    position:absolute;
-
-    bottom:0;
-
-    left:0;
-
-    right:0;
-
-    padding:5px;
-
-    font-size:9px;
-
-    color:white;
-
-    background:
-    linear-gradient(
-        transparent,
-        black
-    );
 
 }
 
