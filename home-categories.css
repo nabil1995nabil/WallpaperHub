@@ -1,0 +1,539 @@
+/* =========================================================
+   Categories
+   ========================================================= */
+
+.categories {
+    width: 100%;
+
+    margin: 24px 0 28px;
+
+    box-sizing: border-box;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    background: #ffffff;
+}
+
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.categories-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 16px;
+
+    margin-bottom: 14px;
+
+    background: #ffffff;
+}
+
+.categories-header h3 {
+    margin: 0;
+
+    color: #111111;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    line-height: 1.2;
+}
+
+.categories-header .see-all {
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+    color: #5060ff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    animation: none !important;
+    transition: none !important;
+}
+
+
+/* =========================================================
+   Category Grid
+   سطر أفقي واحد فقط
+   ========================================================= */
+
+.category-grid {
+    display: flex !important;
+
+    flex-direction: row !important;
+
+    flex-wrap: nowrap !important;
+
+    align-items: stretch;
+
+    gap: 10px;
+
+    width: 100%;
+
+    padding: 2px 16px 10px;
+
+    box-sizing: border-box;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    background: #ffffff;
+}
+
+.category-grid::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* =========================================================
+   Category Card
+   ========================================================= */
+
+.category {
+    flex: 0 0 140px !important;
+
+    width: 140px !important;
+
+    min-width: 140px !important;
+
+    max-width: 140px !important;
+
+    height: 118px !important;
+
+    min-height: 118px !important;
+
+    max-height: 118px !important;
+
+    padding: 10px;
+
+    box-sizing: border-box;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    background: #ffffff !important;
+
+    border: 1px solid #eeeeee !important;
+
+    border-radius: 12px;
+
+    box-shadow: none !important;
+
+    outline: none !important;
+
+    position: relative;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    -webkit-tap-highlight-color: transparent;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   إزالة أي حواف أو طبقات ملونة
+   ========================================================= */
+
+.category::before,
+.category::after {
+    content: none !important;
+
+    display: none !important;
+
+    width: 0 !important;
+    height: 0 !important;
+
+    background: none !important;
+
+    border: none !important;
+
+    box-shadow: none !important;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   منع جميع تأثيرات Hover / Active
+   ========================================================= */
+
+.category:hover,
+.category:active,
+.category:focus,
+.category:focus-visible,
+.category.active {
+    background: #ffffff !important;
+
+    color: inherit;
+
+    border: 1px solid #eeeeee !important;
+
+    box-shadow: none !important;
+
+    outline: none !important;
+
+    transform: none !important;
+
+    animation: none !important;
+
+    transition: none !important;
+}
+
+
+/* =========================================================
+   Category Icon
+   ========================================================= */
+
+.emoji-box {
+    width: 42px;
+
+    height: 42px;
+
+    min-width: 42px;
+
+    min-height: 42px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 19px;
+
+    line-height: 1;
+
+    flex-shrink: 0;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   Icon Colors
+   الألوان داخل دائرة الأيقونة فقط
+   ========================================================= */
+
+.all-bg {
+    background-color: #f1efff;
+    color: #5060ff;
+}
+
+.nature-bg {
+    background-color: #ecfdf3;
+    color: #16a34a;
+}
+
+.anime-bg {
+    background-color: #fdf0f7;
+    color: #db2777;
+}
+
+.cars-bg {
+    background-color: #fff3e8;
+    color: #ea580c;
+}
+
+.space-bg {
+    background-color: #eef0ff;
+    color: #4f46e5;
+}
+
+.minimal-bg {
+    background-color: #eafaf8;
+    color: #0f9f91;
+}
+
+.games-bg {
+    background-color: #fff9df;
+    color: #ca8a04;
+}
+
+.ai-bg {
+    background-color: #e8faff;
+    color: #0891b2;
+}
+
+.city-bg {
+    background-color: #edf4ff;
+    color: #2563eb;
+}
+
+.amoled-bg {
+    background-color: #eaf8ff;
+    color: #0284c7;
+}
+
+.animals-bg {
+    background-color: #fff7e6;
+    color: #d97706;
+}
+
+.dark-bg {
+    background-color: #f1f3f5;
+    color: #64748b;
+}
+
+.k4-bg {
+    background-color: #f2edff;
+    color: #7c3aed;
+}
+
+.sports-bg {
+    background-color: #eafaf5;
+    color: #059669;
+}
+
+
+/* =========================================================
+   Category Information
+   ========================================================= */
+
+.cat-info {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 0;
+
+    text-align: center;
+}
+
+.cat-title {
+    margin: 0;
+
+    color: #202020;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    line-height: 1.2;
+
+    text-align: center;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+.cat-count {
+    margin-top: 3px;
+
+    color: #777777;
+
+    font-size: 11px;
+
+    font-weight: 400;
+
+    line-height: 1.2;
+
+    text-align: center;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   Mobile
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .categories {
+        margin-top: 20px;
+
+        margin-bottom: 24px;
+    }
+
+
+    /* Header */
+
+    .categories-header {
+        padding: 0 16px;
+
+        margin-bottom: 12px;
+    }
+
+    .categories-header h3 {
+        font-size: 18px;
+    }
+
+    .categories-header .see-all {
+        font-size: 13px;
+    }
+
+
+    /* =====================================================
+       سطر واحد أفقي
+       ===================================================== */
+
+    .category-grid {
+        display: flex !important;
+
+        flex-direction: row !important;
+
+        flex-wrap: nowrap !important;
+
+        align-items: stretch;
+
+        gap: 10px;
+
+        width: 100%;
+
+        padding: 2px 16px 10px;
+
+        overflow-x: auto !important;
+
+        overflow-y: hidden !important;
+
+        scrollbar-width: none;
+
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .category-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    /* =====================================================
+       Category Card
+       ===================================================== */
+
+    .category {
+        flex: 0 0 130px !important;
+
+        width: 100px !important;
+
+        min-width: 130px !important;
+
+        max-width: 130px !important;
+
+        height: 118px !important;
+
+        min-height: 70px !important;
+
+        max-height: 118px !important;
+
+        padding: 10px 6px;
+
+        gap: 7px;
+
+        background: #ffffff !important;
+
+        border: 1px solid #eeeeee !important;
+
+        border-radius: 12px;
+
+        box-shadow: none !important;
+
+        animation: none !important;
+
+        transition: none !important;
+
+        transform: none !important;
+    }
+
+
+    /* =====================================================
+       Icon
+       ===================================================== */
+
+    .emoji-box {
+        width: 42px;
+
+        height: 42px;
+
+        min-width: 42px;
+
+        min-height: 42px;
+
+        font-size: 18px;
+
+        animation: none !important;
+
+        transition: none !important;
+
+        transform: none !important;
+    }
+
+
+    /* =====================================================
+       Text
+       ===================================================== */
+
+    .cat-title {
+        font-size: 13px;
+
+        animation: none !important;
+
+        transition: none !important;
+    }
+
+    .cat-count {
+        font-size: 11px;
+
+        margin-top: 3px;
+
+        animation: none !important;
+
+        transition: none !important;
+    }
+}
