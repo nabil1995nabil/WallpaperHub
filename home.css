@@ -13,15 +13,20 @@ font-family:Arial,sans-serif;
 
 :root{
 
---primary:#5b5df5;
---primary2:#7d5fff;
---bg:#ffffff;
---bg-gradient: linear-gradient(180deg, #ffffff 0%, #f8f9fc 50%, #ffffff 100%);
---card:#ffffff;
---text:#1d1d1f;
---gray:#777;
---shadow:0 10px 30px rgba(0,0,0,.08);
---bottom-nav-height: 70px;
+    --primary:#5b5df5;
+    --primary2:#7d5fff;
+
+    /* خلفية الموقع بيضاء بالكامل */
+    --bg:#ffffff;
+    --bg-gradient:#ffffff;
+
+    --card:#ffffff;
+    --text:#1d1d1f;
+    --gray:#777;
+
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+
+    --bottom-nav-height:70px;
 
 }
 
