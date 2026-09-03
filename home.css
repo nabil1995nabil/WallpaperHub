@@ -1831,3 +1831,85 @@ body.dark .bottom-nav-item.active {
     color: #7d5fff;
     background: rgba(125, 95, 255, 0.1);
 }
+
+
+/* =========================================================
+   WallpaperHub - FINAL UNIFIED WHITE HOME BACKGROUND
+   ---------------------------------------------------------
+   الصفحة الرئيسية كلها فوق خلفية واحدة بيضاء.
+   لا توجد خلفية رمادية بين السلايدر والأقسام.
+   ========================================================= */
+
+html,
+body {
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+body {
+    color: var(--text);
+}
+
+/* الحاويات الرئيسية للصفحة */
+main,
+.home,
+.home-page,
+.home-container,
+.main-content,
+.content,
+.page-content {
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+/* السلايدر والمنطقة المحيطة به */
+.slider-section,
+.slider {
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+/* جميع الأقسام الرئيسية */
+.categories,
+.wall-section,
+.wallhaven-section,
+.today-wallpaper {
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+/* أي section في الصفحة الرئيسية */
+main > section {
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+/* إزالة أي تدرج قديم من خلفية الصفحة */
+body::before,
+body::after,
+main::before,
+main::after {
+    background: transparent !important;
+}
+
+/* الفواصل تبقى خفيفة جداً بدون صنع منطقة رمادية */
+.section-divider {
+    background: transparent;
+}
+
+/* البطاقات تبقى فوق الخلفية البيضاء */
+.category,
+.wall-card {
+    background-color: #ffffff;
+}
+
+/* الشريط السفلي أبيض */
+.bottom-nav {
+    background: #ffffff !important;
+}
+
+/* =========================================================
+   ملاحظة:
+   الوضع الليلي يبقى كما هو إذا تم تفعيله يدوياً.
+   ========================================================= */
+
