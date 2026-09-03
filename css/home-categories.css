@@ -1,37 +1,24 @@
 /* =========================================================
-   WallpaperHub — Clean White Categories
-   3 Columns / Clean 1px Border
-   بدون Animation أو Transition
+   Categories
    ========================================================= */
 
-.category {
+.categories {
     width: 100%;
-    min-width: 0;
 
-    min-height: 150px;
-
-    padding: 14px 8px;
+    margin: 24px 0 28px;
 
     box-sizing: border-box;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    gap: 8px;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
 
     background: #ffffff;
-
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-
-    box-shadow: none;
-
-    cursor: pointer;
-
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -41,23 +28,35 @@
 
 .categories-header {
     display: flex;
+
     justify-content: space-between;
     align-items: center;
 
     padding: 0 16px;
-    margin-bottom: 16px;
+
+    margin-bottom: 14px;
+
+    background: #ffffff;
 }
 
 .categories-header h3 {
     margin: 0;
 
     color: #111111;
+
     font-size: 18px;
     font-weight: 700;
+
     line-height: 1.2;
 }
 
 .categories-header .see-all {
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+
     color: #5060ff;
 
     font-size: 13px;
@@ -65,28 +64,46 @@
 
     text-decoration: none;
 
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    animation: none !important;
+    transition: none !important;
 }
 
 
 /* =========================================================
-   Categories Grid
+   Category Grid
+   سطر أفقي واحد فقط
    ========================================================= */
 
 .category-grid {
-    display: grid;
+    display: flex !important;
 
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex-direction: row !important;
+
+    flex-wrap: nowrap !important;
+
+    align-items: stretch;
 
     gap: 10px;
+
+    width: 100%;
 
     padding: 2px 16px 10px;
 
     box-sizing: border-box;
 
-    overflow: visible;
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    background: #ffffff;
+}
+
+.category-grid::-webkit-scrollbar {
+    display: none;
 }
 
 
@@ -95,31 +112,111 @@
    ========================================================= */
 
 .category {
-    width: 100%;
-    min-width: 0;
+    flex: 0 0 140px !important;
 
-    min-height: 150px;
+    width: 140px !important;
 
-    padding: 14px 8px;
+    min-width: 140px !important;
+
+    max-width: 140px !important;
+
+    height: 118px !important;
+
+    min-height: 118px !important;
+
+    max-height: 118px !important;
+
+    padding: 10px;
 
     box-sizing: border-box;
 
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+
+    flex-direction: column !important;
+
     align-items: center;
+
     justify-content: center;
 
-    gap: 8px;
+    gap: 7px;
 
-    background: #ffffff;
+    background: #ffffff !important;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid #eeeeee !important;
+
     border-radius: 12px;
+
+    box-shadow: none !important;
+
+    outline: none !important;
+
+    position: relative;
 
     cursor: pointer;
 
     user-select: none;
+
     -webkit-tap-highlight-color: transparent;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   إزالة أي حواف أو طبقات ملونة
+   ========================================================= */
+
+.category::before,
+.category::after {
+    content: none !important;
+
+    display: none !important;
+
+    width: 0 !important;
+    height: 0 !important;
+
+    background: none !important;
+
+    border: none !important;
+
+    box-shadow: none !important;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   منع جميع تأثيرات Hover / Active
+   ========================================================= */
+
+.category:hover,
+.category:active,
+.category:focus,
+.category:focus-visible,
+.category.active {
+    background: #ffffff !important;
+
+    color: inherit;
+
+    border: 1px solid #eeeeee !important;
+
+    box-shadow: none !important;
+
+    outline: none !important;
+
+    transform: none !important;
+
+    animation: none !important;
+
+    transition: none !important;
 }
 
 
@@ -128,23 +225,39 @@
    ========================================================= */
 
 .emoji-box {
-    width: 52px;
-    height: 52px;
+    width: 42px;
+
+    height: 42px;
+
+    min-width: 42px;
+
+    min-height: 42px;
 
     border-radius: 50%;
 
     display: flex;
+
     align-items: center;
+
     justify-content: center;
 
-    font-size: 22px;
+    font-size: 19px;
+
+    line-height: 1;
 
     flex-shrink: 0;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
 }
 
 
 /* =========================================================
-   Category Colors
+   Icon Colors
+   الألوان داخل دائرة الأيقونة فقط
    ========================================================= */
 
 .all-bg {
@@ -224,8 +337,11 @@
 
 .cat-info {
     display: flex;
+
     flex-direction: column;
+
     align-items: center;
+
     justify-content: center;
 
     min-width: 0;
@@ -238,24 +354,39 @@
 
     color: #202020;
 
-    font-size: 14px;
+    font-size: 13px;
+
     font-weight: 600;
 
     line-height: 1.2;
 
     text-align: center;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
 }
 
 .cat-count {
+    margin-top: 3px;
+
     color: #777777;
 
-    font-size: 12px;
-
-    margin-top: 4px;
+    font-size: 11px;
 
     font-weight: 400;
 
+    line-height: 1.2;
+
     text-align: center;
+
+    animation: none !important;
+
+    transition: none !important;
+
+    transform: none !important;
 }
 
 
@@ -267,12 +398,17 @@
 
     .categories {
         margin-top: 20px;
+
         margin-bottom: 24px;
     }
 
+
+    /* Header */
+
     .categories-header {
         padding: 0 16px;
-        margin-bottom: 14px;
+
+        margin-bottom: 12px;
     }
 
     .categories-header h3 {
@@ -283,37 +419,121 @@
         font-size: 13px;
     }
 
+
+    /* =====================================================
+       سطر واحد أفقي
+       ===================================================== */
+
     .category-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex !important;
+
+        flex-direction: row !important;
+
+        flex-wrap: nowrap !important;
+
+        align-items: stretch;
 
         gap: 10px;
 
+        width: 100%;
+
         padding: 2px 16px 10px;
+
+        overflow-x: auto !important;
+
+        overflow-y: hidden !important;
+
+        scrollbar-width: none;
+
+        -webkit-overflow-scrolling: touch;
     }
+
+    .category-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    /* =====================================================
+       Category Card
+       ===================================================== */
 
     .category {
-        min-height: 150px;
+        flex: 0 0 130px !important;
 
-        padding: 12px 5px;
+        width: 130px !important;
 
-        gap: 8px;
+        min-width: 130px !important;
+
+        max-width: 130px !important;
+
+        height: 118px !important;
+
+        min-height: 118px !important;
+
+        max-height: 118px !important;
+
+        padding: 10px 6px;
+
+        gap: 7px;
+
+        background: #ffffff !important;
+
+        border: 1px solid #eeeeee !important;
 
         border-radius: 12px;
+
+        box-shadow: none !important;
+
+        animation: none !important;
+
+        transition: none !important;
+
+        transform: none !important;
     }
+
+
+    /* =====================================================
+       Icon
+       ===================================================== */
 
     .emoji-box {
-        width: 50px;
-        height: 50px;
+        width: 42px;
 
-        font-size: 19px;
+        height: 42px;
+
+        min-width: 42px;
+
+        min-height: 42px;
+
+        font-size: 18px;
+
+        animation: none !important;
+
+        transition: none !important;
+
+        transform: none !important;
     }
 
+
+    /* =====================================================
+       Text
+       ===================================================== */
+
     .cat-title {
-        font-size: 12px;
+        font-size: 13px;
+
+        animation: none !important;
+
+        transition: none !important;
     }
 
     .cat-count {
-        font-size: 10px;
+        font-size: 11px;
+
         margin-top: 3px;
+
+        animation: none !important;
+
+        transition: none !important;
     }
 }
