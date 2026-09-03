@@ -1,121 +1,184 @@
-/* ================= CATEGORIES — AURORA CHIPS ================= */
+/* =========================================================
+   WallpaperHub — Professional Categories
+   تصميم ثابت وفخم للهاتف والكمبيوتر — بدون Animation
+   ========================================================= */
 
 .categories{
-    margin: 25px 0;
+    width:100%;
+    margin:30px 0 34px;
+    direction:rtl;
 }
 
 .categories h3{
-    margin: 0 18px 15px;
-    font-size: 20px;
-    font-weight: 900;
+    margin:0 20px 18px;
+    color:#171923;
+    font-size:22px;
+    font-weight:900;
+    line-height:1.2;
+    text-align:right;
+    letter-spacing:-.3px;
 }
 
-/* المسار: سحب ناعم + تثبيت snap */
 .category-list{
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 14px 18px 18px;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-    /* تلاشي الأطراف = إحساس بالعمق */
-    mask-image: linear-gradient(to left, transparent, #000 6%, #000 94%, transparent);
-    -webkit-mask-image: linear-gradient(to left, transparent, #000 6%, #000 94%, transparent);
+    display:flex;
+    align-items:stretch;
+    gap:14px;
+    width:100%;
+    box-sizing:border-box;
+    padding:4px 20px 12px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
 }
 
-.category-list::-webkit-scrollbar{
-    display: none;
-}
+.category-list::-webkit-scrollbar{display:none}
 
-/* الكبسولة الزجاجية */
 .category{
-    scroll-snap-align: center;
-    position: relative;
-    min-width: 86px;
-    padding: 14px 16px 12px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: var(--shadow);
-    transition: transform 0.35s cubic-bezier(0.34, 1., 0.64, 1),
-                box-shadow .35s ease;
-    -webkit-tap-highlight-color: transparent}
+    --category-accent:#64748b;
 
-/* الهالة اللونية الخاصة بكل قسم — تفس */
+    position:relative;
+    flex:0 0 112px;
+    min-height:118px;
+    box-sizing:border-box;
+    padding:15px 10px 13px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    background:linear-gradient(180deg,#fff 0%,#fafbff 100%);
+    border:1px solid #e9eaf1;
+    border-radius:24px;
+
+    box-shadow:0 7px 22px rgba(30,34,60,.07);
+
+    scroll-snap-align:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+
 .category::before{
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 22;
-    background: var(--aura, linear-gradient(135deg #5060ff, #a855f7));
-   : 0;
-    filter: blur(10px);
-    z-index: -1;
-    transition: opacity 0.4s ease;
-    animation: auraBreath 3s ease-in-out infinite;
-   -play-state: paused;
+    content:"";
+    position:absolute;
+    top:0;
+    left:22px;
+    right:22px;
+    height:3px;
+    background:var(--category-accent);
+    border-radius:0 0 8px 8px;
 }
 
-@keyframes auraBre{
-    0%, 100%{ opacity: 035; transform: scale(1); }
-    50%     opacity: 0.6;  transform: scale(1.04); }
-}
-
-/* الإيموجي — يكبر وياقص عند اللمس */
 .category .emoji{
-    font: 30px;
-    line-height: 1;
-    transition transform 0.4s cubic-bezier(0.34 1.56, 0.64, 1);
+    width:52px;
+    height:52px;
+    margin-top:3px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+
+    border-radius:17px;
+    background:#f5f6fa;
+    border:1px solid #e8e9ef;
+
+    font-size:27px;
+    line-height:1;
 }
 
 .category p{
-    margin: 0;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #3a4155;
-    transition: color 0.3s ease;
+    margin:0;
+    max-width:100%;
+    color:#252936;
+    font-size:13px;
+    line-height:1.25;
+    font-weight:800;
+    text-align:center;
+    white-space:nowrap;
 }
 
-/* hover للكمبيوتر */
-.category:hover{
-    transform: translateY(-4px);
-}
-
-/* لحظة الس — الانفجار */
-.category:active{
-    transform: scale(0.92);
-}
-
-.category:active .emoji{
-   : scale(1.25) rotate(-8deg);
-}
-
-/*الة النشطة: الهالة تشتعل */
-.category.active    background: #ffffff;
-    border-color: transparent;
-   : translateY(-3px);
-}
-
-.category.active::before{
-    opacity: 1;
-    animation-play-state: running;
-}
-
-.category.active .emoji{
-    transform: scale(1.15);
+.category.active{
+    background:linear-gradient(180deg,#f8f7ff 0%,#fff 100%);
+    border-color:#8b78ff;
+    box-shadow:0 8px 25px rgba(91,67,220,.13);
 }
 
 .category.active p{
- background: var(--aura-text, linear-gradient(135, #5060ff, #a855f7));
- -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight 900;
+    color:#5946d9;
+    font-weight:900;
+}
+
+.category.active .emoji{
+    background:#eeeaff;
+    border-color:#d8d0ff;
+}
+
+/* ألوان الهوية لكل قسم */
+.category[data-category="all"]{--category-accent:#6366f1}
+.category[data-category="nature"]{--category-accent:#22c55e}
+.category[data-category="cars"]{--category-accent:#ef4444}
+.category[data-category="games"]{--category-accent:#8b5cf6}
+.category[data-category="space"]{--category-accent:#2563eb}
+.category[data-category="ai"]{--category-accent:#06b6d4}
+.category[data-category="amoled"]{--category-accent:#111827}
+.category[data-category="animals"]{--category-accent:#f59e0b}
+.category[data-category="anime"]{--category-accent:#ec4899}
+.category[data-category="city"]{--category-accent:#3b82f6}
+.category[data-category="dark"]{--category-accent:#475569}
+.category[data-category="4k"]{--category-accent:#7c3aed}
+.category[data-category="sports"]{--category-accent:#10b981}
+.category[data-category="minimal"]{--category-accent:#14b8a6}
+
+/* Mobile */
+@media(max-width:600px){
+    .categories{margin:26px 0 30px}
+
+    .categories h3{
+        margin:0 18px 16px;
+        font-size:21px;
+    }
+
+    .category-list{
+        gap:12px;
+        padding:3px 18px 12px;
+    }
+
+    .category{
+        flex-basis:104px;
+        min-height:112px;
+        border-radius:22px;
+        padding:13px 9px 12px;
+    }
+
+    .category .emoji{
+        width:49px;
+        height:49px;
+        border-radius:16px;
+        font-size:25px;
+    }
+
+    .category p{font-size:12.5px}
+}
+
+@media(max-width:380px){
+    .category-list{
+        gap:10px;
+        padding-right:14px;
+        padding-left:14px;
+    }
+
+    .category{
+        flex-basis:96px;
+        min-height:106px;
+    }
+
+    .category .emoji{
+        width:46px;
+        height:46px;
+        font-size:23px;
+    }
+
+    .category p{font-size:12px}
 }
