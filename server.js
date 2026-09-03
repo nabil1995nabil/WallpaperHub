@@ -1327,370 +1327,359 @@ function createTokenValue(){
 
 
 // ======================================
-// Create API Token
+// Create API Token - Supabase
 // ======================================
 
-
 app.post(
-"/api/tokens/create",
-async(req,res)=>{
+    "/api/tokens/create",
+    async (req, res) => {
+
+        try {
+
+            const {
+                userId,
+                appName,
+                domain
+            } = req.body;
+
+            if (!userId) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "User ID required"
+                });
+
+            }
+
+            const tokenData = {
+
+                id:
+                    Date.now(),
+
+                user_id:
+                    String(userId),
+
+                app_name:
+                    appName ||
+                    "My App",
+
+                domain:
+                    domain ||
+                    "",
+
+                token:
+                    createTokenValue(),
+
+                daily_limit:
+                    200,
+
+                requests:
+                    0,
+
+                last_request_date:
+                    null,
+
+                last_used:
+                    null,
+
+                last_ip:
+                    null,
+
+                active:
+                    true,
+
+                created_at:
+                    new Date().toISOString()
+
+            };
 
 
-try{
+            // ======================================
+            // حفظ Token في Supabase
+            // ======================================
+
+            const {
+                data,
+                error
+            } =
+                await supabase
+                    .from("api_tokens")
+                    .insert([tokenData])
+                    .select()
+                    .single();
 
 
-    const {
-        userId,
-        appName,
-        domain
+            if (error) {
 
-    } = req.body;
+                throw error;
 
+            }
 
 
-    if(!userId){
+            // ======================================
+            // الشكل الذي تحتاجه developers.js
+            // ======================================
 
-        return res.status(400).json({
+            res.json({
 
-            success:false,
+                success:
+                    true,
 
-            message:"User ID required"
+                token: {
 
-        });
+                    id:
+                        data.id,
 
-    }
+                    userId:
+                        data.user_id,
 
+                    appName:
+                        data.app_name,
 
+                    domain:
+                        data.domain,
 
-    const tokenData = {
+                    token:
+                        data.token,
 
+                    limit:
+                        data.daily_limit,
 
-        id:
-        Date.now(),
+                    requests:
+                        data.requests || 0,
 
+                    lastRequestDate:
+                        data.last_request_date,
 
-        userId:
-        String(userId),
+                    lastUsed:
+                        data.last_used,
 
+                    lastIp:
+                        data.last_ip,
 
-        appName:
-        appName ||
-        "My App",
+                    active:
+                        data.active,
 
+                    created:
+                        data.created_at
 
-        domain:
-        domain ||
-        "",
+                }
 
-
-        token:
-        createTokenValue(),
-
-
-        limit:
-        200,
-
-
-        requests:
-        0,
-
-
-        lastRequestDate:
-        null,
-
-
-        lastUsed:
-        null,
+            });
 
 
-        lastIp:
-        null,
+        } catch (error) {
+
+            console.log(
+                "CREATE TOKEN ERROR:",
+                error
+            );
 
 
-        active:
-        true,
+            res.status(500).json({
 
+                success:
+                    false,
 
-        created:
-        new Date()
-        .toISOString()
+                message:
+                    error.message ||
+                    "Failed to create token"
 
-
-    };
-
-
-
-
-    let saved = false;
-
-
-
-
-    if(useFirestore){
-
-
-        const result =
-        await saveTokenFirestore(
-            tokenData
-        );
-
-
-        if(result){
-
-            saved = true;
+            });
 
         }
 
     }
-
-
-
-
-
-    if(!saved){
-
-
-        const tokens =
-        readTokensFile();
-
-
-        tokens.push(
-            tokenData
-        );
-
-
-        saveTokensFile(
-            tokens
-        );
-
-
-    }
-
-
-
-
-    res.json({
-
-        success:true,
-
-        token:tokenData
-
-    });
-
-
-
-}catch(error){
-
-
-    console.log(
-        "CREATE TOKEN ERROR:",
-        error
-    );
-
-
-    res.status(500).json({
-
-        success:false
-
-    });
-
-
-}
-
-
-});
-
-
-
-
-
+);
 // ======================================
-// Get User Tokens
+// Get User Tokens - Supabase
 // ======================================
-
 
 app.get(
-"/api/tokens/:userId",
-async(req,res)=>{
+    "/api/tokens/:userId",
+    async (req, res) => {
+
+        try {
+
+            const userId =
+                String(
+                    req.params.userId
+                );
 
 
-try{
+            const {
+                data,
+                error
+            } =
+                await supabase
+                    .from("api_tokens")
+                    .select("*")
+                    .eq(
+                        "user_id",
+                        userId
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending: false
+                        }
+                    );
 
 
-    const userId =
-    String(
-        req.params.userId
-    );
+            if (error) {
+
+                throw error;
+
+            }
 
 
+            const tokens =
+                (data || []).map(
+                    token => ({
 
-    let tokens = [];
+                        id:
+                            token.id,
+
+                        userId:
+                            token.user_id,
+
+                        appName:
+                            token.app_name,
+
+                        domain:
+                            token.domain,
+
+                        token:
+                            token.token,
+
+                        limit:
+                            token.daily_limit,
+
+                        requests:
+                            token.requests || 0,
+
+                        lastRequestDate:
+                            token.last_request_date,
+
+                        lastUsed:
+                            token.last_used,
+
+                        lastIp:
+                            token.last_ip,
+
+                        active:
+                            token.active,
+
+                        created:
+                            token.created_at
+
+                    })
+                );
 
 
+            res.json(
+                tokens
+            );
 
 
-    if(useFirestore){
+        } catch (error) {
+
+            console.log(
+                "GET TOKEN ERROR:",
+                error
+            );
 
 
-        tokens =
-        await getUserTokensFirestore(
-            userId
-        );
+            res.status(500).json([]);
+
+        }
 
     }
-
-
-
-
-    if(tokens.length === 0){
-
-
-        tokens =
-        readTokensFile()
-        .filter(
-            t =>
-            String(t.userId) === userId
-        );
-
-
-    }
-
-
-
-    res.json(
-        tokens
-    );
-
-
-
-}catch(error){
-
-
-    console.log(
-        "GET TOKEN ERROR:",
-        error
-    );
-
-
-    res.status(500).json([]);
-
-}
-
-
-});
-
-
-
-
-
+);
 // ======================================
-// Delete Token
+// Delete Token - Supabase
 // ======================================
-
 
 app.delete(
-"/api/tokens/:id",
-async(req,res)=>{
+    "/api/tokens/:id",
+    async (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
 
 
-try{
+            if (!id) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid Token ID"
+
+                });
+
+            }
 
 
-    const id =
-    req.params.id;
+            const {
+                error
+            } =
+                await supabase
+                    .from("api_tokens")
+                    .delete()
+                    .eq(
+                        "id",
+                        id
+                    );
 
 
+            if (error) {
 
-    let deleted = false;
+                throw error;
+
+            }
 
 
+            res.json({
 
-    if(useFirestore){
+                success:
+                    true
+
+            });
 
 
-        deleted =
-        await deleteTokenFirestore(
-            id
-        );
+        } catch (error) {
 
+            console.log(
+                "DELETE TOKEN ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    error.message ||
+                    "Failed to delete token"
+
+            });
+
+        }
 
     }
-
-
-
-
-
-    if(!deleted){
-
-
-        let tokens =
-        readTokensFile();
-
-
-
-        tokens =
-        tokens.filter(
-
-            t =>
-            String(t.id)
-            !==
-            String(id)
-
-        );
-
-
-
-        saveTokensFile(
-            tokens
-        );
-
-
-
-        deleted = true;
-
-
-    }
-
-
-
-
-    res.json({
-
-        success:deleted
-
-    });
-
-
-
-}catch(error){
-
-
-    console.log(
-        "DELETE TOKEN ERROR:",
-        error
-    );
-
-
-    res.status(500).json({
-
-        success:false
-
-    });
-
-
-}
-
-
-});
-
-
-
-
-
+);
 // ======================================
-// API Token Middleware
+// API Token Middleware - Supabase
 // ======================================
-
 
 async function verifyApiToken(
     req,
@@ -1698,320 +1687,291 @@ async function verifyApiToken(
     next
 ){
 
+    try {
 
-try{
+        const token =
+            req.headers["x-api-key"];
 
 
-    const token =
-    req.headers["x-api-key"];
+        // ======================================
+        // منع Token داخل الرابط
+        // ======================================
 
+        if(req.query.token){
 
+            return res.status(400).json({
 
-    if(req.query.token){
-
-
-        return res.status(400).json({
-
-            success:false,
-
-            message:
-            "Use X-API-Key header only"
-
-        });
-
-
-    }
-
-
-
-
-
-    if(!token){
-
-
-        return res.status(401).json({
-
-            success:false,
-
-            message:
-            "API Token required"
-
-        });
-
-
-    }
-
-
-
-
-
-    let apiToken = null;
-
-
-
-
-    if(useFirestore){
-
-
-        const snap =
-        await tokensCollection
-        .where(
-            "token",
-            "==",
-            token
-        )
-        .limit(1)
-        .get();
-
-
-
-
-        if(!snap.empty){
-
-
-            apiToken =
-            snap.docs[0].data();
-
-
-        }
-
-
-
-    }else{
-
-
-        apiToken =
-        readTokensFile()
-        .find(
-            t =>
-            t.token === token
-        );
-
-
-    }
-
-
-
-
-
-    if(
-        !apiToken ||
-        !apiToken.active
-    ){
-
-
-        return res.status(401).json({
-
-            success:false,
-
-            message:"Invalid Token"
-
-        });
-
-
-    }
-
-
-
-
-
-    const clientIp =
-    req.headers["x-forwarded-for"]
-    ||
-    req.socket.remoteAddress;
-
-
-
-
-
-    if(!apiToken.lastIp){
-
-
-        apiToken.lastIp =
-        clientIp;
-
-
-    }else{
-
-
-        if(
-            apiToken.lastIp !== clientIp
-        ){
-
-
-            return res.status(403).json({
-
-                success:false,
+                success:
+                    false,
 
                 message:
-                "Token used from another IP"
+                    "Use X-API-Key header only"
 
             });
 
+        }
+
+
+        // ======================================
+        // Token غير موجود
+        // ======================================
+
+        if(!token){
+
+            return res.status(401).json({
+
+                success:
+                    false,
+
+                message:
+                    "API Token required"
+
+            });
 
         }
 
 
-    }
+        // ======================================
+        // البحث في Supabase
+        // ======================================
+
+        const {
+            data: apiToken,
+            error
+        } =
+            await supabase
+                .from("api_tokens")
+                .select("*")
+                .eq(
+                    "token",
+                    token
+                )
+                .maybeSingle();
 
 
+        if(error){
+
+            throw error;
+
+        }
 
 
+        // ======================================
+        // Token غير صحيح
+        // ======================================
 
-    const today =
-    new Date()
-    .toISOString()
-    .split("T")[0];
+        if(
+            !apiToken ||
+            !apiToken.active
+        ){
 
+            return res.status(401).json({
 
+                success:
+                    false,
 
+                message:
+                    "Invalid Token"
 
+            });
 
-    if(
-        apiToken.lastRequestDate !== today
-    ){
-
-
-        apiToken.requests = 0;
-
-        apiToken.lastRequestDate =
-        today;
-
-
-    }
+        }
 
 
+        // ======================================
+        // معرفة IP
+        // ======================================
+
+        const forwarded =
+            req.headers["x-forwarded-for"];
 
 
+        const clientIp =
 
-    if(
-        apiToken.requests >=
-        apiToken.limit
-    ){
+            (
+                typeof forwarded === "string"
 
+                ?
 
-        return res.status(429).json({
+                forwarded
+                    .split(",")[0]
+                    .trim()
 
-            success:false,
+                :
 
-            message:
-            "Daily limit reached"
+                forwarded
 
-        });
+            )
 
+            ||
 
-    }
+            req.socket.remoteAddress
 
+            ||
 
-
-
-    apiToken.requests++;
-
-    apiToken.lastUsed =
-    new Date()
-    .toISOString();
+            "unknown";
 
 
+        // ======================================
+        // حماية Token من IP مختلف
+        // ======================================
+
+        if(!apiToken.last_ip){
+
+            apiToken.last_ip =
+                clientIp;
+
+        }
+
+        else if(
+            apiToken.last_ip !==
+            clientIp
+        ){
+
+            return res.status(403).json({
+
+                success:
+                    false,
+
+                message:
+                    "Token used from another IP"
+
+            });
+
+        }
 
 
+        // ======================================
+        // تاريخ اليوم
+        // ======================================
 
-    if(useFirestore){
-
-
-        await tokensCollection
-        .doc(
-            String(apiToken.id)
-        )
-        .update({
-
-            requests:
-            apiToken.requests,
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
 
 
-            lastRequestDate:
-            apiToken.lastRequestDate,
+        // ======================================
+        // إعادة العداد يومياً
+        // ======================================
+
+        if(
+            apiToken.last_request_date !==
+            today
+        ){
+
+            apiToken.requests =
+                0;
+
+            apiToken.last_request_date =
+                today;
+
+        }
 
 
-            lastUsed:
-            apiToken.lastUsed,
+        // ======================================
+        // فحص الحد اليومي
+        // ======================================
+
+        if(
+            apiToken.requests >=
+            apiToken.daily_limit
+        ){
+
+            return res.status(429).json({
+
+                success:
+                    false,
+
+                message:
+                    "Daily limit reached"
+
+            });
+
+        }
 
 
-            lastIp:
-            apiToken.lastIp
+        // ======================================
+        // تسجيل الطلب
+        // ======================================
 
-        });
+        apiToken.requests++;
 
-
-
-    }else{
-
-
-        const tokens =
-        readTokensFile();
+        apiToken.last_used =
+            new Date()
+                .toISOString();
 
 
+        // ======================================
+        // حفظ الإحصائيات في Supabase
+        // ======================================
 
-        const index =
-        tokens.findIndex(
+        const {
+            error: updateError
+        } =
+            await supabase
+                .from("api_tokens")
+                .update({
 
-            t =>
-            t.token === token
+                    requests:
+                        apiToken.requests,
 
-        );
+                    last_request_date:
+                        apiToken.last_request_date,
+
+                    last_used:
+                        apiToken.last_used,
+
+                    last_ip:
+                        apiToken.last_ip
+
+                })
+                .eq(
+                    "id",
+                    apiToken.id
+                );
 
 
+        if(updateError){
 
-        if(index !== -1){
+            throw updateError;
+
+        }
 
 
-            tokens[index] =
+        // ======================================
+        // تمرير بيانات Token إلى API
+        // ======================================
+
+        req.apiToken =
             apiToken;
 
 
-            saveTokensFile(
-                tokens
-            );
+        next();
 
 
-        }
+    } catch(error){
 
+        console.log(
+            "TOKEN VERIFY ERROR:",
+            error
+        );
+
+
+        res.status(500).json({
+
+            success:
+                false,
+
+            message:
+                error.message ||
+                "Token verification failed"
+
+        });
 
     }
 
-
-
-
-
-    req.apiToken =
-    apiToken;
-
-
-
-    next();
-
-
-
-}catch(error){
-
-
-    console.log(
-        "TOKEN VERIFY ERROR:",
-        error
-    );
-
-
-    res.status(500).json({
-
-        success:false
-
-    });
-
-
 }
-
-
-}
-
 // ======================================
 // Gemini Chat
 // ======================================
