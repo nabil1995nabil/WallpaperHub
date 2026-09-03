@@ -1,184 +1,143 @@
 /* =========================================================
-   WallpaperHub — Professional Categories
-   تصميم ثابت وفخم للهاتف والكمبيوتر — بدون Animation
+   WallpaperHub — Professional Dark Categories Grid
+   تصميم مطابق للواجهة الداكنة (2 Rows Horizontal Grid)
    ========================================================= */
 
-.categories{
-    width:100%;
-    margin:30px 0 34px;
-    direction:rtl;
+.categories {
+    width: 100%;
+    margin: 24px 0 28px;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.categories h3{
-    margin:0 20px 18px;
-    color:#171923;
-    font-size:22px;
-    font-weight:900;
-    line-height:1.2;
-    text-align:right;
-    letter-spacing:-.3px;
+/* هيدر قسم الأقسام */
+.categories-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    margin-bottom: 14px;
 }
 
-.category-list{
-    display:flex;
-    align-items:stretch;
-    gap:14px;
-    width:100%;
-    box-sizing:border-box;
-    padding:4px 20px 12px;
-    overflow-x:auto;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x proximity;
+.categories-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
-.category-list::-webkit-scrollbar{display:none}
-
-.category{
-    --category-accent:#64748b;
-
-    position:relative;
-    flex:0 0 112px;
-    min-height:118px;
-    box-sizing:border-box;
-    padding:15px 10px 13px;
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-
-    background:linear-gradient(180deg,#fff 0%,#fafbff 100%);
-    border:1px solid #e9eaf1;
-    border-radius:24px;
-
-    box-shadow:0 7px 22px rgba(30,34,60,.07);
-
-    scroll-snap-align:center;
-    cursor:pointer;
-    -webkit-tap-highlight-color:transparent;
+.categories-header .see-all {
+    color: #a855f7;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.category::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:22px;
-    right:22px;
-    height:3px;
-    background:var(--category-accent);
-    border-radius:0 0 8px 8px;
+/* شبكة العرض (صفين أفقياً قابلة للتمرير) */
+.category-grid {
+    display: grid;
+    grid-template-rows: repeat(2, auto);
+    grid-auto-flow: column;
+    gap: 10px;
+    padding: 2px 16px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
-.category .emoji{
-    width:52px;
-    height:52px;
-    margin-top:3px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    box-sizing:border-box;
-
-    border-radius:17px;
-    background:#f5f6fa;
-    border:1px solid #e8e9ef;
-
-    font-size:27px;
-    line-height:1;
+.category-grid::-webkit-scrollbar {
+    display: none;
 }
 
-.category p{
-    margin:0;
-    max-width:100%;
-    color:#252936;
-    font-size:13px;
-    line-height:1.25;
-    font-weight:800;
-    text-align:center;
-    white-space:nowrap;
+/* بطاقة القسم */
+.category {
+    background-color: #15171e;
+    border-radius: 14px;
+    padding: 10px 14px;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.category.active{
-    background:linear-gradient(180deg,#f8f7ff 0%,#fff 100%);
-    border-color:#8b78ff;
-    box-shadow:0 8px 25px rgba(91,67,220,.13);
+/* الحاوية الدائرية للأيقونة */
+.emoji-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
 }
 
-.category.active p{
-    color:#5946d9;
-    font-weight:900;
+/* ألوان الخلفية الخاصة بدائرة كل قسم */
+.all-bg      { background-color: rgba(168, 85, 247, 0.15); color: #a855f7; }
+.nature-bg   { background-color: rgba(34, 197, 94, 0.15);  color: #22c55e; }
+.anime-bg    { background-color: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.cars-bg     { background-color: rgba(249, 115, 22, 0.15); color: #f97316; }
+.space-bg    { background-color: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.minimal-bg  { background-color: rgba(20, 184, 166, 0.15); color: #14b8a6; }
+.games-bg    { background-color: rgba(234, 179, 8, 0.15);  color: #eab308; }
+.ai-bg       { background-color: rgba(6, 182, 212, 0.15);  color: #06b6d4; }
+.city-bg     { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.amoled-bg   { background-color: rgba(14, 165, 233, 0.15); color: #0ea5e9; }
+.animals-bg  { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.dark-bg     { background-color: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+.k4-bg       { background-color: rgba(124, 58, 237, 0.15); color: #a855f7; }
+.sports-bg   { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+/* نصوص ومعلومات القسم */
+.cat-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.category.active .emoji{
-    background:#eeeaff;
-    border-color:#d8d0ff;
+.cat-title {
+    margin: 0;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.2;
 }
 
-/* ألوان الهوية لكل قسم */
-.category[data-category="all"]{--category-accent:#6366f1}
-.category[data-category="nature"]{--category-accent:#22c55e}
-.category[data-category="cars"]{--category-accent:#ef4444}
-.category[data-category="games"]{--category-accent:#8b5cf6}
-.category[data-category="space"]{--category-accent:#2563eb}
-.category[data-category="ai"]{--category-accent:#06b6d4}
-.category[data-category="amoled"]{--category-accent:#111827}
-.category[data-category="animals"]{--category-accent:#f59e0b}
-.category[data-category="anime"]{--category-accent:#ec4899}
-.category[data-category="city"]{--category-accent:#3b82f6}
-.category[data-category="dark"]{--category-accent:#475569}
-.category[data-category="4k"]{--category-accent:#7c3aed}
-.category[data-category="sports"]{--category-accent:#10b981}
-.category[data-category="minimal"]{--category-accent:#14b8a6}
+.cat-count {
+    color: #808a9d;
+    font-size: 11.5px;
+    margin-top: 3px;
+    font-weight: 400;
+}
 
-/* Mobile */
-@media(max-width:600px){
-    .categories{margin:26px 0 30px}
-
-    .categories h3{
-        margin:0 18px 16px;
-        font-size:21px;
+/* شاشات الهواتف الصغرى */
+@media (max-width: 480px) {
+    .category {
+        min-width: 130px;
+        padding: 9px 12px;
+        gap: 10px;
     }
 
-    .category-list{
-        gap:12px;
-        padding:3px 18px 12px;
+    .emoji-box {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
     }
 
-    .category{
-        flex-basis:104px;
-        min-height:112px;
-        border-radius:22px;
-        padding:13px 9px 12px;
+    .cat-title {
+        font-size: 12.5px;
     }
 
-    .category .emoji{
-        width:49px;
-        height:49px;
-        border-radius:16px;
-        font-size:25px;
+    .cat-count {
+        font-size: 10.5px;
     }
-
-    .category p{font-size:12.5px}
-}
-
-@media(max-width:380px){
-    .category-list{
-        gap:10px;
-        padding-right:14px;
-        padding-left:14px;
-    }
-
-    .category{
-        flex-basis:96px;
-        min-height:106px;
-    }
-
-    .category .emoji{
-        width:46px;
-        height:46px;
-        font-size:23px;
-    }
-
-    .category p{font-size:12px}
 }
