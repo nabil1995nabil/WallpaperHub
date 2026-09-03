@@ -408,51 +408,6 @@ font-size:13px;
 opacity:.9;
 
 }
-
-/* زر المفضلة */
-
-.favorite-btn{
-
-position:absolute;
-
-top:12px;
-left:12px;
-
-width:42px;
-height:42px;
-
-border-radius:50%;
-
-background:rgba(255,255,255,.9);
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-font-size:20px;
-
-backdrop-filter:blur(12px);
-
-transition:.3s;
-
-z-index:20;
-
-}
-
-.favorite-btn.active{
-
-background:#ff2d55;
-
-color:#fff;
-
-transform:scale(1.1);
-
-}
-
-
-
 /* ================= ANIMATION ================= */
 
 .header,
@@ -1371,26 +1326,9 @@ display:block;
     box-shadow: 0 20px 50px rgba(0,0,0,0.15);
     transform: translateY(-2px);
 }
-
-/* Smooth scroll snap for horizontal lists */
-.wall-grid {
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-}
-
 .wall-card {
     scroll-snap-align: start;
 }
-
-.category-list {
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-}
-
-.category {
-    scroll-snap-align: center;
-}
-
 /* Loading shimmer for images */
 .wall-card img,
 .today-wallpaper img {
