@@ -296,168 +296,122 @@ architecture:"🏛️ العمارة",
 };
 
 // =======================================
+// إنشاء أقسام الخلفيات
+// الأقسام لا تختفي عند إضافة خلفيات جديدة
+// =======================================
 
 function createDynamicSections() {
 
     if (!dynamicSections) return;
 
-
     dynamicSections.innerHTML = "";
 
+    const categories = [
+        "nature",
+        "cars",
+        "games",
+        "space",
+        "ai",
+        "amoled",
+        "animals",
+        "anime",
+        "city",
+        "dark",
+        "4k",
+        "sports",
+        "minimal",
+        "rain",
+        "sunset",
+        "architecture",
+        "deep-space",
+        "wallhaven"
+    ];
 
-const categories = [
-    ...new Set(
-        wallpapers
-        .map(w =>
-            String(w.category || "")
-            .trim()
-            .toLowerCase()
-        )
-        .filter(Boolean)
-    )
-];
-
-
-
-    categories.forEach(category=>{
-
-
-const exists =
-wallpapers.some(
-    w =>
-    String(w.category || "")
-    .trim()
-    .toLowerCase()
-    === category
-);
-
-
-if(!exists)
-return;
-
-
-const count =
-wallpapers.filter(w =>
-String(w.category || "")
-.trim()
-.toLowerCase()
-===
-category
-).length;
-
-
-if(count === 0)
-return;
-
-
+    categories.forEach(category => {
 
         const section =
-        document.createElement("section");
+            document.createElement("section");
 
-
-        section.className =
-        "wall-section";
-
-
+        section.className = "wall-section";
 
         section.innerHTML = `
 
-        <div class="title">
+            <div class="title">
 
-        <h3>
-        ${categoryNames[category] || category}
-        </h3>
+                <h3>
+                    ${categoryNames[category] || category}
+                </h3>
 
+                <a href="all-wallpapers.html?category=${encodeURIComponent(category)}">
+                    عرض الكل
+                </a>
 
-        <a href="all-wallpapers.html?category=${category}">
-        عرض الكل
-        </a>
+            </div>
 
-
-        </div>
-
-
-        <div
-        class="wall-grid"
-        id="section-${category}">
-        </div>
-
+            <div
+                class="wall-grid"
+                id="section-${category}">
+            </div>
 
         `;
 
-
-
         dynamicSections.appendChild(section);
-
 
         renderCategory(category);
 
-
     });
 
-
 }
-
 // =======================================
 // عرض خلفيات القسم
 // =======================================
 
 function renderCategory(category) {
 
+    const container =
+        document.getElementById(
+            `section-${category}`
+        );
 
-const container =
-document.getElementById(
-`section-${category}`
-);
+    if (!container) return;
 
+    container.innerHTML = "";
 
-if(!container)
-return;
+    const normalizedCategory =
+        String(category || "")
+            .trim()
+            .toLowerCase();
 
+    const sectionWalls =
+        wallpapers.filter(w => {
 
-container.innerHTML = "";
+            const wallCategory =
+                String(w.category || "")
+                    .trim()
+                    .toLowerCase();
 
+            return wallCategory === normalizedCategory;
 
+        });
 
-const sectionWalls = wallpapers.filter(w => {
+    console.log(
+        "SECTION:",
+        normalizedCategory,
+        sectionWalls
+    );
 
-    const wallCategory =
-    String(w.category || "")
-    .trim()
-    .toLowerCase();
+    sectionWalls
+        .slice()
+        .reverse()
+        .slice(0, 6)
+        .forEach(wall => {
 
+            container.innerHTML +=
+                createWallpaperCard(wall);
 
-    return wallCategory ===
-    String(category)
-    .trim()
-    .toLowerCase();
-
-});
-
-
-
-console.log(
-"SECTION:",
-category,
-sectionWalls
-);
-
-
-
-sectionWalls
-.slice(0,6)
-.forEach(wall=>{
-
-
-container.innerHTML +=
-createWallpaperCard(wall);
-
-
-});
-
+        });
 
 }
-
 // =======================================
 // فتح صفحة الخلفية
 // =======================================
