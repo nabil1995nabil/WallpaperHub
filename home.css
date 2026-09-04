@@ -316,23 +316,18 @@ font-weight:600;
     box-shadow:none;
     cursor:pointer;
 }
-
-.wall-card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 24px rgba(0,0,0,.10);
-}
-
 .wall-card:active{
 
 transform:scale(.96);
 
 }
 
-.wall-card img{
-    width:100%;
-    height:auto;
+..wall-card img{
+    width:160px;
+    height:200px;
     display:block;
     object-fit:contain;
+    border-radius:12px;
 }
 
 .wall-card:hover img{
