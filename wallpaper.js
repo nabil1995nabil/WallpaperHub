@@ -690,271 +690,42 @@ tagsContainer.appendChild(span);
 // Colors
 // ===============================
 
-const COLOR_COUNT = 12;
-
-const colorNames = [
-    { name:"Red",     r:220, g:50,  b:50  },
-    { name:"Orange",  r:240, g:130, b:35  },
-    { name:"Yellow",  r:235, g:200, b:45  },
-    { name:"Green",   r:55,  g:170, b:85  },
-    { name:"Cyan",    r:40,  g:175, b:190 },
-    { name:"Blue",    r:55,  g:100, b:220 },
-    { name:"Indigo",  r:75,  g:65,  b:170 },
-    { name:"Purple",  r:135, g:70,  b:180 },
-    { name:"Pink",    r:220, g:90,  b:155 },
-    { name:"Brown",   r:125, g:80,  b:50  },
-    { name:"Gray",    r:125, g:130, b:135 },
-    { name:"Black",   r:30,  g:30,  b:32  },
-    { name:"White",   r:235, g:235, b:235 }
-];
-
-function rgbToHex(r,g,b){
-    return "#" + [r,g,b]
-        .map(v => Math.max(0, Math.min(255, Math.round(v)))
-            .toString(16).padStart(2,"0"))
-        .join("")
-        .toUpperCase();
-}
-
-function colorDistance(a,b){
-    return Math.sqrt(
-        Math.pow(a.r-b.r,2) +
-        Math.pow(a.g-b.g,2) +
-        Math.pow(a.b-b.b,2)
-    );
-}
-
-function nearestColorName(r,g,b){
-    let best = colorNames[0];
-    let bestDistance = Infinity;
-
-    colorNames.forEach(c=>{
-        const d = colorDistance({r,g,b}, c);
-        if(d < bestDistance){
-            bestDistance = d;
-            best = c;
-        }
-    });
-
-    return best.name;
-}
-
-async function extractWallpaperColors(url){
-    return new Promise((resolve)=>{
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-
-        img.onload = ()=>{
-            try{
-                const canvas = document.createElement("canvas");
-                const size = 120;
-
-                canvas.width = size;
-                canvas.height = size;
-
-                const ctx = canvas.getContext("2d", {
-                    willReadFrequently:true
-                });
-
-                ctx.drawImage(img, 0, 0, size, size);
-
-                const data = ctx.getImageData(
-                    0, 0, size, size
-                ).data;
-
-                const buckets = new Map();
-
-                for(let i=0; i<data.length; i+=16){
-                    const a = data[i+3];
-
-                    if(a < 180) continue;
-
-                    const r = Math.round(data[i] / 16) * 16;
-                    const g = Math.round(data[i+1] / 16) * 16;
-                    const b = Math.round(data[i+2] / 16) * 16;
-
-                    const key = `${r},${g},${b}`;
-
-                    buckets.set(
-                        key,
-                        (buckets.get(key) || 0) + 1
-                    );
-                }
-
-                const colors = [...buckets.entries()]
-                    .sort((a,b)=>b[1]-a[1])
-                    .map(([key,count])=>{
-                        const [r,g,b] =
-                            key.split(",").map(Number);
-
-                        return {
-                            hex: rgbToHex(r,g,b),
-                            name: nearestColorName(r,g,b),
-                            count
-                        };
-                    })
-                    .filter((color,index,list)=>{
-                        return list
-                            .slice(0,index)
-                            .every(prev=>{
-                                const hex = color.hex
-                                    .slice(1)
-                                    .match(/../g)
-                                    .map(v=>parseInt(v,16));
-
-                                const phex = prev.hex
-                                    .slice(1)
-                                    .match(/../g)
-                                    .map(v=>parseInt(v,16));
-
-                                return colorDistance(
-                                    {r:hex[0],g:hex[1],b:hex[2]},
-                                    {r:phex[0],g:phex[1],b:phex[2]}
-                                ) > 22;
-                            });
-                    })
-                    .slice(0, COLOR_COUNT)
-                    .map(c=>c.hex);
-
-                resolve(colors);
-            }catch(error){
-                console.warn("COLOR EXTRACTION ERROR:", error);
-                resolve([]);
-            }
-        };
-
-        img.onerror = ()=>{
-            resolve([]);
-        };
-
-        img.src = url;
-    });
-}
-
-async function saveWallpaperColors(id, colors){
-    if(!id || !Array.isArray(colors) || colors.length < 1)
-        return;
-
-    try{
-        await fetch(`/api/wallpapers/${id}/colors`, {
-            method:"PATCH",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                colors:colors.slice(0,COLOR_COUNT)
-            })
-        });
-    }catch(error){
-        console.warn("SAVE COLORS ERROR:", error);
-    }
-}
-
-async function copyColor(hex, button){
-    try{
-        await navigator.clipboard.writeText(hex);
-
-        const oldText = button.textContent;
-        button.textContent = "✓";
-
-        setTimeout(()=>{
-            button.textContent = oldText;
-        },1200);
-    }catch{
-        const input = document.createElement("input");
-        input.value = hex;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand("copy");
-        input.remove();
-
-        const oldText = button.textContent;
-        button.textContent = "✓";
-
-        setTimeout(()=>{
-            button.textContent = oldText;
-        },1200);
-    }
-}
-
-function renderColors(colors){
-    if(!colorPalette)
-        return;
-
-    colorPalette.innerHTML = "";
-
-    (colors || []).slice(0,COLOR_COUNT).forEach(color=>{
-        const hex = typeof color === "string"
-            ? color.toUpperCase()
-            : color.hex;
-
-        if(!hex) return;
-
-        const item = document.createElement("div");
-        item.className = "color-item";
-
-        const swatch = document.createElement("span");
-        swatch.className = "color-swatch";
-        swatch.style.background = hex;
-
-        const code = document.createElement("span");
-        code.className = "color-code";
-        code.textContent = hex;
-
-        const copyButton = document.createElement("button");
-        copyButton.className = "color-copy";
-        copyButton.type = "button";
-        copyButton.textContent = "نسخ";
-
-        copyButton.onclick = ()=>{
-            copyColor(hex, copyButton);
-        };
-
-        item.appendChild(swatch);
-        item.appendChild(code);
-        item.appendChild(copyButton);
-
-        colorPalette.appendChild(item);
-    });
-}
-
-async function ensureWallpaperColors(){
-    if(!currentWallpaper || isVideoMedia(currentWallpaper))
-        return;
-
-    let colors = Array.isArray(currentWallpaper.colors)
-        ? currentWallpaper.colors
-        : [];
-
-    if(colors.length >= 10){
-        renderColors(colors);
-        return;
-    }
-
-    const imageUrl = getImageUrl(
-        currentWallpaper.image ||
-        currentWallpaper.thumbnail
-    );
-
-    const extracted = await extractWallpaperColors(imageUrl);
-
-    if(extracted.length){
-        currentWallpaper.colors = extracted;
-        renderColors(extracted);
-        await saveWallpaperColors(
-            currentWallpaper.id,
-            extracted
-        );
-        return;
-    }
-
-    renderColors(colors);
-}
-
 if(colorPalette){
-    renderColors(currentWallpaper?.colors || []);
+    renderColors(currentWallpaper.colors || []);
     ensureWallpaperColors();
 }
+
+}
+
+// ===============================
+// Color Tools
+// ===============================
+
+const COLOR_COUNT = 12;
+const colorNames = [
+ {name:"Red",r:220,g:50,b:50},{name:"Orange",r:240,g:130,b:35},{name:"Yellow",r:235,g:200,b:45},
+ {name:"Green",r:55,g:170,b:85},{name:"Cyan",r:40,g:175,b:190},{name:"Blue",r:55,g:100,b:220},
+ {name:"Indigo",r:75,g:65,b:170},{name:"Purple",r:135,g:70,b:180},{name:"Pink",r:220,g:90,b:155},
+ {name:"Brown",r:125,g:80,b:50},{name:"Gray",r:125,g:130,b:135},{name:"Black",r:30,g:30,b:32},{name:"White",r:235,g:235,b:235}
+];
+function rgbToHex(r,g,b){return "#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("").toUpperCase();}
+function colorDistance(a,b){return Math.sqrt((a.r-b.r)**2+(a.g-b.g)**2+(a.b-b.b)**2);}
+function renderColors(colors){
+ if(!colorPalette)return; colorPalette.innerHTML="";
+ (Array.isArray(colors)?colors:[]).slice(0,COLOR_COUNT).forEach(color=>{
+  const hex=typeof color==="string"?color.toUpperCase():color?.hex; if(!hex)return;
+  const item=document.createElement("div"); item.className="color-item";
+  const sw=document.createElement("span"); sw.className="color-swatch"; sw.style.backgroundColor=hex;
+  const code=document.createElement("span"); code.className="color-code"; code.textContent=hex;
+  const btn=document.createElement("button"); btn.type="button"; btn.className="color-copy"; btn.textContent="نسخ";
+  btn.onclick=async()=>{try{await navigator.clipboard.writeText(hex)}catch{const i=document.createElement("input");i.value=hex;document.body.appendChild(i);i.select();document.execCommand("copy");i.remove()}const old=btn.textContent;btn.textContent="✓";setTimeout(()=>btn.textContent=old,1200)};
+  item.append(sw,code,btn); colorPalette.appendChild(item);
+ });
+}
+async function extractWallpaperColors(url){
+ return new Promise(resolve=>{const img=new Image();img.crossOrigin="anonymous";img.onload=()=>{try{const c=document.createElement("canvas"),size=120;c.width=size;c.height=size;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(img,0,0,size,size);const d=x.getImageData(0,0,size,size).data,b=new Map();for(let i=0;i<d.length;i+=16){if(d[i+3]<180)continue;const r=Math.min(255,Math.round(d[i]/16)*16),g=Math.min(255,Math.round(d[i+1]/16)*16),bl=Math.min(255,Math.round(d[i+2]/16)*16),k=`${r},${g},${bl}`;b.set(k,(b.get(k)||0)+1)}const out=[];for(const [k] of [...b.entries()].sort((a,z)=>z[1]-a[1])){const [r,g,bl]=k.split(",").map(Number),hex=rgbToHex(r,g,bl),p=hex.slice(1).match(/../g).map(v=>parseInt(v,16));if(out.every(h=>{const q=h.slice(1).match(/../g).map(v=>parseInt(v,16));return colorDistance({r:p[0],g:p[1],b:p[2]},{r:q[0],g:q[1],b:q[2]})>22})){out.push(hex)}if(out.length>=COLOR_COUNT)break}resolve(out)}catch(e){console.warn("COLOR EXTRACTION ERROR",e);resolve([])}};img.onerror=()=>resolve([]);img.src=url})}
+async function ensureWallpaperColors(){
+ if(!currentWallpaper||isVideoMedia(currentWallpaper))return; const existing=Array.isArray(currentWallpaper.colors)?currentWallpaper.colors:[]; if(existing.length>=10){renderColors(existing);return;} const colors=await extractWallpaperColors(getImageUrl(currentWallpaper.image||currentWallpaper.thumbnail)); if(!colors.length){renderColors(existing);return;} currentWallpaper.colors=colors;renderColors(colors);try{await fetch(`/api/wallpapers/${currentWallpaper.id}/colors`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({colors})})}catch(e){console.warn("COLOR SAVE ERROR",e)}}
 
 // ===============================
 // Change Wallpaper
