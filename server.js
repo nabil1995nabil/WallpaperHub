@@ -1354,6 +1354,23 @@ req.body.title ||
         Boolean(req.body.popular),
 
 
+        resolution:
+        req.body.resolution ||
+        metadata.resolution ||
+        "",
+
+
+        size:
+        req.body.size ||
+        metadata.size ||
+        "",
+
+
+        author:
+        req.body.author ||
+        "WallpaperHub",
+
+
         location:
         metadata.location ||
         "غير معروف",
