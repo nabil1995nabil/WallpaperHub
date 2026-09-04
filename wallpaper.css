@@ -868,19 +868,43 @@ MOBILE
     justify-content:space-between;
 
 }
+.comment-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
 
+.mention-btn{
+    width:36px;
+    height:36px;
+    border:none;
+    border-radius:50%;
+    background:#f5f5f5;
+    color:#222;
+    font-family:Cairo,sans-serif;
+    font-size:13px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.2s ease;
+}
+.mention-btn:hover{
+    transform:scale(1.05);
+    background:#eeeeee;
+}
 
+.mention-btn:active{
+    transform:scale(.92);
+}
 .emoji-hint{
 
     color:#888;
 
-    font-size:13px;
+    font-size:10px;
 
 }
-
-
-
-
 .send-comment-btn{
 
     width:36px;
@@ -1335,4 +1359,101 @@ MOBILE
     font-size: 14px;
     font-weight: 800;
     text-align: center;
+}
+/* =========================
+   MENTION POPUP
+========================= */
+
+.mention-popup{
+    position:fixed;
+    width:260px;
+    max-width:calc(100vw - 30px);
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:16px;
+    padding:10px;
+    z-index:99999;
+
+    display:none;
+}
+
+.mention-popup.active{
+    display:block;
+}
+
+/* رأس النافذة */
+
+.mention-popup-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:4px 5px 9px;
+    border-bottom:1px solid #eee;
+}
+
+.mention-popup-header strong{
+    font-size:13px;
+    font-weight:700;
+    color:#222;
+}
+
+.mention-popup-header button{
+    width:25px;
+    height:25px;
+    border:none;
+    background:transparent;
+    color:#777;
+    font-size:20px;
+    line-height:1;
+    cursor:pointer;
+}
+
+/* صاحب الخلفية */
+
+.mention-owner-btn{
+    width:100%;
+    border:none;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 5px 5px;
+    text-align:right;
+    cursor:pointer;
+}
+
+.mention-owner-btn img{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    object-fit:cover;
+    flex-shrink:0;
+}
+
+.mention-owner-btn span{
+    flex:1;
+    min-width:0;
+}
+
+.mention-owner-btn span strong{
+    display:block;
+    color:#222;
+    font-size:13px;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.mention-owner-btn span small{
+    display:block;
+    margin-top:2px;
+    color:#999;
+    font-size:10px;
+}
+
+.mention-owner-btn b{
+    color:#777;
+    font-size:17px;
+    font-weight:700;
 }

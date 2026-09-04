@@ -711,8 +711,8 @@ document.createElement("div");
 
 div.style.cssText = `
 
-width:40px;
-height:40px;
+width:30px;
+height:30px;
 border-radius:50%;
 background:${color};
 display:inline-block;
@@ -1300,7 +1300,7 @@ async function downloadWithWatermark(imageUrl, title) {
         // =========================
         // WallpaperHub Watermark
         // =========================
-        ctx.font = "300 24px Arial";
+        ctx.font = "300 30px Arial";
         ctx.fillStyle = getWatermarkColor(ctx, canvas);
         ctx.shadowColor = "rgba(0,0,0,0.30)";
         ctx.shadowBlur = 3;
@@ -1960,26 +1960,200 @@ history.back();
 // ===============================
 // COMMENTS SYSTEM NEW
 // ===============================
-
-
 const commentInput =
 document.getElementById("commentInput");
-
-
+const mentionBtn =
+document.getElementById("mentionBtn");
+const mentionPopup =
+document.getElementById("mentionPopup");
+const closeMentionBtn =
+document.getElementById("closeMentionBtn");
+const mentionOwnerBtn =
+document.getElementById("mentionOwnerBtn");
+const mentionOwnerName =
+document.getElementById("mentionOwnerName");
+const mentionOwnerAvatar =
+document.getElementById("mentionOwnerAvatar");
 const sendCommentBtn =
 document.getElementById("sendCommentBtn");
-
-
 const commentsContainer =
 document.getElementById("commentsContainer");
-
-
 const commentsCountBadge =
 document.getElementById("commentsCountBadge");
+// ===============================
+// MENTION SYSTEM
+// ===============================
+
+function openMentionPopup(){
+
+    if(!mentionPopup || !mentionBtn)
+        return;
+
+    // اسم صاحب الخلفية
+    const ownerName =
+        currentWallpaper?.author ||
+        "صاحب الخلفية";
+
+    if(mentionOwnerName){
+        mentionOwnerName.textContent =
+            ownerName;
+    }
+
+    // صورة صاحب الخلفية
+    if(mentionOwnerAvatar){
+
+        const ownerAvatar =
+            currentWallpaper?.avatar ||
+            currentWallpaper?.authorAvatar ||
+            "";
+
+        mentionOwnerAvatar.src =
+            ownerAvatar || "/assets/logo/no-image.png";
+    }
+
+    // تحديد مكان النافذة بجانب زر @
+    const rect =
+        mentionBtn.getBoundingClientRect();
+
+    mentionPopup.style.left =
+        Math.max(
+            15,
+            Math.min(
+                rect.left,
+                window.innerWidth - 275
+            )
+        ) + "px";
+
+    mentionPopup.style.top =
+        Math.max(
+            15,
+            rect.top - 150
+        ) + "px";
+
+    mentionPopup.classList.add("active");
+}
 
 
+// فتح النافذة
+if(mentionBtn){
+
+    mentionBtn.addEventListener(
+        "click",
+        (e)=>{
+
+            e.stopPropagation();
+
+            if(
+                mentionPopup.classList.contains(
+                    "active"
+                )
+            ){
+
+                mentionPopup.classList.remove(
+                    "active"
+                );
+
+            }else{
+
+                openMentionPopup();
+
+            }
+
+        }
+    );
+}
 
 
+// إغلاق النافذة
+if(closeMentionBtn){
+
+    closeMentionBtn.addEventListener(
+        "click",
+        ()=>{
+
+            mentionPopup.classList.remove(
+                "active"
+            );
+
+        }
+    );
+
+}
+
+
+// اختيار صاحب الخلفية
+if(mentionOwnerBtn){
+
+    mentionOwnerBtn.addEventListener(
+        "click",
+        ()=>{
+
+            if(!currentWallpaper || !commentInput)
+                return;
+
+            const ownerName =
+                currentWallpaper.author ||
+                "صاحب الخلفية";
+
+            const mention =
+                "@" + ownerName + " ";
+
+            const start =
+                commentInput.selectionStart;
+
+            const end =
+                commentInput.selectionEnd;
+
+            const text =
+                commentInput.value;
+
+            commentInput.value =
+                text.substring(0,start) +
+                mention +
+                text.substring(end);
+
+            // وضع المؤشر بعد الإشارة
+            const newPosition =
+                start + mention.length;
+
+            commentInput.focus();
+
+            commentInput.setSelectionRange(
+                newPosition,
+                newPosition
+            );
+
+            // إغلاق النافذة
+            mentionPopup.classList.remove(
+                "active"
+            );
+
+        }
+    );
+
+}
+
+
+// إغلاق عند الضغط خارج النافذة
+document.addEventListener(
+    "click",
+    (e)=>{
+
+        if(
+            mentionPopup &&
+            mentionPopup.classList.contains("active") &&
+            !mentionPopup.contains(e.target) &&
+            e.target !== mentionBtn
+        ){
+
+            mentionPopup.classList.remove(
+                "active"
+            );
+
+        }
+
+    }
+);
 // ===============================
 // LOAD COMMENTS
 // ===============================
