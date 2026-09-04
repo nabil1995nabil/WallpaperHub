@@ -294,11 +294,129 @@ createFileIfMissing(NOTIFICATIONS_FILE);
 
 
 // ======================================
-// Wallpapers Storage
+// Wallpapers Storage - Supabase
+// Images stay on Cloudinary.
+// Supabase stores wallpaper metadata + Cloudinary URLs.
 // ======================================
 
+let wallpapersCache = [];
+let wallpapersLoaded = false;
+
+function wallpaperFromDb(row){
+
+    return {
+        id: Number(row.id),
+        title: row.title ?? "",
+        category: row.category ?? "other",
+        thumbnail: row.thumbnail ?? "",
+        image: row.image ?? "",
+        resolution: row.resolution ?? "",
+        size: row.size ?? "",
+        downloads: Number(row.downloads ?? 0),
+        likes: Number(row.likes ?? 0),
+        views: Number(row.views ?? 0),
+        rating: Number(row.rating ?? 0),
+        ratingCount: Number(row.rating_count ?? 0),
+        ratingSum: Number(row.rating_sum ?? 0),
+        author: row.author ?? "WallpaperHub",
+        date: row.date ?? "",
+        colors: Array.isArray(row.colors) ? row.colors : [],
+        tags: Array.isArray(row.tags) ? row.tags : [],
+        featured: Boolean(row.featured),
+        todayWallpaper: Boolean(row.today_wallpaper),
+        popular: Boolean(row.popular),
+        type: row.type ?? "image",
+        animated: Boolean(row.animated)
+    };
+
+}
+
+function wallpaperToDb(w){
+
+    return {
+        id: Number(w.id),
+        title: w.title ?? null,
+        category: w.category ?? null,
+        thumbnail: w.thumbnail ?? null,
+        image: w.image ?? null,
+        resolution: w.resolution ?? null,
+        size: w.size ?? null,
+        downloads: Number(w.downloads ?? 0),
+        likes: Number(w.likes ?? 0),
+        views: Number(w.views ?? 0),
+        rating: Number(w.rating ?? 0),
+        rating_count: Number(w.ratingCount ?? 0),
+        rating_sum: Number(w.ratingSum ?? 0),
+        author: w.author ?? null,
+        date: w.date ?? null,
+        colors: Array.isArray(w.colors) ? w.colors : [],
+        tags: Array.isArray(w.tags) ? w.tags : [],
+        featured: Boolean(w.featured),
+        today_wallpaper: Boolean(w.todayWallpaper),
+        popular: Boolean(w.popular),
+        type: w.type ?? "image",
+        animated: Boolean(w.animated)
+    };
+
+}
+
+async function loadWallpapersFromSupabase(){
+
+    try{
+
+        const { data, error } =
+            await supabase
+                .from("wallpapers")
+                .select("*")
+                .order("id", { ascending: true });
+
+        if(error)
+            throw error;
+
+        wallpapersCache =
+            (data || []).map(wallpaperFromDb);
+
+        wallpapersLoaded = true;
+
+        console.log(
+            `Wallpapers loaded from Supabase: ${wallpapersCache.length}`
+        );
+
+        return wallpapersCache;
+
+    }catch(error){
+
+        wallpapersLoaded = false;
+
+        console.log(
+            "LOAD WALLPAPERS FROM SUPABASE ERROR:",
+            error.message
+        );
+
+        // Temporary fallback only if Supabase is unavailable.
+        try{
+
+            return JSON.parse(
+                fs.readFileSync(
+                    DATA_FILE,
+                    "utf8"
+                )
+            );
+
+        }catch{
+
+            return [];
+
+        }
+
+    }
+
+}
 
 function readWallpapers(){
+
+    if(wallpapersLoaded)
+        return wallpapersCache;
 
     try{
 
@@ -308,7 +426,6 @@ function readWallpapers(){
                 "utf8"
             )
         );
-
 
     }catch(error){
 
@@ -323,19 +440,67 @@ function readWallpapers(){
 
 }
 
-
-
 function saveWallpapers(data){
 
-    fs.writeFileSync(
-        DATA_FILE,
-        JSON.stringify(
-            data,
-            null,
-            2
-        ),
-        "utf8"
-    );
+    wallpapersCache = Array.isArray(data)
+        ? data
+        : [];
+
+    wallpapersLoaded = true;
+
+    // Keep a local backup, but Supabase is now the primary database.
+    try{
+
+        fs.writeFileSync(
+            DATA_FILE,
+            JSON.stringify(
+                wallpapersCache,
+                null,
+                2
+            ),
+            "utf8"
+        );
+
+    }catch(error){
+
+        console.log(
+            "LOCAL WALLPAPER BACKUP ERROR:",
+            error.message
+        );
+
+    }
+
+    // Sync the changed wallpaper metadata to Supabase.
+    Promise.all(
+        wallpapersCache.map(
+            wallpaper =>
+                supabase
+                    .from("wallpapers")
+                    .upsert(
+                        wallpaperToDb(wallpaper),
+                        { onConflict: "id" }
+                    )
+                    .then(({ error }) => {
+
+                        if(error)
+                            throw error;
+
+                    })
+        )
+    ).then(() => {
+
+        console.log(
+            `Wallpapers synced to Supabase: ${wallpapersCache.length}`
+        );
+
+    }).catch(error => {
+
+        console.log(
+            "SAVE WALLPAPERS TO SUPABASE ERROR:",
+            error.message
+        );
+
+    });
 
 }
 
@@ -3999,21 +4164,24 @@ success:false
 // Start Server
 // ======================================
 
+(async()=>{
 
-app.listen(
-PORT,
-()=>{
+    await loadWallpapersFromSupabase();
 
+    app.listen(
+        PORT,
+        ()=>{
 
-console.log(
-"WallpaperHub Server Started"
-);
+            console.log(
+                "WallpaperHub Server Started"
+            );
 
+            console.log(
+                "PORT:",
+                PORT
+            );
 
-console.log(
-"PORT:",
-PORT
-);
+        }
+    );
 
-
-});
+})();
