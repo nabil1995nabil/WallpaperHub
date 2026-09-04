@@ -1541,6 +1541,59 @@ try{
 });
 
 // ======================================
+// Rate Wallpaper - Supabase
+// ======================================
+app.post(
+  "/api/wallpapers/:id/rate",
+  async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const value = Number(req.body.rating);
+
+      if (!Number.isInteger(id) || !Number.isFinite(value) || value < 1 || value > 5) {
+        return res.status(400).json({ success: false, message: "Invalid rating" });
+      }
+
+      const { data: row, error: findError } = await supabase
+        .from("wallpapers")
+        .select("id, rating, rating_count, rating_sum")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (findError) throw findError;
+      if (!row) {
+        return res.status(404).json({ success: false, message: "Wallpaper not found" });
+      }
+
+      const oldCount = Number(row.rating_count ?? 0);
+      const oldSum = Number(row.rating_sum ?? 0);
+      const ratingCount = oldCount + 1;
+      const ratingSum = oldSum + value;
+      const rating = Number((ratingSum / ratingCount).toFixed(2));
+
+      const { error: updateError } = await supabase
+        .from("wallpapers")
+        .update({ rating, rating_count: ratingCount, rating_sum: ratingSum })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+
+      const index = wallpapersCache.findIndex(w => Number(w.id) === id);
+      if (index !== -1) {
+        wallpapersCache[index].rating = rating;
+        wallpapersCache[index].ratingCount = ratingCount;
+        wallpapersCache[index].ratingSum = ratingSum;
+      }
+
+      res.json({ success: true, rating, ratingCount, ratingSum });
+    } catch (error) {
+      console.error("RATE WALLPAPER ERROR:", error);
+      res.status(500).json({ success: false, message: "Failed to save rating" });
+    }
+  }
+);
+
+// ======================================
 // TOKEN SYSTEM
 // ======================================
 

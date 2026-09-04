@@ -276,15 +276,32 @@ RATING
 
 .rating-stars{
     display:flex;
-    gap:6px;
+    flex-direction:row;
+    direction:ltr;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    width:100%;
     margin-top:10px;
+    min-height:48px;
 }
 
 
 .star{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    padding:0;
+    margin:0;
     font-size:30px;
+    line-height:1;
     color:#aaa;
     cursor:pointer;
+    flex:0 0 40px;
+    transform:none;
+    vertical-align:middle;
 }
 
 

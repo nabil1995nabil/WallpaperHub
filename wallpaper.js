@@ -1680,9 +1680,9 @@ const data =
 
 await res.json();
 
-
-
-
+if(!res.ok || !data.success){
+    throw new Error(data.message || "RATE API ERROR");
+}
 
 if(data.success){
 
