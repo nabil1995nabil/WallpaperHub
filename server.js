@@ -440,6 +440,25 @@ function readWallpapers(){
 
 }
 
+async function upsertWallpaperToSupabase(wallpaper){
+
+    const { data, error } =
+        await supabase
+            .from("wallpapers")
+            .upsert(
+                wallpaperToDb(wallpaper),
+                { onConflict: "id" }
+            )
+            .select()
+            .single();
+
+    if(error)
+        throw error;
+
+    return wallpaperFromDb(data);
+
+}
+
 function saveWallpapers(data){
 
     wallpapersCache = Array.isArray(data)
@@ -1305,6 +1324,36 @@ req.body.title ||
         "image",
 
 
+        animated:
+        req.body.animated !== undefined
+            ? Boolean(req.body.animated)
+            : (req.body.type === "video" || req.body.type === "gif"),
+
+
+        colors:
+        Array.isArray(req.body.colors)
+            ? req.body.colors
+            : [],
+
+
+        tags:
+        Array.isArray(req.body.tags)
+            ? req.body.tags
+            : [],
+
+
+        featured:
+        Boolean(req.body.featured),
+
+
+        todayWallpaper:
+        Boolean(req.body.todayWallpaper),
+
+
+        popular:
+        Boolean(req.body.popular),
+
+
         location:
         metadata.location ||
         "غير معروف",
@@ -1346,10 +1395,12 @@ req.body.title ||
 
 
 
-    saveWallpapers(
-        wallpapers
-    );
+    wallpapersCache = wallpapers;
+    wallpapersLoaded = true;
 
+    await upsertWallpaperToSupabase(
+        wallpaper
+    );
 
 
     res.json({
