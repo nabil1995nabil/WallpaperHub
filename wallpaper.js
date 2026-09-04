@@ -689,56 +689,58 @@ tagsContainer.appendChild(span);
 // ===============================
 // Colors
 // ===============================
+
 if(colorPalette){
+
     colorPalette.innerHTML = "";
 
     const colors = Array.isArray(currentWallpaper.colors)
         ? currentWallpaper.colors
         : [];
 
-    colors.forEach(color => {
-        const value = String(color || "").trim();
-        if(!value) return;
+    colors.forEach((color) => {
+
+        const hex = typeof color === "string"
+            ? color.trim()
+            : "";
+
+        if(!hex) return;
 
         const item = document.createElement("div");
         item.className = "color-item";
 
         const swatch = document.createElement("span");
         swatch.className = "color-swatch";
-        swatch.style.backgroundColor = value;
+        swatch.style.backgroundColor = hex;
 
-        const code = document.createElement("span");
-        code.className = "color-code";
-        code.textContent = value.toUpperCase();
+        const value = document.createElement("span");
+        value.className = "color-hex";
+        value.textContent = hex.toUpperCase();
 
         const copyBtn = document.createElement("button");
+        copyBtn.className = "color-copy-btn";
         copyBtn.type = "button";
-        copyBtn.className = "color-copy";
         copyBtn.textContent = "نسخ";
 
         copyBtn.addEventListener("click", async () => {
             try {
-                await navigator.clipboard.writeText(value);
-            } catch(e) {
-                const ta = document.createElement("textarea");
-                ta.value = value;
-                ta.style.position = "fixed";
-                ta.style.opacity = "0";
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand("copy");
-                ta.remove();
+                await navigator.clipboard.writeText(hex);
+                copyBtn.textContent = "✓";
+                setTimeout(() => {
+                    copyBtn.textContent = "نسخ";
+                }, 1200);
+            } catch(error) {
+                console.error("Copy color failed:", error);
             }
-            const oldText = copyBtn.textContent;
-            copyBtn.textContent = "✓";
-            setTimeout(() => copyBtn.textContent = oldText, 1000);
         });
 
         item.appendChild(swatch);
-        item.appendChild(code);
+        item.appendChild(value);
         item.appendChild(copyBtn);
         colorPalette.appendChild(item);
     });
+}
+
 }
 
 // ===============================
