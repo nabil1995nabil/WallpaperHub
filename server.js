@@ -440,25 +440,6 @@ function readWallpapers(){
 
 }
 
-async function upsertWallpaperToSupabase(wallpaper){
-
-    const { data, error } =
-        await supabase
-            .from("wallpapers")
-            .upsert(
-                wallpaperToDb(wallpaper),
-                { onConflict: "id" }
-            )
-            .select()
-            .single();
-
-    if(error)
-        throw error;
-
-    return wallpaperFromDb(data);
-
-}
-
 function saveWallpapers(data){
 
     wallpapersCache = Array.isArray(data)
@@ -1324,53 +1305,6 @@ req.body.title ||
         "image",
 
 
-        animated:
-        req.body.animated !== undefined
-            ? Boolean(req.body.animated)
-            : (req.body.type === "video" || req.body.type === "gif"),
-
-
-        colors:
-        Array.isArray(req.body.colors)
-            ? req.body.colors
-            : [],
-
-
-        tags:
-        Array.isArray(req.body.tags)
-            ? req.body.tags
-            : [],
-
-
-        featured:
-        Boolean(req.body.featured),
-
-
-        todayWallpaper:
-        Boolean(req.body.todayWallpaper),
-
-
-        popular:
-        Boolean(req.body.popular),
-
-
-        resolution:
-        req.body.resolution ||
-        metadata.resolution ||
-        "",
-
-
-        size:
-        req.body.size ||
-        metadata.size ||
-        "",
-
-
-        author:
-        req.body.author ||
-        "WallpaperHub",
-
-
         location:
         metadata.location ||
         "غير معروف",
@@ -1412,12 +1346,10 @@ req.body.title ||
 
 
 
-    wallpapersCache = wallpapers;
-    wallpapersLoaded = true;
-
-    await upsertWallpaperToSupabase(
-        wallpaper
+    saveWallpapers(
+        wallpapers
     );
+
 
 
     res.json({
@@ -1539,59 +1471,6 @@ try{
 
 
 });
-
-// ======================================
-// Rate Wallpaper - Supabase
-// ======================================
-app.post(
-  "/api/wallpapers/:id/rate",
-  async (req, res) => {
-    try {
-      const id = Number(req.params.id);
-      const value = Number(req.body.rating);
-
-      if (!Number.isInteger(id) || !Number.isFinite(value) || value < 1 || value > 5) {
-        return res.status(400).json({ success: false, message: "Invalid rating" });
-      }
-
-      const { data: row, error: findError } = await supabase
-        .from("wallpapers")
-        .select("id, rating, rating_count, rating_sum")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (findError) throw findError;
-      if (!row) {
-        return res.status(404).json({ success: false, message: "Wallpaper not found" });
-      }
-
-      const oldCount = Number(row.rating_count ?? 0);
-      const oldSum = Number(row.rating_sum ?? 0);
-      const ratingCount = oldCount + 1;
-      const ratingSum = oldSum + value;
-      const rating = Number((ratingSum / ratingCount).toFixed(2));
-
-      const { error: updateError } = await supabase
-        .from("wallpapers")
-        .update({ rating, rating_count: ratingCount, rating_sum: ratingSum })
-        .eq("id", id);
-
-      if (updateError) throw updateError;
-
-      const index = wallpapersCache.findIndex(w => Number(w.id) === id);
-      if (index !== -1) {
-        wallpapersCache[index].rating = rating;
-        wallpapersCache[index].ratingCount = ratingCount;
-        wallpapersCache[index].ratingSum = ratingSum;
-      }
-
-      res.json({ success: true, rating, ratingCount, ratingSum });
-    } catch (error) {
-      console.error("RATE WALLPAPER ERROR:", error);
-      res.status(500).json({ success: false, message: "Failed to save rating" });
-    }
-  }
-);
 
 // ======================================
 // TOKEN SYSTEM
@@ -4280,6 +4159,61 @@ success:false
 
 
 });
+
+// ======================================
+// حفظ ألوان الخلفية
+// ======================================
+
+app.patch(
+    "/api/wallpapers/:id/colors",
+    async (req, res) => {
+        try {
+            const wallpaperId = Number(req.params.id);
+            const colors = Array.isArray(req.body.colors)
+                ? req.body.colors
+                    .filter(color => typeof color === "string")
+                    .slice(0, 12)
+                : [];
+
+            if (!wallpaperId || colors.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid wallpaper or colors"
+                });
+            }
+
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .update({ colors })
+                .eq("id", wallpaperId)
+                .select("*")
+                .single();
+
+            if (error) throw error;
+
+            const index = wallpapersCache.findIndex(
+                w => Number(w.id) === wallpaperId
+            );
+
+            if (index !== -1) {
+                wallpapersCache[index].colors = colors;
+            }
+
+            res.json({
+                success: true,
+                colors: data.colors || colors
+            });
+
+        } catch (error) {
+            console.log("SAVE WALLPAPER COLORS ERROR:", error);
+
+            res.status(500).json({
+                success: false,
+                message: "Failed to save colors"
+            });
+        }
+    }
+);
 
 // ======================================
 // Start Server

@@ -1463,3 +1463,88 @@ MOBILE
     font-size:14px;
     font-weight:700;
 }
+
+/* WallpaperHub - Color Palette */
+#colorPalette{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+    margin-top:14px;
+}
+
+.color-item{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:9px 7px;
+    border:1px solid #e7e7e7;
+    border-radius:14px;
+    background:#fff;
+    box-sizing:border-box;
+    direction:ltr;
+}
+
+.color-swatch{
+    width:24px;
+    height:24px;
+    min-width:24px;
+    border-radius:50%;
+    border:1px solid rgba(0,0,0,.12);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+.color-code{
+    flex:1;
+    min-width:0;
+    font-size:12px;
+    font-weight:700;
+    color:#333;
+    letter-spacing:.2px;
+    white-space:nowrap;
+}
+
+.color-copy{
+    border:0;
+    border-radius:9px;
+    padding:6px 7px;
+    background:#f1f1f1;
+    color:#333;
+    font-size:10px;
+    font-family:inherit;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.color-copy:active{
+    transform:scale(.96);
+}
+
+@media(max-width:520px){
+    #colorPalette{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:7px;
+    }
+
+    .color-item{
+        padding:8px 5px;
+        gap:5px;
+        border-radius:12px;
+    }
+
+    .color-swatch{
+        width:20px;
+        height:20px;
+        min-width:20px;
+    }
+
+    .color-code{
+        font-size:10px;
+    }
+
+    .color-copy{
+        padding:5px 5px;
+        font-size:9px;
+    }
+}
