@@ -56,19 +56,16 @@
 
 
 .slide img{
-
     width:100%;
     height:100%;
-
     object-fit:cover;
+    image-rendering:auto;
 
-    /* صورة فاتحة وواضحة */
-    filter:brightness(.92);
-
+    filter:
+        brightness(1.05)
+        contrast(1.30)
+        saturate(1.10);
 }
-
-
-
 /* التدرج فوق الصورة */
 
 .slide::after{
@@ -111,29 +108,15 @@
 
 
 /* التصنيف فوق اليمين */
-.slider-category {
-
+.slider-category{
     position:absolute;
-
     top:0;
-
     right:0;
 
+    color:#ffffff;
+    font-size:13px;
+    font-weight:400;
 }
-
-
-.slider-info h2{
-
-    margin:8px 0;
-
-    font-size:28px;
-
-    font-weight:800;
-
-}
-
-
-
 .slider-info p{
 
     margin-top:70px;
@@ -152,7 +135,7 @@
 
     position:absolute;
 
-    top:150px;
+    top:130px;
     right:9px;
 
     padding:10px 20px;
@@ -181,53 +164,61 @@
    Mini Slider Wrapper
 =============================== */
 
-.mini-wrapper{
+.mini-wrapper {
+    position: absolute;
 
-    position:absolute;
+    bottom: 55px;
 
-    bottom:55px;
+    left: 0;
+    right: 0;
 
-    width:100%;
+    width: 100%;
 
-    height:95px;
+    height: 95px;
 
-    display:flex;
+    display: flex;
 
-    justify-content:center;
+    justify-content: center;
 
-    overflow:hidden;
+    overflow: hidden;
 
+    box-sizing: border-box;
 }
-
-
-
 /* شريط الصور الصغيرة قابل للسحب */
 
-.mini-cards{
+.mini-cards {
+    display: flex;
 
-    display:flex;
+    flex-direction: row;
 
-    gap:10px;
+    gap: 10px;
 
-    overflow-x:auto;
+    width: 100%;
+    max-width: 100%;
 
-    padding:10px 50%;
+    box-sizing: border-box;
 
-    scrollbar-width:none;
+    overflow-x: auto;
+    overflow-y: hidden;
 
-    scroll-snap-type:x mandatory;
+    padding: 10px 16px;
 
-    transition: transform .5s ease;
+    margin: 0;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    scroll-snap-type: x mandatory;
+
+    transition: none !important;
+
+    transform: none !important;
 }
 
-
-.mini-cards::-webkit-scrollbar{
-
-    display:none;
-
+.mini-cards::-webkit-scrollbar {
+    display: none;
 }
-
-
 
 /* البطاقة الصغيرة */
 
