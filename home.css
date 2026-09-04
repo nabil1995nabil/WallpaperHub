@@ -1,7 +1,6 @@
 /* ===================================
    WallpaperHub - home.css
    Part 1
-   ✨ Updated: Unified White Design
 =================================== */
 
 *{
@@ -13,39 +12,26 @@ font-family:Arial,sans-serif;
 
 :root{
 
-    --primary:#5b5df5;
-    --primary2:#7d5fff;
+--primary:#5b5df5;
+--primary2:#7d5fff;
+--bg:#f5f7fb;
+--card:#ffffff;
+--text:#1d1d1f;
+--gray:#777;
+--shadow:0 10px 30px rgba(0,0,0,.08);
 
-    /* خلفية الموقع بيضاء بالكامل */
-    --bg:#ffffff;
-    --bg-gradient:#ffffff;
-
-    --card:#ffffff;
-    --text:#1d1d1f;
-    --gray:#777;
-
-    --shadow:0 10px 30px rgba(0,0,0,.08);
-
-    --bottom-nav-height:70px;
-
-}
-
-html {
-    scroll-behavior: smooth;
 }
 
 body{
 
-background: var(--bg-gradient);
-background-attachment: fixed;
+background:var(--bg);
+
 color:var(--text);
-padding-bottom: calc(90px + var(--bottom-nav-height));
-min-height: 100vh;
+
 
 }
 
 /* ================= HEADER ================= */
-/* ✨ UPDATED: Pure white status bar */
 
 .header{
 
@@ -65,11 +51,11 @@ justify-content:space-between;
 
 align-items:center;
 
-background: #ffffff;
+background:rgba(255,255,255,.92);
 
-border-bottom: 1px solid rgba(0,0,0,0.04);
+backdrop-filter:blur(15px);
 
-box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+box-shadow:0 4px 18px rgba(0,0,0,.05);
 
 }
 
@@ -85,7 +71,7 @@ gap:10px;
 
 .logo .material-icons{
 
-font-size:25px;
+font-size:34px;
 
 color:var(--primary);
 
@@ -93,7 +79,7 @@ color:var(--primary);
 
 .logo h2{
 
-font-size:14px;
+font-size:24px;
 
 font-weight:700;
 
@@ -111,7 +97,7 @@ gap:16px;
 
 .header-icons span{
 
-font-size:26px;
+font-size:28px;
 
 cursor:pointer;
 
@@ -125,136 +111,186 @@ transform:scale(.9);
 
 }
 
-/* ==========================
-   Today Wallpaper 3D Buttons
-   ========================== */
+/* ================= SEARCH ================= */
 
-.today-actions{
+.search-box{
 
-    display:flex;
-    gap:15px;
-    margin-top:18px;
+margin:18px;
 
-}
+height:58px;
 
+display:flex;
 
-.today-actions button{
+align-items:center;
 
-    position:relative;
+padding:0 18px;
 
-    min-width:100px;
-    height:30px;
+background:#fff;
 
-    border:none;
-    border-radius:18px;
+border-radius:18px;
 
-    color:white;
-
-    font-size:15px;
-    font-weight:700;
-
-    cursor:pointer;
-
-    background:
-    linear-gradient(
-        145deg,
-        rgba(255,255,255,.35),
-        rgba(80,96,255,.75)
-    );
-
-
-    backdrop-filter:blur(15px);
-
-
-    box-shadow:
-
-    0 10px 20px rgba(0,0,0,.25),
-
-    inset 0 2px 4px rgba(255,255,255,.5),
-
-    inset 0 -5px 10px rgba(0,0,0,.25);
-
-
-    transform:
-    translateZ(20px);
-
-
-    transition:
-    .35s ease;
+box-shadow:var(--shadow);
 
 }
 
+.search-box input{
 
-/* الطبقة السفلية تعطي إحساس الارتفاع */
+flex:1;
 
-.today-actions button::after{
+border:none;
 
-    content:"";
+outline:none;
 
-    position:absolute;
+background:transparent;
 
-    inset:0;
-
-    border-radius:18px;
-
-    background:
-    linear-gradient(
-        180deg,
-        rgba(255,255,255,.35),
-        transparent
-    );
-
-    opacity:.5;
+font-size:16px;
 
 }
 
+.search-box span{
 
-
-/* عند الضغط */
-
-.today-actions button:active{
-
-    transform:
-    translateY(5px)
-    scale(.96);
-
-
-    box-shadow:
-
-    0 4px 8px rgba(0,0,0,.3),
-
-    inset 0 3px 8px rgba(0,0,0,.3);
+color:#999;
 
 }
 
+/* ================= SLIDER ================= */
 
+.slider{
 
-/* زر التحميل لون مختلف */
+margin:18px;
 
-#todayDownload{
+height:220px;
 
-    background:
-    linear-gradient(
-        145deg,
-        #00d4ff,
-        #5060ff
-    );
+border-radius:26px;
+
+overflow:hidden;
+
+position:relative;
+
+box-shadow:var(--shadow);
+
+}
+
+.slide{
+
+position:absolute;
+
+inset:0;
+
+opacity:0;
+
+transition:.8s;
 
 }
 
+.slide.active{
 
-/* زر المشاهدة */
-
-#todayView{
-
-    background:
-    linear-gradient(
-        145deg,
-        #ffffff55,
-        #333333aa
-    );
+opacity:1;
 
 }
+
+.slide img{
+
+width:100%;
+
+height:100%;
+
+object-fit:cover;
+
+}
+
+/* ================= CATEGORIES ================= */
+
+.categories{
+
+margin:20px 18px;
+
+}
+
+.categories h3{
+
+margin-bottom:15px;
+
+font-size:20px;
+
+}
+
+.category-list{
+
+display:flex;
+
+gap:14px;
+
+overflow-x:auto;
+
+padding-bottom:8px;
+
+scrollbar-width:none;
+
+}
+
+.category-list::-webkit-scrollbar{
+
+display:none;
+
+}
+
+.category{
+
+min-width:90px;
+
+height:90px;
+
+background:#fff;
+
+border-radius:22px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:var(--shadow);
+
+transition:.35s;
+
+cursor:pointer;
+
+}
+
+.category:hover{
+
+transform:translateY(-4px);
+
+}
+
+.category:active{
+
+transform:scale(.95);
+
+}
+
+.category.active{
+
+background:linear-gradient(135deg,var(--primary),var(--primary2));
+
+color:#fff;
+
+}
+
+.category p{
+
+margin-top:8px;
+
+font-size:13px;
+
+font-weight:600;
+
+}
+
 /* ===================================
    WallpaperHub - home.css
    Part 2
@@ -301,59 +337,42 @@ font-weight:600;
 }
 
 .wall-grid{
-display:flex;
-gap:16px;
-overflow-x:auto;
-padding-bottom:10px;
-scroll-behavior:smooth;
-scrollbar-width:none;
-}
-
-.wall-grid::-webkit-scrollbar{
-display:none;
+    display:flex;
+    align-items:stretch;
+    gap:14px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    padding:2px 2px 8px;
+    scroll-snap-type:x proximity;
 }
 
 /* ===== Wallpaper Card ===== */
 
 .wall-card{
     position:relative;
+    flex:0 0 auto;
+    width:170px;
+    height:230px;
     overflow:hidden;
-    width:150px;
-    min-width:150px;
-    height:220px;
-    min-height:220px;
-    padding:0;
-    margin:0;
-    border-radius:22px;
-    background:transparent;
+    background:#f4f5f7;
+    border-radius:18px;
     box-shadow:none;
-    border:none;
-    flex-shrink:0;
+    border:1px solid rgba(0,0,0,.06);
+    transition:transform .25s ease, box-shadow .25s ease;
+    cursor:pointer;
+    scroll-snap-align:start;
 }
 
-.wall-card img,
-.wall-card video,
-.wall-card .video-preview{
-    width:100%;
-    height:100%;
-    display:block;
-    object-fit:cover;
-
-    filter:none !important;
-    opacity:1 !important;
-
-    image-rendering:auto;
-    backface-visibility:hidden;
-
-    margin:0;
-    padding:0;
-    border:0;
+.wall-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
 }
-.video-preview{
 
-    position:absolute;
+.wall-card:active{
 
-    inset:0;
+transform:scale(.96);
 
 }
 
@@ -361,39 +380,42 @@ display:none;
     width:100%;
     height:100%;
     display:block;
-    object-fit:contain;
+    object-fit:cover;
     object-position:center;
-    background:transparent;
-    margin:0;
-    padding:0;
-    border:0;
+    transition:transform .35s ease;
 }
 
 .wall-card:hover img{
 
-    transform:scale(1.05);
+transform:scale(1.05);
 
 }
 
+/* معلومات الخلفية */
 
 .wall-info{
 
-    position:absolute;
+position:absolute;
 
-    left:0;
-    right:0;
-    bottom:0;
+left:0;
 
-    padding:15px;
+right:0;
 
-    background:
-    linear-gradient(
-    to top,
-    rgba(0,0,0,.85),
-    transparent
-    );
+bottom:0;
 
-    color:white;
+padding:15px;
+
+background:linear-gradient(
+
+to top,
+
+rgba(0,0,0,.82),
+
+rgba(0,0,0,.05)
+
+);
+
+color:#fff;
 
 }
 
@@ -414,9 +436,60 @@ font-size:13px;
 opacity:.9;
 
 }
+
+/* زر المفضلة */
+
+.favorite-btn{
+
+position:absolute;
+
+top:12px;
+
+left:12px;
+
+width:42px;
+
+height:42px;
+
+border-radius:50%;
+
+background:rgba(255,255,255,.9);
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+font-size:20px;
+
+backdrop-filter:blur(12px);
+
+transition:.3s;
+
+z-index:20;
+
+}
+
+.favorite-btn.active{
+
+background:#ff2d55;
+
+color:#fff;
+
+transform:scale(1.1);
+
+}
+
 /* ================= ANIMATION ================= */
 
 .header,
+
+.search-box,
+
+.slider,
+
+.categories,
 
 .wall-section{
 
@@ -447,14 +520,16 @@ transform:translateY(0);
 /* ================= RESPONSIVE ================= */
 
 @media(max-width:600px){
+    .wall-grid{
+        gap:12px;
+        padding-bottom:7px;
+    }
 
-.wall-grid{
-
-grid-template-columns:repeat(2,1fr);
-
-gap:14px;
-
-}
+    .wall-card{
+        width:155px;
+        height:220px;
+        border-radius:16px;
+    }
 
 .wall-card img{
 
@@ -476,783 +551,185 @@ font-size:21px;
 
 .today-wallpaper{
 
-    position:relative;
+position:relative;
 
-    margin:18px;
+margin:18px;
 
-    height:240px;
+height:240px;
 
-    border-radius:28px;
+border-radius:28px;
 
-    overflow:hidden;
+overflow:hidden;
 
-    box-shadow:
-    0 12px 30px rgba(0,0,0,.12);
+box-shadow:0 12px 30px rgba(0,0,0,.12);
 
 }
-
 
 .today-wallpaper img{
 
-    width:100%;
+width:100%;
 
-    height:100%;
+height:100%;
 
-    object-fit:cover;
+object-fit:cover;
 
-    transition:.5s;
+transition:.5s;
 
 }
-
 
 .today-wallpaper:hover img{
 
-    transform:scale(1.08);
+transform:scale(1.08);
 
 }
-
-
-
-/* الطبقة فوق الصورة */
 
 .today-overlay{
 
-    position:absolute;
+position:absolute;
 
-    left:0;
-    right:0;
-    bottom:0;
+left:0;
 
-    padding:20px;
+right:0;
 
-    background:
-    linear-gradient(
-    to top,
-    rgba(0,0,0,.65),
-    transparent
-    );
+bottom:0;
 
-    color:#fff;
+padding:22px;
+
+background:linear-gradient(
+
+to top,
+
+rgba(0,0,0,.88),
+
+rgba(0,0,0,.15)
+
+);
+
+color:#fff;
 
 }
-
-
-
-/* خلفية اليوم فقط */
 
 .today-overlay span{
 
-    display:inline-block;
+display:inline-block;
 
-    padding:7px 16px;
+padding:6px 14px;
 
-    border-radius:30px;
+border-radius:30px;
 
-    background:#ffb300;
+background:#ffb300;
 
-    color:#222;
+color:#222;
 
-    font-size:13px;
+font-size:12px;
 
-    font-weight:bold;
+font-weight:bold;
 
-    margin-bottom:12px;
+margin-bottom:10px;
 
 }
 
+.today-overlay h2{
 
+font-size:24px;
 
-/* إخفاء الاسم والوصف في الرئيسية */
+margin-bottom:6px;
 
-.today-overlay h2,
+}
+
 .today-overlay p{
 
-    display:none;
+opacity:.9;
+
+margin-bottom:16px;
 
 }
-
-
-
-/* الأزرار */
 
 .today-buttons{
 
-    display:flex;
+display:flex;
 
-    gap:12px;
-
-    margin-top:20px;
+gap:12px;
 
 }
-
-
 
 .today-buttons button{
 
-    flex:1;
+flex:1;
 
-    height:48px;
+height:46px;
 
-    border:none;
+border:none;
 
-    border-radius:16px;
+border-radius:14px;
 
-    font-size:16px;
+font-size:15px;
 
-    font-weight:bold;
+font-weight:bold;
 
-    cursor:pointer;
+cursor:pointer;
 
-    transition:.3s;
+transition:.3s;
 
 }
-
-
 
 #todayView{
 
-    background:#fff;
+background:#ffffff;
 
-    color:#222;
+color:#222;
 
 }
-
-
 
 #todayDownload{
 
-    background:#5b5df5;
+background:#5b5df5;
 
-    color:#fff;
-
-}
-
-
-
-.today-buttons button:active{
-
-    transform:scale(.96);
-
-}
-
-/*نظام جري اشعارات*/
-
-.notification-count{
-position:absolute;
-top:-5px;
-right:-5px;
-background:#ff3b30;
 color:#fff;
-font-size:11px;
-min-width:18px;
-height:18px;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:50%;
-font-weight:bold;
-}
-
-/* الوضع الليلي */
-
-body.dark{
-    background:#121212;
-    color:#fff;
-}
-
-body.dark .card,
-body.dark .menu-item,
-body.dark .stats-card{
-    background:#1e1e1e;
-    color:#fff;
-}
-
-body.dark .header{
-    background:#1b1b1b;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-body.dark input,
-body.dark textarea{
-    background:#2a2a2a;
-    color:#fff;
-    border:1px solid #444;
-}
-
-body.dark button{
-    background:#4c5cff;
-    color:#fff;
-}
-/* ==================================
-   Animated Notification Bell
-================================== */
-
-.notification-orbit{
-    position:relative;
-
-    width:28px;
-    height:28px;
-
-    flex:0 0 44px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    border:none;
-    background:transparent;
-
-    padding:0;
-    cursor:pointer;
-}
-
-
-/* الحلقة المتحركة */
-
-.bell-orbit{
-    position:absolute;
-
-    width:25px;
-    height:25px;
-
-    border-radius:50%;
-
-    border:2px solid transparent;
-
-    border-top-color:#5b5df5;
-    border-right-color:#9b5cff;
-
-    opacity:.75;
-
-    animation:
-        notificationOrbit 2.4s linear infinite;
-}
-
-
-@keyframes notificationOrbit{
-
-    from{
-        transform:rotate(0deg);
-    }
-
-    to{
-        transform:rotate(360deg);
-    }
 
 }
-
-
-/* الجرس */
-
-.bell-design{
-    position:relative;
-
-    width:18px;
-    height:20px;
-
-    display:block;
-
-    z-index:2;
-
-    transform-origin:50% 10%;
-}
-
-
-/* رأس الجرس */
-
-.bell-top{
-    position:absolute;
-
-    top:1px;
-    left:50%;
-
-    width:6px;
-    height:5px;
-
-    transform:translateX(-50%);
-
-    border:2px solid #25262b;
-    border-bottom:0;
-
-    border-radius:6px 6px 0 0;
-}
-
-
-/* جسم الجرس */
-
-.bell-body{
-    position:absolute;
-
-    top:5px;
-    left:50%;
-
-    width:17px;
-    height:16px;
-
-    transform:translateX(-50%);
-
-    border:2px solid #25262b;
-
-    border-radius:
-        9px 9px
-        6px 6px;
-
-    background:#fff;
-}
-
-
-/* أسفل الجرس */
-
-.bell-body::after{
-    content:"";
-
-    position:absolute;
-
-    left:-4px;
-    bottom:-3px;
-
-    width:18px;
-    height:5px;
-
-    border-bottom:2px solid #25262b;
-
-    border-radius:50%;
-}
-
-
-/* الكرة الصغيرة */
-
-.bell-clapper{
-    position:absolute;
-
-    left:50%;
-    bottom:0;
-
-    width:5px;
-    height:5px;
-
-    transform:translateX(-50%);
-
-    border-radius:50%;
-
-    background:#25262b;
-}
-
-
-/* الضغط */
-
-.notification-orbit:active{
-    transform:scale(.92);
-}
-
-
-/* اهتزاز الجرس عند وجود إشعار */
-
-.notification-orbit.has-notification
-.bell-design{
-
-    animation:
-        bellRing .7s ease;
-}
-
-
-@keyframes bellRing{
-
-    0%,100%{
-        transform:rotate(0);
-    }
-
-    20%{
-        transform:rotate(14deg);
-    }
-
-    40%{
-        transform:rotate(-12deg);
-    }
-
-    60%{
-        transform:rotate(8deg);
-    }
-
-    80%{
-        transform:rotate(-5deg);
-    }
-
-}
-.chatgpt-loader {
-    width: 38px;
-    height: 38px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-
-/* المدار الأول */
-.chatgpt-loader span:first-child {
-
-    position: absolute;
-
-    width: 22px;
-    height: 22px;
-
-    border-radius: 50%;
-
-    border: 4px solid transparent;
-
-    border-top-color: #10a37f;
-    border-left-color: #10a37f;
-
-    animation: orbit1 3s linear infinite;
-
-}
-
-
-/* المدار الثاني */
-.chatgpt-loader span:last-child {
-
-    position: absolute;
-
-    width: 22px;
-    height: 22px;
-
-    border-radius: 50%;
-
-    border: 4px solid transparent;
-
-    border-right-color: #5865f2;
-    border-bottom-color: #5865f2;
-
-    animation: orbit2 5s linear infinite reverse;
-
-}
-
-
-
-@keyframes orbit1 {
-
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-
-}
-
-
-
-@keyframes orbit2 {
-
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-
-}
-
-/* ==========================
-   Video Wallpaper Card
-========================== */
-
-.wall-card video{
-
-    width:100%;
-
-    height:240px;
-
-    object-fit:cover;
-
-    display:block;
-
-    border-radius:20px 20px 0 0;
-
-}
-
-
-.wall-card .video-preview{
-
-    position:relative;
-
-    overflow:hidden;
-
-    height:240px;
-
-}
-
-
-.wall-card .video-preview::after{
-
-    content:"▶";
-
-    position:absolute;
-
-    top:50%;
-    left:50%;
-
-    transform:translate(-50%,-50%);
-
-    width:55px;
-    height:55px;
-
-    border-radius:50%;
-
-    background:rgba(0,0,0,.55);
-
-    color:white;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    font-size:22px;
-
-}
-
-.wall-card video,
-.video-preview{
-
-    width:100%;
-    height:100px;
-
-    object-fit:cover;
-
-    display:block;
-
-}
-
-
-.video-preview{
-
-    position:relative;
-
-    overflow:hidden;
-
-}
-
-
-.video-preview video{
-
-    pointer-events:none;
-
-}
-
-
-.video-icon{
-
-    position:absolute;
-
-    top:50%;
-    left:50%;
-
-    transform:translate(-50%,-50%);
-
-    width:45px;
-    height:45px;
-
-    border-radius:50%;
-
-    background:rgba(0,0,0,.55);
-
-    color:white;
-
-    display:flex;
-
-    align-items:center;
-    justify-content:center;
-
-    pointer-events:none;
-
-}
-.today-buttons{
-    display:flex;
-    gap:20px;
-}
-
-
-.today-buttons button{
-
-    width:20px;
-    height:20px;
-
-    border:none;
-    background:rgba(0,0,0,.35);
-
-    border-radius:50%;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    color:white;
-
-    backdrop-filter:blur(10px);
-
-    cursor:pointer;
-
-    transition:.3s;
-}
-
-
-.today-buttons .material-icons{
-
-    font-size:20px;
-}
-
 
 .today-buttons button:active{
 
-    transform:scale(.85);
+transform:scale(.96);
 
 }
 
-/* ==========================
-   Wallhaven AI Section
-========================== */
-
-.wallhaven-section{
-
-    margin:22px 18px;
-
+.slider{
+position:relative;
+width:100%;
+height:220px;
+overflow:hidden;
+border-radius:18px;
+margin:15px 0;
 }
 
-
-.wallhaven-section .wall-grid{
-
-    display:flex;
-
-    gap:16px;
-
-    overflow-x:auto;
-
-    scrollbar-width:none;
-
+.slide{
+position:absolute;
+width:100%;
+height:100%;
+opacity:0;
+transition:.6s;
+cursor:pointer;
 }
 
-
-.wallhaven-section .wall-grid::-webkit-scrollbar{
-
-    display:none;
-
+.slide.active{
+opacity:1;
 }
 
-
-.wallhaven-section .wall-card{
-
-    width:150px;
-
-    min-width:150px;
-
-    height:220px;
-
-    border-radius:22px;
-
-    overflow:hidden;
-
-}
-/* ==========================================
-   ✨ NEW: Creative Design Enhancements
-   ========================================== */
-
-/* Smooth section dividers */
-.section-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent);
-    margin: 8px 18px;
-    border: none;
+.slide img{
+width:100%;
+height:100%;
+object-fit:cover;
 }
 
-/* Enhanced card hover with lift and glow */
-.wall-card {
-    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+.slide-info{
+position:absolute;
+left:0;
+right:0;
+bottom:0;
+padding:20px;
+background:linear-gradient(transparent,rgba(0,0,0,.8));
+color:#fff;
 }
 
-.wall-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(91, 93, 245, 0.15), 0 8px 16px rgba(0,0,0,0.08);
-}
-
-/* Subtle gradient text for titles */
-.title h3 {
-    background: linear-gradient(135deg, #1d1d1f, #5b5df5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Enhanced Today Wallpaper section */
-.today-wallpaper {
-    transition: all 0.4s ease;
-}
-
-.today-wallpaper:hover {
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
-}
-.wall-card {
-    scroll-snap-align: start;
-}
-/* Loading shimmer for images */
-.wall-card img,
-.today-wallpaper img {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-.wall-card img[src],
-.today-wallpaper img[src] {
-    animation: none;
-    background: none;
-}
-/* Drawer menu items smooth slide */
-.drawer-menu a {
-    position: relative;
-    overflow: hidden;
-}
-
-.drawer-menu a::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: var(--primary);
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
-    border-radius: 0 4px 4px 0;
-}
-
-.drawer-menu a:hover::before {
-    transform: scaleY(1);
-}
-
-/* Dark mode bottom nav */
-body.dark .bottom-nav {
-    background: #1b1b1b;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
-}
-
-body.dark .bottom-nav-item {
-    color: #777;
-}
-
-body.dark .bottom-nav-item:hover,
-body.dark .bottom-nav-item.active {
-    color: #7d5fff;
-    background: rgba(125, 95, 255, 0.1);
-}
