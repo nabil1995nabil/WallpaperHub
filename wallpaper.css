@@ -1437,7 +1437,7 @@ MOBILE
 
 .mention-owner-btn span strong{
     display:block;
-    color:#222;
+    color:#1877f2;
     font-size:13px;
     font-weight:700;
     white-space:nowrap;
@@ -1453,7 +1453,7 @@ MOBILE
 }
 
 .mention-owner-btn b{
-    color:#777;
-    font-size:17px;
+    color:#1877f2;
+    font-size:14px;
     font-weight:700;
 }
