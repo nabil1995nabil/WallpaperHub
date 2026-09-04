@@ -2092,12 +2092,19 @@ if(mentionOwnerBtn){
                 return;
 
             const ownerName =
-                currentWallpaper.author ||
-                "صاحب الخلفية";
+    currentWallpaper.author ||
+    "صاحب الخلفية";
 
-            const mention =
-                "@" + ownerName + " ";
+const ownerUID =
+    currentWallpaper.ownerUID ||
+    currentWallpaper.userId ||
+    "";
 
+mentionedUserId = ownerUID;
+
+const mention =
+    "@" + ownerName + " ";
+    
             const start =
                 commentInput.selectionStart;
 
@@ -2160,7 +2167,7 @@ document.addEventListener(
 
 let allComments = [];
 let showAllComments = false;
-
+let mentionedUserId = "";
 
 async function loadComments(){
 
@@ -2502,7 +2509,8 @@ async function sendComment(){
 
     userId:
         auth.currentUser?.uid || "",
-
+mentionedUserId:
+    mentionedUserId,
     likes:0,
 
     likedBy:[],
@@ -2538,7 +2546,7 @@ async function sendComment(){
 
 
             commentInput.value = "";
-
+mentionedUserId = "";
 
             loadComments();
 

@@ -2963,7 +2963,8 @@ app.post(
 
             const commenterAvatar =
                 req.body.avatar || "";
-
+const mentionedUserId =
+    req.body.mentionedUserId || "";
             // ======================================
             // إنشاء التعليق
             // ======================================
@@ -3037,65 +3038,143 @@ app.post(
                 wallpaper?.ownerUID ||
                 wallpaper?.userId ||
                 "";
+const mentionedUserId =
+    req.body.mentionedUserId || "";
 
-            // ======================================
-            // إنشاء إشعار لصاحب الخلفية فقط
-            // ======================================
+const isValidMention =
+    mentionedUserId &&
+    mentionedUserId === wallpaperOwnerUID;
+  // ======================================
+// إنشاء إشعار لصاحب الخلفية
+// ======================================
 
-            if (
-                commenterUID &&
-                wallpaperOwnerUID &&
-                commenterUID !== wallpaperOwnerUID
-            ) {
+if (
+    isValidMention &&
+    commenterUID &&
+    wallpaperOwnerUID &&
+    commenterUID !== wallpaperOwnerUID
+) {
 
-                let notifications =
-                    readNotifications();
+    // ======================================
+    // إشعار الإشارة
+    // ======================================
 
-                notifications.unshift({
+    let notifications =
+        readNotifications();
 
-                    id: Date.now(),
+    notifications.unshift({
 
-                    type:
-                        "wallpaper_comment",
+        id:
+            Date.now(),
 
-                    category:
-                        "comment_wallpaper",
+        type:
+            "wallpaper_mention",
 
-                    title:
-                        "تعليق جديد على خلفيتك 💬",
+        category:
+            "mention",
 
-                    content:
-                        `${commenterName} علق على خلفيتك`,
+        title:
+            "أشار إليك في تعليق 💙",
 
-                    wallpaperId:
-                        wallpaperId,
+        content:
+            `${commenterName} أشار إليك في تعليق`,
 
-                    wallpaperTitle:
-                        wallpaper?.title ||
-                        "خلفية",
+        commentText:
+            text,
 
-                    userId:
-                        commenterUID,
+        wallpaperId:
+            wallpaperId,
 
-                    userName:
-                        commenterName,
+        wallpaperTitle:
+            wallpaper?.title ||
+            "خلفية",
 
-                    date:
-                        new Date()
-                            .toLocaleString("ar-MA"),
+        userId:
+            commenterUID,
 
-                    read: false,
+        userName:
+            commenterName,
 
-                    // مهم جداً:
-                    // الإشعار يذهب لصاحب الخلفية فقط
-                    recipientUID:
-                        wallpaperOwnerUID
-                });
+        avatar:
+            commenterAvatar,
 
-                saveNotifications(
-                    notifications
-                );
-            }
+        date:
+            new Date()
+                .toLocaleString("ar-MA"),
+
+        read:
+            false,
+
+        recipientUID:
+            wallpaperOwnerUID
+    });
+
+    saveNotifications(
+        notifications
+    );
+
+}
+else if (
+    commenterUID &&
+    wallpaperOwnerUID &&
+    commenterUID !== wallpaperOwnerUID
+) {
+
+    // ======================================
+    // إشعار التعليق العادي
+    // ======================================
+
+    let notifications =
+        readNotifications();
+
+    notifications.unshift({
+
+        id:
+            Date.now(),
+
+        type:
+            "wallpaper_comment",
+
+        category:
+            "comment_wallpaper",
+
+        title:
+            "تعليق جديد على خلفيتك 💬",
+
+        content:
+            `${commenterName} علق على خلفيتك`,
+
+        wallpaperId:
+            wallpaperId,
+
+        wallpaperTitle:
+            wallpaper?.title ||
+            "خلفية",
+
+        userId:
+            commenterUID,
+
+        userName:
+            commenterName,
+
+        avatar:
+            commenterAvatar,
+
+        date:
+            new Date()
+                .toLocaleString("ar-MA"),
+
+        read:
+            false,
+
+        recipientUID:
+            wallpaperOwnerUID
+    });
+
+    saveNotifications(
+        notifications
+    );
+}
 
             // ======================================
             // الرد

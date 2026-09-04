@@ -227,15 +227,14 @@ async function loadUserNotifications(){
             // السماح بأنواع الإشعارات المطلوبة فقط
             // ======================================
 
-            if(
-                notif.type !== "comment_like" &&
-                notif.type !== "wallpaper_like" &&
-                notif.type !== "wallpaper_comment"
-            ){
-
-                return;
-
-            }
+if(
+    notif.type !== "comment_like" &&
+    notif.type !== "wallpaper_like" &&
+    notif.type !== "wallpaper_comment" &&
+    notif.type !== "wallpaper_mention"
+){
+    return;
+}
 
 
             const card =
@@ -448,8 +447,73 @@ async function loadUserNotifications(){
                 `;
 
             }
+// ===============================
+// الإشارة في تعليق
+// ===============================
 
+else if(
+    notif.type === "wallpaper_mention"
+){
 
+    card.dataset.category =
+        "mention";
+
+    card.innerHTML = `
+
+    <div class="card-side-indicator"></div>
+
+    <div class="avatar-container">
+
+        <img
+            src="${
+                notif.avatar ||
+                'assets/images/user.png'
+            }"
+            class="avatar"
+        >
+
+        <span class="type-badge">
+            @
+        </span>
+
+    </div>
+
+    <div class="notif-body">
+
+        <p class="notif-text">
+
+            ${notif.content}
+
+        </p>
+
+        <div class="comment-quote mention-comment">
+
+            💬 ${
+                notif.commentText ||
+                "تمت الإشارة إليك في تعليق"
+            }
+
+        </div>
+
+        <div class="comment-quote">
+
+            📱 ${
+                notif.wallpaperTitle ||
+                "خلفيتك"
+            }
+
+        </div>
+
+        <div class="notif-meta">
+
+            ${notif.date || "الآن"}
+
+        </div>
+
+    </div>
+
+    `;
+}
             // ===============================
             // إضافة الإشعار
             // ===============================
