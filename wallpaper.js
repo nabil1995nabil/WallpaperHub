@@ -2169,6 +2169,11 @@ document.addEventListener(
 
     }
 );
+function formatMentionText(text) {
+    if (!text) return "";
+    return text.replace(/(@[\w\u0600-\u06FF]+)/g, '<span class="mention-tag" style="color: #1877f2; font-weight: bold;">$1</span>');
+}
+
 // ===============================
 // LOAD COMMENTS
 // ===============================
@@ -2327,7 +2332,7 @@ async function loadComments(){
 
                 <div class="comment-text">
 
-                ${comment.text}
+                ${formatMentionText(comment.text)}
 
                 </div>
 
@@ -2412,26 +2417,15 @@ btn.innerHTML =
 
 
         }
-
-
-
-
-
-
+        
     }catch(error){
-
 
         console.log(
         "LOAD COMMENTS ERROR",
         error
         );
-
-
     }
-
-
 }
-
 // ===============================
 // SEND COMMENT
 // ===============================
@@ -2483,10 +2477,6 @@ console.log("MENTIONED USER ID:", mentionedUserId);
         ||
         "";
 
-
-
-
-
         const res =
         await fetch(
 
@@ -2502,7 +2492,6 @@ console.log("MENTIONED USER ID:", mentionedUserId);
             "application/json"
 
         },
-
 
         body:JSON.stringify({
 
@@ -2645,7 +2634,6 @@ error
 }
 
 }
-
 
 // مهم جدا
 window.likeComment = likeComment;

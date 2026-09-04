@@ -2963,11 +2963,41 @@ app.post(
 
             const commenterAvatar =
                 req.body.avatar || "";
-const mentionedUserId =
-    req.body.mentionedUserId || "";
 
-const mentionedName =
-    req.body.mentionedName || "";
+            let mentionedUserId =
+                req.body.mentionedUserId || "";
+
+            const mentionedName =
+                req.body.mentionedName || "";
+
+            // ======================================
+            // معرفة صاحب الخلفية
+            // ======================================
+
+            const wallpapers =
+                readWallpapers();
+
+            const wallpaper =
+                wallpapers.find(
+                    w =>
+                        Number(w.id) === wallpaperId
+                );
+
+            const wallpaperOwnerUID =
+                wallpaper?.ownerUID ||
+                wallpaper?.userId ||
+                WALLPAPER_OWNER_UID;
+
+            // ======================================
+            // فحص آلي للإشارة إذا كتبت @ يدوياً
+            // ======================================
+
+            if (!mentionedUserId && text.includes("@")) {
+                if (wallpaperOwnerUID) {
+                    mentionedUserId = wallpaperOwnerUID;
+                }
+            }
+
             // ======================================
             // إنشاء التعليق
             // ======================================
@@ -3024,213 +3054,218 @@ const mentionedName =
                 throw error;
             }
 
+            const isValidMention =
+                mentionedUserId &&
+                mentionedUserId === wallpaperOwnerUID;
+
             // ======================================
-            // معرفة صاحب الخلفية
+            // إذا توجد إشارة صحيحة
             // ======================================
 
-            const wallpapers =
-                readWallpapers();
+            if (
+                isValidMention &&
+                commenterUID &&
+                wallpaperOwnerUID &&
+                commenterUID !== wallpaperOwnerUID
+            ) {
 
-            const wallpaper =
-                wallpapers.find(
-                    w =>
-                        Number(w.id) === wallpaperId
+                // ======================================
+                // حفظ الإشارة في جدول mentions
+                // ======================================
+
+                const { data: mentionData, error: mentionError } =
+                    await supabase
+                        .from("mentions")
+                        .insert([{
+
+                            comment_id:
+                                data.id,
+
+                            wallpaper_id:
+                                wallpaperId,
+
+                            mentioned_user_id:
+                                wallpaperOwnerUID,
+
+                            mentioned_name:
+                                mentionedName ||
+                                wallpaper?.author ||
+                                "صاحب الخلفية",
+
+                            mentioned_by:
+                                commenterUID,
+
+                            mentioned_by_name:
+                                commenterName
+
+                        }])
+                        .select()
+                        .single();
+
+
+                if (mentionError) {
+
+                    console.log(
+                        "SAVE MENTION ERROR:",
+                        mentionError
+                    );
+
+                }
+
+
+                // ======================================
+                // إنشاء إشعار الإشارة
+                // ======================================
+
+                let notifications =
+                    readNotifications();
+
+                notifications.unshift({
+
+                    id:
+                        Date.now(),
+
+                    type:
+                        "wallpaper_mention",
+
+                    category:
+                        "mention",
+
+                    title:
+                        "أشار إليك في تعليق 💙",
+
+                    content:
+                        `${commenterName} أشار إليك في تعليق`,
+
+                    commentText:
+                        text,
+
+                    commentId:
+                        data.id,
+
+                    wallpaperId:
+                        wallpaperId,
+
+                    wallpaperTitle:
+                        wallpaper?.title ||
+                        "خلفية",
+
+                    userId:
+                        commenterUID,
+
+                    userName:
+                        commenterName,
+
+                    avatar:
+                        commenterAvatar,
+
+                    mentionedUserId:
+                        wallpaperOwnerUID,
+
+                    date:
+                        new Date()
+                            .toLocaleString("ar-MA"),
+
+                    read:
+                        false,
+
+                    recipientUID:
+                        wallpaperOwnerUID
+                });
+
+                saveNotifications(
+                    notifications
                 );
 
-            const wallpaperOwnerUID =
-    wallpaper?.ownerUID ||
-    wallpaper?.userId ||
-    WALLPAPER_OWNER_UID;
-    
-const isValidMention =
-    mentionedUserId &&
-    mentionedUserId === wallpaperOwnerUID;
-// ======================================
-// إذا توجد إشارة صحيحة
-// ======================================
+            }
 
-if (
-    isValidMention &&
-    commenterUID &&
-    wallpaperOwnerUID &&
-    commenterUID !== wallpaperOwnerUID
-) {
+            // ======================================
+            // تعليق عادي بدون إشارة
+            // ======================================
 
-    // ======================================
-    // حفظ الإشارة في جدول mentions
-    // ======================================
+            else if (
+                commenterUID &&
+                wallpaperOwnerUID &&
+                commenterUID !== wallpaperOwnerUID
+            ) {
 
-    const { data: mentionData, error: mentionError } =
-        await supabase
-            .from("mentions")
-            .insert([{
+                let notifications =
+                    readNotifications();
 
-                comment_id:
-                    data.id,
+                notifications.unshift({
 
-                wallpaper_id:
-                    wallpaperId,
+                    id:
+                        Date.now(),
 
-                mentioned_user_id:
-                    wallpaperOwnerUID,
+                    type:
+                        "wallpaper_comment",
 
-                mentioned_name:
-                    mentionedName ||
-                    wallpaper?.author ||
-                    "صاحب الخلفية",
+                    category:
+                        "comment_wallpaper",
 
-                mentioned_by:
-                    commenterUID,
+                    title:
+                        "تعليق جديد على خلفيتك 💬",
 
-                mentioned_by_name:
-                    commenterName
+                    content:
+                        `${commenterName} علق على خلفيتك`,
 
-            }])
-            .select()
-            .single();
+                    commentId:
+                        data.id,
 
+                    wallpaperId:
+                        wallpaperId,
 
-    if (mentionError) {
+                    wallpaperTitle:
+                        wallpaper?.title ||
+                        "خلفية",
 
-        console.log(
-            "SAVE MENTION ERROR:",
-            mentionError
-        );
+                    userId:
+                        commenterUID,
+
+                    userName:
+                        commenterName,
+
+                    avatar:
+                        commenterAvatar,
+
+                    date:
+                        new Date()
+                            .toLocaleString("ar-MA"),
+
+                    read:
+                        false,
+
+                    recipientUID:
+                        wallpaperOwnerUID
+                });
+
+                saveNotifications(
+                    notifications
+                );
+
+            }
+
+            return res.json({
+                success: true,
+                comment: data
+            });
+
+        } catch (error) {
+
+            console.log(
+                "POST COMMENT ERROR:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            });
+
+        }
 
     }
-
-
-    // ======================================
-    // إنشاء إشعار الإشارة
-    // ======================================
-
-    let notifications =
-        readNotifications();
-
-    notifications.unshift({
-
-        id:
-            Date.now(),
-
-        type:
-            "wallpaper_mention",
-
-        category:
-            "mention",
-
-        title:
-            "أشار إليك في تعليق 💙",
-
-        content:
-            `${commenterName} أشار إليك في تعليق`,
-
-        commentText:
-            text,
-
-        commentId:
-            data.id,
-
-        wallpaperId:
-            wallpaperId,
-
-        wallpaperTitle:
-            wallpaper?.title ||
-            "خلفية",
-
-        userId:
-            commenterUID,
-
-        userName:
-            commenterName,
-
-        avatar:
-            commenterAvatar,
-
-        mentionedUserId:
-            wallpaperOwnerUID,
-
-        date:
-            new Date()
-                .toLocaleString("ar-MA"),
-
-        read:
-            false,
-
-        recipientUID:
-            wallpaperOwnerUID
-    });
-
-    saveNotifications(
-        notifications
-    );
-
-}
-
-
-// ======================================
-// تعليق عادي بدون إشارة
-// ======================================
-
-else if (
-    commenterUID &&
-    wallpaperOwnerUID &&
-    commenterUID !== wallpaperOwnerUID
-) {
-
-    let notifications =
-        readNotifications();
-
-    notifications.unshift({
-
-        id:
-            Date.now(),
-
-        type:
-            "wallpaper_comment",
-
-        category:
-            "comment_wallpaper",
-
-        title:
-            "تعليق جديد على خلفيتك 💬",
-
-        content:
-            `${commenterName} علق على خلفيتك`,
-
-        commentId:
-            data.id,
-
-        wallpaperId:
-            wallpaperId,
-
-        wallpaperTitle:
-            wallpaper?.title ||
-            "خلفية",
-
-        userId:
-            commenterUID,
-
-        userName:
-            commenterName,
-
-        avatar:
-            commenterAvatar,
-
-        date:
-            new Date()
-                .toLocaleString("ar-MA"),
-
-        read:
-            false,
-
-        recipientUID:
-            wallpaperOwnerUID
-    });
-
-    saveNotifications(
-        notifications
-    );
-}
+);
 
             // ======================================
             // الرد
