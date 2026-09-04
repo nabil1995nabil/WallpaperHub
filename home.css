@@ -322,9 +322,9 @@ transform:scale(.96);
 
 }
 
-..wall-card img{
-    width:160px;
-    height:200px;
+.wall-card img{
+    width:200px;
+    height:280px;
     display:block;
     object-fit:contain;
     border-radius:12px;
