@@ -3038,9 +3038,6 @@ const mentionedUserId =
                 wallpaper?.ownerUID ||
                 wallpaper?.userId ||
                 "";
-const mentionedUserId =
-    req.body.mentionedUserId || "";
-
 const isValidMention =
     mentionedUserId &&
     mentionedUserId === wallpaperOwnerUID;
