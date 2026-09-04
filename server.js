@@ -3035,9 +3035,9 @@ const mentionedUserId =
                 );
 
             const wallpaperOwnerUID =
-                wallpaper?.ownerUID ||
-                wallpaper?.userId ||
-                "";
+    wallpaper?.ownerUID ||
+    wallpaper?.userId ||
+    WALLPAPER_OWNER_UID;
 const isValidMention =
     mentionedUserId &&
     mentionedUserId === wallpaperOwnerUID;
