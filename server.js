@@ -3267,27 +3267,6 @@ app.post(
     }
 );
 
-             return res.json({
-                success: true,
-                comment: data
-            });
-
-        } catch (error) {
-
-            console.log(
-                "POST COMMENT ERROR:",
-                error
-            );
-
-            return res.status(500).json({
-                success: false,
-                message: "Internal server error"
-            });
-
-        }
-
-    }
-);
 
 // =========================
 // Like Comment API
