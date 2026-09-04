@@ -492,7 +492,7 @@ close
 
 
 <span>
-رابط الخلفية
+رابط الخلفية المباشر
 </span>
 
 
@@ -500,7 +500,7 @@ close
 <div class="image-link-box">
 
 
-<span id="wallImageLink"></span>
+<span id="wallImageLink">رابط الصورة</span>
 
 
 
@@ -613,37 +613,44 @@ content_copy
 
     ></textarea>
 
+
+
+
+
+
     <!-- أدوات الإرسال -->
 
     <div class="comment-tools">
 
-    <div class="comment-actions">
-
-        <button
-            id="mentionBtn"
-            class="mention-btn"
-            type="button">
-            @
-        </button>
 
         <span class="emoji-hint">
             😊 يمكنك استخدام الرموز التعبيرية
         </span>
 
-    </div>
 
-    <button
+
+        <button
         id="sendCommentBtn"
         class="send-comment-btn"
         type="button">
 
-        <span class="material-icons">
-            send
-        </span>
 
-    </button>
+            <span class="material-icons">
+                send
+            </span>
 
-</div>
+
+        </button>
+
+
+    </div>
+
+
+
+
+
+
+
     <!-- تعليقات المستخدمين داخل نفس الإطار -->
 
     <div
@@ -662,34 +669,7 @@ content_copy
 
 
 </section>
-<!-- نافذة الإشارة -->
-<div id="mentionPopup" class="mention-popup">
 
-    <div class="mention-popup-header">
-        <strong>الإشارة إلى صاحب الخلفية</strong>
-
-        <button id="closeMentionBtn" type="button">
-            ×
-        </button>
-    </div>
-
-    <button id="mentionOwnerBtn" class="mention-owner-btn" type="button">
-
-        <img
-            id="mentionOwnerAvatar"
-            src="/assets/logo/no-image.png"
-            alt="">
-
-        <span>
-            <strong id="mentionOwnerName">صاحب الخلفية</strong>
-            <small>أشر إليه في تعليق</small>
-        </span>
-
-        <b>@</b>
-
-    </button>
-
-</div>
 
 <section class="similar">
 

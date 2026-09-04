@@ -276,32 +276,15 @@ RATING
 
 .rating-stars{
     display:flex;
-    flex-direction:row;
-    direction:ltr;
-    justify-content:center;
-    align-items:center;
-    gap:8px;
-    width:100%;
+    gap:6px;
     margin-top:10px;
-    min-height:48px;
 }
 
 
 .star{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width:40px;
-    height:40px;
-    padding:0;
-    margin:0;
     font-size:30px;
-    line-height:1;
     color:#aaa;
     cursor:pointer;
-    flex:0 0 40px;
-    transform:none;
-    vertical-align:middle;
 }
 
 
@@ -327,6 +310,7 @@ IMAGE LINK
 
 .image-link-item{
     display:flex;
+    align-items:center;
 }
 
 
@@ -334,12 +318,17 @@ IMAGE LINK
     display:flex;
     align-items:center;
     gap:10px;
+    min-width:0;
 }
 
 
 #wallImageLink{
     color:#555;
     font-size:13px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:180px;
 }
 
 

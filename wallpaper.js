@@ -89,6 +89,15 @@ const captureTime =
 document.getElementById("captureTime");
 const imageSource =
 document.getElementById("imageSource");
+
+// ===============================
+// Direct Wallpaper Link
+// ===============================
+const wallImageLink =
+    document.getElementById("wallImageLink");
+
+const copyImageLinkBtn =
+    document.getElementById("copyImageLinkBtn");
 if(moreOptionsBtn){
 moreOptionsBtn.onclick = ()=>{
 optionsMenu.classList.toggle("active");
@@ -397,6 +406,16 @@ if(wallDescription)
 wallDescription.textContent =
 
 currentWallpaper.description || "";
+
+// رابط الصورة/الفيديو المباشر من Cloudinary
+if(wallImageLink){
+    const directUrl = currentWallpaper.image || currentWallpaper.thumbnail || "";
+    wallImageLink.textContent = directUrl
+        ? "رابط مباشر للصورة"
+        : "غير متوفر";
+    wallImageLink.title = directUrl;
+}
+
 
 const wallTitle2 =
 document.getElementById("wallTitle2");
@@ -1579,6 +1598,37 @@ alert(
 
 
 // ===============================
+// Copy Direct Wallpaper Link
+// ===============================
+if(copyImageLinkBtn){
+    copyImageLinkBtn.onclick = async()=>{
+        if(!currentWallpaper) return;
+
+        const directUrl =
+            currentWallpaper.image ||
+            currentWallpaper.thumbnail ||
+            "";
+
+        if(!directUrl){
+            alert("رابط الخلفية المباشر غير متوفر");
+            return;
+        }
+
+        try{
+            await navigator.clipboard.writeText(directUrl);
+            const icon = copyImageLinkBtn.querySelector(".material-icons");
+            if(icon) icon.textContent = "check";
+            setTimeout(()=>{
+                if(icon) icon.textContent = "content_copy";
+            }, 1500);
+        }catch(error){
+            console.error("COPY DIRECT LINK ERROR:", error);
+            alert("تعذر نسخ الرابط");
+        }
+    };
+}
+
+// ===============================
 // Rating
 // ===============================
 
@@ -1680,9 +1730,9 @@ const data =
 
 await res.json();
 
-if(!res.ok || !data.success){
-    throw new Error(data.message || "RATE API ERROR");
-}
+
+
+
 
 if(data.success){
 
