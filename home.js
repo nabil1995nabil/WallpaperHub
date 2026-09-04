@@ -183,14 +183,6 @@ onclick="openWallpaper('${wall.id}')">
 
 ${mediaHTML}
 
-<button
-class="fav-btn"
-onclick="event.stopPropagation(); toggleFavorite('${wall.id}')">
-
-❤
-
-</button>
-
 </div>
 
 `;
