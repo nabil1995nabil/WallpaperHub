@@ -3267,32 +3267,21 @@ app.post(
     }
 );
 
- // ===================================   // الرد
- // ======================================
-
-            res.json({
-
+             return res.json({
                 success: true,
-
                 comment: data
-
             });
 
         } catch (error) {
 
             console.log(
-                "ADD COMMENT ERROR:",
+                "POST COMMENT ERROR:",
                 error
             );
 
-            res.status(500).json({
-
+            return res.status(500).json({
                 success: false,
-
-                message:
-                    error.message ||
-                    "Failed to add comment"
-
+                message: "Internal server error"
             });
 
         }
