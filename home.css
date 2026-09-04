@@ -18,7 +18,6 @@ font-family:Arial,sans-serif;
 --card:#ffffff;
 --text:#1d1d1f;
 --gray:#777;
---shadow:0 10px 30px rgba(0,0,0,.08);
 
 }
 
@@ -317,7 +316,6 @@ font-weight:600;
     height:250px;
     border-radius:20px;
     overflow:hidden;
-    box-shadow:var(--shadow);
     cursor:pointer;
     transition:transform .3s ease;
 }
@@ -470,8 +468,6 @@ height:240px;
 border-radius:28px;
 
 overflow:hidden;
-
-box-shadow:0 12px 30px rgba(0,0,0,.12);
 
 }
 
