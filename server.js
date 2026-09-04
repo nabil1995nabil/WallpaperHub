@@ -3046,13 +3046,17 @@ const isValidMention =
     mentionedUserId &&
     mentionedUserId === wallpaperOwnerUID;
 // ======================================
-// معالجة الإشارة والتعليق
+// إذا توجد إشارة صحيحة
 // ======================================
 
-const isValidMention =
-    mentionedUserId &&
-    mentionedUserId === wallpaperOwnerUID;
-// ======================================
+if (
+    isValidMention &&
+    commenterUID &&
+    wallpaperOwnerUID &&
+    commenterUID !== wallpaperOwnerUID
+) {
+
+    // ======================================
     // حفظ الإشارة في جدول mentions
     // ======================================
 
