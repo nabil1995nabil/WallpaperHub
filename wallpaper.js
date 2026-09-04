@@ -1980,6 +1980,8 @@ const commentsContainer =
 document.getElementById("commentsContainer");
 const commentsCountBadge =
 document.getElementById("commentsCountBadge");
+
+let mentionedUserId = "";
 // ===============================
 // MENTION SYSTEM
 // ===============================
@@ -2102,6 +2104,12 @@ const ownerUID =
 
 mentionedUserId = ownerUID;
 
+console.log(
+    "MENTION SELECTED:",
+    mentionedUserId,
+    ownerName
+);
+
 const mention =
     "@" + ownerName + " ";
     
@@ -2167,7 +2175,6 @@ document.addEventListener(
 
 let allComments = [];
 let showAllComments = false;
-let mentionedUserId = "";
 
 async function loadComments(){
 
@@ -2446,8 +2453,8 @@ async function sendComment(){
     if(!text)
         return;
 
-
-
+console.log("COMMENT TEXT:", text);
+console.log("MENTIONED USER ID:", mentionedUserId);
 
     try{
 
@@ -2511,6 +2518,7 @@ async function sendComment(){
         auth.currentUser?.uid || "",
 mentionedUserId:
     mentionedUserId,
+    
     likes:0,
 
     likedBy:[],

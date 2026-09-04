@@ -2965,6 +2965,9 @@ app.post(
                 req.body.avatar || "";
 const mentionedUserId =
     req.body.mentionedUserId || "";
+
+const mentionedName =
+    req.body.mentionedName || "";
             // ======================================
             // إنشاء التعليق
             // ======================================
@@ -3038,11 +3041,21 @@ const mentionedUserId =
     wallpaper?.ownerUID ||
     wallpaper?.userId ||
     WALLPAPER_OWNER_UID;
+    
 const isValidMention =
     mentionedUserId &&
     mentionedUserId === wallpaperOwnerUID;
-  // ======================================
-// إنشاء إشعار لصاحب الخلفية
+// ======================================
+// معالجة الإشارة والتعليق
+// ======================================
+
+const isValidMention =
+    mentionedUserId &&
+    mentionedUserId === wallpaperOwnerUID;
+
+
+// ======================================
+// إذا توجد إشارة صحيحة
 // ======================================
 
 if (
@@ -3053,7 +3066,51 @@ if (
 ) {
 
     // ======================================
-    // إشعار الإشارة
+    // حفظ الإشارة في جدول mentions
+    // ======================================
+
+    const { data: mentionData, error: mentionError } =
+        await supabase
+            .from("mentions")
+            .insert([{
+
+                comment_id:
+                    data.id,
+
+                wallpaper_id:
+                    wallpaperId,
+
+                mentioned_user_id:
+                    wallpaperOwnerUID,
+
+                mentioned_name:
+                    mentionedName ||
+                    wallpaper?.author ||
+                    "صاحب الخلفية",
+
+                mentioned_by:
+                    commenterUID,
+
+                mentioned_by_name:
+                    commenterName
+
+            }])
+            .select()
+            .single();
+
+
+    if (mentionError) {
+
+        console.log(
+            "SAVE MENTION ERROR:",
+            mentionError
+        );
+
+    }
+
+
+    // ======================================
+    // إنشاء إشعار الإشارة
     // ======================================
 
     let notifications =
@@ -3079,6 +3136,9 @@ if (
         commentText:
             text,
 
+        commentId:
+            data.id,
+
         wallpaperId:
             wallpaperId,
 
@@ -3094,6 +3154,9 @@ if (
 
         avatar:
             commenterAvatar,
+
+        mentionedUserId:
+            wallpaperOwnerUID,
 
         date:
             new Date()
@@ -3111,15 +3174,17 @@ if (
     );
 
 }
+
+
+// ======================================
+// تعليق عادي بدون إشارة
+// ======================================
+
 else if (
     commenterUID &&
     wallpaperOwnerUID &&
     commenterUID !== wallpaperOwnerUID
 ) {
-
-    // ======================================
-    // إشعار التعليق العادي
-    // ======================================
 
     let notifications =
         readNotifications();
@@ -3140,6 +3205,9 @@ else if (
 
         content:
             `${commenterName} علق على خلفيتك`,
+
+        commentId:
+            data.id,
 
         wallpaperId:
             wallpaperId,
