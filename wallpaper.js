@@ -689,43 +689,57 @@ tagsContainer.appendChild(span);
 // ===============================
 // Colors
 // ===============================
-
 if(colorPalette){
-    renderColors(currentWallpaper.colors || []);
-    ensureWallpaperColors();
-}
+    colorPalette.innerHTML = "";
 
-}
+    const colors = Array.isArray(currentWallpaper.colors)
+        ? currentWallpaper.colors
+        : [];
 
-// ===============================
-// Color Tools
-// ===============================
+    colors.forEach(color => {
+        const value = String(color || "").trim();
+        if(!value) return;
 
-const COLOR_COUNT = 12;
-const colorNames = [
- {name:"Red",r:220,g:50,b:50},{name:"Orange",r:240,g:130,b:35},{name:"Yellow",r:235,g:200,b:45},
- {name:"Green",r:55,g:170,b:85},{name:"Cyan",r:40,g:175,b:190},{name:"Blue",r:55,g:100,b:220},
- {name:"Indigo",r:75,g:65,b:170},{name:"Purple",r:135,g:70,b:180},{name:"Pink",r:220,g:90,b:155},
- {name:"Brown",r:125,g:80,b:50},{name:"Gray",r:125,g:130,b:135},{name:"Black",r:30,g:30,b:32},{name:"White",r:235,g:235,b:235}
-];
-function rgbToHex(r,g,b){return "#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("").toUpperCase();}
-function colorDistance(a,b){return Math.sqrt((a.r-b.r)**2+(a.g-b.g)**2+(a.b-b.b)**2);}
-function renderColors(colors){
- if(!colorPalette)return; colorPalette.innerHTML="";
- (Array.isArray(colors)?colors:[]).slice(0,COLOR_COUNT).forEach(color=>{
-  const hex=typeof color==="string"?color.toUpperCase():color?.hex; if(!hex)return;
-  const item=document.createElement("div"); item.className="color-item";
-  const sw=document.createElement("span"); sw.className="color-swatch"; sw.style.backgroundColor=hex;
-  const code=document.createElement("span"); code.className="color-code"; code.textContent=hex;
-  const btn=document.createElement("button"); btn.type="button"; btn.className="color-copy"; btn.textContent="نسخ";
-  btn.onclick=async()=>{try{await navigator.clipboard.writeText(hex)}catch{const i=document.createElement("input");i.value=hex;document.body.appendChild(i);i.select();document.execCommand("copy");i.remove()}const old=btn.textContent;btn.textContent="✓";setTimeout(()=>btn.textContent=old,1200)};
-  item.append(sw,code,btn); colorPalette.appendChild(item);
- });
+        const item = document.createElement("div");
+        item.className = "color-item";
+
+        const swatch = document.createElement("span");
+        swatch.className = "color-swatch";
+        swatch.style.backgroundColor = value;
+
+        const code = document.createElement("span");
+        code.className = "color-code";
+        code.textContent = value.toUpperCase();
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "color-copy";
+        copyBtn.textContent = "نسخ";
+
+        copyBtn.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(value);
+            } catch(e) {
+                const ta = document.createElement("textarea");
+                ta.value = value;
+                ta.style.position = "fixed";
+                ta.style.opacity = "0";
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                ta.remove();
+            }
+            const oldText = copyBtn.textContent;
+            copyBtn.textContent = "✓";
+            setTimeout(() => copyBtn.textContent = oldText, 1000);
+        });
+
+        item.appendChild(swatch);
+        item.appendChild(code);
+        item.appendChild(copyBtn);
+        colorPalette.appendChild(item);
+    });
 }
-async function extractWallpaperColors(url){
- return new Promise(resolve=>{const img=new Image();img.crossOrigin="anonymous";img.onload=()=>{try{const c=document.createElement("canvas"),size=120;c.width=size;c.height=size;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(img,0,0,size,size);const d=x.getImageData(0,0,size,size).data,b=new Map();for(let i=0;i<d.length;i+=16){if(d[i+3]<180)continue;const r=Math.min(255,Math.round(d[i]/16)*16),g=Math.min(255,Math.round(d[i+1]/16)*16),bl=Math.min(255,Math.round(d[i+2]/16)*16),k=`${r},${g},${bl}`;b.set(k,(b.get(k)||0)+1)}const out=[];for(const [k] of [...b.entries()].sort((a,z)=>z[1]-a[1])){const [r,g,bl]=k.split(",").map(Number),hex=rgbToHex(r,g,bl),p=hex.slice(1).match(/../g).map(v=>parseInt(v,16));if(out.every(h=>{const q=h.slice(1).match(/../g).map(v=>parseInt(v,16));return colorDistance({r:p[0],g:p[1],b:p[2]},{r:q[0],g:q[1],b:q[2]})>22})){out.push(hex)}if(out.length>=COLOR_COUNT)break}resolve(out)}catch(e){console.warn("COLOR EXTRACTION ERROR",e);resolve([])}};img.onerror=()=>resolve([]);img.src=url})}
-async function ensureWallpaperColors(){
- if(!currentWallpaper||isVideoMedia(currentWallpaper))return; const existing=Array.isArray(currentWallpaper.colors)?currentWallpaper.colors:[]; if(existing.length>=10){renderColors(existing);return;} const colors=await extractWallpaperColors(getImageUrl(currentWallpaper.image||currentWallpaper.thumbnail)); if(!colors.length){renderColors(existing);return;} currentWallpaper.colors=colors;renderColors(colors);try{await fetch(`/api/wallpapers/${currentWallpaper.id}/colors`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({colors})})}catch(e){console.warn("COLOR SAVE ERROR",e)}}
 
 // ===============================
 // Change Wallpaper
@@ -1293,7 +1307,7 @@ async function downloadWithWatermark(imageUrl, title) {
         // =========================
         // WallpaperHub Watermark
         // =========================
-        ctx.font = "300 30px Arial";
+        ctx.font = "300 24px Arial";
         ctx.fillStyle = getWatermarkColor(ctx, canvas);
         ctx.shadowColor = "rgba(0,0,0,0.30)";
         ctx.shadowBlur = 3;
@@ -1953,214 +1967,33 @@ history.back();
 // ===============================
 // COMMENTS SYSTEM NEW
 // ===============================
+
+
 const commentInput =
 document.getElementById("commentInput");
-const mentionBtn =
-document.getElementById("mentionBtn");
-const mentionPopup =
-document.getElementById("mentionPopup");
-const closeMentionBtn =
-document.getElementById("closeMentionBtn");
-const mentionOwnerBtn =
-document.getElementById("mentionOwnerBtn");
-const mentionOwnerName =
-document.getElementById("mentionOwnerName");
-const mentionOwnerAvatar =
-document.getElementById("mentionOwnerAvatar");
+
+
 const sendCommentBtn =
 document.getElementById("sendCommentBtn");
+
+
 const commentsContainer =
 document.getElementById("commentsContainer");
+
+
 const commentsCountBadge =
 document.getElementById("commentsCountBadge");
-// ===============================
-// MENTION SYSTEM
-// ===============================
-
-function openMentionPopup(){
-
-    if(!mentionPopup || !mentionBtn)
-        return;
-
-    // اسم صاحب الخلفية
-    const ownerName =
-        currentWallpaper?.author ||
-        "صاحب الخلفية";
-
-    if(mentionOwnerName){
-        mentionOwnerName.textContent =
-            ownerName;
-    }
-
-    // صورة صاحب الخلفية
-    if(mentionOwnerAvatar){
-
-        const ownerAvatar =
-            currentWallpaper?.avatar ||
-            currentWallpaper?.authorAvatar ||
-            "";
-
-        mentionOwnerAvatar.src =
-            ownerAvatar || "/assets/logo/no-image.png";
-    }
-
-    // تحديد مكان النافذة بجانب زر @
-    const rect =
-        mentionBtn.getBoundingClientRect();
-
-    mentionPopup.style.left =
-        Math.max(
-            15,
-            Math.min(
-                rect.left,
-                window.innerWidth - 275
-            )
-        ) + "px";
-
-    mentionPopup.style.top =
-        Math.max(
-            15,
-            rect.top - 150
-        ) + "px";
-
-    mentionPopup.classList.add("active");
-}
 
 
-// فتح النافذة
-if(mentionBtn){
-
-    mentionBtn.addEventListener(
-        "click",
-        (e)=>{
-
-            e.stopPropagation();
-
-            if(
-                mentionPopup.classList.contains(
-                    "active"
-                )
-            ){
-
-                mentionPopup.classList.remove(
-                    "active"
-                );
-
-            }else{
-
-                openMentionPopup();
-
-            }
-
-        }
-    );
-}
 
 
-// إغلاق النافذة
-if(closeMentionBtn){
-
-    closeMentionBtn.addEventListener(
-        "click",
-        ()=>{
-
-            mentionPopup.classList.remove(
-                "active"
-            );
-
-        }
-    );
-
-}
-
-
-// اختيار صاحب الخلفية
-if(mentionOwnerBtn){
-
-    mentionOwnerBtn.addEventListener(
-        "click",
-        ()=>{
-
-            if(!currentWallpaper || !commentInput)
-                return;
-
-            const ownerName =
-    currentWallpaper.author ||
-    "صاحب الخلفية";
-
-const ownerUID =
-    currentWallpaper.ownerUID ||
-    currentWallpaper.userId ||
-    "";
-
-mentionedUserId = ownerUID;
-
-const mention =
-    "@" + ownerName + " ";
-    
-            const start =
-                commentInput.selectionStart;
-
-            const end =
-                commentInput.selectionEnd;
-
-            const text =
-                commentInput.value;
-
-            commentInput.value =
-                text.substring(0,start) +
-                mention +
-                text.substring(end);
-
-            // وضع المؤشر بعد الإشارة
-            const newPosition =
-                start + mention.length;
-
-            commentInput.focus();
-
-            commentInput.setSelectionRange(
-                newPosition,
-                newPosition
-            );
-
-            // إغلاق النافذة
-            mentionPopup.classList.remove(
-                "active"
-            );
-
-        }
-    );
-
-}
-
-
-// إغلاق عند الضغط خارج النافذة
-document.addEventListener(
-    "click",
-    (e)=>{
-
-        if(
-            mentionPopup &&
-            mentionPopup.classList.contains("active") &&
-            !mentionPopup.contains(e.target) &&
-            e.target !== mentionBtn
-        ){
-
-            mentionPopup.classList.remove(
-                "active"
-            );
-
-        }
-
-    }
-);
 // ===============================
 // LOAD COMMENTS
 // ===============================
 
 let allComments = [];
 let showAllComments = false;
-let mentionedUserId = "";
+
 
 async function loadComments(){
 
@@ -2502,8 +2335,7 @@ async function sendComment(){
 
     userId:
         auth.currentUser?.uid || "",
-mentionedUserId:
-    mentionedUserId,
+
     likes:0,
 
     likedBy:[],
@@ -2539,7 +2371,7 @@ mentionedUserId:
 
 
             commentInput.value = "";
-mentionedUserId = "";
+
 
             loadComments();
 
