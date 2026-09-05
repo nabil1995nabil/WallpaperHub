@@ -1198,3 +1198,11 @@ height:35px;
 font-size:12px;
 
 }
+
+/* ===========================
+   AI Auto Tags
+=========================== */
+.wall-tags-status{display:block;margin-top:9px;color:#64748b;font-size:13px;font-weight:600;min-height:20px;}
+.wall-tags-status[data-state="loading"]{color:#2563eb;}
+.wall-tags-status[data-state="success"]{color:#16a34a;}
+.wall-tags-status[data-state="fallback"]{color:#d97706;}

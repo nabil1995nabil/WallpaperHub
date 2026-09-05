@@ -93,6 +93,89 @@ let videoThumbnail = "";
 
 let selectedWallpapers = new Set();
 
+// ==========================================
+// AI Auto Tags
+// ==========================================
+
+const wallTagsStatus =
+document.getElementById("wallTagsStatus");
+
+function setTagsStatus(message, state=""){
+    if(!wallTagsStatus) return;
+    wallTagsStatus.textContent = message;
+    wallTagsStatus.dataset.state = state;
+}
+
+function fallbackTags(file){
+    const category = document.getElementById("wallCategory")?.value || "";
+    const title = document.getElementById("wallTitle")?.value || "";
+    const name = (file?.name || "").replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ");
+    const map = {
+        nature:["nature","landscape","scenery","outdoors"], cars:["car","automotive","vehicle","road"],
+        games:["gaming","game","video game"], space:["space","galaxy","cosmos","stars"],
+        amoled:["amoled","dark","black"], animals:["animals","wildlife"], anime:["anime","illustration"],
+        city:["city","urban","architecture"], sports:["sports","athlete"], "4k":["4k","high resolution"],
+        minimal:["minimal","clean"], rain:["rain","weather"], sunset:["sunset","sky"],
+        architecture:["architecture","building"], "deep-space":["deep space","galaxy","universe"]
+    };
+    const tags=[...(map[category]||[]),...name.toLowerCase().split(/\s+/).filter(x=>x.length>2),...title.toLowerCase().split(/\s+/).filter(x=>x.length>2)];
+    return [...new Set(tags)].slice(0,12);
+}
+
+function fileToAIImage(file){
+    return new Promise((resolve,reject)=>{
+        if(!file || !file.type.startsWith("image/")){ resolve(null); return; }
+        const reader=new FileReader();
+        reader.onload=()=>{
+            const img=new Image();
+            img.onload=()=>{
+                const maxSize=1280;
+                const scale=Math.min(1,maxSize/Math.max(img.width,img.height));
+                const canvas=document.createElement("canvas");
+                canvas.width=Math.max(1,Math.round(img.width*scale));
+                canvas.height=Math.max(1,Math.round(img.height*scale));
+                const ctx=canvas.getContext("2d",{alpha:false});
+                ctx.drawImage(img,0,0,canvas.width,canvas.height);
+                const dataUrl=canvas.toDataURL("image/jpeg",0.72);
+                resolve({data:dataUrl.split(",")[1],mimeType:"image/jpeg"});
+            };
+            img.onerror=()=>reject(new Error("تعذر قراءة الصورة"));
+            img.src=reader.result;
+        };
+        reader.onerror=()=>reject(new Error("تعذر قراءة الملف"));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function generateAITags(file){
+    if(!file) return [];
+    if(file.type.startsWith("video/")){
+        setTagsStatus("🎞 الفيديو: تم استخدام وسوم القسم تلقائيًا","fallback");
+        return fallbackTags(file);
+    }
+    try{
+        setTagsStatus("🤖 جاري تحليل الصورة وتوليد الوسوم...","loading");
+        const image=await fileToAIImage(file);
+        const category=document.getElementById("wallCategory")?.value || "";
+        const title=document.getElementById("wallTitle")?.value || "";
+        const prompt=`أنت نظام تصنيف صور لموقع WallpaperHub. حلل الصورة المرفقة وأنشئ وسوماً إنجليزية قصيرة ومناسبة للبحث. أرجع JSON فقط بدون Markdown أو شرح: {"tags":["tag1","tag2","tag3"]}. الشروط: من 8 إلى 15 وسمًا، lowercase، كلمات بحث شائعة، صف الأشياء والمشهد والألوان والأسلوب والمكان إذا كان واضحًا، لا تكرر الوسوم، لا تخترع أشياء غير واضحة. القسم: ${category||"unknown"}. العنوان: ${title||"unknown"}.`;
+        const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt,imageData:image.data,mimeType:image.mimeType,locale:"en"})});
+        if(!response.ok) throw new Error("AI API ERROR");
+        const result=await response.json();
+        let text=String(result.reply||"").trim().replace(/^```json\s*/i,"").replace(/^```\s*/i,"").replace(/\s*```$/i,"").trim();
+        let parsed=null;
+        try{parsed=JSON.parse(text);}catch{const match=text.match(/\{[\s\S]*\}/);if(match){try{parsed=JSON.parse(match[0]);}catch{}}}
+        const tags=Array.isArray(parsed?.tags)?parsed.tags.map(tag=>String(tag).trim().toLowerCase()).filter(Boolean):[];
+        if(!tags.length) throw new Error("No tags");
+        setTagsStatus(`✅ تم توليد ${tags.length} وسمًا تلقائيًا`,"success");
+        return [...new Set(tags)].slice(0,15);
+    }catch(error){
+        console.warn("AI TAGS ERROR:",error);
+        setTagsStatus("⚠️ تعذر تحليل الصورة، تم استخدام وسوم تلقائية للقسم","fallback");
+        return fallbackTags(file);
+    }
+}
+
 // ============================
 // Cloudinary
 // ============================
@@ -1162,7 +1245,8 @@ function createWallpaperData(
 file,
 url,
 info,
-index
+index,
+autoTags=[]
 ){
 
 
@@ -1188,19 +1272,13 @@ document
 
 
 
-const tags =
+const manualTags =
+        document.getElementById("wallTags").value
+        .split(",")
+        .map(tag=>tag.trim().toLowerCase())
+        .filter(Boolean);
 
-document
-.getElementById("wallTags")
-.value
-
-.split(",")
-
-.map(
-tag=>tag.trim()
-)
-
-.filter(Boolean);
+    const tags = [...new Set([...manualTags,...autoTags])].slice(0,20);
 
 
 
@@ -1488,21 +1566,12 @@ uploadProgressText.textContent =
 
 
 
-// إنشاء البيانات
+// إنشاء الوسوم تلقائيًا ثم بناء بيانات الخلفية
+            const autoTags = await generateAITags(file);
 
-const data =
-
-createWallpaperData(
-
-file,
-
-url,
-
-info,
-
-i
-
-);
+            const data = createWallpaperData(
+                file, url, info, i, autoTags
+            );
 
 
 
