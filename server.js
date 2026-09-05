@@ -21,8 +21,7 @@ process.env.SUPABASE_KEY
 // Gemini API KEY
 // ===============================
 
-const GEMINI_API_KEY =
-"AQ.Ab8RN6I5IHaQ9oMjF0L3gjReTeATad9owoYsP3iYoeh9Aqb6Mg";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const GEMINI_MODEL = "gemini-3.5-flash";
 const GEMINI_IMAGE_MODEL = "gemini-3.5-flash-exp";
@@ -97,7 +96,7 @@ try {
 
 const app = express();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 
 
