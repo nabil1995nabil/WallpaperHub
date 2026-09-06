@@ -102,6 +102,53 @@ if (STATIC_DIR !== STATIC_ROOT) {
     }));
 }
 
+// Vercel build tracing with the existing project configuration can include
+// server.js without copying every frontend asset. When a static asset is not
+// present in the serverless bundle, fetch the exact file from the project's
+// GitHub main branch. This keeps the fix entirely inside server.js.
+const GITHUB_STATIC_BASE =
+    "https://raw.githubusercontent.com/nabil1995nabil/WallpaperHub/main/";
+
+const STATIC_EXTENSIONS = new Set([
+    ".css", ".js", ".mjs", ".json", ".map",
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico",
+    ".avif", ".bmp", ".webm", ".mp4", ".mov", ".m4v",
+    ".woff", ".woff2", ".ttf", ".otf", ".eot"
+]);
+
+app.get(/^\/(.+)$/, async (req, res, next) => {
+    const requested = req.params[0] || "";
+    if (!requested || requested.startsWith("api/")) return next();
+
+    const ext = path.extname(requested).toLowerCase();
+    if (!STATIC_EXTENSIONS.has(ext)) return next();
+
+    try {
+        const cleanPath = requested
+            .split("?")[0]
+            .split("#")[0]
+            .replace(/^\/+/, "")
+            .split("/")
+            .filter(part => part && part !== "." && part !== "..")
+            .map(part => encodeURIComponent(part))
+            .join("/");
+
+        const remote = await fetch(GITHUB_STATIC_BASE + cleanPath);
+
+        if (!remote.ok) return next();
+
+        const contentType = remote.headers.get("content-type");
+        if (contentType) res.set("Content-Type", contentType);
+        res.set("Cache-Control", "public, max-age=300");
+
+        const body = await remote.buffer();
+        return res.send(body);
+    } catch (error) {
+        console.error("Static asset proxy error:", error.message);
+        return next();
+    }
+});
+
 // Fallback for frontend files when running as a Vercel serverless function.
 app.get(/^\/(.+)$/, (req, res, next) => {
     const requested = req.params[0];
