@@ -6,7 +6,6 @@
 const exifParser = require("exif-parser");
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 
@@ -25,71 +24,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const GEMINI_MODEL = "gemini-3.5-flash";
 const GEMINI_IMAGE_MODEL = "gemini-3.5-flash-exp";
-// ======================================
-// Firebase Admin
-// ======================================
-
-let db = null;
-let tokensCollection = null;
-let useFirestore = false;
-
-
-try {
-
-    const admin = require("firebase-admin");
-
-
-    if (!admin.apps.length) {
-
-        const serviceAccount =
-            process.env.FIREBASE_SERVICE_ACCOUNT;
-
-
-        if (serviceAccount) {
-
-            admin.initializeApp({
-
-                credential:
-                    admin.credential.cert(
-                        JSON.parse(serviceAccount)
-                    )
-
-            });
-
-        } else {
-
-            admin.initializeApp();
-
-        }
-
-    }
-
-
-    db = admin.firestore();
-
-    tokensCollection =
-        db.collection("tokens");
-
-
-    useFirestore = true;
-
-
-    console.log(
-        "Firestore Ready"
-    );
-
-
-} catch(error) {
-
-    console.log(
-        "Firestore Disabled:",
-        error.message
-    );
-
-}
-
-
-
 // ======================================
 // Express
 // ======================================
@@ -196,113 +130,15 @@ app.get(
 
 
 // ======================================
-// Database Files
+// Supabase Database Storage
+// Vercel-safe: no local JSON data files.
+// Images stay on Cloudinary.
 // ======================================
-
-
-const DATA_FILE =
-path.join(
-    __dirname,
-    "data",
-    "wallpapers.json"
-);
-
-
-
-const TOKENS_FILE =
-path.join(
-    __dirname,
-    "data",
-    "tokens.json"
-);
-
-
-
-const COMMENTS_FILE =
-path.join(
-    __dirname,
-    "data",
-    "comments.json"
-);
-
-
-
-const NOTIFICATIONS_FILE =
-path.join(
-    __dirname,
-    "data",
-    "notifications.json"
-);
 
 const WALLPAPER_OWNER_UID =
 "SmlHXIuh5tM50ttFsZqujvFhm5s1";
 
-
-// ======================================
-// Create Data Folder
-// ======================================
-
-
-const DATA_DIR =
-path.join(
-    __dirname,
-    "data"
-);
-
-
-
-if(!fs.existsSync(DATA_DIR)){
-
-    fs.mkdirSync(
-        DATA_DIR,
-        {
-            recursive:true
-        }
-    );
-
-}
-
-
-
-
-function createFileIfMissing(file){
-
-    if(!fs.existsSync(file)){
-
-        fs.writeFileSync(
-            file,
-            "[]",
-            "utf8"
-        );
-
-    }
-
-}
-
-
-
-createFileIfMissing(DATA_FILE);
-
-createFileIfMissing(TOKENS_FILE);
-
-createFileIfMissing(COMMENTS_FILE);
-
-createFileIfMissing(NOTIFICATIONS_FILE);
-
-
-
-
-// ======================================
-// Wallpapers Storage - Supabase
-// Images stay on Cloudinary.
-// Supabase stores wallpaper metadata + Cloudinary URLs.
-// ======================================
-
-let wallpapersCache = [];
-let wallpapersLoaded = false;
-
 function wallpaperFromDb(row){
-
     return {
         id: Number(row.id),
         title: row.title ?? "",
@@ -325,13 +161,13 @@ function wallpaperFromDb(row){
         todayWallpaper: Boolean(row.today_wallpaper),
         popular: Boolean(row.popular),
         type: row.type ?? "image",
-        animated: Boolean(row.animated)
+        animated: Boolean(row.animated),
+        // Compatibility fields used by older frontend code.
+        ownerUID: WALLPAPER_OWNER_UID
     };
-
 }
 
 function wallpaperToDb(w){
-
     return {
         id: Number(w.id),
         title: w.title ?? null,
@@ -356,377 +192,104 @@ function wallpaperToDb(w){
         type: w.type ?? "image",
         animated: Boolean(w.animated)
     };
-
 }
 
-async function loadWallpapersFromSupabase(){
+async function getWallpapersFromSupabase(){
+    const { data, error } = await supabase
+        .from("wallpapers")
+        .select("*")
+        .order("id", { ascending: true });
 
-    try{
-
-        const { data, error } =
-            await supabase
-                .from("wallpapers")
-                .select("*")
-                .order("id", { ascending: true });
-
-        if(error)
-            throw error;
-
-        wallpapersCache =
-            (data || []).map(wallpaperFromDb);
-
-        wallpapersLoaded = true;
-
-        console.log(
-            `Wallpapers loaded from Supabase: ${wallpapersCache.length}`
-        );
-
-        return wallpapersCache;
-
-    }catch(error){
-
-        wallpapersLoaded = false;
-
-        console.log(
-            "LOAD WALLPAPERS FROM SUPABASE ERROR:",
-            error.message
-        );
-
-        // Temporary fallback only if Supabase is unavailable.
-        try{
-
-            return JSON.parse(
-                fs.readFileSync(
-                    DATA_FILE,
-                    "utf8"
-                )
-            );
-
-        }catch{
-
-            return [];
-
-        }
-
-    }
-
+    if(error) throw error;
+    return (data || []).map(wallpaperFromDb);
 }
 
-function readWallpapers(){
+async function getWallpaperFromSupabase(id){
+    const { data, error } = await supabase
+        .from("wallpapers")
+        .select("*")
+        .eq("id", Number(id))
+        .maybeSingle();
 
-    if(wallpapersLoaded)
-        return wallpapersCache;
-
-    try{
-
-        return JSON.parse(
-            fs.readFileSync(
-                DATA_FILE,
-                "utf8"
-            )
-        );
-
-    }catch(error){
-
-        console.log(
-            "READ WALLPAPERS ERROR",
-            error.message
-        );
-
-        return [];
-
-    }
-
+    if(error) throw error;
+    return data ? wallpaperFromDb(data) : null;
 }
 
-function saveWallpapers(data){
-
-    wallpapersCache = Array.isArray(data)
-        ? data
-        : [];
-
-    wallpapersLoaded = true;
-
-    // Keep a local backup, but Supabase is now the primary database.
-    try{
-
-        fs.writeFileSync(
-            DATA_FILE,
-            JSON.stringify(
-                wallpapersCache,
-                null,
-                2
-            ),
-            "utf8"
-        );
-
-    }catch(error){
-
-        console.log(
-            "LOCAL WALLPAPER BACKUP ERROR:",
-            error.message
-        );
-
-    }
-
-    // Sync the changed wallpaper metadata to Supabase.
-    Promise.all(
-        wallpapersCache.map(
-            wallpaper =>
-                supabase
-                    .from("wallpapers")
-                    .upsert(
-                        wallpaperToDb(wallpaper),
-                        { onConflict: "id" }
-                    )
-                    .then(({ error }) => {
-
-                        if(error)
-                            throw error;
-
-                    })
-        )
-    ).then(() => {
-
-        console.log(
-            `Wallpapers synced to Supabase: ${wallpapersCache.length}`
-        );
-
-    }).catch(error => {
-
-        console.log(
-            "SAVE WALLPAPERS TO SUPABASE ERROR:",
-            error.message
-        );
-
-    });
-
+function commentFromDb(row){
+    return {
+        id: Number(row.id),
+        created_at: row.created_at ?? null,
+        user: row.user ?? "مستخدم",
+        email: row.email ?? "",
+        avatar: row.avatar ?? "",
+        text: row.text ?? "",
+        wallpaperId: row.wallpaperId ?? "",
+        likes: Number(row.likes ?? 0),
+        likedBy: Array.isArray(row.likedBy) ? row.likedBy : [],
+        date: row.date ?? "",
+        time: row.time ?? "",
+        userId: row.userId ?? ""
+    };
 }
 
-
-
-
-// ======================================
-// Comments Storage
-// ======================================
-
-
-function readComments(){
-
-    try{
-
-        return JSON.parse(
-            fs.readFileSync(
-                COMMENTS_FILE,
-                "utf8"
-            )
-        );
-
-
-    }catch(error){
-
-        console.log(
-            "READ COMMENTS ERROR",
-            error.message
-        );
-
-        return [];
-
-    }
-
+function notificationTitle(type){
+    if(type === "wallpaper_like") return "إعجاب بخلفيتك ❤️";
+    if(type === "wallpaper_comment") return "تعليق جديد على خلفيتك 💬";
+    if(type === "wallpaper_mention") return "أشار إليك في تعليق 💙";
+    if(type === "comment_like") return "إعجاب بتعليقك ❤️";
+    return "إشعار جديد";
 }
 
-
-
-
-function saveComments(data){
-
-    try{
-
-        fs.writeFileSync(
-            COMMENTS_FILE,
-            JSON.stringify(
-                data,
-                null,
-                2
-            ),
-            "utf8"
-        );
-
-
-    }catch(error){
-
-        console.log(
-            "SAVE COMMENTS ERROR",
-            error.message
-        );
-
-    }
-
+function notificationFromDb(row){
+    return {
+        id: Number(row.id),
+        created_at: row.created_at ?? null,
+        type: row.type ?? "",
+        category: row.type ?? "",
+        title: notificationTitle(row.type),
+        content: row.message ?? "",
+        message: row.message ?? "",
+        wallpaperId: row.wallpaper_id ?? "",
+        commentId: row.comment_id ?? "",
+        userId: row.from_user ?? "",
+        recipientUID: row.user_id ?? "",
+        date: row.created_at
+            ? new Date(row.created_at).toLocaleString("ar-MA")
+            : "",
+        read: Boolean(row.is_read),
+        is_read: Boolean(row.is_read)
+    };
 }
 
-
-
-
-// ======================================
-// Token File Storage
-// ======================================
-
-
-function readTokensFile(){
-
-    try{
-
-        return JSON.parse(
-            fs.readFileSync(
-                TOKENS_FILE,
-                "utf8"
-            )
-        );
-
-
-    }catch(error){
-
-        return [];
-
-    }
-
-}
-
-
-
-function saveTokensFile(tokens){
-
-    fs.writeFileSync(
-        TOKENS_FILE,
-        JSON.stringify(
-            tokens,
-            null,
-            2
-        ),
-        "utf8"
-    );
-
-}
-
-
-
-
-// ======================================
-// Notifications Storage
-// ======================================
-
-
-function readNotifications(){
-
-    try{
-
-        return JSON.parse(
-            fs.readFileSync(
-                NOTIFICATIONS_FILE,
-                "utf8"
-            )
-        );
-
-
-    }catch(error){
-
-        return [];
-
-    }
-
-}
-
-
-
-
-function saveNotifications(data){
-
-    fs.writeFileSync(
-        NOTIFICATIONS_FILE,
-        JSON.stringify(
-            data,
-            null,
-            2
-        ),
-        "utf8"
-    );
-
-}
-
-// ======================================
-// Announcements Storage
-// ======================================
-
-
-const ANNOUNCEMENTS_FILE =
-path.join(
-    __dirname,
-    "data",
-    "announcements.json"
-);
-
-
-
-
-createFileIfMissing(
-    ANNOUNCEMENTS_FILE
-);
-
-
-
-
-function readAnnouncements(){
-
-    try{
-
-
-        return JSON.parse(
-            fs.readFileSync(
-                ANNOUNCEMENTS_FILE,
-                "utf8"
-            )
-        );
-
-
-    }catch(error){
-
-
-        console.log(
-            "READ ANNOUNCEMENTS ERROR:",
-            error.message
-        );
-
-
-        return [];
-
-
-    }
-
-}
-
-
-
-
-
-function saveAnnouncements(data){
-
-
-    fs.writeFileSync(
-
-        ANNOUNCEMENTS_FILE,
-
-        JSON.stringify(
-            data,
-            null,
-            2
-        ),
-
-        "utf8"
-
-    );
-
-
+async function createNotification({
+    recipientUID,
+    fromUser,
+    type,
+    wallpaperId = null,
+    commentId = null,
+    message = ""
+}){
+    if(!recipientUID) return null;
+
+    const payload = {
+        id: Date.now(),
+        user_id: String(recipientUID),
+        from_user: String(fromUser || ""),
+        type: String(type || ""),
+        wallpaper_id: wallpaperId == null ? null : String(wallpaperId),
+        comment_id: commentId == null ? null : String(commentId),
+        message: String(message || ""),
+        is_read: false
+    };
+
+    const { data, error } = await supabase
+        .from("notifications")
+        .insert([payload])
+        .select("*")
+        .single();
+
+    if(error) throw error;
+    return notificationFromDb(data);
 }
 
 // ======================================
@@ -929,45 +492,23 @@ const response = await fetch(
 
 app.get(
     "/api/notifications",
-    (req, res) => {
-
+    async (req, res) => {
         try {
+            const recipientUID = req.query.recipientUID;
+            if(!recipientUID) return res.json([]);
 
-            const notifications =
-                readNotifications();
+            const { data, error } = await supabase
+                .from("notifications")
+                .select("*")
+                .eq("user_id", String(recipientUID))
+                .order("created_at", { ascending: false });
 
-            const recipientUID =
-                req.query.recipientUID;
-
-            // لا نسمح بجلب الإشعارات بدون تحديد المستخدم
-            if (!recipientUID) {
-
-                return res.json([]);
-
-            }
-
-            // كل مستخدم يرى فقط الإشعارات
-            // الموجهة إلى UID الخاص به
-            const filtered =
-                notifications.filter(
-                    notif =>
-                        String(notif.recipientUID || "") ===
-                        String(recipientUID)
-                );
-
-            res.json(filtered);
-
-        } catch (error) {
-
-            console.log(
-                "GET NOTIFICATIONS ERROR:",
-                error
-            );
-
+            if(error) throw error;
+            res.json((data || []).map(notificationFromDb));
+        } catch(error) {
+            console.log("GET NOTIFICATIONS ERROR:", error);
             res.status(500).json([]);
-
         }
-
     }
 );
 // ======================================
@@ -976,189 +517,63 @@ app.get(
 
 
 app.get(
-"/api/wallpapers",
-(req,res)=>{
-
-
-    res.json(
-        readWallpapers()
-    );
-
-
-});
+    "/api/wallpapers",
+    async (req,res)=>{
+        try{
+            const wallpapers = await getWallpapersFromSupabase();
+            res.json(wallpapers);
+        }catch(error){
+            console.log("GET WALLPAPERS ERROR:", error);
+            res.status(500).json([]);
+        }
+    }
+);
 
 // ======================================
 // Wallpaper Likes (Supabase)
 // =====================================// إضافة إعجاب//
 
 app.post(
-"/api/wallpapers/:id/like",
-async(req,res)=>{
+    "/api/wallpapers/:id/like",
+    async(req,res)=>{
+        try{
+            const wallpaperId = Number(req.params.id);
+            const userId = String(req.body.userId || "guest");
+            const userName = req.body.userName || "مستخدم";
 
-try{
+            const { data, error } = await supabase
+                .from("likes")
+                .insert([{ wallpaper_id: wallpaperId, user_id: userId }])
+                .select()
+                .single();
 
-const wallpaperId =
-Number(req.params.id);
+            if(error){
+                if(error.code === "23505"){
+                    return res.json({ success:true, liked:true, message:"Already liked" });
+                }
+                throw error;
+            }
 
-const userId =
-req.body.userId || "guest";
+            const wall = await getWallpaperFromSupabase(wallpaperId);
+            const wallpaperOwnerUID = wall?.ownerUID || WALLPAPER_OWNER_UID;
 
-const userName =
-req.body.userName || "مستخدم";
+            if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
+                await createNotification({
+                    recipientUID: wallpaperOwnerUID,
+                    fromUser: userId,
+                    type: "wallpaper_like",
+                    wallpaperId,
+                    message: `${userName} أعجب بخلفيتك`
+                });
+            }
 
-
-// ======================================
-// إضافة الإعجاب إلى Supabase
-// ======================================
-
-const {data,error} =
-await supabase
-
-.from("likes")
-
-.insert([
-{
-wallpaper_id: wallpaperId,
-user_id: userId
-}
-])
-
-.select();
-
-
-// ======================================
-// إذا كان الإعجاب موجوداً مسبقاً
-// ======================================
-
-if(error){
-
-if(error.code==="23505"){
-
-return res.json({
-
-success:true,
-
-liked:true,
-
-message:"Already liked"
-
-});
-
-}
-
-throw error;
-
-}
-
-
-// ======================================
-// جلب معلومات الخلفية
-// ======================================
-
-const wallpapers =
-readWallpapers();
-
-const wall =
-wallpapers.find(
-w => Number(w.id) === wallpaperId
+            res.json({ success:true, liked:true, data });
+        }catch(error){
+            console.log("LIKE SUPABASE ERROR:", error);
+            res.status(500).json({ success:false, error:error.message });
+        }
+    }
 );
-
-
-// ======================================
-// إنشاء إشعار لصاحب الخلفية
-// ======================================
-
-// صاحب الخلفية الحقيقي
-const wallpaperOwnerUID =
-    wall?.ownerUID || WALLPAPER_OWNER_UID;
-
-// لا نرسل إشعاراً إذا المستخدم أعجب بخلفيته هو
-if(
-    userId !== wallpaperOwnerUID &&
-    wallpaperOwnerUID
-){
-    let notifications =
-        readNotifications();
-
-    notifications.unshift({
-        id:
-        Date.now(),
-
-        type:
-        "wallpaper_like",
-
-        category:
-        "like_wallpaper",
-
-        title:
-        "إعجاب بخلفيتك ❤️",
-
-        content:
-        `${userName} أعجب بخلفيتك`,
-
-        wallpaperId:
-        wallpaperId,
-
-        wallpaperTitle:
-        wall?.title || "خلفية",
-
-        userId:
-        userId,
-
-        userName:
-        userName,
-
-        date:
-        new Date()
-        .toLocaleString("ar-MA"),
-
-        read:
-        false,
-
-        // الإشعار يذهب لصاحب هذه الخلفية فقط
-        recipientUID:
-        wallpaperOwnerUID
-    });
-
-    saveNotifications(
-        notifications
-    );
-}
-
-// ======================================
-// النتيجة
-// ======================================
-
-res.json({
-
-success:true,
-
-liked:true,
-
-data
-
-});
-
-
-}catch(error){
-
-console.log(
-"LIKE SUPABASE ERROR:",
-error
-);
-
-res.status(500).json({
-
-success:false,
-
-error:error.message
-
-});
-
-}
-
-});
-
 
 // ======================================
 // معرفة حالة الإعجاب
@@ -1232,159 +647,58 @@ liked:false
 
 
 app.post(
-"/api/wallpapers",
-async(req,res)=>{
-
-
-try{
-
-
-    const wallpapers =
-    readWallpapers();
-
-
-
-    const metadata =
-    await getImageMetadata(
-        req.body.image
-    );
-
-
-
-    const source =
-    await detectImageSource(
-        req.body.image
-    );
-
-
-
-    const wallpaper = {
-
-
-        id:
-Date.now(),
-
-ownerUID:
-req.body.ownerUID ||
-req.body.userId ||
-"SmlHXIuh5tM50ttFsZqujvFhm5s1",
-
-title:
-req.body.title ||
-"Untitled",
-
-
-        description:
-        req.body.description ||
-        "",
-
-
-        image:
-        req.body.image ||
-        "",
-
-
-        thumbnail:
-        req.body.thumbnail ||
-        req.body.image ||
-        "",
-
-
-        category:
-        String(
-            req.body.category ||
-            "other"
-        )
-        .trim()
-        .toLowerCase(),
-
-
-        type:
-        req.body.type ||
-        "image",
-
-
-        location:
-        metadata.location ||
-        "غير معروف",
-
-
-        captureDate:
-        metadata.captureDate ||
-        null,
-
-
-        camera:
-        metadata.camera ||
-        null,
-
-
-        source,
-
-
-        downloads:0,
-        likes:0,
-        views:0,
-        rating:0,
-        ratingCount:0,
-        ratingSum:0,
-
-
-        date:
-        new Date()
-        .toLocaleString("ar-MA")
-
-
-    };
-
-
-
-    wallpapers.push(
-        wallpaper
-    );
-
-
-
-    saveWallpapers(
-        wallpapers
-    );
-
-
-
-    res.json({
-
-        success:true,
-
-        wallpaper
-
-    });
-
-
-
-}catch(error){
-
-
-    console.log(
-        "ADD WALLPAPER ERROR:",
-        error
-    );
-
-
-    res.status(500).json({
-
-        success:false
-
-    });
-
-
-}
-
-
-});
-
-
-
-
+    "/api/wallpapers",
+    async(req,res)=>{
+        try{
+            const metadata = await getImageMetadata(req.body.image);
+            const source = await detectImageSource(req.body.image);
+
+            const wallpaper = {
+                id: Date.now(),
+                title: req.body.title || "Untitled",
+                category: String(req.body.category || "other").trim().toLowerCase(),
+                image: req.body.image || "",
+                thumbnail: req.body.thumbnail || req.body.image || "",
+                resolution: req.body.resolution || "",
+                size: req.body.size || "",
+                downloads: Number(req.body.downloads || 0),
+                likes: Number(req.body.likes || 0),
+                views: Number(req.body.views || 0),
+                rating: Number(req.body.rating || 0),
+                ratingCount: Number(req.body.ratingCount || 0),
+                ratingSum: Number(req.body.ratingSum || 0),
+                author: req.body.author || "WallpaperHub",
+                date: req.body.date || new Date().toLocaleString("ar-MA"),
+                colors: Array.isArray(req.body.colors) ? req.body.colors : [],
+                tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+                featured: Boolean(req.body.featured),
+                todayWallpaper: Boolean(req.body.todayWallpaper),
+                popular: Boolean(req.body.popular),
+                type: req.body.type || "image",
+                animated: Boolean(req.body.animated || ["video","gif"].includes(String(req.body.type || "").toLowerCase())),
+                // These metadata values are calculated for compatibility, but the current
+                // wallpapers table has no columns for them.
+                location: metadata.location || "غير معروف",
+                captureDate: metadata.captureDate || null,
+                camera: metadata.camera || null,
+                source
+            };
+
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .insert([wallpaperToDb(wallpaper)])
+                .select("*")
+                .single();
+
+            if(error) throw error;
+
+            res.json({ success:true, wallpaper: wallpaperFromDb(data) });
+        }catch(error){
+            console.log("ADD WALLPAPER ERROR:", error);
+            res.status(500).json({ success:false, message:error.message });
+        }
+    }
+);
 
 // ======================================
 // Update Wallpaper
@@ -1392,84 +706,54 @@ req.body.title ||
 
 
 app.put(
-"/api/wallpapers/:id",
-(req,res)=>{
+    "/api/wallpapers/:id",
+    async(req,res)=>{
+        try{
+            const id = Number(req.params.id);
+            const updates = {};
+            const body = req.body || {};
 
+            const map = {
+                title:"title", category:"category", thumbnail:"thumbnail", image:"image",
+                resolution:"resolution", size:"size", downloads:"downloads", likes:"likes",
+                views:"views", rating:"rating", ratingCount:"rating_count", ratingSum:"rating_sum",
+                author:"author", date:"date", colors:"colors", tags:"tags", featured:"featured",
+                todayWallpaper:"today_wallpaper", popular:"popular", type:"type", animated:"animated"
+            };
 
-try{
+            for(const [input,column] of Object.entries(map)){
+                if(Object.prototype.hasOwnProperty.call(body,input)){
+                    updates[column] = body[input];
+                }
+            }
 
+            if(updates.category != null){
+                updates.category = String(updates.category).trim().toLowerCase();
+            }
+            if(updates.colors !== undefined && !Array.isArray(updates.colors)) delete updates.colors;
+            if(updates.tags !== undefined && !Array.isArray(updates.tags)) delete updates.tags;
 
-    const wallpapers =
-    readWallpapers();
+            if(Object.keys(updates).length === 0){
+                return res.status(400).json({ success:false, message:"No valid fields" });
+            }
 
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .update(updates)
+                .eq("id", id)
+                .select("*")
+                .maybeSingle();
 
-    const id =
-    Number(req.params.id);
+            if(error) throw error;
+            if(!data) return res.status(404).json({ success:false });
 
-
-
-    const index =
-    wallpapers.findIndex(
-        w=>w.id===id
-    );
-
-
-
-    if(index === -1){
-
-        return res.status(404).json({
-
-            success:false
-
-        });
-
+            res.json({ success:true, wallpaper:wallpaperFromDb(data) });
+        }catch(error){
+            console.log("UPDATE WALLPAPER ERROR:", error);
+            res.status(500).json({ success:false, message:error.message });
+        }
     }
-
-
-
-    wallpapers[index] = {
-
-        ...wallpapers[index],
-
-        ...req.body,
-
-        id
-
-    };
-
-
-
-    saveWallpapers(
-        wallpapers
-    );
-
-
-
-    res.json({
-
-        success:true,
-
-        wallpaper:
-        wallpapers[index]
-
-    });
-
-
-
-}catch(error){
-
-
-    res.status(500).json({
-
-        success:false
-
-    });
-
-
-}
-
-
-});
+);
 
 // ======================================
 // TOKEN SYSTEM
@@ -2444,257 +1728,52 @@ success:false
 
 
 app.post(
-"/api/wallpapers/:id/analyze",
-async(req,res)=>{
+    "/api/wallpapers/:id/analyze",
+    async(req,res)=>{
+        try{
+            const id = Number(req.params.id);
+            const wall = await getWallpaperFromSupabase(id);
 
+            if(!wall) return res.status(404).json({ success:false });
 
-try{
+            const image = await fetch(wall.image);
+            if(!image.ok) return res.status(400).json({ success:false });
 
+            const buffer = await image.arrayBuffer();
+            const base64 = Buffer.from(buffer).toString("base64");
 
-const wallpapers =
-readWallpapers();
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+                {
+                    method:"POST",
+                    headers:{ "Content-Type":"application/json" },
+                    body:JSON.stringify({
+                        contents:[{
+                            parts:[
+                                { text:`حلل هذه الخلفية.\n\nاكتب وصف احترافي بين 100 و200 حرف.\n\nاذكر:\nالألوان،\nالعناصر،\nالأسلوب.` },
+                                { inlineData:{ mimeType:"image/jpeg", data:base64 } }
+                            ]
+                        }]
+                    })
+                }
+            );
 
+            const data = await response.json();
+            const description = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
+            if(!description){
+                return res.status(500).json({ success:false, message:"No AI response" });
+            }
 
-const id =
-Number(req.params.id);
-
-
-
-const wall =
-wallpapers.find(
-w=>w.id === id
+            // wallpapers has no aiDescription column, so we return the analysis
+            // without writing an unsupported column to Supabase.
+            res.json({ success:true, description });
+        }catch(error){
+            console.log("ANALYZE ERROR:", error);
+            res.status(500).json({ success:false });
+        }
+    }
 );
-
-
-
-
-
-if(!wall){
-
-
-return res.status(404).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-
-
-if(wall.aiDescription){
-
-
-return res.json({
-
-success:true,
-
-description:
-wall.aiDescription
-
-});
-
-
-}
-
-
-
-
-
-
-const image =
-await fetch(
-wall.image
-);
-
-
-
-if(!image.ok){
-
-
-return res.status(400).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-
-const buffer =
-await image.arrayBuffer();
-
-
-
-const base64 =
-Buffer.from(buffer)
-.toString("base64");
-
-
-
-
-
-const response =
-await fetch(
-
-`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-contents:[
-
-{
-
-parts:[
-
-{
-
-text:
-
-`
-حلل هذه الخلفية.
-
-اكتب وصف احترافي بين 100 و200 حرف.
-
-اذكر:
-الألوان،
-العناصر،
-الأسلوب.
-
-`
-
-},
-
-{
-
-inlineData:{
-
-mimeType:
-"image/jpeg",
-
-data:
-base64
-
-}
-
-}
-
-]
-
-}
-
-]
-
-})
-
-}
-
-);
-
-
-
-
-
-const data =
-await response.json();
-
-
-
-
-
-const description =
-data
-?.candidates?.[0]
-?.content
-?.parts?.[0]
-?.text;
-
-
-
-
-
-if(!description){
-
-
-return res.status(500).json({
-
-success:false,
-
-message:
-"No AI response"
-
-});
-
-
-}
-
-
-
-
-
-wall.aiDescription =
-description;
-
-
-
-saveWallpapers(
-wallpapers
-);
-
-
-
-
-
-res.json({
-
-success:true,
-
-description
-
-});
-
-
-
-
-
-}catch(error){
-
-
-console.log(
-"ANALYZE ERROR:",
-error
-);
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-
-});
 
 // ======================================
 // Developer Protected Wall API
@@ -2703,31 +1782,20 @@ success:false
 app.get(
 "/api/v1/wallpapers",
 verifyApiToken,
-(req,res)=>{
+async (req,res)=>{
 
 
 try{
 
 
-const wallpapers =
-readWallpapers();
+const wallpapers = await getWallpapersFromSupabase();
 
-
-
-res.json({
-
-success:true,
-
-developer:
-req.apiToken.appName,
-
-count:
-wallpapers.length,
-
-data:
-wallpapers
-
-});
+    res.json({
+        success:true,
+        developer:req.apiToken.appName,
+        count:wallpapers.length,
+        data:wallpapers
+    });
 
 
 
@@ -2765,133 +1833,65 @@ error.message
 
 
 app.post(
-"/api/wallhaven/import",
-async(req,res)=>{
+    "/api/wallhaven/import",
+    async(req,res)=>{
+        try{
+            const response = await fetch(
+                "https://wallhaven.cc/api/v1/search?sorting=toplist&purity=100&categories=111"
+            );
+            const data = await response.json();
+            const items = data.data || [];
 
+            const { data: existing, error: existingError } = await supabase
+                .from("wallpapers")
+                .select("image");
+            if(existingError) throw existingError;
 
-try{
+            const existingImages = new Set((existing || []).map(x => x.image));
+            const rows = [];
 
+            for(const item of items){
+                if(existingImages.has(item.path)) continue;
+                rows.push({
+                    id: Date.now() + Math.floor(Math.random()*9999),
+                    title:"Wallhaven",
+                    image:item.path,
+                    thumbnail:item.thumbs?.large || item.path,
+                    category:"wallhaven",
+                    resolution:"",
+                    size:"",
+                    downloads:0,
+                    likes:0,
+                    views:0,
+                    rating:0,
+                    rating_count:0,
+                    rating_sum:0,
+                    author:"Wallhaven",
+                    date:new Date().toLocaleString("ar-MA"),
+                    colors:[],
+                    tags:[],
+                    featured:false,
+                    today_wallpaper:false,
+                    popular:false,
+                    type:"image",
+                    animated:false
+                });
+            }
 
-const response =
-await fetch(
+            if(rows.length){
+                const { error } = await supabase
+                    .from("wallpapers")
+                    .insert(rows);
+                if(error) throw error;
+            }
 
-"https://wallhaven.cc/api/v1/search?sorting=toplist&purity=100&categories=111"
-
+            res.json({ success:true, count:rows.length });
+        }catch(error){
+            console.log("WALLHAVEN ERROR:", error);
+            res.status(500).json({ success:false, message:error.message });
+        }
+    }
 );
-
-
-
-const data =
-await response.json();
-
-
-
-let wallpapers =
-readWallpapers();
-
-
-
-
-for(const item of data.data || []){
-
-
-const exists =
-wallpapers.find(
-w=>w.image === item.path
-);
-
-
-
-if(exists)
-continue;
-
-
-
-wallpapers.push({
-
-id:
-Date.now() +
-Math.floor(
-Math.random()*9999
-),
-
-
-title:
-"Wallhaven",
-
-
-image:
-item.path,
-
-
-thumbnail:
-item.thumbs.large,
-
-
-category:
-"wallhaven",
-
-
-downloads:0,
-
-likes:0,
-
-views:0,
-
-
-date:
-new Date()
-.toLocaleString("ar-MA")
-
-});
-
-
-}
-
-
-
-saveWallpapers(
-wallpapers
-);
-
-
-
-res.json({
-
-success:true,
-
-count:
-data.data.length
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"WALLHAVEN ERROR:",
-error
-);
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-});
-
-
-
-
-
 
 // ==========================================
 // Artguru Enhance
@@ -3060,7 +2060,7 @@ throw error;
 
 
 
-res.json(data);
+res.json((data || []).map(commentFromDb));
 
 
 
@@ -3138,14 +2138,8 @@ app.post(
             // معرفة صاحب الخلفية
             // ======================================
 
-            const wallpapers =
-                readWallpapers();
-
             const wallpaper =
-                wallpapers.find(
-                    w =>
-                        Number(w.id) === wallpaperId
-                );
+                await getWallpaperFromSupabase(wallpaperId);
 
             const wallpaperOwnerUID =
                 wallpaper?.ownerUID ||
@@ -3167,40 +2161,19 @@ app.post(
             // ======================================
 
             const newComment = {
-
-                wallpaperId,
-
-                user:
-                    commenterName,
-
-                email:
-                    commenterEmail,
-
-                avatar:
-                    commenterAvatar,
-
-                userId:
-                    commenterUID,
-
+                wallpaperId: String(wallpaperId),
+                user: commenterName,
+                email: commenterEmail,
+                avatar: commenterAvatar,
+                userId: commenterUID,
                 text,
-
                 likes: 0,
-
                 likedBy: [],
-
-                date:
-                    new Date()
-                        .toLocaleDateString("ar-MA"),
-
-                time:
-                    new Date()
-                        .toLocaleTimeString(
-                            "ar-MA",
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit"
-                            }
-                        )
+                date: new Date().toLocaleDateString("ar-MA"),
+                time: new Date().toLocaleTimeString("ar-MA", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })
             };
 
             // ======================================
@@ -3281,65 +2254,14 @@ app.post(
                 // إنشاء إشعار الإشارة
                 // ======================================
 
-                let notifications =
-                    readNotifications();
-
-                notifications.unshift({
-
-                    id:
-                        Date.now(),
-
-                    type:
-                        "wallpaper_mention",
-
-                    category:
-                        "mention",
-
-                    title:
-                        "أشار إليك في تعليق 💙",
-
-                    content:
-                        `${commenterName} أشار إليك في تعليق`,
-
-                    commentText:
-                        text,
-
-                    commentId:
-                        data.id,
-
-                    wallpaperId:
+                await createNotification({
+                        recipientUID: wallpaperOwnerUID,
+                        fromUser: commenterUID,
+                        type: "wallpaper_mention",
                         wallpaperId,
-
-                    wallpaperTitle:
-                        wallpaper?.title ||
-                        "خلفية",
-
-                    userId:
-                        commenterUID,
-
-                    userName:
-                        commenterName,
-
-                    avatar:
-                        commenterAvatar,
-
-                    mentionedUserId:
-                        wallpaperOwnerUID,
-
-                    date:
-                        new Date()
-                            .toLocaleString("ar-MA"),
-
-                    read:
-                        false,
-
-                    recipientUID:
-                        wallpaperOwnerUID
-                });
-
-                saveNotifications(
-                    notifications
-                );
+                        commentId: data.id,
+                        message: `${commenterName} أشار إليك في تعليق`
+                    });
 
             }
 
@@ -3353,65 +2275,20 @@ app.post(
                 commenterUID !== wallpaperOwnerUID
             ) {
 
-                let notifications =
-                    readNotifications();
-
-                notifications.unshift({
-
-                    id:
-                        Date.now(),
-
-                    type:
-                        "wallpaper_comment",
-
-                    category:
-                        "comment_wallpaper",
-
-                    title:
-                        "تعليق جديد على خلفيتك 💬",
-
-                    content:
-                        `${commenterName} علق على خلفيتك`,
-
-                    commentId:
-                        data.id,
-
-                    wallpaperId:
+                await createNotification({
+                        recipientUID: wallpaperOwnerUID,
+                        fromUser: commenterUID,
+                        type: "wallpaper_comment",
                         wallpaperId,
-
-                    wallpaperTitle:
-                        wallpaper?.title ||
-                        "خلفية",
-
-                    userId:
-                        commenterUID,
-
-                    userName:
-                        commenterName,
-
-                    avatar:
-                        commenterAvatar,
-
-                    date:
-                        new Date()
-                            .toLocaleString("ar-MA"),
-
-                    read:
-                        false,
-
-                    recipientUID:
-                        wallpaperOwnerUID
-                });
-
-                saveNotifications(
-                    notifications
-                );
+                        commentId: data.id,
+                        message: `${commenterName} علق على خلفيتك`
+                    });
 
             }
 
             return res.json({
                 success: true,
-                comment: data
+                comment: commentFromDb(data)
             });
 
         } catch (error) {
@@ -3437,168 +2314,59 @@ app.post(
 // =========================
 
 app.post(
-"/api/comments/:id/like",
-async (req,res)=>{
+    "/api/comments/:id/like",
+    async(req,res)=>{
+        try{
+            const commentId = Number(req.params.id);
+            const userId = String(req.body.userId || "guest");
 
-try{
+            const { data: comment, error } = await supabase
+                .from("comments")
+                .select("*")
+                .eq("id", commentId)
+                .maybeSingle();
 
-const commentId = Number(req.params.id);
+            if(error) throw error;
+            if(!comment) return res.status(404).json({ success:false, message:"Comment not found" });
 
-const userId = req.body.userId || "guest";
+            let likedBy = Array.isArray(comment.likedBy) ? [...comment.likedBy] : [];
+            let isNewLike = false;
 
+            if(likedBy.includes(userId)){
+                likedBy = likedBy.filter(id => id !== userId);
+            }else{
+                likedBy.push(userId);
+                isNewLike = true;
+            }
 
-// جلب التعليق
-const { data: comment, error } =
-await supabase
-.from("comments")
-.select("*")
-.eq("id", commentId)
-.single();
+            const newLikes = likedBy.length;
+            const { data: updated, error:updateError } = await supabase
+                .from("comments")
+                .update({ likes:newLikes, likedBy:likedBy })
+                .eq("id", commentId)
+                .select("*")
+                .single();
 
+            if(updateError) throw updateError;
 
-if(error || !comment){
+            if(isNewLike && comment.userId && comment.userId !== userId){
+                await createNotification({
+                    recipientUID: comment.userId,
+                    fromUser: userId,
+                    type: "comment_like",
+                    wallpaperId: comment.wallpaperId || null,
+                    commentId: comment.id,
+                    message: `${req.body.user || "مستخدم"} أعجب بتعليقك`
+                });
+            }
 
-return res.status(404).json({
-success:false,
-message:"Comment not found"
-});
-
-}
-
-
-// هل ضغط إعجاب من قبل؟
-let likedBy = comment.likedBy || [];
-
-
-let isNewLike = false;
-
-if(likedBy.includes(userId)){
-
-    // إزالة الإعجاب
-    likedBy =
-    likedBy.filter(
-        id => id !== userId
-    );
-
-}else{
-
-    // إضافة الإعجاب
-    likedBy.push(userId);
-
-    isNewLike = true;
-
-}
-
-
-// تحديث الرقم
-const newLikes = likedBy.length;
-
-
-
-const { error:updateError } =
-await supabase
-.from("comments")
-.update({
-
-likes:newLikes,
-likedBy:likedBy
-
-})
-.eq("id",commentId);
-
-
-
-if(updateError)
-throw updateError;
-
-// ===============================
-// Notification: Comment Like
-// ===============================
-
-if(
-    isNewLike &&
-    comment.userId &&
-    comment.userId !== userId
-){
-
-    let notifications =
-    readNotifications();
-
-    notifications.unshift({
-
-        id:
-        Date.now(),
-
-        type:
-        "comment_like",
-
-        category:
-        "like_comment",
-
-        title:
-        "إعجاب بتعليقك ❤️",
-
-        content:
-        `${req.body.user || "مستخدم"} أعجب بتعليقك`,
-
-        commentText:
-        comment.text || "",
-
-        commentId:
-        comment.id,
-
-        wallpaperId:
-        comment.wallpaperId || "",
-
-        user:
-        req.body.user || "مستخدم",
-
-        userId:
-        userId,
-
-        avatar:
-        req.body.avatar || "",
-
-        recipientUID:
-        comment.userId,
-
-        date:
-        new Date()
-        .toLocaleString("ar-MA"),
-
-        read:false
-
-    });
-
-    saveNotifications(
-        notifications
-    );
-}
-
-res.json({
-
-success:true,
-likes:newLikes
-
-});
-
-
-}catch(error){
-
-console.log(
-"LIKE COMMENT ERROR:",
-error
+            res.json({ success:true, likes:newLikes, comment:commentFromDb(updated) });
+        }catch(error){
+            console.log("LIKE COMMENT ERROR:", error);
+            res.status(500).json({ success:false, message:error.message });
+        }
+    }
 );
-
-
-res.status(500).json({
-success:false
-});
-
-
-}
-
-});
 
 // ======================================
 // Admin Announcements API (Supabase)
@@ -3868,296 +2636,37 @@ res.status(500).json([]);
 // ======================================
 
 app.put(
-"/api/admin/notifications/:id",
-(req,res)=>{
+    "/api/admin/notifications/:id",
+    async(req,res)=>{
+        try{
+            const id = Number(req.params.id);
+            const updates = {};
+            if(req.body.title !== undefined) updates.title = req.body.title;
+            if(req.body.content !== undefined) updates.content = req.body.content;
+            if(req.body.image !== undefined) updates.image = req.body.image;
+            if(req.body.category !== undefined) updates.type = req.body.category;
 
-try{
+            if(Object.keys(updates).length === 0){
+                return res.status(400).json({ success:false, message:"No valid fields" });
+            }
 
-const id = Number(req.params.id);
+            const { data, error } = await supabase
+                .from("announcements")
+                .update(updates)
+                .eq("id", id)
+                .select("*")
+                .maybeSingle();
 
+            if(error) throw error;
+            if(!data) return res.status(404).json({ success:false, message:"Announcement not found" });
 
-let notifications = readNotifications();
-
-
-const index = notifications.findIndex(
-n => n.id === id
+            res.json({ success:true, notification:data, announcement:data });
+        }catch(error){
+            console.log("UPDATE ANNOUNCEMENT ERROR:", error);
+            res.status(500).json({ success:false, message:error.message });
+        }
+    }
 );
-
-
-
-if(index === -1){
-
-return res.status(404).json({
-success:false,
-message:"Notification not found"
-});
-
-}
-
-
-
-notifications[index] = {
-
-...notifications[index],
-
-title:
-req.body.title || notifications[index].title,
-
-
-type:
-req.body.category || notifications[index].type,
-
-
-content:
-req.body.content || notifications[index].content,
-
-
-image:
-req.body.image || notifications[index].image,
-
-
-updated:
-new Date().toLocaleString("ar-MA")
-
-};
-
-
-
-saveNotifications(
-notifications
-);
-
-
-
-res.json({
-
-success:true,
-
-notification:
-notifications[index]
-
-});
-
-
-}catch(error){
-
-
-console.log(
-"UPDATE ERROR:",
-error
-);
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-});
-
-/// ======================================
-// LIKE COMMENT
-// ======================================
-
-
-app.post(
-"/api/comments/:id/like",
-(req,res)=>{
-
-
-try{
-
-
-const commentId =
-Number(req.params.id);
-
-
-
-let comments =
-readComments();
-
-
-
-const index =
-comments.findIndex(
-c=>c.id === commentId
-);
-
-
-
-if(index === -1){
-
-return res.json({
-
-success:false
-
-});
-
-}
-
-
-
-const comment =
-comments[index];
-
-
-
-const user =
-req.body.user ||
-"مستخدم";
-
-
-
-// حماية التعليقات القديمة
-
-if(!comment.likedBy){
-
-comment.likedBy=[];
-
-}
-
-
-
-
-// منع تكرار الإعجاب
-
-if(
-!comment.likedBy.includes(user)
-){
-
-
-comment.likedBy.push(user);
-
-
-comment.likes =
-(comment.likes || 0) + 1;
-
-
-
-
-// إنشاء إشعار لصاحب التعليق
-
-let notifications =
-readNotifications();
-
-
-
-notifications.unshift({
-
-id:
-Date.now(),
-
-
-type:
-"comment_like",
-
-
-category:
-"like_comment",
-
-
-title:
-"إعجاب بتعليقك ❤️",
-
-
-content:
-`${user} أعجب بتعليقك`,
-
-
-commentText:
-comment.text,
-
-
-commentId:
-comment.id,
-
-
-wallpaperId:
-comment.wallpaperId || "",
-
-
-user:
-comment.user,
-
-
-email:
-comment.email || "",
-
-
-avatar:
-req.body.avatar || "",
-
-
-date:
-new Date()
-.toLocaleString("ar-MA"),
-
-
-read:false
-
-
-});
-
-
-
-saveNotifications(
-notifications
-);
-
-
-
-saveComments(
-comments
-);
-
-
-
-}
-
-
-
-res.json({
-
-success:true,
-
-
-likes:
-comment.likes || 0
-
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-
-"LIKE COMMENT ERROR:",
-
-error
-
-);
-
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-});
 
 // ======================================
 // حفظ ألوان الخلفية
@@ -4215,27 +2724,19 @@ app.patch(
 );
 
 // ======================================
-// Start Server
+// Start / Export Server
 // ======================================
+// Vercel imports the Express app directly.
+// Local/Render execution still works with `node server.js`.
 
-(async()=>{
-
-    await loadWallpapersFromSupabase();
-
+if (require.main === module) {
     app.listen(
         PORT,
-        ()=>{
-
-            console.log(
-                "WallpaperHub Server Started"
-            );
-
-            console.log(
-                "PORT:",
-                PORT
-            );
-
+        () => {
+            console.log("WallpaperHub Server Started");
+            console.log("PORT:", PORT);
         }
     );
+}
 
-})();
+module.exports = app;
