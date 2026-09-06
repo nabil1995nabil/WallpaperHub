@@ -7,6 +7,7 @@ const exifParser = require("exif-parser");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 const fetch = require("node-fetch");
 
 const { createClient } = require("@supabase/supabase-js");
@@ -85,9 +86,43 @@ app.use(
 // Static Files
 // ======================================
 
-app.use(
-    express.static(__dirname)
-);
+// Static frontend files — local + Vercel compatible
+const STATIC_ROOT = process.cwd();
+const STATIC_DIR = __dirname;
+
+app.use(express.static(STATIC_ROOT, {
+    index: false,
+    fallthrough: true
+}));
+
+if (STATIC_DIR !== STATIC_ROOT) {
+    app.use(express.static(STATIC_DIR, {
+        index: false,
+        fallthrough: true
+    }));
+}
+
+// Fallback for frontend files when running as a Vercel serverless function.
+app.get(/^\/(.+)$/, (req, res, next) => {
+    const requested = req.params[0];
+    if (!requested || requested.startsWith('api/')) return next();
+
+    const safePath = path.normalize(requested).replace(/^([.][.][\\/])+/, '');
+    const candidates = [
+        path.join(STATIC_ROOT, safePath),
+        path.join(STATIC_DIR, safePath)
+    ];
+
+    for (const filePath of candidates) {
+        try {
+            if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                return res.sendFile(filePath);
+            }
+        } catch (_) {}
+    }
+
+    next();
+});
 
 
 
