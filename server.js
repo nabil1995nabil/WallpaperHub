@@ -12,9 +12,13 @@ const fetch = require("node-fetch");
 
 const { createClient } = require("@supabase/supabase-js");
 
+const SUPABASE_SERVER_KEY =
+process.env.SUPABASE_SERVICE_ROLE_KEY ||
+process.env.SUPABASE_KEY;
+
 const supabase = createClient(
 process.env.SUPABASE_URL,
-process.env.SUPABASE_KEY
+SUPABASE_SERVER_KEY
 );
 
 // ===============================
