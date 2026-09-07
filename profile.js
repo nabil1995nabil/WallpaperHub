@@ -9,19 +9,7 @@
 ========================== */
 
 
-import { auth } from "./firebase.js";
-
-
-import {
-
-GoogleAuthProvider,
-signInWithPopup,
-signOut,
-onAuthStateChanged
-
-}
-
-from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { supabase } from "./supabase.js";
 
 
 
@@ -40,8 +28,7 @@ console.log(
 ========================== */
 
 
-const provider =
-new GoogleAuthProvider();
+// Google OAuth is configured in Supabase Auth.
 
 
 
@@ -153,88 +140,89 @@ person
 
 
 /* ==========================
-   Firebase Listener - WITH FULL DATA RESTORE
+   Supabase Auth Listener - WITH FULL DATA RESTORE
 ========================== */
 
-onAuthStateChanged(auth, (user) => {
+supabase.auth.onAuthStateChange((event, session) => {
+    const user = session?.user ?? null;
     currentUser = user;
     updateLoginState(user);
-    
+
     if (user) {
-        // ============================
-        // تسجيل الدخول - استعادة كل البيانات
-        // ============================
-        
-        // حفظ بيانات المستخدم الأساسية
-        localStorage.setItem("userName", user.displayName || "مستخدم");
+        const metadata = user.user_metadata || {};
+        const displayName =
+            metadata.full_name ||
+            metadata.name ||
+            user.email?.split("@")[0] ||
+            "مستخدم";
+
+        const photoURL =
+            metadata.avatar_url ||
+            metadata.picture ||
+            "";
+
+        localStorage.setItem("userName", displayName);
         localStorage.setItem("userEmail", user.email || "");
-        localStorage.setItem("userAvatar", user.photoURL || "");
-        localStorage.setItem("joinDate", new Date().toLocaleDateString("ar-MA"));
+        localStorage.setItem("userAvatar", photoURL);
+        localStorage.setItem(
+            "joinDate",
+            localStorage.getItem("joinDate") || new Date().toLocaleDateString("ar-MA")
+        );
         localStorage.setItem("lastLogin", new Date().toLocaleString("ar-MA"));
-        
-        // تحديث الواجهة - البيانات الشخصية
+
         const userNameEl = document.getElementById("userName");
-        if (userNameEl) userNameEl.textContent = user.displayName || "مستخدم";
-        
+        if (userNameEl) userNameEl.textContent = displayName;
+
         const userEmailEl = document.getElementById("userEmail");
         if (userEmailEl) userEmailEl.textContent = user.email || "غير مسجل";
-        
+
         const infoUserNameEl = document.getElementById("infoUserName");
-        if (infoUserNameEl) infoUserNameEl.textContent = user.displayName || "مستخدم";
-        
+        if (infoUserNameEl) infoUserNameEl.textContent = displayName;
+
         const infoUserEmailEl = document.getElementById("infoUserEmail");
         if (infoUserEmailEl) infoUserEmailEl.textContent = user.email || "غير مسجل";
-        
+
         const accountTypeEl = document.getElementById("accountType");
         if (accountTypeEl) accountTypeEl.textContent = "حساب Google";
-        
+
         const joinDateEl = document.getElementById("joinDate");
-        if (joinDateEl) joinDateEl.textContent = new Date().toLocaleDateString("ar-MA");
-        
-        const lastLoginEl = document.getElementById("lastLogin");
-        if (lastLoginEl) lastLoginEl.textContent = new Date().toLocaleString("ar-MA");
-        
-        // تحديث الصورة
-        const avatarEl = document.getElementById("userAvatar");
-        if (avatarEl && user.photoURL) {
-            avatarEl.src = user.photoURL;
+        if (joinDateEl) {
+            joinDateEl.textContent =
+                localStorage.getItem("joinDate") || new Date().toLocaleDateString("ar-MA");
         }
-        
-        // ============================
-        // استعادة الإحصائيات من localStorage
-        // ============================
+
+        const lastLoginEl = document.getElementById("lastLogin");
+        if (lastLoginEl) {
+            lastLoginEl.textContent =
+                localStorage.getItem("lastLogin") || new Date().toLocaleString("ar-MA");
+        }
+
+        const avatarEl = document.getElementById("userAvatar");
+        if (avatarEl && photoURL) avatarEl.src = photoURL;
+
         const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
         const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
         const views = JSON.parse(localStorage.getItem("views") || "[]");
-        
+
         const downloadCountEl = document.getElementById("downloadCount");
         if (downloadCountEl) downloadCountEl.textContent = downloads.length;
-        
+
         const likeCountEl = document.getElementById("likeCount");
         if (likeCountEl) likeCountEl.textContent = favorites.length;
-        
+
         const viewCountEl = document.getElementById("viewCount");
         if (viewCountEl) viewCountEl.textContent = views.length;
-        
-        // ============================
-        // تحميل الخلفيات وعرضها
-        // ============================
+
         loadWallpapers();
-        
+
         console.log("✅ تم تسجيل الدخول واستعادة البيانات:");
         console.log("📥 تحميلات:", downloads.length);
         console.log("❤️ إعجابات:", favorites.length);
         console.log("👁️ مشاهدات:", views.length);
-        
     } else {
-        // ============================
-        // تسجيل الخروج - تصفير كل شيء
-        // ============================
         resetGuestProfile();
     }
-});
-
-// استعادة الإحصائيات من localStorage
+});// استعادة الإحصائيات من localStorage
 const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
 const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
 const views = JSON.parse(localStorage.getItem("views") || "[]");
@@ -312,36 +300,44 @@ if (loginBtn) {
         try {
             if (currentUser) {
                 // ============================
-                // تسجيل الخروج
+                // تسجيل الخروج من Supabase
                 // ============================
-                await signOut(auth);
-                resetGuestProfile(); // تصفير كل شيء فوراً
-                
-                // تنظيف localStorage من بيانات المستخدم
+                const { error } = await supabase.auth.signOut({ scope: "local" });
+
+                if (error) throw error;
+
+                resetGuestProfile();
+
                 const userKeys = [
-                    "joinDate", 
-                    "lastLogin", 
-                    "downloads", 
-                    "favorites", 
+                    "joinDate",
+                    "lastLogin",
+                    "downloads",
+                    "favorites",
                     "views",
                     "userName",
                     "userEmail",
                     "userAvatar",
                     "userData"
                 ];
+
                 userKeys.forEach(key => localStorage.removeItem(key));
-                
-                // تحديث الصفحة بعد الخروج
+
                 location.reload();
                 return;
             }
-            
+
             // ============================
-            // تسجيل الدخول
+            // تسجيل الدخول بواسطة Google عبر Supabase
             // ============================
-            await signInWithPopup(auth, provider);
-            // بعد تسجيل الدخول، onAuthStateChanged سيتولى الباقي
-            
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: {
+                    redirectTo: window.location.origin + "/profile.html"
+                }
+            });
+
+            if (error) throw error;
+
         } catch (error) {
             console.error("AUTH ERROR", error);
             alert("حدث خطأ في تسجيل الدخول");
@@ -367,9 +363,11 @@ const toggleUid = document.getElementById("toggleUid");
 const copyUid = document.getElementById("copyUid");
 
 // تحديث UID عند تغيير حالة المستخدم
-onAuthStateChanged(auth, (user) => {
+supabase.auth.onAuthStateChange((event, session) => {
+    const user = session?.user ?? null;
+
     if (user) {
-        userUID = user.uid;
+        userUID = user.id;
         if (uidText) uidText.textContent = "••••••••••••••";
     } else {
         userUID = "";
