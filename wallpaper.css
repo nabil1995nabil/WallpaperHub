@@ -20,7 +20,6 @@ body{
     overflow-x:hidden;
 }
 
-
 /* =========================
 HEADER
 ========================= */
@@ -36,9 +35,8 @@ HEADER
     padding:0 18px;
     border-bottom:1px solid #e8e8e8;
     z-index:1000;
-    box-shadow:0 3px 12px rgba(0,0,0,.05);
-}
 
+}
 
 .icon-btn{
     width:46px;
@@ -54,16 +52,13 @@ HEADER
     transition:.3s;
 }
 
-
 .icon-btn:active{
     transform:scale(.9);
 }
 
-
 #favoriteBtn.liked .material-icons{
     color:#ff2d55;
 }
-
 
 /* =========================
 MAIN PREVIEW
@@ -73,16 +68,14 @@ MAIN PREVIEW
     padding:18px;
 }
 
-
 .wallpaper-preview-wrapper{
     position:relative;
     width:100%;
     border-radius:30px;
     overflow:hidden;
     background:#f5f5f5;
-    box-shadow:0 15px 35px rgba(0,0,0,.12);
-}
 
+}
 
 .preview img,
 .preview video{
@@ -94,11 +87,9 @@ MAIN PREVIEW
     background:#eee;
 }
 
-
 #wallVideo{
     display:none;
 }
-
 
 /* =========================
 QUALITY BADGE
@@ -116,7 +107,6 @@ QUALITY BADGE
     font-weight:700;
     z-index:5;
 }
-
 
 /* =========================
 IMAGE ACTION BUTTONS
@@ -137,21 +127,17 @@ IMAGE ACTION BUTTONS
     z-index:10;
 }
 
-
 .image-action-btn .material-icons{
     font-size:25px;
 }
-
 
 .download-image-btn{
     right:15px;
 }
 
-
 .fullscreen-image-btn{
     left:15px;
 }
-
 
 /* =========================
 OPTIONS
@@ -170,7 +156,6 @@ OPTIONS
     z-index:20;
 }
 
-
 .options-menu{
     position:absolute;
     top:70px;
@@ -181,14 +166,12 @@ OPTIONS
     padding:10px;
     display:none;
     z-index:50;
-    box-shadow:0 10px 25px rgba(0,0,0,.15);
-}
 
+}
 
 .options-menu.active{
     display:block;
 }
-
 
 .options-menu button{
     background:none;
@@ -209,7 +192,6 @@ INFO SECTION
     padding:10px 0;
 }
 
-
 .info h2{
     text-align:center;
     font-size:22px;
@@ -217,7 +199,6 @@ INFO SECTION
     font-weight:700;
     margin-bottom:20px;
 }
-
 
 /* معلومات بدون بطاقات */
 
@@ -230,20 +211,17 @@ INFO SECTION
     background:transparent;
 }
 
-
 .info-item span:first-child{
     color:#777;
     font-size:12px;
     font-weight:600;
 }
 
-
 .info-item span:last-child{
     color:#111;
     font-size:11px;
     font-weight:400;
 }
-
 
 /* =========================
 DESCRIPTION
@@ -254,7 +232,6 @@ DESCRIPTION
     padding:20px 5px;
 }
 
-
 .description-box span{
     display:block;
     color:#777;
@@ -262,13 +239,11 @@ DESCRIPTION
     font-size:15px;
 }
 
-
 .description-box p{
     color:#333;
     font-size:15px;
     line-height:1.8;
 }
-
 
 /* =========================
 RATING
@@ -280,29 +255,24 @@ RATING
     margin-top:10px;
 }
 
-
 .star{
     font-size:30px;
     color:#aaa;
     cursor:pointer;
 }
 
-
 .star.active{
     color:#ffc400;
 }
-
 
 #wallRating{
     color:#111;
     font-weight:700;
 }
 
-
 #ratingCount{
     color:#777;
 }
-
 
 /* =========================
 IMAGE LINK
@@ -312,19 +282,16 @@ IMAGE LINK
     display:flex;
 }
 
-
 .image-link-box{
     display:flex;
     align-items:center;
     gap:10px;
 }
 
-
 #wallImageLink{
     color:#555;
     font-size:13px;
 }
-
 
 .copy-link-btn{
     width:35px;
@@ -346,13 +313,11 @@ TAGS & COLORS
     background:#ffffff;
 }
 
-
 .tags h3{
     font-size:20px;
     color:#111;
     margin-bottom:15px;
 }
-
 
 /* =========================
 COLOR PALETTE
@@ -364,14 +329,12 @@ COLOR PALETTE
     gap:10px;
 }
 
-
 #colorPalette div{
     width:40px;
     height:40px;
     border-radius:50%;
     border:1px solid #ddd;
 }
-
 
 /* =========================
 TAGS ITEMS
@@ -415,7 +378,6 @@ TAGS ITEMS
     padding:4px 0;
 }
 
-
 /* =========================
 SIMILAR WALLPAPERS
 ========================= */
@@ -425,7 +387,6 @@ SIMILAR WALLPAPERS
     background:#ffffff;
 }
 
-
 .section-title{
     display:flex;
     justify-content:space-between;
@@ -433,18 +394,15 @@ SIMILAR WALLPAPERS
     margin-bottom:15px;
 }
 
-
 .section-title h3{
     font-size:20px;
     color:#111;
 }
 
-
 .section-title a{
     color:#777;
     text-decoration:none;
 }
-
 
 .similar-grid{
     display:grid;
@@ -452,21 +410,18 @@ SIMILAR WALLPAPERS
     gap:15px;
 }
 
-
 .similar-card{
     background:#ffffff;
     border-radius:20px;
     overflow:hidden;
     border:1px solid #e5e5e5;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
     transition:.3s;
 }
-
 
 .similar-card:active{
     transform:scale(.96);
 }
-
 
 .similar-card img,
 .similar-card video{
@@ -475,7 +430,6 @@ SIMILAR WALLPAPERS
     object-fit:cover;
     display:block;
 }
-
 
 .similar-card p{
     padding:12px;
@@ -512,7 +466,6 @@ FULLSCREEN VIEWER
 
 }
 
-
 .fullscreen-viewer.active{
 
     opacity:1;
@@ -520,8 +473,6 @@ FULLSCREEN VIEWER
     pointer-events:auto;
 
 }
-
-
 
 #fullscreenImage,
 #fullscreenVideo{
@@ -534,8 +485,6 @@ FULLSCREEN VIEWER
     background:#000;
 
 }
-
-
 
 /* =========================
 FULLSCREEN CLOSE
@@ -569,8 +518,6 @@ FULLSCREEN CLOSE
 
 }
 
-
-
 /* =========================
 SET WALLPAPER BUTTON
 ========================= */
@@ -585,26 +532,21 @@ SET WALLPAPER BUTTON
 
     transform:translateX(-50%);
 
-
     height:52px;
 
     padding:0 28px;
-
 
     border:none;
 
     border-radius:30px;
 
-
     background:#ffffff;
 
     color:#111;
 
-
     font-size:16px;
 
     font-weight:700;
-
 
     display:flex;
 
@@ -614,17 +556,9 @@ SET WALLPAPER BUTTON
 
     gap:8px;
 
-
     z-index:100;
 
-
-    box-shadow:
-
-    0 8px 25px rgba(0,0,0,.35);
-
 }
-
-
 
 .fullscreen-set-btn:active{
 
@@ -635,8 +569,6 @@ SET WALLPAPER BUTTON
     scale(.95);
 
 }
-
-
 
 /* =========================
 ANIMATION
@@ -653,8 +585,6 @@ ANIMATION
 
 }
 
-
-
 @keyframes fadeInPage{
 
     from{
@@ -664,7 +594,6 @@ ANIMATION
         transform:translateY(15px);
 
     }
-
 
     to{
 
@@ -676,14 +605,11 @@ ANIMATION
 
 }
 
-
-
 /* =========================
 MOBILE
 ========================= */
 
 @media(max-width:600px){
-
 
 .preview{
 
@@ -691,16 +617,12 @@ MOBILE
 
 }
 
-
-
 .preview img,
 .preview video{
 
     height:58vh;
 
 }
-
-
 
 .info,
 .tags,
@@ -710,15 +632,11 @@ MOBILE
 
 }
 
-
-
 .similar-grid{
 
     gap:12px;
 
 }
-
-
 
 .similar-card img,
 .similar-card video{
@@ -727,8 +645,6 @@ MOBILE
 
 }
 
-
-
 .image-action-btn{
 
     width:44px;
@@ -736,7 +652,6 @@ MOBILE
     height:44px;
 
 }
-
 
 }
 
@@ -749,7 +664,6 @@ MOBILE
     background:#fff;
 }
 
-
 .section-title{
 
     display:flex;
@@ -759,7 +673,6 @@ MOBILE
 
 }
 
-
 .section-title h3{
 
     font-size:17px;
@@ -768,7 +681,6 @@ MOBILE
 
 }
 
-
 .comments-count{
 
     color:#888;
@@ -776,12 +688,9 @@ MOBILE
 
 }
 
-
-
 /* =========================
  USER PREVIEW
 ========================= */
-
 
 .add-comment-box{
     background:#ffffff; /* تغيرت من #f3f3f3 إلى الأبيض */
@@ -791,8 +700,6 @@ MOBILE
     margin-bottom:22px;
 }
 
-
-
 .comment-user-preview{
 
     display:flex;
@@ -801,7 +708,6 @@ MOBILE
     margin-bottom:18px;
 
 }
-
 
 .comment-user-avatar{
 
@@ -813,7 +719,6 @@ MOBILE
 
 }
 
-
 .comment-user-info strong{
 
     display:block;
@@ -821,7 +726,6 @@ MOBILE
     font-weight:800;
 
 }
-
 
 .comment-user-info small{
 
@@ -832,12 +736,9 @@ MOBILE
 
 }
 
-
-
 /* =========================
  TEXT AREA
 ========================= */
-
 
 .add-comment-box .comment-editor{
     width:100%;
@@ -886,7 +787,6 @@ MOBILE
  COMMENT TOOLS
 ========================= */
 
-
 .comment-tools{
 
     margin-top:15px;
@@ -899,7 +799,6 @@ MOBILE
 
 }
 
-
 .emoji-hint{
 
     color:#888;
@@ -907,9 +806,6 @@ MOBILE
     font-size:13px;
 
 }
-
-
-
 
 .comment-action-buttons{
     display:flex;
@@ -948,15 +844,11 @@ MOBILE
     transform:scale(.92);
 }
 
-
-
 .send-comment-btn:hover{
 
     transform:scale(1.05);
 
 }
-
-
 
 .send-comment-btn .material-icons{
 
@@ -964,12 +856,9 @@ MOBILE
 
 }
 
-
-
 /* =========================
  COMMENT CARD
 ========================= */
-
 
 .comments-container{
 
@@ -980,8 +869,6 @@ MOBILE
     gap:15px;
 
 }
-
-
 
 .comment-card{
 
@@ -999,8 +886,6 @@ MOBILE
 
 }
 
-
-
 .comment-card .user-avatar{
 
     width:55px;
@@ -1015,8 +900,6 @@ MOBILE
 
 }
 
-
-
 .comment-card .user-avatar img{
 
     width:100%;
@@ -1027,15 +910,11 @@ MOBILE
 
 }
 
-
-
 .comment-content{
 
     flex:1;
 
 }
-
-
 
 .comment-header{
 
@@ -1045,8 +924,6 @@ MOBILE
 
 }
 
-
-
 .comment-author{
 
     font-size:14px;
@@ -1054,8 +931,6 @@ MOBILE
     font-weight:800;
 
 }
-
-
 
 .comment-email{
 
@@ -1069,8 +944,6 @@ MOBILE
 
 }
 
-
-
 .comment-text{
 
     margin-top:15px;
@@ -1082,8 +955,6 @@ MOBILE
     color:#333;
 
 }
-
-
 
 .comment-footer{
 
@@ -1097,8 +968,6 @@ MOBILE
 
 }
 
-
-
 .comment-date{
 
     color:#888;
@@ -1106,8 +975,6 @@ MOBILE
     font-size:10px;
 
 }
-
-
 
 .comment-like{
 
@@ -1154,9 +1021,6 @@ MOBILE
     font-size:16px;
 }
 
-
-
-
 .no-comments{
 
     text-align:center;
@@ -1167,15 +1031,11 @@ MOBILE
 
 }
 
-
-
 /* =========================
  MOBILE
 ========================= */
 
-
 @media(max-width:600px){
-
 
 .comments-section{
 
@@ -1183,13 +1043,11 @@ MOBILE
 
 }
 
-
 .comment-card{
 
     padding:15px;
 
 }
-
 
 /* لا نغير اتجاه الأدوات */
 
@@ -1201,7 +1059,6 @@ MOBILE
 
 }
 
-
 .send-comment-btn{
 
     width:35px;
@@ -1209,7 +1066,6 @@ MOBILE
     height:35px;
 
 }
-
 
 }
 
@@ -1245,18 +1101,6 @@ MOBILE
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* =========================================
    3D CLAY BLOCK STYLES FOR ACTION BUTTONS
    ========================================= */
@@ -1265,30 +1109,18 @@ MOBILE
 .top-bar .icon-btn {
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 
-        0px 4px 0px #d0d0d0,
-        0px 6px 10px rgba(0, 0, 0, 0.15),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.8),
-        inset 0px -2px 4px rgba(0, 0, 0, 0.1);
+
     transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
 }
 
 .top-bar .icon-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 
-        0px 6px 0px #d0d0d0,
-        0px 8px 14px rgba(0, 0, 0, 0.2),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
-        inset 0px -2px 4px rgba(0, 0, 0, 0.1);
+
 }
 
 .top-bar .icon-btn:active {
     transform: translateY(2px) scale(0.95);
-    box-shadow: 
-        0px 2px 0px #d0d0d0,
-        0px 3px 6px rgba(0, 0, 0, 0.1),
-        inset 0px 1px 2px rgba(255, 255, 255, 0.6),
-        inset 0px -2px 4px rgba(0, 0, 0, 0.15);
+
 }
 
 /* 2. زر شارة الجودة (2K / 4K) فوق الصورة */
@@ -1298,61 +1130,38 @@ MOBILE
     border-radius: 14px;
     padding: 6px 14px;
     border: none;
-    box-shadow: 
-        0px 4px 0px #b82e4d,
-        0px 6px 10px rgba(0, 0, 0, 0.3),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
-        inset 0px -2px 4px rgba(0, 0, 0, 0.3);
+
 }
 
 /* 3. زر قائمة الثلاث نقاط فوق الصورة */
 .more-options-btn {
     background: #ffffff;
     border: none;
-    box-shadow: 
-        0px 4px 0px #bebebe,
-        0px 6px 12px rgba(0, 0, 0, 0.25),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.8),
-        inset 0px -2px 4px rgba(0, 0, 0, 0.15);
+
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .more-options-btn:active {
     transform: translateY(2px);
-    box-shadow: 
-        0px 2px 0px #bebebe,
-        0px 3px 6px rgba(0, 0, 0, 0.2),
-        inset 0px 1px 2px rgba(255, 255, 255, 0.6);
+
 }
 
 /* 4. أزرار التحكم أسفل الصورة (التكبير والتحميل) */
 .image-action-btn {
     background: #ffffff;
     border: none;
-    box-shadow: 
-        0px 5px 0px #c5c5c5,
-        0px 8px 15px rgba(0, 0, 0, 0.3),
-        inset 0px 2px 4px rgba(255, 255, 255, 0.9),
-        inset 0px -3px 5px rgba(0, 0, 0, 0.15);
+
     transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
 }
 
 .image-action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 
-        0px 7px 0px #c5c5c5,
-        0px 10px 18px rgba(0, 0, 0, 0.35),
-        inset 0px 2px 4px rgba(255, 255, 255, 1),
-        inset 0px -3px 5px rgba(0, 0, 0, 0.15);
+
 }
 
 .image-action-btn:active {
     transform: translateY(3px);
-    box-shadow: 
-        0px 2px 0px #c5c5c5,
-        0px 4px 8px rgba(0, 0, 0, 0.2),
-        inset 0px 1px 2px rgba(255, 255, 255, 0.6),
-        inset 0px -2px 3px rgba(0, 0, 0, 0.2);
+
 }
 /* =========================================
    3D CLAY STYLING FOR SIMILAR CARDS
@@ -1366,11 +1175,6 @@ MOBILE
     cursor: pointer;
     
     /* ظلال مجسمة 3D Clay */
-    box-shadow: 
-        0px 8px 0px #d8d8d8,
-        0px 14px 18px rgba(0, 0, 0, 0.12),
-        inset 0px 3px 5px rgba(255, 255, 255, 0.9),
-        inset 0px -4px 6px rgba(0, 0, 0, 0.08);
 
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
@@ -1378,21 +1182,13 @@ MOBILE
 /* تأثير التمرير للماوس */
 .similar-card:hover {
     transform: translateY(-4px);
-    box-shadow: 
-        0px 12px 0px #d8d8d8,
-        0px 18px 22px rgba(0, 0, 0, 0.16),
-        inset 0px 3px 5px rgba(255, 255, 255, 1),
-        inset 0px -4px 6px rgba(0, 0, 0, 0.08);
+
 }
 
 /* تأثير الضغط (شغّال على الضغط باللمس في الهاتف) */
 .similar-card:active {
     transform: translateY(4px);
-    box-shadow: 
-        0px 4px 0px #d8d8d8,
-        0px 6px 10px rgba(0, 0, 0, 0.1),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.7),
-        inset 0px -2px 4px rgba(0, 0, 0, 0.1);
+
 }
 
 /* ضبط حواف الصورة والتأثير الداخلي */
@@ -1414,7 +1210,6 @@ MOBILE
     font-weight: 800;
     text-align: center;
 }
-
 
 /* WALLPAPER COLORS - isolated layout */
 #colorPalette{
@@ -1551,7 +1346,7 @@ MOBILE
     background:rgba(255,255,255,.98);
     border:1px solid #e7e7e7;
     border-radius:16px;
-    box-shadow:0 12px 32px rgba(0,0,0,.14);
+
     z-index:100;
     overflow:hidden;
     direction:rtl;
@@ -1712,7 +1507,7 @@ MOBILE
         bottom:calc(100% + 10px);
         left:0;
         border-radius:15px;
-        box-shadow:0 10px 26px rgba(0,0,0,.13);
+
     }
 
     .mention-suggestion-item{
