@@ -882,216 +882,6 @@ MOBILE
     white-space:nowrap;
 }
 
-// ===============================
-// MENTION TARGET = WALLPAPER OWNER
-// ===============================
-let savedMentionRange = null;
-
-function getWallpaperMentionTarget(){
-    if(!currentWallpaper) return null;
-
-    const userId = String(
-        currentWallpaper.ownerUID ||
-        currentWallpaper.userId ||
-        currentWallpaper.user_id ||
-        ""
-    ).trim();
-
-    const name = String(
-        currentWallpaper.author || "صاحب الخلفية"
-    ).trim();
-
-    if(!userId) return null;
-    return { userId, name };
-}
-
-async function resolveWallpaperMentionTarget(){
-    let target = getWallpaperMentionTarget();
-    if(target) return target;
-
-    if(!currentWallpaper?.id) return null;
-
-    try{
-        const response = await fetch(API, { cache:"no-store" });
-        if(!response.ok) return null;
-
-        const wallpapers = await response.json();
-        const fresh = (Array.isArray(wallpapers) ? wallpapers : [])
-            .find(w => Number(w.id) === Number(currentWallpaper.id));
-
-        if(fresh){
-            currentWallpaper = {
-                ...currentWallpaper,
-                ...fresh,
-                id:Number(fresh.id)
-            };
-        }
-    }catch(error){
-        console.warn("MENTION OWNER LOAD ERROR", error);
-    }
-
-    return getWallpaperMentionTarget();
-}
-
-function escapeHtml(value){
-    return String(value ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-}
-
-function formatCommentText(value){
-    const safe = escapeHtml(value);
-    return safe.replace(
-        /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
-        '$1<span class="comment-mention">$2</span>'
-    );
-}
-
-function getCommentText(){
-    if(!commentInput) return "";
-
-    return String(commentInput.innerText || "")
-        .replace(/\u00a0/g," ")
-        .replace(/\n{3,}/g,"\n\n")
-        .trim();
-}
-
-function getMentionPayload(){
-    if(!commentInput) return null;
-
-    const tag = commentInput.querySelector(".mention-tag[data-user-id]");
-    if(!tag) return null;
-
-    return {
-        userId:String(tag.dataset.userId || "").trim(),
-        name:String(tag.dataset.name || tag.textContent || "")
-            .replace(/^@/,'')
-            .trim()
-    };
-}
-
-function saveCurrentMentionCaret(){
-    if(!commentInput) return;
-
-    const selection = window.getSelection();
-    if(!selection || !selection.rangeCount) return;
-
-    const range = selection.getRangeAt(0);
-    if(commentInput.contains(range.commonAncestorContainer)){
-        savedMentionRange = range.cloneRange();
-    }
-}
-
-function hideMentionSuggestions(){
-    if(!mentionSuggestions) return;
-    mentionSuggestions.hidden = true;
-    mentionSuggestions.innerHTML = "";
-}
-
-async function showOwnerMentionSuggestion(){
-    if(!mentionSuggestions) return;
-
-    mentionSuggestions.innerHTML = `
-        <div class="mention-loading" aria-live="polite">جاري البحث</div>
-    `;
-    mentionSuggestions.hidden = false;
-
-    const target = await resolveWallpaperMentionTarget();
-
-    if(!target){
-        mentionSuggestions.innerHTML = `
-            <div class="mention-empty">لم يتم العثور على صاحب الخلفية</div>
-        `;
-        return;
-    }
-
-    mentionSuggestions.innerHTML = `
-        <button type="button" class="mention-suggestion-item" aria-label="الإشارة إلى ${escapeHtml(target.name)}">
-            <span class="mention-suggestion-avatar">@</span>
-            <span class="mention-suggestion-info">
-                <strong>@${escapeHtml(target.name)}</strong>
-                <small>صاحب الخلفية</small>
-            </span>
-        </button>
-    `;
-
-    const item = mentionSuggestions.querySelector(".mention-suggestion-item");
-    if(item){
-        item.onclick = async(event)=>{
-            event.preventDefault();
-            event.stopPropagation();
-            await insertOwnerMention();
-        };
-    }
-}
-
-async function insertOwnerMention(){
-    if(!commentInput) return;
-
-    const target = await resolveWallpaperMentionTarget();
-    if(!target) return;
-
-    commentInput.focus();
-
-    const selection = window.getSelection();
-    let range = null;
-
-    if(savedMentionRange){
-        range = savedMentionRange.cloneRange();
-    }else if(selection && selection.rangeCount){
-        const current = selection.getRangeAt(0);
-        if(commentInput.contains(current.commonAncestorContainer)){
-            range = current.cloneRange();
-        }
-    }
-
-    if(!range){
-        range = document.createRange();
-        range.selectNodeContents(commentInput);
-        range.collapse(false);
-    }
-
-    // حذف @ أو بداية Mention المكتوبة قبل اختيار النتيجة.
-    if(range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE){
-        const node = range.startContainer;
-        const before = node.textContent.slice(0, range.startOffset);
-        const match = before.match(/(^|\s)@[\w\u0600-\u06FF._-]*$/);
-
-        if(match){
-            const removeLength = match[0].length - (match[1] ? 1 : 0);
-            range.setStart(node, Math.max(0, range.startOffset - removeLength));
-            range.deleteContents();
-        }
-    }
-
-    const mention = document.createElement("span");
-    mention.className = "mention-tag";
-    mention.dataset.userId = target.userId;
-    mention.dataset.name = target.name;
-    mention.contentEditable = "false";
-    mention.textContent = `@${target.name}`;
-
-    range.insertNode(mention);
-
-    const space = document.createTextNode(" ");
-    mention.after(space);
-
-    range.setStart(space,1);
-    range.collapse(true);
-
-    selection.removeAllRanges();
-    selection.addRange(range);
-    savedMentionRange = range.cloneRange();
-
-    hideMentionSuggestions();
-}
-
-
-
-
 /* =========================
  COMMENT TOOLS
 ========================= */
@@ -1692,3 +1482,260 @@ async function insertOwnerMention(){
         gap:8px !important;
     }
 }
+
+/* =========================================
+   MENTION POPUP — compact, anchored to @
+   ========================================= */
+
+.comment-tools{
+    position:relative;
+}
+
+.comment-action-buttons{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.mention-btn,
+.send-comment-btn{
+    width:42px;
+    height:42px;
+    min-width:42px;
+    min-height:42px;
+    padding:0;
+    border:1px solid #e8e8e8;
+    border-radius:50%;
+    background:#f7f7f7;
+    color:#222;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    line-height:1;
+    transition:transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.mention-btn{
+    font-family:Arial,sans-serif;
+    font-size:20px;
+    font-weight:700;
+}
+
+.mention-btn:hover{
+    background:#f0f6ff;
+    border-color:#1877f2;
+    color:#1877f2;
+}
+
+.mention-btn:active,
+.send-comment-btn:active{
+    transform:scale(.92);
+}
+
+.mention-btn.active{
+    background:#eef5ff;
+    border-color:#1877f2;
+    color:#1877f2;
+}
+
+/* Popup نفسها */
+#mentionSuggestions{
+    position:absolute;
+    left:0;
+    bottom:calc(100% + 12px);
+    width:min(270px, calc(100vw - 48px));
+    min-height:44px;
+    padding:6px;
+    background:rgba(255,255,255,.98);
+    border:1px solid #e7e7e7;
+    border-radius:16px;
+    box-shadow:0 12px 32px rgba(0,0,0,.14);
+    z-index:100;
+    overflow:hidden;
+    direction:rtl;
+    transform-origin:bottom left;
+    animation:mentionPopupIn .18s ease-out;
+}
+
+#mentionSuggestions[hidden]{
+    display:none !important;
+}
+
+/* سهم صغير باتجاه زر @ */
+#mentionSuggestions::after{
+    content:"";
+    position:absolute;
+    bottom:-7px;
+    left:17px;
+    width:13px;
+    height:13px;
+    background:#fff;
+    border-right:1px solid #e7e7e7;
+    border-bottom:1px solid #e7e7e7;
+    transform:rotate(45deg);
+}
+
+/* جاري البحث — صغير جداً كما طلبت */
+.mention-loading{
+    min-height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    color:#888;
+    font-size:8px;
+    font-weight:600;
+    letter-spacing:.1px;
+}
+
+.mention-loading::before{
+    content:"";
+    width:12px;
+    height:12px;
+    border:2px solid #e6e6e6;
+    border-top-color:#1877f2;
+    border-radius:50%;
+    animation:mentionSpin .7s linear infinite;
+}
+
+/* نتيجة صاحب الخلفية */
+.mention-suggestion-item{
+    position:relative;
+    width:100%;
+    min-height:58px;
+    padding:8px 10px;
+    border:0;
+    border-radius:12px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:right;
+    direction:rtl;
+    cursor:pointer;
+    transition:background .15s ease;
+}
+
+.mention-suggestion-item:hover,
+.mention-suggestion-item:active{
+    background:#f5f8ff;
+}
+
+.mention-suggestion-avatar{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#eef5ff;
+    color:#1877f2;
+    font-family:Arial,sans-serif;
+    font-size:17px;
+    font-weight:700;
+    border:1px solid #dceaff;
+}
+
+.mention-suggestion-info{
+    min-width:0;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2px;
+}
+
+.mention-suggestion-info strong{
+    max-width:100%;
+    color:#1877f2;
+    font-size:13px;
+    font-weight:800;
+    line-height:1.4;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.mention-suggestion-info small{
+    color:#999;
+    font-size:9px;
+    line-height:1.3;
+}
+
+/* حالة عدم العثور */
+.mention-empty{
+    min-height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#999;
+    font-size:9px;
+    text-align:center;
+    padding:5px;
+}
+
+/* الـMention داخل خانة الكتابة */
+.add-comment-box .mention-tag{
+    display:inline-block;
+    color:#1877f2;
+    background:rgba(24,119,242,.08);
+    border-radius:7px;
+    padding:1px 5px;
+    margin:0 1px;
+    font-weight:800;
+    white-space:nowrap;
+    user-select:none;
+}
+
+@keyframes mentionPopupIn{
+    from{
+        opacity:0;
+        transform:translateY(5px) scale(.97);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+@keyframes mentionSpin{
+    to{ transform:rotate(360deg); }
+}
+
+@media(max-width:600px){
+    #mentionSuggestions{
+        width:230px;
+        max-width:calc(100vw - 42px);
+        bottom:calc(100% + 10px);
+        left:0;
+        border-radius:15px;
+        box-shadow:0 10px 26px rgba(0,0,0,.13);
+    }
+
+    .mention-suggestion-item{
+        min-height:54px;
+        padding:7px 9px;
+    }
+
+    .mention-suggestion-avatar{
+        width:34px;
+        height:34px;
+        flex-basis:34px;
+    }
+
+    .mention-suggestion-info strong{
+        font-size:12px;
+    }
+
+    .mention-suggestion-info small{
+        font-size:8px;
+    }
+
+    .mention-loading{
+        font-size:8px;
+    }
+}
+
