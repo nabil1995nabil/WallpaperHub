@@ -221,9 +221,6 @@ app.get(
 // Images stay on Cloudinary.
 // ======================================
 
-const WALLPAPER_OWNER_UID =
-"SmlHXIuh5tM50ttFsZqujvFhm5s1";
-
 function wallpaperFromDb(row){
     return {
         id: Number(row.id),
@@ -248,8 +245,10 @@ function wallpaperFromDb(row){
         popular: Boolean(row.popular),
         type: row.type ?? "image",
         animated: Boolean(row.animated),
-        // Compatibility fields used by older frontend code.
-        ownerUID: WALLPAPER_OWNER_UID
+        // صاحب الخلفية الحقيقي محفوظ في wallpapers.user_id
+        // ونستخدم ownerUID كاسم توافق مع الكود القديم.
+        ownerUID: row.user_id ?? "",
+        userId: row.user_id ?? ""
     };
 }
 
@@ -276,7 +275,8 @@ function wallpaperToDb(w){
         today_wallpaper: Boolean(w.todayWallpaper),
         popular: Boolean(w.popular),
         type: w.type ?? "image",
-        animated: Boolean(w.animated)
+        animated: Boolean(w.animated),
+        user_id: w.userId ?? w.user_id ?? null
     };
 }
 
@@ -326,7 +326,7 @@ function notificationTitle(type){
     return "إشعار جديد";
 }
 
-function notificationFromDb(row){
+function notificationFromDb(row, extra = {}){
     return {
         id: Number(row.id),
         created_at: row.created_at ?? null,
@@ -335,9 +335,31 @@ function notificationFromDb(row){
         title: notificationTitle(row.type),
         content: row.message ?? "",
         message: row.message ?? "",
-        wallpaperId: row.wallpaper_id ?? "",
-        commentId: row.comment_id ?? "",
+
+        // بيانات مرتبطة بالإشعار حتى تبقى واجهة notice.js
+        // قادرة على عرض التفاصيل بعد جلبها من Supabase.
+        wallpaperId: row.wallpaper_id ?? extra.wallpaperId ?? "",
+        wallpaperTitle:
+            row.wallpaper_title ??
+            extra.wallpaperTitle ??
+            "",
+
+        commentId: row.comment_id ?? extra.commentId ?? "",
+        commentText:
+            row.comment_text ??
+            extra.commentText ??
+            "",
+
         userId: row.from_user ?? "",
+        userName:
+            row.user_name ??
+            extra.userName ??
+            "",
+        avatar:
+            row.avatar ??
+            extra.avatar ??
+            "",
+
         recipientUID: row.user_id ?? "",
         date: row.created_at
             ? new Date(row.created_at).toLocaleString("ar-MA")
@@ -345,6 +367,76 @@ function notificationFromDb(row){
         read: Boolean(row.is_read),
         is_read: Boolean(row.is_read)
     };
+}
+
+// إثراء الإشعار ببيانات الخلفية/التعليق الموجودة أصلاً في Supabase.
+async function enrichNotifications(rows){
+    const notifications = Array.isArray(rows) ? rows : [];
+
+    const wallpaperIds = [
+        ...new Set(
+            notifications
+                .map(n => n.wallpaper_id)
+                .filter(id => id !== null && id !== undefined && String(id) !== "")
+                .map(id => Number(id))
+                .filter(Number.isFinite)
+        )
+    ];
+
+    const commentIds = [
+        ...new Set(
+            notifications
+                .map(n => n.comment_id)
+                .filter(id => id !== null && id !== undefined && String(id) !== "")
+                .map(id => Number(id))
+                .filter(Number.isFinite)
+        )
+    ];
+
+    const wallpaperMap = new Map();
+    const commentMap = new Map();
+
+    if(wallpaperIds.length){
+        const { data, error } = await supabase
+            .from("wallpapers")
+            .select("id,title")
+            .in("id", wallpaperIds);
+
+        if(error) throw error;
+
+        (data || []).forEach(w => {
+            wallpaperMap.set(Number(w.id), w);
+        });
+    }
+
+    if(commentIds.length){
+        const { data, error } = await supabase
+            .from("comments")
+            .select("id,text,avatar,user")
+            .in("id", commentIds);
+
+        if(error) throw error;
+
+        (data || []).forEach(c => {
+            commentMap.set(Number(c.id), c);
+        });
+    }
+
+    return notifications.map(row => {
+        const wallpaper = wallpaperMap.get(Number(row.wallpaper_id));
+        const comment = commentMap.get(Number(row.comment_id));
+
+        return notificationFromDb(row, {
+            wallpaperTitle: wallpaper?.title || "",
+            commentText: comment?.text || "",
+
+            // التعليق يعطي صورة صاحبه عندما يكون الإشعار متعلقاً
+            // بالتعليق نفسه. وإذا كانت الصورة محفوظة في notification
+            // نستعملها أولاً.
+            avatar: row.avatar || comment?.avatar || "",
+            userName: row.user_name || ""
+        });
+    });
 }
 
 async function createNotification({
@@ -576,6 +668,99 @@ const response = await fetch(
 // Notifications API
 // ======================================
 
+// ======================================
+// Mark Notification As Read
+// ======================================
+
+app.patch(
+    "/api/notifications/:id/read",
+    async (req, res) => {
+        try {
+            const notificationId = Number(req.params.id);
+            const recipientUID = String(
+                req.body.recipientUID || req.body.userId || req.body.user_id || ""
+            ).trim();
+
+            if (!Number.isFinite(notificationId) || notificationId <= 0 || !recipientUID) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Notification ID and recipient UID are required"
+                });
+            }
+
+            const { data, error } = await supabase
+                .from("notifications")
+                .update({ is_read: true })
+                .eq("id", notificationId)
+                .eq("user_id", recipientUID)
+                .select("*")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Notification not found"
+                });
+            }
+
+            res.json({
+                success: true,
+                notification: notificationFromDb(data)
+            });
+        } catch (error) {
+            console.log("MARK NOTIFICATION READ ERROR:", error);
+            res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            });
+        }
+    }
+);
+
+// ======================================
+// Mark All User Notifications As Read
+// ======================================
+
+app.patch(
+    "/api/notifications/read-all",
+    async (req, res) => {
+        try {
+            const recipientUID = String(
+                req.body.recipientUID || req.body.userId || req.body.user_id || ""
+            ).trim();
+
+            if (!recipientUID) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Recipient UID is required"
+                });
+            }
+
+            const { data, error } = await supabase
+                .from("notifications")
+                .update({ is_read: true })
+                .eq("user_id", recipientUID)
+                .eq("is_read", false)
+                .select("id");
+
+            if (error) throw error;
+
+            res.json({
+                success: true,
+                updated: Array.isArray(data) ? data.length : 0
+            });
+        } catch (error) {
+            console.log("MARK ALL NOTIFICATIONS READ ERROR:", error);
+            res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            });
+        }
+    }
+);
+
 app.get(
     "/api/notifications",
     async (req, res) => {
@@ -590,7 +775,9 @@ app.get(
                 .order("created_at", { ascending: false });
 
             if(error) throw error;
-            res.json((data || []).map(notificationFromDb));
+
+            const enriched = await enrichNotifications(data || []);
+            res.json(enriched);
         } catch(error) {
             console.log("GET NOTIFICATIONS ERROR:", error);
             res.status(500).json([]);
@@ -641,7 +828,7 @@ app.post(
             }
 
             const wall = await getWallpaperFromSupabase(wallpaperId);
-            const wallpaperOwnerUID = wall?.ownerUID || WALLPAPER_OWNER_UID;
+            const wallpaperOwnerUID = String(wall?.ownerUID || wall?.userId || "").trim();
 
             if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
                 await createNotification({
@@ -754,6 +941,8 @@ app.post(
                 ratingCount: Number(req.body.ratingCount || 0),
                 ratingSum: Number(req.body.ratingSum || 0),
                 author: req.body.author || "WallpaperHub",
+                // UID صاحب الخلفية: مهم لإرسال إشعارات التعليقات والإعجابات
+                userId: String(req.body.userId || req.body.user_id || "").trim(),
                 date: req.body.date || new Date().toLocaleString("ar-MA"),
                 colors: Array.isArray(req.body.colors) ? req.body.colors : [],
                 tags: Array.isArray(req.body.tags) ? req.body.tags : [],
@@ -2230,7 +2419,7 @@ app.post(
             const wallpaperOwnerUID =
                 wallpaper?.ownerUID ||
                 wallpaper?.userId ||
-                WALLPAPER_OWNER_UID;
+                "";
 
             // ======================================
             // فحص آلي للإشارة إذا كتبت @ يدوياً

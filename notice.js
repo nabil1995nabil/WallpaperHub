@@ -7,6 +7,18 @@ import {
 
 document.addEventListener("DOMContentLoaded", () => {
 
+// ===============================
+// تنسيق الإشارات داخل الإشعار
+// ===============================
+function formatMentionText(text) {
+    if (!text) return "";
+    return String(text).replace(
+        /(@[\w\u0600-\u06FF]+)/g,
+        '<span class="mention-tag">$1</span>'
+    );
+}
+
+
 
 // ===============================
 // Load Admin Announcements
@@ -240,9 +252,14 @@ if(
             const card =
                 document.createElement("article");
 
+            // نحتفظ بمعرف الإشعار حتى نقدر نحفظ حالة القراءة في Supabase
+            card.dataset.notificationId = String(notif.id || "");
+            card.dataset.notificationType = String(notif.type || "");
 
             card.className =
-                "notif-card unread";
+                notif.is_read || notif.read
+                    ? "notif-card"
+                    : "notif-card unread";
 
 
             // ===============================
@@ -454,64 +471,41 @@ if(
 else if(
     notif.type === "wallpaper_mention"
 ){
-
-    card.dataset.category =
-        "mention";
+    card.dataset.category = "mention";
+    card.classList.add("mention-card");
 
     card.innerHTML = `
-
-    <div class="card-side-indicator"></div>
+    <div class="card-side-indicator mention-indicator"></div>
 
     <div class="avatar-container">
-
         <img
-            src="${
-                notif.avatar ||
-                'assets/images/user.png'
-            }"
+            src="${notif.avatar || 'assets/images/user.png'}"
             class="avatar"
         >
-
-        <span class="type-badge">
+        <span class="type-badge mention-badge">
             @
         </span>
-
     </div>
 
     <div class="notif-body">
-
         <p class="notif-text">
-
-            ${notif.content}
-
+            ${formatMentionText(notif.content)}
         </p>
 
         <div class="comment-quote mention-comment">
-
-            💬 ${
-                notif.commentText ||
-                "تمت الإشارة إليك في تعليق"
-            }
-
+            💬 ${formatMentionText(
+                notif.commentText || "تمت الإشارة إليك في تعليق"
+            )}
         </div>
 
         <div class="comment-quote">
-
-            📱 ${
-                notif.wallpaperTitle ||
-                "خلفيتك"
-            }
-
+            📱 ${notif.wallpaperTitle || "خلفيتك"}
         </div>
 
         <div class="notif-meta">
-
             ${notif.date || "الآن"}
-
         </div>
-
     </div>
-
     `;
 }
             // ===============================
@@ -521,6 +515,8 @@ else if(
             feed.appendChild(card);
 
         });
+
+        updateUnreadCount();
 
 
     }catch(error){
@@ -658,6 +654,57 @@ replyButtons.forEach(btn=>{
 
 
 // ===============================
+// Persist Read State
+// ===============================
+
+async function markNotificationRead(card){
+    try{
+        const currentUser = auth.currentUser;
+        const notificationId = card?.dataset?.notificationId;
+
+        if(!currentUser || !notificationId || card?.dataset?.notificationType === "") return false;
+        if(!card.classList.contains("unread")) return true;
+
+        const response = await fetch(
+            `/api/notifications/${encodeURIComponent(notificationId)}/read`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    recipientUID: currentUser.uid
+                })
+            }
+        );
+
+        if(!response.ok) throw new Error("READ API ERROR");
+
+        card.classList.remove("unread");
+
+        const indicator = card.querySelector(".card-side-indicator");
+        if(indicator) indicator.style.opacity = "0";
+
+        updateUnreadCount();
+        return true;
+    }catch(error){
+        console.error("MARK NOTIFICATION READ ERROR:", error);
+        return false;
+    }
+}
+
+function updateUnreadCount(){
+    if(!unreadCount) return;
+
+    const count = document.querySelectorAll(
+        "#userNotificationsFeed .notif-card.unread"
+    ).length;
+
+    unreadCount.textContent = String(count);
+    unreadCount.style.opacity = count > 0 ? "1" : "0.5";
+}
+
+// ===============================
 // Mark All Read
 // ===============================
 
@@ -674,59 +721,61 @@ document.getElementById(
 
 
 if(markBtn){
+    markBtn.addEventListener("click", async ()=>{
+        const currentUser = auth.currentUser;
+        if(!currentUser) return;
 
+        markBtn.disabled = true;
 
-    markBtn.addEventListener(
-        "click",
-        ()=>{
+        try{
+            const response = await fetch(
+                "/api/notifications/read-all",
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        recipientUID: currentUser.uid
+                    })
+                }
+            );
 
+            if(!response.ok) throw new Error("READ ALL API ERROR");
 
-            const unreadCards =
-                document.querySelectorAll(
-                    ".notif-card.unread"
-                );
-
+            const unreadCards = document.querySelectorAll(
+                "#userNotificationsFeed .notif-card.unread"
+            );
 
             unreadCards.forEach(card=>{
+                card.classList.remove("unread");
 
-
-                card.classList.remove(
-                    "unread"
+                const indicator = card.querySelector(
+                    ".card-side-indicator"
                 );
 
-
-                const indicator =
-                    card.querySelector(
-                        ".card-side-indicator"
-                    );
-
-
-                if(indicator){
-
-                    indicator.style.opacity =
-                        "0";
-
-                }
-
-
+                if(indicator) indicator.style.opacity = "0";
             });
 
-
-            if(unreadCount){
-
-                unreadCount.textContent =
-                    "0";
-
-                unreadCount.style.opacity =
-                    "0.5";
-
-            }
-
-
+            updateUnreadCount();
+        }catch(error){
+            console.error("MARK ALL READ ERROR:", error);
+        }finally{
+            markBtn.disabled = false;
         }
+    });
+}
+
+// الضغط على أي إشعار شخصي يجعله مقروءاً ويحفظ ذلك في Supabase
+document.addEventListener("click", (event)=>{
+    const card = event.target.closest(
+        "#userNotificationsFeed .notif-card"
     );
 
-}
+    if(card){
+        markNotificationRead(card);
+    }
+});
 
 
 // ===============================
