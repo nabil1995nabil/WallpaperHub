@@ -903,30 +903,41 @@ MOBILE
 
 
 
-.send-comment-btn{
-
-    width:36px;
-
-    height:36px;
-
-    border-radius:50%;
-
-    border:none;
-
-    background:#f5f5f5;
-
-    color:#222;
-
+.comment-action-buttons{
     display:flex;
-
     align-items:center;
+    gap:8px;
+}
 
+.mention-btn,
+.send-comment-btn{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:none;
+    background:#f5f5f5;
+    color:#222;
+    display:flex;
+    align-items:center;
     justify-content:center;
-
     cursor:pointer;
-
     transition:.2s;
+}
 
+.mention-btn{
+    font-family:Arial,sans-serif;
+    font-size:18px;
+    font-weight:700;
+}
+
+.mention-btn:hover,
+.send-comment-btn:hover{
+    transform:scale(1.05);
+}
+
+.mention-btn:active,
+.send-comment-btn:active{
+    transform:scale(.92);
 }
 
 
@@ -1215,6 +1226,11 @@ MOBILE
 }
 
 @media(max-width:600px){
+    .comment-action-buttons{
+        gap:8px;
+    }
+
+    .mention-btn,
     .send-comment-btn{
         width:36px;
         height:36px;

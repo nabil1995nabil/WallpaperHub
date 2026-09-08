@@ -1978,6 +1978,9 @@ document.getElementById("commentInput");
 const sendCommentBtn =
 document.getElementById("sendCommentBtn");
 
+const mentionBtn =
+document.getElementById("mentionBtn");
+
 
 const commentsContainer =
 document.getElementById("commentsContainer");
@@ -2410,6 +2413,49 @@ if(sendCommentBtn){
 }
 
 
+
+
+// ===============================
+// ADD MENTION SYMBOL
+// ===============================
+// زر @ لإضافة رمز الإشارة داخل مكان الكتابة.
+// السيرفر الحالي يتعرف على وجود @ ويعتبرها إشارة
+// لصاحب الخلفية.
+if(mentionBtn && commentInput){
+    mentionBtn.addEventListener("click", ()=>{
+        const start =
+            commentInput.selectionStart ?? commentInput.value.length;
+
+        const end =
+            commentInput.selectionEnd ?? start;
+
+        const before =
+            commentInput.value.slice(0, start);
+
+        const after =
+            commentInput.value.slice(end);
+
+        const needsSpace =
+            before.length > 0 &&
+            !/\s$/.test(before);
+
+        const mentionText =
+            (needsSpace ? " " : "") + "@";
+
+        commentInput.value =
+            before + mentionText + after;
+
+        const cursorPosition =
+            before.length + mentionText.length;
+
+        commentInput.focus();
+
+        commentInput.setSelectionRange(
+            cursorPosition,
+            cursorPosition
+        );
+    });
+}
 
 
 async function likeComment(id){
