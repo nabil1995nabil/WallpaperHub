@@ -2027,6 +2027,37 @@ function getWallpaperMentionTarget(){
     return { userId, name };
 }
 
+// محاولة تحديث بيانات الخلفية إذا كانت النسخة الموجودة في الصفحة
+// لا تحتوي على UID المالك. كل شيء هنا يمر عبر Supabase API.
+async function resolveWallpaperMentionTarget(){
+    let target = getWallpaperMentionTarget();
+    if(target) return target;
+
+    if(!currentWallpaper?.id) return null;
+
+    try{
+        const response = await fetch(API, { cache: "no-store" });
+        if(!response.ok) return null;
+
+        const wallpapers = await response.json();
+        const fresh = (Array.isArray(wallpapers) ? wallpapers : [])
+            .find(w => Number(w.id) === Number(currentWallpaper.id));
+
+        if(fresh){
+            currentWallpaper = {
+                ...currentWallpaper,
+                ...fresh,
+                id: Number(fresh.id)
+            };
+            target = getWallpaperMentionTarget();
+        }
+    }catch(error){
+        console.warn("MENTION OWNER LOAD ERROR", error);
+    }
+
+    return target;
+}
+
 function escapeHtml(value){
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -2073,12 +2104,20 @@ function hideMentionSuggestions(){
     mentionSuggestions.innerHTML = "";
 }
 
-function showOwnerMentionSuggestion(){
+async function showOwnerMentionSuggestion(){
     if(!mentionSuggestions) return;
 
-    const target = getWallpaperMentionTarget();
+    mentionSuggestions.innerHTML = `
+        <div class="mention-loading">جاري تحميل صاحب الخلفية...</div>
+    `;
+    mentionSuggestions.hidden = false;
+
+    const target = await resolveWallpaperMentionTarget();
+
     if(!target){
-        hideMentionSuggestions();
+        mentionSuggestions.innerHTML = `
+            <div class="mention-empty">تعذر العثور على صاحب الخلفية</div>
+        `;
         return;
     }
 
@@ -2092,23 +2131,21 @@ function showOwnerMentionSuggestion(){
         </button>
     `;
 
-    mentionSuggestions.hidden = false;
-
     const item = mentionSuggestions.querySelector(".mention-suggestion-item");
     if(item){
-        item.onclick = (event)=>{
+        item.onclick = async (event)=>{
             event.preventDefault();
-            insertOwnerMention();
+            await insertOwnerMention();
         };
     }
 }
 
-function insertOwnerMention(){
+async function insertOwnerMention(){
     if(!commentInput) return;
 
-    const target = getWallpaperMentionTarget();
+    const target = await resolveWallpaperMentionTarget();
     if(!target){
-        hideMentionSuggestions();
+        await showOwnerMentionSuggestion();
         return;
     }
 
@@ -2321,15 +2358,16 @@ if(sendCommentBtn){
 // @ BUTTON + TYPING SUGGESTION
 // ===============================
 if(mentionBtn && commentInput){
-    mentionBtn.addEventListener("click", (event)=>{
+    mentionBtn.addEventListener("click", async (event)=>{
         event.preventDefault();
-        insertOwnerMention();
+        event.stopPropagation();
+        await showOwnerMentionSuggestion();
     });
 
-    commentInput.addEventListener("input", ()=>{
+    commentInput.addEventListener("input", async ()=>{
         const text = getCommentText();
         if(/(^|\s)@[\w\u0600-\u06FF._-]*$/.test(text)){
-            showOwnerMentionSuggestion();
+            await showOwnerMentionSuggestion();
         }else{
             hideMentionSuggestions();
         }
