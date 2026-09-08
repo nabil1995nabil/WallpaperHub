@@ -882,61 +882,213 @@ MOBILE
     white-space:nowrap;
 }
 
-.mention-suggestions{
-    margin-top:8px;
-    border:1px solid #e5e5e5;
-    border-radius:16px;
-    background:#fff;
-    box-shadow:0 10px 28px rgba(0,0,0,.12);
-    overflow:hidden;
-    position:relative;
-    z-index:100;
+// ===============================
+// MENTION TARGET = WALLPAPER OWNER
+// ===============================
+let savedMentionRange = null;
+
+function getWallpaperMentionTarget(){
+    if(!currentWallpaper) return null;
+
+    const userId = String(
+        currentWallpaper.ownerUID ||
+        currentWallpaper.userId ||
+        currentWallpaper.user_id ||
+        ""
+    ).trim();
+
+    const name = String(
+        currentWallpaper.author || "صاحب الخلفية"
+    ).trim();
+
+    if(!userId) return null;
+    return { userId, name };
 }
 
-.mention-suggestion-item{
-    width:100%;
-    border:0;
-    background:#fff;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px 12px;
-    text-align:right;
-    cursor:pointer;
+async function resolveWallpaperMentionTarget(){
+    let target = getWallpaperMentionTarget();
+    if(target) return target;
+
+    if(!currentWallpaper?.id) return null;
+
+    try{
+        const response = await fetch(API, { cache:"no-store" });
+        if(!response.ok) return null;
+
+        const wallpapers = await response.json();
+        const fresh = (Array.isArray(wallpapers) ? wallpapers : [])
+            .find(w => Number(w.id) === Number(currentWallpaper.id));
+
+        if(fresh){
+            currentWallpaper = {
+                ...currentWallpaper,
+                ...fresh,
+                id:Number(fresh.id)
+            };
+        }
+    }catch(error){
+        console.warn("MENTION OWNER LOAD ERROR", error);
+    }
+
+    return getWallpaperMentionTarget();
 }
 
-.mention-suggestion-item:active{
-    background:#f5f8ff;
+function escapeHtml(value){
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 }
 
-.mention-suggestion-avatar{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#1877f2;
-    color:#fff;
-    font-weight:800;
+function formatCommentText(value){
+    const safe = escapeHtml(value);
+    return safe.replace(
+        /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
+        '$1<span class="comment-mention">$2</span>'
+    );
 }
 
-.mention-suggestion-info{
-    display:flex;
-    flex-direction:column;
-    min-width:0;
+function getCommentText(){
+    if(!commentInput) return "";
+
+    return String(commentInput.innerText || "")
+        .replace(/\u00a0/g," ")
+        .replace(/\n{3,}/g,"\n\n")
+        .trim();
 }
 
-.mention-suggestion-info strong{
-    font-size:14px;
-    color:#111;
+function getMentionPayload(){
+    if(!commentInput) return null;
+
+    const tag = commentInput.querySelector(".mention-tag[data-user-id]");
+    if(!tag) return null;
+
+    return {
+        userId:String(tag.dataset.userId || "").trim(),
+        name:String(tag.dataset.name || tag.textContent || "")
+            .replace(/^@/,'')
+            .trim()
+    };
 }
 
-.mention-suggestion-info small{
-    margin-top:2px;
-    font-size:11px;
-    color:#888;
+function saveCurrentMentionCaret(){
+    if(!commentInput) return;
+
+    const selection = window.getSelection();
+    if(!selection || !selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    if(commentInput.contains(range.commonAncestorContainer)){
+        savedMentionRange = range.cloneRange();
+    }
 }
+
+function hideMentionSuggestions(){
+    if(!mentionSuggestions) return;
+    mentionSuggestions.hidden = true;
+    mentionSuggestions.innerHTML = "";
+}
+
+async function showOwnerMentionSuggestion(){
+    if(!mentionSuggestions) return;
+
+    mentionSuggestions.innerHTML = `
+        <div class="mention-loading" aria-live="polite">جاري البحث</div>
+    `;
+    mentionSuggestions.hidden = false;
+
+    const target = await resolveWallpaperMentionTarget();
+
+    if(!target){
+        mentionSuggestions.innerHTML = `
+            <div class="mention-empty">لم يتم العثور على صاحب الخلفية</div>
+        `;
+        return;
+    }
+
+    mentionSuggestions.innerHTML = `
+        <button type="button" class="mention-suggestion-item" aria-label="الإشارة إلى ${escapeHtml(target.name)}">
+            <span class="mention-suggestion-avatar">@</span>
+            <span class="mention-suggestion-info">
+                <strong>@${escapeHtml(target.name)}</strong>
+                <small>صاحب الخلفية</small>
+            </span>
+        </button>
+    `;
+
+    const item = mentionSuggestions.querySelector(".mention-suggestion-item");
+    if(item){
+        item.onclick = async(event)=>{
+            event.preventDefault();
+            event.stopPropagation();
+            await insertOwnerMention();
+        };
+    }
+}
+
+async function insertOwnerMention(){
+    if(!commentInput) return;
+
+    const target = await resolveWallpaperMentionTarget();
+    if(!target) return;
+
+    commentInput.focus();
+
+    const selection = window.getSelection();
+    let range = null;
+
+    if(savedMentionRange){
+        range = savedMentionRange.cloneRange();
+    }else if(selection && selection.rangeCount){
+        const current = selection.getRangeAt(0);
+        if(commentInput.contains(current.commonAncestorContainer)){
+            range = current.cloneRange();
+        }
+    }
+
+    if(!range){
+        range = document.createRange();
+        range.selectNodeContents(commentInput);
+        range.collapse(false);
+    }
+
+    // حذف @ أو بداية Mention المكتوبة قبل اختيار النتيجة.
+    if(range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE){
+        const node = range.startContainer;
+        const before = node.textContent.slice(0, range.startOffset);
+        const match = before.match(/(^|\s)@[\w\u0600-\u06FF._-]*$/);
+
+        if(match){
+            const removeLength = match[0].length - (match[1] ? 1 : 0);
+            range.setStart(node, Math.max(0, range.startOffset - removeLength));
+            range.deleteContents();
+        }
+    }
+
+    const mention = document.createElement("span");
+    mention.className = "mention-tag";
+    mention.dataset.userId = target.userId;
+    mention.dataset.name = target.name;
+    mention.contentEditable = "false";
+    mention.textContent = `@${target.name}`;
+
+    range.insertNode(mention);
+
+    const space = document.createTextNode(" ");
+    mention.after(space);
+
+    range.setStart(space,1);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+    savedMentionRange = range.cloneRange();
+
+    hideMentionSuggestions();
+}
+
 
 
 

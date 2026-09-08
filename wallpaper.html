@@ -612,19 +612,7 @@ content_copy
     aria-multiline="true"
     data-placeholder="اكتب تعليقك هنا..."
     ></div>
-
-    <div
-    id="mentionSuggestions"
-    class="mention-suggestions"
-    hidden
-    ></div>
-
-
-
-
-
-
-    <!-- أدوات الإرسال -->
+<!-- أدوات الإرسال -->
 
     <div class="comment-tools">
 
@@ -645,6 +633,14 @@ content_copy
         title="إضافة إشارة">
             @
         </button>
+
+        <div
+        id="mentionSuggestions"
+        class="mention-suggestions"
+        hidden
+        role="listbox"
+        aria-label="نتيجة البحث عن صاحب الخلفية"
+        ></div>
 
         <button
         id="sendCommentBtn"

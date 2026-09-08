@@ -2009,6 +2009,8 @@ function getCurrentUserId(){
 // ===============================
 // MENTION TARGET = WALLPAPER OWNER
 // ===============================
+let savedMentionRange = null;
+
 function getWallpaperMentionTarget(){
     if(!currentWallpaper) return null;
 
@@ -2027,8 +2029,6 @@ function getWallpaperMentionTarget(){
     return { userId, name };
 }
 
-// محاولة تحديث بيانات الخلفية إذا كانت النسخة الموجودة في الصفحة
-// لا تحتوي على UID المالك. كل شيء هنا يمر عبر Supabase API.
 async function resolveWallpaperMentionTarget(){
     let target = getWallpaperMentionTarget();
     if(target) return target;
@@ -2036,7 +2036,7 @@ async function resolveWallpaperMentionTarget(){
     if(!currentWallpaper?.id) return null;
 
     try{
-        const response = await fetch(API, { cache: "no-store" });
+        const response = await fetch(API, { cache:"no-store" });
         if(!response.ok) return null;
 
         const wallpapers = await response.json();
@@ -2047,24 +2047,23 @@ async function resolveWallpaperMentionTarget(){
             currentWallpaper = {
                 ...currentWallpaper,
                 ...fresh,
-                id: Number(fresh.id)
+                id:Number(fresh.id)
             };
-            target = getWallpaperMentionTarget();
         }
     }catch(error){
         console.warn("MENTION OWNER LOAD ERROR", error);
     }
 
-    return target;
+    return getWallpaperMentionTarget();
 }
 
 function escapeHtml(value){
     return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 }
 
 function formatCommentText(value){
@@ -2079,8 +2078,8 @@ function getCommentText(){
     if(!commentInput) return "";
 
     return String(commentInput.innerText || "")
-        .replace(/\u00a0/g, " ")
-        .replace(/\n{3,}/g, "\n\n")
+        .replace(/\u00a0/g," ")
+        .replace(/\n{3,}/g,"\n\n")
         .trim();
 }
 
@@ -2091,11 +2090,23 @@ function getMentionPayload(){
     if(!tag) return null;
 
     return {
-        userId: String(tag.dataset.userId || "").trim(),
-        name: String(tag.dataset.name || tag.textContent || "")
-            .replace(/^@/, "")
+        userId:String(tag.dataset.userId || "").trim(),
+        name:String(tag.dataset.name || tag.textContent || "")
+            .replace(/^@/,'')
             .trim()
     };
+}
+
+function saveCurrentMentionCaret(){
+    if(!commentInput) return;
+
+    const selection = window.getSelection();
+    if(!selection || !selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    if(commentInput.contains(range.commonAncestorContainer)){
+        savedMentionRange = range.cloneRange();
+    }
 }
 
 function hideMentionSuggestions(){
@@ -2108,7 +2119,7 @@ async function showOwnerMentionSuggestion(){
     if(!mentionSuggestions) return;
 
     mentionSuggestions.innerHTML = `
-        <div class="mention-loading">جاري تحميل صاحب الخلفية...</div>
+        <div class="mention-loading" aria-live="polite">جاري البحث</div>
     `;
     mentionSuggestions.hidden = false;
 
@@ -2116,25 +2127,26 @@ async function showOwnerMentionSuggestion(){
 
     if(!target){
         mentionSuggestions.innerHTML = `
-            <div class="mention-empty">تعذر العثور على صاحب الخلفية</div>
+            <div class="mention-empty">لم يتم العثور على صاحب الخلفية</div>
         `;
         return;
     }
 
     mentionSuggestions.innerHTML = `
-        <button type="button" class="mention-suggestion-item">
+        <button type="button" class="mention-suggestion-item" aria-label="الإشارة إلى ${escapeHtml(target.name)}">
             <span class="mention-suggestion-avatar">@</span>
             <span class="mention-suggestion-info">
-                <strong>${escapeHtml(target.name)}</strong>
-                <small>الإشارة إلى صاحب الخلفية</small>
+                <strong>@${escapeHtml(target.name)}</strong>
+                <small>صاحب الخلفية</small>
             </span>
         </button>
     `;
 
     const item = mentionSuggestions.querySelector(".mention-suggestion-item");
     if(item){
-        item.onclick = async (event)=>{
+        item.onclick = async(event)=>{
             event.preventDefault();
+            event.stopPropagation();
             await insertOwnerMention();
         };
     }
@@ -2144,41 +2156,37 @@ async function insertOwnerMention(){
     if(!commentInput) return;
 
     const target = await resolveWallpaperMentionTarget();
-    if(!target){
-        await showOwnerMentionSuggestion();
-        return;
-    }
+    if(!target) return;
 
     commentInput.focus();
 
     const selection = window.getSelection();
-    let range;
+    let range = null;
 
-    if(selection && selection.rangeCount){
-        range = selection.getRangeAt(0);
-        if(!commentInput.contains(range.commonAncestorContainer)){
-            range = document.createRange();
-            range.selectNodeContents(commentInput);
-            range.collapse(false);
+    if(savedMentionRange){
+        range = savedMentionRange.cloneRange();
+    }else if(selection && selection.rangeCount){
+        const current = selection.getRangeAt(0);
+        if(commentInput.contains(current.commonAncestorContainer)){
+            range = current.cloneRange();
         }
-    }else{
+    }
+
+    if(!range){
         range = document.createRange();
         range.selectNodeContents(commentInput);
         range.collapse(false);
     }
 
-    // حذف @ أو @جزء_من_الاسم الذي كُتب قبل اختيار الاقتراح.
-    const node = range.startContainer;
-    if(node.nodeType === Node.TEXT_NODE){
+    // حذف @ أو بداية Mention المكتوبة قبل اختيار النتيجة.
+    if(range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE){
+        const node = range.startContainer;
         const before = node.textContent.slice(0, range.startOffset);
         const match = before.match(/(^|\s)@[\w\u0600-\u06FF._-]*$/);
 
         if(match){
             const removeLength = match[0].length - (match[1] ? 1 : 0);
-            range.setStart(
-                node,
-                Math.max(0, range.startOffset - removeLength)
-            );
+            range.setStart(node, Math.max(0, range.startOffset - removeLength));
             range.deleteContents();
         }
     }
@@ -2195,11 +2203,12 @@ async function insertOwnerMention(){
     const space = document.createTextNode(" ");
     mention.after(space);
 
-    range.setStart(space, 1);
+    range.setStart(space,1);
     range.collapse(true);
 
     selection.removeAllRanges();
     selection.addRange(range);
+    savedMentionRange = range.cloneRange();
 
     hideMentionSuggestions();
 }
@@ -2358,13 +2367,26 @@ if(sendCommentBtn){
 // @ BUTTON + TYPING SUGGESTION
 // ===============================
 if(mentionBtn && commentInput){
+    mentionBtn.addEventListener("mousedown", (event)=>{
+        // نحافظ على مكان المؤشر قبل ما يفقد الـ button التركيز.
+        event.preventDefault();
+        saveCurrentMentionCaret();
+    });
+
     mentionBtn.addEventListener("click", async (event)=>{
         event.preventDefault();
         event.stopPropagation();
+        saveCurrentMentionCaret();
         await showOwnerMentionSuggestion();
     });
 
+    commentInput.addEventListener("keyup", ()=>{
+        saveCurrentMentionCaret();
+    });
+
     commentInput.addEventListener("input", async ()=>{
+        saveCurrentMentionCaret();
+
         const text = getCommentText();
         if(/(^|\s)@[\w\u0600-\u06FF._-]*$/.test(text)){
             await showOwnerMentionSuggestion();
@@ -2389,8 +2411,8 @@ if(mentionBtn && commentInput){
         if(
             mentionSuggestions &&
             !mentionSuggestions.contains(event.target) &&
-            !commentInput.contains(event.target) &&
-            event.target !== mentionBtn
+            event.target !== mentionBtn &&
+            !commentInput.contains(event.target)
         ){
             hideMentionSuggestions();
         }
