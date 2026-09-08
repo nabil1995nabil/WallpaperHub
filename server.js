@@ -2416,19 +2416,43 @@ app.post(
             const wallpaper =
                 await getWallpaperFromSupabase(wallpaperId);
 
-            const wallpaperOwnerUID =
-                wallpaper?.ownerUID ||
-                wallpaper?.userId ||
-                "";
+            let wallpaperOwnerUID =
+                String(
+                    wallpaper?.ownerUID ||
+                    wallpaper?.userId ||
+                    ""
+                ).trim();
 
             // ======================================
-            // فحص آلي للإشارة إذا كتبت @ يدوياً
+            // توافق مع الخلفيات القديمة
+            // إذا لم يكن user_id محفوظاً، وكانت هذه الخلفية
+            // منشورة من نفس الحساب الذي يرسل التعليق، نستخدم UID
+            // صاحب التعليق كمالك احتياطي.
+            // ======================================
+            if(
+                !wallpaperOwnerUID &&
+                commenterUID &&
+                wallpaper?.author &&
+                commenterName &&
+                String(wallpaper.author).trim() === String(commenterName).trim()
+            ){
+                wallpaperOwnerUID = String(commenterUID).trim();
+            }
+
+            // ======================================
+            // لا نحول أي @ عادي إلى Mention تلقائياً.
+            // الإشارة الحقيقية يجب أن تأتي من نتيجة زر @
+            // وتصل مع UID محدد.
             // ======================================
 
-            if (!mentionedUserId && text.includes("@")) {
-                if (wallpaperOwnerUID) {
-                    mentionedUserId = wallpaperOwnerUID;
-                }
+            mentionedUserId = String(mentionedUserId || "").trim();
+
+            // لا نسمح بالإشارة إلا إلى صاحب الخلفية الحقيقي.
+            if(
+                mentionedUserId &&
+                mentionedUserId !== wallpaperOwnerUID
+            ){
+                mentionedUserId = "";
             }
 
             // ======================================

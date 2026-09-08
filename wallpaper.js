@@ -2014,7 +2014,7 @@ let savedMentionRange = null;
 function getWallpaperMentionTarget(){
     if(!currentWallpaper) return null;
 
-    const userId = String(
+    let userId = String(
         currentWallpaper.ownerUID ||
         currentWallpaper.userId ||
         currentWallpaper.user_id ||
@@ -2022,11 +2022,34 @@ function getWallpaperMentionTarget(){
     ).trim();
 
     const name = String(
-        currentWallpaper.author || "صاحب الخلفية"
+        currentWallpaper.author || ""
     ).trim();
 
+    // بعض الخلفيات القديمة قد لا يكون لها user_id محفوظ.
+    // إذا كانت الخلفية منشورة من الحساب الحالي، نستعمل UID الحساب الحالي
+    // كحل احتياطي حتى تظهر الإشارة بشكل صحيح.
+    if(!userId){
+        const currentUserId = getCurrentUserId();
+        const currentUserName = String(
+            localStorage.getItem("userName") || ""
+        ).trim();
+
+        if(
+            currentUserId &&
+            name &&
+            currentUserName &&
+            name === currentUserName
+        ){
+            userId = currentUserId;
+        }
+    }
+
     if(!userId) return null;
-    return { userId, name };
+
+    return {
+        userId,
+        name: name || "صاحب الخلفية"
+    };
 }
 
 async function resolveWallpaperMentionTarget(){
@@ -2127,7 +2150,7 @@ async function showOwnerMentionSuggestion(){
 
     if(!target){
         mentionSuggestions.innerHTML = `
-            <div class="mention-empty">لم يتم العثور على صاحب الخلفية</div>
+            <div class="mention-empty">صاحب الخلفية غير مرتبط بحساب</div>
         `;
         return;
     }
