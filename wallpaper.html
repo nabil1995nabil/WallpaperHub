@@ -604,15 +604,20 @@ content_copy
 
     <!-- كتابة التعليق -->
 
-    <textarea
-
+    <div
     id="commentInput"
+    class="comment-editor"
+    contenteditable="true"
+    role="textbox"
+    aria-multiline="true"
+    data-placeholder="اكتب تعليقك هنا..."
+    ></div>
 
-    placeholder="اكتب تعليقك هنا..."
-
-    rows="3"
-
-    ></textarea>
+    <div
+    id="mentionSuggestions"
+    class="mention-suggestions"
+    hidden
+    ></div>
 
 
 

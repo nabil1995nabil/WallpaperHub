@@ -1,7 +1,6 @@
 // =====================================
 // WallpaperHub wallpaper.js
 // =====================================
-import { auth } from "./firebase.js";
 console.log("WallpaperHub Player Loaded");
 // ===============================
 // URL Helper
@@ -1372,7 +1371,7 @@ async function checkLikeStatus(){
 
         const wallpaperCheckId = currentWallpaper.id;
 
-const userId = auth.currentUser?.uid || "guest";
+const userId = getCurrentUserId() || "guest";
 
 const res = await fetch(
     `/api/wallpapers/${wallpaperCheckId}/like-status?userId=${userId}`
@@ -1434,7 +1433,7 @@ async function likeWallpaper(){
             return;
 
 
-        const userId = auth.currentUser?.uid || "guest";
+        const userId = getCurrentUserId() || "guest";
 
 
         const response = await fetch(
@@ -1967,552 +1966,423 @@ history.back();
 }
 
 // ===============================
-// COMMENTS SYSTEM NEW
+// ===============================
+// COMMENTS + MENTION SYSTEM (SUPABASE)
 // ===============================
 
+const commentInput = document.getElementById("commentInput");
+const sendCommentBtn = document.getElementById("sendCommentBtn");
+const mentionBtn = document.getElementById("mentionBtn");
+const mentionSuggestions = document.getElementById("mentionSuggestions");
+const commentsContainer = document.getElementById("commentsContainer");
+const commentsCountBadge = document.getElementById("commentsCountBadge");
 
-const commentInput =
-document.getElementById("commentInput");
+// ===============================
+// CURRENT USER ID
+// ===============================
+// لا يوجد اعتماد على Firebase هنا.
+// نحاول أخذ UID من بيانات المستخدم الموجودة في المشروع.
+function getCurrentUserId(){
+    const directKeys = ["userId", "uid", "userUID"];
 
+    for(const key of directKeys){
+        const value = String(localStorage.getItem(key) || "").trim();
+        if(value) return value;
+    }
 
-const sendCommentBtn =
-document.getElementById("sendCommentBtn");
+    try{
+        const raw = localStorage.getItem("userData");
+        if(raw){
+            const data = JSON.parse(raw);
+            const value = String(
+                data?.uid || data?.userId || data?.user_id || data?.id || ""
+            ).trim();
+            if(value) return value;
+        }
+    }catch(error){
+        console.warn("USER DATA READ ERROR", error);
+    }
 
-const mentionBtn =
-document.getElementById("mentionBtn");
+    return "";
+}
 
+// ===============================
+// MENTION TARGET = WALLPAPER OWNER
+// ===============================
+function getWallpaperMentionTarget(){
+    if(!currentWallpaper) return null;
 
-const commentsContainer =
-document.getElementById("commentsContainer");
+    const userId = String(
+        currentWallpaper.ownerUID ||
+        currentWallpaper.userId ||
+        currentWallpaper.user_id ||
+        ""
+    ).trim();
 
+    const name = String(
+        currentWallpaper.author || "صاحب الخلفية"
+    ).trim();
 
-const commentsCountBadge =
-document.getElementById("commentsCountBadge");
+    if(!userId) return null;
+    return { userId, name };
+}
 
+function escapeHtml(value){
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
+function formatCommentText(value){
+    const safe = escapeHtml(value);
+    return safe.replace(
+        /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
+        '$1<span class="comment-mention">$2</span>'
+    );
+}
 
+function getCommentText(){
+    if(!commentInput) return "";
+
+    return String(commentInput.innerText || "")
+        .replace(/\u00a0/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+}
+
+function getMentionPayload(){
+    if(!commentInput) return null;
+
+    const tag = commentInput.querySelector(".mention-tag[data-user-id]");
+    if(!tag) return null;
+
+    return {
+        userId: String(tag.dataset.userId || "").trim(),
+        name: String(tag.dataset.name || tag.textContent || "")
+            .replace(/^@/, "")
+            .trim()
+    };
+}
+
+function hideMentionSuggestions(){
+    if(!mentionSuggestions) return;
+    mentionSuggestions.hidden = true;
+    mentionSuggestions.innerHTML = "";
+}
+
+function showOwnerMentionSuggestion(){
+    if(!mentionSuggestions) return;
+
+    const target = getWallpaperMentionTarget();
+    if(!target){
+        hideMentionSuggestions();
+        return;
+    }
+
+    mentionSuggestions.innerHTML = `
+        <button type="button" class="mention-suggestion-item">
+            <span class="mention-suggestion-avatar">@</span>
+            <span class="mention-suggestion-info">
+                <strong>${escapeHtml(target.name)}</strong>
+                <small>الإشارة إلى صاحب الخلفية</small>
+            </span>
+        </button>
+    `;
+
+    mentionSuggestions.hidden = false;
+
+    const item = mentionSuggestions.querySelector(".mention-suggestion-item");
+    if(item){
+        item.onclick = (event)=>{
+            event.preventDefault();
+            insertOwnerMention();
+        };
+    }
+}
+
+function insertOwnerMention(){
+    if(!commentInput) return;
+
+    const target = getWallpaperMentionTarget();
+    if(!target){
+        hideMentionSuggestions();
+        return;
+    }
+
+    commentInput.focus();
+
+    const selection = window.getSelection();
+    let range;
+
+    if(selection && selection.rangeCount){
+        range = selection.getRangeAt(0);
+        if(!commentInput.contains(range.commonAncestorContainer)){
+            range = document.createRange();
+            range.selectNodeContents(commentInput);
+            range.collapse(false);
+        }
+    }else{
+        range = document.createRange();
+        range.selectNodeContents(commentInput);
+        range.collapse(false);
+    }
+
+    // حذف @ أو @جزء_من_الاسم الذي كُتب قبل اختيار الاقتراح.
+    const node = range.startContainer;
+    if(node.nodeType === Node.TEXT_NODE){
+        const before = node.textContent.slice(0, range.startOffset);
+        const match = before.match(/(^|\s)@[\w\u0600-\u06FF._-]*$/);
+
+        if(match){
+            const removeLength = match[0].length - (match[1] ? 1 : 0);
+            range.setStart(
+                node,
+                Math.max(0, range.startOffset - removeLength)
+            );
+            range.deleteContents();
+        }
+    }
+
+    const mention = document.createElement("span");
+    mention.className = "mention-tag";
+    mention.dataset.userId = target.userId;
+    mention.dataset.name = target.name;
+    mention.contentEditable = "false";
+    mention.textContent = `@${target.name}`;
+
+    range.insertNode(mention);
+
+    const space = document.createTextNode(" ");
+    mention.after(space);
+
+    range.setStart(space, 1);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    hideMentionSuggestions();
+}
 
 // ===============================
 // LOAD COMMENTS
 // ===============================
-
 let allComments = [];
 let showAllComments = false;
 
-
 async function loadComments(){
-
-
-    if(!currentWallpaper || !commentsContainer)
-        return;
-
+    if(!currentWallpaper || !commentsContainer) return;
 
     try{
+        const res = await fetch(`${API}/${currentWallpaper.id}/comments`);
+        const comments = await res.json();
 
-
-        const res =
-        await fetch(
-        `${API}/${currentWallpaper.id}/comments`
-        );
-
-
-        const comments =
-        await res.json();
-
-
-        allComments =
-        comments.slice().reverse();
-
-
-
+        allComments = comments.slice().reverse();
         commentsContainer.innerHTML = "";
 
-
-
         if(commentsCountBadge){
-
-            commentsCountBadge.textContent =
-            `${comments.length} تعليق`;
-
+            commentsCountBadge.textContent = `${comments.length} تعليق`;
         }
-
-
-
-
 
         if(allComments.length === 0){
-
-
-            commentsContainer.innerHTML =
-
-            `
-            <p class="no-comments">
-            لا توجد تعليقات بعد، كن أول من يعلق!
-            </p>
+            commentsContainer.innerHTML = `
+                <p class="no-comments">لا توجد تعليقات بعد، كن أول من يعلق!</p>
             `;
-
-
             return;
-
         }
 
-
-
-
-
-        const displayComments =
-        showAllComments
-
-        ?
-
-        allComments
-
-        :
-
-        allComments.slice(0,2);
-
-
-
-
-
+        const displayComments = showAllComments
+            ? allComments
+            : allComments.slice(0,2);
 
         displayComments.forEach(comment=>{
+            const box = document.createElement("div");
+            box.className = "comment-card";
 
+            const avatarHtml = comment.avatar
+                ? `<img src="${escapeHtml(comment.avatar)}" alt="">`
+                : `<span class="material-icons">account_circle</span>`;
 
-            const box =
-            document.createElement("div");
+            box.innerHTML = `
+                <div class="user-avatar">${avatarHtml}</div>
 
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <div>
+                            <div class="comment-author">
+                                ${escapeHtml(comment.user || "مستخدم")}
+                            </div>
+                            <span class="comment-email">
+                                ${escapeHtml(comment.email || "غير مسجل")}
+                            </span>
+                        </div>
+                    </div>
 
-            box.className =
-            "comment-card";
+                    <div class="comment-text">
+                        ${formatCommentText(comment.text || "")}
+                    </div>
 
-
-
-            box.innerHTML =
-
-            `
-
-            <div class="user-avatar">
-
-            ${
-                comment.avatar
-
-                ?
-
-                `
-                <img src="${comment.avatar}">
-                `
-
-                :
-
-                `
-                <span class="material-icons">
-                account_circle
-                </span>
-                `
-
-            }
-
-            </div>
-
-
-
-
-            <div class="comment-content">
-
-
-                <div class="comment-header">
-
-
-                    <div>
-
-                        <div class="comment-author">
-
-                        ${comment.user || "مستخدم"}
-
+                    <div class="comment-footer">
+                        <div class="comment-date">
+                            ⏱ ${escapeHtml(comment.date || "")}
+                            ${escapeHtml(comment.time || "")}
                         </div>
 
-
-
-                        <span class="comment-email">
-
-                        ${comment.email || "غير مسجل"}
-
-                        </span>
-
-
+                        <button
+                            class="comment-like"
+                            onclick="likeComment(${Number(comment.id)})">
+                            ❤️ ${Number(comment.likes || 0)}
+                        </button>
                     </div>
-
-
                 </div>
-
-
-
-
-                <div class="comment-text">
-
-                ${comment.text}
-
-                </div>
-
-
-
-
-                <div class="comment-footer">
-
-
-                    <div class="comment-date">
-
-                    ⏱ ${comment.date || ""}
-
-                    ${comment.time || ""}
-
-                    </div>
-
-
-
-                    <button
-                    class="comment-like"
-                    onclick="likeComment(${comment.id})">
-
-                    ❤️ ${comment.likes || 0}
-
-                    </button>
-
-
-                </div>
-
-
-            </div>
-
-
             `;
 
-
-
             commentsContainer.appendChild(box);
-
-
         });
-
-
-
-
-
-
-
-        // زر عرض الكل
 
         if(allComments.length > 2 && !showAllComments){
-
-
-const btn =
-document.createElement("button");
-
-
-btn.className =
-"show-all-comments-btn";
-
-
-btn.innerHTML =
-"⋯";
-
-
-
+            const btn = document.createElement("button");
+            btn.className = "show-all-comments-btn";
+            btn.innerHTML = "⋯";
             btn.onclick = ()=>{
-
-
                 showAllComments = true;
-
-
                 loadComments();
-
-
             };
-
-
-
             commentsContainer.appendChild(btn);
-
-
         }
-
-
-
-
-
-
     }catch(error){
-
-
-        console.log(
-        "LOAD COMMENTS ERROR",
-        error
-        );
-
-
+        console.log("LOAD COMMENTS ERROR", error);
     }
-
-
 }
 
 // ===============================
-// SEND COMMENT
+// SEND COMMENT + REAL MENTION
 // ===============================
-
-
 async function sendComment(){
+    if(!currentWallpaper || !commentInput) return;
 
-
-    if(!currentWallpaper || !commentInput)
-        return;
-
-
-
-    const text =
-    commentInput.value.trim();
-
-
-
-    if(!text)
-        return;
-
-
-
+    const text = getCommentText();
+    if(!text) return;
 
     try{
+        const now = new Date();
+        const userName = localStorage.getItem("userName") || "مستخدم";
+        const userEmail = localStorage.getItem("userEmail") || "user@email.com";
+        const userAvatar = localStorage.getItem("userAvatar") || "";
+        const userId = getCurrentUserId();
+        const mention = getMentionPayload();
 
-
-        const now =
-        new Date();
-
-
-
-        const userName =
-        localStorage.getItem("userName")
-        ||
-        "مستخدم";
-
-
-
-        const userEmail =
-        localStorage.getItem("userEmail")
-        ||
-        "user@email.com";
-
-
-
-        const userAvatar =
-        localStorage.getItem("userAvatar")
-        ||
-        "";
-
-
-
-
-
-        const res =
-        await fetch(
-
-        `${API}/${currentWallpaper.id}/comments`,
-
-        {
-
-        method:"POST",
-
-        headers:{
-
-            "Content-Type":
-            "application/json"
-
-        },
-
-
-        body:JSON.stringify({
-
-    text:text,
-
-    user:userName,
-
-    email:userEmail,
-
-    avatar:userAvatar,
-
-    userId:
-        auth.currentUser?.uid || "",
-
-    likes:0,
-
-    likedBy:[],
-
-
-            date:
-            now.toLocaleDateString("ar-MA"),
-
-
-
-            time:
-            now.toLocaleTimeString(
-            "ar-MA",
+        const res = await fetch(
+            `${API}/${currentWallpaper.id}/comments`,
             {
-                hour:"2-digit",
-                minute:"2-digit"
-            })
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({
+                    text,
+                    user:userName,
+                    email:userEmail,
+                    avatar:userAvatar,
+                    userId,
+                    likes:0,
+                    likedBy:[],
+                    mentionedUserId: mention?.userId || "",
+                    mentionedName: mention?.name || "",
+                    date:now.toLocaleDateString("ar-MA"),
+                    time:now.toLocaleTimeString("ar-MA", {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    })
+                })
+            }
+        );
 
-
-        })
-
-        });
-
-
-
-        const data =
-        await res.json();
-
-
-
+        const data = await res.json();
 
         if(data.success){
-
-
-            commentInput.value = "";
-
-
+            commentInput.innerHTML = "";
+            hideMentionSuggestions();
             loadComments();
-
-
+        }else{
+            console.error("SEND COMMENT FAILED:", data);
         }
-
-
-
-
     }catch(error){
-
-
-        console.log(
-        "SEND COMMENT ERROR",
-        error
-        );
-
-
+        console.log("SEND COMMENT ERROR", error);
     }
-
-
 }
-
-
-
-
 
 if(sendCommentBtn){
-
-
-    sendCommentBtn.onclick =
-    sendComment;
-
+    sendCommentBtn.onclick = sendComment;
 }
 
-
-
-
 // ===============================
-// ADD MENTION SYMBOL
+// @ BUTTON + TYPING SUGGESTION
 // ===============================
-// زر @ لإضافة رمز الإشارة داخل مكان الكتابة.
-// السيرفر الحالي يتعرف على وجود @ ويعتبرها إشارة
-// لصاحب الخلفية.
 if(mentionBtn && commentInput){
-    mentionBtn.addEventListener("click", ()=>{
-        const start =
-            commentInput.selectionStart ?? commentInput.value.length;
+    mentionBtn.addEventListener("click", (event)=>{
+        event.preventDefault();
+        insertOwnerMention();
+    });
 
-        const end =
-            commentInput.selectionEnd ?? start;
+    commentInput.addEventListener("input", ()=>{
+        const text = getCommentText();
+        if(/(^|\s)@[\w\u0600-\u06FF._-]*$/.test(text)){
+            showOwnerMentionSuggestion();
+        }else{
+            hideMentionSuggestions();
+        }
+    });
 
-        const before =
-            commentInput.value.slice(0, start);
+    commentInput.addEventListener("keydown", (event)=>{
+        if(event.key === "Escape"){
+            hideMentionSuggestions();
+            return;
+        }
 
-        const after =
-            commentInput.value.slice(end);
+        if(event.key === "Enter" && !event.shiftKey){
+            event.preventDefault();
+            sendComment();
+        }
+    });
 
-        const needsSpace =
-            before.length > 0 &&
-            !/\s$/.test(before);
-
-        const mentionText =
-            (needsSpace ? " " : "") + "@";
-
-        commentInput.value =
-            before + mentionText + after;
-
-        const cursorPosition =
-            before.length + mentionText.length;
-
-        commentInput.focus();
-
-        commentInput.setSelectionRange(
-            cursorPosition,
-            cursorPosition
-        );
+    document.addEventListener("click", (event)=>{
+        if(
+            mentionSuggestions &&
+            !mentionSuggestions.contains(event.target) &&
+            !commentInput.contains(event.target) &&
+            event.target !== mentionBtn
+        ){
+            hideMentionSuggestions();
+        }
     });
 }
 
-
+// ===============================
+// LIKE COMMENT
+// ===============================
 async function likeComment(id){
+    try{
+        const user = localStorage.getItem("userName") || "مستخدم";
+        const userId = getCurrentUserId();
 
-try{
+        const res = await fetch(
+            `/api/comments/${id}/like`,
+            {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({user,userId})
+            }
+        );
 
-const user =
-localStorage.getItem("userName")
-||
-"مستخدم";
-
-const userId =
-auth.currentUser?.uid || "";
-
-
-const res =
-await fetch(
-`/api/comments/${id}/like`,
-{
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-    user:user,
-    userId:userId
-})
-
-});
-
-
-const data =
-await res.json();
-
-
-if(data.success){
-
-loadComments();
-
+        const data = await res.json();
+        if(data.success) loadComments();
+    }catch(error){
+        console.log("LIKE COMMENT ERROR", error);
+    }
 }
 
-
-}catch(error){
-
-console.log(
-"LIKE COMMENT ERROR",
-error
-);
-
-}
-
-}
-
-
-// مهم جدا
 window.likeComment = likeComment;
 
 // ===============================
