@@ -1,6 +1,8 @@
 // =====================================
 // WallpaperHub wallpaper.js
 // =====================================
+import { supabase } from "./supabase.js";
+
 console.log("WallpaperHub Player Loaded");
 // ===============================
 // URL Helper
@@ -1982,9 +1984,37 @@ const commentsCountBadge = document.getElementById("commentsCountBadge");
 // ===============================
 // لا يوجد اعتماد على Firebase هنا.
 // نحاول أخذ UID من بيانات المستخدم الموجودة في المشروع.
-function getCurrentUserId(){
-    const directKeys = ["userId", "uid", "userUID"];
+let currentAuthUser = null;
 
+// ===============================
+// SUPABASE AUTH - نفس جلسة Profile
+// ===============================
+async function restoreWallpaperAuth(){
+    try{
+        const { data, error } = await supabase.auth.getSession();
+        if(error) throw error;
+        currentAuthUser = data?.session?.user || null;
+        console.log("Wallpaper Auth UID:", currentAuthUser?.id || "guest");
+    }catch(error){
+        console.warn("WALLPAPER AUTH RESTORE ERROR", error);
+    }
+}
+
+supabase.auth.onAuthStateChange((event, session) => {
+    currentAuthUser = session?.user || null;
+    console.log("Wallpaper Auth Changed:", currentAuthUser?.id || "guest");
+});
+
+restoreWallpaperAuth();
+
+function getCurrentUserId(){
+    // المصدر الأساسي: UID الحقيقي من Supabase
+    if(currentAuthUser?.id){
+        return String(currentAuthUser.id).trim();
+    }
+
+    // توافق مع البيانات القديمة في المشروع
+    const directKeys = ["userId", "uid", "userUID"];
     for(const key of directKeys){
         const value = String(localStorage.getItem(key) || "").trim();
         if(value) return value;
