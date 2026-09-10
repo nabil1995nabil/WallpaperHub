@@ -2417,7 +2417,7 @@ function getCurrentUserId(){
 }
 
 // ===============================
-// MENTION LOGIC & FORMATTING
+// MENTION LOGIC - OWNER ONLY
 // ===============================
 function escapeHtml(value){
     return String(value ?? "")
@@ -2428,20 +2428,51 @@ function escapeHtml(value){
         .replace(/'/g,"&#039;");
 }
 
-// تحويل نص الإشارة إلى رابط حقيقي إلى ملف البروفايل
+function getWallpaperMentionTarget(){
+    if(!currentWallpaper) return null;
+
+    const userId = String(
+        currentWallpaper.ownerUID ||
+        currentWallpaper.userId ||
+        currentWallpaper.user_id ||
+        ""
+    ).trim();
+
+    if(!userId) return null;
+
+    const publisher = currentWallpaper.publisher || {};
+    const name = String(
+        currentWallpaper.authorName ||
+        publisher.full_name ||
+        publisher.username ||
+        currentWallpaper.author ||
+        "صاحب الخلفية"
+    ).trim();
+
+    const avatar = String(
+        currentWallpaper.authorAvatar ||
+        publisher.avatar_url ||
+        currentWallpaper.avatar ||
+        ""
+    ).trim();
+
+    return { userId, name, avatar };
+}
+
+// تحويل نص الإشارة إلى رابط حقيقي إلى صاحب الخلفية
 function formatCommentText(value, mentionedUserId){
     const safe = escapeHtml(value);
-    
-    if (mentionedUserId) {
+
+    if(mentionedUserId){
         return safe.replace(
             /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
-            `$1<a href="profile.html?uid=${encodeURIComponent(mentionedUserId)}" class="comment-mention-link" style="color: #007aff; font-weight: bold; text-decoration: underline;">$2</a>`
+            `$1<a href="profile.html?uid=${encodeURIComponent(mentionedUserId)}" class="comment-mention-link" style="color:#007aff;font-weight:bold;text-decoration:underline;">$2</a>`
         );
     }
 
     return safe.replace(
         /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
-        '$1<span class="comment-mention" style="color: #007aff; font-weight: bold;">$2</span>'
+        '$1<span class="comment-mention" style="color:#007aff;font-weight:bold;">$2</span>'
     );
 }
 
@@ -2460,8 +2491,16 @@ function getMentionPayload(){
     const tag = commentInput.querySelector(".mention-tag[data-user-id]");
     if(!tag) return null;
 
+    const userId = String(tag.dataset.userId || "").trim();
+    const owner = getWallpaperMentionTarget();
+
+    // الواجهة نفسها لا تسمح بأي UID غير UID صاحب الخلفية.
+    if(!owner || !userId || userId !== owner.userId){
+        return null;
+    }
+
     return {
-        userId: String(tag.dataset.userId || "").trim(),
+        userId,
         name: String(tag.dataset.name || tag.textContent || "")
             .replace(/^@/,'')
             .trim()
@@ -2486,65 +2525,55 @@ function hideMentionSuggestions(){
     mentionSuggestions.innerHTML = "";
 }
 
-// ===============================
-// SEARCH REAL USERS FROM SUPABASE
-// ===============================
-async function searchRealUsers(query){
+// يعرض صاحب الخلفية فقط، ولا يبحث في جميع المستخدمين.
+function showOwnerMentionSuggestion(){
     if(!mentionSuggestions) return;
 
+    const target = getWallpaperMentionTarget();
+    if(!target){
+        mentionSuggestions.innerHTML = `
+            <div class="mention-empty" style="padding:10px;text-align:center;color:#888;">
+                تعذر تحديد صاحب الخلفية
+            </div>
+        `;
+        mentionSuggestions.hidden = false;
+        return;
+    }
+
+    const avatarHtml = target.avatar
+        ? `<img src="${escapeHtml(target.avatar)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+        : `<span class="mention-suggestion-avatar">@</span>`;
+
     mentionSuggestions.innerHTML = `
-        <div class="mention-loading" style="padding:10px; text-align:center; color:#888;">جاري البحث عن مستخدمين...</div>
+        <button type="button" class="mention-suggestion-item">
+            ${avatarHtml}
+            <span class="mention-suggestion-info">
+                <strong style="display:block;font-size:14px;">@${escapeHtml(target.name)}</strong>
+                <small>صاحب الخلفية</small>
+            </span>
+        </button>
     `;
+
     mentionSuggestions.hidden = false;
 
-    try {
-        const { data: users, error } = await supabase
-            .from("profiles")
-            .select("id, full_name, username, avatar_url")
-            .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
-            .limit(5);
-
-        if(error || !users || users.length === 0){
-            mentionSuggestions.innerHTML = `
-                <div class="mention-empty" style="padding:10px; text-align:center; color:#888;">لم يتم العثور على مستخدم</div>
-            `;
-            return;
-        }
-
-        mentionSuggestions.innerHTML = "";
-        users.forEach(user => {
-            const displayName = user.full_name || user.username || "مستخدم";
-            const avatar = user.avatar_url || "assets/images/user.png";
-
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "mention-suggestion-item";
-            btn.style.cssText = "display:flex; align-items:center; gap:8px; width:100%; padding:8px 12px; background:none; border:none; cursor:pointer; text-align:right;";
-
-            btn.innerHTML = `
-                <img src="${escapeHtml(avatar)}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
-                <span class="mention-suggestion-info">
-                    <strong style="display:block; font-size:14px;">@${escapeHtml(displayName)}</strong>
-                </span>
-            `;
-
-            btn.onclick = async (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                await insertUserMention(user.id, displayName);
-            };
-
-            mentionSuggestions.appendChild(btn);
-        });
-
-    } catch (err) {
-        console.warn("SEARCH USERS MENTION ERROR:", err);
-        hideMentionSuggestions();
+    const item = mentionSuggestions.querySelector(".mention-suggestion-item");
+    if(item){
+        item.onclick = (event)=>{
+            event.preventDefault();
+            event.stopPropagation();
+            insertOwnerMention();
+        };
     }
 }
 
-async function insertUserMention(userId, userName){
+function insertOwnerMention(){
     if(!commentInput) return;
+
+    const target = getWallpaperMentionTarget();
+    if(!target){
+        hideMentionSuggestions();
+        return;
+    }
 
     commentInput.focus();
 
@@ -2566,6 +2595,7 @@ async function insertUserMention(userId, userName){
         range.collapse(false);
     }
 
+    // حذف @ أو @جزء من الاسم قبل إدخال صاحب الخلفية.
     if(range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE){
         const node = range.startContainer;
         const before = node.textContent.slice(0, range.startOffset);
@@ -2580,11 +2610,11 @@ async function insertUserMention(userId, userName){
 
     const mention = document.createElement("span");
     mention.className = "mention-tag";
-    mention.dataset.userId = userId;
-    mention.dataset.name = userName;
+    mention.dataset.userId = target.userId;
+    mention.dataset.name = target.name;
     mention.contentEditable = "false";
-    mention.style.cssText = "color:#007aff; font-weight:bold;";
-    mention.textContent = `@${userName}`;
+    mention.style.cssText = "color:#007aff;font-weight:bold;";
+    mention.textContent = `@${target.name}`;
 
     range.insertNode(mention);
 
@@ -2765,26 +2795,25 @@ if(mentionBtn && commentInput){
         saveCurrentMentionCaret();
     });
 
-    mentionBtn.addEventListener("click", async (event)=>{
+    mentionBtn.addEventListener("click", (event)=>{
         event.preventDefault();
         event.stopPropagation();
         saveCurrentMentionCaret();
-        await searchRealUsers("");
+        showOwnerMentionSuggestion();
     });
 
     commentInput.addEventListener("keyup", ()=>{
         saveCurrentMentionCaret();
     });
 
-    commentInput.addEventListener("input", async ()=>{
+    commentInput.addEventListener("input", ()=>{
         saveCurrentMentionCaret();
 
         const text = getCommentText();
         const match = text.match(/(^|\s)@([\w\u0600-\u06FF._-]*)$/);
 
         if(match){
-            const query = match[2] || "";
-            await searchRealUsers(query);
+            showOwnerMentionSuggestion();
         }else{
             hideMentionSuggestions();
         }

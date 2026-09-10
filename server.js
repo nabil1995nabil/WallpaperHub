@@ -301,7 +301,7 @@ async function getWallpaperFromSupabase(id){
     return data ? wallpaperFromDb(data) : null;
 }
 
-function commentFromDb(row){
+function commentFromDb(row, mention = null){
     return {
         id: Number(row.id),
         created_at: row.created_at ?? null,
@@ -314,7 +314,9 @@ function commentFromDb(row){
         likedBy: Array.isArray(row.likedBy) ? row.likedBy : [],
         date: row.date ?? "",
         time: row.time ?? "",
-        userId: row.userId ?? ""
+        userId: row.userId ?? "",
+        mentionedUserId: mention?.mentioned_user_id ?? row.mentionedUserId ?? "",
+        mentionedName: mention?.mentioned_name ?? row.mentionedName ?? ""
     };
 }
 
@@ -2413,7 +2415,43 @@ throw error;
 
 
 
-res.json((data || []).map(commentFromDb));
+const comments = data || [];
+
+// جلب Mentions المرتبطة بهذه التعليقات، مع التركيز على الإشارة
+// إلى صاحب الخلفية فقط. هذا يجعل mentionedUserId متاحاً عند إعادة تحميل التعليقات.
+let mentionMap = new Map();
+const commentIds = comments.map(c => Number(c.id)).filter(Number.isFinite);
+
+if(commentIds.length){
+    const { data: mentionRows, error: mentionError } = await supabase
+        .from("mentions")
+        .select("comment_id, wallpaper_id, mentioned_user_id, mentioned_name")
+        .in("comment_id", commentIds)
+        .eq("wallpaper_id", wallpaperId);
+
+    if(mentionError){
+        console.log("GET COMMENT MENTIONS ERROR:", mentionError.message);
+    }else{
+        (mentionRows || []).forEach(m => {
+            mentionMap.set(Number(m.comment_id), m);
+        });
+    }
+}
+
+res.json(comments.map(comment => {
+    const result = commentFromDb(comment);
+    const mention = mentionMap.get(Number(comment.id));
+
+    if(mention){
+        result.mentionedUserId = String(mention.mentioned_user_id || "").trim();
+        result.mentionedName = mention.mentioned_name || "";
+    }else{
+        result.mentionedUserId = "";
+        result.mentionedName = "";
+    }
+
+    return result;
+}));
 
 
 
@@ -2579,8 +2617,7 @@ app.post(
             if (
                 isValidMention &&
                 commenterUID &&
-                wallpaperOwnerUID &&
-                commenterUID !== wallpaperOwnerUID
+                wallpaperOwnerUID
             ) {
 
                 // ======================================
@@ -2629,9 +2666,11 @@ app.post(
 
                 // ======================================
                 // إنشاء إشعار الإشارة
+                // صاحب الخلفية يمكنه حفظ الإشارة لنفسه،
+                // لكن لا نرسل إشعاراً لنفس الحساب.
                 // ======================================
-
-                await createNotification({
+                if(commenterUID !== wallpaperOwnerUID){
+                    await createNotification({
                         recipientUID: wallpaperOwnerUID,
                         fromUser: commenterUID,
                         type: "wallpaper_mention",
@@ -2639,6 +2678,7 @@ app.post(
                         commentId: data.id,
                         message: `${commenterName} أشار إليك في تعليق`
                     });
+                }
 
             }
 
