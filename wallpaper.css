@@ -122,7 +122,6 @@ IMAGE ACTION BUTTONS
     align-items:center;
     justify-content:center;
     z-index:10;
-    background:transparent;
     border:none;
     appearance:none;
     -webkit-appearance:none;
@@ -303,6 +302,7 @@ IMAGE LINK
     border:none;
     border-radius:50%;
     color:#333;
+    background:#fff;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -541,7 +541,7 @@ SET WALLPAPER BUTTON
 
     background:#ffffff;
 
-    color:#111;
+    color:#ffffff;
 
     font-size:16px;
 
@@ -818,6 +818,7 @@ MOBILE
     height:36px;
     border:none;
     color:#222;
+    background:#ffffff;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -1077,7 +1078,7 @@ MOBILE
 
     color:#777;
 
-    font-size:16px;
+    font-size:13px;
 
     line-height:1;
 
@@ -1186,6 +1187,7 @@ MOBILE
     min-height:42px;
     padding:0;
     color:#222;
+    background:#ffffff;
     display:flex;
     align-items:center;
     justify-content:center;
