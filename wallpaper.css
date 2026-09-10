@@ -41,7 +41,6 @@ HEADER
 .icon-btn{
     width:46px;
     height:46px;
-    border:none;
     color:#222;
     display:flex;
     align-items:center;
@@ -1091,7 +1090,7 @@ MOBILE
 
 /* 1. أزرار شريط الهيدر (رجوع، مشاركة، إعجاب) */
 .top-bar .icon-btn{
-    border: 1px solid rgba(0, 0, 0, 0.08);
+
 }
 
 /* 2. زر شارة الجودة (2K / 4K) فوق الصورة */
