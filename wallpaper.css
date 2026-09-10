@@ -2101,3 +2101,167 @@ MOBILE
     .quick-stat-text strong{font-size:11px;}
     .quick-stat-text span{font-size:8px;}
 }
+
+/* =========================================================
+   HERO WALLPAPER LAYOUT — الشريط فوق الخلفية
+   الشريط العلوي أصبح Overlay داخل مساحة الخلفية،
+   والخلفية تتمدد لتستفيد من المساحة التي كان يأخذها الشريط.
+   ========================================================= */
+body{
+    position:relative;
+}
+
+.top-bar{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    width:100%;
+    height:68px;
+    margin:0;
+    padding:0 18px;
+    background:linear-gradient(to bottom, rgba(0,0,0,.48), rgba(0,0,0,0));
+    border:0;
+    color:#fff;
+    z-index:1000;
+}
+
+.top-bar .icon-btn{
+    color:#fff;
+    background:transparent;
+    border:0;
+}
+
+.top-bar .icon-btn .material-icons{
+    font-size:28px;
+    text-shadow:0 1px 5px rgba(0,0,0,.35);
+}
+
+.top-bar #favoriteBtn.liked .material-icons{
+    color:#ff2d55;
+}
+
+.preview{
+    width:100%;
+    margin:0;
+    padding:0;
+}
+
+.wallpaper-preview-wrapper{
+    width:100%;
+    margin:0;
+    border-radius:0;
+    overflow:hidden;
+}
+
+.preview img,
+.preview video{
+    width:100%;
+    height:calc(58vh + 68px);
+    min-height:520px;
+    max-height:900px;
+    border-radius:0;
+    object-fit:cover;
+}
+
+/* عناصر التحكم فوق الصورة */
+.quality-badge{
+    top:84px;
+    left:22px;
+}
+
+.more-options-btn{
+    top:76px;
+    right:18px;
+}
+
+.image-action-btn{
+    bottom:22px;
+}
+
+/* لا نريد أن تهبط الصفحة بسبب الشريط القديم */
+.wallpaper-header-info{
+    margin-top:18px;
+}
+
+@media (min-width:901px){
+    body{
+        padding-left:0;
+        padding-right:0;
+    }
+
+    .top-bar{
+        width:100%;
+        max-width:none;
+        height:76px;
+        padding:0 28px;
+    }
+
+    .preview{
+        width:100%;
+        max-width:none;
+        padding:0;
+    }
+
+    .wallpaper-preview-wrapper{
+        width:100%;
+        border-radius:0;
+    }
+
+    .preview img,
+    .preview video{
+        width:100%;
+        height:auto;
+        aspect-ratio:16 / 9;
+        max-height:none;
+        min-height:0;
+        border-radius:0;
+    }
+
+    .quality-badge{
+        top:92px;
+        left:28px;
+    }
+
+    .more-options-btn{
+        top:84px;
+        right:28px;
+    }
+
+    .image-action-btn{
+        bottom:24px;
+    }
+}
+
+@media (max-width:600px){
+    .top-bar{
+        height:68px;
+        padding-top:env(safe-area-inset-top, 0px);
+    }
+
+    .preview img,
+    .preview video{
+        height:calc(58vh + 68px);
+        min-height:0;
+        max-height:none;
+    }
+
+    .quality-badge{
+        top:76px;
+        left:20px;
+    }
+
+    .more-options-btn{
+        top:68px;
+        right:12px;
+    }
+
+    .image-action-btn{
+        bottom:18px;
+    }
+
+    .wallpaper-header-info{
+        margin-top:16px;
+    }
+}
+
