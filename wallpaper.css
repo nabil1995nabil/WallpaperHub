@@ -46,6 +46,10 @@ HEADER
     align-items:center;
     justify-content:center;
     cursor:pointer;
+    background:#ffffff;
+    border:1px solid #ffffff;
+    appearance:none;
+    -webkit-appearance:none;
 }
 
 .icon-btn:active{
@@ -118,6 +122,11 @@ IMAGE ACTION BUTTONS
     align-items:center;
     justify-content:center;
     z-index:10;
+    background:transparent;
+    border:none;
+    appearance:none;
+    -webkit-appearance:none;
+    box-shadow:none;
 }
 
 .image-action-btn .material-icons{
@@ -144,6 +153,11 @@ OPTIONS
     height:45px;
     color:#111;
     z-index:20;
+    background:transparent;
+    border:none;
+    appearance:none;
+    -webkit-appearance:none;
+    box-shadow:none;
 }
 
 .options-menu{
@@ -1083,50 +1097,6 @@ MOBILE
         height:36px;
     }
 }
-
-/* =========================================
-   3D CLAY STYLING FOR SIMILAR CARDS
-   ========================================= */
-
-.similar-card {
-    background: #ffffff;
-    border-radius: 24px;
-    border: none;
-    overflow: hidden;
-    cursor: pointer;
-    
-/* تأثير التمرير للماوس */
-.similar-card:hover {
-    transform: translateY(-4px);
-
-}
-
-/* تأثير الضغط (شغّال على الضغط باللمس في الهاتف) */
-.similar-card:active {
-    transform: translateY(4px);
-
-}
-
-/* ضبط حواف الصورة والتأثير الداخلي */
-.similar-card img,
-.similar-card video {
-    border-radius: 20px 20px 0 0;
-    transition: transform 0.3s ease;
-}
-
-.similar-card:hover img {
-    transform: scale(1.04);
-}
-
-/* تنسيق النص أسفل البطاقة */
-.similar-card p {
-    padding: 14px 12px;
-    color: #111111;
-    font-size: 14px;
-    font-weight: 800;
-    text-align: center;
-}
-
 /* WALLPAPER COLORS - isolated layout */
 #colorPalette{
     width:100% !important;
