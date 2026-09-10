@@ -878,8 +878,9 @@ a{color:inherit;}
     body{padding-bottom:88px;}
 
     .wallpaper-preview-wrapper{
-        height:72dvh;
-        min-height:460px;
+        height:68dvh;
+        min-height:430px;
+        max-height:640px;
         border-radius:0 0 27px 27px;
     }
 
@@ -891,10 +892,15 @@ a{color:inherit;}
     .icon-btn{width:44px;height:44px;flex-basis:44px;}
     .top-bar > div{gap:7px !important;}
 
-    .more-options-btn{width:44px;height:44px;top:16px;right:16px;}
+    .more-options-btn{
+        width:44px;
+        height:44px;
+        top:calc(env(safe-area-inset-top,0px) + 12px);
+        right:14px;
+    }
 
     .info{
-        margin-top:-40px;
+        margin-top:-28px;
         padding-left:14px;
         padding-right:14px;
     }
@@ -902,14 +908,23 @@ a{color:inherit;}
     .info h2{font-size:1.32rem;}
     .description-box p{font-size:.77rem;}
 
-    .wall-stats-grid{border-radius:18px;}
+    .wall-stats-grid{
+        border-radius:18px;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+    }
     .wall-stat{min-height:82px;padding:8px 3px;}
     .wall-stat .material-icons{font-size:20px;}
     .wall-stat .stat-value{font-size:11px;}
     .wall-stat .stat-label{font-size:8px;}
 
     .main-actions{padding-left:14px;padding-right:14px;}
-    .btn-gradient,.btn-glass{min-height:53px;border-radius:17px;font-size:.82rem;}
+    .btn-gradient,.btn-glass{
+        min-height:53px;
+        border-radius:17px;
+        font-size:.82rem;
+        min-width:0;
+        white-space:nowrap;
+    }
 
     .comments-section{padding-left:14px;padding-right:14px;}
     .similar{padding-left:14px;padding-right:14px;}
@@ -934,3 +949,185 @@ a{color:inherit;}
 .tags,
 .similar,
 .comments-section{animation:none !important;}
+
+
+/* =========================================================
+   FINAL OVERLAP FIXES — WallpaperHub
+   يحافظ على الوظائف الحالية ويمنع تداخل عناصر الواجهة.
+   ========================================================= */
+
+.wallpaper-preview-wrapper{
+    position:relative;
+}
+
+/* الشريط العلوي فوق الصورة */
+.top-bar{
+    z-index:60;
+    padding-top:calc(env(safe-area-inset-top,0px) + 12px);
+}
+
+.top-bar > *{
+    position:relative;
+    z-index:61;
+}
+
+/* قائمة الخيارات فوق كل عناصر الصورة */
+.more-options-btn{
+    top:calc(env(safe-area-inset-top,0px) + 12px);
+    right:16px;
+    z-index:75;
+}
+
+.options-menu{
+    z-index:120;
+}
+
+/* زر التحميل وملء الشاشة لا يتداخلان مع HD والدقة */
+.wallpaper-preview-wrapper > .download-image-btn{
+    top:calc(env(safe-area-inset-top,0px) + 78px);
+    right:16px;
+    bottom:auto;
+    z-index:30;
+}
+
+.wallpaper-preview-wrapper > .fullscreen-image-btn{
+    top:calc(env(safe-area-inset-top,0px) + 78px);
+    left:50%;
+    bottom:auto;
+    z-index:30;
+}
+
+/* شارات الصورة تبقى دائمًا في الأسفل */
+.quality-badge{
+    right:16px;
+    bottom:16px;
+    z-index:20;
+}
+
+#wallResolution{
+    right:76px;
+    bottom:16px;
+    z-index:20;
+}
+
+#sliderIndexBadge,
+.slider-badge{
+    left:16px;
+    bottom:16px;
+    z-index:20;
+}
+
+/* منع أزرار الإجراءات الرئيسية من التداخل */
+.main-actions{
+    align-items:stretch;
+}
+
+.main-actions > button{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* منع اقتراحات المنشن من الخروج فوق عناصر غير مناسبة */
+.comment-tools,
+.comment-action-buttons{
+    min-width:0;
+}
+
+.comment-action-buttons{
+    flex:0 0 auto;
+}
+
+#mentionSuggestions{
+    z-index:200;
+}
+
+/* الهاتف */
+@media(max-width:600px){
+
+    .wallpaper-preview-wrapper{
+        height:68dvh;
+        min-height:430px;
+        max-height:640px;
+    }
+
+    .wallpaper-preview-wrapper > .download-image-btn,
+    .wallpaper-preview-wrapper > .fullscreen-image-btn{
+        top:calc(env(safe-area-inset-top,0px) + 70px);
+    }
+
+    /* وضع الزرين بجانب بعضهما بدون اصطدام */
+    .wallpaper-preview-wrapper > .fullscreen-image-btn{
+        left:auto;
+        right:68px;
+        transform:none;
+    }
+
+    .wallpaper-preview-wrapper > .fullscreen-image-btn:active{
+        transform:scale(.91);
+    }
+
+    .quality-badge{
+        right:14px;
+        bottom:14px;
+    }
+
+    #wallResolution{
+        right:72px;
+        bottom:14px;
+        max-width:calc(100% - 150px);
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+    }
+
+    #sliderIndexBadge,
+    .slider-badge{
+        left:14px;
+        bottom:14px;
+    }
+
+    .main-actions{
+        gap:8px;
+    }
+
+    .main-actions > button{
+        padding-left:8px;
+        padding-right:8px;
+    }
+}
+
+/* شاشات الهواتف الضيقة جدًا */
+@media(max-width:380px){
+
+    .main-actions{
+        flex-direction:column;
+    }
+
+    .main-actions > button{
+        width:100%;
+    }
+
+    .wallpaper-preview-wrapper > .download-image-btn{
+        right:14px;
+    }
+
+    .wallpaper-preview-wrapper > .fullscreen-image-btn{
+        right:68px;
+    }
+
+    .wallpaper-preview-wrapper > .download-image-btn,
+    .wallpaper-preview-wrapper > .fullscreen-image-btn{
+        width:42px;
+        height:42px;
+    }
+}
+
+/* منع أي أنيميشن قديم من تحريك أقسام الصفحة */
+.wallpaper-preview-wrapper,
+.info,
+.tags,
+.similar,
+.comments-section{
+    animation:none !important;
+}
