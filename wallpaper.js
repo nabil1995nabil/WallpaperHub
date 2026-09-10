@@ -1966,10 +1966,8 @@ history.back();
 };
 
 }
-
 // ===============================
-// ===============================
-// COMMENTS + MENTION SYSTEM (SUPABASE)
+// COMMENTS + REAL MENTION SYSTEM (SUPABASE)
 // ===============================
 
 const commentInput = document.getElementById("commentInput");
@@ -1979,15 +1977,11 @@ const mentionSuggestions = document.getElementById("mentionSuggestions");
 const commentsContainer = document.getElementById("commentsContainer");
 const commentsCountBadge = document.getElementById("commentsCountBadge");
 
-// ===============================
-// CURRENT USER ID
-// ===============================
-// لا يوجد اعتماد على Firebase هنا.
-// نحاول أخذ UID من بيانات المستخدم الموجودة في المشروع.
 let currentAuthUser = null;
+let savedMentionRange = null;
 
 // ===============================
-// SUPABASE AUTH - نفس جلسة Profile
+// SUPABASE AUTH - جلسة المستخدم
 // ===============================
 async function restoreWallpaperAuth(){
     try{
@@ -2008,12 +2002,10 @@ supabase.auth.onAuthStateChange((event, session) => {
 restoreWallpaperAuth();
 
 function getCurrentUserId(){
-    // المصدر الأساسي: UID الحقيقي من Supabase
     if(currentAuthUser?.id){
         return String(currentAuthUser.id).trim();
     }
 
-    // توافق مع البيانات القديمة في المشروع
     const directKeys = ["userId", "uid", "userUID"];
     for(const key of directKeys){
         const value = String(localStorage.getItem(key) || "").trim();
@@ -2037,79 +2029,8 @@ function getCurrentUserId(){
 }
 
 // ===============================
-// MENTION TARGET = WALLPAPER OWNER
+// MENTION LOGIC & FORMATTING
 // ===============================
-let savedMentionRange = null;
-
-function getWallpaperMentionTarget(){
-    if(!currentWallpaper) return null;
-
-    let userId = String(
-        currentWallpaper.ownerUID ||
-        currentWallpaper.userId ||
-        currentWallpaper.user_id ||
-        ""
-    ).trim();
-
-    const name = String(
-        currentWallpaper.author || ""
-    ).trim();
-
-    // بعض الخلفيات القديمة قد لا يكون لها user_id محفوظ.
-    // إذا كانت الخلفية منشورة من الحساب الحالي، نستعمل UID الحساب الحالي
-    // كحل احتياطي حتى تظهر الإشارة بشكل صحيح.
-    if(!userId){
-        const currentUserId = getCurrentUserId();
-        const currentUserName = String(
-            localStorage.getItem("userName") || ""
-        ).trim();
-
-        if(
-            currentUserId &&
-            name &&
-            currentUserName &&
-            name === currentUserName
-        ){
-            userId = currentUserId;
-        }
-    }
-
-    if(!userId) return null;
-
-    return {
-        userId,
-        name: name || "صاحب الخلفية"
-    };
-}
-
-async function resolveWallpaperMentionTarget(){
-    let target = getWallpaperMentionTarget();
-    if(target) return target;
-
-    if(!currentWallpaper?.id) return null;
-
-    try{
-        const response = await fetch(API, { cache:"no-store" });
-        if(!response.ok) return null;
-
-        const wallpapers = await response.json();
-        const fresh = (Array.isArray(wallpapers) ? wallpapers : [])
-            .find(w => Number(w.id) === Number(currentWallpaper.id));
-
-        if(fresh){
-            currentWallpaper = {
-                ...currentWallpaper,
-                ...fresh,
-                id:Number(fresh.id)
-            };
-        }
-    }catch(error){
-        console.warn("MENTION OWNER LOAD ERROR", error);
-    }
-
-    return getWallpaperMentionTarget();
-}
-
 function escapeHtml(value){
     return String(value ?? "")
         .replace(/&/g,"&amp;")
@@ -2119,11 +2040,20 @@ function escapeHtml(value){
         .replace(/'/g,"&#039;");
 }
 
-function formatCommentText(value){
+// تحويل نص الإشارة إلى رابط حقيقي إلى ملف البروفايل
+function formatCommentText(value, mentionedUserId){
     const safe = escapeHtml(value);
+    
+    if (mentionedUserId) {
+        return safe.replace(
+            /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
+            `$1<a href="profile.html?uid=${encodeURIComponent(mentionedUserId)}" class="comment-mention-link" style="color: #007aff; font-weight: bold; text-decoration: underline;">$2</a>`
+        );
+    }
+
     return safe.replace(
         /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
-        '$1<span class="comment-mention">$2</span>'
+        '$1<span class="comment-mention" style="color: #007aff; font-weight: bold;">$2</span>'
     );
 }
 
@@ -2143,8 +2073,8 @@ function getMentionPayload(){
     if(!tag) return null;
 
     return {
-        userId:String(tag.dataset.userId || "").trim(),
-        name:String(tag.dataset.name || tag.textContent || "")
+        userId: String(tag.dataset.userId || "").trim(),
+        name: String(tag.dataset.name || tag.textContent || "")
             .replace(/^@/,'')
             .trim()
     };
@@ -2168,48 +2098,65 @@ function hideMentionSuggestions(){
     mentionSuggestions.innerHTML = "";
 }
 
-async function showOwnerMentionSuggestion(){
+// ===============================
+// SEARCH REAL USERS FROM SUPABASE
+// ===============================
+async function searchRealUsers(query){
     if(!mentionSuggestions) return;
 
     mentionSuggestions.innerHTML = `
-        <div class="mention-loading" aria-live="polite">جاري البحث</div>
+        <div class="mention-loading" style="padding:10px; text-align:center; color:#888;">جاري البحث عن مستخدمين...</div>
     `;
     mentionSuggestions.hidden = false;
 
-    const target = await resolveWallpaperMentionTarget();
+    try {
+        const { data: users, error } = await supabase
+            .from("profiles")
+            .select("id, full_name, username, avatar_url")
+            .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
+            .limit(5);
 
-    if(!target){
-        mentionSuggestions.innerHTML = `
-            <div class="mention-empty">صاحب الخلفية غير مرتبط بحساب</div>
-        `;
-        return;
-    }
+        if(error || !users || users.length === 0){
+            mentionSuggestions.innerHTML = `
+                <div class="mention-empty" style="padding:10px; text-align:center; color:#888;">لم يتم العثور على مستخدم</div>
+            `;
+            return;
+        }
 
-    mentionSuggestions.innerHTML = `
-        <button type="button" class="mention-suggestion-item" aria-label="الإشارة إلى ${escapeHtml(target.name)}">
-            <span class="mention-suggestion-avatar">@</span>
-            <span class="mention-suggestion-info">
-                <strong>@${escapeHtml(target.name)}</strong>
-                <small>صاحب الخلفية</small>
-            </span>
-        </button>
-    `;
+        mentionSuggestions.innerHTML = "";
+        users.forEach(user => {
+            const displayName = user.full_name || user.username || "مستخدم";
+            const avatar = user.avatar_url || "assets/images/user.png";
 
-    const item = mentionSuggestions.querySelector(".mention-suggestion-item");
-    if(item){
-        item.onclick = async(event)=>{
-            event.preventDefault();
-            event.stopPropagation();
-            await insertOwnerMention();
-        };
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "mention-suggestion-item";
+            btn.style.cssText = "display:flex; align-items:center; gap:8px; width:100%; padding:8px 12px; background:none; border:none; cursor:pointer; text-align:right;";
+
+            btn.innerHTML = `
+                <img src="${escapeHtml(avatar)}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
+                <span class="mention-suggestion-info">
+                    <strong style="display:block; font-size:14px;">@${escapeHtml(displayName)}</strong>
+                </span>
+            `;
+
+            btn.onclick = async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                await insertUserMention(user.id, displayName);
+            };
+
+            mentionSuggestions.appendChild(btn);
+        });
+
+    } catch (err) {
+        console.warn("SEARCH USERS MENTION ERROR:", err);
+        hideMentionSuggestions();
     }
 }
 
-async function insertOwnerMention(){
+async function insertUserMention(userId, userName){
     if(!commentInput) return;
-
-    const target = await resolveWallpaperMentionTarget();
-    if(!target) return;
 
     commentInput.focus();
 
@@ -2231,7 +2178,6 @@ async function insertOwnerMention(){
         range.collapse(false);
     }
 
-    // حذف @ أو بداية Mention المكتوبة قبل اختيار النتيجة.
     if(range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE){
         const node = range.startContainer;
         const before = node.textContent.slice(0, range.startOffset);
@@ -2246,17 +2192,18 @@ async function insertOwnerMention(){
 
     const mention = document.createElement("span");
     mention.className = "mention-tag";
-    mention.dataset.userId = target.userId;
-    mention.dataset.name = target.name;
+    mention.dataset.userId = userId;
+    mention.dataset.name = userName;
     mention.contentEditable = "false";
-    mention.textContent = `@${target.name}`;
+    mention.style.cssText = "color:#007aff; font-weight:bold;";
+    mention.textContent = `@${userName}`;
 
     range.insertNode(mention);
 
     const space = document.createTextNode(" ");
     mention.after(space);
 
-    range.setStart(space,1);
+    range.setStart(space, 1);
     range.collapse(true);
 
     selection.removeAllRanges();
@@ -2305,6 +2252,11 @@ async function loadComments(){
                 ? `<img src="${escapeHtml(comment.avatar)}" alt="">`
                 : `<span class="material-icons">account_circle</span>`;
 
+            // اسم الكاتب برابط بروفايل حقيقي إن توفر الـ UID
+            const authorLink = comment.userId 
+                ? `<a href="profile.html?uid=${encodeURIComponent(comment.userId)}" style="text-decoration:none; color:inherit; font-weight:bold;" class="comment-author-link">${escapeHtml(comment.user || "مستخدم")}</a>`
+                : escapeHtml(comment.user || "مستخدم");
+
             box.innerHTML = `
                 <div class="user-avatar">${avatarHtml}</div>
 
@@ -2312,7 +2264,7 @@ async function loadComments(){
                     <div class="comment-header">
                         <div>
                             <div class="comment-author">
-                                ${escapeHtml(comment.user || "مستخدم")}
+                                ${authorLink}
                             </div>
                             <span class="comment-email">
                                 ${escapeHtml(comment.email || "غير مسجل")}
@@ -2321,7 +2273,7 @@ async function loadComments(){
                     </div>
 
                     <div class="comment-text">
-                        ${formatCommentText(comment.text || "")}
+                        ${formatCommentText(comment.text || "", comment.mentionedUserId)}
                     </div>
 
                     <div class="comment-footer">
@@ -2421,7 +2373,6 @@ if(sendCommentBtn){
 // ===============================
 if(mentionBtn && commentInput){
     mentionBtn.addEventListener("mousedown", (event)=>{
-        // نحافظ على مكان المؤشر قبل ما يفقد الـ button التركيز.
         event.preventDefault();
         saveCurrentMentionCaret();
     });
@@ -2430,7 +2381,7 @@ if(mentionBtn && commentInput){
         event.preventDefault();
         event.stopPropagation();
         saveCurrentMentionCaret();
-        await showOwnerMentionSuggestion();
+        await searchRealUsers("");
     });
 
     commentInput.addEventListener("keyup", ()=>{
@@ -2441,8 +2392,11 @@ if(mentionBtn && commentInput){
         saveCurrentMentionCaret();
 
         const text = getCommentText();
-        if(/(^|\s)@[\w\u0600-\u06FF._-]*$/.test(text)){
-            await showOwnerMentionSuggestion();
+        const match = text.match(/(^|\s)@([\w\u0600-\u06FF._-]*)$/);
+
+        if(match){
+            const query = match[2] || "";
+            await searchRealUsers(query);
         }else{
             hideMentionSuggestions();
         }
@@ -2497,7 +2451,6 @@ async function likeComment(id){
 }
 
 window.likeComment = likeComment;
-
 // ===============================
 // Start
 // ===============================
