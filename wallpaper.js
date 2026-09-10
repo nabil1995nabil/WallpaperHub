@@ -90,6 +90,11 @@ const captureTime =
 document.getElementById("captureTime");
 const imageSource =
 document.getElementById("imageSource");
+
+const wallLikes = document.getElementById("wallLikes");
+const wallViews = document.getElementById("wallViews");
+const wallQuickRating = document.getElementById("wallQuickRating");
+const wallQuickDate = document.getElementById("wallQuickDate");
 if(moreOptionsBtn){
 moreOptionsBtn.onclick = ()=>{
 optionsMenu.classList.toggle("active");
@@ -338,6 +343,17 @@ wallVideo.style.display =
 }
 
 // ===============================
+// Quick Stats Formatter
+// ===============================
+function formatQuickStat(value){
+    const n = Number(value);
+    if(!Number.isFinite(n)) return String(value ?? 0);
+    if(n >= 1000000) return (n/1000000).toFixed(n >= 10000000 ? 0 : 1).replace(/\.0$/,"") + "M";
+    if(n >= 1000) return (n/1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/,"") + "K";
+    return String(n);
+}
+
+// ===============================
 // Show Wallpaper
 // ===============================
 
@@ -534,6 +550,29 @@ wallDate.textContent =
 
 currentWallpaper.date || "";
 
+
+// Quick stats: likes / views / rating / date
+if(wallLikes){
+    wallLikes.textContent = formatQuickStat(
+        currentWallpaper.likes ??
+        currentWallpaper.likeCount ??
+        currentWallpaper.favorites ??
+        0
+    );
+}
+if(wallViews){
+    wallViews.textContent = formatQuickStat(
+        currentWallpaper.views ??
+        currentWallpaper.viewCount ??
+        0
+    );
+}
+if(wallQuickRating){
+    wallQuickRating.textContent = currentWallpaper.rating ?? 0;
+}
+if(wallQuickDate){
+    wallQuickDate.textContent = currentWallpaper.date || "—";
+}
 // ===============================
 // Photo Metadata
 // ===============================
