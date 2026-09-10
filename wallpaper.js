@@ -151,38 +151,237 @@ JSON.stringify(list)
 
 }
 // ===============================
+// Normalize + Load Full Wallpaper Details
+// ===============================
+// التفاصيل تعتمد على سجل Supabase الكامل، وليس فقط mapper في server.js.
+function normalizeWallpaperData(base = {}, row = {}) {
+    const merged = { ...base, ...row };
+
+    const first = (...values) => {
+        for (const value of values) {
+            if (value !== undefined && value !== null && String(value).trim() !== "") {
+                return value;
+            }
+        }
+        return undefined;
+    };
+
+    const numeric = (value, fallback = 0) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+    };
+
+    merged.id = numeric(first(row.id, base.id), 0);
+    merged.title = first(row.title, base.title) ?? "";
+    merged.description = first(
+        row.description, row.wallpaper_description, row.desc, base.description
+    ) ?? "";
+
+    merged.image = first(row.image, row.image_url, base.image) ?? "";
+    merged.thumbnail = first(
+        row.thumbnail, row.thumbnail_url, base.thumbnail, merged.image
+    ) ?? "";
+
+    merged.category = String(
+        first(row.category, base.category) ?? "other"
+    ).trim().toLowerCase();
+
+    merged.type = first(row.type, base.type) ?? "image";
+    merged.animated = Boolean(
+        row.animated ?? base.animated ??
+        ["video", "gif"].includes(String(merged.type).toLowerCase())
+    );
+
+    merged.resolution = first(
+        row.resolution, row.dimensions, row.size_dimensions, base.resolution
+    ) ?? "";
+
+    merged.size = first(
+        row.size, row.file_size, row.fileSize, base.size
+    ) ?? "";
+
+    merged.downloads = numeric(
+        first(row.downloads, row.download_count, base.downloads), 0
+    );
+    merged.views = numeric(
+        first(row.views, row.view_count, base.views), 0
+    );
+    merged.likes = numeric(
+        first(row.likes, row.like_count, row.favorites, base.likes), 0
+    );
+    merged.rating = numeric(first(row.rating, base.rating), 0);
+    merged.ratingCount = numeric(
+        first(row.rating_count, row.ratingCount, base.ratingCount), 0
+    );
+    merged.ratingSum = numeric(
+        first(row.rating_sum, row.ratingSum, base.ratingSum), 0
+    );
+
+    merged.author = first(
+        row.author, row.author_name, row.username, base.author
+    ) ?? "WallpaperHub";
+
+    merged.date = first(
+        row.date, row.created_at, row.createdAt, base.date
+    ) ?? "";
+
+    merged.colors = Array.isArray(row.colors)
+        ? row.colors
+        : (Array.isArray(base.colors) ? base.colors : []);
+
+    merged.tags = Array.isArray(row.tags)
+        ? row.tags
+        : (Array.isArray(base.tags) ? base.tags : []);
+
+    merged.location = first(
+        row.location, row.capture_location, row.captureLocation, base.location
+    ) ?? "";
+
+    merged.captureDate = first(
+        row.capture_date, row.captureDate, row.taken_date, base.captureDate
+    ) ?? "";
+
+    merged.captureTime = first(
+        row.capture_time, row.captureTime, row.taken_time, base.captureTime
+    ) ?? "";
+
+    merged.camera = first(
+        row.camera, row.camera_model, row.cameraModel, base.camera
+    ) ?? "";
+
+    merged.source = first(
+        row.source, row.image_source, row.imageSource, base.source
+    ) ?? "";
+
+    // user_id هو المصدر الأساسي لمالك الخلفية.
+    merged.ownerUID = String(first(
+        row.user_id, row.owner_uid, row.ownerUID, row.userId,
+        base.ownerUID, base.userId, base.user_id
+    ) ?? "").trim();
+
+    merged.userId = merged.ownerUID;
+
+    merged.authorAvatar = first(
+        row.author_avatar, row.authorAvatar, row.avatar_url, row.avatar,
+        base.authorAvatar, base.avatar
+    ) ?? "";
+
+    merged.authorName = first(
+        row.author_name, row.authorName, row.full_name, row.username,
+        base.authorName, base.author
+    ) ?? "WallpaperHub";
+
+    merged.aiDescription = first(
+        row.ai_description, row.aiDescription, base.aiDescription
+    ) ?? "";
+
+    return merged;
+}
+
+async function loadWallpaperDetails(id, fallbackWallpaper) {
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) {
+        return normalizeWallpaperData(fallbackWallpaper);
+    }
+
+    // المصدر الأول: السجل الكامل من Supabase.
+    try {
+        const { data, error } = await supabase
+            .from("wallpapers")
+            .select("*")
+            .eq("id", numericId)
+            .maybeSingle();
+
+        if (!error && data) {
+            return normalizeWallpaperData(fallbackWallpaper, data);
+        }
+
+        if (error) {
+            console.warn("DIRECT WALLPAPER SUPABASE LOAD:", error.message);
+        }
+    } catch (error) {
+        console.warn("DIRECT WALLPAPER SUPABASE ERROR:", error);
+    }
+
+    // المصدر الثاني: endpoint التفاصيل إن كان موجودًا.
+    try {
+        const res = await fetch(
+            `${API}/${encodeURIComponent(numericId)}`,
+            { cache: "no-store" }
+        );
+
+        if (res.ok) {
+            const payload = await res.json();
+            const data = payload?.wallpaper || payload?.data || payload;
+
+            if (data && typeof data === "object" && !Array.isArray(data)) {
+                return normalizeWallpaperData(fallbackWallpaper, data);
+            }
+        }
+    } catch (error) {
+        console.warn("WALLPAPER DETAIL API FALLBACK:", error);
+    }
+
+    // المصدر الأخير: بيانات القائمة.
+    return normalizeWallpaperData(fallbackWallpaper);
+}
+
+// ===============================
 // Load Wallpaper
 // ===============================
 
 async function loadWallpaper() {
     try {
-        const response = await fetch(API);
+        const response = await fetch(API, { cache: "no-store" });
         if (!response.ok) throw new Error("API ERROR");
 
-        allWallpapers = await response.json();
-        allWallpapers = allWallpapers.map(w => ({
-            ...w,
-            id: Number(w.id)
-        }));
+        const list = await response.json();
 
-        currentWallpaper = allWallpapers.find(w => w.id === wallpaperId);
+        allWallpapers = Array.isArray(list)
+            ? list.map(w => normalizeWallpaperData({}, w))
+            : [];
 
-        if (!currentWallpaper) {
-            console.error("Wallpaper Not Found");
+        const listWallpaper = allWallpapers.find(
+            w => Number(w.id) === Number(wallpaperId)
+        );
+
+        if (!listWallpaper) {
+            console.error("Wallpaper Not Found:", wallpaperId);
             return;
         }
 
-        categoryWallpapers = allWallpapers.filter(w => w.category === currentWallpaper.category);
-        currentWallpaperIndex = categoryWallpapers.findIndex(w => w.id === currentWallpaper.id);
+        // لا نرسم المعلومات قبل جلب السجل الكامل.
+        currentWallpaper = await loadWallpaperDetails(
+            wallpaperId,
+            listWallpaper
+        );
 
-showWallpaper();
-autoAnalyzeWallpaper();
-loadSimilar();
-checkLikeStatus();
-loadComments();
+        // دمج التفاصيل في القائمة حتى تبقى أزرار التنقل متزامنة.
+        allWallpapers = allWallpapers.map(w =>
+            Number(w.id) === Number(currentWallpaper.id)
+                ? normalizeWallpaperData(w, currentWallpaper)
+                : w
+        );
+
+        categoryWallpapers = allWallpapers.filter(
+            w => w.category === currentWallpaper.category
+        );
+
+        currentWallpaperIndex = categoryWallpapers.findIndex(
+            w => Number(w.id) === Number(currentWallpaper.id)
+        );
+
+        showWallpaper();
+        autoAnalyzeWallpaper();
+        loadSimilar();
+        checkLikeStatus();
+        loadComments();
+
         saveUserAction("views", currentWallpaper.id);
-        // ✅ حفظ المشاهدة في الإحصائيات
-        window.syncUserStats("views", currentWallpaper.id);
+
+        if (typeof window.syncUserStats === "function") {
+            window.syncUserStats("views", currentWallpaper.id);
+        }
 
         sendView(currentWallpaper.id);
 
@@ -356,59 +555,118 @@ function formatQuickStat(value){
 // ===============================
 // Real Publisher Profile (UID -> profiles)
 // ===============================
-async function loadPublisherProfile(uid, wallpaperId = null){
+async function loadPublisherProfile(uid, wallpaperId = null) {
     const publisherUID = String(uid || "").trim();
-    if(!publisherUID) return null;
+    if (!publisherUID) return null;
 
-    try{
-        const targetId = wallpaperId || currentWallpaper?.id || wallpaperId;
+    const targetWallpaperId = wallpaperId ?? currentWallpaper?.id ?? null;
+
+    // المصدر الحقيقي: جدول profiles.
+    try {
+        const { data: profile, error } = await supabase
+            .from("profiles")
+            .select("id, full_name, username, avatar_url")
+            .eq("id", publisherUID)
+            .maybeSingle();
+
+        if (!error && profile) {
+            applyPublisherProfile(profile, publisherUID, targetWallpaperId);
+            return profile;
+        }
+
+        if (error) {
+            console.warn("DIRECT PUBLISHER SUPABASE LOAD:", error.message);
+        }
+    } catch (error) {
+        console.warn("DIRECT PUBLISHER SUPABASE ERROR:", error);
+    }
+
+    // fallback للسيرفر.
+    try {
+        if (targetWallpaperId == null) return null;
+
         const res = await fetch(
-            `/api/wallpapers/${encodeURIComponent(targetId)}/publisher?uid=${encodeURIComponent(publisherUID)}`
+            `/api/wallpapers/${encodeURIComponent(targetWallpaperId)}/publisher?uid=${encodeURIComponent(publisherUID)}`,
+            { cache: "no-store" }
         );
-        if(!res.ok) throw new Error("PUBLISHER API ERROR");
+
+        if (!res.ok) throw new Error("PUBLISHER API ERROR");
 
         const data = await res.json();
-        if(!data?.success || !data?.user) return null;
+        const user = data?.user;
 
-        if(wallpaperId != null && currentWallpaper && Number(currentWallpaper.id) !== Number(wallpaperId)){
-            return null;
-        }
+        if (!data?.success || !user) return null;
 
-        const user = data.user;
-        const name = user.full_name || user.username || user.name || "مستخدم";
-        const avatar = user.avatar_url || user.avatar || user.photoURL || "";
-        const nameEl = document.getElementById("wallAuthorName");
-        const avatarEl = document.getElementById("wallAuthorAvatar");
-
-        if(nameEl){
-            nameEl.textContent = name;
-            nameEl.dataset.uid = publisherUID;
-            nameEl.style.cursor = "pointer";
-            nameEl.onclick = () => {
-                location.href = `profile.html?uid=${encodeURIComponent(publisherUID)}`;
-            };
-        }
-
-        if(avatarEl){
-            avatarEl.src = avatar ? getImageUrl(avatar) : "/assets/logo/no-image.png";
-            avatarEl.dataset.uid = publisherUID;
-            avatarEl.style.cursor = "pointer";
-            avatarEl.onclick = () => {
-                location.href = `profile.html?uid=${encodeURIComponent(publisherUID)}`;
-            };
-            avatarEl.onerror = () => {
-                avatarEl.onerror = null;
-                avatarEl.src = "/assets/logo/no-image.png";
-            };
-        }
-
-        if(currentWallpaper && Number(currentWallpaper.id) === Number(wallpaperId)){
-            currentWallpaper.publisher = user;
-        }
+        applyPublisherProfile(user, publisherUID, targetWallpaperId);
         return user;
-    }catch(error){
+
+    } catch (error) {
         console.warn("LOAD PUBLISHER PROFILE ERROR:", error);
         return null;
+    }
+}
+
+function applyPublisherProfile(user, publisherUID, wallpaperId = null) {
+    if (
+        wallpaperId != null &&
+        currentWallpaper &&
+        Number(currentWallpaper.id) !== Number(wallpaperId)
+    ) {
+        return;
+    }
+
+    const profile = user || {};
+    const name =
+        profile.full_name ||
+        profile.username ||
+        profile.name ||
+        "مستخدم";
+
+    const avatar =
+        profile.avatar_url ||
+        profile.avatar ||
+        profile.photoURL ||
+        "";
+
+    const nameEl = document.getElementById("wallAuthorName");
+    const avatarEl = document.getElementById("wallAuthorAvatar");
+
+    if (nameEl) {
+        nameEl.textContent = name;
+        nameEl.dataset.uid = publisherUID;
+        nameEl.style.cursor = "pointer";
+        nameEl.onclick = () => {
+            location.href =
+                `profile.html?uid=${encodeURIComponent(publisherUID)}`;
+        };
+    }
+
+    if (avatarEl) {
+        avatarEl.src = avatar
+            ? getImageUrl(avatar)
+            : "/assets/logo/no-image.png";
+
+        avatarEl.dataset.uid = publisherUID;
+        avatarEl.style.cursor = "pointer";
+        avatarEl.onclick = () => {
+            location.href =
+                `profile.html?uid=${encodeURIComponent(publisherUID)}`;
+        };
+
+        avatarEl.onerror = () => {
+            avatarEl.onerror = null;
+            avatarEl.src = "/assets/logo/no-image.png";
+        };
+    }
+
+    if (
+        currentWallpaper &&
+        (wallpaperId == null ||
+         Number(currentWallpaper.id) === Number(wallpaperId))
+    ) {
+        currentWallpaper.publisher = profile;
+        currentWallpaper.authorName = name;
+        currentWallpaper.authorAvatar = avatar;
     }
 }
 
@@ -2676,46 +2934,3 @@ loadWallpaper();
     activateTab(initialTab, false);
     updateCommentsTabCount();
 })();
-
-/* =========================================================
-   Publisher header avatar/name sync
-   ========================================================= */
-function updatePublisherHeader(data) {
-    const avatar = document.getElementById('wallAuthorAvatar');
-    const name = document.getElementById('wallAuthorName');
-    if (!data) return;
-
-    const user = data.publisher || data.user || data.authorUser || data.authorData || {};
-    const avatarUrl = data.authorAvatar || data.avatar || data.userAvatar || user.avatar || user.avatar_url || user.photoURL || '';
-    const authorName = data.authorName || data.author || data.username || user.full_name || user.name || user.username || 'WallpaperHub';
-    const uid = String(data.ownerUID || data.userId || data.user_id || user.id || '').trim();
-
-    if (name) {
-        name.textContent = authorName;
-        if(uid){
-            name.style.cursor = 'pointer';
-            name.onclick = () => {
-                location.href = `profile.html?uid=${encodeURIComponent(uid)}`;
-            };
-        }
-    }
-    if (avatarUrl && avatar) avatar.src = getImageUrl(avatarUrl);
-    if (uid && avatar) {
-        avatar.style.cursor = 'pointer';
-        avatar.onclick = () => {
-            location.href = `profile.html?uid=${encodeURIComponent(uid)}`;
-        };
-    }
-}
-
-// Patch the existing loader without replacing its behavior.
-const __originalLoadWallpaper = typeof loadWallpaper === 'function' ? loadWallpaper : null;
-if (__originalLoadWallpaper) {
-    window.loadWallpaper = async function(...args) {
-        const result = await __originalLoadWallpaper.apply(this, args);
-        try {
-            if (typeof currentWallpaper !== 'undefined') updatePublisherHeader(currentWallpaper);
-        } catch (e) {}
-        return result;
-    };
-}
