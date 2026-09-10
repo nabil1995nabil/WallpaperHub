@@ -100,8 +100,8 @@ QUALITY BADGE
     top:15px;
     left:15px;
     padding:8px 14px;
-    background:rgba(255,255,255,.85);
-    color:#111;
+    color:#ffffff;
+    background:transparent
     border-radius:20px;
     font-size:13px;
     font-weight:700;
@@ -117,7 +117,7 @@ IMAGE ACTION BUTTONS
     bottom:16px;
     width:48px;
     height:48px;
-    color:#111;
+    color:#ffffff
     display:flex;
     align-items:center;
     justify-content:center;
@@ -130,7 +130,7 @@ IMAGE ACTION BUTTONS
 }
 
 .image-action-btn .material-icons{
-    font-size:25px;
+    font-size:20px;
 }
 
 .download-image-btn{
@@ -151,7 +151,7 @@ OPTIONS
     right:20px;
     width:45px;
     height:45px;
-    color:#111;
+    color:#ffffff;
     z-index:20;
     background:transparent;
     border:none;
@@ -162,7 +162,7 @@ OPTIONS
 
 .options-menu{
     position:absolute;
-    top:70px;
+    top:50px;
     right:20px;
     background:#fff;
     border:1px solid #ddd;
@@ -302,7 +302,6 @@ IMAGE LINK
     height:35px;
     border:none;
     border-radius:50%;
-    background:#f3f3f3;
     color:#333;
     display:flex;
     align-items:center;
@@ -827,7 +826,7 @@ MOBILE
 
 .mention-btn{
     font-family:Arial,sans-serif;
-    font-size:18px;
+    font-size:16px;
     font-weight:700;
 }
 
