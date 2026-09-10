@@ -354,6 +354,65 @@ function formatQuickStat(value){
 }
 
 // ===============================
+// Real Publisher Profile (UID -> profiles)
+// ===============================
+async function loadPublisherProfile(uid, wallpaperId = null){
+    const publisherUID = String(uid || "").trim();
+    if(!publisherUID) return null;
+
+    try{
+        const targetId = wallpaperId || currentWallpaper?.id || wallpaperId;
+        const res = await fetch(
+            `/api/wallpapers/${encodeURIComponent(targetId)}/publisher?uid=${encodeURIComponent(publisherUID)}`
+        );
+        if(!res.ok) throw new Error("PUBLISHER API ERROR");
+
+        const data = await res.json();
+        if(!data?.success || !data?.user) return null;
+
+        if(wallpaperId != null && currentWallpaper && Number(currentWallpaper.id) !== Number(wallpaperId)){
+            return null;
+        }
+
+        const user = data.user;
+        const name = user.full_name || user.username || user.name || "مستخدم";
+        const avatar = user.avatar_url || user.avatar || user.photoURL || "";
+        const nameEl = document.getElementById("wallAuthorName");
+        const avatarEl = document.getElementById("wallAuthorAvatar");
+
+        if(nameEl){
+            nameEl.textContent = name;
+            nameEl.dataset.uid = publisherUID;
+            nameEl.style.cursor = "pointer";
+            nameEl.onclick = () => {
+                location.href = `profile.html?uid=${encodeURIComponent(publisherUID)}`;
+            };
+        }
+
+        if(avatarEl){
+            avatarEl.src = avatar ? getImageUrl(avatar) : "/assets/logo/no-image.png";
+            avatarEl.dataset.uid = publisherUID;
+            avatarEl.style.cursor = "pointer";
+            avatarEl.onclick = () => {
+                location.href = `profile.html?uid=${encodeURIComponent(publisherUID)}`;
+            };
+            avatarEl.onerror = () => {
+                avatarEl.onerror = null;
+                avatarEl.src = "/assets/logo/no-image.png";
+            };
+        }
+
+        if(currentWallpaper && Number(currentWallpaper.id) === Number(wallpaperId)){
+            currentWallpaper.publisher = user;
+        }
+        return user;
+    }catch(error){
+        console.warn("LOAD PUBLISHER PROFILE ERROR:", error);
+        return null;
+    }
+}
+
+// ===============================
 // Show Wallpaper
 // ===============================
 
@@ -543,6 +602,17 @@ if(wallAuthorAvatar){
 }
 
 
+
+    // جلب معلومات الناشر الحقيقية من profiles باستخدام UID المحفوظ مع الخلفية.
+    const publisherUID = String(
+        currentWallpaper.ownerUID ||
+        currentWallpaper.userId ||
+        currentWallpaper.user_id ||
+        ""
+    ).trim();
+    if(publisherUID){
+        loadPublisherProfile(publisherUID, currentWallpaper.id);
+    }
 
 if(wallDate)
 
@@ -2615,12 +2685,27 @@ function updatePublisherHeader(data) {
     const name = document.getElementById('wallAuthorName');
     if (!data) return;
 
-    const user = data.user || data.authorUser || data.authorData || {};
+    const user = data.publisher || data.user || data.authorUser || data.authorData || {};
     const avatarUrl = data.authorAvatar || data.avatar || data.userAvatar || user.avatar || user.avatar_url || user.photoURL || '';
-    const authorName = data.authorName || data.author || data.username || user.name || user.username || 'WallpaperHub';
+    const authorName = data.authorName || data.author || data.username || user.full_name || user.name || user.username || 'WallpaperHub';
+    const uid = String(data.ownerUID || data.userId || data.user_id || user.id || '').trim();
 
-    if (name) name.textContent = authorName;
-    if (avatarUrl && avatar) avatar.src = avatarUrl;
+    if (name) {
+        name.textContent = authorName;
+        if(uid){
+            name.style.cursor = 'pointer';
+            name.onclick = () => {
+                location.href = `profile.html?uid=${encodeURIComponent(uid)}`;
+            };
+        }
+    }
+    if (avatarUrl && avatar) avatar.src = getImageUrl(avatarUrl);
+    if (uid && avatar) {
+        avatar.style.cursor = 'pointer';
+        avatar.onclick = () => {
+            location.href = `profile.html?uid=${encodeURIComponent(uid)}`;
+        };
+    }
 }
 
 // Patch the existing loader without replacing its behavior.

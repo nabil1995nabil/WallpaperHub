@@ -785,6 +785,84 @@ app.get(
     }
 );
 // ======================================
+// Real Wallpaper Publisher Profile
+// UID -> profiles -> profile.html?uid=...
+// ======================================
+app.get(
+    "/api/wallpapers/:id/publisher",
+    async (req, res) => {
+        try {
+            const wallpaperId = Number(req.params.id);
+            const requestedUID = String(req.query.uid || "").trim();
+            if (!Number.isFinite(wallpaperId)) {
+                return res.status(400).json({ success:false, message:"Invalid wallpaper ID" });
+            }
+
+            const wallpaper = await getWallpaperFromSupabase(wallpaperId);
+            const ownerUID = String(wallpaper?.ownerUID || wallpaper?.userId || "").trim();
+            if (!ownerUID) {
+                return res.json({ success:false, user:null, message:"Wallpaper has no owner UID" });
+            }
+
+            if (requestedUID && requestedUID !== ownerUID) {
+                return res.status(403).json({ success:false, message:"Publisher UID does not match wallpaper owner" });
+            }
+
+            const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("id, full_name, username, avatar_url")
+                .eq("id", ownerUID)
+                .maybeSingle();
+
+            if (profileError) console.log("PUBLISHER PROFILE QUERY ERROR:", profileError.message);
+
+            if (profile) {
+                return res.json({
+                    success:true,
+                    uid:ownerUID,
+                    user:{
+                        id:String(profile.id),
+                        full_name:profile.full_name || "",
+                        username:profile.username || "",
+                        avatar_url:profile.avatar_url || ""
+                    }
+                });
+            }
+
+            // احتياطي حقيقي من Supabase Auth إذا لم يوجد صف في profiles.
+            try {
+                const { data: authData, error: authError } = await supabase.auth.admin.getUserById(ownerUID);
+                if (!authError && authData?.user) {
+                    const authUser = authData.user;
+                    const meta = authUser.user_metadata || {};
+                    return res.json({
+                        success:true,
+                        uid:ownerUID,
+                        user:{
+                            id:String(authUser.id),
+                            full_name:meta.full_name || meta.name || "",
+                            username:meta.username || "",
+                            avatar_url:meta.avatar_url || meta.picture || ""
+                        }
+                    });
+                }
+            } catch (authError) {
+                console.log("PUBLISHER AUTH FALLBACK ERROR:", authError.message);
+            }
+
+            return res.json({
+                success:true,
+                uid:ownerUID,
+                user:{ id:ownerUID, full_name:wallpaper?.author || "مستخدم", username:"", avatar_url:"" }
+            });
+        } catch (error) {
+            console.log("GET PUBLISHER ERROR:", error);
+            res.status(500).json({ success:false, user:null, message:error.message });
+        }
+    }
+);
+
+// ======================================
 // Wallpapers API
 // ======================================
 
