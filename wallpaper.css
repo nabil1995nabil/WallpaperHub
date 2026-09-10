@@ -51,7 +51,6 @@ HEADER
     appearance:none;
     -webkit-appearance:none;
 }
-
 .icon-btn:active{
     transform:scale(.9);
 }
@@ -117,7 +116,8 @@ IMAGE ACTION BUTTONS
     bottom:16px;
     width:48px;
     height:48px;
-    color:#ffffff
+    color:#ffffff;
+    background:transparent;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -125,7 +125,6 @@ IMAGE ACTION BUTTONS
     border:none;
     appearance:none;
     -webkit-appearance:none;
-    box-shadow:none;
 }
 
 .image-action-btn .material-icons{
@@ -156,7 +155,6 @@ OPTIONS
     border:none;
     appearance:none;
     -webkit-appearance:none;
-    box-shadow:none;
 }
 
 .options-menu{
@@ -538,9 +536,6 @@ SET WALLPAPER BUTTON
     border:none;
 
     border-radius:30px;
-
-    background:#ffffff;
-
     color:#ffffff;
 
     font-size:16px;
