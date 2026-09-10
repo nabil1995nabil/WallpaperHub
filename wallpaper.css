@@ -1412,3 +1412,234 @@ MOBILE
     }
 }
 
+
+
+/* =========================================================
+   WALLPAPER CONTENT TABS
+   المعلومات / خلفيات مشابهة / التعليقات
+   ========================================================= */
+
+.wallpaper-header-info{
+    margin:20px;
+    background:#fff;
+    padding:4px 0 0;
+}
+
+.wallpaper-header-info h2{
+    text-align:right;
+    font-size:22px;
+    color:#111;
+    font-weight:800;
+    margin:0 0 10px;
+    line-height:1.5;
+}
+
+.wallpaper-header-info .description-box{
+    border-bottom:0;
+    padding:0 0 4px;
+}
+
+.wallpaper-header-info .description-box span{
+    display:block;
+    color:#777;
+    font-size:13px;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.wallpaper-header-info .description-box p{
+    color:#333;
+    font-size:14px;
+    line-height:1.85;
+    margin:0;
+}
+
+/* الشريط تحت الوصف مباشرة */
+.wallpaper-tabs-section{
+    margin:14px 15px 0;
+}
+
+.wallpaper-tabs{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:stretch;
+    gap:5px;
+    padding:4px;
+    background:#f5f6f8;
+    border:1px solid #e2e4e8;
+    border-radius:16px;
+    direction:rtl;
+    overflow:hidden;
+}
+
+.wallpaper-tab{
+    min-width:0;
+    min-height:48px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    color:#777;
+    padding:7px 5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:700;
+    line-height:1.2;
+    white-space:nowrap;
+    transition:background .18s ease,color .18s ease,box-shadow .18s ease;
+}
+
+.wallpaper-tab .material-icons{
+    font-size:17px;
+    flex:0 0 auto;
+}
+
+.wallpaper-tab b{
+    min-width:18px;
+    height:18px;
+    padding:0 4px;
+    border-radius:10px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#e7e9ed;
+    color:#777;
+    font-size:9px;
+    font-weight:800;
+    direction:ltr;
+}
+
+.wallpaper-tab.active{
+    background:#111;
+    color:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.10);
+}
+
+.wallpaper-tab.active b{
+    background:rgba(255,255,255,.16);
+    color:#fff;
+}
+
+.wallpaper-tab:active{
+    transform:scale(.98);
+}
+
+.wallpaper-tab:focus-visible{
+    outline:2px solid #1877f2;
+    outline-offset:-2px;
+}
+
+.wallpaper-tab-content{
+    margin-top:12px;
+}
+
+.tab-panel{
+    margin:0;
+    animation:none !important;
+}
+
+.tab-panel[hidden]{
+    display:none !important;
+}
+
+/* المعلومات داخل نفس مساحة المحتوى */
+.tab-panel-info{
+    margin:0 20px;
+    background:#fff;
+}
+
+.info-details{
+    width:100%;
+}
+
+.info-details .info-item{
+    background:#fff;
+}
+
+/* الألوان والوسوم أصبحا جزءًا من المعلومات */
+.info-extra-section{
+    margin:20px 0 0;
+}
+
+/* إلغاء الهوامش القديمة للأقسام التي أصبحت داخل التبويب */
+.tab-panel-similar > .similar,
+.tab-panel-comments > .comments-section{
+    margin:0 10px;
+}
+
+/* لا نعرض أي من الأقسام الثلاثة خارج نظام التبويبات */
+.wallpaper-header-info + .tags,
+.wallpaper-header-info + .comments-section,
+.wallpaper-header-info + .similar{
+    display:none;
+}
+
+@media(max-width:600px){
+    .wallpaper-header-info{
+        margin:15px;
+        padding-top:0;
+    }
+
+    .wallpaper-header-info h2{
+        font-size:20px;
+    }
+
+    .wallpaper-header-info .description-box p{
+        font-size:13px;
+    }
+
+    .wallpaper-tabs-section{
+        margin:12px 10px 0;
+    }
+
+    .wallpaper-tabs{
+        gap:3px;
+        padding:3px;
+        border-radius:14px;
+    }
+
+    .wallpaper-tab{
+        min-height:45px;
+        padding:6px 2px;
+        font-size:10px;
+        gap:3px;
+    }
+
+    .wallpaper-tab .material-icons{
+        font-size:15px;
+    }
+
+    .wallpaper-tab b{
+        min-width:16px;
+        height:16px;
+        font-size:8px;
+    }
+
+    .tab-panel-info{
+        margin:0 15px;
+    }
+
+    .tab-panel-similar > .similar,
+    .tab-panel-comments > .comments-section{
+        margin:0 10px;
+    }
+}
+
+@media(max-width:350px){
+    .wallpaper-tab{
+        font-size:9px;
+    }
+
+    .wallpaper-tab .material-icons{
+        display:none;
+    }
+
+    .wallpaper-tab b{
+        display:none;
+    }
+}

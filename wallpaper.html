@@ -284,20 +284,58 @@ close
 ========================= -->
 
 
-<section class="info">
-
-
-<h2 id="wallTitle2"></h2>
-
-
-<div class="info-item description-box">
+<!-- =========================
+     Wallpaper Header
+========================= -->
+<section class="wallpaper-header-info">
+    <h2 id="wallTitle2"></h2>
+    <div class="info-item description-box">
 
     <span>الوصف</span>
 
     <p id="wallDescription"></p>
 
 </div>
+</section>
 
+
+<!-- =========================
+     COMMENTS SECTION NEW
+========================= -->
+
+
+
+
+
+
+<!-- =========================
+     Wallpaper Content Tabs
+========================= -->
+<section class="wallpaper-tabs-section" aria-label="محتوى الخلفية">
+    <div class="wallpaper-tabs" role="tablist" aria-label="أقسام الخلفية">
+        <button class="wallpaper-tab active" type="button" role="tab"
+                data-tab="info" aria-selected="true">
+            <span class="material-icons">info</span>
+            <span>المعلومات</span>
+        </button>
+
+        <button class="wallpaper-tab" type="button" role="tab"
+                data-tab="similar" aria-selected="false">
+            <span class="material-icons">wallpaper</span>
+            <span>خلفيات مشابهة</span>
+        </button>
+
+        <button class="wallpaper-tab" type="button" role="tab"
+                data-tab="comments" aria-selected="false">
+            <span class="material-icons">chat_bubble_outline</span>
+            <span>التعليقات</span>
+            <b id="tabCommentsCount">0</b>
+        </button>
+    </div>
+
+    <div class="wallpaper-tab-content">
+        <section class="tab-panel tab-panel-info" data-panel="info">
+    <div class="info-details">
 <div class="info-item">
 
 <span>
@@ -532,50 +570,59 @@ content_copy
 
 
 
+
+    </div>
+
+    <section class="tags info-extra-section">
+        <h3>الألوان</h3>
+        <div id="colorPalette"></div>
+    </section>
+
+    <section class="tags info-extra-section">
+        <h3>الوسوم</h3>
+        <div id="tagsContainer"></div>
+    </section>
 </section>
 
+        <section class="tab-panel tab-panel-similar" data-panel="similar" hidden>
+            <section class="similar">
 
 
-
-
-
-<section class="tags">
+<div class="section-title">
 
 
 <h3>
-الألوان
+خلفيات مشابهة
 </h3>
 
 
-<div id="colorPalette"></div>
+
+<a href="#">
+عرض الكل
+</a>
+
+
+</div>
+
+
+
+<div
+
+id="similarWallpapers"
+
+class="similar-grid"
+
+>
+
+</div>
+
 
 
 </section>
+        </section>
 
-
-
-
-
-
-
-<section class="tags">
-
-
-<h3>
-الوسوم
-</h3>
-
-
-<div id="tagsContainer"></div>
-
-
-</section>
-
-<!-- =========================
-     COMMENTS SECTION NEW
-========================= -->
-
-<section class="comments-section">
+        <section class="tab-panel tab-panel-comments" data-panel="comments" hidden>
+            <section class="comments-section">
 
 
     <div class="section-title">
@@ -675,42 +722,10 @@ content_copy
 
 
 </section>
-
-
-<section class="similar">
-
-
-<div class="section-title">
-
-
-<h3>
-خلفيات مشابهة
-</h3>
-
-
-
-<a href="#">
-عرض الكل
-</a>
-
-
-</div>
-
-
-
-<div
-
-id="similarWallpapers"
-
-class="similar-grid"
-
->
-
-</div>
-
-
-
+        </section>
+    </div>
 </section>
+
 <!-- Scripts -->
 <script type="module" src="wallpaper.js"></script>
 

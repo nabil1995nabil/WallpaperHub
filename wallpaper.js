@@ -2459,3 +2459,81 @@ loadWallpaper();
 
 
 });
+// =========================================================
+// Wallpaper Tabs
+// المعلومات / خلفيات مشابهة / التعليقات
+// =========================================================
+(function setupWallpaperTabs(){
+    const tabs = Array.from(document.querySelectorAll(".wallpaper-tab[data-tab]"));
+    const panels = Array.from(document.querySelectorAll(".tab-panel[data-panel]"));
+
+    if(!tabs.length || !panels.length) return;
+
+    function updateCommentsTabCount(){
+        const source = document.getElementById("commentsCountBadge");
+        const target = document.getElementById("tabCommentsCount");
+        if(!target) return;
+
+        const text = source ? source.textContent : "0";
+        const match = String(text).match(/\d+/);
+        target.textContent = match ? match[0] : "0";
+    }
+
+    function activateTab(name, updateHash = true){
+        tabs.forEach(tab => {
+            const active = tab.dataset.tab === name;
+            tab.classList.toggle("active", active);
+            tab.setAttribute("aria-selected", active ? "true" : "false");
+            tab.tabIndex = active ? 0 : -1;
+        });
+
+        panels.forEach(panel => {
+            const active = panel.dataset.panel === name;
+            panel.hidden = !active;
+            panel.classList.toggle("active", active);
+        });
+
+        updateCommentsTabCount();
+
+        // لا نقفز لأعلى الصفحة عند تغيير التبويب.
+        if(updateHash){
+            try{
+                history.replaceState(null, "", `#${name}`);
+            }catch(error){}
+        }
+    }
+
+    tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+            activateTab(tab.dataset.tab);
+        });
+
+        tab.addEventListener("keydown", (event) => {
+            if(event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+
+            event.preventDefault();
+
+            const direction = event.key === "ArrowRight" ? -1 : 1;
+            const nextIndex = (index + direction + tabs.length) % tabs.length;
+            tabs[nextIndex].focus();
+            activateTab(tabs[nextIndex].dataset.tab);
+        });
+    });
+
+    const countBadge = document.getElementById("commentsCountBadge");
+    if(countBadge && typeof MutationObserver !== "undefined"){
+        new MutationObserver(updateCommentsTabCount).observe(countBadge, {
+            childList:true,
+            characterData:true,
+            subtree:true
+        });
+    }
+
+    const initialHash = location.hash.replace("#", "");
+    const initialTab = tabs.some(t => t.dataset.tab === initialHash)
+        ? initialHash
+        : "info";
+
+    activateTab(initialTab, false);
+    updateCommentsTabCount();
+})();
