@@ -515,54 +515,6 @@ FULLSCREEN CLOSE
 
 }
 
-/* =========================
-SET WALLPAPER BUTTON
-========================= */
-
-.fullscreen-set-btn{
-
-    position:absolute;
-
-    bottom:35px;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    height:52px;
-
-    padding:0 28px;
-
-    border:none;
-
-    border-radius:30px;
-    color:#ffffff;
-
-    font-size:16px;
-
-    font-weight:700;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    gap:8px;
-
-    z-index:100;
-
-}
-
-.fullscreen-set-btn:active{
-
-    transform:
-
-    translateX(-50%)
-
-    scale(.95);
-
-}
 
 /* =========================
 ANIMATION
