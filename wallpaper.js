@@ -2567,3 +2567,31 @@ loadWallpaper();
     activateTab(initialTab, false);
     updateCommentsTabCount();
 })();
+
+/* =========================================================
+   Publisher header avatar/name sync
+   ========================================================= */
+function updatePublisherHeader(data) {
+    const avatar = document.getElementById('wallAuthorAvatar');
+    const name = document.getElementById('wallAuthorName');
+    if (!data) return;
+
+    const user = data.user || data.authorUser || data.authorData || {};
+    const avatarUrl = data.authorAvatar || data.avatar || data.userAvatar || user.avatar || user.avatar_url || user.photoURL || '';
+    const authorName = data.authorName || data.author || data.username || user.name || user.username || 'WallpaperHub';
+
+    if (name) name.textContent = authorName;
+    if (avatarUrl && avatar) avatar.src = avatarUrl;
+}
+
+// Patch the existing loader without replacing its behavior.
+const __originalLoadWallpaper = typeof loadWallpaper === 'function' ? loadWallpaper : null;
+if (__originalLoadWallpaper) {
+    window.loadWallpaper = async function(...args) {
+        const result = await __originalLoadWallpaper.apply(this, args);
+        try {
+            if (typeof currentWallpaper !== 'undefined') updatePublisherHeader(currentWallpaper);
+        } catch (e) {}
+        return result;
+    };
+}
