@@ -21,6 +21,51 @@ process.env.SUPABASE_URL,
 SUPABASE_SERVER_KEY
 );
 
+// ======================================
+// Authenticated publisher identity
+// لا نثق في userId القادم من المتصفح؛ UID يؤخذ من جلسة Supabase نفسها.
+// ======================================
+async function getAuthenticatedUser(req){
+    const header = String(req.headers.authorization || "").trim();
+    if(!header.toLowerCase().startsWith("bearer ")) return null;
+
+    const token = header.slice(7).trim();
+    if(!token) return null;
+
+    const { data, error } = await supabase.auth.getUser(token);
+    if(error || !data?.user) return null;
+
+    return data.user;
+}
+
+async function getPublisherProfile(user){
+    const metadata = user?.user_metadata || {};
+    let fullName = String(
+        metadata.full_name ||
+        metadata.name ||
+        metadata.user_name ||
+        user?.email?.split("@")[0] ||
+        "مستخدم"
+    ).trim();
+
+    try{
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("full_name,username,avatar_url")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if(!error && data){
+            fullName = String(data.full_name || data.username || fullName).trim();
+        }
+    }catch(_error){}
+
+    return {
+        fullName,
+        avatar: String(metadata.avatar_url || metadata.picture || "").trim()
+    };
+}
+
 // ===============================
 // Gemini API KEY
 // ===============================
@@ -1003,6 +1048,16 @@ app.post(
     "/api/wallpapers",
     async(req,res)=>{
         try{
+            const publisher = await getAuthenticatedUser(req);
+
+            if(!publisher){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول قبل نشر الخلفية"
+                });
+            }
+
+            const publisherProfile = await getPublisherProfile(publisher);
             const metadata = await getImageMetadata(req.body.image);
             const source = await detectImageSource(req.body.image);
 
@@ -1020,9 +1075,9 @@ app.post(
                 rating: Number(req.body.rating || 0),
                 ratingCount: Number(req.body.ratingCount || 0),
                 ratingSum: Number(req.body.ratingSum || 0),
-                author: req.body.author || "WallpaperHub",
-                // UID صاحب الخلفية: مهم لإرسال إشعارات التعليقات والإعجابات
-                userId: String(req.body.userId || req.body.user_id || "").trim(),
+                author: publisherProfile.fullName,
+                // UID صاحب الخلفية يأتي من Supabase Auth وليس من body.
+                userId: String(publisher.id).trim(),
                 date: req.body.date || new Date().toLocaleString("ar-MA"),
                 colors: Array.isArray(req.body.colors) ? req.body.colors : [],
                 tags: Array.isArray(req.body.tags) ? req.body.tags : [],
