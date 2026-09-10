@@ -3,6 +3,12 @@
 // Part 1/5
 // ==========================================
 
+// Supabase Auth: هوية ناشر الخلفية تأتي من الحساب المسجل فقط.
+import { supabase } from "../supabase.js";
+
+let currentUser = null;
+let currentSession = null;
+
 
 // ============================
 // العناصر
@@ -191,6 +197,41 @@ const CLOUDINARY_UPLOAD_PRESET =
 
 
 
+
+// ============================
+// Supabase Auth
+// ============================
+
+async function getCurrentUser(){
+    try{
+        const { data, error } = await supabase.auth.getSession();
+        if(error) throw error;
+        currentSession = data?.session || null;
+        currentUser = currentSession?.user || null;
+        return currentUser;
+    }catch(error){
+        console.error("ADMIN AUTH ERROR:", error);
+        currentSession = null;
+        currentUser = null;
+        return null;
+    }
+}
+
+function getPublisherName(user){
+    const metadata = user?.user_metadata || {};
+    return String(
+        metadata.full_name ||
+        metadata.name ||
+        metadata.user_name ||
+        user?.email?.split("@")[0] ||
+        "مستخدم"
+    ).trim();
+}
+
+supabase.auth.onAuthStateChange((_event, session)=>{
+    currentSession = session || null;
+    currentUser = session?.user || null;
+});
 
 // ============================
 // تحميل لوحة التحكم
@@ -1246,7 +1287,8 @@ file,
 url,
 info,
 index,
-autoTags=[]
+autoTags=[],
+publisher=null
 ){
 
 
@@ -1400,7 +1442,11 @@ index===0,
 
 author:
 
-"WallpaperHub",
+getPublisherName(publisher),
+
+userId:
+
+String(publisher?.id || "").trim(),
 
 
 
@@ -1435,7 +1481,11 @@ async(e)=>{
 
 e.preventDefault();
 
-
+        const publisher = await getCurrentUser();
+        if(!publisher){
+            alert("يجب تسجيل الدخول قبل نشر الخلفيات");
+            return;
+        }
 
 
 if(selectedFiles.length === 0){
@@ -1570,7 +1620,7 @@ uploadProgressText.textContent =
             const autoTags = await generateAITags(file);
 
             const data = createWallpaperData(
-                file, url, info, i, autoTags
+                file, url, info, i, autoTags, publisher
             );
 
 
@@ -1593,7 +1643,11 @@ headers:{
 
 "Content-Type":
 
-"application/json"
+"application/json",
+
+"Authorization":
+
+`Bearer ${currentSession?.access_token || ""}`
 
 },
 
