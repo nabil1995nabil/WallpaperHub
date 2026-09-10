@@ -1643,3 +1643,208 @@ MOBILE
         display:none;
     }
 }
+
+
+/* =========================================================
+   WALLPAPER HEADER — اسم الخلفية يسار + المستخدم يمين
+   مع أبعاد صفحة مناسبة لشاشات الحاسوب، بدون تحويل التصميم
+   إلى واجهة حاسوب مختلفة.
+   ========================================================= */
+.wallpaper-main-header{
+    display:flex;
+    flex-direction:row-reverse;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:28px;
+    width:100%;
+}
+
+.wallpaper-title-block{
+    flex:1 1 auto;
+    min-width:0;
+    text-align:left;
+}
+
+.wallpaper-title-block h2{
+    text-align:left;
+    margin:0 0 8px;
+}
+
+.wallpaper-title-block .description-box{
+    padding:0;
+    margin:0;
+}
+
+.wallpaper-title-block .description-box span{
+    text-align:left;
+    margin-bottom:5px;
+}
+
+.wallpaper-title-block .description-box p{
+    text-align:left;
+    max-width:900px;
+}
+
+.wallpaper-publisher-card{
+    flex:0 0 auto;
+    min-width:190px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    direction:rtl;
+    padding:2px 0;
+}
+
+.wallpaper-publisher-avatar{
+    width:46px;
+    height:46px;
+    min-width:46px;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+    background:#f3f3f3;
+    border:1px solid #e2e2e2;
+}
+
+.wallpaper-publisher-info{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    gap:1px;
+}
+
+.wallpaper-publisher-name-row{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-width:0;
+}
+
+.wallpaper-publisher-name-row strong{
+    color:#111;
+    font-size:13px;
+    font-weight:800;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:150px;
+}
+
+.wallpaper-verified-icon{
+    color:#1877f2;
+    font-size:15px;
+    flex:0 0 auto;
+}
+
+.wallpaper-publisher-role{
+    color:#888;
+    font-size:10px;
+    line-height:1.4;
+}
+
+/* =========================================================
+   DESKTOP PAGE DIMENSIONS — نفس الواجهة، مساحة أكبر فقط
+   ========================================================= */
+@media (min-width: 901px){
+    body{
+        padding:0 24px 48px;
+    }
+
+    .top-bar,
+    .preview,
+    .wallpaper-header-info,
+    .wallpaper-tabs-section,
+    .wallpaper-tab-content{
+        width:min(1280px, 100%);
+        margin-left:auto;
+        margin-right:auto;
+    }
+
+    .top-bar{
+        height:68px;
+        padding:0 4px;
+    }
+
+    .preview{
+        padding:22px 0 0;
+    }
+
+    .wallpaper-preview-wrapper{
+        width:100%;
+        border-radius:24px;
+    }
+
+    .preview img,
+    .preview video{
+        height:auto;
+        aspect-ratio:16 / 9;
+        max-height:720px;
+        object-fit:cover;
+        border-radius:24px;
+    }
+
+    .wallpaper-header-info{
+        margin-top:18px;
+        margin-bottom:0;
+        padding:0 2px 2px;
+    }
+
+    .wallpaper-main-header{
+        gap:40px;
+    }
+
+    .wallpaper-title-block h2{
+        font-size:22px;
+        line-height:1.5;
+    }
+
+    .wallpaper-title-block .description-box span{
+        font-size:12px;
+    }
+
+    .wallpaper-title-block .description-box p{
+        font-size:14px;
+        line-height:1.8;
+    }
+
+    .wallpaper-publisher-card{
+        min-width:210px;
+        padding-top:1px;
+    }
+
+    .wallpaper-publisher-avatar{
+        width:48px;
+        height:48px;
+        min-width:48px;
+    }
+
+    .wallpaper-tabs-section{
+        margin-top:14px;
+    }
+
+    .wallpaper-tab-content{
+        margin-top:14px;
+    }
+}
+
+@media (max-width: 900px){
+    .wallpaper-main-header{
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .wallpaper-title-block,
+    .wallpaper-title-block h2,
+    .wallpaper-title-block .description-box span,
+    .wallpaper-title-block .description-box p{
+        text-align:right;
+    }
+
+    .wallpaper-publisher-card{
+        width:100%;
+        justify-content:flex-start;
+    }
+}

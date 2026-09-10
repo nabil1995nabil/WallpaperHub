@@ -288,14 +288,37 @@ close
      Wallpaper Header
 ========================= -->
 <section class="wallpaper-header-info">
-    <h2 id="wallTitle2"></h2>
-    <div class="info-item description-box">
+    <div class="wallpaper-main-header">
 
-    <span>الوصف</span>
+        <!-- اسم الخلفية والوصف -->
+        <div class="wallpaper-title-block">
+            <h2 id="wallTitle2"></h2>
 
-    <p id="wallDescription"></p>
+            <div class="description-box">
+                <span>الوصف</span>
+                <p id="wallDescription"></p>
+            </div>
+        </div>
 
-</div>
+        <!-- معلومات المستخدم الذي نشر الخلفية -->
+        <div class="wallpaper-publisher-card">
+            <img
+                id="wallAuthorAvatar"
+                class="wallpaper-publisher-avatar"
+                src="/assets/logo/no-image.png"
+                alt="صورة المستخدم"
+                loading="lazy"
+            >
+            <div class="wallpaper-publisher-info">
+                <div class="wallpaper-publisher-name-row">
+                    <strong id="wallAuthorName">WallpaperHub</strong>
+                    <span class="material-icons wallpaper-verified-icon">verified</span>
+                </div>
+                <span class="wallpaper-publisher-role">الناشر</span>
+            </div>
+        </div>
+
+    </div>
 </section>
 
 

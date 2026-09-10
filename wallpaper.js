@@ -496,6 +496,36 @@ wallAuthor.textContent =
 
 currentWallpaper.author || "";
 
+// معلومات ناشر الخلفية في رأس الصفحة
+const wallAuthorName = document.getElementById("wallAuthorName");
+const wallAuthorAvatar = document.getElementById("wallAuthorAvatar");
+
+if(wallAuthorName){
+    wallAuthorName.textContent =
+        currentWallpaper.author ||
+        currentWallpaper.userName ||
+        "WallpaperHub";
+}
+
+if(wallAuthorAvatar){
+    const avatar =
+        currentWallpaper.authorAvatar ||
+        currentWallpaper.avatar ||
+        currentWallpaper.userAvatar ||
+        currentWallpaper.profileImage ||
+        currentWallpaper.userImage ||
+        "";
+
+    wallAuthorAvatar.src = avatar
+        ? getImageUrl(avatar)
+        : "/assets/logo/no-image.png";
+
+    wallAuthorAvatar.onerror = () => {
+        wallAuthorAvatar.onerror = null;
+        wallAuthorAvatar.src = "/assets/logo/no-image.png";
+    };
+}
+
 
 
 if(wallDate)
