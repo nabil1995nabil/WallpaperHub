@@ -1083,57 +1083,6 @@ MOBILE
         height:36px;
     }
 }
-
-/* =========================================
-   3D CLAY BLOCK STYLES FOR ACTION BUTTONS
-   ========================================= */
-
-/* 1. أزرار شريط الهيدر (رجوع، مشاركة، إعجاب) */
-.top-bar .icon-btn{
-
-}
-
-/* 2. زر شارة الجودة (2K / 4K) فوق الصورة */
-.quality-badge {
-    background: #ff5277;
-    color: #ffffff;
-    border-radius: 14px;
-    padding: 6px 14px;
-    border: none;
-
-}
-
-/* 3. زر قائمة الثلاث نقاط فوق الصورة */
-.more-options-btn {
-    background: #ffffff;
-    border: none;
-
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* 4. أزرار التحكم أسفل الصورة (التكبير والتحميل) */
-.image-action-btn {
-    background: #ffffff;
-    border: none;
-
-    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
-}
-/* =========================================
-   3D CLAY STYLING FOR SIMILAR CARDS
-   ========================================= */
-
-.similar-card {
-    background: #ffffff;
-    border-radius: 24px;
-    border: none;
-    overflow: hidden;
-    cursor: pointer;
-    
-    /* ظلال مجسمة 3D Clay */
-
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-}
-
 /* تأثير التمرير للماوس */
 .similar-card:hover {
     transform: translateY(-4px);
