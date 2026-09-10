@@ -1083,6 +1083,18 @@ MOBILE
         height:36px;
     }
 }
+
+/* =========================================
+   3D CLAY STYLING FOR SIMILAR CARDS
+   ========================================= */
+
+.similar-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: none;
+    overflow: hidden;
+    cursor: pointer;
+    
 /* تأثير التمرير للماوس */
 .similar-card:hover {
     transform: translateY(-4px);
