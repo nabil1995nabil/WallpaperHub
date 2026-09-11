@@ -383,29 +383,18 @@ function notificationFromDb(row, extra = {}){
         content: row.message ?? "",
         message: row.message ?? "",
 
-        // بيانات مرتبطة بالإشعار حتى تبقى واجهة notice.js
-        // قادرة على عرض التفاصيل بعد جلبها من Supabase.
+        // روابط حقيقية بالخلفية والتعليق حتى تستطيع صفحة الإشعارات
+        // فتح wallpaper.html?id=... مباشرة.
         wallpaperId: row.wallpaper_id ?? extra.wallpaperId ?? "",
-        wallpaperTitle:
-            row.wallpaper_title ??
-            extra.wallpaperTitle ??
-            "",
-
+        wallpaperTitle: row.wallpaper_title ?? extra.wallpaperTitle ?? "",
         commentId: row.comment_id ?? extra.commentId ?? "",
-        commentText:
-            row.comment_text ??
-            extra.commentText ??
-            "",
+        commentText: row.comment_text ?? extra.commentText ?? "",
 
+        // هوية مرسل الإشعار. يتم إثراؤها من profiles/comments بدلاً من
+        // الاعتماد على اسم يرسله المتصفح.
         userId: row.from_user ?? "",
-        userName:
-            row.user_name ??
-            extra.userName ??
-            "",
-        avatar:
-            row.avatar ??
-            extra.avatar ??
-            "",
+        userName: row.user_name ?? extra.userName ?? "",
+        avatar: row.avatar ?? extra.avatar ?? "",
 
         recipientUID: row.user_id ?? "",
         date: row.created_at
@@ -442,6 +431,7 @@ async function enrichNotifications(rows){
 
     const wallpaperMap = new Map();
     const commentMap = new Map();
+    const profileMap = new Map();
 
     if(wallpaperIds.length){
         const { data, error } = await supabase
@@ -459,7 +449,7 @@ async function enrichNotifications(rows){
     if(commentIds.length){
         const { data, error } = await supabase
             .from("comments")
-            .select("id,text,avatar,user")
+            .select("id,text,avatar,user,userId")
             .in("id", commentIds);
 
         if(error) throw error;
@@ -469,19 +459,44 @@ async function enrichNotifications(rows){
         });
     }
 
+    const senderIds = [
+        ...new Set(
+            notifications
+                .map(n => String(n.from_user || "").trim())
+                .filter(Boolean)
+        )
+    ];
+
+    if(senderIds.length){
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("id,full_name,username,avatar_url")
+            .in("id", senderIds);
+
+        if(error) {
+            console.log("NOTIFICATION SENDER PROFILE ERROR:", error.message);
+        } else {
+            (data || []).forEach(profile => {
+                profileMap.set(String(profile.id), profile);
+            });
+        }
+    }
+
     return notifications.map(row => {
         const wallpaper = wallpaperMap.get(Number(row.wallpaper_id));
         const comment = commentMap.get(Number(row.comment_id));
+        const profile = profileMap.get(String(row.from_user || ""));
 
         return notificationFromDb(row, {
             wallpaperTitle: wallpaper?.title || "",
             commentText: comment?.text || "",
-
-            // التعليق يعطي صورة صاحبه عندما يكون الإشعار متعلقاً
-            // بالتعليق نفسه. وإذا كانت الصورة محفوظة في notification
-            // نستعملها أولاً.
-            avatar: row.avatar || comment?.avatar || "",
-            userName: row.user_name || ""
+            avatar: row.avatar || comment?.avatar || profile?.avatar_url || "",
+            userName:
+                row.user_name ||
+                comment?.user ||
+                profile?.full_name ||
+                profile?.username ||
+                "مستخدم"
         });
     });
 }
@@ -724,9 +739,8 @@ app.patch(
     async (req, res) => {
         try {
             const notificationId = Number(req.params.id);
-            const recipientUID = String(
-                req.body.recipientUID || req.body.userId || req.body.user_id || ""
-            ).trim();
+            const authenticatedUser = await getAuthenticatedUser(req);
+            const recipientUID = String(authenticatedUser?.id || "").trim();
 
             if (!Number.isFinite(notificationId) || notificationId <= 0 || !recipientUID) {
                 return res.status(400).json({
@@ -774,9 +788,8 @@ app.patch(
     "/api/notifications/read-all",
     async (req, res) => {
         try {
-            const recipientUID = String(
-                req.body.recipientUID || req.body.userId || req.body.user_id || ""
-            ).trim();
+            const authenticatedUser = await getAuthenticatedUser(req);
+            const recipientUID = String(authenticatedUser?.id || "").trim();
 
             if (!recipientUID) {
                 return res.status(400).json({
@@ -812,13 +825,14 @@ app.get(
     "/api/notifications",
     async (req, res) => {
         try {
-            const recipientUID = req.query.recipientUID;
-            if(!recipientUID) return res.json([]);
+            const authenticatedUser = await getAuthenticatedUser(req);
+            const recipientUID = String(authenticatedUser?.id || "").trim();
+            if(!recipientUID) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
 
             const { data, error } = await supabase
                 .from("notifications")
                 .select("*")
-                .eq("user_id", String(recipientUID))
+                .eq("user_id", recipientUID)
                 .order("created_at", { ascending: false });
 
             if(error) throw error;
@@ -936,8 +950,13 @@ app.post(
     async(req,res)=>{
         try{
             const wallpaperId = Number(req.params.id);
-            const userId = String(req.body.userId || "guest");
-            const userName = req.body.userName || "مستخدم";
+            const authenticatedUser = await getAuthenticatedUser(req);
+            if(!authenticatedUser){
+                return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+            }
+            const userId = String(authenticatedUser.id).trim();
+            const userProfile = await getPublisherProfile(authenticatedUser);
+            const userName = userProfile.fullName || "مستخدم";
 
             const { data, error } = await supabase
                 .from("likes")
@@ -2559,20 +2578,23 @@ app.post(
             }
 
             // ======================================
-            // بيانات صاحب التعليق
+            // هوية صاحب التعليق الحقيقية
+            // لا نثق في UID/الاسم المرسل من المتصفح.
             // ======================================
 
-            const commenterUID =
-                req.body.userId || "";
+            const authenticatedUser = await getAuthenticatedUser(req);
+            if(!authenticatedUser){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول قبل التعليق"
+                });
+            }
 
-            const commenterName =
-                req.body.user || "مستخدم";
-
-            const commenterEmail =
-                req.body.email || "";
-
-            const commenterAvatar =
-                req.body.avatar || "";
+            const commenterUID = String(authenticatedUser.id).trim();
+            const commenterProfile = await getPublisherProfile(authenticatedUser);
+            const commenterName = commenterProfile.fullName || "مستخدم";
+            const commenterEmail = String(authenticatedUser.email || "").trim();
+            const commenterAvatar = commenterProfile.avatar || "";
 
             let mentionedUserId =
                 req.body.mentionedUserId || "";
@@ -2790,7 +2812,12 @@ app.post(
     async(req,res)=>{
         try{
             const commentId = Number(req.params.id);
-            const userId = String(req.body.userId || "guest");
+            const authenticatedUser = await getAuthenticatedUser(req);
+            if(!authenticatedUser){
+                return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+            }
+            const userId = String(authenticatedUser.id).trim();
+            const userProfile = await getPublisherProfile(authenticatedUser);
 
             const { data: comment, error } = await supabase
                 .from("comments")
@@ -2828,7 +2855,7 @@ app.post(
                     type: "comment_like",
                     wallpaperId: comment.wallpaperId || null,
                     commentId: comment.id,
-                    message: `${req.body.user || "مستخدم"} أعجب بتعليقك`
+                    message: `${userProfile.fullName || "مستخدم"} أعجب بتعليقك`
                 });
             }
 

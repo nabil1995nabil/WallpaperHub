@@ -555,38 +555,11 @@ function formatQuickStat(value){
 // ===============================
 // Real Publisher Profile (UID -> profiles)
 // ===============================
-async function loadPublisherProfile(uid = "", wallpaperId = null) {
-    let publisherUID = String(uid || "").trim();
-    const targetWallpaperId = wallpaperId ?? currentWallpaper?.id ?? null;
-
-    if (targetWallpaperId == null) return null;
-
-    // إذا كان UID غير معروف في الواجهة، نطلبه من السيرفر مباشرةً من
-    // wallpapers.user_id. هذا مهم جداً للإشارة إلى صاحب الخلفية.
-    if (!publisherUID) {
-        try {
-            const res = await fetch(
-                `/api/wallpapers/${encodeURIComponent(targetWallpaperId)}/publisher`,
-                { cache: "no-store" }
-            );
-
-            if (res.ok) {
-                const data = await res.json();
-                const user = data?.user;
-                const serverUID = String(data?.uid || user?.id || "").trim();
-
-                if (data?.success && serverUID) {
-                    publisherUID = serverUID;
-                    applyPublisherProfile(user || {}, publisherUID, targetWallpaperId);
-                    return user || { id: publisherUID };
-                }
-            }
-        } catch (error) {
-            console.warn("OWNER PUBLISHER API ERROR:", error);
-        }
-    }
-
+async function loadPublisherProfile(uid, wallpaperId = null) {
+    const publisherUID = String(uid || "").trim();
     if (!publisherUID) return null;
+
+    const targetWallpaperId = wallpaperId ?? currentWallpaper?.id ?? null;
 
     // المصدر الحقيقي: جدول profiles.
     try {
@@ -608,8 +581,10 @@ async function loadPublisherProfile(uid = "", wallpaperId = null) {
         console.warn("DIRECT PUBLISHER SUPABASE ERROR:", error);
     }
 
-    // fallback للسيرفر مع UID معروف.
+    // fallback للسيرفر.
     try {
+        if (targetWallpaperId == null) return null;
+
         const res = await fetch(
             `/api/wallpapers/${encodeURIComponent(targetWallpaperId)}/publisher?uid=${encodeURIComponent(publisherUID)}`,
             { cache: "no-store" }
@@ -641,14 +616,6 @@ function applyPublisherProfile(user, publisherUID, wallpaperId = null) {
     }
 
     const profile = user || {};
-
-    // احفظ UID الحقيقي داخل الخلفية الحالية حتى يستطيع زر @
-    // تحديد صاحب الخلفية حتى لو لم يصل user_id في بيانات القائمة.
-    if (currentWallpaper && publisherUID) {
-        currentWallpaper.ownerUID = String(publisherUID).trim();
-        currentWallpaper.userId = String(publisherUID).trim();
-    }
-
     const name =
         profile.full_name ||
         profile.username ||
@@ -1859,13 +1826,17 @@ async function likeWallpaper(){
         const userId = getCurrentUserId() || "guest";
 
 
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || "";
+
         const response = await fetch(
             `/api/wallpapers/${currentWallpaper.id}/like`,
             {
                 method: "POST",
 
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...(accessToken ? { Authorization:`Bearer ${accessToken}` } : {})
                 },
 
                 body: JSON.stringify({
@@ -2559,24 +2530,10 @@ function hideMentionSuggestions(){
 }
 
 // يعرض صاحب الخلفية فقط، ولا يبحث في جميع المستخدمين.
-async function showOwnerMentionSuggestion(){
+function showOwnerMentionSuggestion(){
     if(!mentionSuggestions) return;
 
-    let target = getWallpaperMentionTarget();
-
-    // محاولة أخيرة للحصول على صاحب الخلفية من السيرفر قبل إظهار الخطأ.
-    if(!target && currentWallpaper?.id){
-        mentionSuggestions.innerHTML = `
-            <div class="mention-empty" style="padding:10px;text-align:center;color:#888;">
-                جاري تحديد صاحب الخلفية...
-            </div>
-        `;
-        mentionSuggestions.hidden = false;
-
-        await loadPublisherProfile("", currentWallpaper.id);
-        target = getWallpaperMentionTarget();
-    }
-
+    const target = getWallpaperMentionTarget();
     if(!target){
         mentionSuggestions.innerHTML = `
             <div class="mention-empty" style="padding:10px;text-align:center;color:#888;">
@@ -2791,11 +2748,17 @@ async function sendComment(){
         const userId = getCurrentUserId();
         const mention = getMentionPayload();
 
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || "";
+
         const res = await fetch(
             `${API}/${currentWallpaper.id}/comments`,
             {
                 method:"POST",
-                headers:{"Content-Type":"application/json"},
+                headers:{
+                    "Content-Type":"application/json",
+                    ...(accessToken ? { Authorization:`Bearer ${accessToken}` } : {})
+                },
                 body:JSON.stringify({
                     text,
                     user:userName,
@@ -2898,11 +2861,17 @@ async function likeComment(id){
         const user = localStorage.getItem("userName") || "مستخدم";
         const userId = getCurrentUserId();
 
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || "";
+
         const res = await fetch(
             `/api/comments/${id}/like`,
             {
                 method:"POST",
-                headers:{"Content-Type":"application/json"},
+                headers:{
+                    "Content-Type":"application/json",
+                    ...(accessToken ? { Authorization:`Bearer ${accessToken}` } : {})
+                },
                 body:JSON.stringify({user,userId})
             }
         );
