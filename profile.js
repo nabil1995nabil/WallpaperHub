@@ -84,22 +84,63 @@ async function loadPublicProfile(uid){
     const targetUID = String(uid || "").trim();
     if(!targetUID) return;
 
+    // منع استدعاءات متكررة من Auth + DOMContentLoaded.
+    if(publicProfileLoaded === targetUID) return;
+
     hideOwnerEditControls();
 
     try{
-        const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("id, full_name, username, avatar_url")
-            .eq("id", targetUID)
-            .maybeSingle();
+        let profile = null;
 
-        if(error) throw error;
+        // ==================================================
+        // المصدر الأول: السيرفر (Service Role)
+        // مهم لأن RLS قد يمنع المتصفح من قراءة profiles مباشرة.
+        // ==================================================
+        try{
+            const response = await fetch(
+                `/api/users/${encodeURIComponent(targetUID)}/profile`,
+                { cache:"no-store" }
+            );
+
+            if(response.ok){
+                const payload = await response.json();
+                if(payload?.success && payload?.user){
+                    profile = payload.user;
+                }
+            }
+        }catch(serverError){
+            console.warn("PUBLIC PROFILE SERVER LOAD:", serverError);
+        }
+
+        // ==================================================
+        // المصدر الثاني: Supabase مباشرة كاحتياطي.
+        // ==================================================
+        if(!profile){
+            try{
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("id, full_name, username, avatar_url")
+                    .eq("id", targetUID)
+                    .maybeSingle();
+
+                if(!error && data){
+                    profile = data;
+                }else if(error){
+                    console.warn("PUBLIC PROFILE SUPABASE LOAD:", error.message);
+                }
+            }catch(supabaseError){
+                console.warn("PUBLIC PROFILE SUPABASE ERROR:", supabaseError);
+            }
+        }
 
         if(!profile){
             if(userName) userName.textContent = "المستخدم غير موجود";
             if(userEmail) userEmail.textContent = "";
             if(infoUserName) infoUserName.textContent = "المستخدم غير موجود";
             if(infoUserEmail) infoUserEmail.textContent = "";
+            if(accountType) accountType.textContent = "ملف عام";
+            if(uidText) uidText.textContent = "••••••••••••••";
+            userUID = targetUID;
             return;
         }
 
@@ -109,12 +150,16 @@ async function loadPublicProfile(uid){
             "مستخدم WallpaperHub"
         ).trim();
 
-        const avatar = String(profile.avatar_url || "").trim();
+        const avatar = String(
+            profile.avatar_url ||
+            profile.avatar ||
+            profile.photoURL ||
+            ""
+        ).trim();
 
+        // عرض بيانات UID الموجود في الرابط فقط.
         if(userName) userName.textContent = name;
         if(infoUserName) infoUserName.textContent = name;
-
-        // البريد الإلكتروني ليس من بيانات البروفايل العام.
         if(userEmail) userEmail.textContent = "البريد الإلكتروني مخفي";
         if(infoUserEmail) infoUserEmail.textContent = "البريد الإلكتروني مخفي";
         if(accountType) accountType.textContent = "ملف عام";
@@ -133,14 +178,12 @@ async function loadPublicProfile(uid){
         userUID = targetUID;
         uidVisible = false;
 
-        // لا نعرض إحصائيات المتصفح الحالي داخل بروفايل شخص آخر.
         ["downloadCount", "likeCount", "viewCount"].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.textContent = "—";
         });
 
-        // الخلفيات المنشورة فعلياً من هذا المستخدم فقط.
-        const response = await fetch(API, { cache: "no-store" });
+        const response = await fetch(API, { cache:"no-store" });
         if(!response.ok) throw new Error("PUBLIC WALLPAPERS API ERROR");
 
         const list = await response.json();
@@ -155,7 +198,6 @@ async function loadPublicProfile(uid){
 
         wallpapers = ownerWalls;
 
-        // نفس قسم الخلفيات الموجود حالياً، لكن بدون خلطه بإحصائيات الزائر.
         const containers = [downloadedContainer, likedContainer, viewedContainer];
         containers.forEach(container => {
             if(!container) return;
@@ -164,30 +206,34 @@ async function loadPublicProfile(uid){
 
         if(ownerWalls.length === 0){
             if(downloadedContainer){
-                downloadedContainer.innerHTML = '<div class="empty-profile">لا توجد خلفيات منشورة حاليا</div>';
+                downloadedContainer.innerHTML =
+                    '<div class="empty-profile">لا توجد خلفيات منشورة حاليا</div>';
             }
         }else{
-            // نعرض الخلفيات المنشورة في أول قسم متاح، ونخفي الأقسام الشخصية.
             renderWalls(downloadedContainer, ownerWalls.map(w => w.id));
         }
 
         [likedContainer, viewedContainer].forEach(container => {
             if(container){
-                const parent = container.closest(".profile-section, section, .profile-stats-section");
+                const parent = container.closest(
+                    ".profile-section, section, .profile-stats-section"
+                );
                 if(parent) parent.style.display = "none";
                 else container.style.display = "none";
             }
         });
 
-        const downloadedParent = downloadedContainer?.closest(".profile-section, section, .profile-stats-section");
+        const downloadedParent = downloadedContainer?.closest(
+            ".profile-section, section, .profile-stats-section"
+        );
         if(downloadedParent) downloadedParent.style.display = "";
 
-        publicProfileLoaded = true;
+        publicProfileLoaded = targetUID;
+        console.log("✅ PUBLIC PROFILE LOADED:", targetUID);
     }catch(error){
         console.error("PUBLIC PROFILE LOAD ERROR:", error);
     }
 }
-
 
 
 
@@ -518,6 +564,13 @@ const copyUid = document.getElementById("copyUid");
 // تحديث UID عند تغيير حالة المستخدم
 supabase.auth.onAuthStateChange((event, session) => {
     const user = session?.user ?? null;
+
+    // في البروفايل العام، UID المطلوب يأتي من الرابط وليس من الزائر.
+    if (isPublicProfile && !isOwnProfile()) {
+        userUID = profileTargetUID;
+        if (uidText) uidText.textContent = "••••••••••••••";
+        return;
+    }
 
     if (user) {
         userUID = user.id;
@@ -1584,9 +1637,10 @@ document.addEventListener(
 "DOMContentLoaded",
 ()=>{
 
-    // إذا كان الرابط يحمل UID لشخص آخر، ابدأ مباشرة ببروفايله.
-    // لا تستدعِ loadUserData() حتى لا تظهر بيانات الحساب الحالي.
-    if (isPublicProfile && !isOwnProfile()) {
+    // إذا كان الرابط يحمل UID، ابدأ بالبروفايل المطلوب مباشرة.
+    // هذا يمنع ظهور بيانات الحساب الحالي أثناء انتظار Auth.
+    if (isPublicProfile && (!currentUser || !isOwnProfile())) {
+        hideOwnerEditControls();
         loadPublicProfile(profileTargetUID);
         return;
     }

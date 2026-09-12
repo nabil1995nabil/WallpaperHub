@@ -846,6 +846,87 @@ app.get(
     }
 );
 // ======================================
+// Public User Profile API
+// UID -> profiles / Auth metadata
+// لا يعتمد على جلسة الزائر ولا على RLS من المتصفح.
+// ======================================
+app.get(
+    "/api/users/:uid/profile",
+    async (req, res) => {
+        try {
+            const targetUID = String(req.params.uid || "").trim();
+
+            if(!targetUID){
+                return res.status(400).json({
+                    success:false,
+                    user:null,
+                    message:"User UID is required"
+                });
+            }
+
+            const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("id, full_name, username, avatar_url")
+                .eq("id", targetUID)
+                .maybeSingle();
+
+            if(profileError){
+                console.log("PUBLIC PROFILE QUERY ERROR:", profileError.message);
+            }
+
+            if(profile){
+                return res.json({
+                    success:true,
+                    uid:targetUID,
+                    user:{
+                        id:String(profile.id),
+                        full_name:profile.full_name || "",
+                        username:profile.username || "",
+                        avatar_url:profile.avatar_url || ""
+                    }
+                });
+            }
+
+            try{
+                const { data: authData, error: authError } =
+                    await supabase.auth.admin.getUserById(targetUID);
+
+                if(!authError && authData?.user){
+                    const authUser = authData.user;
+                    const meta = authUser.user_metadata || {};
+
+                    return res.json({
+                        success:true,
+                        uid:targetUID,
+                        user:{
+                            id:String(authUser.id),
+                            full_name:meta.full_name || meta.name || meta.user_name || "",
+                            username:meta.username || meta.user_name || "",
+                            avatar_url:meta.avatar_url || meta.picture || ""
+                        }
+                    });
+                }
+            }catch(authError){
+                console.log("PUBLIC PROFILE AUTH FALLBACK ERROR:", authError.message);
+            }
+
+            return res.status(404).json({
+                success:false,
+                user:null,
+                message:"User profile not found"
+            });
+        }catch(error){
+            console.log("GET PUBLIC PROFILE ERROR:", error);
+            return res.status(500).json({
+                success:false,
+                user:null,
+                message:error.message
+            });
+        }
+    }
+);
+
+// ======================================
 // Real Wallpaper Publisher Profile
 // UID -> profiles -> profile.html?uid=...
 // ======================================
