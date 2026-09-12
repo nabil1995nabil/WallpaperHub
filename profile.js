@@ -212,6 +212,7 @@ async function loadPublicProfile(uid){
             : [];
 
         wallpapers = ownerWalls;
+        updateWallpaperCount(ownerWalls.length);
 
         const containers = [downloadedContainer, likedContainer, viewedContainer];
         containers.forEach(container => {
@@ -1149,6 +1150,21 @@ localStorage.removeItem(
 
 
 /* ==========================
+   Wallpaper count
+========================== */
+
+function updateWallpaperCount(count){
+    const value = Number.isFinite(Number(count)) ? Number(count) : 0;
+
+    const countEl = document.getElementById("wallpaperCount");
+    if(countEl) countEl.textContent = value;
+
+    const headingEl = document.getElementById("wallpaperHeadingCount");
+    if(headingEl) headingEl.textContent = value;
+}
+
+
+/* ==========================
    Load Wallpapers
 ========================== */
 
@@ -1230,6 +1246,7 @@ function updateUserStats() {
     document.getElementById("downloadCount").textContent = downloads.length;
     document.getElementById("likeCount").textContent = favorites.length;
     document.getElementById("viewCount").textContent = views.length;
+    updateWallpaperCount(Array.isArray(wallpapers) ? wallpapers.length : 0);
 }
 
 /* ==========================

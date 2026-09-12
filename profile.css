@@ -1,15 +1,14 @@
-/* ==========================
-   WallpaperHub Profile CSS - Clay Block 3D Full Code
-   Part 1
-========================== */
+/* =========================================================
+   WallpaperHub — Profile
+   Clean root stylesheet
+   No override blocks / no repeated media-query patches
+   ========================================================= */
 
-/* Reset */
 *{
+    box-sizing:border-box;
     margin:0;
     padding:0;
-    box-sizing:border-box;
-    font-family:"Cairo", Arial, sans-serif;
-    font-weight:400;
+    font-family:"Cairo",Arial,sans-serif;
 }
 
 html{
@@ -17,894 +16,220 @@ html{
 }
 
 body{
-    background:#ffffff; /* بدلاً من #eef2f7 */
-    color:#161824;
     width:100%;
+    min-height:100vh;
     overflow-x:hidden;
-    padding-bottom:100px;
+    padding-bottom:105px;
+    background:#f7f8fc;
+    color:#151a2a;
     -webkit-font-smoothing:antialiased;
 }
 
-
-/* ==========================
-   Header
-========================== */
-.profile-header{
-    height:70px;
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 18px;
-    position:absolute;
-    top:0;
-    left:0;
-    z-index:100;
-    background:transparent;
-    border-bottom:none;
+button,
+input{
+    font:inherit;
 }
 
+button{
+    border:0;
+}
+
+.profile-header{
+    position:absolute;
+    inset:0 0 auto;
+    z-index:100;
+    height:68px;
+    padding:0 18px;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    background:transparent;
+}
 
 .profile-header h2{
-    font-size:22px;
-    font-weight:600;
-    color:#ffffff;
-    text-shadow:0 1px 3px rgba(0,0,0,.45);
+    color:#fff;
+    font-size:23px;
+    font-weight:700;
+    line-height:1;
+    text-shadow:0 2px 8px rgba(0,0,0,.35);
 }
 
+.profile-header-side,
 .profile-actions{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:9px;
 }
 
-/* أزرار الهيدر — تصميم عادي مسطح بدون 3D */
-.menu-btn,
-.settings-btn,
-.edit-btn,
-.login-btn{
+.profile-actions{
+    justify-content:flex-end;
+}
+
+.profile-icon-btn{
     width:42px;
     height:42px;
     border-radius:50%;
-    border:1px solid rgba(255,255,255,.75);
     display:flex;
     align-items:center;
     justify-content:center;
+    background:rgba(255,255,255,.92);
+    color:#5364ee;
+    border:1px solid rgba(255,255,255,.8);
     cursor:pointer;
-    background:rgba(255,255,255,.9);
-    color:#5060ff;
-    box-shadow:none;
-    transition:transform .15s ease, background .15s ease;
+    transition:transform .16s ease,background .16s ease;
 }
-.menu-btn:hover,
-.settings-btn:hover,
-.edit-btn:hover,
-.login-btn:hover{ background:#fff; }
-.menu-btn:active,
-.settings-btn:active,
-.edit-btn:active,
-.login-btn:active{ transform:scale(.96); box-shadow:none; }
 
-/* ==========================
-   Cover
-========================== */
+.profile-icon-btn:hover{
+    background:#fff;
+}
+
+.profile-icon-btn:active{
+    transform:scale(.95);
+}
+
+.profile-icon-btn .material-icons{
+    font-size:22px;
+}
+
 .profile-cover{
     position:relative;
     width:100%;
     height:350px;
-    text-align:center;
     overflow:hidden;
-    background:#ffffff; /* بدلاً من #eef2f7 */
+    background:#fff;
 }
 
 .cover-image{
     width:100%;
     height:275px;
-    object-fit:cover;
     display:block;
-}
-
-.profile-avatar-box{
-    position:absolute;
-    top:205px;
-    left:50%;
-    transform:translateX(-50%);
-}
-
-.profile-avatar{
-    width:110px;
-    height:110px;
-    border-radius:50%;
     object-fit:cover;
-    border:4px solid #ffffff;
-    box-shadow:0 4px 12px rgba(0,0,0,.18);
-}
-
-/* زر قلم الصورة الشخصية - Clay 3D */
-.avatar-edit{
-    position:absolute;
-    right:0;
-    bottom:5px;
-    width:36px;
-    height:36px;
-    border-radius:50%;
-    border:2px solid #ffffff;
-    background:#5060ff;
-    color:#ffffff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    box-shadow:0 3px 8px rgba(0,0,0,.18);
-    transition:transform .15s ease;
-}
-.avatar-edit:active{ transform:scale(.96); }
-
-.profile-cover h2{
-    margin-top:105px;
-    font-size:24px;
-    font-weight:600;
-}
-
-.profile-cover p{
-    margin-top:5px;
-    color:#777777;
-    font-size:14px;
-}
-
-/* ==========================
-   User Information
-========================== */
-.user-info{
-    padding:20px 18px;
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-}
-
-.info-card{
-    display:flex;
-    align-items:center;
-    gap:16px;
-    padding:10px 0 18px 0;
-    background:transparent;
-    border:none;
-    box-shadow:none;
-    position:relative;
-}
-
-.info-card:not(:last-child)::after{
-    content:"";
-    position:absolute;
-    bottom:0;
-    right:0;
-    width:100%;
-    height:1px;
-    background:rgba(0,0,0,0.06);
-}
-
-/* أيقونات (اسم المستخدم، البريد، نوع الحساب، التاريخ، آخر دخول) - Clay 3D */
-.info-card .material-icons{
-    width:42px;
-    height:42px;
-    flex-shrink:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#5060ff;
-    background:#eef2f7;
-    border-radius:12px;
-    box-shadow:none;
-}
-
-.info-card h4{
-    font-size:13px;
-    color:#777777;
-    margin-bottom:5px;
-}
-
-.info-card p{
-    font-size:16px;
-    color:#161824;
-    font-weight:500;
-}
-/* ==========================
-   WallpaperHub Profile CSS - Clay Block 3D Full Code
-   Part 2
-========================== */
-
-/* ==========================
-   UID
-========================== */
-.uid-box{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    padding:10px 18px;
-    background:transparent;
-    border:none;
-    box-shadow:none;
-}
-
-.uid-title{
-    font-size:13px;
-    color:#777777;
-}
-
-.uid-content{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    direction:ltr;
-}
-
-#userUid{
-    flex:1;
-    font-family:monospace;
-    font-size:15px;
-    color:#161824;
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-
-/* رموز/أزرار الـ ID - Clay 3D */
-.uid-content button{
-    width:38px;
-    height:38px;
-    padding:0;
-    border:none;
-    border-radius:10px;
-    background:#eef2f7;
-    color:#5060ff;
-    font-size:18px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    box-shadow:none;
-    transition:transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.uid-content button:active{
-    transform:translateY(2px);
-    box-shadow:0px 1px 0px #d0d7e3;
-}
-
-/* ==========================
-   Statistics (أرقام التحميل، الإعجاب، المشاهدة)
-========================== */
-.profile-stats{
-    width:100%;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:12px;
-    padding:20px 18px;
-}
-
-/* الإطار الخارجي يصبح عادياً وبسيطاً */
-.stat-card{
-    text-align:center;
-    padding:16px 8px;
-    background:#ffffff;
-    border:1px solid rgba(0, 0, 0, 0.05);
-    border-radius:18px;
-    box-shadow:none;
-    transition:transform 0.15s ease;
-}
-
-.stat-card:active{
-    transform:translateY(2px);
-}
-
-/* تطبيق تأثير الـ 3D البارز (Clay) على الرقم (h3) نفسه */
-.stat-card h3{
-    font-size:26px;
-    font-weight:700;
-    color:#5060ff;
-    text-shadow:none;
-}
-
-.stat-card p{
-    margin-top:5px;
-    font-size:13px;
-    color:#777777;
-}
-
-
-/* ==========================
-   Wallpapers Content
-========================== */
-.profile-content{
-    padding:0 18px;
-}
-
-.section-title{
-    margin:30px 0 18px;
-}
-
-.section-title h2{
-    font-size:20px;
-    font-weight:600;
-    color:#161824;
-}
-
-/* ==========================
-   Wallpaper Grid & Cards (الخلفيات)
-========================== */
-.profile-grid{
-    display:flex;
-    gap:18px;
-    overflow-x:auto;
-    padding:10px 5px 25px;
-}
-
-.profile-grid::-webkit-scrollbar{
-    display:none;
-}
-
-.profile-wall-card{
-    flex:0 0 85%;
-    min-width:85%;
-    overflow:hidden;
-    background:#eef2f7;
-    border:none;
-    border-radius:24px;
-    padding:8px;
-    box-shadow:none;
-    cursor:pointer;
-    transition:transform 0.15s ease;
-}
-
-.profile-wall-card:active{
-    transform:scale(0.98) translateY(2px);
-}
-
-.profile-wall-card img{
-    width:100%;
-    height:300px;
-    object-fit:cover;
-    display:block;
-    border-radius:18px;
-}
-
-.profile-wall-info{
-    padding:12px 6px 4px;
-}
-
-.profile-wall-info h3{
-    font-size:17px;
-    font-weight:500;
-    color:#161824;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.profile-wall-info p{
-    margin-top:6px;
-    color:#777777;
-    font-size:13px;
-}
-
-.empty-profile{
-    padding:30px 0;
-    text-align:center;
-    background:transparent;
-    border:none;
-    border-radius:0;
-    color:#8990a8;
-}
-/* ==========================
-   WallpaperHub Profile CSS - Clay Block 3D Full Code
-   Part 3
-========================== */
-
-/* ==========================
-   Edit Modal
-========================== */
-.edit-modal{
-    position:fixed;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-    z-index:200;
-    background:rgba(0,0,0,.35);
-}
-
-.edit-modal.show{
-    display:flex;
-}
-
-.edit-box{
-    width:100%;
-    max-width:420px;
-    padding:25px;
-    border-radius:24px;
-    background:#eef2f7;
-    box-shadow:0 12px 35px rgba(0,0,0,.18);
-}
-
-.edit-box h2{
-    text-align:center;
-    margin-bottom:25px;
-    font-size:24px;
-    font-weight:600;
-}
-
-.edit-input{
-    margin-bottom:18px;
-}
-
-.edit-input label{
-    display:block;
-    margin-bottom:8px;
-    color:#777777;
-    font-size:14px;
-}
-
-.edit-input input{
-    width:100%;
-    height:52px;
-    border-radius:14px;
-    border:none;
-    background:#e6ebf2;
-    padding:0 16px;
-    outline:none;
-    font-size:15px;
-    box-shadow:inset 0px 2px 4px rgba(0,0,0,0.1);
-}
-
-.edit-input input:focus{
-    box-shadow:
-        inset 0px 2px 4px rgba(0,0,0,0.1),
-        0 0 0 2px #5060ff;
-}
-
-.edit-buttons{
-    display:flex;
-    gap:12px;
-    margin-top:25px;
-}
-
-.edit-buttons button{
-    flex:1;
-    height:50px;
-    border:none;
-    border-radius:14px;
-    font-size:16px;
-    cursor:pointer;
-    transition:transform 0.15s ease;
-}
-
-#saveProfileBtn{
-    background:#5060ff;
-    color:#ffffff;
-    box-shadow:none;
-}
-
-#saveProfileBtn:active{
-    transform:translateY(2px);
-    box-shadow:none;
-}
-
-#closeEditBtn{
-    background:#e1e6ef;
-    color:#5060ff;
-    box-shadow:none;
-}
-
-#closeEditBtn:active{
-    transform:translateY(2px);
-    box-shadow:none;
-}
-
-/* ==========================
-   Dark Mode
-========================== */
-body.dark{
-    background:#0b0d12;
-    color:#ffffff;
-}
-
-body.dark .profile-header,
-body.dark .profile-cover{
-    background:#0b0d12;
-    border-color:#22252f;
-}
-
-body.dark .profile-header h2,
-body.dark .profile-cover h2,
-body.dark .section-title h2,
-body.dark .info-card p,
-body.dark .profile-wall-info h3,
-body.dark #userUid{
-    color:#ffffff;
-}
-
-body.dark .profile-cover p,
-body.dark .info-card h4,
-body.dark .uid-title,
-body.dark .stat-card p,
-body.dark .profile-wall-info p{
-    color:#9da4b8;
-}
-
-body.dark .menu-btn,
-body.dark .settings-btn,
-body.dark .edit-btn,
-body.dark .login-btn,
-body.dark .info-card .material-icons,
-body.dark .uid-content button{
-    background:#141722;
-    color:#8b96ff;
-    box-shadow: 
-        0px 4px 0px #05060a,
-        -2px 6px 10px rgba(0, 0, 0, 0.6),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.1),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.6);
-}
-
-body.dark .profile-avatar{
-    border-color:#0b0d12;
-    box-shadow: 
-        0px 6px 0px #05060a,
-        0px 10px 15px rgba(0, 0, 0, 0.7);
-}
-
-body.dark .stat-card,
-body.dark .profile-wall-card{
-    background:#141722;
-    box-shadow: 
-        0px 5px 0px #05060a,
-        -2px 8px 15px rgba(0, 0, 0, 0.6),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.08),
-        inset 0px -3px 5px rgba(0, 0, 0, 0.5);
-}
-
-body.dark .edit-box{
-    background:#141722;
-    box-shadow: 
-        0px 10px 0px #05060a,
-        0px 20px 40px rgba(0, 0, 0, 0.8);
-}
-
-body.dark .edit-input input{
-    background:#0b0d12;
-    color:#ffffff;
-    border:1px solid #252a3a;
-    box-shadow:inset 0px 2px 4px rgba(0,0,0,0.5);
-}
-
-body.dark #closeEditBtn{
-    background:#1f2434;
-    color:#8b96ff;
-    box-shadow: 
-        0px 4px 0px #0a0c12,
-        inset 0px 2px 3px rgba(255, 255, 255, 0.08);
-}
-
-body.dark .info-card:not(:last-child)::after{
-    background:rgba(255,255,255,0.08);
-}
-
-/* ==========================
-   Mobile Adjustments
-========================== */
-@media(max-width:600px){
-    .profile-header{
-        height:65px;
-    }
-
-    .profile-header h2{
-        font-size:20px;
-    }
-
-    .profile-cover{
-        height:320px;
-    }
-
-    .cover-image{
-        height:245px;
-    }
-
-    .profile-avatar{
-        width:95px;
-        height:95px;
-    }
-
-    .profile-avatar-box{
-        top:180px;
-    }
-
-    .profile-cover h2{
-        margin-top:92px;
-        font-size:22px;
-    }
-
-    .profile-stats{
-        gap:10px;
-        padding:15px;
-    }
-
-    .stat-card{
-        padding:14px 4px;
-    }
-
-    .stat-card h3{
-        font-size:20px;
-    }
-
-    .stat-card p{
-        font-size:12px;
-    }
-
-    .info-card,
-    .uid-box{
-        padding:10px 0;
-    }
-
-    .info-card .material-icons{
-        width:38px;
-        height:38px;
-    }
-
-    .uid-content button{
-        font-size:18px;
-    }
-
-    #userUid{
-        font-size:13px;
-    }
-
-    .profile-wall-card{
-        flex:0 0 90%;
-        min-width:90%;
-    }
-
-    .profile-wall-card img{
-        height:240px;
-    }
-
-    .section-title h2{
-        font-size:18px;
-    }
-}
-
-@media(max-width:380px){
-    .profile-actions{
-        gap:6px;
-    }
-
-    .menu-btn,
-    .settings-btn,
-    .edit-btn,
-    .login-btn{
-        width:38px;
-        height:38px;
-    }
-
-    .profile-wall-card{
-        flex-basis:95%;
-    }
-}
-
-/* Flat button system — بدون 3D */
-.profile-header button,
-.profile-cover button,
-.user-info button,
-.edit-modal button{
-    box-shadow:none !important;
-}
-.profile-header button:active,
-.profile-cover button:active,
-.user-info button:active,
-.edit-modal button:active{
-    box-shadow:none !important;
-}
-
-/* =========================================================
-   زر تغيير الغلاف — داخل الغلاف في المكان المحدد
-   ========================================================= */
-
-.profile-cover{
-    position:relative;
 }
 
 .cover-change-btn{
     position:absolute;
-    right:14px;
     top:112px;
-    bottom:auto !important;
+    right:14px;
     z-index:20;
-
     height:34px;
-    min-height:34px;
-    width:auto;
-    min-width:0;
-    max-width:max-content;
-    padding:0 11px;
-
-    border:0;
-    border-radius:17px;
-    background:rgba(55,43,45,.82);
-    color:#fff;
-
+    padding:0 12px;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:5px;
-
-    font-family:"Cairo",Arial,sans-serif;
+    border-radius:17px;
+    background:rgba(55,43,45,.82);
+    color:#fff;
     font-size:13px;
-    font-weight:500;
+    font-weight:600;
     line-height:1;
-
     cursor:pointer;
-    backdrop-filter:blur(4px);
-    -webkit-backdrop-filter:blur(4px);
-    box-shadow:none !important;
-    filter:none !important;
-    text-shadow:none;
-}
-
-.cover-change-btn .material-icons{
-    font-size:17px;
-    line-height:1;
-}
-
-.cover-change-btn:hover{
-    background:rgba(55,43,45,.90);
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
 }
 
 .cover-change-btn:active{
     transform:scale(.97);
 }
 
+.cover-change-btn .material-icons{
+    font-size:17px;
+}
+
 .cover-file-input{
-    position:absolute !important;
-    width:1px !important;
-    height:1px !important;
-    padding:0 !important;
-    margin:-1px !important;
-    overflow:hidden !important;
-    clip:rect(0,0,0,0) !important;
-    white-space:nowrap !important;
-    border:0 !important;
-    opacity:0 !important;
+    position:absolute;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
 }
 
-/* الهاتف: يبقى الزر داخل الغلاف وليس خارجه */
-@media(max-width:600px){
-    .cover-change-btn{
-        right:12px !important;
-        top:112px !important;
-        bottom:auto !important;
-        height:34px !important;
-        min-height:34px !important;
-        padding:0 11px !important;
-        border-radius:17px !important;
-        font-size:13px !important;
-        gap:5px !important;
-    }
-
-    .cover-change-btn .material-icons{
-        font-size:17px !important;
-    }
+.profile-avatar-box{
+    position:absolute;
+    top:205px;
+    left:50%;
+    z-index:25;
+    transform:translateX(-50%);
 }
 
-@media(max-width:380px){
-    .cover-change-btn{
-        right:10px !important;
-        top:108px !important;
-        bottom:auto !important;
-        height:32px !important;
-        min-height:32px !important;
-        padding:0 10px !important;
-        border-radius:16px !important;
-        font-size:12px !important;
-    }
-
-    .cover-change-btn .material-icons{
-        font-size:16px !important;
-    }
+.profile-avatar{
+    width:110px;
+    height:110px;
+    display:block;
+    object-fit:cover;
+    border:4px solid #fff;
+    border-radius:50%;
+    box-shadow:0 7px 20px rgba(35,45,80,.18);
 }
 
-
-/* FINAL ROOT FIX:
-   cover-image = 245px on mobile.
-   Keep the change-cover button physically inside that image area. */
-@media (max-width:600px){
-    .profile-cover{
-        position:relative !important;
-    }
-
-    .profile-cover .cover-change-btn{
-        position:absolute !important;
-        top:112px !important;
-        bottom:auto !important;
-        right:12px !important;
-
-        height:34px !important;
-        min-height:34px !important;
-        padding:0 11px !important;
-        border-radius:17px !important;
-
-        font-size:13px !important;
-        gap:5px !important;
-        z-index:20 !important;
-    }
-
-    .profile-cover .cover-change-btn .material-icons{
-        font-size:17px !important;
-    }
+.avatar-edit{
+    position:absolute;
+    right:0;
+    bottom:3px;
+    width:37px;
+    height:37px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:2px solid #fff;
+    border-radius:50%;
+    background:#5060ef;
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 12px rgba(40,50,100,.18);
 }
 
-@media (max-width:380px){
-    .profile-cover .cover-change-btn{
-        top:108px !important;
-        right:10px !important;
-        height:32px !important;
-        min-height:32px !important;
-        padding:0 10px !important;
-        border-radius:16px !important;
-        font-size:12px !important;
-    }
-
-    .profile-cover .cover-change-btn .material-icons{
-        font-size:16px !important;
-    }
+.avatar-edit .material-icons{
+    font-size:20px;
 }
 
-
-/* =========================================================
-   Profile Identity — تاريخ الانضمام / المستخدم المميز /
-   اسم الحساب / @اسم الإشارة / النبذة / تعديل الملف
-   ========================================================= */
+.legacy-profile-field{
+    display:none;
+}
 
 .profile-identity{
     width:100%;
-    max-width:980px;
+    max-width:1000px;
     margin:0 auto;
-    padding:0 28px 18px;
+    padding:0 28px 14px;
     display:grid;
     grid-template-columns:minmax(150px,1fr) minmax(300px,1.35fr) minmax(150px,1fr);
     grid-template-areas:"join main premium";
     gap:18px;
     align-items:center;
     direction:ltr;
-    background:#fff;
-}
-
-.identity-side-card{
-    min-height:118px;
-    border:1px solid rgba(80,96,255,.12);
-    border-radius:24px;
-    background:rgba(255,255,255,.78);
-    box-shadow:0 10px 28px rgba(48,61,105,.08);
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:16px;
-    direction:rtl;
-    position:relative;
+    background:#f7f8fc;
 }
 
 .join-date-card{grid-area:join}
+.identity-main{grid-area:main}
 .premium-card{grid-area:premium}
 
-.identity-side-card > .material-icons{
+.identity-side-card{
+    min-height:116px;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    border:1px solid rgba(80,96,255,.11);
+    border-radius:22px;
+    background:rgba(255,255,255,.9);
+    box-shadow:0 9px 25px rgba(48,61,105,.07);
+    direction:rtl;
+}
+
+.identity-card-icon,
+.premium-crown{
     width:42px;
     height:42px;
     flex:0 0 42px;
-    border-radius:14px;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:#eef2f7;
-    color:#5060ff;
-    font-size:25px;
+    border-radius:13px;
+    background:#eef2f8;
+    color:#5364ee;
+    font-size:24px;
 }
 
 .identity-side-content{
@@ -917,63 +242,54 @@ body.dark .info-card:not(:last-child)::after{
 
 .identity-side-label,
 .identity-side-content small{
-    color:#788096;
-    font-size:12px;
-    line-height:1.4;
+    color:#7a8297;
+    font-size:11px;
+    line-height:1.35;
 }
 
 .identity-side-content strong{
     color:#1c2233;
     font-size:15px;
     font-weight:700;
-    line-height:1.5;
+    line-height:1.45;
 }
 
-.join-date-card .identity-side-content strong{font-size:17px}
+.join-date-card .identity-side-content strong{
+    font-size:17px;
+}
 
 .premium-card{
-    background:linear-gradient(145deg,#7b5b50,#a98678);
+    color:#fff;
     border-color:transparent;
+    background:linear-gradient(145deg,#795b50,#a9887a);
+}
+
+.premium-card .identity-side-content strong,
+.premium-card .identity-side-content small{
     color:#fff;
 }
 
-.premium-card .identity-side-content{flex:1}
-.premium-card .identity-side-content strong,
-.premium-card .identity-side-content small{color:#fff}
-.premium-card .identity-side-content strong{font-size:16px}
-.premium-card .identity-side-content small{opacity:.82}
-
-.premium-crown{
-    width:42px;
-    height:42px;
-    flex:0 0 42px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#ffe37a;
-    font-size:27px;
-    background:rgba(255,255,255,.10);
+.premium-card .identity-side-content strong{
+    font-size:16px;
 }
 
-.premium-arrow{
-    font-size:23px !important;
-    color:#fff !important;
-    background:transparent !important;
-    width:auto !important;
-    height:auto !important;
-    flex:0 0 auto !important;
+.premium-card .identity-side-content small{
+    opacity:.8;
+}
+
+.premium-crown{
+    color:#ffe17a;
+    background:rgba(255,255,255,.1);
 }
 
 .identity-main{
-    grid-area:main;
     min-width:0;
+    padding:5px 4px;
     display:flex;
     flex-direction:column;
     align-items:center;
     text-align:center;
     direction:rtl;
-    padding:8px 4px;
 }
 
 .identity-name-row{
@@ -985,366 +301,762 @@ body.dark .info-card:not(:last-child)::after{
 }
 
 .identity-name-row h1{
-    margin:0;
     color:#101522;
     font-size:29px;
-    line-height:1.2;
     font-weight:700;
+    line-height:1.2;
 }
 
 .verified-badge{
     width:24px;
     height:24px;
-    border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
+    border-radius:50%;
     background:#168bf0;
     color:#fff;
     font-size:17px;
 }
 
 .identity-username{
-    margin:4px 0 0;
-    color:#687086;
+    margin-top:4px;
+    color:#697187;
     font-size:15px;
-    line-height:1.5;
+    line-height:1.4;
     direction:ltr;
 }
 
 .identity-bio{
-    margin:5px 0 10px;
+    margin:4px 0 9px;
     color:#596176;
     font-size:14px;
-    line-height:1.6;
+    line-height:1.55;
 }
 
 .hero-edit-profile{
-    min-width:245px;
-    height:43px;
-    padding:0 20px;
-    border:0;
-    border-radius:22px;
-    background:linear-gradient(135deg,#f4f6fb,#fff);
-    color:#1c2233;
-    box-shadow:0 7px 20px rgba(80,96,255,.10);
+    min-width:230px;
+    height:42px;
+    padding:0 19px;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:7px;
-    font-family:"Cairo",Arial,sans-serif;
+    border-radius:21px;
+    background:#fff;
+    color:#1d2434;
+    box-shadow:0 7px 18px rgba(80,96,255,.09);
+    cursor:pointer;
     font-size:14px;
     font-weight:700;
-    cursor:pointer;
 }
 
 .hero-edit-profile .material-icons{
+    color:#536075;
     font-size:18px;
-    color:#4f596f;
 }
 
-.hero-edit-profile:active{transform:scale(.98)}
-
-body.dark .profile-identity{background:#0b0d12}
-body.dark .identity-side-card{
-    background:#141722;
-    border-color:#252a3a;
-    box-shadow:none;
+.profile-stats{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:7px 28px 10px;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:9px;
+    background:#f7f8fc;
 }
+
+.stat-card{
+    min-width:0;
+    height:76px;
+    padding:6px 5px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    border:1px solid rgba(80,96,255,.08);
+    border-radius:16px;
+    background:linear-gradient(145deg,#fff,#f5f7fc);
+}
+
+.stat-icon{
+    width:22px;
+    height:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.download-icon{color:#2186e8}
+.like-icon{color:#e83e67}
+.view-icon{color:#7457e9}
+.wallpaper-icon{color:#2eb75b}
+
+.stat-card strong{
+    color:#161b2a;
+    font-size:20px;
+    font-weight:800;
+    line-height:1.05;
+}
+
+.stat-card > span:last-child{
+    color:#70788b;
+    font-size:9px;
+    line-height:1.2;
+    white-space:nowrap;
+}
+
+.profile-content{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:0 28px 25px;
+}
+
+.profile-wallpapers-heading{
+    width:100%;
+    height:46px;
+    margin:2px 0 9px;
+    padding:0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border:1px solid rgba(80,96,255,.10);
+    border-radius:15px;
+    background:linear-gradient(135deg,#fff,#f5f7fc);
+    box-shadow:0 5px 15px rgba(48,61,105,.06);
+    direction:rtl;
+}
+
+.wallpapers-heading-main{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.wallpapers-heading-main .material-icons{
+    width:29px;
+    height:29px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background:#eef2f7;
+    color:#5364ee;
+    font-size:17px;
+}
+
+.profile-wallpapers-heading h2{
+    color:#171c2a;
+    font-size:15px;
+    font-weight:800;
+    line-height:1;
+}
+
+.wallpapers-heading-count{
+    min-width:27px;
+    height:25px;
+    padding:0 7px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background:#eef2f7;
+    color:#5364ee;
+    font-size:10px;
+    font-weight:700;
+}
+
+.profile-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:9px;
+    width:100%;
+}
+
+.profile-wall-card{
+    min-width:0;
+    overflow:hidden;
+    padding:4px;
+    border-radius:15px;
+    background:#eef1f6;
+    cursor:pointer;
+}
+
+.profile-wall-card img{
+    width:100%;
+    height:220px;
+    display:block;
+    object-fit:cover;
+    border-radius:11px;
+}
+
+.profile-wall-info{
+    padding:6px 3px 2px;
+}
+
+.profile-wall-info h3{
+    overflow:hidden;
+    color:#171c2a;
+    font-size:12px;
+    font-weight:600;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.profile-wall-info p{
+    margin-top:2px;
+    color:#747c90;
+    font-size:9px;
+}
+
+.empty-profile{
+    grid-column:1/-1;
+    padding:28px 10px;
+    text-align:center;
+    color:#8991a5;
+}
+
+.secondary-wallpaper-section{
+    margin-top:22px;
+}
+
+.section-title{
+    margin:0 0 10px;
+}
+
+.section-title h2{
+    color:#252b3b;
+    font-size:16px;
+    font-weight:700;
+}
+
+.user-info{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:15px 28px 25px;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+}
+
+.info-card{
+    min-height:64px;
+    padding:9px 0;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    position:relative;
+    background:transparent;
+}
+
+.info-card:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:1px;
+    background:rgba(0,0,0,.06);
+}
+
+.info-card > .material-icons{
+    width:40px;
+    height:40px;
+    flex:0 0 40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    background:#eef2f7;
+    color:#5364ee;
+    font-size:21px;
+}
+
+.info-card h4{
+    margin-bottom:3px;
+    color:#7a8295;
+    font-size:12px;
+}
+
+.info-card p{
+    color:#171c2a;
+    font-size:16px;
+    font-weight:500;
+}
+
+.uid-box{
+    display:block;
+}
+
+.uid-title{
+    margin-bottom:7px;
+    color:#8b92a5;
+    font-size:13px;
+    text-align:center;
+}
+
+.uid-content{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    direction:ltr;
+}
+
+#userUid{
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    color:#171c2a;
+    font-family:monospace;
+    font-size:14px;
+    text-overflow:ellipsis;
+}
+
+.uid-content button{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    border-radius:11px;
+    background:#eef2f7;
+    color:#5364ee;
+    cursor:pointer;
+}
+
+.edit-modal{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(10,14,25,.42);
+}
+
+.edit-modal.show{
+    display:flex;
+}
+
+.edit-box{
+    width:100%;
+    max-width:420px;
+    padding:24px;
+    border-radius:22px;
+    background:#fff;
+    box-shadow:0 18px 45px rgba(0,0,0,.18);
+}
+
+.edit-box h2{
+    margin-bottom:22px;
+    text-align:center;
+    color:#171c2a;
+    font-size:22px;
+    font-weight:700;
+}
+
+.edit-input{
+    margin-bottom:16px;
+}
+
+.edit-input label{
+    display:block;
+    margin-bottom:7px;
+    color:#70788b;
+    font-size:13px;
+}
+
+.edit-input input{
+    width:100%;
+    height:48px;
+    padding:0 14px;
+    outline:none;
+    border:1px solid #e2e6ee;
+    border-radius:13px;
+    background:#f6f8fb;
+    color:#171c2a;
+    font-size:14px;
+}
+
+.edit-input input:focus{
+    border-color:#5364ee;
+    box-shadow:0 0 0 3px rgba(83,100,238,.10);
+}
+
+.edit-buttons{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+}
+
+.edit-buttons button{
+    flex:1;
+    height:46px;
+    border-radius:13px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+}
+
+#saveProfileBtn{
+    background:#5364ee;
+    color:#fff;
+}
+
+#closeEditBtn{
+    background:#edf0f5;
+    color:#5364ee;
+}
+
+/* Dark theme */
+body.dark{
+    background:#0b0e15;
+    color:#fff;
+}
+
+body.dark .profile-identity,
+body.dark .profile-stats,
+body.dark .profile-content{
+    background:#0b0e15;
+}
+
+body.dark .identity-side-card,
+body.dark .stat-card,
+body.dark .profile-wallpapers-heading,
+body.dark .edit-box{
+    background:#141925;
+    border-color:#252c3c;
+}
+
 body.dark .identity-side-content strong,
 body.dark .identity-name-row h1,
-body.dark .identity-bio{color:#fff}
+body.dark .identity-bio,
+body.dark .profile-wallpapers-heading h2,
+body.dark .stat-card strong,
+body.dark .info-card p,
+body.dark .profile-wall-info h3,
+body.dark .edit-box h2{
+    color:#fff;
+}
+
 body.dark .identity-side-label,
 body.dark .identity-side-content small,
-body.dark .identity-username{color:#9da4b8}
-body.dark .hero-edit-profile{
-    background:#141722;
+body.dark .identity-username,
+body.dark .identity-bio,
+body.dark .stat-card > span:last-child,
+body.dark .info-card h4,
+body.dark .profile-wall-info p{
+    color:#9da6ba;
+}
+
+body.dark .identity-card-icon,
+body.dark .premium-crown,
+body.dark .wallpapers-heading-main .material-icons,
+body.dark .wallpapers-heading-count,
+body.dark .info-card > .material-icons,
+body.dark .uid-content button{
+    background:#1b2130;
+}
+
+body.dark .profile-wall-card{
+    background:#161c28;
+}
+
+body.dark .info-card:not(:last-child)::after{
+    background:rgba(255,255,255,.08);
+}
+
+body.dark .edit-input input{
+    background:#0d111a;
+    border-color:#2a3142;
     color:#fff;
-    box-shadow:none;
+}
+
+body.dark #closeEditBtn{
+    background:#202738;
 }
 
 @media(max-width:700px){
+    body{
+        padding-bottom:95px;
+    }
+
+    .profile-header{
+        height:62px;
+        padding:0 12px;
+    }
+
+    .profile-header h2{
+        font-size:20px;
+    }
+
+    .profile-icon-btn{
+        width:40px;
+        height:40px;
+    }
+
+    .profile-actions{
+        gap:7px;
+    }
+
+    .profile-cover{
+        height:320px;
+    }
+
+    .cover-image{
+        height:245px;
+    }
+
+    .cover-change-btn{
+        top:112px;
+        right:12px;
+        height:34px;
+        padding:0 11px;
+        border-radius:17px;
+        font-size:12px;
+    }
+
+    .profile-avatar-box{
+        top:180px;
+    }
+
+    .profile-avatar{
+        width:95px;
+        height:95px;
+    }
+
+    .avatar-edit{
+        width:35px;
+        height:35px;
+    }
+
     .profile-identity{
         max-width:none;
-        padding:0 18px 16px;
+        padding:0 12px 8px;
         grid-template-columns:1fr 1fr;
         grid-template-areas:
             "join premium"
             "main main";
-        gap:10px;
-        align-items:stretch;
-    }
-
-    .identity-side-card{
-        min-height:92px;
-        border-radius:20px;
-        padding:12px;
-    }
-
-    .identity-side-card > .material-icons,
-    .premium-crown{
-        width:36px;
-        height:36px;
-        flex-basis:36px;
-        font-size:21px;
-    }
-
-    .identity-side-content strong{font-size:14px}
-    .join-date-card .identity-side-content strong{font-size:15px}
-    .identity-main{padding:2px 0 4px}
-    .identity-name-row h1{font-size:24px}
-    .identity-username{font-size:14px}
-    .identity-bio{font-size:13px;margin-bottom:9px}
-    .hero-edit-profile{min-width:220px;height:40px;font-size:13px}
-    .premium-arrow{display:none !important}
-}
-
-@media(max-width:380px){
-    .profile-identity{
-        padding-left:12px;
-        padding-right:12px;
         gap:8px;
     }
-    .identity-side-card{
-        min-height:86px;
-        padding:10px;
-        gap:8px;
-    }
-    .identity-side-card > .material-icons,
-    .premium-crown{
-        width:32px;
-        height:32px;
-        flex-basis:32px;
-        font-size:19px;
-    }
-    .identity-name-row h1{font-size:22px}
-    .hero-edit-profile{min-width:205px}
-}
-
-
-/* =========================================================
-   FINAL COMPACT PROFILE LAYOUT
-   ========================================================= */
-
-.profile-wallpapers-heading{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    margin:0 0 8px;
-    padding:0 2px;
-    direction:rtl;
-}
-
-.profile-wallpapers-heading h2{
-    margin:0;
-    font-size:17px;
-    font-weight:700;
-    color:#161824;
-}
-
-.profile-wallpapers-heading .material-icons{
-    width:30px;
-    height:30px;
-    border-radius:9px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:18px;
-    color:#5060ff;
-    background:#eef2f7;
-}
-
-body.dark .profile-wallpapers-heading h2{color:#fff}
-body.dark .profile-wallpapers-heading .material-icons{
-    background:#141722;
-    color:#8b96ff;
-}
-
-@media(max-width:700px){
-
-    /* الهوية: صغيرة بدون فراغ كبير */
-    .profile-identity{
-        padding:0 12px 8px !important;
-        gap:7px !important;
-    }
 
     .identity-side-card{
-        min-height:70px !important;
-        height:70px !important;
-        padding:7px 9px !important;
-        border-radius:15px !important;
-        gap:6px !important;
+        min-height:70px;
+        height:70px;
+        padding:7px 8px;
+        gap:6px;
+        border-radius:15px;
     }
 
-    .identity-side-card > .material-icons,
+    .identity-card-icon,
     .premium-crown{
-        width:29px !important;
-        height:29px !important;
-        flex:0 0 29px !important;
-        font-size:16px !important;
-        border-radius:9px !important;
+        width:29px;
+        height:29px;
+        flex-basis:29px;
+        border-radius:9px;
+        font-size:16px;
     }
 
     .identity-side-label,
     .identity-side-content small{
-        font-size:9px !important;
-        line-height:1.2 !important;
+        font-size:9px;
     }
 
     .identity-side-content strong,
-    .join-date-card .identity-side-content strong,
-    .premium-card .identity-side-content strong{
-        font-size:12px !important;
-        line-height:1.3 !important;
+    .join-date-card .identity-side-content strong{
+        font-size:12px;
     }
 
-    .identity-main{padding:0 !important}
+    .premium-card .identity-side-content strong{
+        font-size:12px;
+    }
 
-    .identity-name-row h1{font-size:22px !important}
+    .identity-main{
+        padding:1px 0 3px;
+    }
+
+    .identity-name-row{
+        gap:5px;
+    }
+
+    .identity-name-row h1{
+        font-size:22px;
+    }
+
+    .verified-badge{
+        width:20px;
+        height:20px;
+        font-size:14px;
+    }
 
     .identity-username{
-        font-size:12px !important;
-        margin:1px 0 0 !important;
+        margin-top:1px;
+        font-size:12px;
     }
 
     .identity-bio{
-        font-size:11px !important;
-        margin:2px 0 5px !important;
+        margin:2px 0 5px;
+        font-size:11px;
     }
 
     .hero-edit-profile{
-        min-width:190px !important;
-        height:35px !important;
-        padding:0 14px !important;
-        border-radius:18px !important;
-        font-size:12px !important;
+        min-width:190px;
+        height:35px;
+        padding:0 14px;
+        border-radius:18px;
+        font-size:12px;
     }
 
-    .hero-edit-profile .material-icons{font-size:15px !important}
+    .hero-edit-profile .material-icons{
+        font-size:15px;
+    }
 
-    /* ===== الإحصائيات: شريط أفقي صغير 4 خانات ===== */
     .profile-stats{
-        width:100% !important;
-        display:grid !important;
-        grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-        gap:6px !important;
-        padding:7px 12px !important;
-        margin:0 !important;
-        background:transparent !important;
-        align-items:stretch !important;
+        max-width:none;
+        padding:6px 12px 8px;
+        gap:6px;
     }
 
     .stat-card{
-        width:100% !important;
-        min-width:0 !important;
-        height:64px !important;
-        padding:5px 2px !important;
-        border-radius:13px !important;
-        display:flex !important;
-        flex-direction:column !important;
-        align-items:center !important;
-        justify-content:center !important;
-        border:1px solid rgba(80,96,255,.08) !important;
-        background:linear-gradient(145deg,#fff,#f6f8fc) !important;
+        height:64px;
+        padding:4px 2px;
+        border-radius:13px;
     }
 
-    .stat-card h3{
-        margin:0 !important;
-        font-size:18px !important;
-        line-height:1.05 !important;
-        color:#161824 !important;
+    .stat-icon{
+        width:19px;
+        height:19px;
+        font-size:18px;
     }
 
-    .stat-card p{
-        margin:3px 0 0 !important;
-        font-size:9px !important;
-        line-height:1.15 !important;
-        white-space:nowrap !important;
-        color:#70778a !important;
+    .stat-card strong{
+        font-size:18px;
     }
 
-    body.dark .stat-card{
-        background:#141722 !important;
-        border-color:#252a3a !important;
+    .stat-card > span:last-child{
+        font-size:8px;
     }
 
-    body.dark .stat-card h3{color:#fff !important}
-
-    /* ===== الخلفيات مباشرة تحت الإحصائيات ===== */
     .profile-content{
-        padding:0 12px 25px !important;
+        max-width:none;
+        padding:0 12px 20px;
     }
 
     .profile-wallpapers-heading{
-        height:32px;
-        margin:3px 0 7px !important;
+        height:44px;
+        margin:2px 0 8px;
+        padding:0 8px;
+        border-radius:13px;
     }
 
-    .profile-wallpapers-heading h2{font-size:16px !important}
-
-    .profile-wallpapers-heading .material-icons{
-        width:28px;
-        height:28px;
-        font-size:17px;
+    .wallpapers-heading-main{
+        gap:6px;
     }
 
-    /* شبكة خلفيات صغيرة واحترافية */
+    .wallpapers-heading-main .material-icons{
+        width:27px;
+        height:27px;
+        border-radius:8px;
+        font-size:16px;
+    }
+
+    .profile-wallpapers-heading h2{
+        font-size:14px;
+    }
+
+    .wallpapers-heading-count{
+        min-width:25px;
+        height:23px;
+        font-size:9px;
+    }
+
     .profile-grid{
-        display:grid !important;
-        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-        gap:8px !important;
-        overflow:visible !important;
-        padding:2px 0 12px !important;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:8px;
     }
 
     .profile-wall-card{
-        width:100% !important;
-        min-width:0 !important;
-        flex:none !important;
-        padding:4px !important;
-        border-radius:15px !important;
-        background:#f2f4f8 !important;
+        padding:4px;
+        border-radius:14px;
     }
 
     .profile-wall-card img{
-        width:100% !important;
-        height:185px !important;
-        object-fit:cover !important;
-        border-radius:11px !important;
+        height:185px;
+        border-radius:10px;
     }
 
-    .profile-wall-info{padding:5px 3px 2px !important}
+    .profile-wall-info{
+        padding:5px 3px 2px;
+    }
 
-    .profile-wall-info h3{font-size:11px !important}
+    .profile-wall-info h3{
+        font-size:11px;
+    }
 
     .profile-wall-info p{
-        margin-top:2px !important;
-        font-size:9px !important;
+        font-size:8px;
     }
 
-    /* تفاصيل الحساب الحالية تبقى موجودة أسفل المحتوى */
+    .secondary-wallpaper-section{
+        margin-top:18px;
+    }
+
     .user-info{
-        padding:8px 12px 20px !important;
-        gap:12px !important;
+        padding:10px 12px 20px;
     }
 }
 
 @media(max-width:380px){
+    .profile-actions{
+        gap:5px;
+    }
+
+    .profile-icon-btn{
+        width:37px;
+        height:37px;
+    }
+
+    .profile-cover{
+        height:315px;
+    }
+
+    .cover-image{
+        height:240px;
+    }
+
+    .profile-avatar-box{
+        top:176px;
+    }
+
+    .profile-avatar{
+        width:91px;
+        height:91px;
+    }
 
     .profile-stats{
-        gap:5px !important;
-        padding-left:10px !important;
-        padding-right:10px !important;
+        gap:5px;
+        padding-left:10px;
+        padding-right:10px;
     }
 
     .stat-card{
-        height:60px !important;
-        border-radius:12px !important;
+        height:60px;
+        border-radius:12px;
     }
 
-    .stat-card h3{font-size:16px !important}
-    .stat-card p{font-size:8px !important}
+    .stat-card strong{
+        font-size:16px;
+    }
 
-    .profile-wall-card img{height:165px !important}
+    .stat-card > span:last-child{
+        font-size:7px;
+    }
+
+    .profile-wall-card img{
+        height:165px;
+    }
 }
