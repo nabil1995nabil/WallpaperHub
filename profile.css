@@ -704,9 +704,8 @@ body.dark .info-card:not(:last-child)::after{
     box-shadow:none !important;
 }
 
-
 /* =========================================================
-   Cover Change Button — Compact / Professional
+   زر تغيير الغلاف — داخل الغلاف في المكان المحدد
    ========================================================= */
 
 .profile-cover{
@@ -715,34 +714,43 @@ body.dark .info-card:not(:last-child)::after{
 
 .cover-change-btn{
     position:absolute;
-    top:210px;
     right:14px;
-    z-index:12;
-    min-height:20px;
-    height:20px;
-    padding:0 12px;
+    bottom:26px;
+    top:auto !important;
+    z-index:20;
+
+    height:34px;
+    min-height:34px;
+    width:auto;
+    min-width:0;
+    max-width:max-content;
+    padding:0 11px;
+
     border:0;
-    border-radius:20px;
-    background:rgba(55,43,45,.78);
+    border-radius:17px;
+    background:rgba(55,43,45,.82);
     color:#fff;
+
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
+    gap:5px;
+
     font-family:"Cairo",Arial,sans-serif;
-    font-size:12px;
+    font-size:13px;
     font-weight:500;
     line-height:1;
+
     cursor:pointer;
     backdrop-filter:blur(4px);
     -webkit-backdrop-filter:blur(4px);
     box-shadow:none !important;
+    filter:none !important;
     text-shadow:none;
-    transition:background .15s ease,transform .15s ease;
 }
 
 .cover-change-btn .material-icons{
-    font-size:13px;
+    font-size:17px;
     line-height:1;
 }
 
@@ -767,100 +775,37 @@ body.dark .info-card:not(:last-child)::after{
     opacity:0 !important;
 }
 
-/* جميع أزرار الصفحة: طبيعية، بدون Clay/3D */
-.profile-header button,
-.profile-cover button,
-.user-info button,
-.edit-modal button,
-.avatar-edit,
-.info-card .material-icons,
-.uid-content button{
-    box-shadow:none !important;
-    filter:none !important;
-}
-
-/* منع أي مؤثر 3D قديم من الوضع الداكن */
-body.dark .menu-btn,
-body.dark .settings-btn,
-body.dark .edit-btn,
-body.dark .login-btn,
-body.dark .info-card .material-icons,
-body.dark .uid-content button,
-body.dark .stat-card,
-body.dark .profile-wall-card,
-body.dark .profile-avatar,
-body.dark .edit-box,
-body.dark #closeEditBtn{
-    box-shadow:none !important;
-}
-
-.profile-header{
-    position:absolute;
-    top:0;
-    left:0;
-    z-index:100;
-    background:transparent !important;
-}
-
+/* الهاتف: يبقى الزر داخل الغلاف وليس خارجه */
 @media(max-width:600px){
     .cover-change-btn{
-        top:210px;
-        right:12px;
-        min-height:20px;
-        height:20px;
-        padding:0 13px;
-        border-radius:20px;
-        font-size:14px;
-        gap:6px;
+        right:12px !important;
+        bottom:26px !important;
+        top:auto !important;
+        height:34px !important;
+        min-height:34px !important;
+        padding:0 11px !important;
+        border-radius:17px !important;
+        font-size:13px !important;
+        gap:5px !important;
     }
 
     .cover-change-btn .material-icons{
-        font-size:14px;
+        font-size:17px !important;
     }
 }
 
-/* شاشات صغيرة جداً */
 @media(max-width:380px){
     .cover-change-btn{
-        right:10px;
-        top:210px;
-        height:20px;
-        min-height:20px;
-        padding:0 12px;
-        font-size:14px;
-    }
-
-    .cover-change-btn .material-icons{
-        font-size:14px;
-    }
-}
-
-
-/* Final compact override for cover button */
-.cover-change-btn{
-    min-width:0 !important;
-    width:auto !important;
-    max-width:max-content !important;
-    box-shadow:none !important;
-}
-
-/* Final position: visible inside the mobile cover */
-@media (max-width:600px){
-    .profile-cover{
-        overflow:hidden;
-    }
-    .cover-change-btn{
-        top:210px !important;
-        right:12px !important;
-        height:20px !important;
-        min-height:20px !important;
-        width:auto !important;
-        max-width:max-content !important;
-        padding:0 12px !important;
-        font-size:18px !important;
-        gap:6px !important;
-    }
-    .cover-change-btn .material-icons{
+        right:10px !important;
+        bottom:24px !important;
+        height:32px !important;
+        min-height:32px !important;
+        padding:0 10px !important;
+        border-radius:16px !important;
         font-size:12px !important;
+    }
+
+    .cover-change-btn .material-icons{
+        font-size:16px !important;
     }
 }
