@@ -195,18 +195,23 @@ button{
     font-size:20px;
 }
 
+/* Profile hero identity: side cards are anchored to the cover */
 .profile-identity{
+    position:relative;
+    z-index:30;
     width:100%;
     max-width:1000px;
-    margin:0 auto;
+    margin:-70px auto 0;
     padding:0 28px 14px;
     display:grid;
-    grid-template-columns:minmax(150px,1fr) minmax(300px,1.35fr) minmax(150px,1fr);
-    grid-template-areas:"join main premium";
-    gap:18px;
-    align-items:center;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:
+        "join premium"
+        "main main";
+    gap:10px 18px;
+    align-items:start;
     direction:ltr;
-    background:#f7f8fc;
+    background:transparent;
 }
 
 .join-date-card{grid-area:join}
@@ -214,16 +219,19 @@ button{
 .premium-card{grid-area:premium}
 
 .identity-side-card{
-    min-height:116px;
-    padding:15px;
+    min-width:0;
+    min-height:92px;
+    padding:12px 16px;
     display:flex;
     align-items:center;
-    gap:11px;
-    border:1px solid rgba(80,96,255,.11);
-    border-radius:22px;
-    background:rgba(255,255,255,.9);
-    box-shadow:0 9px 25px rgba(48,61,105,.07);
+    gap:12px;
+    border:1px solid rgba(255,255,255,.72);
+    border-radius:20px;
+    background:rgba(255,255,255,.94);
+    box-shadow:0 10px 26px rgba(35,45,80,.10);
     direction:rtl;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
 }
 
 .identity-card-icon,
@@ -726,7 +734,10 @@ body.dark{
     color:#fff;
 }
 
-body.dark .profile-identity,
+body.dark .profile-identity{
+    background:transparent;
+}
+
 body.dark .profile-stats,
 body.dark .profile-content{
     background:#0b0e15;
@@ -849,8 +860,9 @@ body.dark #closeEditBtn{
 
     .profile-identity{
         max-width:none;
+        margin:-58px auto 0;
         padding:0 12px 8px;
-        grid-template-columns:1fr 1fr;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr);
         grid-template-areas:
             "join premium"
             "main main";
@@ -858,10 +870,11 @@ body.dark #closeEditBtn{
     }
 
     .identity-side-card{
-        min-height:70px;
-        height:70px;
-        padding:7px 8px;
-        gap:6px;
+        min-width:0;
+        min-height:72px;
+        height:72px;
+        padding:7px 9px;
+        gap:7px;
         border-radius:15px;
     }
 
@@ -880,12 +893,10 @@ body.dark #closeEditBtn{
     }
 
     .identity-side-content strong,
-    .join-date-card .identity-side-content strong{
-        font-size:12px;
-    }
-
+    .join-date-card .identity-side-content strong,
     .premium-card .identity-side-content strong{
         font-size:12px;
+        white-space:nowrap;
     }
 
     .identity-main{
