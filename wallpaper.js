@@ -150,6 +150,78 @@ JSON.stringify(list)
 
 
 }
+
+
+/* ===================================================
+   Supabase User Action Sync
+   يحفظ تفضيلات المستخدم على الحساب وليس على الجهاز فقط
+   =================================================== */
+async function syncUserActionToSupabase(type, id){
+    if(id === null || id === undefined) return;
+
+    const keyMap = {
+        favorites:"favorite_ids",
+        favorite:"favorite_ids",
+        likes:"favorite_ids",
+        like:"favorite_ids",
+        downloads:"download_ids",
+        download:"download_ids",
+        views:"view_ids",
+        view:"view_ids"
+    };
+
+    const key = keyMap[String(type).toLowerCase()];
+    if(!key) return;
+
+    try{
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if(!user?.id) return;
+
+        const readLocal = localKey => {
+            try{
+                const value = JSON.parse(localStorage.getItem(localKey) || "[]");
+                return Array.isArray(value) ? value.map(String) : [];
+            }catch{
+                return [];
+            }
+        };
+
+        const { data: cloud } = await supabase
+            .from("user_profile_sync")
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        const unique = values => [...new Set((values || [])
+            .filter(value => value !== null && value !== undefined && String(value).trim() !== "")
+            .map(String))];
+
+        const merged = {
+            user_id:user.id,
+            full_name:cloud?.full_name || localStorage.getItem("userName") || "",
+            username:cloud?.username || localStorage.getItem("username") || "",
+            avatar_url:cloud?.avatar_url || localStorage.getItem("userAvatar") || "",
+            cover_url:cloud?.cover_url || localStorage.getItem("userCover") || "",
+            bio:cloud?.bio || localStorage.getItem("profileBio") || "",
+            join_date:cloud?.join_date || localStorage.getItem("joinDate") || "",
+            favorite_ids:unique([...(cloud?.favorite_ids || []), ...readLocal("favorites")]),
+            download_ids:unique([...(cloud?.download_ids || []), ...readLocal("downloads")]),
+            view_ids:unique([...(cloud?.view_ids || []), ...readLocal("views")])
+        };
+
+        merged[key] = unique([...(merged[key] || []), String(id)]);
+        localStorage.setItem(key === "favorite_ids" ? "favorites" : key === "download_ids" ? "downloads" : "views", JSON.stringify(merged[key]));
+
+        const { error } = await supabase
+            .from("user_profile_sync")
+            .upsert(merged, { onConflict:"user_id" });
+
+        if(error) throw error;
+    }catch(error){
+        console.error("SUPABASE USER ACTION SYNC ERROR:", error);
+    }
+}
 // ===============================
 // Normalize + Load Full Wallpaper Details
 // ===============================
@@ -378,6 +450,7 @@ async function loadWallpaper() {
         loadComments();
 
         saveUserAction("views", currentWallpaper.id);
+        syncUserActionToSupabase("views", currentWallpaper.id);
 
         if (typeof window.syncUserStats === "function") {
             window.syncUserStats("views", currentWallpaper.id);
@@ -1226,6 +1299,7 @@ checkLikeStatus();
         "views",
         currentWallpaper.id
     );
+    syncUserActionToSupabase("views", currentWallpaper.id);
 
 
     // ✅ حفظ المشاهدة في الإحصائيات
@@ -1751,6 +1825,7 @@ if (downloadBtn) {
 
         // حفظ التحميل
         saveUserAction("downloads", currentWallpaper.id);
+        syncUserActionToSupabase("downloads", currentWallpaper.id);
 
         try {
             await fetch(`${API}/${currentWallpaper.id}/download`, {
@@ -1805,6 +1880,8 @@ if(
             `;
 
             favoriteBtn.classList.add("liked");
+            saveUserAction("favorites", currentWallpaper.id);
+            syncUserActionToSupabase("favorites", currentWallpaper.id);
 
         }else{
 

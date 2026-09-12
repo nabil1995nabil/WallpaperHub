@@ -42,6 +42,195 @@ console.log(
 
 let currentUser = null;
 
+
+/* ===================================================
+   Supabase User Cloud Sync
+   المصدر الدائم لبيانات المستخدم عبر الأجهزة
+   =================================================== */
+const USER_SYNC_TABLE = "user_profile_sync";
+
+function normalizeActionList(value){
+    if(!Array.isArray(value)) return [];
+    return [...new Set(value
+        .map(item => {
+            if(item && typeof item === "object"){
+                return item.id ?? item.wallpaperId ?? item.wallpaper_id ?? item.wallId ?? null;
+            }
+            return item;
+        })
+        .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+        .map(String)
+    )];
+}
+
+function getLocalSyncData(){
+    const read = key => {
+        try { return JSON.parse(localStorage.getItem(key) || "[]"); }
+        catch { return []; }
+    };
+
+    return {
+        full_name: localStorage.getItem("userName") || "",
+        username: localStorage.getItem("username") || "",
+        avatar_url: localStorage.getItem("userAvatar") || "",
+        cover_url: localStorage.getItem("userCover") || "",
+        bio: localStorage.getItem("profileBio") || "",
+        join_date: localStorage.getItem("joinDate") || "",
+        favorite_ids: normalizeActionList(read("favorites")),
+        download_ids: normalizeActionList(read("downloads")),
+        view_ids: normalizeActionList(read("views"))
+    };
+}
+
+function applyCloudUserData(data){
+    if(!data) return;
+
+    const setIfPresent = (key, value) => {
+        if(value !== null && value !== undefined && String(value) !== ""){
+            localStorage.setItem(key, String(value));
+        }
+    };
+
+    setIfPresent("userName", data.full_name);
+    setIfPresent("username", data.username);
+    setIfPresent("userAvatar", data.avatar_url);
+    setIfPresent("userCover", data.cover_url);
+    setIfPresent("profileBio", data.bio);
+    setIfPresent("joinDate", data.join_date);
+
+    [
+        ["favorites", data.favorite_ids],
+        ["downloads", data.download_ids],
+        ["views", data.view_ids]
+    ].forEach(([key, value]) => {
+        if(Array.isArray(value)){
+            localStorage.setItem(key, JSON.stringify(normalizeActionList(value)));
+        }
+    });
+}
+
+function mergeSyncData(cloud, local){
+    const merged = { ...(cloud || {}) };
+    const textFields = ["full_name","username","avatar_url","cover_url","bio","join_date"];
+
+    textFields.forEach(key => {
+        if((!merged[key] || String(merged[key]).trim() === "") && local[key]){
+            merged[key] = local[key];
+        }
+    });
+
+    ["favorite_ids","download_ids","view_ids"].forEach(key => {
+        merged[key] = normalizeActionList([
+            ...(Array.isArray(cloud?.[key]) ? cloud[key] : []),
+            ...(Array.isArray(local?.[key]) ? local[key] : [])
+        ]);
+    });
+
+    return merged;
+}
+
+async function loadCloudUserData(user, options = {}){
+    if(!user?.id || (isPublicProfile && !isOwnProfile())) return null;
+
+    try{
+        const { data: cloud, error } = await supabase
+            .from(USER_SYNC_TABLE)
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        if(error) throw error;
+
+        const local = getLocalSyncData();
+        const merged = mergeSyncData(cloud, local);
+
+        applyCloudUserData(merged);
+
+        const shouldWrite = !cloud || options.forceWrite || JSON.stringify(merged) !== JSON.stringify(cloud);
+        if(shouldWrite){
+            await saveCloudUserData(user, merged);
+        }
+
+        if(user.email) localStorage.setItem("userEmail", user.email);
+        if(merged.cover_url && coverImage) coverImage.src = merged.cover_url;
+        if(merged.bio && heroBio) heroBio.textContent = merged.bio;
+
+        updateHeroIdentity(user, merged.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "مستخدم");
+        return merged;
+    }catch(error){
+        console.error("USER CLOUD LOAD ERROR:", error);
+        return null;
+    }
+}
+
+async function saveCloudUserData(user, data = getLocalSyncData()){
+    if(!user?.id || (isPublicProfile && !isOwnProfile())) return false;
+
+    const payload = {
+        user_id: user.id,
+        full_name: data.full_name || "",
+        username: data.username || "",
+        avatar_url: data.avatar_url || "",
+        cover_url: data.cover_url || "",
+        bio: data.bio || "",
+        join_date: data.join_date || "",
+        favorite_ids: normalizeActionList(data.favorite_ids),
+        download_ids: normalizeActionList(data.download_ids),
+        view_ids: normalizeActionList(data.view_ids)
+    };
+
+    try{
+        const { error } = await supabase
+            .from(USER_SYNC_TABLE)
+            .upsert(payload, { onConflict:"user_id" });
+
+        if(error) throw error;
+        return true;
+    }catch(error){
+        console.error("USER CLOUD SAVE ERROR:", error);
+        return false;
+    }
+}
+
+async function syncCloudAction(type, id){
+    if(!currentUser?.id || id === null || id === undefined) return;
+
+    const keyMap = {
+        favorites:"favorite_ids",
+        favorite:"favorite_ids",
+        likes:"favorite_ids",
+        like:"favorite_ids",
+        downloads:"download_ids",
+        download:"download_ids",
+        views:"view_ids",
+        view:"view_ids"
+    };
+    const key = keyMap[String(type).toLowerCase()];
+    if(!key) return;
+
+    try{
+        const { data: cloud } = await supabase
+            .from(USER_SYNC_TABLE)
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+        const local = getLocalSyncData();
+        const merged = mergeSyncData(cloud, local);
+        const value = String(id);
+
+        merged[key] = normalizeActionList([...(merged[key] || []), value]);
+        applyCloudUserData(merged);
+        await saveCloudUserData(currentUser, merged);
+        updateUserStats();
+        renderProfile();
+    }catch(error){
+        console.error("USER CLOUD ACTION SYNC ERROR:", error);
+    }
+}
+
+window.syncCloudUserAction = syncCloudAction;
+
 // ==========================
 // Public Profile Mode
 // ==========================
@@ -157,6 +346,22 @@ async function loadPublicProfile(uid){
             profile.photoURL ||
             ""
         ).trim();
+
+        // الغلاف العام: نستخدم غلاف صاحب البروفايل القادم من المصدر العام،
+        // ولا نستخدم userCover الموجود في جهاز الزائر.
+        const publicCover = String(
+            profile.cover_url ||
+            profile.cover ||
+            ""
+        ).trim();
+
+        if(coverImage){
+            if(publicCover){
+                coverImage.src = publicCover;
+            }else{
+                coverImage.removeAttribute("src");
+            }
+        }
 
         // عرض بيانات UID الموجود في الرابط فقط.
         if(userName) userName.textContent = name;
@@ -285,6 +490,11 @@ document.getElementById(
 "userAvatar"
 );
 
+const coverImage =
+document.getElementById(
+"coverImage"
+);
+
 
 
 
@@ -340,7 +550,7 @@ function updateLoginState(user){
    Supabase Auth Listener - WITH FULL DATA RESTORE
 ========================== */
 
-supabase.auth.onAuthStateChange((event, session) => {
+supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
     updateLoginState(user);
@@ -353,6 +563,9 @@ supabase.auth.onAuthStateChange((event, session) => {
     }
 
     if (user) {
+        // استعادة الحساب من Supabase قبل الاعتماد على بيانات المتصفح.
+        await loadCloudUserData(user);
+
         const metadata = user.user_metadata || {};
         const displayName =
             metadata.full_name ||
@@ -892,6 +1105,11 @@ localStorage.getItem(
 "userAvatar"
 );
 
+const cover =
+localStorage.getItem(
+"userCover"
+);
+
 
 
 
@@ -920,6 +1138,10 @@ if(userAvatar)
 userAvatar.src =
 avatar ||
 "assets/images/user.png";
+
+if(coverImage && cover)
+
+coverImage.src = cover;
 
 
 
@@ -1091,19 +1313,23 @@ document.getElementById(
 
 
 function getList(key){
+    try{
+        const raw = JSON.parse(localStorage.getItem(key) || "[]");
+        if(!Array.isArray(raw)) return [];
 
-
-return JSON.parse(
-
-localStorage.getItem(key)
-
-||
-
-"[]"
-
-);
-
-
+        return raw
+            .map(item => {
+                if(item && typeof item === "object"){
+                    return item.id ?? item.wallpaperId ?? item.wallpaper_id ?? item.wallId ?? null;
+                }
+                return item;
+            })
+            .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+            .map(id => String(id));
+    }catch(error){
+        console.warn("PROFILE LIST READ ERROR:", key, error);
+        return [];
+    }
 }
 
 
@@ -1260,12 +1486,34 @@ function updateUserStats() {
 ========================== */
 
 window.syncUserStats = function(type, id) {
-    let list = JSON.parse(localStorage.getItem(type) || "[]");
-    if (!list.includes(String(id))) {
-        list.push(String(id));
-        localStorage.setItem(type, JSON.stringify(list));
-        console.log(`✅ ${type}:`, list.length);
+    if(id === null || id === undefined || String(id).trim() === "") return;
+
+    const allowed = {
+        like: "favorites",
+        likes: "favorites",
+        favorite: "favorites",
+        favorites: "favorites",
+        download: "downloads",
+        downloads: "downloads",
+        view: "views",
+        views: "views"
+    };
+
+    const key = allowed[String(type).toLowerCase()] || String(type);
+    const list = getList(key);
+    const value = String(id);
+
+    if(!list.includes(value)){
+        list.push(value);
+        localStorage.setItem(key, JSON.stringify(list));
     }
+
+    updateUserStats();
+    renderProfile();
+    syncCloudAction(key, value);
+    window.dispatchEvent(new CustomEvent("wallpaperStatsChanged", {
+        detail:{ type:key, id:value }
+    }));
 };
 
 /* ==========================
@@ -1559,6 +1807,12 @@ localStorage.setItem(
 name
 );
 
+        if(currentUser){
+            const cloudData = getLocalSyncData();
+            cloudData.full_name = name;
+            await saveCloudUserData(currentUser, cloudData);
+        }
+
 
 
 if(userName)
@@ -1696,6 +1950,11 @@ localStorage.setItem(
 src
 );
 
+        if(currentUser){
+            const cloudData = getLocalSyncData();
+            cloudData.avatar_url = src;
+            await saveCloudUserData(currentUser, cloudData);
+        }
 
 
 }
@@ -1747,6 +2006,16 @@ localStorage.setItem(
 src
 );
 
+        if(currentUser){
+            const cloudData = getLocalSyncData();
+            cloudData.cover_url = src;
+            await saveCloudUserData(currentUser, cloudData);
+        }
+
+window.dispatchEvent(new CustomEvent("profileCoverChanged", {
+    detail:{ src }
+}));
+
 
 
 }
@@ -1765,6 +2034,24 @@ src
 
 
 
+
+/* ===================================================
+   Profile Live Sync
+   =================================================== */
+
+window.addEventListener("wallpaperStatsChanged", () => {
+    renderProfile();
+});
+
+window.addEventListener("storage", event => {
+    if(["favorites", "downloads", "views", "userCover"].includes(event.key)){
+        if(event.key === "userCover" && coverImage){
+            coverImage.src = event.newValue || "";
+        }
+        renderProfile();
+        updateUserStats();
+    }
+});
 
 /* ===================================================
    Profile Tabs

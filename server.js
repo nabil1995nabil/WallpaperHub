@@ -874,6 +874,25 @@ app.get(
                 console.log("PUBLIC PROFILE QUERY ERROR:", profileError.message);
             }
 
+            // الغلاف العام: نقرأه من user_profile_sync عبر السيرفر،
+            // حتى يستطيع أي زائر رؤية غلاف صاحب البروفايل.
+            let syncProfile = null;
+            try{
+                const { data: syncData, error: syncError } = await supabase
+                    .from("user_profile_sync")
+                    .select("cover_url,bio,join_date")
+                    .eq("user_id", targetUID)
+                    .maybeSingle();
+
+                if(syncError){
+                    console.log("PUBLIC PROFILE SYNC QUERY ERROR:", syncError.message);
+                }else{
+                    syncProfile = syncData || null;
+                }
+            }catch(syncError){
+                console.log("PUBLIC PROFILE SYNC ERROR:", syncError.message);
+            }
+
             if(profile){
                 return res.json({
                     success:true,
@@ -882,7 +901,10 @@ app.get(
                         id:String(profile.id),
                         full_name:profile.full_name || "",
                         username:profile.username || "",
-                        avatar_url:profile.avatar_url || ""
+                        avatar_url:profile.avatar_url || "",
+                        cover_url:syncProfile?.cover_url || "",
+                        bio:syncProfile?.bio || "",
+                        join_date:syncProfile?.join_date || ""
                     }
                 });
             }
@@ -902,7 +924,10 @@ app.get(
                             id:String(authUser.id),
                             full_name:meta.full_name || meta.name || meta.user_name || "",
                             username:meta.username || meta.user_name || "",
-                            avatar_url:meta.avatar_url || meta.picture || ""
+                            avatar_url:meta.avatar_url || meta.picture || "",
+                            cover_url:syncProfile?.cover_url || "",
+                            bio:syncProfile?.bio || "",
+                            join_date:syncProfile?.join_date || ""
                         }
                     });
                 }
