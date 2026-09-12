@@ -249,6 +249,16 @@ document.getElementById(
 "loginBtn"
 );
 
+const settingsBtn =
+document.getElementById(
+"settingsBtn"
+);
+
+const profileMenuBtn =
+document.getElementById(
+"profileMenuBtn"
+);
+
 
 
 const userName =
@@ -533,6 +543,25 @@ if (loginBtn) {
         }
     };
 }
+
+/* ==========================
+   Header Actions
+========================== */
+
+// الإعدادات: الزر موجود وجاهز لربطه لاحقاً بصفحة/نافذة الإعدادات.
+if (settingsBtn) {
+    settingsBtn.onclick = () => {
+        console.log("⚙️ Settings button clicked");
+    };
+}
+
+// الثلاث نقاط: مكان مخصص لقائمة خيارات سنضيفها لاحقاً.
+if (profileMenuBtn) {
+    profileMenuBtn.onclick = () => {
+        console.log("⋮ Profile menu clicked");
+    };
+}
+
 
 /* ===================================================
    User Profile Data
