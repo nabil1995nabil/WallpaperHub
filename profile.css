@@ -715,12 +715,12 @@ body.dark .info-card:not(:last-child)::after{
 
 .cover-change-btn{
     position:absolute;
-    top:250px;
+    top:210px;
     right:14px;
     z-index:12;
-    min-height:36px;
-    height:36px;
-    padding:0 13px;
+    min-height:20px;
+    height:20px;
+    padding:0 12px;
     border:0;
     border-radius:20px;
     background:rgba(55,43,45,.78);
@@ -730,7 +730,7 @@ body.dark .info-card:not(:last-child)::after{
     justify-content:center;
     gap:6px;
     font-family:"Cairo",Arial,sans-serif;
-    font-size:18px;
+    font-size:12px;
     font-weight:500;
     line-height:1;
     cursor:pointer;
@@ -742,7 +742,7 @@ body.dark .info-card:not(:last-child)::after{
 }
 
 .cover-change-btn .material-icons{
-    font-size:18px;
+    font-size:13px;
     line-height:1;
 }
 
