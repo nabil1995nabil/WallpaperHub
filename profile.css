@@ -1,7 +1,6 @@
 /* =========================================================
    WallpaperHub — Profile
    Root stylesheet
-   Independent identity cards — no shared positioning patches
    ========================================================= */
 
 *{
@@ -34,6 +33,11 @@ button{
     border:0;
 }
 
+
+/* =========================================================
+   Profile Header
+   ========================================================= */
+
 .profile-header{
     position:absolute;
     inset:0 0 auto;
@@ -64,6 +68,11 @@ button{
 .profile-actions{
     justify-content:flex-end;
 }
+
+
+/* =========================================================
+   Profile Header Buttons
+   ========================================================= */
 
 .profile-icon-btn{
     width:42px !important;
@@ -102,9 +111,8 @@ button{
 .profile-icon-btn .material-icons{
     font-size:22px;
 }
-
 /* =========================================================
-   Cover
+   Profile Cover
    ========================================================= */
 
 .profile-cover{
@@ -121,6 +129,11 @@ button{
     display:block;
     object-fit:cover;
 }
+
+
+/* =========================================================
+   Cover Change Button
+   ========================================================= */
 
 .cover-change-btn{
     position:absolute;
@@ -160,6 +173,11 @@ button{
     pointer-events:none;
 }
 
+
+/* =========================================================
+   Profile Avatar
+   ========================================================= */
+
 .profile-avatar-box{
     position:absolute;
     top:180px;
@@ -177,6 +195,11 @@ button{
     border-radius:50%;
     box-shadow:0 7px 20px rgba(35,45,80,.18);
 }
+
+
+/* =========================================================
+   Avatar Edit Button
+   ========================================================= */
 
 .avatar-edit{
     position:absolute;
@@ -198,12 +221,9 @@ button{
 .avatar-edit .material-icons{
     font-size:20px;
 }
-
 /* =========================================================
-   Profile identity
-   The cover ends first.
-   Identity starts BELOW the cover.
-   Join and premium cards are independent flex items.
+   Profile Identity Container
+   الحاوية العامة فقط
    ========================================================= */
 
 .profile-identity{
@@ -222,31 +242,160 @@ button{
     background:transparent;
 }
 
-/* Each card owns its own width/height/position rules. */
+
+/* =========================================================
+   Join Date Card
+   خانة تاريخ الانضمام — مستقلة بالكامل
+   ========================================================= */
+
 .join-date-card{
-    position:static !important;
-    top:auto !important;
-    left:auto !important;
-    right:auto !important;
-    transform:none !important;
     order:1;
     width:calc(50% - 9px);
+    transform:translateY(-15px);
 }
+
+
+/* =========================================================
+   Join Date Card — Icon
+   ========================================================= */
+
+.join-date-card > .material-icons{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:#eef2f8;
+    color:#5364ee;
+    font-size:20px;
+}
+
+
+/* =========================================================
+   Join Date Card — Content
+   ========================================================= */
+
+.join-date-card .identity-side-content{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    text-align:right;
+}
+
+
+/* =========================================================
+   Join Date Card — Label
+   ========================================================= */
+
+.join-date-card .identity-side-label{
+    color:#7a8297;
+    font-size:10px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   Join Date Card — Year
+   ========================================================= */
+
+.join-date-card .identity-side-content strong{
+    color:#1c2233;
+    font-size:14px;
+    font-weight:700;
+    line-height:1.35;
+    white-space:nowrap;
+}
+
+
+/* =========================================================
+   Join Date Card — Description
+   ========================================================= */
+
+.join-date-card .identity-side-content small{
+    color:#7a8297;
+    font-size:10px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   Premium Card
+   خانة المستخدم المميز — مستقلة بالكامل
+   ========================================================= */
 
 .premium-card{
-    position:static !important;
-    top:auto !important;
-    left:auto !important;
-    right:auto !important;
-    transform:none !important;
     order:2;
     width:calc(50% - 9px);
+    color:#fff;
+    border:1px solid transparent;
+    background:linear-gradient(145deg,#795b50,#a9887a);
+    transform:translateY(-15px);
 }
 
-.identity-main{
-    order:3;
-    width:100%;
+
+/* =========================================================
+   Premium Card — Crown
+   ========================================================= */
+
+.premium-card .premium-crown{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    color:#ffe17a;
+    background:rgba(255,255,255,.10);
+    font-size:20px;
 }
+
+
+/* =========================================================
+   Premium Card — Content
+   ========================================================= */
+
+.premium-card .identity-side-content{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    text-align:right;
+}
+
+
+/* =========================================================
+   Premium Card — Title
+   ========================================================= */
+
+.premium-card .identity-side-content strong{
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    line-height:1.35;
+    white-space:nowrap;
+}
+
+
+/* =========================================================
+   Premium Card — Description
+   ========================================================= */
+
+.premium-card .identity-side-content small{
+    color:#fff;
+    opacity:.8;
+    font-size:10px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   Side Card Base
+   الشكل العام للخانات فقط
+   ========================================================= */
 
 .identity-side-card{
     min-width:0;
@@ -265,72 +414,15 @@ button{
     -webkit-backdrop-filter:blur(12px);
 }
 
-.identity-card-icon,
-.premium-crown{
-    width:34px;
-    height:34px;
-    flex:0 0 34px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-    background:#eef2f8;
-    color:#5364ee;
-    font-size:20px;
-}
 
-.identity-side-content{
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    gap:1px;
-    text-align:right;
-}
-
-.identity-side-label,
-.identity-side-content small{
-    color:#7a8297;
-    font-size:10px;
-    line-height:1.3;
-}
-
-.identity-side-content strong{
-    color:#1c2233;
-    font-size:13px;
-    font-weight:700;
-    line-height:1.35;
-    white-space:nowrap;
-}
-
-.join-date-card .identity-side-content strong{
-    font-size:14px;
-}
-
-.premium-card{
-    color:#fff;
-    border-color:transparent;
-    background:linear-gradient(145deg,#795b50,#a9887a);
-}
-
-.premium-card .identity-side-content strong,
-.premium-card .identity-side-content small{
-    color:#fff;
-}
-
-.premium-card .identity-side-content strong{
-    font-size:14px;
-}
-
-.premium-card .identity-side-content small{
-    opacity:.8;
-}
-
-.premium-crown{
-    color:#ffe17a;
-    background:rgba(255,255,255,.10);
-}
+/* =========================================================
+   Main Identity
+   الاسم والمعلومات الرئيسية — مستقل
+   ========================================================= */
 
 .identity-main{
+    order:3;
+    width:100%;
     min-width:0;
     padding:2px 4px 3px;
     display:flex;
@@ -339,6 +431,11 @@ button{
     text-align:center;
     direction:rtl;
 }
+
+
+/* =========================================================
+   Name Row
+   ========================================================= */
 
 .identity-name-row{
     display:flex;
@@ -355,6 +452,11 @@ button{
     line-height:1.2;
 }
 
+
+/* =========================================================
+   Verified Badge
+   ========================================================= */
+
 .verified-badge{
     width:24px;
     height:24px;
@@ -367,6 +469,11 @@ button{
     font-size:17px;
 }
 
+
+/* =========================================================
+   Username
+   ========================================================= */
+
 .identity-username{
     margin-top:4px;
     color:#697187;
@@ -375,12 +482,22 @@ button{
     direction:ltr;
 }
 
+
+/* =========================================================
+   Bio
+   ========================================================= */
+
 .identity-bio{
     margin:4px 0 9px;
     color:#596176;
     font-size:14px;
     line-height:1.55;
 }
+
+
+/* =========================================================
+   Edit Profile Button
+   ========================================================= */
 
 .hero-edit-profile{
     min-width:230px;
@@ -403,9 +520,9 @@ button{
     color:#536075;
     font-size:18px;
 }
-
 /* =========================================================
-   Stats
+   Profile Statistics
+   الإحصائيات — قسم مستقل
    ========================================================= */
 
 .profile-stats{
@@ -418,6 +535,11 @@ button{
     gap:9px;
     background:#f7f8fc;
 }
+
+
+/* =========================================================
+   Statistic Card
+   ========================================================= */
 
 .stat-card{
     min-width:0;
@@ -433,6 +555,11 @@ button{
     background:linear-gradient(145deg,#fff,#f5f7fc);
 }
 
+
+/* =========================================================
+   Statistic Icon
+   ========================================================= */
+
 .stat-icon{
     width:22px;
     height:22px;
@@ -442,10 +569,31 @@ button{
     font-size:20px;
 }
 
-.download-icon{color:#2186e8}
-.like-icon{color:#e83e67}
-.view-icon{color:#7457e9}
-.wallpaper-icon{color:#2eb75b}
+
+/* =========================================================
+   Statistic Icon Colors
+   ========================================================= */
+
+.download-icon{
+    color:#2186e8;
+}
+
+.like-icon{
+    color:#e83e67;
+}
+
+.view-icon{
+    color:#7457e9;
+}
+
+.wallpaper-icon{
+    color:#2eb75b;
+}
+
+
+/* =========================================================
+   Statistic Number
+   ========================================================= */
 
 .stat-card strong{
     color:#161b2a;
@@ -454,15 +602,20 @@ button{
     line-height:1.05;
 }
 
+
+/* =========================================================
+   Statistic Label
+   ========================================================= */
+
 .stat-card > span:last-child{
     color:#70788b;
     font-size:9px;
     line-height:1.2;
     white-space:nowrap;
 }
-
 /* =========================================================
-   Wallpapers
+   Profile Wallpapers Content
+   قسم الخلفيات — مستقل بالكامل
    ========================================================= */
 
 .profile-content{
@@ -471,6 +624,12 @@ button{
     margin:0 auto;
     padding:0 28px 25px;
 }
+
+
+/* =========================================================
+   Wallpapers Heading
+   عنوان قسم الخلفيات
+   ========================================================= */
 
 .profile-wallpapers-heading{
     width:100%;
@@ -487,11 +646,21 @@ button{
     direction:rtl;
 }
 
+
+/* =========================================================
+   Wallpapers Heading Main
+   ========================================================= */
+
 .wallpapers-heading-main{
     display:flex;
     align-items:center;
     gap:7px;
 }
+
+
+/* =========================================================
+   Wallpapers Heading Icon
+   ========================================================= */
 
 .wallpapers-heading-main .material-icons{
     width:29px;
@@ -505,12 +674,22 @@ button{
     font-size:17px;
 }
 
+
+/* =========================================================
+   Wallpapers Heading Title
+   ========================================================= */
+
 .profile-wallpapers-heading h2{
     color:#171c2a;
     font-size:15px;
     font-weight:800;
     line-height:1;
 }
+
+
+/* =========================================================
+   Wallpapers Count
+   ========================================================= */
 
 .wallpapers-heading-count{
     min-width:27px;
@@ -526,12 +705,23 @@ button{
     font-weight:700;
 }
 
+
+/* =========================================================
+   Profile Wallpapers Grid
+   شبكة الخلفيات
+   ========================================================= */
+
 .profile-grid{
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
     gap:9px;
     width:100%;
 }
+
+
+/* =========================================================
+   Wallpaper Card
+   ========================================================= */
 
 .profile-wall-card{
     min-width:0;
@@ -542,6 +732,11 @@ button{
     cursor:pointer;
 }
 
+
+/* =========================================================
+   Wallpaper Image
+   ========================================================= */
+
 .profile-wall-card img{
     width:100%;
     height:220px;
@@ -550,9 +745,19 @@ button{
     border-radius:11px;
 }
 
+
+/* =========================================================
+   Wallpaper Information
+   ========================================================= */
+
 .profile-wall-info{
     padding:6px 3px 2px;
 }
+
+
+/* =========================================================
+   Wallpaper Title
+   ========================================================= */
 
 .profile-wall-info h3{
     overflow:hidden;
@@ -563,11 +768,21 @@ button{
     white-space:nowrap;
 }
 
+
+/* =========================================================
+   Wallpaper Metadata
+   ========================================================= */
+
 .profile-wall-info p{
     margin-top:2px;
     color:#747c90;
     font-size:9px;
 }
+
+
+/* =========================================================
+   Empty Wallpapers
+   ========================================================= */
 
 .empty-profile{
     grid-column:1/-1;
@@ -576,22 +791,38 @@ button{
     color:#8991a5;
 }
 
+
+/* =========================================================
+   Secondary Wallpaper Section
+   قسم الخلفيات الإضافي
+   ========================================================= */
+
 .secondary-wallpaper-section{
     margin-top:22px;
 }
 
+
+/* =========================================================
+   Secondary Section Title
+   ========================================================= */
+
 .section-title{
     margin:0 0 10px;
 }
+
+
+/* =========================================================
+   Secondary Section Heading
+   ========================================================= */
 
 .section-title h2{
     color:#252b3b;
     font-size:16px;
     font-weight:700;
 }
-
 /* =========================================================
-   User information
+   User Information
+   معلومات الحساب — قسم مستقل بالكامل
    ========================================================= */
 
 .user-info{
@@ -604,6 +835,11 @@ button{
     gap:0;
 }
 
+
+/* =========================================================
+   Information Card
+   ========================================================= */
+
 .info-card{
     min-height:64px;
     padding:9px 0;
@@ -614,6 +850,11 @@ button{
     background:transparent;
 }
 
+
+/* =========================================================
+   Information Divider
+   ========================================================= */
+
 .info-card:not(:last-child)::after{
     content:"";
     position:absolute;
@@ -623,6 +864,11 @@ button{
     height:1px;
     background:rgba(0,0,0,.06);
 }
+
+
+/* =========================================================
+   Information Icon
+   ========================================================= */
 
 .info-card > .material-icons{
     width:40px;
@@ -637,11 +883,21 @@ button{
     font-size:21px;
 }
 
+
+/* =========================================================
+   Information Title
+   ========================================================= */
+
 .info-card h4{
     margin-bottom:3px;
     color:#7a8295;
     font-size:12px;
 }
+
+
+/* =========================================================
+   Information Value
+   ========================================================= */
 
 .info-card p{
     color:#171c2a;
@@ -649,9 +905,19 @@ button{
     font-weight:500;
 }
 
+
+/* =========================================================
+   UID Box
+   ========================================================= */
+
 .uid-box{
     display:block;
 }
+
+
+/* =========================================================
+   UID Title
+   ========================================================= */
 
 .uid-title{
     margin-bottom:7px;
@@ -660,12 +926,22 @@ button{
     text-align:center;
 }
 
+
+/* =========================================================
+   UID Content
+   ========================================================= */
+
 .uid-content{
     display:flex;
     align-items:center;
     gap:10px;
     direction:ltr;
 }
+
+
+/* =========================================================
+   User UID
+   ========================================================= */
 
 #userUid{
     flex:1;
@@ -677,6 +953,11 @@ button{
     text-overflow:ellipsis;
 }
 
+
+/* =========================================================
+   Copy UID Button
+   ========================================================= */
+
 .uid-content button{
     width:38px;
     height:38px;
@@ -686,9 +967,9 @@ button{
     color:#5364ee;
     cursor:pointer;
 }
-
 /* =========================================================
-   Edit modal
+   Edit Profile Modal
+   نافذة تعديل الملف الشخصي — قسم مستقل بالكامل
    ========================================================= */
 
 .edit-modal{
@@ -702,9 +983,19 @@ button{
     background:rgba(10,14,25,.42);
 }
 
+
+/* =========================================================
+   Modal Active State
+   ========================================================= */
+
 .edit-modal.show{
     display:flex;
 }
+
+
+/* =========================================================
+   Edit Box
+   ========================================================= */
 
 .edit-box{
     width:100%;
@@ -715,6 +1006,11 @@ button{
     box-shadow:0 18px 45px rgba(0,0,0,.18);
 }
 
+
+/* =========================================================
+   Modal Title
+   ========================================================= */
+
 .edit-box h2{
     margin-bottom:22px;
     text-align:center;
@@ -723,9 +1019,19 @@ button{
     font-weight:700;
 }
 
+
+/* =========================================================
+   Edit Input
+   ========================================================= */
+
 .edit-input{
     margin-bottom:16px;
 }
+
+
+/* =========================================================
+   Input Label
+   ========================================================= */
 
 .edit-input label{
     display:block;
@@ -733,6 +1039,11 @@ button{
     color:#70788b;
     font-size:13px;
 }
+
+
+/* =========================================================
+   Input Field
+   ========================================================= */
 
 .edit-input input{
     width:100%;
@@ -746,16 +1057,31 @@ button{
     font-size:14px;
 }
 
+
+/* =========================================================
+   Input Focus
+   ========================================================= */
+
 .edit-input input:focus{
     border-color:#5364ee;
     box-shadow:0 0 0 3px rgba(83,100,238,.10);
 }
+
+
+/* =========================================================
+   Modal Buttons
+   ========================================================= */
 
 .edit-buttons{
     display:flex;
     gap:10px;
     margin-top:22px;
 }
+
+
+/* =========================================================
+   Modal Button
+   ========================================================= */
 
 .edit-buttons button{
     flex:1;
@@ -766,18 +1092,28 @@ button{
     font-weight:700;
 }
 
+
+/* =========================================================
+   Save Button
+   ========================================================= */
+
 #saveProfileBtn{
     background:#5364ee;
     color:#fff;
 }
 
+
+/* =========================================================
+   Close Button
+   ========================================================= */
+
 #closeEditBtn{
     background:#edf0f5;
     color:#5364ee;
 }
-
 /* =========================================================
-   Dark theme
+   Dark Theme
+   الوضع الداكن — قسم مستقل
    ========================================================= */
 
 body.dark{
@@ -785,60 +1121,190 @@ body.dark{
     color:#fff;
 }
 
+
+/* =========================================================
+   Dark Profile Identity
+   ========================================================= */
+
 body.dark .profile-identity{
     background:transparent;
 }
 
-body.dark .profile-stats,
+
+/* =========================================================
+   Dark Statistics
+   ========================================================= */
+
+body.dark .profile-stats{
+    background:#0b0e15;
+}
+
+
+/* =========================================================
+   Dark Profile Content
+   ========================================================= */
+
 body.dark .profile-content{
     background:#0b0e15;
 }
 
-body.dark .identity-side-card,
-body.dark .stat-card,
-body.dark .profile-wallpapers-heading,
+
+/* =========================================================
+   Dark Identity Cards
+   ========================================================= */
+
+body.dark .identity-side-card{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Statistic Card
+   ========================================================= */
+
+body.dark .stat-card{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Wallpapers Heading
+   ========================================================= */
+
+body.dark .profile-wallpapers-heading{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Edit Box
+   ========================================================= */
+
 body.dark .edit-box{
     background:#141925;
     border-color:#252c3c;
 }
 
-body.dark .identity-side-content strong,
-body.dark .identity-name-row h1,
-body.dark .identity-bio,
-body.dark .profile-wallpapers-heading h2,
-body.dark .stat-card strong,
-body.dark .info-card p,
-body.dark .profile-wall-info h3,
+
+/* =========================================================
+   Dark Main Text
+   ========================================================= */
+
+body.dark .identity-side-content strong{
+    color:#fff;
+}
+
+body.dark .identity-name-row h1{
+    color:#fff;
+}
+
+body.dark .identity-bio{
+    color:#fff;
+}
+
+body.dark .profile-wallpapers-heading h2{
+    color:#fff;
+}
+
+body.dark .stat-card strong{
+    color:#fff;
+}
+
+body.dark .info-card p{
+    color:#fff;
+}
+
+body.dark .profile-wall-info h3{
+    color:#fff;
+}
+
 body.dark .edit-box h2{
     color:#fff;
 }
 
-body.dark .identity-side-label,
-body.dark .identity-side-content small,
-body.dark .identity-username,
-body.dark .identity-bio,
-body.dark .stat-card > span:last-child,
-body.dark .info-card h4,
+
+/* =========================================================
+   Dark Secondary Text
+   ========================================================= */
+
+body.dark .identity-side-label{
+    color:#9da6ba;
+}
+
+body.dark .identity-side-content small{
+    color:#9da6ba;
+}
+
+body.dark .identity-username{
+    color:#9da6ba;
+}
+
+body.dark .stat-card > span:last-child{
+    color:#9da6ba;
+}
+
+body.dark .info-card h4{
+    color:#9da6ba;
+}
+
 body.dark .profile-wall-info p{
     color:#9da6ba;
 }
 
-body.dark .identity-card-icon,
-body.dark .premium-crown,
-body.dark .wallpapers-heading-main .material-icons,
-body.dark .wallpapers-heading-count,
-body.dark .info-card > .material-icons,
+
+/* =========================================================
+   Dark Icons
+   ========================================================= */
+
+body.dark .join-date-card > .material-icons{
+    background:#1b2130;
+}
+
+body.dark .premium-card .premium-crown{
+    background:#1b2130;
+}
+
+body.dark .wallpapers-heading-main .material-icons{
+    background:#1b2130;
+}
+
+body.dark .wallpapers-heading-count{
+    background:#1b2130;
+}
+
+body.dark .info-card > .material-icons{
+    background:#1b2130;
+}
+
 body.dark .uid-content button{
     background:#1b2130;
 }
+
+
+/* =========================================================
+   Dark Wallpaper Card
+   ========================================================= */
 
 body.dark .profile-wall-card{
     background:#161c28;
 }
 
+
+/* =========================================================
+   Dark Information Divider
+   ========================================================= */
+
 body.dark .info-card:not(:last-child)::after{
     background:rgba(255,255,255,.08);
 }
+
+
+/* =========================================================
+   Dark Edit Input
+   ========================================================= */
 
 body.dark .edit-input input{
     background:#0d111a;
@@ -846,12 +1312,17 @@ body.dark .edit-input input{
     color:#fff;
 }
 
+
+/* =========================================================
+   Dark Close Button
+   ========================================================= */
+
 body.dark #closeEditBtn{
     background:#202738;
 }
-
 /* =========================================================
-   Mobile
+   Mobile Layout
+   تصميم الهاتف — قسم مستقل
    ========================================================= */
 
 @media(max-width:700px){
@@ -859,6 +1330,11 @@ body.dark #closeEditBtn{
     body{
         padding-bottom:95px;
     }
+
+
+    /* =====================================================
+       Mobile Header
+       ===================================================== */
 
     .profile-header{
         height:62px;
@@ -869,19 +1345,29 @@ body.dark #closeEditBtn{
         font-size:20px;
     }
 
-    .profile-icon-btn{
-        width:40px !important;
-        min-width:40px !important;
-        max-width:40px !important;
-        height:40px !important;
-        min-height:40px !important;
-        max-height:40px !important;
-        flex-basis:40px !important;
-    }
-
     .profile-actions{
         gap:7px;
     }
+
+
+    /* =====================================================
+       Mobile Header Buttons
+       ===================================================== */
+
+    .profile-icon-btn{
+        width:40px;
+        min-width:40px;
+        max-width:40px;
+        height:40px;
+        min-height:40px;
+        max-height:40px;
+        flex-basis:40px;
+    }
+
+
+    /* =====================================================
+       Mobile Cover
+       ===================================================== */
 
     .profile-cover{
         height:320px;
@@ -891,6 +1377,11 @@ body.dark #closeEditBtn{
         height:245px;
     }
 
+
+    /* =====================================================
+       Mobile Cover Button
+       ===================================================== */
+
     .cover-change-btn{
         top:112px;
         right:12px;
@@ -899,6 +1390,11 @@ body.dark #closeEditBtn{
         border-radius:17px;
         font-size:12px;
     }
+
+
+    /* =====================================================
+       Mobile Avatar
+       ===================================================== */
 
     .profile-avatar-box{
         top:180px;
@@ -914,27 +1410,42 @@ body.dark #closeEditBtn{
         height:35px;
     }
 
-    /* Cards are BELOW the cover, never positioned over it. */
+
+    /* =====================================================
+       Mobile Profile Identity
+       ===================================================== */
+
     .profile-identity{
         max-width:none;
         margin:0 auto;
         padding:10px 12px 8px;
-        display:flex;
-        flex-wrap:wrap;
-        align-items:flex-start;
-        justify-content:space-between;
         gap:8px;
     }
+
+
+    /* =====================================================
+       Mobile Join Date
+       ===================================================== */
 
     .join-date-card{
         order:1;
         width:calc(50% - 4px);
     }
 
+
+    /* =====================================================
+       Mobile Premium
+       ===================================================== */
+
     .premium-card{
         order:2;
         width:calc(50% - 4px);
     }
+
+
+    /* =====================================================
+       Mobile Identity Main
+       ===================================================== */
 
     .identity-main{
         order:3;
@@ -942,39 +1453,84 @@ body.dark #closeEditBtn{
         padding:1px 0 3px;
     }
 
-    .identity-side-card{
-        min-width:0;
+
+    /* =====================================================
+       Mobile Join Date Card
+       ===================================================== */
+
+    .join-date-card{
         min-height:64px;
         height:64px;
         padding:6px 8px;
+        display:flex;
+        align-items:center;
         gap:6px;
         border-radius:14px;
     }
 
-    .identity-card-icon,
-    .premium-crown{
+    .join-date-card > .material-icons{
         width:28px;
         height:28px;
-        flex-basis:28px;
+        flex:0 0 28px;
         border-radius:8px;
         font-size:15px;
     }
 
-    .identity-side-content{
+    .join-date-card .identity-side-content{
         gap:1px;
     }
 
-    .identity-side-label,
-    .identity-side-content small{
+    .join-date-card .identity-side-label{
         font-size:8px;
     }
 
-    .identity-side-content strong,
-    .join-date-card .identity-side-content strong,
+    .join-date-card .identity-side-content strong{
+        font-size:11px;
+    }
+
+    .join-date-card .identity-side-content small{
+        font-size:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Premium Card
+       ===================================================== */
+
+    .premium-card{
+        min-height:64px;
+        height:64px;
+        padding:6px 8px;
+        display:flex;
+        align-items:center;
+        gap:6px;
+        border-radius:14px;
+    }
+
+    .premium-card .premium-crown{
+        width:28px;
+        height:28px;
+        flex:0 0 28px;
+        border-radius:8px;
+        font-size:15px;
+    }
+
+    .premium-card .identity-side-content{
+        gap:1px;
+    }
+
     .premium-card .identity-side-content strong{
         font-size:11px;
-        white-space:nowrap;
     }
+
+    .premium-card .identity-side-content small{
+        font-size:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Name
+       ===================================================== */
 
     .identity-name-row{
         gap:5px;
@@ -984,21 +1540,41 @@ body.dark #closeEditBtn{
         font-size:22px;
     }
 
+
+    /* =====================================================
+       Mobile Verified Badge
+       ===================================================== */
+
     .verified-badge{
         width:20px;
         height:20px;
         font-size:14px;
     }
 
+
+    /* =====================================================
+       Mobile Username
+       ===================================================== */
+
     .identity-username{
         margin-top:1px;
         font-size:12px;
     }
 
+
+    /* =====================================================
+       Mobile Bio
+       ===================================================== */
+
     .identity-bio{
         margin:2px 0 5px;
         font-size:11px;
     }
+
+
+    /* =====================================================
+       Mobile Edit Button
+       ===================================================== */
 
     .hero-edit-profile{
         min-width:190px;
@@ -1011,6 +1587,11 @@ body.dark #closeEditBtn{
     .hero-edit-profile .material-icons{
         font-size:15px;
     }
+
+
+    /* =====================================================
+       Mobile Statistics
+       ===================================================== */
 
     .profile-stats{
         max-width:none;
@@ -1037,6 +1618,11 @@ body.dark #closeEditBtn{
     .stat-card > span:last-child{
         font-size:8px;
     }
+
+
+    /* =====================================================
+       Mobile Wallpapers
+       ===================================================== */
 
     .profile-content{
         max-width:none;
@@ -1071,10 +1657,20 @@ body.dark #closeEditBtn{
         font-size:9px;
     }
 
+
+    /* =====================================================
+       Mobile Wallpaper Grid
+       ===================================================== */
+
     .profile-grid{
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:8px;
     }
+
+
+    /* =====================================================
+       Mobile Wallpaper Card
+       ===================================================== */
 
     .profile-wall-card{
         padding:4px;
@@ -1098,30 +1694,53 @@ body.dark #closeEditBtn{
         font-size:8px;
     }
 
+
+    /* =====================================================
+       Mobile Secondary Section
+       ===================================================== */
+
     .secondary-wallpaper-section{
         margin-top:18px;
     }
+
+
+    /* =====================================================
+       Mobile User Information
+       ===================================================== */
 
     .user-info{
         padding:10px 12px 20px;
     }
 }
+/* =========================================================
+   Extra Small Screens
+   الشاشات الصغيرة جدًا — قسم مستقل
+   ========================================================= */
 
 @media(max-width:380px){
+
+    /* =====================================================
+       Header
+       ===================================================== */
 
     .profile-actions{
         gap:5px;
     }
 
     .profile-icon-btn{
-        width:37px !important;
-        min-width:37px !important;
-        max-width:37px !important;
-        height:37px !important;
-        min-height:37px !important;
-        max-height:37px !important;
-        flex-basis:37px !important;
+        width:37px;
+        min-width:37px;
+        max-width:37px;
+        height:37px;
+        min-height:37px;
+        max-height:37px;
+        flex-basis:37px;
     }
+
+
+    /* =====================================================
+       Cover
+       ===================================================== */
 
     .profile-cover{
         height:315px;
@@ -1130,6 +1749,11 @@ body.dark #closeEditBtn{
     .cover-image{
         height:240px;
     }
+
+
+    /* =====================================================
+       Avatar
+       ===================================================== */
 
     .profile-avatar-box{
         top:176px;
@@ -1140,6 +1764,11 @@ body.dark #closeEditBtn{
         height:91px;
     }
 
+
+    /* =====================================================
+       Profile Identity
+       ===================================================== */
+
     .profile-identity{
         padding-top:10px;
         padding-left:10px;
@@ -1147,15 +1776,13 @@ body.dark #closeEditBtn{
         gap:6px;
     }
 
+
+    /* =====================================================
+       Join Date
+       ===================================================== */
+
     .join-date-card{
         width:calc(50% - 3px);
-    }
-
-    .premium-card{
-        width:calc(50% - 3px);
-    }
-
-    .identity-side-card{
         height:60px;
         min-height:60px;
         padding:5px 7px;
@@ -1163,24 +1790,60 @@ body.dark #closeEditBtn{
         border-radius:12px;
     }
 
-    .identity-card-icon,
-    .premium-crown{
+    .join-date-card > .material-icons{
         width:26px;
         height:26px;
         flex-basis:26px;
+        border-radius:8px;
         font-size:14px;
     }
 
-    .identity-side-label,
-    .identity-side-content small{
+    .join-date-card .identity-side-label{
         font-size:7px;
     }
 
-    .identity-side-content strong,
-    .join-date-card .identity-side-content strong,
+    .join-date-card .identity-side-content strong{
+        font-size:10px;
+    }
+
+    .join-date-card .identity-side-content small{
+        font-size:7px;
+    }
+
+
+    /* =====================================================
+       Premium
+       ===================================================== */
+
+    .premium-card{
+        width:calc(50% - 3px);
+        height:60px;
+        min-height:60px;
+        padding:5px 7px;
+        gap:5px;
+        border-radius:12px;
+    }
+
+    .premium-card .premium-crown{
+        width:26px;
+        height:26px;
+        flex-basis:26px;
+        border-radius:8px;
+        font-size:14px;
+    }
+
     .premium-card .identity-side-content strong{
         font-size:10px;
     }
+
+    .premium-card .identity-side-content small{
+        font-size:7px;
+    }
+
+
+    /* =====================================================
+       Statistics
+       ===================================================== */
 
     .profile-stats{
         gap:5px;
@@ -1200,6 +1863,11 @@ body.dark #closeEditBtn{
     .stat-card > span:last-child{
         font-size:7px;
     }
+
+
+    /* =====================================================
+       Wallpaper Images
+       ===================================================== */
 
     .profile-wall-card img{
         height:165px;
