@@ -182,7 +182,7 @@ button{
     position:absolute;
     top:180px;
     left:50%;
-    z-index:25;
+    z-index:30;
     transform:translateX(-50%);
 }
 
@@ -250,11 +250,11 @@ button{
 
 .join-date-card{
     order:1;
-    width:calc(50% - 9px);
-    /* التعديل هنا: زيادة رفع الخانة للأعلى */
-    transform:translateY(-75px);
-    position:relative;
-    z-index:35;
+    width: 40%;            /* تقليل العرض من 50% إلى 42% لتترك مساحة للصورة */
+    max-width: 140px;      /* تحديد حد أقصى للحجم */
+    transform: translateY(-75px);
+    position: relative;
+    z-index: 20;           /* لضمان بقائها خلف صورة الحساب إذا تقاطعت */
 }
 
 
@@ -331,14 +331,14 @@ button{
 
 .premium-card{
     order:2;
-    width:calc(50% - 9px);
+    width: 40%;            /* تقليل العرض من 50% إلى 42% */
+    max-width: 140px;      /* تحديد حد أقصى للحجم */
     color:#fff;
     border:1px solid transparent;
     background:linear-gradient(145deg,#795b50,#a9887a);
-    /* التعديل هنا: زيادة رفع الخانة للأعلى */
-    transform:translateY(-75px);
-    position:relative;
-    z-index:35;
+    transform: translateY(-75px);
+    position: relative;
+    z-index: 20;
 }
 
 
@@ -347,16 +347,16 @@ button{
    ========================================================= */
 
 .premium-card .premium-crown{
-    width:34px;
-    height:34px;
-    flex:0 0 34px;
+    width:24px;
+    height:24px;
+    flex:0 0 24px;
     display:flex;
     align-items:center;
     justify-content:center;
     border-radius:10px;
     color:#ffe17a;
     background:rgba(255,255,255,.10);
-    font-size:20px;
+    font-size:12px;
 }
 
 
@@ -379,7 +379,7 @@ button{
 
 .premium-card .identity-side-content strong{
     color:#fff;
-    font-size:14px;
+    font-size:10px;
     font-weight:700;
     line-height:1.35;
     white-space:nowrap;
@@ -393,7 +393,7 @@ button{
 .premium-card .identity-side-content small{
     color:#fff;
     opacity:.8;
-    font-size:10px;
+    font-size:7px;
     line-height:1.3;
 }
 
@@ -1434,12 +1434,14 @@ body.dark #closeEditBtn{
        ===================================================== */
 
 .join-date-card{
-        order:1;
-        width:calc(50% - 4px);
-        /* رفع البطاقة للأعلى في الهواتف */
+        order: 1;
+        width: 38%;             /* تصغير العرض في الهاتف */
+        min-height: 54px;       /* تصغير الارتفاع */
+        height: 54px;
+        padding: 4px 6px;       /* تقليل الحشوة الداخلية */
+        gap: 4px;
+        border-radius: 12px;
         transform: translateY(-65px);
-        position: relative;
-        z-index: 35;
     }
 
 
@@ -1447,13 +1449,15 @@ body.dark #closeEditBtn{
        Mobile Premium
        ===================================================== */
 
-    .premium-card{
-        order:2;
-        width:calc(50% - 4px);
-        /* رفع البطاقة للأعلى في الهواتف */
+.premium-card{
+        order: 2;
+        width: 38%;             /* تصغير العرض في الهاتف */
+        min-height: 54px;       /* تصغير الارتفاع */
+        height: 54px;
+        padding: 4px 6px;       /* تقليل الحشوة الداخلية */
+        gap: 4px;
+        border-radius: 12px;
         transform: translateY(-65px);
-        position: relative;
-        z-index: 35;
     }
 
 
@@ -1890,4 +1894,36 @@ body.dark #closeEditBtn{
     .profile-wall-card img{
         height:165px;
     }
+}
+/* =========================================================
+   Premium Card Fix
+   إصلاح الخلفية والنص لبطاقة البريميوم
+   ========================================================= */
+
+.premium-card{
+    order: 2;
+    width: 38%;
+    min-height: 54px;
+    height: 54px;
+    padding: 4px 6px;
+    gap: 4px;
+    border-radius: 12px;
+    transform: translateY(-65px);
+    position: relative;
+    z-index: 20;
+
+    /* إجبار لون الخلفية والتدرج ليتغلب على اللون الأبيض */
+    background: linear-gradient(145deg, #795b50, #a9887a) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* إجبار ألوان النصوص والتاج على الظهور باللون الأبيض والذهبي */
+.premium-card .identity-side-content strong,
+.premium-card .identity-side-content small {
+    color: #ffffff !important;
+}
+
+.premium-card .premium-crown {
+    color: #ffe17a !important;
+    background: rgba(255, 255, 255, 0.15) !important;
 }
