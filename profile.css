@@ -1927,3 +1927,83 @@ body.dark #closeEditBtn{
     color: #ffe17a !important;
     background: rgba(255, 255, 255, 0.15) !important;
 }
+/* =========================================================
+   تعديل وتجميل الأزرار العلوية والشريط الشفاف
+   ========================================================= */
+
+/* 1. إزالة أي خلفيات بيضاء وتثبيت الهيدر أعلى الغلاف */
+.profile-header {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+    height: 65px !important;
+    padding: 0 16px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. تصفية حاويات الأزرار الجانبية */
+.profile-header-side,
+.profile-actions {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 3. تصميم الأزرار: زجاجي شفاف، دائرية بالكامل، ومؤثرات عند الضغط */
+.profile-icon-btn,
+.profile-header button {
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    
+    /* خلفية شفافة مظللة بدرجة خفيفة مع تأثير الضباب (Glassmorphism) */
+    background: rgba(0, 0, 0, 0.28) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    
+    /* حدود خفيفة باللون الأبيض وتأثير الظل */
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 4. إعطاء لون وحجم متناسق لأيقونات المواد (Material Icons) و SVG */
+.profile-icon-btn .material-icons,
+.profile-header button .material-icons,
+.profile-icon-btn svg,
+.profile-header button svg {
+    font-size: 21px !important;
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    transition: transform 0.2s ease !important;
+}
+
+/* 5. تفاعل Button Hover عند التمرير بالماوس */
+.profile-icon-btn:hover,
+.profile-header button:hover {
+    background: rgba(0, 0, 0, 0.45) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    transform: translateY(-2px) scale(1.04) !important;
+}
+
+/* 6. تفاعل Button Active عند الضغط */
+.profile-icon-btn:active,
+.profile-header button:active {
+    transform: translateY(0) scale(0.94) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+}
