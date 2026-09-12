@@ -868,7 +868,26 @@ if(wallAuthorAvatar){
         currentWallpaper.user_id ||
         ""
     ).trim();
+
+    // الرابط يجب أن يعتمد دائماً على UID مالك الخلفية المحفوظ معها،
+    // وليس UID الحساب الذي يشاهد الصفحة.
     if(publisherUID){
+        if(wallAuthorName){
+            wallAuthorName.dataset.uid = publisherUID;
+            wallAuthorName.style.cursor = "pointer";
+            wallAuthorName.onclick = () => {
+                location.href = `profile.html?uid=${encodeURIComponent(publisherUID)}`;
+            };
+        }
+
+        if(wallAuthorAvatar){
+            wallAuthorAvatar.dataset.uid = publisherUID;
+            wallAuthorAvatar.style.cursor = "pointer";
+            wallAuthorAvatar.onclick = () => {
+                location.href = `profile.html?uid=${encodeURIComponent(publisherUID)}`;
+            };
+        }
+
         loadPublisherProfile(publisherUID, currentWallpaper.id);
     }
 

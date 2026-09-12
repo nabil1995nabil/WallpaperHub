@@ -709,6 +709,11 @@ document.getElementById(
 
 function loadUserData(){
 
+    // عند فتح بروفايل مستخدم آخر، ممنوع تحميل بيانات الزائر
+    // من localStorage لأنها كانت تستبدل بروفايل صاحب UID الموجود في الرابط.
+    if (isPublicProfile && !isOwnProfile()) {
+        return;
+    }
 
 
 const name =
@@ -1579,11 +1584,14 @@ document.addEventListener(
 "DOMContentLoaded",
 ()=>{
 
+    // إذا كان الرابط يحمل UID لشخص آخر، ابدأ مباشرة ببروفايله.
+    // لا تستدعِ loadUserData() حتى لا تظهر بيانات الحساب الحالي.
+    if (isPublicProfile && !isOwnProfile()) {
+        loadPublicProfile(profileTargetUID);
+        return;
+    }
 
-loadUserData();
-
-
-loadWallpapers();
-
+    loadUserData();
+    loadWallpapers();
 
 });
