@@ -1078,6 +1078,14 @@ button{
     box-shadow:0 0 0 3px rgba(83,100,238,.10);
 }
 
+.edit-input-hint{
+    display:block;
+    margin-top:5px;
+    color:#8a92a5;
+    font-size:10px;
+    line-height:1.4;
+}
+
 
 /* =========================================================
    Modal Buttons
@@ -1321,6 +1329,10 @@ body.dark .edit-input input{
     background:#0d111a;
     border-color:#2a3142;
     color:#fff;
+}
+
+body.dark .edit-input-hint{
+    color:#9da6ba;
 }
 
 

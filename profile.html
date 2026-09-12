@@ -84,17 +84,6 @@ settings
 </button>
 
 
-<button 
-id="editProfileBtn"
-class="edit-btn">
-
-<span class="material-icons">
-edit
-</span>
-
-</button>
-
-
 </div>
 
 
@@ -402,31 +391,21 @@ placeholder="اسم المستخدم"
 
 </div>
 
-
-
-
-
-
-
 <div class="edit-input">
 
-
 <label>
-الصورة الشخصية
+النبذة
 </label>
 
-
-
 <input
-
-id="avatarInput"
-
-type="file"
-
-accept="image/*"
-
+id="editBio"
+type="text"
+maxlength="40"
+placeholder="اكتب نبذة عنك"
+autocomplete="off"
 >
 
+<small class="edit-input-hint">40 حرف كحد أقصى</small>
 
 </div>
 

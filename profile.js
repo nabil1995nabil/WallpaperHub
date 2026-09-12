@@ -1,2134 +1,2175 @@
-/* ===================================================
-   WallpaperHub Profile JS
-   Part 1/4
-=================================================== */
+/* =========================================================
+   WallpaperHub — Profile
+   Root stylesheet
+   ========================================================= */
 
-
-/* ==========================
-   Firebase
-========================== */
-
-
-import { supabase } from "./supabase.js";
-
-
-
-
-
-console.log(
-"WallpaperHub Profile Loaded"
-);
-
-
-
-
-
-/* ==========================
-   Provider
-========================== */
-
-
-// Google OAuth is configured in Supabase Auth.
-
-
-
-
-
-
-/* ==========================
-   User State
-========================== */
-
-
-let currentUser = null;
-
-
-/* ===================================================
-   Supabase User Cloud Sync
-   المصدر الدائم لبيانات المستخدم عبر الأجهزة
-   =================================================== */
-const USER_SYNC_TABLE = "user_profile_sync";
-
-function normalizeActionList(value){
-    if(!Array.isArray(value)) return [];
-    return [...new Set(value
-        .map(item => {
-            if(item && typeof item === "object"){
-                return item.id ?? item.wallpaperId ?? item.wallpaper_id ?? item.wallId ?? null;
-            }
-            return item;
-        })
-        .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
-        .map(String)
-    )];
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:"Cairo",Arial,sans-serif;
 }
 
-function getLocalSyncData(){
-    const read = key => {
-        try { return JSON.parse(localStorage.getItem(key) || "[]"); }
-        catch { return []; }
-    };
-
-    return {
-        full_name: localStorage.getItem("userName") || "",
-        username: localStorage.getItem("username") || "",
-        avatar_url: localStorage.getItem("userAvatar") || "",
-        cover_url: localStorage.getItem("userCover") || "",
-        bio: localStorage.getItem("profileBio") || "",
-        join_date: localStorage.getItem("joinDate") || "",
-        favorite_ids: normalizeActionList(read("favorites")),
-        download_ids: normalizeActionList(read("downloads")),
-        view_ids: normalizeActionList(read("views"))
-    };
+html{
+    scroll-behavior:smooth;
 }
 
-function applyCloudUserData(data){
-    if(!data) return;
-
-    const setIfPresent = (key, value) => {
-        if(value !== null && value !== undefined && String(value) !== ""){
-            localStorage.setItem(key, String(value));
-        }
-    };
-
-    setIfPresent("userName", data.full_name);
-    setIfPresent("username", data.username);
-    setIfPresent("userAvatar", data.avatar_url);
-    setIfPresent("userCover", data.cover_url);
-    setIfPresent("profileBio", data.bio);
-    setIfPresent("joinDate", data.join_date);
-
-    [
-        ["favorites", data.favorite_ids],
-        ["downloads", data.download_ids],
-        ["views", data.view_ids]
-    ].forEach(([key, value]) => {
-        if(Array.isArray(value)){
-            localStorage.setItem(key, JSON.stringify(normalizeActionList(value)));
-        }
-    });
+body{
+    width:100%;
+    min-height:100vh;
+    overflow-x:hidden;
+    padding-bottom:105px;
+    background:#f7f8fc;
+    color:#151a2a;
+    -webkit-font-smoothing:antialiased;
 }
 
-function mergeSyncData(cloud, local){
-    const merged = { ...(cloud || {}) };
-    const textFields = ["full_name","username","avatar_url","cover_url","bio","join_date"];
-
-    textFields.forEach(key => {
-        if((!merged[key] || String(merged[key]).trim() === "") && local[key]){
-            merged[key] = local[key];
-        }
-    });
-
-    ["favorite_ids","download_ids","view_ids"].forEach(key => {
-        merged[key] = normalizeActionList([
-            ...(Array.isArray(cloud?.[key]) ? cloud[key] : []),
-            ...(Array.isArray(local?.[key]) ? local[key] : [])
-        ]);
-    });
-
-    return merged;
+button,
+input{
+    font:inherit;
 }
 
-async function loadCloudUserData(user, options = {}){
-    if(!user?.id || (isPublicProfile && !isOwnProfile())) return null;
+button{
+    border:0;
+}
 
-    try{
-        const { data: cloud, error } = await supabase
-            .from(USER_SYNC_TABLE)
-            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
-            .eq("user_id", user.id)
-            .maybeSingle();
 
-        if(error) throw error;
+/* =========================================================
+   Profile Header
+   ========================================================= */
 
-        const local = getLocalSyncData();
-        const merged = mergeSyncData(cloud, local);
+.profile-header{
+    position:absolute;
+    inset:0 0 auto;
+    z-index:100;
+    height:68px;
+    padding:0 18px;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    background:transparent;
+}
 
-        applyCloudUserData(merged);
+.profile-header h2{
+    color:#fff;
+    font-size:23px;
+    font-weight:700;
+    line-height:1;
+    text-shadow:0 2px 8px rgba(0,0,0,.35);
+}
 
-        const shouldWrite = !cloud || options.forceWrite || JSON.stringify(merged) !== JSON.stringify(cloud);
-        if(shouldWrite){
-            await saveCloudUserData(user, merged);
-        }
+.profile-header-side,
+.profile-actions{
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
 
-        if(user.email) localStorage.setItem("userEmail", user.email);
-        if(merged.cover_url && coverImage) coverImage.src = merged.cover_url;
-        if(merged.bio && heroBio) heroBio.textContent = merged.bio;
+.profile-actions{
+    justify-content:flex-end;
+}
 
-        updateHeroIdentity(
-            user,
-            merged.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "مستخدم",
-            merged
-        );
-        return merged;
-    }catch(error){
-        console.error("USER CLOUD LOAD ERROR:", error);
-        return null;
+
+/* =========================================================
+   Profile Header Buttons
+   ========================================================= */
+
+.profile-icon-btn{
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    flex:0 0 42px !important;
+    padding:0 !important;
+    margin:0 !important;
+    border-radius:50% !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    background:rgba(255,255,255,.14) !important;
+    color:#fff !important;
+    border:1px solid rgba(255,255,255,.30) !important;
+    box-shadow:0 4px 14px rgba(0,0,0,.08) !important;
+    cursor:pointer;
+    transition:transform .16s ease,background .16s ease;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+}
+
+.profile-icon-btn:hover{
+    background:rgba(255,255,255,.22) !important;
+}
+
+.profile-icon-btn:active{
+    transform:scale(.95);
+}
+
+.profile-icon-btn .material-icons{
+    font-size:22px;
+}
+/* =========================================================
+   Profile Cover
+   ========================================================= */
+
+.profile-cover{
+    position:relative;
+    width:100%;
+    height:320px;
+    overflow:hidden;
+    background:#fff;
+}
+
+.cover-image{
+    width:100%;
+    height:245px;
+    display:block;
+    object-fit:cover;
+}
+
+
+/* =========================================================
+   Cover Change Button
+   ========================================================= */
+
+.cover-change-btn{
+    position:absolute;
+    top:112px;
+    right:14px;
+    z-index:20;
+    height:34px;
+    padding:0 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    border-radius:17px;
+    background:rgba(55,43,45,.82);
+    color:#fff;
+    font-size:13px;
+    font-weight:600;
+    line-height:1;
+    cursor:pointer;
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+}
+
+.cover-change-btn:active{
+    transform:scale(.97);
+}
+
+.cover-change-btn .material-icons{
+    font-size:17px;
+}
+
+.cover-file-input{
+    position:absolute;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
+}
+
+
+/* =========================================================
+   Profile Avatar
+   ========================================================= */
+
+.profile-avatar-box{
+    position:absolute;
+    top:180px;
+    left:50%;
+    z-index:30;
+    transform:translateX(-50%);
+}
+
+.profile-avatar{
+    width:95px;
+    height:95px;
+    display:block;
+    object-fit:cover;
+    border:4px solid #fff;
+    border-radius:50%;
+    box-shadow:0 7px 20px rgba(35,45,80,.18);
+}
+
+
+/* =========================================================
+   Avatar Edit Button
+   ========================================================= */
+
+.avatar-edit{
+    position:absolute;
+    right:0;
+    bottom:3px;
+    width:35px;
+    height:35px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:2px solid #fff;
+    border-radius:50%;
+    background:#5060ef;
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 12px rgba(40,50,100,.18);
+}
+
+.avatar-edit .material-icons{
+    font-size:20px;
+}
+/* =========================================================
+   Profile Identity Container
+   الحاوية العامة فقط
+   ========================================================= */
+
+.profile-identity{
+    position:relative;
+    z-index:30;
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:10px 28px 14px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px 18px;
+    direction:ltr;
+    background:transparent;
+}
+
+
+/* =========================================================
+   Join Date Card
+   خانة تاريخ الانضمام — مستقلة بالكامل
+   ========================================================= */
+
+.join-date-card{
+    order:1;
+    width: 40%;            /* تقليل العرض من 50% إلى 42% لتترك مساحة للصورة */
+    max-width: 140px;      /* تحديد حد أقصى للحجم */
+    transform: translateY(-75px);
+    position: relative;
+    z-index: 20;           /* لضمان بقائها خلف صورة الحساب إذا تقاطعت */
+}
+
+
+/* =========================================================
+   Join Date Card — Icon
+   ========================================================= */
+
+.join-date-card > .material-icons{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:#eef2f8;
+    color:#5364ee;
+    font-size:20px;
+}
+
+
+/* =========================================================
+   Join Date Card — Content
+   ========================================================= */
+
+.join-date-card .identity-side-content{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    text-align:right;
+}
+
+
+/* =========================================================
+   Join Date Card — Label
+   ========================================================= */
+
+.join-date-card .identity-side-label{
+    color:#7a8297;
+    font-size:10px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   Join Date Card — Year
+   ========================================================= */
+
+.join-date-card .identity-side-content strong{
+    color:#1c2233;
+    font-size:14px;
+    font-weight:700;
+    line-height:1.35;
+    white-space:nowrap;
+}
+
+
+/* =========================================================
+   Join Date Card — Description
+   ========================================================= */
+
+.join-date-card .identity-side-content small{
+    color:#7a8297;
+    font-size:10px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   Premium Card
+   خانة المستخدم المميز — مستقلة بالكامل
+   ========================================================= */
+
+.premium-card{
+    order:2;
+    width: 40%;            /* تقليل العرض من 50% إلى 42% */
+    max-width: 140px;      /* تحديد حد أقصى للحجم */
+    color:#fff;
+    border:1px solid transparent;
+    background:linear-gradient(145deg,#795b50,#a9887a);
+    transform: translateY(-75px);
+    position: relative;
+    z-index: 20;
+}
+
+
+/* =========================================================
+   Premium Card — Crown
+   ========================================================= */
+
+.premium-card .premium-crown{
+    width:24px;
+    height:24px;
+    flex:0 0 24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    color:#ffe17a;
+    background:rgba(255,255,255,.10);
+    font-size:12px;
+}
+
+
+/* =========================================================
+   Premium Card — Content
+   ========================================================= */
+
+.premium-card .identity-side-content{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    text-align:right;
+}
+
+
+/* =========================================================
+   Premium Card — Title
+   ========================================================= */
+
+.premium-card .identity-side-content strong{
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    line-height:1.35;
+    white-space:nowrap;
+}
+
+
+/* =========================================================
+   Premium Card — Description
+   ========================================================= */
+
+.premium-card .identity-side-content small{
+    color:#fff;
+    opacity:.8;
+    font-size:7px;
+    line-height:1.3;
+}
+
+
+/* =========================================================
+   Side Card Base
+   الشكل العام للخانات فقط
+   ========================================================= */
+
+.identity-side-card{
+    min-width:0;
+    min-height:76px;
+    height:76px;
+    padding:9px 12px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    border:1px solid rgba(255,255,255,.82);
+    border-radius:17px;
+    background:rgba(255,255,255,.94);
+    box-shadow:0 8px 22px rgba(35,45,80,.09);
+    direction:rtl;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+}
+
+
+/* =========================================================
+   Main Identity
+   الاسم والمعلومات الرئيسية — مستقل
+   ========================================================= */
+
+.identity-main{
+    order:3;
+    width:100%;
+    min-width:0;
+    padding:2px 4px 3px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    direction:rtl;
+}
+
+
+/* =========================================================
+   Name Row
+   ========================================================= */
+
+.identity-name-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    direction:ltr;
+}
+
+.identity-name-row h1{
+    color:#101522;
+    font-size:29px;
+    font-weight:700;
+    line-height:1.2;
+}
+
+
+/* =========================================================
+   Verified Badge
+   ========================================================= */
+
+.verified-badge{
+    width:24px;
+    height:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#168bf0;
+    color:#fff;
+    font-size:17px;
+}
+
+
+/* =========================================================
+   Username
+   ========================================================= */
+
+.identity-username{
+    margin-top:4px;
+    color:#697187;
+    font-size:15px;
+    line-height:1.4;
+    direction:ltr;
+}
+
+
+/* =========================================================
+   Bio
+   ========================================================= */
+
+.identity-bio{
+    margin:4px 0 9px;
+    color:#596176;
+    font-size:14px;
+    line-height:1.55;
+}
+
+
+/* =========================================================
+   Edit Profile Button
+   ========================================================= */
+
+.hero-edit-profile{
+    min-width:230px;
+    height:42px;
+    padding:0 19px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border-radius:21px;
+    background:#fff;
+    color:#1d2434;
+    box-shadow:0 7px 18px rgba(80,96,255,.09);
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+}
+
+.hero-edit-profile .material-icons{
+    color:#536075;
+    font-size:18px;
+}
+/* =========================================================
+   Profile Statistics
+   الإحصائيات — قسم مستقل
+   ========================================================= */
+
+.profile-stats {
+    width: 100%;
+    max-width: 1000px;
+    margin: 14px auto 8px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+    background: #eef3fb;
+    border-radius: 20px;
+}
+
+
+/* =========================================================
+   Statistic Card
+   ========================================================= */
+
+.stat-card {
+    min-width: 0;
+    height: 80px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 1px solid rgba(220, 226, 240, 0.7);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(35, 45, 80, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(35, 45, 80, 0.07);
+}
+
+/* =========================================================
+   Statistic Icon
+   ========================================================= */
+
+.stat-icon {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+/* =========================================================
+   Statistic Icon Colors
+   ========================================================= */
+
+.download-icon {
+    color: #0088ff;
+}
+
+/* 2. أيقونة الإعجابات - وردي / أحمر */
+.like-icon {
+    color: #ff3b5c;
+}
+
+/* 3. أيقونة المشاهدات - بنفسجي */
+.view-icon {
+    color: #6c5ce7;
+}
+
+/* 4. أيقونة الخلفيات - أخضر */
+.wallpaper-icon {
+    color: #00b894;
+}
+/* =========================================================
+   Statistic Number
+   ========================================================= */
+
+.stat-card strong {
+    color: #121826;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+}
+/* =========================================================
+   Statistic Label
+   ========================================================= */
+
+.stat-card > span:last-child {
+    color: #70788b;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+/* =========================================================
+   Profile Wallpapers Content
+   قسم الخلفيات — مستقل بالكامل
+   ========================================================= */
+
+.profile-content{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:0 28px 25px;
+}
+
+
+/* =========================================================
+   Wallpapers Heading
+   عنوان قسم الخلفيات
+   ========================================================= */
+
+.profile-wallpapers-heading{
+    width:100%;
+    height:46px;
+    margin:2px 0 9px;
+    padding:0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border:1px solid rgba(80,96,255,.10);
+    border-radius:15px;
+    background:linear-gradient(135deg,#fff,#f5f7fc);
+    box-shadow:0 5px 15px rgba(48,61,105,.06);
+    direction:rtl;
+}
+
+
+/* =========================================================
+   Wallpapers Heading Main
+   ========================================================= */
+
+.wallpapers-heading-main{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+
+/* =========================================================
+   Wallpapers Heading Icon
+   ========================================================= */
+
+.wallpapers-heading-main .material-icons{
+    width:29px;
+    height:29px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background:#eef2f7;
+    color:#5364ee;
+    font-size:17px;
+}
+
+
+/* =========================================================
+   Wallpapers Heading Title
+   ========================================================= */
+
+.profile-wallpapers-heading h2{
+    color:#171c2a;
+    font-size:15px;
+    font-weight:800;
+    line-height:1;
+}
+
+
+/* =========================================================
+   Wallpapers Count
+   ========================================================= */
+
+.wallpapers-heading-count{
+    min-width:27px;
+    height:25px;
+    padding:0 7px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background:#eef2f7;
+    color:#5364ee;
+    font-size:10px;
+    font-weight:700;
+}
+
+
+/* =========================================================
+   Profile Wallpapers Grid
+   شبكة الخلفيات
+   ========================================================= */
+
+.profile-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:9px;
+    width:100%;
+}
+
+
+/* =========================================================
+   Wallpaper Card
+   ========================================================= */
+
+.profile-wall-card{
+    min-width:0;
+    overflow:hidden;
+    padding:4px;
+    border-radius:15px;
+    background:#eef1f6;
+    cursor:pointer;
+}
+
+
+/* =========================================================
+   Wallpaper Image
+   ========================================================= */
+
+.profile-wall-card img{
+    width:100%;
+    height:220px;
+    display:block;
+    object-fit:cover;
+    border-radius:11px;
+}
+
+
+/* =========================================================
+   Wallpaper Information
+   ========================================================= */
+
+.profile-wall-info{
+    padding:6px 3px 2px;
+}
+
+
+/* =========================================================
+   Wallpaper Title
+   ========================================================= */
+
+.profile-wall-info h3{
+    overflow:hidden;
+    color:#171c2a;
+    font-size:12px;
+    font-weight:600;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+
+/* =========================================================
+   Wallpaper Metadata
+   ========================================================= */
+
+.profile-wall-info p{
+    margin-top:2px;
+    color:#747c90;
+    font-size:9px;
+}
+
+
+/* =========================================================
+   Empty Wallpapers
+   ========================================================= */
+
+.empty-profile{
+    grid-column:1/-1;
+    padding:28px 10px;
+    text-align:center;
+    color:#8991a5;
+}
+
+
+/* =========================================================
+   Secondary Wallpaper Section
+   قسم الخلفيات الإضافي
+   ========================================================= */
+
+.secondary-wallpaper-section{
+    margin-top:22px;
+}
+
+
+/* =========================================================
+   Secondary Section Title
+   ========================================================= */
+
+.section-title{
+    margin:0 0 10px;
+}
+
+
+/* =========================================================
+   Secondary Section Heading
+   ========================================================= */
+
+.section-title h2{
+    color:#252b3b;
+    font-size:16px;
+    font-weight:700;
+}
+/* =========================================================
+   User Information
+   معلومات الحساب — قسم مستقل بالكامل
+   ========================================================= */
+
+.user-info{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:15px 28px 25px;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+}
+
+
+/* =========================================================
+   Information Card
+   ========================================================= */
+
+.info-card{
+    min-height:64px;
+    padding:9px 0;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    position:relative;
+    background:transparent;
+}
+
+
+/* =========================================================
+   Information Divider
+   ========================================================= */
+
+.info-card:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:1px;
+    background:rgba(0,0,0,.06);
+}
+
+
+/* =========================================================
+   Information Icon
+   ========================================================= */
+
+.info-card > .material-icons{
+    width:40px;
+    height:40px;
+    flex:0 0 40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    background:#eef2f7;
+    color:#5364ee;
+    font-size:21px;
+}
+
+
+/* =========================================================
+   Information Title
+   ========================================================= */
+
+.info-card h4{
+    margin-bottom:3px;
+    color:#7a8295;
+    font-size:12px;
+}
+
+
+/* =========================================================
+   Information Value
+   ========================================================= */
+
+.info-card p{
+    color:#171c2a;
+    font-size:16px;
+    font-weight:500;
+}
+
+
+/* =========================================================
+   UID Box
+   ========================================================= */
+
+.uid-box{
+    display:block;
+}
+
+
+/* =========================================================
+   UID Title
+   ========================================================= */
+
+.uid-title{
+    margin-bottom:7px;
+    color:#8b92a5;
+    font-size:13px;
+    text-align:center;
+}
+
+
+/* =========================================================
+   UID Content
+   ========================================================= */
+
+.uid-content{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    direction:ltr;
+}
+
+
+/* =========================================================
+   User UID
+   ========================================================= */
+
+#userUid{
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    color:#171c2a;
+    font-family:monospace;
+    font-size:14px;
+    text-overflow:ellipsis;
+}
+
+
+/* =========================================================
+   Copy UID Button
+   ========================================================= */
+
+.uid-content button{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    border-radius:11px;
+    background:#eef2f7;
+    color:#5364ee;
+    cursor:pointer;
+}
+/* =========================================================
+   Edit Profile Modal
+   نافذة تعديل الملف الشخصي — قسم مستقل بالكامل
+   ========================================================= */
+
+.edit-modal{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(10,14,25,.42);
+}
+
+
+/* =========================================================
+   Modal Active State
+   ========================================================= */
+
+.edit-modal.show{
+    display:flex;
+}
+
+
+/* =========================================================
+   Edit Box
+   ========================================================= */
+
+.edit-box{
+    width:100%;
+    max-width:420px;
+    padding:24px;
+    border-radius:22px;
+    background:#fff;
+    box-shadow:0 18px 45px rgba(0,0,0,.18);
+}
+
+
+/* =========================================================
+   Modal Title
+   ========================================================= */
+
+.edit-box h2{
+    margin-bottom:22px;
+    text-align:center;
+    color:#171c2a;
+    font-size:22px;
+    font-weight:700;
+}
+
+
+/* =========================================================
+   Edit Input
+   ========================================================= */
+
+.edit-input{
+    margin-bottom:16px;
+}
+
+
+/* =========================================================
+   Input Label
+   ========================================================= */
+
+.edit-input label{
+    display:block;
+    margin-bottom:7px;
+    color:#70788b;
+    font-size:13px;
+}
+
+
+/* =========================================================
+   Input Field
+   ========================================================= */
+
+.edit-input input{
+    width:100%;
+    height:48px;
+    padding:0 14px;
+    outline:none;
+    border:1px solid #e2e6ee;
+    border-radius:13px;
+    background:#f6f8fb;
+    color:#171c2a;
+    font-size:14px;
+}
+
+
+/* =========================================================
+   Input Focus
+   ========================================================= */
+
+.edit-input input:focus{
+    border-color:#5364ee;
+    box-shadow:0 0 0 3px rgba(83,100,238,.10);
+}
+
+.edit-input-hint{
+    display:block;
+    margin-top:5px;
+    color:#8a92a5;
+    font-size:10px;
+    line-height:1.4;
+}
+
+
+/* =========================================================
+   Modal Buttons
+   ========================================================= */
+
+.edit-buttons{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+}
+
+
+/* =========================================================
+   Modal Button
+   ========================================================= */
+
+.edit-buttons button{
+    flex:1;
+    height:46px;
+    border-radius:13px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+}
+
+
+/* =========================================================
+   Save Button
+   ========================================================= */
+
+#saveProfileBtn{
+    background:#5364ee;
+    color:#fff;
+}
+
+
+/* =========================================================
+   Close Button
+   ========================================================= */
+
+#closeEditBtn{
+    background:#edf0f5;
+    color:#5364ee;
+}
+/* =========================================================
+   Dark Theme
+   الوضع الداكن — قسم مستقل
+   ========================================================= */
+
+body.dark{
+    background:#0b0e15;
+    color:#fff;
+}
+
+
+/* =========================================================
+   Dark Profile Identity
+   ========================================================= */
+
+body.dark .profile-identity{
+    background:transparent;
+}
+
+
+/* =========================================================
+   Dark Statistics
+   ========================================================= */
+
+body.dark .profile-stats{
+    background:#0b0e15;
+}
+
+
+/* =========================================================
+   Dark Profile Content
+   ========================================================= */
+
+body.dark .profile-content{
+    background:#0b0e15;
+}
+
+
+/* =========================================================
+   Dark Identity Cards
+   ========================================================= */
+
+body.dark .identity-side-card{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Statistic Card
+   ========================================================= */
+
+body.dark .stat-card{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Wallpapers Heading
+   ========================================================= */
+
+body.dark .profile-wallpapers-heading{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Edit Box
+   ========================================================= */
+
+body.dark .edit-box{
+    background:#141925;
+    border-color:#252c3c;
+}
+
+
+/* =========================================================
+   Dark Main Text
+   ========================================================= */
+
+body.dark .identity-side-content strong{
+    color:#fff;
+}
+
+body.dark .identity-name-row h1{
+    color:#fff;
+}
+
+body.dark .identity-bio{
+    color:#fff;
+}
+
+body.dark .profile-wallpapers-heading h2{
+    color:#fff;
+}
+
+body.dark .stat-card strong{
+    color:#fff;
+}
+
+body.dark .info-card p{
+    color:#fff;
+}
+
+body.dark .profile-wall-info h3{
+    color:#fff;
+}
+
+body.dark .edit-box h2{
+    color:#fff;
+}
+
+
+/* =========================================================
+   Dark Secondary Text
+   ========================================================= */
+
+body.dark .identity-side-label{
+    color:#9da6ba;
+}
+
+body.dark .identity-side-content small{
+    color:#9da6ba;
+}
+
+body.dark .identity-username{
+    color:#9da6ba;
+}
+
+body.dark .stat-card > span:last-child{
+    color:#9da6ba;
+}
+
+body.dark .info-card h4{
+    color:#9da6ba;
+}
+
+body.dark .profile-wall-info p{
+    color:#9da6ba;
+}
+
+
+/* =========================================================
+   Dark Icons
+   ========================================================= */
+
+body.dark .join-date-card > .material-icons{
+    background:#1b2130;
+}
+
+body.dark .premium-card .premium-crown{
+    background:#1b2130;
+}
+
+body.dark .wallpapers-heading-main .material-icons{
+    background:#1b2130;
+}
+
+body.dark .wallpapers-heading-count{
+    background:#1b2130;
+}
+
+body.dark .info-card > .material-icons{
+    background:#1b2130;
+}
+
+body.dark .uid-content button{
+    background:#1b2130;
+}
+
+
+/* =========================================================
+   Dark Wallpaper Card
+   ========================================================= */
+
+body.dark .profile-wall-card{
+    background:#161c28;
+}
+
+
+/* =========================================================
+   Dark Information Divider
+   ========================================================= */
+
+body.dark .info-card:not(:last-child)::after{
+    background:rgba(255,255,255,.08);
+}
+
+
+/* =========================================================
+   Dark Edit Input
+   ========================================================= */
+
+body.dark .edit-input input{
+    background:#0d111a;
+    border-color:#2a3142;
+    color:#fff;
+}
+
+body.dark .edit-input-hint{
+    color:#9da6ba;
+}
+
+
+/* =========================================================
+   Dark Close Button
+   ========================================================= */
+
+body.dark #closeEditBtn{
+    background:#202738;
+}
+/* =========================================================
+   Mobile Layout
+   تصميم الهاتف — قسم مستقل
+   ========================================================= */
+
+@media(max-width:700px){
+
+    body{
+        padding-bottom:95px;
+    }
+
+
+    /* =====================================================
+       Mobile Header
+       ===================================================== */
+
+    .profile-header{
+        height:62px;
+        padding:0 12px;
+    }
+
+    .profile-header h2{
+        font-size:20px;
+    }
+
+    .profile-actions{
+        gap:7px;
+    }
+
+
+    /* =====================================================
+       Mobile Header Buttons
+       ===================================================== */
+
+    .profile-icon-btn{
+        width:40px;
+        min-width:40px;
+        max-width:40px;
+        height:40px;
+        min-height:40px;
+        max-height:40px;
+        flex-basis:40px;
+    }
+
+
+    /* =====================================================
+       Mobile Cover
+       ===================================================== */
+
+    .profile-cover{
+        height:320px;
+    }
+
+    .cover-image{
+        height:245px;
+    }
+
+
+    /* =====================================================
+       Mobile Cover Button
+       ===================================================== */
+
+    .cover-change-btn{
+        top:112px;
+        right:12px;
+        height:34px;
+        padding:0 11px;
+        border-radius:17px;
+        font-size:12px;
+    }
+
+
+    /* =====================================================
+       Mobile Avatar
+       ===================================================== */
+
+    .profile-avatar-box{
+        top:180px;
+    }
+
+    .profile-avatar{
+        width:95px;
+        height:95px;
+    }
+
+    .avatar-edit{
+        width:35px;
+        height:35px;
+    }
+
+
+    /* =====================================================
+       Mobile Profile Identity
+       ===================================================== */
+
+    .profile-identity{
+        max-width:none;
+        margin:0 auto;
+        padding:10px 12px 8px;
+        gap:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Join Date
+       ===================================================== */
+
+.join-date-card{
+        order: 1;
+        width: 38%;             /* تصغير العرض في الهاتف */
+        min-height: 54px;       /* تصغير الارتفاع */
+        height: 54px;
+        padding: 4px 6px;       /* تقليل الحشوة الداخلية */
+        gap: 4px;
+        border-radius: 12px;
+        transform: translateY(-65px);
+    }
+
+
+    /* =====================================================
+       Mobile Premium
+       ===================================================== */
+
+.premium-card{
+        order: 2;
+        width: 38%;             /* تصغير العرض في الهاتف */
+        min-height: 54px;       /* تصغير الارتفاع */
+        height: 54px;
+        padding: 4px 6px;       /* تقليل الحشوة الداخلية */
+        gap: 4px;
+        border-radius: 12px;
+        transform: translateY(-65px);
+    }
+
+
+    /* =====================================================
+       Mobile Identity Main
+       ===================================================== */
+
+    .identity-main{
+    order:3;
+        width:100%;
+        padding:1px 0 3px;
+        margin-top: -55px;
+    }
+
+
+    /* =====================================================
+       Mobile Join Date Card
+       ===================================================== */
+
+    .join-date-card{
+        min-height:64px;
+        height:64px;
+        padding:6px 8px;
+        display:flex;
+        align-items:center;
+        gap:6px;
+        border-radius:14px;
+    }
+
+    .join-date-card > .material-icons{
+        width:28px;
+        height:28px;
+        flex:0 0 28px;
+        border-radius:8px;
+        font-size:15px;
+    }
+
+    .join-date-card .identity-side-content{
+        gap:1px;
+    }
+
+    .join-date-card .identity-side-label{
+        font-size:8px;
+    }
+
+    .join-date-card .identity-side-content strong{
+        font-size:11px;
+    }
+
+    .join-date-card .identity-side-content small{
+        font-size:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Premium Card
+       ===================================================== */
+
+    .premium-card{
+        min-height:64px;
+        height:64px;
+        padding:6px 8px;
+        display:flex;
+        align-items:center;
+        gap:6px;
+        border-radius:14px;
+    }
+
+    .premium-card .premium-crown{
+        width:28px;
+        height:28px;
+        flex:0 0 28px;
+        border-radius:8px;
+        font-size:15px;
+    }
+
+    .premium-card .identity-side-content{
+        gap:1px;
+    }
+
+    .premium-card .identity-side-content strong{
+        font-size:11px;
+    }
+
+    .premium-card .identity-side-content small{
+        font-size:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Name
+       ===================================================== */
+
+    .identity-name-row{
+        gap:5px;
+    }
+
+    .identity-name-row h1{
+        font-size:22px;
+    }
+
+
+    /* =====================================================
+       Mobile Verified Badge
+       ===================================================== */
+
+    .verified-badge{
+        width:20px;
+        height:20px;
+        font-size:14px;
+    }
+
+
+    /* =====================================================
+       Mobile Username
+       ===================================================== */
+
+    .identity-username{
+        margin-top:1px;
+        font-size:12px;
+    }
+
+
+    /* =====================================================
+       Mobile Bio
+       ===================================================== */
+
+    .identity-bio{
+        margin:2px 0 5px;
+        font-size:11px;
+    }
+
+
+    /* =====================================================
+       Mobile Edit Button
+       ===================================================== */
+
+    .hero-edit-profile{
+        min-width:190px;
+        height:35px;
+        padding:0 14px;
+        border-radius:18px;
+        font-size:12px;
+    }
+
+    .hero-edit-profile .material-icons{
+        font-size:15px;
+    }
+
+
+    /* =====================================================
+       Mobile Statistics
+       ===================================================== */
+
+.profile-stats {
+        max-width: none;
+        padding: 8px;
+        gap: 6px;
+        border-radius: 16px;
+    }
+
+.stat-card {
+        height: 72px;
+        padding: 4px 2px;
+        border-radius: 13px;
+    }
+ .stat-icon {
+        width: 19px;
+        height: 19px;
+        font-size: 18px;
+    }
+ .stat-card strong {
+        font-size: 15px;
+    }
+.stat-card > span:last-child {
+        font-size: 9px;
+    }
+    /* =====================================================
+       Mobile Wallpapers
+       ===================================================== */
+
+    .profile-content{
+        max-width:none;
+        padding:0 12px 20px;
+    }
+
+    .profile-wallpapers-heading{
+        height:44px;
+        margin:2px 0 8px;
+        padding:0 8px;
+        border-radius:13px;
+    }
+
+    .wallpapers-heading-main{
+        gap:6px;
+    }
+
+    .wallpapers-heading-main .material-icons{
+        width:27px;
+        height:27px;
+        border-radius:8px;
+        font-size:16px;
+    }
+
+    .profile-wallpapers-heading h2{
+        font-size:14px;
+    }
+
+    .wallpapers-heading-count{
+        min-width:25px;
+        height:23px;
+        font-size:9px;
+    }
+
+
+    /* =====================================================
+       Mobile Wallpaper Grid
+       ===================================================== */
+
+    .profile-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Wallpaper Card
+       ===================================================== */
+
+    .profile-wall-card{
+        padding:4px;
+        border-radius:14px;
+    }
+
+    .profile-wall-card img{
+        height:185px;
+        border-radius:10px;
+    }
+
+    .profile-wall-info{
+        padding:5px 3px 2px;
+    }
+
+    .profile-wall-info h3{
+        font-size:11px;
+    }
+
+    .profile-wall-info p{
+        font-size:8px;
+    }
+
+
+    /* =====================================================
+       Mobile Secondary Section
+       ===================================================== */
+
+    .secondary-wallpaper-section{
+        margin-top:18px;
+    }
+
+
+    /* =====================================================
+       Mobile User Information
+       ===================================================== */
+
+    .user-info{
+        padding:10px 12px 20px;
     }
 }
-
-async function saveCloudUserData(user, data = getLocalSyncData()){
-    if(!user?.id || (isPublicProfile && !isOwnProfile())) return false;
-
-    const payload = {
-        user_id: user.id,
-        full_name: data.full_name || "",
-        username: data.username || "",
-        avatar_url: data.avatar_url || "",
-        cover_url: data.cover_url || "",
-        bio: data.bio || "",
-        join_date: data.join_date || "",
-        favorite_ids: normalizeActionList(data.favorite_ids),
-        download_ids: normalizeActionList(data.download_ids),
-        view_ids: normalizeActionList(data.view_ids)
-    };
-
-    try{
-        const { error } = await supabase
-            .from(USER_SYNC_TABLE)
-            .upsert(payload, { onConflict:"user_id" });
-
-        if(error) throw error;
-        return true;
-    }catch(error){
-        console.error("USER CLOUD SAVE ERROR:", error);
-        return false;
-    }
-}
-
-async function syncCloudAction(type, id){
-    if(!currentUser?.id || id === null || id === undefined) return;
-
-    const keyMap = {
-        favorites:"favorite_ids",
-        favorite:"favorite_ids",
-        likes:"favorite_ids",
-        like:"favorite_ids",
-        downloads:"download_ids",
-        download:"download_ids",
-        views:"view_ids",
-        view:"view_ids"
-    };
-    const key = keyMap[String(type).toLowerCase()];
-    if(!key) return;
-
-    try{
-        const { data: cloud } = await supabase
-            .from(USER_SYNC_TABLE)
-            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
-            .eq("user_id", currentUser.id)
-            .maybeSingle();
-
-        const local = getLocalSyncData();
-        const merged = mergeSyncData(cloud, local);
-        const value = String(id);
-
-        merged[key] = normalizeActionList([...(merged[key] || []), value]);
-        applyCloudUserData(merged);
-        await saveCloudUserData(currentUser, merged);
-        updateUserStats();
-        renderProfile();
-    }catch(error){
-        console.error("USER CLOUD ACTION SYNC ERROR:", error);
-    }
-}
-
-window.syncCloudUserAction = syncCloudAction;
-
-// ==========================
-// Public Profile Mode
-// ==========================
-// إذا كان هناك uid في الرابط فهذا بروفايل مستخدم آخر/عام.
-const profileTargetUID = String(
-    new URLSearchParams(window.location.search).get("uid") || ""
-).trim();
-
-const isPublicProfile = Boolean(profileTargetUID);
-let publicProfileLoaded = false;
-
-function isOwnProfile(){
-    if(!isPublicProfile) return true;
-    return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
-}
-
-function hideOwnerEditControls(){
-    const ids = [
-        "editProfileBtn",
-        "changeAvatarBtn",
-        "changeCoverBtn",
-        "avatarInput",
-        "coverInput"
-    ];
-
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = "none";
-    });
-}
-
-function showOwnerEditControls(){
-    const editBtn = document.getElementById("editProfileBtn");
-    const avatarBtn = document.getElementById("changeAvatarBtn");
-
-    if(editBtn) editBtn.style.display = "";
-    if(avatarBtn) avatarBtn.style.display = "";
-}
-
-async function loadPublicProfile(uid){
-    const targetUID = String(uid || "").trim();
-    if(!targetUID) return;
-
-    // منع استدعاءات متكررة من Auth + DOMContentLoaded.
-    if(publicProfileLoaded === targetUID) return;
-
-    hideOwnerEditControls();
-
-    try{
-        let profile = null;
-
-        // ==================================================
-        // المصدر الأول: السيرفر (Service Role)
-        // مهم لأن RLS قد يمنع المتصفح من قراءة profiles مباشرة.
-        // ==================================================
-        try{
-            const response = await fetch(
-                `/api/users/${encodeURIComponent(targetUID)}/profile`,
-                { cache:"no-store" }
-            );
-
-            if(response.ok){
-                const payload = await response.json();
-                if(payload?.success && payload?.user){
-                    profile = payload.user;
-                }
-            }
-        }catch(serverError){
-            console.warn("PUBLIC PROFILE SERVER LOAD:", serverError);
-        }
-
-        // ==================================================
-        // المصدر الثاني: Supabase مباشرة كاحتياطي.
-        // ==================================================
-        if(!profile){
-            try{
-                const { data, error } = await supabase
-                    .from("profiles")
-                    .select("id, full_name, username, avatar_url")
-                    .eq("id", targetUID)
-                    .maybeSingle();
-
-                if(!error && data){
-                    profile = data;
-                }else if(error){
-                    console.warn("PUBLIC PROFILE SUPABASE LOAD:", error.message);
-                }
-            }catch(supabaseError){
-                console.warn("PUBLIC PROFILE SUPABASE ERROR:", supabaseError);
-            }
-        }
-
-        if(!profile){
-            if(userName) userName.textContent = "المستخدم غير موجود";
-            if(userEmail) userEmail.textContent = "";
-            if(infoUserName) infoUserName.textContent = "المستخدم غير موجود";
-            if(infoUserEmail) infoUserEmail.textContent = "";
-            if(accountType) accountType.textContent = "ملف عام";
-            if(uidText) uidText.textContent = "••••••••••••••";
-            userUID = targetUID;
-            return;
-        }
-
-        const name = String(
-            profile.full_name ||
-            profile.username ||
-            "مستخدم WallpaperHub"
-        ).trim();
-
-        const avatar = String(
-            profile.avatar_url ||
-            profile.avatar ||
-            profile.photoURL ||
-            ""
-        ).trim();
-
-        // الغلاف العام: نستخدم غلاف صاحب البروفايل القادم من المصدر العام،
-        // ولا نستخدم userCover الموجود في جهاز الزائر.
-        const publicCover = String(
-            profile.cover_url ||
-            profile.cover ||
-            ""
-        ).trim();
-
-        if(coverImage){
-            if(publicCover){
-                coverImage.src = publicCover;
-            }else{
-                coverImage.removeAttribute("src");
-            }
-        }
-
-        // عرض بيانات UID الموجود في الرابط فقط.
-        if(userName) userName.textContent = name;
-        if(infoUserName) infoUserName.textContent = name;
-        if(userEmail) userEmail.textContent = "البريد الإلكتروني مخفي";
-        if(infoUserEmail) infoUserEmail.textContent = "البريد الإلكتروني مخفي";
-        if(accountType) accountType.textContent = "ملف عام";
-        if(joinDate) joinDate.textContent = "—";
-        if(lastLogin) lastLogin.textContent = "—";
-
-        updateHeroIdentity(null, name, {
-            full_name: name,
-            username: profile.username || "",
-            bio: profile.bio || "",
-            join_date: profile.join_date || profile.created_at || ""
-        });
-
-        if(userAvatar){
-            userAvatar.src = avatar || "assets/images/user.png";
-            userAvatar.onerror = () => {
-                userAvatar.onerror = null;
-                userAvatar.src = "assets/images/user.png";
-            };
-        }
-
-        if(uidText) uidText.textContent = "••••••••••••••";
-        userUID = targetUID;
-        uidVisible = false;
-
-        ["downloadCount", "likeCount", "viewCount"].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.textContent = "—";
-        });
-
-        const response = await fetch(API, { cache:"no-store" });
-        if(!response.ok) throw new Error("PUBLIC WALLPAPERS API ERROR");
-
-        const list = await response.json();
-        const ownerWalls = Array.isArray(list)
-            ? list.filter(w => {
-                const owner = String(
-                    w.ownerUID || w.userId || w.user_id || ""
-                ).trim();
-                return owner === targetUID;
-            })
-            : [];
-
-        wallpapers = ownerWalls;
-        updateWallpaperCount(ownerWalls.length);
-
-        const containers = [ownWallpapersContainer, downloadedContainer, likedContainer, viewedContainer];
-        containers.forEach(container => {
-            if(!container) return;
-            container.innerHTML = "";
-        });
-
-        if(ownerWalls.length === 0){
-            if(ownWallpapersContainer){
-                ownWallpapersContainer.innerHTML =
-                    '<div class="empty-profile">لا توجد خلفيات منشورة حاليا</div>';
-            }
-        }else{
-            renderWalls(ownWallpapersContainer, ownerWalls.map(w => w.id));
-        }
-
-        document.querySelectorAll('.profile-tab[data-profile-tab="favorites"], .profile-tab[data-profile-tab="downloads"], .profile-tab[data-profile-tab="views"]').forEach(tab => {
-            tab.style.display = "none";
-        });
-
-        publicProfileLoaded = targetUID;
-        console.log("✅ PUBLIC PROFILE LOADED:", targetUID);
-    }catch(error){
-        console.error("PUBLIC PROFILE LOAD ERROR:", error);
-    }
-}
-
-
-
-
-
-/* ==========================
-   DOM
-========================== */
-
-
-const loginBtn =
-document.getElementById(
-"loginBtn"
-);
-
-const settingsBtn =
-document.getElementById(
-"settingsBtn"
-);
-
-const profileMenuBtn =
-document.getElementById(
-"profileMenuBtn"
-);
-
-
-
-const userName =
-document.getElementById(
-"userName"
-);
-
-
-
-const userEmail =
-document.getElementById(
-"userEmail"
-);
-
-
-
-const userAvatar =
-document.getElementById(
-"userAvatar"
-);
-
-const coverImage =
-document.getElementById(
-"coverImage"
-);
-
-
-
-
-
-
-
-/* ==========================
-   Update Login Button
-========================== */
-
-
-function updateLoginState(user){
-
-    if(!loginBtn) return;
-
-    // في البروفايل العام لشخص آخر لا نعرض زر تسجيل الدخول/الخروج.
-    // هذا الزر يخص صاحب الجلسة الحالية، وليس صاحب البروفايل الذي تتم مشاهدته.
-    if(isPublicProfile && !isOwnProfile()){
-        loginBtn.style.display = "none";
-        loginBtn.setAttribute("aria-hidden", "true");
-        loginBtn.setAttribute("tabindex", "-1");
-        return;
+/* =========================================================
+   Extra Small Screens
+   الشاشات الصغيرة جدًا — قسم مستقل
+   ========================================================= */
+
+@media(max-width:380px){
+
+    /* =====================================================
+       Header
+       ===================================================== */
+
+    .profile-actions{
+        gap:5px;
     }
 
-    // في الحساب الشخصي نعيد إظهار الزر بشكل طبيعي.
-    loginBtn.style.display = "";
-    loginBtn.removeAttribute("aria-hidden");
-    loginBtn.removeAttribute("tabindex");
+    .profile-icon-btn{
+        width:37px;
+        min-width:37px;
+        max-width:37px;
+        height:37px;
+        min-height:37px;
+        max-height:37px;
+        flex-basis:37px;
+    }
 
-    if(user){
-        loginBtn.innerHTML = `
-            <span class="material-icons">
-                logout
-            </span>
-        `;
-    }else{
-        loginBtn.innerHTML = `
-            <span class="material-icons">
-                person
-            </span>
-        `;
+
+    /* =====================================================
+       Cover
+       ===================================================== */
+
+    .profile-cover{
+        height:315px;
+    }
+
+    .cover-image{
+        height:240px;
+    }
+
+
+    /* =====================================================
+       Avatar
+       ===================================================== */
+
+    .profile-avatar-box{
+        top:176px;
+    }
+
+    .profile-avatar{
+        width:91px;
+        height:91px;
+    }
+
+
+    /* =====================================================
+       Profile Identity
+       ===================================================== */
+
+    .profile-identity{
+        padding-top:10px;
+        padding-left:10px;
+        padding-right:10px;
+        gap:6px;
+    }
+
+
+    /* =====================================================
+       Join Date
+       ===================================================== */
+
+.join-date-card{
+        width:calc(50% - 3px);
+        height:60px;
+        min-height:60px;
+        padding:5px 7px;
+        gap:5px;
+        border-radius:12px;
+        /* إزاحة الشاشات الصغيرة جداً */
+        transform: translateY(-60px);
+    }
+
+    .join-date-card > .material-icons{
+        width:26px;
+        height:26px;
+        flex-basis:26px;
+        border-radius:8px;
+        font-size:14px;
+    }
+
+    .join-date-card .identity-side-label{
+        font-size:7px;
+    }
+
+    .join-date-card .identity-side-content strong{
+        font-size:10px;
+    }
+
+    .join-date-card .identity-side-content small{
+        font-size:7px;
+    }
+
+
+    /* =====================================================
+       Premium
+       ===================================================== */
+
+.premium-card{
+        width:calc(50% - 3px);
+        height:60px;
+        min-height:60px;
+        padding:5px 7px;
+        gap:5px;
+        border-radius:12px;
+        /* إزاحة الشاشات الصغيرة جداً */
+        transform: translateY(-60px);
+    }
+    .premium-card .premium-crown{
+        width:26px;
+        height:26px;
+        flex-basis:26px;
+        border-radius:8px;
+        font-size:14px;
+    }
+
+    .premium-card .identity-side-content strong{
+        font-size:10px;
+    }
+
+    .premium-card .identity-side-content small{
+        font-size:7px;
+    }
+
+
+    /* =====================================================
+       Statistics
+       ===================================================== */
+
+    .profile-stats{
+        gap:5px;
+        padding-left:10px;
+        padding-right:10px;
+    }
+
+    .stat-card{
+        height:60px;
+        border-radius:12px;
+    }
+
+    .stat-card strong{
+        font-size:16px;
+    }
+
+    .stat-card > span:last-child{
+        font-size:7px;
+    }
+
+
+    /* =====================================================
+       Wallpaper Images
+       ===================================================== */
+
+    .profile-wall-card img{
+        height:165px;
     }
 }
+/* =========================================================
+   Premium Card Fix
+   إصلاح الخلفية والنص لبطاقة البريميوم
+   ========================================================= */
 
+.premium-card{
+    order: 2;
+    width: 38%;
+    min-height: 54px;
+    height: 54px;
+    padding: 4px 6px;
+    gap: 4px;
+    border-radius: 12px;
+    transform: translateY(-65px);
+    position: relative;
+    z-index: 20;
 
+    /* إجبار لون الخلفية والتدرج ليتغلب على اللون الأبيض */
+    background: linear-gradient(145deg, #795b50, #a9887a) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
 
+/* إجبار ألوان النصوص والتاج على الظهور باللون الأبيض والذهبي */
+.premium-card .identity-side-content strong,
+.premium-card .identity-side-content small {
+    color: #ffffff !important;
+}
 
+.premium-card .premium-crown {
+    color: #ffe17a !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+/* =========================================================
+   تعديل وتجميل الأزرار العلوية والشريط الشفاف
+   ========================================================= */
 
+/* 1. إزالة أي خلفيات بيضاء وتثبيت الهيدر أعلى الغلاف */
+.profile-header {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+    height: 65px !important;
+    padding: 0 16px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
+/* 2. تصفية حاويات الأزرار الجانبية */
+.profile-header-side,
+.profile-actions {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
-
-/* ==========================
-   Supabase Auth Listener - WITH FULL DATA RESTORE
-========================== */
-
-supabase.auth.onAuthStateChange(async (event, session) => {
-    const user = session?.user ?? null;
-    currentUser = user;
-    updateLoginState(user);
-
-    // بروفايل عام: لا نستخدم localStorage الخاص بالزائر ولا نسمح بالتعديل.
-    if (isPublicProfile && !isOwnProfile()) {
-        hideOwnerEditControls();
-        loadPublicProfile(profileTargetUID);
-        return;
-    }
-
-    if (user) {
-        // استعادة الحساب من Supabase قبل الاعتماد على بيانات المتصفح.
-        await loadCloudUserData(user);
-
-        const metadata = user.user_metadata || {};
-        const syncedName = String(localStorage.getItem("userName") || "").trim();
-        const syncedUsername = String(localStorage.getItem("username") || "").trim();
-
-        const displayName =
-            syncedName ||
-            metadata.full_name ||
-            metadata.name ||
-            user.email?.split("@")[0] ||
-            "مستخدم";
-
-        updateHeroIdentity(user, displayName, {
-            full_name: displayName,
-            username: syncedUsername
-        });
-
-        const photoURL =
-            metadata.avatar_url ||
-            metadata.picture ||
-            "";
-
-        localStorage.setItem("userName", displayName);
-        localStorage.setItem("userEmail", user.email || "");
-        localStorage.setItem("userAvatar", photoURL);
-        localStorage.setItem(
-            "joinDate",
-            localStorage.getItem("joinDate") || new Date().toLocaleDateString("ar-MA")
-        );
-        localStorage.setItem("lastLogin", new Date().toLocaleString("ar-MA"));
-
-        const userNameEl = document.getElementById("userName");
-        if (userNameEl) userNameEl.textContent = displayName;
-
-        const userEmailEl = document.getElementById("userEmail");
-        if (userEmailEl) userEmailEl.textContent = user.email || "غير مسجل";
-
-        const infoUserNameEl = document.getElementById("infoUserName");
-        if (infoUserNameEl) infoUserNameEl.textContent = displayName;
-
-        const infoUserEmailEl = document.getElementById("infoUserEmail");
-        if (infoUserEmailEl) infoUserEmailEl.textContent = user.email || "غير مسجل";
-
-        const accountTypeEl = document.getElementById("accountType");
-        if (accountTypeEl) accountTypeEl.textContent = "حساب Google";
-
-        const joinDateEl = document.getElementById("joinDate");
-        if (joinDateEl) {
-            joinDateEl.textContent =
-                localStorage.getItem("joinDate") || new Date().toLocaleDateString("ar-MA");
-        }
-
-        const lastLoginEl = document.getElementById("lastLogin");
-        if (lastLoginEl) {
-            lastLoginEl.textContent =
-                localStorage.getItem("lastLogin") || new Date().toLocaleString("ar-MA");
-        }
-
-        const avatarEl = document.getElementById("userAvatar");
-        if (avatarEl && photoURL) avatarEl.src = photoURL;
-
-        const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        const views = JSON.parse(localStorage.getItem("views") || "[]");
-
-        const downloadCountEl = document.getElementById("downloadCount");
-        if (downloadCountEl) downloadCountEl.textContent = downloads.length;
-
-        const likeCountEl = document.getElementById("likeCount");
-        if (likeCountEl) likeCountEl.textContent = favorites.length;
-
-        const viewCountEl = document.getElementById("viewCount");
-        if (viewCountEl) viewCountEl.textContent = views.length;
-
-        loadWallpapers();
-
-        console.log("✅ تم تسجيل الدخول واستعادة البيانات:");
-        console.log("📥 تحميلات:", downloads.length);
-        console.log("❤️ إعجابات:", favorites.length);
-        console.log("👁️ مشاهدات:", views.length);
-    } else {
-        resetGuestProfile();
-    }
-});// استعادة الإحصائيات من localStorage
-const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-const views = JSON.parse(localStorage.getItem("views") || "[]");
-
-document.getElementById("downloadCount").textContent = downloads.length;
-document.getElementById("likeCount").textContent = favorites.length;
-document.getElementById("viewCount").textContent = views.length;;
-
-/* ==========================
-   Reset Guest Profile - FULL RESET
-========================== */
-
-function resetGuestProfile() {
-    // 1. تصفير النصوص
-    const textElements = {
-        "userName": "زائر",
-        "userEmail": "غير مسجل",
-        "infoUserName": "زائر",
-        "infoUserEmail": "غير مسجل",
-        "accountType": "زائر",
-        "joinDate": "-",
-        "lastLogin": "-"
-    };
+/* 3. تصميم الأزرار: زجاجي شفاف، دائرية بالكامل، ومؤثرات عند الضغط */
+.profile-icon-btn,
+.profile-header button {
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    margin: 0 !important;
     
-    Object.keys(textElements).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = textElements[id];
-    });
-
-    if(heroDisplayName) heroDisplayName.textContent = "زائر";
-    if(heroUsername) heroUsername.textContent = "@user";
-    if(heroBio) heroBio.textContent = "مصمم خلفيات ومحب للتصميم ✨";
-    if(heroJoinDate) heroJoinDate.textContent = "-";
+    /* خلفية شفافة مظللة بدرجة خفيفة مع تأثير الضباب (Glassmorphism) */
+    background: rgba(0, 0, 0, 0.28) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
     
-    // 2. تصفير UID
-    const uidEl = document.getElementById("userUid");
-    if (uidEl) uidEl.textContent = "••••••••••••••";
+    /* حدود خفيفة باللون الأبيض وتأثير الظل */
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
     
-    // 3. تصفير الإحصائيات
-    ["downloadCount", "likeCount", "viewCount"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = "0";
-    });
-    
-    // 4. تصفير الصورة الشخصية
-    const avatar = document.getElementById("userAvatar");
-    if (avatar) avatar.src = "assets/images/user.png";
-    
-    // 5. تصفير الخلفيات المعروضة
-    ["ownWallpapers", "downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
-        const container = document.getElementById(id);
-        if (container) {
-            container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
-        }
-    });
-    
-    // 6. تنظيف localStorage من بيانات المستخدم
-    const userKeys = [
-        "userName", 
-        "userEmail", 
-        "userAvatar", 
-        "joinDate", 
-        "lastLogin", 
-        "downloads", 
-        "favorites", 
-        "views",
-        "userData"
-    ];
-    userKeys.forEach(key => localStorage.removeItem(key));
-    
-    console.log("👋 تم تسجيل الخروج وتصفير البيانات");
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* ==========================
-   Login / Logout Button - FIXED
-========================== */
-
-if (loginBtn) {
-    loginBtn.onclick = async () => {
-        try {
-            if (currentUser) {
-                // ============================
-                // تسجيل الخروج من Supabase
-                // ============================
-                const { error } = await supabase.auth.signOut({ scope: "local" });
-
-                if (error) throw error;
-
-                resetGuestProfile();
-
-                const userKeys = [
-                    "joinDate",
-                    "lastLogin",
-                    "downloads",
-                    "favorites",
-                    "views",
-                    "userName",
-                    "userEmail",
-                    "userAvatar",
-                    "userData"
-                ];
-
-                userKeys.forEach(key => localStorage.removeItem(key));
-
-                location.reload();
-                return;
-            }
-
-            // ============================
-            // تسجيل الدخول بواسطة Google عبر Supabase
-            // ============================
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: {
-                    redirectTo: window.location.origin + "/profile.html"
-                }
-            });
-
-            if (error) throw error;
-
-        } catch (error) {
-            console.error("AUTH ERROR", error);
-            alert("حدث خطأ في تسجيل الدخول");
-        }
-    };
+/* 4. إعطاء لون وحجم متناسق لأيقونات المواد (Material Icons) و SVG */
+.profile-icon-btn .material-icons,
+.profile-header button .material-icons,
+.profile-icon-btn svg,
+.profile-header button svg {
+    font-size: 21px !important;
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    transition: transform 0.2s ease !important;
 }
 
-/* ==========================
-   Header Actions
-========================== */
-
-// الإعدادات: الزر موجود وجاهز لربطه لاحقاً بصفحة/نافذة الإعدادات.
-if (settingsBtn) {
-    settingsBtn.onclick = () => {
-        console.log("⚙️ Settings button clicked");
-    };
+/* 5. تفاعل Button Hover عند التمرير بالماوس */
+.profile-icon-btn:hover,
+.profile-header button:hover {
+    background: rgba(0, 0, 0, 0.45) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    transform: translateY(-2px) scale(1.04) !important;
 }
 
-// الثلاث نقاط: مكان مخصص لقائمة خيارات سنضيفها لاحقاً.
-if (profileMenuBtn) {
-    profileMenuBtn.onclick = () => {
-        console.log("⋮ Profile menu clicked");
-    };
+/* 6. تفاعل Button Active عند الضغط */
+.profile-icon-btn:active,
+.profile-header button:active {
+    transform: translateY(0) scale(0.94) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
 }
-
-
-/* ===================================================
-   User Profile Data
-   Part 2/4
-=================================================== */
-
-
-/* ==========================
-   UID - Professional Style
-========================== */
-
-let userUID = "";
-let uidVisible = false;
-
-const uidText = document.getElementById("userUid");
-const toggleUid = document.getElementById("toggleUid");
-const copyUid = document.getElementById("copyUid");
-
-// تحديث UID عند تغيير حالة المستخدم
-supabase.auth.onAuthStateChange((event, session) => {
-    const user = session?.user ?? null;
-
-    // في البروفايل العام، UID المطلوب يأتي من الرابط وليس من الزائر.
-    if (isPublicProfile && !isOwnProfile()) {
-        userUID = profileTargetUID;
-        if (uidText) uidText.textContent = "••••••••••••••";
-        return;
-    }
-
-    if (user) {
-        userUID = user.id;
-        if (uidText) uidText.textContent = "••••••••••••••";
-    } else {
-        userUID = "";
-        if (uidText) uidText.textContent = "••••••••••••••";
-    }
-});
-
-// ============================
-// زر إظهار/إخفاء UID (احترافي)
-// ============================
-if (toggleUid) {
-    toggleUid.onclick = () => {
-        uidVisible = !uidVisible;
-        
-        if (uidVisible) {
-            // إظهار UID
-            uidText.textContent = userUID || "لا يوجد UID";
-            toggleUid.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-            `;
-            toggleUid.title = "إخفاء UID";
-        } else {
-            // إخفاء UID
-            uidText.textContent = "••••••••••••••";
-            toggleUid.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-            `;
-            toggleUid.title = "إظهار UID";
-        }
-    };
-}
-
-// ============================
-// زر نسخ UID (احترافي)
-// ============================
-if (copyUid) {
-    copyUid.onclick = async () => {
-        if (!userUID) {
-            // رسالة خطأ أنيقة
-            const toast = document.createElement("div");
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #ff3b30;
-                color: white;
-                padding: 12px 24px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 600;
-                box-shadow: 0 8px 30px rgba(255, 59, 48, 0.4);
-                z-index: 9999;
-                animation: fadeInUp 0.3s ease;
-                direction: rtl;
-            `;
-            toast.textContent = "⚠️ لا يوجد UID لتنسخه";
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transition = "opacity 0.3s";
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-            return;
-        }
-        
-        try {
-            await navigator.clipboard.writeText(userUID);
-            
-            // رسالة نجاح أنيقة
-            const toast = document.createElement("div");
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #34c759;
-                color: white;
-                padding: 12px 24px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 600;
-                box-shadow: 0 8px 30px rgba(52, 199, 89, 0.4);
-                z-index: 9999;
-                animation: fadeInUp 0.3s ease;
-                direction: rtl;
-            `;
-            toast.innerHTML = `
-                <span style="display:flex;align-items:center;gap:8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    تم نسخ UID بنجاح ✅
-                </span>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transition = "opacity 0.3s";
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-            
-        } catch (error) {
-            console.error("نسخ UID فشل:", error);
-            alert("❌ فشل نسخ UID");
-        }
-    };
-}
-
-// ============================
-// إضافة أنيميشن fadeInUp
-// ============================
-const style = document.createElement("style");
-style.textContent = `
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-    }
-`;
-document.head.appendChild(style);
-
-
-/* ==========================
-   Profile Elements
-========================== */
-
-
-const infoUserName =
-document.getElementById(
-"infoUserName"
-);
-
-
-
-const infoUserEmail =
-document.getElementById(
-"infoUserEmail"
-);
-
-
-
-const accountType =
-document.getElementById(
-"accountType"
-);
-
-
-
-const joinDate =
-document.getElementById(
-"joinDate"
-);
-
-
-
-const lastLogin =
-document.getElementById(
-"lastLogin"
-);
-
-// ==========================
-// New Profile Identity UI
-// ==========================
-const heroDisplayName = document.getElementById("heroDisplayName");
-const heroUsername = document.getElementById("heroUsername");
-const heroBio = document.getElementById("heroBio");
-const heroJoinDate = document.getElementById("heroJoinDate");
-const heroEditProfileBtn = document.getElementById("heroEditProfileBtn");
-
-function getHeroUsername(name, user, profileData = null){
-    const metadata = user?.user_metadata || {};
-    const username =
-        profileData?.username ||
-        metadata.username ||
-        metadata.user_name ||
-        localStorage.getItem("username") ||
-        "";
-
-    if(String(username).trim()){
-        return "@" + String(username).trim().replace(/^@+/, "");
-    }
-
-    const fallback = String(name || "user").trim()
-        .toLowerCase()
-        .replace(/\s+/g, "");
-    return "@" + (fallback || "user");
-}
-
-function getHeroBio(user){
-    const metadata = user?.user_metadata || {};
-    return String(
-        metadata.bio ||
-        localStorage.getItem("profileBio") ||
-        "مصمم خلفيات ومحب للتصميم ✨"
-    ).trim();
-}
-
-function updateHeroIdentity(user, name, profileData = null){
-    const displayName = String(
-        profileData?.full_name ||
-        name ||
-        "زائر"
-    ).trim();
-
-    if(heroDisplayName) heroDisplayName.textContent = displayName;
-    if(heroUsername) heroUsername.textContent = getHeroUsername(displayName, user, profileData);
-
-    if(heroBio){
-        heroBio.textContent = String(
-            profileData?.bio ||
-            getHeroBio(user)
-        ).trim();
-    }
-
-    if(heroJoinDate){
-        const savedJoinDate =
-            profileData?.join_date ||
-            localStorage.getItem("joinDate");
-
-        heroJoinDate.textContent =
-            savedJoinDate ||
-            (user?.created_at
-                ? new Date(user.created_at).toLocaleDateString("ar-MA", {
-                    year:"numeric",
-                    month:"long"
-                })
-                : "-");
-    }
-}
-
-if(heroEditProfileBtn){
-    heroEditProfileBtn.onclick = () => {
-        const originalEditBtn = document.getElementById("editProfileBtn");
-        if(originalEditBtn) originalEditBtn.click();
-    };
-}
-
-
-
-
-
-
-
-
-
-/* ==========================
-   Load User Data
-========================== */
-
-
-function loadUserData(){
-
-    // عند فتح بروفايل مستخدم آخر، ممنوع تحميل بيانات الزائر
-    // من localStorage لأنها كانت تستبدل بروفايل صاحب UID الموجود في الرابط.
-    if (isPublicProfile && !isOwnProfile()) {
-        return;
-    }
-
-
-const name =
-
-localStorage.getItem(
-"userName"
-)
-||
-"زائر";
-
-
-
-
-const email =
-
-localStorage.getItem(
-"userEmail"
-)
-||
-"غير مسجل";
-
-
-
-
-const avatar =
-
-localStorage.getItem(
-"userAvatar"
-);
-
-const cover =
-localStorage.getItem(
-"userCover"
-);
-
-
-
-
-
-
-
-if(userName)
-
-userName.textContent =
-name;
-
-
-
-
-if(userEmail)
-
-userEmail.textContent =
-email;
-
-
-
-
-
-if(userAvatar)
-
-userAvatar.src =
-avatar ||
-"assets/images/user.png";
-
-if(coverImage && cover)
-
-coverImage.src = cover;
-
-
-
-
-
-
-
-if(infoUserName)
-
-infoUserName.textContent =
-name;
-
-
-
-
-
-if(infoUserEmail)
-
-infoUserEmail.textContent =
-email;
-
-
-
-
-
-
-
-if(email !== "غير مسجل"){
-
-
-if(accountType)
-
-accountType.textContent =
-"حساب Google";
-
-
-}else{
-
-
-if(accountType)
-
-accountType.textContent =
-"زائر";
-
-
-}
-
-
-
-
-
-
-let join =
-
-localStorage.getItem(
-"joinDate"
-);
-
-
-
-
-
-if(joinDate)
-
-joinDate.textContent =
-join ||
-"-";
-
-
-
-
-
-if(lastLogin)
-
-lastLogin.textContent =
-new Date()
-.toLocaleString(
-"ar-MA"
-);
-
-
-
-}
-
-/* ===================================================
-   Wallpapers + Statistics
-   Part 3/4
-=================================================== */
-
-
-/* ==========================
-   API
-========================== */
-
-
-const API =
-"/api/wallpapers";
-
-
-
-let wallpapers = [];
-
-
-
-
-
-
-
-/* ==========================
-   Containers
-========================== */
-
-
-const ownWallpapersContainer = document.getElementById("ownWallpapers");
-
-const downloadedContainer =
-document.getElementById(
-"downloadedWallpapers"
-);
-
-
-
-const likedContainer =
-document.getElementById(
-"likedWallpapers"
-);
-
-
-
-const viewedContainer =
-document.getElementById(
-"viewedWallpapers"
-);
-
-
-
-
-
-
-const downloadCount =
-document.getElementById(
-"downloadCount"
-);
-
-
-
-const likeCount =
-document.getElementById(
-"likeCount"
-);
-
-
-
-const viewCount =
-document.getElementById(
-"viewCount"
-);
-
-
-
-
-
-
-
-
-/* ==========================
-   Local Data
-========================== */
-
-
-function getList(key){
-    try{
-        const raw = JSON.parse(localStorage.getItem(key) || "[]");
-        if(!Array.isArray(raw)) return [];
-
-        return raw
-            .map(item => {
-                if(item && typeof item === "object"){
-                    return item.id ?? item.wallpaperId ?? item.wallpaper_id ?? item.wallId ?? null;
-                }
-                return item;
-            })
-            .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
-            .map(id => String(id));
-    }catch(error){
-        console.warn("PROFILE LIST READ ERROR:", key, error);
-        return [];
-    }
-}
-
-
-
-
-
-
-
-
-function clearUserStats(){
-
-
-localStorage.removeItem(
-"downloads"
-);
-
-
-localStorage.removeItem(
-"favorites"
-);
-
-
-localStorage.removeItem(
-"views"
-);
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Wallpaper count
-========================== */
-
-function updateWallpaperCount(count){
-    const value = Number.isFinite(Number(count)) ? Number(count) : 0;
-
-    const countEl = document.getElementById("wallpaperCount");
-    if(countEl) countEl.textContent = value;
-
-    const headingEl = document.getElementById("wallpaperHeadingCount");
-    if(headingEl) headingEl.textContent = value;
-}
-
-
-/* ==========================
-   Load Wallpapers
-========================== */
-
-
-async function loadWallpapers(){
-
-
-try{
-
-
-const res =
-await fetch(API);
-
-
-
-wallpapers =
-await res.json();
-
-
-
-renderProfile();
-
-
-
-}
-
-catch(error){
-
-
-console.log(
-"Wallpapers Error",
-error
-);
-
-
-}
-
-
-
-}
-
-
-
-/* ==========================
-   Render Statistics
-========================== */
-
-function renderProfile() {
-    const downloads = getList("downloads");
-    const likes = getList("favorites");
-    const views = getList("views");
-
-    const ownUID = String(currentUser?.id || "").trim();
-    const ownWalls = ownUID
-        ? wallpapers.filter(w => {
-            const owner = String(
-                w.ownerUID || w.userId || w.user_id || w.owner_id || ""
-            ).trim();
-            return owner === ownUID;
-        })
-        : [];
-
-    const downloadCountEl = document.getElementById("downloadCount");
-    if(downloadCountEl) downloadCountEl.textContent = downloads.length;
-
-    const likeCountEl = document.getElementById("likeCount");
-    if(likeCountEl) likeCountEl.textContent = likes.length;
-
-    const viewCountEl = document.getElementById("viewCount");
-    if(viewCountEl) viewCountEl.textContent = views.length;
-
-    updateWallpaperCount(ownWalls.length);
-    renderWalls(ownWallpapersContainer, ownWalls.map(w => w.id));
-    renderWalls(downloadedContainer, downloads);
-    renderWalls(likedContainer, likes);
-    renderWalls(viewedContainer, views);
-
-    updateUserStats();
-}
-
-/* ==========================
-   Update User Stats (after download/like/view)
-========================== */
-
-function updateUserStats() {
-    const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    const views = JSON.parse(localStorage.getItem("views") || "[]");
-    
-    document.getElementById("downloadCount").textContent = downloads.length;
-    document.getElementById("likeCount").textContent = favorites.length;
-    document.getElementById("viewCount").textContent = views.length;
-    const ownUID = String(currentUser?.id || "").trim();
-    const ownWalls = ownUID
-        ? wallpapers.filter(w => String(w.ownerUID || w.userId || w.user_id || w.owner_id || "").trim() === ownUID)
-        : [];
-    updateWallpaperCount(ownWalls.length);
-}
-
-/* ==========================
-   Sync User Stats (Global)
-========================== */
-
-window.syncUserStats = function(type, id) {
-    if(id === null || id === undefined || String(id).trim() === "") return;
-
-    const allowed = {
-        like: "favorites",
-        likes: "favorites",
-        favorite: "favorites",
-        favorites: "favorites",
-        download: "downloads",
-        downloads: "downloads",
-        view: "views",
-        views: "views"
-    };
-
-    const key = allowed[String(type).toLowerCase()] || String(type);
-    const list = getList(key);
-    const value = String(id);
-
-    if(!list.includes(value)){
-        list.push(value);
-        localStorage.setItem(key, JSON.stringify(list));
-    }
-
-    updateUserStats();
-    renderProfile();
-    syncCloudAction(key, value);
-    window.dispatchEvent(new CustomEvent("wallpaperStatsChanged", {
-        detail:{ type:key, id:value }
-    }));
-};
-
-/* ==========================
-   Render Cards
-========================== */
-
-
-function renderWalls(
-container,
-ids
-){
-
-
-
-if(!container)
-
-return;
-
-
-
-
-container.innerHTML = "";
-
-
-
-
-if(ids.length===0){
-
-
-container.innerHTML = `
-
-<div class="empty-profile">
-
-لا توجد خلفيات حاليا
-
-</div>
-
-`;
-
-
-return;
-
-
-}
-
-
-
-
-
-ids.forEach(id=>{
-
-
-const wall =
-
-wallpapers.find(
-
-item =>
-
-String(item.id)
-===
-String(id)
-
-);
-
-
-
-
-if(!wall)
-
-return;
-
-
-
-
-
-const card =
-document.createElement(
-"div"
-);
-
-
-
-card.className =
-"profile-wall-card";
-
-
-
-card.innerHTML = `
-
-<img src="${
-    wall.thumbnail ||
-    wall.image
-}">
-
-`;
-
-
-
-card.onclick = ()=>{
-
-
-location.href =
-"wallpaper.html?id="
-+
-wall.id;
-
-
-};
-
-
-
-container.appendChild(card);
-
-
-
-});
-
-
-
-}
-
-/* ===================================================
-   Edit Profile + Start
-   Part 4/4
-=================================================== */
-
-
-/* ==========================
-   Edit Elements
-========================== */
-
-
-const editProfileBtn =
-document.getElementById(
-"editProfileBtn"
-);
-
-
-const editModal =
-document.getElementById(
-"editModal"
-);
-
-
-const closeEditBtn =
-document.getElementById(
-"closeEditBtn"
-);
-
-
-const saveProfileBtn =
-document.getElementById(
-"saveProfileBtn"
-);
-
-
-const editName =
-document.getElementById(
-"editName"
-);
-
-
-const avatarInput =
-document.getElementById(
-"avatarInput"
-);
-
-
-const coverInput =
-document.getElementById(
-"coverInput"
-);
-
-const changeCoverBtn =
-document.getElementById("changeCoverBtn");
-
-if(changeCoverBtn && coverInput){
-    changeCoverBtn.onclick = ()=>{
-        if(!isOwnProfile()) return;
-        coverInput.click();
-    };
-}
-
-
-const changeAvatarBtn =
-document.getElementById(
-"changeAvatarBtn"
-);
-
-
-
-
-
-/* ==========================
-   Open Edit
-========================== */
-
-
-if(editProfileBtn){
-
-
-editProfileBtn.onclick = ()=>{
-
-if(!isOwnProfile()){
-    hideOwnerEditControls();
-    return;
-}
-
-if(editModal)
-
-editModal.classList.add(
-"show"
-);
-
-
-
-if(editName)
-
-editName.value =
-(heroDisplayName?.textContent || infoUserName?.textContent || "");
-
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Close Edit
-========================== */
-
-
-if(closeEditBtn){
-
-
-closeEditBtn.onclick = ()=>{
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Save Name
-========================== */
-
-
-if(saveProfileBtn){
-
-
-saveProfileBtn.onclick = async ()=>{
-
-if(!isOwnProfile()){
-    if(editModal) editModal.classList.remove("show");
-    return;
-}
-
-const name =
-editName.value.trim();
-
-
-
-if(name){
-
-
-localStorage.setItem(
-"userName",
-name
-);
-
-        if(currentUser){
-            const cloudData = getLocalSyncData();
-            cloudData.full_name = name;
-
-            const existingUsername = String(
-                localStorage.getItem("username") || ""
-            ).trim();
-
-            if(existingUsername){
-                cloudData.username = existingUsername;
-            }
-
-            await saveCloudUserData(currentUser, cloudData);
-        }
-
-
-
-if(userName)
-
-userName.textContent =
-name;
-
-
-
-if(infoUserName)
-
-infoUserName.textContent =
-name;
-
-
-}
-
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Image Reader
-========================== */
-
-
-function readImage(
-file,
-callback
-){
-
-
-if(!file)
-
-return;
-
-
-
-const reader =
-new FileReader();
-
-
-
-reader.onload = ()=>{
-
-
-callback(
-reader.result
-);
-
-
-};
-
-
-
-reader.readAsDataURL(
-file
-);
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Avatar
-========================== */
-
-
-if(changeAvatarBtn && avatarInput){
-
-
-changeAvatarBtn.onclick = ()=>{
-
-if(!isOwnProfile()) return;
-
-avatarInput.click();
-
-
-};
-
-
-}
-
-
-
-
-if(avatarInput){
-
-
-avatarInput.onchange = ()=>{
-
-if(!isOwnProfile()) return;
-
-const file =
-avatarInput.files[0];
-
-
-
-readImage(
-file,
-async (src)=>{
-
-
-userAvatar.src =
-src;
-
-
-
-localStorage.setItem(
-"userAvatar",
-src
-);
-
-        if(currentUser){
-            const cloudData = getLocalSyncData();
-            cloudData.avatar_url = src;
-            await saveCloudUserData(currentUser, cloudData);
-        }
-
-
-}
-);
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-   Cover
-========================== */
-
-
-if(coverInput){
-
-
-coverInput.onchange = ()=>{
-
-if(!isOwnProfile()) return;
-
-const file =
-coverInput.files[0];
-
-
-
-readImage(
-file,
-async (src)=>{
-
-
-coverImage.src =
-src;
-
-
-
-localStorage.setItem(
-"userCover",
-src
-);
-
-        if(currentUser){
-            const cloudData = getLocalSyncData();
-            cloudData.cover_url = src;
-            await saveCloudUserData(currentUser, cloudData);
-        }
-
-window.dispatchEvent(new CustomEvent("profileCoverChanged", {
-    detail:{ src }
-}));
-
-
-
-}
-);
-
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-/* ===================================================
-   Profile Live Sync
-   =================================================== */
-
-window.addEventListener("wallpaperStatsChanged", () => {
-    renderProfile();
-});
-
-window.addEventListener("storage", event => {
-    if(["favorites", "downloads", "views", "userCover"].includes(event.key)){
-        if(event.key === "userCover" && coverImage){
-            coverImage.src = event.newValue || "";
-        }
-        renderProfile();
-        updateUserStats();
-    }
-});
-
-/* ===================================================
+/* =========================================================
    Profile Tabs
-   =================================================== */
+   إضافة مستقلة — لا تغيّر أي تصميم سابق
+   ========================================================= */
 
-const profileTabs = document.querySelectorAll(".profile-tab");
-const profilePanels = document.querySelectorAll(".profile-panel");
+.profile-tabs{
+    width:100%;
+    max-width:1000px;
+    margin:8px auto 0;
+    padding:6px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:4px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    background:#fff;
+    border:1px solid #e8ebf3;
+    border-radius:16px;
+    box-shadow:0 4px 14px rgba(35,45,80,.05);
+}
 
-profileTabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-        const target = tab.dataset.profileTab;
-        if(!target) return;
+.profile-tabs::-webkit-scrollbar{
+    display:none;
+}
 
-        profileTabs.forEach(item => item.classList.remove("active"));
-        profilePanels.forEach(panel => panel.classList.remove("active"));
+.profile-tab{
+    position:relative;
+    flex:1 0 auto;
+    min-width:125px;
+    height:46px;
+    padding:0 13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border-radius:12px;
+    background:transparent;
+    color:#747c90;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+    cursor:pointer;
+}
 
-        tab.classList.add("active");
+.profile-tab .material-icons{
+    font-size:19px;
+    line-height:1;
+}
 
-        const panel = document.querySelector(
-            `.profile-panel[data-profile-panel="${target}"]`
-        );
+.profile-tab:hover{
+    background:#f5f7fc;
+    color:#5364ee;
+}
 
-        if(panel) panel.classList.add("active");
-    });
-});
+.profile-tab.active{
+    background:#eef2ff;
+    color:#5364ee;
+}
+
+.profile-tab.active::after{
+    content:"";
+    position:absolute;
+    right:18px;
+    left:18px;
+    bottom:3px;
+    height:3px;
+    border-radius:3px;
+    background:#5364ee;
+}
+
+.profile-tab-content{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+}
+
+.profile-panel{
+    display:none;
+}
+
+.profile-panel.active{
+    display:block;
+}
 
 
-/* ==========================
-   Start App
-========================== */
+/* =========================================================
+   Profile Tabs — Dark Theme
+   ========================================================= */
+
+body.dark .profile-tabs{
+    background:#141925;
+    border-color:#252c3c;
+    box-shadow:none;
+}
+
+body.dark .profile-tab{
+    color:#9da6ba;
+}
+
+body.dark .profile-tab:hover{
+    background:#1b2130;
+    color:#7d8cff;
+}
+
+body.dark .profile-tab.active{
+    background:#1b2130;
+    color:#7d8cff;
+}
+
+body.dark .profile-tab.active::after{
+    background:#7d8cff;
+}
 
 
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
+/* =========================================================
+   Profile Tabs — Mobile
+   ========================================================= */
 
-    // إذا كان الرابط يحمل UID، ابدأ بالبروفايل المطلوب مباشرة.
-    // هذا يمنع ظهور بيانات الحساب الحالي أثناء انتظار Auth.
-    if (isPublicProfile && (!currentUser || !isOwnProfile())) {
-        hideOwnerEditControls();
-        if (loginBtn) {
-            loginBtn.style.display = "none";
-            loginBtn.setAttribute("aria-hidden", "true");
-            loginBtn.setAttribute("tabindex", "-1");
-        }
-        loadPublicProfile(profileTargetUID);
-        return;
+@media(max-width:700px){
+
+    .profile-tabs{
+        margin:6px 12px 0;
+        width:calc(100% - 24px);
+        max-width:none;
+        padding:5px;
+        justify-content:flex-start;
+        border-radius:14px;
     }
 
-    loadUserData();
-    loadWallpapers();
+    .profile-tab{
+        min-width:112px;
+        height:43px;
+        padding:0 10px;
+        gap:5px;
+        border-radius:10px;
+        font-size:11px;
+    }
 
-});
+    .profile-tab .material-icons{
+        font-size:17px;
+    }
+
+    .profile-tab.active::after{
+        right:14px;
+        left:14px;
+        bottom:3px;
+    }
+
+    .profile-tab-content{
+        max-width:none;
+    }
+}
