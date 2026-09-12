@@ -251,7 +251,7 @@ button{
 .join-date-card{
     order:1;
     width:calc(50% - 9px);
-    transform:translateY(-15px);
+    transform:translateY(-30px);
 }
 
 
@@ -332,7 +332,7 @@ button{
     color:#fff;
     border:1px solid transparent;
     background:linear-gradient(145deg,#795b50,#a9887a);
-    transform:translateY(-15px);
+    transform:translateY(-30px);
 }
 
 
