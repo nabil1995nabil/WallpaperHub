@@ -1120,3 +1120,231 @@ body.dark .hero-edit-profile{
     .identity-name-row h1{font-size:22px}
     .hero-edit-profile{min-width:205px}
 }
+
+
+/* =========================================================
+   FINAL COMPACT PROFILE LAYOUT
+   ========================================================= */
+
+.profile-wallpapers-heading{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin:0 0 8px;
+    padding:0 2px;
+    direction:rtl;
+}
+
+.profile-wallpapers-heading h2{
+    margin:0;
+    font-size:17px;
+    font-weight:700;
+    color:#161824;
+}
+
+.profile-wallpapers-heading .material-icons{
+    width:30px;
+    height:30px;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    color:#5060ff;
+    background:#eef2f7;
+}
+
+body.dark .profile-wallpapers-heading h2{color:#fff}
+body.dark .profile-wallpapers-heading .material-icons{
+    background:#141722;
+    color:#8b96ff;
+}
+
+@media(max-width:700px){
+
+    /* الهوية: صغيرة بدون فراغ كبير */
+    .profile-identity{
+        padding:0 12px 8px !important;
+        gap:7px !important;
+    }
+
+    .identity-side-card{
+        min-height:70px !important;
+        height:70px !important;
+        padding:7px 9px !important;
+        border-radius:15px !important;
+        gap:6px !important;
+    }
+
+    .identity-side-card > .material-icons,
+    .premium-crown{
+        width:29px !important;
+        height:29px !important;
+        flex:0 0 29px !important;
+        font-size:16px !important;
+        border-radius:9px !important;
+    }
+
+    .identity-side-label,
+    .identity-side-content small{
+        font-size:9px !important;
+        line-height:1.2 !important;
+    }
+
+    .identity-side-content strong,
+    .join-date-card .identity-side-content strong,
+    .premium-card .identity-side-content strong{
+        font-size:12px !important;
+        line-height:1.3 !important;
+    }
+
+    .identity-main{padding:0 !important}
+
+    .identity-name-row h1{font-size:22px !important}
+
+    .identity-username{
+        font-size:12px !important;
+        margin:1px 0 0 !important;
+    }
+
+    .identity-bio{
+        font-size:11px !important;
+        margin:2px 0 5px !important;
+    }
+
+    .hero-edit-profile{
+        min-width:190px !important;
+        height:35px !important;
+        padding:0 14px !important;
+        border-radius:18px !important;
+        font-size:12px !important;
+    }
+
+    .hero-edit-profile .material-icons{font-size:15px !important}
+
+    /* ===== الإحصائيات: شريط أفقي صغير 4 خانات ===== */
+    .profile-stats{
+        width:100% !important;
+        display:grid !important;
+        grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+        gap:6px !important;
+        padding:7px 12px !important;
+        margin:0 !important;
+        background:transparent !important;
+        align-items:stretch !important;
+    }
+
+    .stat-card{
+        width:100% !important;
+        min-width:0 !important;
+        height:64px !important;
+        padding:5px 2px !important;
+        border-radius:13px !important;
+        display:flex !important;
+        flex-direction:column !important;
+        align-items:center !important;
+        justify-content:center !important;
+        border:1px solid rgba(80,96,255,.08) !important;
+        background:linear-gradient(145deg,#fff,#f6f8fc) !important;
+    }
+
+    .stat-card h3{
+        margin:0 !important;
+        font-size:18px !important;
+        line-height:1.05 !important;
+        color:#161824 !important;
+    }
+
+    .stat-card p{
+        margin:3px 0 0 !important;
+        font-size:9px !important;
+        line-height:1.15 !important;
+        white-space:nowrap !important;
+        color:#70778a !important;
+    }
+
+    body.dark .stat-card{
+        background:#141722 !important;
+        border-color:#252a3a !important;
+    }
+
+    body.dark .stat-card h3{color:#fff !important}
+
+    /* ===== الخلفيات مباشرة تحت الإحصائيات ===== */
+    .profile-content{
+        padding:0 12px 25px !important;
+    }
+
+    .profile-wallpapers-heading{
+        height:32px;
+        margin:3px 0 7px !important;
+    }
+
+    .profile-wallpapers-heading h2{font-size:16px !important}
+
+    .profile-wallpapers-heading .material-icons{
+        width:28px;
+        height:28px;
+        font-size:17px;
+    }
+
+    /* شبكة خلفيات صغيرة واحترافية */
+    .profile-grid{
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:8px !important;
+        overflow:visible !important;
+        padding:2px 0 12px !important;
+    }
+
+    .profile-wall-card{
+        width:100% !important;
+        min-width:0 !important;
+        flex:none !important;
+        padding:4px !important;
+        border-radius:15px !important;
+        background:#f2f4f8 !important;
+    }
+
+    .profile-wall-card img{
+        width:100% !important;
+        height:185px !important;
+        object-fit:cover !important;
+        border-radius:11px !important;
+    }
+
+    .profile-wall-info{padding:5px 3px 2px !important}
+
+    .profile-wall-info h3{font-size:11px !important}
+
+    .profile-wall-info p{
+        margin-top:2px !important;
+        font-size:9px !important;
+    }
+
+    /* تفاصيل الحساب الحالية تبقى موجودة أسفل المحتوى */
+    .user-info{
+        padding:8px 12px 20px !important;
+        gap:12px !important;
+    }
+}
+
+@media(max-width:380px){
+
+    .profile-stats{
+        gap:5px !important;
+        padding-left:10px !important;
+        padding-right:10px !important;
+    }
+
+    .stat-card{
+        height:60px !important;
+        border-radius:12px !important;
+    }
+
+    .stat-card h3{font-size:16px !important}
+    .stat-card p{font-size:8px !important}
+
+    .profile-wall-card img{height:165px !important}
+}
