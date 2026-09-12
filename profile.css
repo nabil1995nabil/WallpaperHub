@@ -703,3 +703,97 @@ body.dark .info-card:not(:last-child)::after{
 .edit-modal button:active{
     box-shadow:none !important;
 }
+
+
+/* =========================================================
+   Cover Change Button
+   ========================================================= */
+.profile-cover{position:relative;}
+
+.cover-change-btn{
+    position:absolute;
+    top:105px;
+    right:18px;
+    z-index:12;
+    min-height:48px;
+    padding:0 22px;
+    border:0;
+    border-radius:28px;
+    background:rgba(72,50,53,.82);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    font-family:"Cairo",Arial,sans-serif;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+    box-shadow:none !important;
+    text-shadow:none;
+    transition:background .15s ease,transform .15s ease;
+}
+.cover-change-btn .material-icons{font-size:23px;line-height:1;}
+.cover-change-btn:hover{background:rgba(72,50,53,.94);}
+.cover-change-btn:active{transform:scale(.97);}
+
+.cover-file-input{
+    position:absolute !important;
+    width:1px !important;
+    height:1px !important;
+    padding:0 !important;
+    margin:-1px !important;
+    overflow:hidden !important;
+    clip:rect(0,0,0,0) !important;
+    white-space:nowrap !important;
+    border:0 !important;
+    opacity:0 !important;
+}
+
+/* جميع أزرار الصفحة مسطحة وطبيعية */
+.profile-header button,
+.profile-cover button,
+.user-info button,
+.edit-modal button,
+.avatar-edit,
+.info-card .material-icons,
+.uid-content button{
+    box-shadow:none !important;
+    filter:none !important;
+}
+
+body.dark .menu-btn,
+body.dark .settings-btn,
+body.dark .edit-btn,
+body.dark .login-btn,
+body.dark .info-card .material-icons,
+body.dark .uid-content button,
+body.dark .stat-card,
+body.dark .profile-wall-card,
+body.dark .profile-avatar,
+body.dark .edit-box,
+body.dark #closeEditBtn{
+    box-shadow:none !important;
+}
+
+.profile-header{
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:100;
+    background:transparent !important;
+}
+
+@media(max-width:600px){
+    .cover-change-btn{
+        top:92px;
+        right:16px;
+        min-height:44px;
+        padding:0 17px;
+        font-size:14px;
+        gap:8px;
+    }
+    .cover-change-btn .material-icons{font-size:21px;}
+}

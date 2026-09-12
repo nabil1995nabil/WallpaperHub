@@ -62,6 +62,7 @@ function hideOwnerEditControls(){
     const ids = [
         "editProfileBtn",
         "changeAvatarBtn",
+        "changeCoverBtn",
         "avatarInput",
         "coverInput"
     ];
@@ -1329,6 +1330,16 @@ const coverInput =
 document.getElementById(
 "coverInput"
 );
+
+const changeCoverBtn =
+document.getElementById("changeCoverBtn");
+
+if(changeCoverBtn && coverInput){
+    changeCoverBtn.onclick = ()=>{
+        if(!isOwnProfile()) return;
+        coverInput.click();
+    };
+}
 
 
 const changeAvatarBtn =
