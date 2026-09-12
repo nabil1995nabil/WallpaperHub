@@ -1787,7 +1787,7 @@ editModal.classList.remove(
 if(saveProfileBtn){
 
 
-saveProfileBtn.onclick = ()=>{
+saveProfileBtn.onclick = async ()=>{
 
 if(!isOwnProfile()){
     if(editModal) editModal.classList.remove("show");
@@ -1937,7 +1937,7 @@ avatarInput.files[0];
 
 readImage(
 file,
-(src)=>{
+async (src)=>{
 
 
 userAvatar.src =
@@ -1993,7 +1993,7 @@ coverInput.files[0];
 
 readImage(
 file,
-(src)=>{
+async (src)=>{
 
 
 coverImage.src =
