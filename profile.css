@@ -1,7 +1,7 @@
 /* =========================================================
    WallpaperHub — Profile
-   Clean root stylesheet
-   No override blocks / no repeated media-query patches
+   Root stylesheet
+   Independent identity cards — no shared positioning patches
    ========================================================= */
 
 *{
@@ -103,17 +103,21 @@ button{
     font-size:22px;
 }
 
+/* =========================================================
+   Cover
+   ========================================================= */
+
 .profile-cover{
     position:relative;
     width:100%;
-    height:350px;
+    height:320px;
     overflow:hidden;
     background:#fff;
 }
 
 .cover-image{
     width:100%;
-    height:275px;
+    height:245px;
     display:block;
     object-fit:cover;
 }
@@ -158,15 +162,15 @@ button{
 
 .profile-avatar-box{
     position:absolute;
-    top:205px;
+    top:180px;
     left:50%;
     z-index:25;
     transform:translateX(-50%);
 }
 
 .profile-avatar{
-    width:110px;
-    height:110px;
+    width:95px;
+    height:95px;
     display:block;
     object-fit:cover;
     border:4px solid #fff;
@@ -178,8 +182,8 @@ button{
     position:absolute;
     right:0;
     bottom:3px;
-    width:37px;
-    height:37px;
+    width:35px;
+    height:35px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -195,40 +199,57 @@ button{
     font-size:20px;
 }
 
-/* Profile hero identity: side cards are anchored to the cover */
+/* =========================================================
+   Profile identity
+   The cover ends first.
+   Identity starts BELOW the cover.
+   Join and premium cards are independent flex items.
+   ========================================================= */
+
 .profile-identity{
     position:relative;
     z-index:30;
     width:100%;
     max-width:1000px;
-    margin:-70px auto 0;
-    padding:0 28px 14px;
-    display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    grid-template-areas:
-        "join premium"
-        "main main";
+    margin:0 auto;
+    padding:38px 28px 14px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    justify-content:space-between;
     gap:10px 18px;
-    align-items:start;
     direction:ltr;
     background:transparent;
 }
 
-.join-date-card{grid-area:join}
-.identity-main{grid-area:main}
-.premium-card{grid-area:premium}
+/* Each card owns its own width/height/position rules. */
+.join-date-card{
+    order:1;
+    width:calc(50% - 9px);
+}
+
+.premium-card{
+    order:2;
+    width:calc(50% - 9px);
+}
+
+.identity-main{
+    order:3;
+    width:100%;
+}
 
 .identity-side-card{
     min-width:0;
-    min-height:92px;
-    padding:12px 16px;
+    min-height:76px;
+    height:76px;
+    padding:9px 12px;
     display:flex;
     align-items:center;
-    gap:12px;
-    border:1px solid rgba(255,255,255,.72);
-    border-radius:20px;
+    gap:9px;
+    border:1px solid rgba(255,255,255,.82);
+    border-radius:17px;
     background:rgba(255,255,255,.94);
-    box-shadow:0 10px 26px rgba(35,45,80,.10);
+    box-shadow:0 8px 22px rgba(35,45,80,.09);
     direction:rtl;
     backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
@@ -236,42 +257,43 @@ button{
 
 .identity-card-icon,
 .premium-crown{
-    width:42px;
-    height:42px;
-    flex:0 0 42px;
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:13px;
+    border-radius:10px;
     background:#eef2f8;
     color:#5364ee;
-    font-size:24px;
+    font-size:20px;
 }
 
 .identity-side-content{
     min-width:0;
     display:flex;
     flex-direction:column;
-    gap:2px;
+    gap:1px;
     text-align:right;
 }
 
 .identity-side-label,
 .identity-side-content small{
     color:#7a8297;
-    font-size:11px;
-    line-height:1.35;
+    font-size:10px;
+    line-height:1.3;
 }
 
 .identity-side-content strong{
     color:#1c2233;
-    font-size:15px;
+    font-size:13px;
     font-weight:700;
-    line-height:1.45;
+    line-height:1.35;
+    white-space:nowrap;
 }
 
 .join-date-card .identity-side-content strong{
-    font-size:17px;
+    font-size:14px;
 }
 
 .premium-card{
@@ -286,7 +308,7 @@ button{
 }
 
 .premium-card .identity-side-content strong{
-    font-size:16px;
+    font-size:14px;
 }
 
 .premium-card .identity-side-content small{
@@ -295,12 +317,12 @@ button{
 
 .premium-crown{
     color:#ffe17a;
-    background:rgba(255,255,255,.1);
+    background:rgba(255,255,255,.10);
 }
 
 .identity-main{
     min-width:0;
-    padding:5px 4px;
+    padding:2px 4px 3px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -372,6 +394,10 @@ button{
     font-size:18px;
 }
 
+/* =========================================================
+   Stats
+   ========================================================= */
+
 .profile-stats{
     width:100%;
     max-width:1000px;
@@ -424,6 +450,10 @@ button{
     line-height:1.2;
     white-space:nowrap;
 }
+
+/* =========================================================
+   Wallpapers
+   ========================================================= */
 
 .profile-content{
     width:100%;
@@ -550,6 +580,10 @@ button{
     font-weight:700;
 }
 
+/* =========================================================
+   User information
+   ========================================================= */
+
 .user-info{
     width:100%;
     max-width:1000px;
@@ -643,6 +677,10 @@ button{
     cursor:pointer;
 }
 
+/* =========================================================
+   Edit modal
+   ========================================================= */
+
 .edit-modal{
     position:fixed;
     inset:0;
@@ -728,7 +766,10 @@ button{
     color:#5364ee;
 }
 
-/* Dark theme */
+/* =========================================================
+   Dark theme
+   ========================================================= */
+
 body.dark{
     background:#0b0e15;
     color:#fff;
@@ -799,7 +840,12 @@ body.dark #closeEditBtn{
     background:#202738;
 }
 
+/* =========================================================
+   Mobile
+   ========================================================= */
+
 @media(max-width:700px){
+
     body{
         padding-bottom:95px;
     }
@@ -858,49 +904,66 @@ body.dark #closeEditBtn{
         height:35px;
     }
 
+    /* Cards are BELOW the cover, never positioned over it. */
     .profile-identity{
         max-width:none;
-        margin:-58px auto 0;
-        padding:0 12px 8px;
-        grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-        grid-template-areas:
-            "join premium"
-            "main main";
+        margin:0 auto;
+        padding:38px 12px 8px;
+        display:flex;
+        flex-wrap:wrap;
+        align-items:flex-start;
+        justify-content:space-between;
         gap:8px;
+    }
+
+    .join-date-card{
+        order:1;
+        width:calc(50% - 4px);
+    }
+
+    .premium-card{
+        order:2;
+        width:calc(50% - 4px);
+    }
+
+    .identity-main{
+        order:3;
+        width:100%;
+        padding:1px 0 3px;
     }
 
     .identity-side-card{
         min-width:0;
-        min-height:72px;
-        height:72px;
-        padding:7px 9px;
-        gap:7px;
-        border-radius:15px;
+        min-height:64px;
+        height:64px;
+        padding:6px 8px;
+        gap:6px;
+        border-radius:14px;
     }
 
     .identity-card-icon,
     .premium-crown{
-        width:29px;
-        height:29px;
-        flex-basis:29px;
-        border-radius:9px;
-        font-size:16px;
+        width:28px;
+        height:28px;
+        flex-basis:28px;
+        border-radius:8px;
+        font-size:15px;
+    }
+
+    .identity-side-content{
+        gap:1px;
     }
 
     .identity-side-label,
     .identity-side-content small{
-        font-size:9px;
+        font-size:8px;
     }
 
     .identity-side-content strong,
     .join-date-card .identity-side-content strong,
     .premium-card .identity-side-content strong{
-        font-size:12px;
+        font-size:11px;
         white-space:nowrap;
-    }
-
-    .identity-main{
-        padding:1px 0 3px;
     }
 
     .identity-name-row{
@@ -1035,6 +1098,7 @@ body.dark #closeEditBtn{
 }
 
 @media(max-width:380px){
+
     .profile-actions{
         gap:5px;
     }
@@ -1064,6 +1128,48 @@ body.dark #closeEditBtn{
     .profile-avatar{
         width:91px;
         height:91px;
+    }
+
+    .profile-identity{
+        padding-top:36px;
+        padding-left:10px;
+        padding-right:10px;
+        gap:6px;
+    }
+
+    .join-date-card{
+        width:calc(50% - 3px);
+    }
+
+    .premium-card{
+        width:calc(50% - 3px);
+    }
+
+    .identity-side-card{
+        height:60px;
+        min-height:60px;
+        padding:5px 7px;
+        gap:5px;
+        border-radius:12px;
+    }
+
+    .identity-card-icon,
+    .premium-crown{
+        width:26px;
+        height:26px;
+        flex-basis:26px;
+        font-size:14px;
+    }
+
+    .identity-side-label,
+    .identity-side-content small{
+        font-size:7px;
+    }
+
+    .identity-side-content strong,
+    .join-date-card .identity-side-content strong,
+    .premium-card .identity-side-content strong{
+        font-size:10px;
     }
 
     .profile-stats{
