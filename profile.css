@@ -251,7 +251,10 @@ button{
 .join-date-card{
     order:1;
     width:calc(50% - 9px);
-    transform:translateY(-30px);
+    /* التعديل هنا: زيادة رفع الخانة للأعلى */
+    transform:translateY(-75px);
+    position:relative;
+    z-index:35;
 }
 
 
@@ -332,7 +335,10 @@ button{
     color:#fff;
     border:1px solid transparent;
     background:linear-gradient(145deg,#795b50,#a9887a);
-    transform:translateY(-30px);
+    /* التعديل هنا: زيادة رفع الخانة للأعلى */
+    transform:translateY(-75px);
+    position:relative;
+    z-index:35;
 }
 
 
@@ -1427,9 +1433,13 @@ body.dark #closeEditBtn{
        Mobile Join Date
        ===================================================== */
 
-    .join-date-card{
+.join-date-card{
         order:1;
         width:calc(50% - 4px);
+        /* رفع البطاقة للأعلى في الهواتف */
+        transform: translateY(-65px);
+        position: relative;
+        z-index: 35;
     }
 
 
@@ -1440,6 +1450,10 @@ body.dark #closeEditBtn{
     .premium-card{
         order:2;
         width:calc(50% - 4px);
+        /* رفع البطاقة للأعلى في الهواتف */
+        transform: translateY(-65px);
+        position: relative;
+        z-index: 35;
     }
 
 
@@ -1448,9 +1462,10 @@ body.dark #closeEditBtn{
        ===================================================== */
 
     .identity-main{
-        order:3;
+    order:3;
         width:100%;
         padding:1px 0 3px;
+        margin-top: -55px;
     }
 
 
@@ -1781,13 +1796,15 @@ body.dark #closeEditBtn{
        Join Date
        ===================================================== */
 
-    .join-date-card{
+.join-date-card{
         width:calc(50% - 3px);
         height:60px;
         min-height:60px;
         padding:5px 7px;
         gap:5px;
         border-radius:12px;
+        /* إزاحة الشاشات الصغيرة جداً */
+        transform: translateY(-60px);
     }
 
     .join-date-card > .material-icons{
@@ -1815,15 +1832,16 @@ body.dark #closeEditBtn{
        Premium
        ===================================================== */
 
-    .premium-card{
+.premium-card{
         width:calc(50% - 3px);
         height:60px;
         min-height:60px;
         padding:5px 7px;
         gap:5px;
         border-radius:12px;
+        /* إزاحة الشاشات الصغيرة جداً */
+        transform: translateY(-60px);
     }
-
     .premium-card .premium-crown{
         width:26px;
         height:26px;
