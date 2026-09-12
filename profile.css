@@ -852,8 +852,8 @@ body.dark #closeEditBtn{
     .cover-change-btn{
         top:250px !important;
         right:12px !important;
-        height:36px !important;
-        min-height:36px !important;
+        height:20px !important;
+        min-height:20px !important;
         width:auto !important;
         max-width:max-content !important;
         padding:0 12px !important;
@@ -861,6 +861,6 @@ body.dark #closeEditBtn{
         gap:6px !important;
     }
     .cover-change-btn .material-icons{
-        font-size:20px !important;
+        font-size:12px !important;
     }
 }
