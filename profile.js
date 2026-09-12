@@ -283,45 +283,35 @@ document.getElementById(
 
 function updateLoginState(user){
 
+    if(!loginBtn) return;
 
+    // في البروفايل العام لشخص آخر لا نعرض زر تسجيل الدخول/الخروج.
+    // هذا الزر يخص صاحب الجلسة الحالية، وليس صاحب البروفايل الذي تتم مشاهدته.
+    if(isPublicProfile && !isOwnProfile()){
+        loginBtn.style.display = "none";
+        loginBtn.setAttribute("aria-hidden", "true");
+        loginBtn.setAttribute("tabindex", "-1");
+        return;
+    }
 
-if(!loginBtn)
+    // في الحساب الشخصي نعيد إظهار الزر بشكل طبيعي.
+    loginBtn.style.display = "";
+    loginBtn.removeAttribute("aria-hidden");
+    loginBtn.removeAttribute("tabindex");
 
-return;
-
-
-
-
-
-if(user){
-
-
-loginBtn.innerHTML = `
-
-<span class="material-icons">
-logout
-</span>
-
-`;
-
-
-
-}else{
-
-
-loginBtn.innerHTML = `
-
-<span class="material-icons">
-person
-</span>
-
-`;
-
-
-}
-
-
-
+    if(user){
+        loginBtn.innerHTML = `
+            <span class="material-icons">
+                logout
+            </span>
+        `;
+    }else{
+        loginBtn.innerHTML = `
+            <span class="material-icons">
+                person
+            </span>
+        `;
+    }
 }
 
 
@@ -1641,6 +1631,11 @@ document.addEventListener(
     // هذا يمنع ظهور بيانات الحساب الحالي أثناء انتظار Auth.
     if (isPublicProfile && (!currentUser || !isOwnProfile())) {
         hideOwnerEditControls();
+        if (loginBtn) {
+            loginBtn.style.display = "none";
+            loginBtn.setAttribute("aria-hidden", "true");
+            loginBtn.setAttribute("tabindex", "-1");
+        }
         loadPublicProfile(profileTargetUID);
         return;
     }
