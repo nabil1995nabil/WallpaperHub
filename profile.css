@@ -804,18 +804,18 @@ body.dark #closeEditBtn{
 
 @media(max-width:600px){
     .cover-change-btn{
-        top:250px;
+        top:210px;
         right:12px;
-        min-height:36px;
-        height:36px;
+        min-height:20px;
+        height:20px;
         padding:0 13px;
         border-radius:20px;
-        font-size:18px;
+        font-size:14px;
         gap:6px;
     }
 
     .cover-change-btn .material-icons{
-        font-size:20px;
+        font-size:14px;
     }
 }
 
@@ -823,15 +823,15 @@ body.dark #closeEditBtn{
 @media(max-width:380px){
     .cover-change-btn{
         right:10px;
-        top:250px;
-        height:36px;
-        min-height:36px;
+        top:210px;
+        height:20px;
+        min-height:20px;
         padding:0 12px;
-        font-size:18px;
+        font-size:14px;
     }
 
     .cover-change-btn .material-icons{
-        font-size:20px;
+        font-size:14px;
     }
 }
 
@@ -850,7 +850,7 @@ body.dark #closeEditBtn{
         overflow:hidden;
     }
     .cover-change-btn{
-        top:250px !important;
+        top:210px !important;
         right:12px !important;
         height:20px !important;
         min-height:20px !important;
