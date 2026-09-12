@@ -66,21 +66,33 @@ button{
 }
 
 .profile-icon-btn{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(255,255,255,.92);
-    color:#5364ee;
-    border:1px solid rgba(255,255,255,.8);
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    flex:0 0 42px !important;
+    padding:0 !important;
+    margin:0 !important;
+    border-radius:50% !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    background:rgba(255,255,255,.14) !important;
+    color:#fff !important;
+    border:1px solid rgba(255,255,255,.30) !important;
+    box-shadow:0 4px 14px rgba(0,0,0,.08) !important;
     cursor:pointer;
     transition:transform .16s ease,background .16s ease;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
 }
 
 .profile-icon-btn:hover{
-    background:#fff;
+    background:rgba(255,255,255,.22) !important;
 }
 
 .profile-icon-btn:active{
@@ -181,10 +193,6 @@ button{
 
 .avatar-edit .material-icons{
     font-size:20px;
-}
-
-.legacy-profile-field{
-    display:none;
 }
 
 .profile-identity{
@@ -795,8 +803,13 @@ body.dark #closeEditBtn{
     }
 
     .profile-icon-btn{
-        width:40px;
-        height:40px;
+        width:40px !important;
+        min-width:40px !important;
+        max-width:40px !important;
+        height:40px !important;
+        min-height:40px !important;
+        max-height:40px !important;
+        flex-basis:40px !important;
     }
 
     .profile-actions{
@@ -1016,8 +1029,13 @@ body.dark #closeEditBtn{
     }
 
     .profile-icon-btn{
-        width:37px;
-        height:37px;
+        width:37px !important;
+        min-width:37px !important;
+        max-width:37px !important;
+        height:37px !important;
+        min-height:37px !important;
+        max-height:37px !important;
+        flex-basis:37px !important;
     }
 
     .profile-cover{

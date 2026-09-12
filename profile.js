@@ -1479,7 +1479,7 @@ editModal.classList.add(
 if(editName)
 
 editName.value =
-userName.textContent;
+(heroDisplayName?.textContent || infoUserName?.textContent || "");
 
 
 
