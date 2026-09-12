@@ -155,7 +155,11 @@ async function loadCloudUserData(user, options = {}){
         if(merged.cover_url && coverImage) coverImage.src = merged.cover_url;
         if(merged.bio && heroBio) heroBio.textContent = merged.bio;
 
-        updateHeroIdentity(user, merged.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "مستخدم");
+        updateHeroIdentity(
+            user,
+            merged.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "مستخدم",
+            merged
+        );
         return merged;
     }catch(error){
         console.error("USER CLOUD LOAD ERROR:", error);
@@ -372,19 +376,12 @@ async function loadPublicProfile(uid){
         if(joinDate) joinDate.textContent = "—";
         if(lastLogin) lastLogin.textContent = "—";
 
-        updateHeroIdentity(null, name);
-        if(heroUsername){
-            const publicUsername = String(profile.username || "").trim().replace(/^@+/, "");
-            heroUsername.textContent = "@" + (publicUsername || "user");
-        }
-        if(heroBio){
-            heroBio.textContent =
-                String(profile.bio || "مصمم خلفيات ومحب للتصميم ✨").trim();
-        }
-        if(heroJoinDate){
-            heroJoinDate.textContent =
-                String(profile.join_date || profile.created_at || "—").trim();
-        }
+        updateHeroIdentity(null, name, {
+            full_name: name,
+            username: profile.username || "",
+            bio: profile.bio || "",
+            join_date: profile.join_date || profile.created_at || ""
+        });
 
         if(userAvatar){
             userAvatar.src = avatar || "assets/images/user.png";
@@ -567,13 +564,20 @@ supabase.auth.onAuthStateChange(async (event, session) => {
         await loadCloudUserData(user);
 
         const metadata = user.user_metadata || {};
+        const syncedName = String(localStorage.getItem("userName") || "").trim();
+        const syncedUsername = String(localStorage.getItem("username") || "").trim();
+
         const displayName =
+            syncedName ||
             metadata.full_name ||
             metadata.name ||
             user.email?.split("@")[0] ||
             "مستخدم";
 
-        updateHeroIdentity(user, displayName);
+        updateHeroIdentity(user, displayName, {
+            full_name: displayName,
+            username: syncedUsername
+        });
 
         const photoURL =
             metadata.avatar_url ||
@@ -1001,9 +1005,10 @@ const heroBio = document.getElementById("heroBio");
 const heroJoinDate = document.getElementById("heroJoinDate");
 const heroEditProfileBtn = document.getElementById("heroEditProfileBtn");
 
-function getHeroUsername(name, user){
+function getHeroUsername(name, user, profileData = null){
     const metadata = user?.user_metadata || {};
     const username =
+        profileData?.username ||
         metadata.username ||
         metadata.user_name ||
         localStorage.getItem("username") ||
@@ -1028,15 +1033,28 @@ function getHeroBio(user){
     ).trim();
 }
 
-function updateHeroIdentity(user, name){
-    const displayName = String(name || "زائر").trim();
+function updateHeroIdentity(user, name, profileData = null){
+    const displayName = String(
+        profileData?.full_name ||
+        name ||
+        "زائر"
+    ).trim();
 
     if(heroDisplayName) heroDisplayName.textContent = displayName;
-    if(heroUsername) heroUsername.textContent = getHeroUsername(displayName, user);
-    if(heroBio) heroBio.textContent = getHeroBio(user);
+    if(heroUsername) heroUsername.textContent = getHeroUsername(displayName, user, profileData);
+
+    if(heroBio){
+        heroBio.textContent = String(
+            profileData?.bio ||
+            getHeroBio(user)
+        ).trim();
+    }
 
     if(heroJoinDate){
-        const savedJoinDate = localStorage.getItem("joinDate");
+        const savedJoinDate =
+            profileData?.join_date ||
+            localStorage.getItem("joinDate");
+
         heroJoinDate.textContent =
             savedJoinDate ||
             (user?.created_at
@@ -1810,6 +1828,15 @@ name
         if(currentUser){
             const cloudData = getLocalSyncData();
             cloudData.full_name = name;
+
+            const existingUsername = String(
+                localStorage.getItem("username") || ""
+            ).trim();
+
+            if(existingUsername){
+                cloudData.username = existingUsername;
+            }
+
             await saveCloudUserData(currentUser, cloudData);
         }
 
