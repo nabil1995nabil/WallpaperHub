@@ -2464,9 +2464,23 @@ function getWallpaperMentionTarget(){
 }
 
 // تحويل نص الإشارة إلى رابط حقيقي إلى صاحب الخلفية
-function formatCommentText(value, mentionedUserId){
+function formatCommentText(value, mentionedUserId, mentionedName){
     const safe = escapeHtml(value);
 
+    // الإشارة الحقيقية مرتبطة بـ UID + الاسم الكامل المحفوظ في mentions.
+    // نطابق الاسم كاملاً حتى لا يصبح "Nabil" أزرق و"Rahali" أسود.
+    if(mentionedUserId && mentionedName){
+        const fullMention = `@${String(mentionedName).trim()}`;
+        const escapedMention = escapeHtml(fullMention).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const fullMentionRegex = new RegExp(`(^|\\s)(${escapedMention})(?=\\s|$|[.,!?،؛:])`, "g");
+
+        return safe.replace(
+            fullMentionRegex,
+            `$1<a href="profile.html?uid=${encodeURIComponent(mentionedUserId)}" class="comment-mention-link" style="color:#007aff;font-weight:bold;text-decoration:underline;">$2</a>`
+        );
+    }
+
+    // توافق مع التعليقات القديمة التي لا تحتوي mentionedName.
     if(mentionedUserId){
         return safe.replace(
             /(^|\s)(@[\w\u0600-\u06FF][\w\u0600-\u06FF._-]*)/g,
@@ -2695,7 +2709,7 @@ async function loadComments(){
                     </div>
 
                     <div class="comment-text">
-                        ${formatCommentText(comment.text || "", comment.mentionedUserId)}
+                        ${formatCommentText(comment.text || "", comment.mentionedUserId, comment.mentionedName)}
                     </div>
 
                     <div class="comment-footer">

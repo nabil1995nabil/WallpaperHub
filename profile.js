@@ -42,6 +42,152 @@ console.log(
 
 let currentUser = null;
 
+// ==========================
+// Public Profile Mode
+// ==========================
+// إذا كان هناك uid في الرابط فهذا بروفايل مستخدم آخر/عام.
+const profileTargetUID = String(
+    new URLSearchParams(window.location.search).get("uid") || ""
+).trim();
+
+const isPublicProfile = Boolean(profileTargetUID);
+let publicProfileLoaded = false;
+
+function isOwnProfile(){
+    if(!isPublicProfile) return true;
+    return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
+}
+
+function hideOwnerEditControls(){
+    const ids = [
+        "editProfileBtn",
+        "changeAvatarBtn",
+        "avatarInput",
+        "coverInput"
+    ];
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+    });
+}
+
+function showOwnerEditControls(){
+    const editBtn = document.getElementById("editProfileBtn");
+    const avatarBtn = document.getElementById("changeAvatarBtn");
+
+    if(editBtn) editBtn.style.display = "";
+    if(avatarBtn) avatarBtn.style.display = "";
+}
+
+async function loadPublicProfile(uid){
+    const targetUID = String(uid || "").trim();
+    if(!targetUID) return;
+
+    hideOwnerEditControls();
+
+    try{
+        const { data: profile, error } = await supabase
+            .from("profiles")
+            .select("id, full_name, username, avatar_url")
+            .eq("id", targetUID)
+            .maybeSingle();
+
+        if(error) throw error;
+
+        if(!profile){
+            if(userName) userName.textContent = "المستخدم غير موجود";
+            if(userEmail) userEmail.textContent = "";
+            if(infoUserName) infoUserName.textContent = "المستخدم غير موجود";
+            if(infoUserEmail) infoUserEmail.textContent = "";
+            return;
+        }
+
+        const name = String(
+            profile.full_name ||
+            profile.username ||
+            "مستخدم WallpaperHub"
+        ).trim();
+
+        const avatar = String(profile.avatar_url || "").trim();
+
+        if(userName) userName.textContent = name;
+        if(infoUserName) infoUserName.textContent = name;
+
+        // البريد الإلكتروني ليس من بيانات البروفايل العام.
+        if(userEmail) userEmail.textContent = "البريد الإلكتروني مخفي";
+        if(infoUserEmail) infoUserEmail.textContent = "البريد الإلكتروني مخفي";
+        if(accountType) accountType.textContent = "ملف عام";
+        if(joinDate) joinDate.textContent = "—";
+        if(lastLogin) lastLogin.textContent = "—";
+
+        if(userAvatar){
+            userAvatar.src = avatar || "assets/images/user.png";
+            userAvatar.onerror = () => {
+                userAvatar.onerror = null;
+                userAvatar.src = "assets/images/user.png";
+            };
+        }
+
+        if(uidText) uidText.textContent = "••••••••••••••";
+        userUID = targetUID;
+        uidVisible = false;
+
+        // لا نعرض إحصائيات المتصفح الحالي داخل بروفايل شخص آخر.
+        ["downloadCount", "likeCount", "viewCount"].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.textContent = "—";
+        });
+
+        // الخلفيات المنشورة فعلياً من هذا المستخدم فقط.
+        const response = await fetch(API, { cache: "no-store" });
+        if(!response.ok) throw new Error("PUBLIC WALLPAPERS API ERROR");
+
+        const list = await response.json();
+        const ownerWalls = Array.isArray(list)
+            ? list.filter(w => {
+                const owner = String(
+                    w.ownerUID || w.userId || w.user_id || ""
+                ).trim();
+                return owner === targetUID;
+            })
+            : [];
+
+        wallpapers = ownerWalls;
+
+        // نفس قسم الخلفيات الموجود حالياً، لكن بدون خلطه بإحصائيات الزائر.
+        const containers = [downloadedContainer, likedContainer, viewedContainer];
+        containers.forEach(container => {
+            if(!container) return;
+            container.innerHTML = "";
+        });
+
+        if(ownerWalls.length === 0){
+            if(downloadedContainer){
+                downloadedContainer.innerHTML = '<div class="empty-profile">لا توجد خلفيات منشورة حاليا</div>';
+            }
+        }else{
+            // نعرض الخلفيات المنشورة في أول قسم متاح، ونخفي الأقسام الشخصية.
+            renderWalls(downloadedContainer, ownerWalls.map(w => w.id));
+        }
+
+        [likedContainer, viewedContainer].forEach(container => {
+            if(container){
+                const parent = container.closest(".profile-section, section, .profile-stats-section");
+                if(parent) parent.style.display = "none";
+                else container.style.display = "none";
+            }
+        });
+
+        const downloadedParent = downloadedContainer?.closest(".profile-section, section, .profile-stats-section");
+        if(downloadedParent) downloadedParent.style.display = "";
+
+        publicProfileLoaded = true;
+    }catch(error){
+        console.error("PUBLIC PROFILE LOAD ERROR:", error);
+    }
+}
+
 
 
 
@@ -147,6 +293,13 @@ supabase.auth.onAuthStateChange((event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
     updateLoginState(user);
+
+    // بروفايل عام: لا نستخدم localStorage الخاص بالزائر ولا نسمح بالتعديل.
+    if (isPublicProfile && !isOwnProfile()) {
+        hideOwnerEditControls();
+        loadPublicProfile(profileTargetUID);
+        return;
+    }
 
     if (user) {
         const metadata = user.user_metadata || {};
@@ -1120,6 +1273,10 @@ if(editProfileBtn){
 
 editProfileBtn.onclick = ()=>{
 
+if(!isOwnProfile()){
+    hideOwnerEditControls();
+    return;
+}
 
 if(editModal)
 
@@ -1188,6 +1345,10 @@ if(saveProfileBtn){
 
 saveProfileBtn.onclick = ()=>{
 
+if(!isOwnProfile()){
+    if(editModal) editModal.classList.remove("show");
+    return;
+}
 
 const name =
 editName.value.trim();
@@ -1299,6 +1460,7 @@ if(changeAvatarBtn && avatarInput){
 
 changeAvatarBtn.onclick = ()=>{
 
+if(!isOwnProfile()) return;
 
 avatarInput.click();
 
@@ -1316,6 +1478,7 @@ if(avatarInput){
 
 avatarInput.onchange = ()=>{
 
+if(!isOwnProfile()) return;
 
 const file =
 avatarInput.files[0];
@@ -1366,6 +1529,7 @@ if(coverInput){
 
 coverInput.onchange = ()=>{
 
+if(!isOwnProfile()) return;
 
 const file =
 coverInput.files[0];
