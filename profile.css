@@ -715,7 +715,7 @@ body.dark .info-card:not(:last-child)::after{
 
 .cover-change-btn{
     position:absolute;
-    top:355px;
+    top:250px;
     right:14px;
     z-index:12;
     min-height:36px;
@@ -804,7 +804,7 @@ body.dark #closeEditBtn{
 
 @media(max-width:600px){
     .cover-change-btn{
-        top:355px;
+        top:250px;
         right:12px;
         min-height:36px;
         height:36px;
@@ -823,7 +823,7 @@ body.dark #closeEditBtn{
 @media(max-width:380px){
     .cover-change-btn{
         right:10px;
-        top:355px;
+        top:250px;
         height:36px;
         min-height:36px;
         padding:0 12px;
@@ -842,4 +842,25 @@ body.dark #closeEditBtn{
     width:auto !important;
     max-width:max-content !important;
     box-shadow:none !important;
+}
+
+/* Final position: visible inside the mobile cover */
+@media (max-width:600px){
+    .profile-cover{
+        overflow:hidden;
+    }
+    .cover-change-btn{
+        top:250px !important;
+        right:12px !important;
+        height:36px !important;
+        min-height:36px !important;
+        width:auto !important;
+        max-width:max-content !important;
+        padding:0 12px !important;
+        font-size:18px !important;
+        gap:6px !important;
+    }
+    .cover-change-btn .material-icons{
+        font-size:20px !important;
+    }
 }
