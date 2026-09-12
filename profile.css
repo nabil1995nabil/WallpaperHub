@@ -715,8 +715,8 @@ body.dark .info-card:not(:last-child)::after{
 .cover-change-btn{
     position:absolute;
     right:14px;
-    bottom:26px;
-    top:auto !important;
+    top:112px;
+    bottom:auto !important;
     z-index:20;
 
     height:34px;
@@ -779,8 +779,8 @@ body.dark .info-card:not(:last-child)::after{
 @media(max-width:600px){
     .cover-change-btn{
         right:12px !important;
-        bottom:26px !important;
-        top:auto !important;
+        top:112px !important;
+        bottom:auto !important;
         height:34px !important;
         min-height:34px !important;
         padding:0 11px !important;
@@ -797,7 +797,8 @@ body.dark .info-card:not(:last-child)::after{
 @media(max-width:380px){
     .cover-change-btn{
         right:10px !important;
-        bottom:24px !important;
+        top:108px !important;
+        bottom:auto !important;
         height:32px !important;
         min-height:32px !important;
         padding:0 10px !important;
@@ -806,6 +807,52 @@ body.dark .info-card:not(:last-child)::after{
     }
 
     .cover-change-btn .material-icons{
+        font-size:16px !important;
+    }
+}
+
+
+/* FINAL ROOT FIX:
+   cover-image = 245px on mobile.
+   Keep the change-cover button physically inside that image area. */
+@media (max-width:600px){
+    .profile-cover{
+        position:relative !important;
+    }
+
+    .profile-cover .cover-change-btn{
+        position:absolute !important;
+        top:112px !important;
+        bottom:auto !important;
+        right:12px !important;
+
+        height:34px !important;
+        min-height:34px !important;
+        padding:0 11px !important;
+        border-radius:17px !important;
+
+        font-size:13px !important;
+        gap:5px !important;
+        z-index:20 !important;
+    }
+
+    .profile-cover .cover-change-btn .material-icons{
+        font-size:17px !important;
+    }
+}
+
+@media (max-width:380px){
+    .profile-cover .cover-change-btn{
+        top:108px !important;
+        right:10px !important;
+        height:32px !important;
+        min-height:32px !important;
+        padding:0 10px !important;
+        border-radius:16px !important;
+        font-size:12px !important;
+    }
+
+    .profile-cover .cover-change-btn .material-icons{
         font-size:16px !important;
     }
 }
