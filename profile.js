@@ -167,6 +167,20 @@ async function loadPublicProfile(uid){
         if(joinDate) joinDate.textContent = "—";
         if(lastLogin) lastLogin.textContent = "—";
 
+        updateHeroIdentity(null, name);
+        if(heroUsername){
+            const publicUsername = String(profile.username || "").trim().replace(/^@+/, "");
+            heroUsername.textContent = "@" + (publicUsername || "user");
+        }
+        if(heroBio){
+            heroBio.textContent =
+                String(profile.bio || "مصمم خلفيات ومحب للتصميم ✨").trim();
+        }
+        if(heroJoinDate){
+            heroJoinDate.textContent =
+                String(profile.join_date || profile.created_at || "—").trim();
+        }
+
         if(userAvatar){
             userAvatar.src = avatar || "assets/images/user.png";
             userAvatar.onerror = () => {
@@ -356,6 +370,8 @@ supabase.auth.onAuthStateChange((event, session) => {
             user.email?.split("@")[0] ||
             "مستخدم";
 
+        updateHeroIdentity(user, displayName);
+
         const photoURL =
             metadata.avatar_url ||
             metadata.picture ||
@@ -451,6 +467,11 @@ function resetGuestProfile() {
         const el = document.getElementById(id);
         if (el) el.textContent = textElements[id];
     });
+
+    if(heroDisplayName) heroDisplayName.textContent = "زائر";
+    if(heroUsername) heroUsername.textContent = "@user";
+    if(heroBio) heroBio.textContent = "مصمم خلفيات ومحب للتصميم ✨";
+    if(heroJoinDate) heroJoinDate.textContent = "-";
     
     // 2. تصفير UID
     const uidEl = document.getElementById("userUid");
@@ -767,6 +788,70 @@ const lastLogin =
 document.getElementById(
 "lastLogin"
 );
+
+// ==========================
+// New Profile Identity UI
+// ==========================
+const heroDisplayName = document.getElementById("heroDisplayName");
+const heroUsername = document.getElementById("heroUsername");
+const heroBio = document.getElementById("heroBio");
+const heroJoinDate = document.getElementById("heroJoinDate");
+const heroEditProfileBtn = document.getElementById("heroEditProfileBtn");
+
+function getHeroUsername(name, user){
+    const metadata = user?.user_metadata || {};
+    const username =
+        metadata.username ||
+        metadata.user_name ||
+        localStorage.getItem("username") ||
+        "";
+
+    if(String(username).trim()){
+        return "@" + String(username).trim().replace(/^@+/, "");
+    }
+
+    const fallback = String(name || "user").trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+    return "@" + (fallback || "user");
+}
+
+function getHeroBio(user){
+    const metadata = user?.user_metadata || {};
+    return String(
+        metadata.bio ||
+        localStorage.getItem("profileBio") ||
+        "مصمم خلفيات ومحب للتصميم ✨"
+    ).trim();
+}
+
+function updateHeroIdentity(user, name){
+    const displayName = String(name || "زائر").trim();
+
+    if(heroDisplayName) heroDisplayName.textContent = displayName;
+    if(heroUsername) heroUsername.textContent = getHeroUsername(displayName, user);
+    if(heroBio) heroBio.textContent = getHeroBio(user);
+
+    if(heroJoinDate){
+        const savedJoinDate = localStorage.getItem("joinDate");
+        heroJoinDate.textContent =
+            savedJoinDate ||
+            (user?.created_at
+                ? new Date(user.created_at).toLocaleDateString("ar-MA", {
+                    year:"numeric",
+                    month:"long"
+                })
+                : "-");
+    }
+}
+
+if(heroEditProfileBtn){
+    heroEditProfileBtn.onclick = () => {
+        const originalEditBtn = document.getElementById("editProfileBtn");
+        if(originalEditBtn) originalEditBtn.click();
+    };
+}
+
 
 
 
