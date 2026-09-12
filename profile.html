@@ -248,274 +248,116 @@ photo_camera
 </section>
 
 
-<!-- ==========================
- User Information
-========================== -->
-
-
-<section class="user-info">
-
-
-
-<div class="info-card">
-
-<span class="material-icons">
-person
-</span>
-
-
-<div>
-
-<h4>
-اسم المستخدم
-</h4>
-
-<p id="infoUserName">
-زائر
-</p>
-
-
-</div>
-
-</div>
-
-<div class="info-card uid-box">
-
-    <div class="uid-title">
-        🆔
-    </div>
-
-
-    <div class="uid-content">
-
-        <span id="userUid">
-            ••••••••••••••
-        </span>
-
-
-        <button id="toggleUid">
-            👁️
-        </button>
-        <button id="copyUid">
-            📎
-        </button>
-
-    </div>
-
-</div>
-
-
-
-<div class="info-card">
-
-
-<span class="material-icons">
-email
-</span>
-
-
-<div>
-
-<h4>
-البريد الإلكتروني
-</h4>
-
-
-<p id="infoUserEmail">
-غير مسجل
-</p>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<div class="info-card">
-
-
-<span class="material-icons">
-verified
-</span>
-
-
-<div>
-
-<h4>
-نوع الحساب
-</h4>
-
-
-<p id="accountType">
-زائر
-</p>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<div class="info-card">
-
-
-<span class="material-icons">
-calendar_month
-</span>
-
-
-<div>
-
-<h4>
-تاريخ الانضمام
-</h4>
-
-
-<p id="joinDate">
--
-</p>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<div class="info-card">
-
-
-<span class="material-icons">
-login
-</span>
-
-
-<div>
-
-<h4>
-آخر دخول
-</h4>
-
-
-<p id="lastLogin">
--
-</p>
-
-
-</div>
-
-
-</div>
-
-
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ==========================
- Wallpapers Content
-========================== -->
-
-
-<section class="profile-content">
-    <div class="profile-wallpapers-heading">
+<!-- =========================================================
+     Profile Tabs
+     ========================================================= -->
+<section class="profile-tabs" aria-label="أقسام الملف الشخصي">
+    <button class="profile-tab" type="button" data-profile-tab="info">
+        <span class="material-icons">person</span>
+        <span>معلوماتي</span>
+    </button>
+
+    <button class="profile-tab active" type="button" data-profile-tab="wallpapers">
         <span class="material-icons">wallpaper</span>
-        <h2>خلفياتي</h2>
-        <span id="wallpaperHeadingCount" class="wallpapers-heading-count">0</span>
-    </div>
+        <span>خلفياتي</span>
+    </button>
 
+    <button class="profile-tab" type="button" data-profile-tab="favorites">
+        <span class="material-icons">favorite</span>
+        <span>مفضلة</span>
+    </button>
 
+    <button class="profile-tab" type="button" data-profile-tab="downloads">
+        <span class="material-icons">download</span>
+        <span>تم تحميل</span>
+    </button>
 
-<div class="section-title">
-
-<h2>
-📥 الخلفيات التي حملتها
-</h2>
-
-</div>
-
-
-
-
-<div
-id="downloadedWallpapers"
-class="profile-grid">
-
-</div>
-
-
-
-
-
-
-
-<div class="section-title">
-
-<h2>
-❤️ الخلفيات التي أعجبتك
-</h2>
-
-</div>
-
-
-
-
-
-<div
-id="likedWallpapers"
-class="profile-grid">
-
-</div>
-
-
-
-
-
-
-
-<div class="section-title">
-
-<h2>
-👁️ الخلفيات التي رأيتها
-</h2>
-
-</div>
-
-
-
-
-
-<div
-id="viewedWallpapers"
-class="profile-grid">
-
-</div>
-
-
-
+    <button class="profile-tab" type="button" data-profile-tab="views">
+        <span class="material-icons">visibility</span>
+        <span>المشاهدات</span>
+    </button>
 </section>
 
+<section class="profile-tab-content">
 
+    <div class="profile-panel" data-profile-panel="info">
+        <section class="user-info">
+            <div class="info-card">
+                <span class="material-icons">person</span>
+                <div>
+                    <h4>اسم المستخدم</h4>
+                    <p id="infoUserName">زائر</p>
+                </div>
+            </div>
 
+            <div class="info-card uid-box">
+                <div class="uid-title">🆔</div>
+                <div class="uid-content">
+                    <span id="userUid">••••••••••••••</span>
+                    <button id="toggleUid">👁️</button>
+                    <button id="copyUid">📎</button>
+                </div>
+            </div>
 
+            <div class="info-card">
+                <span class="material-icons">email</span>
+                <div>
+                    <h4>البريد الإلكتروني</h4>
+                    <p id="infoUserEmail">غير مسجل</p>
+                </div>
+            </div>
 
+            <div class="info-card">
+                <span class="material-icons">verified</span>
+                <div>
+                    <h4>نوع الحساب</h4>
+                    <p id="accountType">زائر</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <span class="material-icons">calendar_month</span>
+                <div>
+                    <h4>تاريخ الانضمام</h4>
+                    <p id="joinDate">-</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <span class="material-icons">login</span>
+                <div>
+                    <h4>آخر دخول</h4>
+                    <p id="lastLogin">-</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="profile-panel active" data-profile-panel="wallpapers">
+        <div class="profile-content">
+            <div id="ownWallpapers" class="profile-grid"></div>
+        </div>
+    </div>
+
+    <div class="profile-panel" data-profile-panel="favorites">
+        <div class="profile-content">
+            <div id="likedWallpapers" class="profile-grid"></div>
+        </div>
+    </div>
+
+    <div class="profile-panel" data-profile-panel="downloads">
+        <div class="profile-content">
+            <div id="downloadedWallpapers" class="profile-grid"></div>
+        </div>
+    </div>
+
+    <div class="profile-panel" data-profile-panel="views">
+        <div class="profile-content">
+            <div id="viewedWallpapers" class="profile-grid"></div>
+        </div>
+    </div>
+
+</section>
 
 <!-- ==========================
  Edit Profile Modal

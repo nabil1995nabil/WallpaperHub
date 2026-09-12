@@ -214,35 +214,24 @@ async function loadPublicProfile(uid){
         wallpapers = ownerWalls;
         updateWallpaperCount(ownerWalls.length);
 
-        const containers = [downloadedContainer, likedContainer, viewedContainer];
+        const containers = [ownWallpapersContainer, downloadedContainer, likedContainer, viewedContainer];
         containers.forEach(container => {
             if(!container) return;
             container.innerHTML = "";
         });
 
         if(ownerWalls.length === 0){
-            if(downloadedContainer){
-                downloadedContainer.innerHTML =
+            if(ownWallpapersContainer){
+                ownWallpapersContainer.innerHTML =
                     '<div class="empty-profile">لا توجد خلفيات منشورة حاليا</div>';
             }
         }else{
-            renderWalls(downloadedContainer, ownerWalls.map(w => w.id));
+            renderWalls(ownWallpapersContainer, ownerWalls.map(w => w.id));
         }
 
-        [likedContainer, viewedContainer].forEach(container => {
-            if(container){
-                const parent = container.closest(
-                    ".profile-section, section, .profile-stats-section"
-                );
-                if(parent) parent.style.display = "none";
-                else container.style.display = "none";
-            }
+        document.querySelectorAll('.profile-tab[data-profile-tab="favorites"], .profile-tab[data-profile-tab="downloads"], .profile-tab[data-profile-tab="views"]').forEach(tab => {
+            tab.style.display = "none";
         });
-
-        const downloadedParent = downloadedContainer?.closest(
-            ".profile-section, section, .profile-stats-section"
-        );
-        if(downloadedParent) downloadedParent.style.display = "";
 
         publicProfileLoaded = targetUID;
         console.log("✅ PUBLIC PROFILE LOADED:", targetUID);
@@ -489,7 +478,7 @@ function resetGuestProfile() {
     if (avatar) avatar.src = "assets/images/user.png";
     
     // 5. تصفير الخلفيات المعروضة
-    ["downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
+    ["ownWallpapers", "downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
         const container = document.getElementById(id);
         if (container) {
             container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
@@ -1044,6 +1033,8 @@ let wallpapers = [];
 ========================== */
 
 
+const ownWallpapersContainer = document.getElementById("ownWallpapers");
+
 const downloadedContainer =
 document.getElementById(
 "downloadedWallpapers"
@@ -1216,21 +1207,32 @@ function renderProfile() {
     const downloads = getList("downloads");
     const likes = getList("favorites");
     const views = getList("views");
-    
+
+    const ownUID = String(currentUser?.id || "").trim();
+    const ownWalls = ownUID
+        ? wallpapers.filter(w => {
+            const owner = String(
+                w.ownerUID || w.userId || w.user_id || w.owner_id || ""
+            ).trim();
+            return owner === ownUID;
+        })
+        : [];
+
     const downloadCountEl = document.getElementById("downloadCount");
-    if (downloadCountEl) downloadCountEl.textContent = downloads.length;
-    
+    if(downloadCountEl) downloadCountEl.textContent = downloads.length;
+
     const likeCountEl = document.getElementById("likeCount");
-    if (likeCountEl) likeCountEl.textContent = likes.length;
-    
+    if(likeCountEl) likeCountEl.textContent = likes.length;
+
     const viewCountEl = document.getElementById("viewCount");
-    if (viewCountEl) viewCountEl.textContent = views.length;
-    
+    if(viewCountEl) viewCountEl.textContent = views.length;
+
+    updateWallpaperCount(ownWalls.length);
+    renderWalls(ownWallpapersContainer, ownWalls.map(w => w.id));
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
     renderWalls(viewedContainer, views);
-    
-    // 🔄 تحديث الإحصائيات بعد التحميل
+
     updateUserStats();
 }
 
@@ -1246,7 +1248,11 @@ function updateUserStats() {
     document.getElementById("downloadCount").textContent = downloads.length;
     document.getElementById("likeCount").textContent = favorites.length;
     document.getElementById("viewCount").textContent = views.length;
-    updateWallpaperCount(Array.isArray(wallpapers) ? wallpapers.length : 0);
+    const ownUID = String(currentUser?.id || "").trim();
+    const ownWalls = ownUID
+        ? wallpapers.filter(w => String(w.ownerUID || w.userId || w.user_id || w.owner_id || "").trim() === ownUID)
+        : [];
+    updateWallpaperCount(ownWalls.length);
 }
 
 /* ==========================
@@ -1758,6 +1764,32 @@ src
 
 
 
+
+
+/* ===================================================
+   Profile Tabs
+   =================================================== */
+
+const profileTabs = document.querySelectorAll(".profile-tab");
+const profilePanels = document.querySelectorAll(".profile-panel");
+
+profileTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+        const target = tab.dataset.profileTab;
+        if(!target) return;
+
+        profileTabs.forEach(item => item.classList.remove("active"));
+        profilePanels.forEach(panel => panel.classList.remove("active"));
+
+        tab.classList.add("active");
+
+        const panel = document.querySelector(
+            `.profile-panel[data-profile-panel="${target}"]`
+        );
+
+        if(panel) panel.classList.add("active");
+    });
+});
 
 
 /* ==========================

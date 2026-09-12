@@ -2008,3 +2008,156 @@ body.dark #closeEditBtn{
     transform: translateY(0) scale(0.94) !important;
     background: rgba(0, 0, 0, 0.6) !important;
 }
+/* =========================================================
+   Profile Tabs
+   إضافة مستقلة — لا تغيّر أي تصميم سابق
+   ========================================================= */
+
+.profile-tabs{
+    width:100%;
+    max-width:1000px;
+    margin:8px auto 0;
+    padding:6px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:4px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    background:#fff;
+    border:1px solid #e8ebf3;
+    border-radius:16px;
+    box-shadow:0 4px 14px rgba(35,45,80,.05);
+}
+
+.profile-tabs::-webkit-scrollbar{
+    display:none;
+}
+
+.profile-tab{
+    position:relative;
+    flex:1 0 auto;
+    min-width:125px;
+    height:46px;
+    padding:0 13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border-radius:12px;
+    background:transparent;
+    color:#747c90;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+    cursor:pointer;
+}
+
+.profile-tab .material-icons{
+    font-size:19px;
+    line-height:1;
+}
+
+.profile-tab:hover{
+    background:#f5f7fc;
+    color:#5364ee;
+}
+
+.profile-tab.active{
+    background:#eef2ff;
+    color:#5364ee;
+}
+
+.profile-tab.active::after{
+    content:"";
+    position:absolute;
+    right:18px;
+    left:18px;
+    bottom:3px;
+    height:3px;
+    border-radius:3px;
+    background:#5364ee;
+}
+
+.profile-tab-content{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+}
+
+.profile-panel{
+    display:none;
+}
+
+.profile-panel.active{
+    display:block;
+}
+
+
+/* =========================================================
+   Profile Tabs — Dark Theme
+   ========================================================= */
+
+body.dark .profile-tabs{
+    background:#141925;
+    border-color:#252c3c;
+    box-shadow:none;
+}
+
+body.dark .profile-tab{
+    color:#9da6ba;
+}
+
+body.dark .profile-tab:hover{
+    background:#1b2130;
+    color:#7d8cff;
+}
+
+body.dark .profile-tab.active{
+    background:#1b2130;
+    color:#7d8cff;
+}
+
+body.dark .profile-tab.active::after{
+    background:#7d8cff;
+}
+
+
+/* =========================================================
+   Profile Tabs — Mobile
+   ========================================================= */
+
+@media(max-width:700px){
+
+    .profile-tabs{
+        margin:6px 12px 0;
+        width:calc(100% - 24px);
+        max-width:none;
+        padding:5px;
+        justify-content:flex-start;
+        border-radius:14px;
+    }
+
+    .profile-tab{
+        min-width:112px;
+        height:43px;
+        padding:0 10px;
+        gap:5px;
+        border-radius:10px;
+        font-size:11px;
+    }
+
+    .profile-tab .material-icons{
+        font-size:17px;
+    }
+
+    .profile-tab.active::after{
+        right:14px;
+        left:14px;
+        bottom:3px;
+    }
+
+    .profile-tab-content{
+        max-width:none;
+    }
+}
