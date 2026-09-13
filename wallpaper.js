@@ -162,8 +162,9 @@ async function syncUserActionToSupabase(type, id){
     const keyMap = {
         favorites:"favorite_ids",
         favorite:"favorite_ids",
-        likes:"favorite_ids",
-        like:"favorite_ids",
+        // الإعجابات لها نظام مستقل في جدول likes ولا تُحفظ داخل favorite_ids.
+        likes:null,
+        like:null,
         downloads:"download_ids",
         download:"download_ids",
         views:"view_ids",
@@ -1825,7 +1826,7 @@ if (downloadBtn) {
 
         // حفظ التحميل
         saveUserAction("downloads", currentWallpaper.id);
-        syncUserActionToSupabase("downloads", currentWallpaper.id);
+        await syncUserActionToSupabase("downloads", currentWallpaper.id);
 
         try {
             const { data: sessionData } = await supabase.auth.getSession();

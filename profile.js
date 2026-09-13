@@ -626,7 +626,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
         const avatarEl = document.getElementById("userAvatar");
         if (avatarEl && photoURL) avatarEl.src = photoURL;
 
-        const downloads = getList("downloads");
+        const downloads = await getActualDownloadIds();
         const views = getList("views");
 
         const downloadCountEl = document.getElementById("downloadCount");
@@ -1413,6 +1413,43 @@ async function getActualLikedIds(){
     }
 }
 
+async function getActualDownloadIds(){
+    if(!currentUser?.id) return getList("downloads");
+
+    try{
+        const { data: cloud, error } = await supabase
+            .from(USER_SYNC_TABLE)
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+        if(error) throw error;
+
+        const cloudIds = normalizeActionList(cloud?.download_ids);
+        const localIds = getList("downloads");
+        const ids = normalizeActionList([...cloudIds, ...localIds]);
+
+        localStorage.setItem("downloads", JSON.stringify(ids));
+
+        // إصلاح السجلات القديمة: إذا كانت التحميلات موجودة محلياً أو في الحساب،
+        // نضمن حفظ النسخة الموحّدة داخل حساب المستخدم.
+        if(cloud && ids.length !== cloudIds.length){
+            const merged = mergeSyncData(cloud, getLocalSyncData());
+            merged.download_ids = ids;
+            await saveCloudUserData(currentUser, merged);
+        }else if(!cloud && ids.length){
+            const merged = getLocalSyncData();
+            merged.download_ids = ids;
+            await saveCloudUserData(currentUser, merged);
+        }
+
+        return ids;
+    }catch(error){
+        console.warn("PROFILE DOWNLOADS LOAD ERROR:", error);
+        return getList("downloads");
+    }
+}
+
 async function getActualFavoriteIds(){
     if(!currentUser?.id) return getList("favorites");
     try{
@@ -1539,7 +1576,7 @@ error
 ========================== */
 
 async function renderProfile() {
-    const downloads = getList("downloads");
+    const downloads = await getActualDownloadIds();
     const saved = await getActualFavoriteIds(); // المحفوظات الحقيقية من جدول favorites
     const views = getList("views");
     const likes = await getActualLikedIds(); // الإعجابات الحقيقية من جدول likes
@@ -1580,7 +1617,7 @@ async function renderProfile() {
 ========================== */
 
 async function updateUserStats() {
-    const downloads = getList("downloads");
+    const downloads = await getActualDownloadIds();
     const views = getList("views");
     const likes = await getActualLikedIds();
 
