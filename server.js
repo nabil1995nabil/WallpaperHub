@@ -1038,8 +1038,47 @@ app.get(
     "/api/wallpapers",
     async (req,res)=>{
         try{
-            const wallpapers = await getWallpapersFromSupabase();
-            res.json(wallpapers);
+            // الوضع القديم يبقى كما هو لباقي الموقع عندما لا يرسل العميل
+            // limit/offset. أما منظم الخلفيات فيستخدم pagination لتجنب
+            // تحميل آلاف السجلات دفعة واحدة.
+            const hasPagination =
+                Object.prototype.hasOwnProperty.call(req.query, "limit") ||
+                Object.prototype.hasOwnProperty.call(req.query, "offset");
+
+            if(!hasPagination){
+                const wallpapers = await getWallpapersFromSupabase();
+                return res.json(wallpapers);
+            }
+
+            let limit = Number.parseInt(req.query.limit, 10);
+            let offset = Number.parseInt(req.query.offset, 10);
+
+            if(!Number.isFinite(limit)) limit = 24;
+            if(!Number.isFinite(offset)) offset = 0;
+
+            // حماية API من طلبات ضخمة أو offsets غير صحيحة.
+            limit = Math.min(Math.max(limit, 1), 100);
+            offset = Math.max(offset, 0);
+
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .select("*")
+                .order("id", { ascending: true })
+                // نطلب عنصرًا إضافيًا لمعرفة هل توجد صفحة أخرى.
+                .range(offset, offset + limit);
+
+            if(error) throw error;
+
+            const rows = Array.isArray(data) ? data : [];
+            const hasMore = rows.length > limit;
+            const pageRows = hasMore ? rows.slice(0, limit) : rows;
+            const wallpapers = pageRows.map(wallpaperFromDb);
+
+            res.set("X-Has-More", hasMore ? "1" : "0");
+            res.set("X-Next-Offset", String(offset + pageRows.length));
+            res.set("X-Page-Size", String(pageRows.length));
+
+            return res.json(wallpapers);
         }catch(error){
             console.log("GET WALLPAPERS ERROR:", error);
             res.status(500).json([]);
