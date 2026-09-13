@@ -563,6 +563,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     if (user) {
         // استعادة الحساب من Supabase قبل الاعتماد على بيانات المتصفح.
         await loadCloudUserData(user);
+        await syncLocalFavoritesToCloud();
 
         const metadata = user.user_metadata || {};
         const syncedName = String(localStorage.getItem("userName") || "").trim();
@@ -1399,6 +1400,41 @@ async function getActualLikedIds(){
     }
 }
 
+async function getActualFavoriteIds(){
+    if(!currentUser?.id) return getList("favorites");
+    try{
+        const { data, error } = await supabase
+            .from("favorites")
+            .select("wallpaper_id")
+            .eq("user_id", currentUser.id);
+        if(error) throw error;
+        const ids = [...new Set((data || []).map(row => row?.wallpaper_id)
+            .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+            .map(String))];
+        localStorage.setItem("favorites", JSON.stringify(ids));
+        return ids;
+    }catch(error){
+        console.warn("PROFILE FAVORITES LOAD ERROR:", error);
+        return getList("favorites");
+    }
+}
+
+async function syncLocalFavoritesToCloud(){
+    if(!currentUser?.id) return;
+    try{
+        const local = getList("favorites");
+        if(!local.length) return;
+        const rows = local.map(id => ({user_id:currentUser.id, wallpaper_id:Number(id)}))
+            .filter(row => Number.isFinite(row.wallpaper_id));
+        if(!rows.length) return;
+        const {error} = await supabase.from("favorites")
+            .upsert(rows, {onConflict:"user_id,wallpaper_id", ignoreDuplicates:true});
+        if(error) throw error;
+    }catch(error){
+        console.warn("PROFILE FAVORITES SYNC ERROR:", error);
+    }
+}
+
 function clearUserStats(){
 
 
@@ -1491,7 +1527,7 @@ error
 
 async function renderProfile() {
     const downloads = getList("downloads");
-    const saved = getList("favorites"); // محفوظات المستخدم — نظام مستقل عن الإعجابات
+    const saved = await getActualFavoriteIds(); // المحفوظات الحقيقية من جدول favorites
     const views = getList("views");
     const likes = await getActualLikedIds(); // الإعجابات الحقيقية من جدول likes
 

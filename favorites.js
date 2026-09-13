@@ -49,11 +49,39 @@ function getImageUrl(imagePath){
 
 
 
+async function getCloudFavorites() {
+    try {
+        const { supabase } = await import("./supabase.js");
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user?.id) return null;
+
+        const local = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
+        if (local.length) {
+            const rows = local.map(id => ({ user_id:user.id, wallpaper_id:Number(id) }))
+                .filter(row => Number.isFinite(row.wallpaper_id));
+            if (rows.length) await supabase.from("favorites").upsert(rows, { onConflict:"user_id,wallpaper_id", ignoreDuplicates:true });
+        }
+
+        const { data, error } = await supabase.from("favorites")
+            .select("wallpaper_id").eq("user_id", user.id);
+        if (error) throw error;
+        const ids = [...new Set((data || []).map(r => String(r.wallpaper_id)))];
+        localStorage.setItem("favorites", JSON.stringify(ids));
+        return ids;
+    } catch (error) {
+        console.warn("CLOUD FAVORITES LOAD ERROR:", error);
+        return null;
+    }
+}
+
 async function loadFavorites(){
 
 
 try{
 
+
+    await getCloudFavorites();
 
     const response =
     await fetch(API_URL);

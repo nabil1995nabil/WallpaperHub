@@ -863,6 +863,76 @@ function renderWallpapers() {
 // المفضلة
 // ============================
 
+async function getCloudFavorites() {
+    try {
+        const { supabase } = await import("./supabase.js");
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user?.id) return null;
+
+        const local = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
+        if (local.length) {
+            const rows = local.map(id => ({ user_id: user.id, wallpaper_id: Number(id) }))
+                .filter(row => Number.isFinite(row.wallpaper_id));
+            if (rows.length) {
+                await supabase.from("favorites").upsert(rows, { onConflict: "user_id,wallpaper_id", ignoreDuplicates: true });
+            }
+        }
+
+        const { data, error } = await supabase
+            .from("favorites")
+            .select("wallpaper_id")
+            .eq("user_id", user.id);
+        if (error) throw error;
+
+        const ids = [...new Set((data || []).map(r => String(r.wallpaper_id)))];
+        localStorage.setItem("favorites", JSON.stringify(ids));
+        return ids;
+    } catch (error) {
+        console.warn("CLOUD FAVORITES LOAD ERROR:", error);
+        return null;
+    }
+}
+
+async function saveFavoriteToCloud(id) {
+    const { supabase } = await import("./supabase.js");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user?.id) return false;
+    const { error } = await supabase.from("favorites").upsert(
+        [{ user_id: user.id, wallpaper_id: Number(id) }],
+        { onConflict: "user_id,wallpaper_id", ignoreDuplicates: true }
+    );
+    if (error) throw error;
+    return true;
+}
+
+async function removeFavoriteFromCloud(id) {
+    const { supabase } = await import("./supabase.js");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user?.id) return false;
+    const { error } = await supabase.from("favorites")
+        .delete().eq("user_id", user.id).eq("wallpaper_id", Number(id));
+    if (error) throw error;
+    return true;
+}
+
+async function syncFavoritesOnLogin() {
+    const cloud = await getCloudFavorites();
+    if (cloud !== null) applyFavoriteIcons();
+}
+
+function applyFavoriteIcons() {
+    document.querySelectorAll(".card-favorite").forEach(button => {
+        const card = button.closest(".wallpaper-card");
+        const index = [...document.querySelectorAll(".wallpaper-card")].indexOf(card);
+        const wallpaper = visibleWallpapers[index];
+        if (!wallpaper) return;
+        button.innerHTML = `<span class="material-icons">${isFavorite(wallpaper.id) ? "bookmark" : "bookmark_border"}</span>`;
+    });
+}
+
 function isFavorite(id) {
 
     const favorites =
@@ -881,67 +951,31 @@ function isFavorite(id) {
 }
 
 
-function toggleFavorite(
-    id,
-    button
-) {
-
-    let favorites =
-    JSON.parse(
-        localStorage.getItem(
-            "favorites"
-        ) || "[]"
-    )
-    .map(String);
-
-
-
+async function toggleFavorite(id, button) {
     id = String(id);
+    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]").map(String);
+    const wasFavorite = favorites.includes(id);
 
+    try {
+        const { supabase } = await import("./supabase.js");
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
 
+        if (user?.id) {
+            if (wasFavorite) await removeFavoriteFromCloud(id);
+            else await saveFavoriteToCloud(id);
+        }
 
-    if (
-        favorites.includes(id)
-    ) {
+        favorites = wasFavorite
+            ? favorites.filter(item => item !== id)
+            : [...favorites, id];
 
-
-        favorites =
-        favorites.filter(
-            item =>
-            item !== id
-        );
-
-
-        button.innerHTML = `
-            <span class="material-icons">
-                favorite_border
-            </span>
-        `;
-
-
-    } else {
-
-
-        favorites.push(id);
-
-
-        button.innerHTML = `
-            <span class="material-icons">
-                favorite
-            </span>
-        `;
-
+        localStorage.setItem("favorites", JSON.stringify([...new Set(favorites)]));
+        button.innerHTML = `<span class="material-icons">${wasFavorite ? "bookmark_border" : "bookmark"}</span>`;
+    } catch (error) {
+        console.error("FAVORITE TOGGLE ERROR:", error);
     }
-
-
-
-    localStorage.setItem(
-        "favorites",
-        JSON.stringify(favorites)
-    );
-
 }
-
 
 // ============================
 // حماية النصوص
