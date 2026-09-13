@@ -51,7 +51,70 @@ async function put(id,cat){
     if(!r.ok) throw Error(d?.message||d?.error||`HTTP_${r.status}`);
     return d;
 }
-async function singleMove(){if(!editingId)return;const cat=E.single.value;if(!cat)return toast('اختر تصنيفًا جديدًا أولًا','error');const w=wallpapers.find(x=>Number(x.id)===editingId);if(norm(w.category)===cat){close();return toast('الخلفية موجودة أصلًا في هذا التصنيف')}try{E.syncStatus.textContent='جارٍ الحفظ...';await put(editingId,cat);w.category=cat;selected.delete(editingId);close();apply();toast('تم تغيير تصنيف الخلفية بنجاح','success')}catch(e){console.error(e);toast('فشل تغيير التصنيف. تحقق من صلاحية API.','error')}finally{E.syncStatus.textContent='جاهز'}}
-async function bulk(){const cat=E.bulkCategory.value,ws=[...selected].map(id=>wallpapers.find(w=>Number(w.id)===id)).filter(Boolean).filter(w=>norm(w.category)!==cat);if(!ws.length)return toast(cat?'كل المحدد موجود أصلًا في هذا التصنيف':'اختر التصنيف الجديد أولًا','error');if(!confirm(`سيتم نقل ${ws.length} خلفية إلى "${ci(cat).label}".\nسيتم تعديل التصنيف فقط ولن تتغير IDs أو الإحصائيات.\n\nمتابعة؟`))return;let ok=0,fail=0;E.syncStatus.textContent='جارٍ الحفظ...';for(const w of ws){try{await put(w.id,cat);w.category=cat;ok++}catch(e){fail++;console.error(e)}}ws.forEach(w=>selected.delete(Number(w.id)));apply();E.syncStatus.textContent='جاهز';toast(fail?`تم نقل ${ok} وفشل ${fail}`:`تم نقل ${ok} خلفية بنجاح 🎉`,fail?'error':'success')}
-async function load(){E.loading.classList.remove('hidden');try{const r=await fetch(API,{cache:'no-store'});if(!r.ok)throw Error(r.status);const d=await r.json();wallpapers=Array.isArray(d)?d.map(w=>({...w,id:Number(w.id)})):[];populate();apply()}catch(e){console.error(e);wallpapers=[];filtered=[];E.loading.classList.add('hidden');E.empty.classList.remove('hidden');E.empty.querySelector('strong').textContent='تعذر تحميل الخلفيات';E.empty.querySelector('span').textContent='تحقق من تشغيل السيرفر ومسار /api/wallpapers';stats()} }
-E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{await load();toast('تم تحديث مكتبة الخلفيات','success')};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();
+async function singleMove(){if(!editingId)return;const cat=E.single.value;if(!cat)return toast('اختر تصنيفًا جديدًا أولًا','error');const w=wallpapers.find(x=>Number(x.id)===editingId);if(norm(w.category)===cat){close();return toast('الخلفية موجودة أصلًا في هذا التصنيف')}try{E.syncStatus.textContent='جارٍ الحفظ...';await put(editingId,cat);w.category=cat;selected.delete(editingId);saveLibraryCache();close();apply();toast('تم تغيير تصنيف الخلفية بنجاح','success')}catch(e){console.error(e);toast('فشل تغيير التصنيف. تحقق من صلاحية API.','error')}finally{E.syncStatus.textContent='جاهز'}}
+async function bulk(){const cat=E.bulkCategory.value,ws=[...selected].map(id=>wallpapers.find(w=>Number(w.id)===id)).filter(Boolean).filter(w=>norm(w.category)!==cat);if(!ws.length)return toast(cat?'كل المحدد موجود أصلًا في هذا التصنيف':'اختر التصنيف الجديد أولًا','error');if(!confirm(`سيتم نقل ${ws.length} خلفية إلى "${ci(cat).label}".\nسيتم تعديل التصنيف فقط ولن تتغير IDs أو الإحصائيات.\n\nمتابعة؟`))return;let ok=0,fail=0;E.syncStatus.textContent='جارٍ الحفظ...';for(const w of ws){try{await put(w.id,cat);w.category=cat;ok++;saveLibraryCache()}catch(e){fail++;console.error(e)}}ws.forEach(w=>selected.delete(Number(w.id)));apply();E.syncStatus.textContent='جاهز';toast(fail?`تم نقل ${ok} وفشل ${fail}`:`تم نقل ${ok} خلفية بنجاح 🎉`,fail?'error':'success')}
+const CACHE_KEY='wallpaperhub_organizer_library_v1';
+const CACHE_TTL=5*60*1000;
+function saveLibraryCache(){
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify({time:Date.now(),data:wallpapers}));
+  }catch(e){console.warn('Organizer cache save failed',e)}
+}
+function readLibraryCache(){
+  try{
+    const x=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+    if(!x||!Array.isArray(x.data)) return null;
+    return x;
+  }catch(e){return null}
+}
+async function fetchLibrary(){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),15000);
+  try{
+    const r=await fetch(API,{cache:'no-store',signal:ctrl.signal});
+    if(!r.ok) throw Error(r.status);
+    const d=await r.json();
+    return Array.isArray(d)?d.map(w=>({...w,id:Number(w.id)})):[];
+  }finally{clearTimeout(timer)}
+}
+async function load(){
+  const cached=readLibraryCache();
+
+  // اعرض النسخة المحفوظة فورًا بدل إبقاء المدير أمام شاشة التحميل.
+  if(cached?.data?.length){
+    wallpapers=cached.data;
+    populate();
+    apply();
+    E.syncStatus.textContent='نسخة محفوظة • جاري التحقق...';
+  }else{
+    E.loading.classList.remove('hidden');
+    E.syncStatus.textContent='جاري تحميل المكتبة...';
+  }
+
+  try{
+    const fresh=await fetchLibrary();
+    wallpapers=fresh;
+    saveLibraryCache();
+    populate();
+    apply();
+    E.syncStatus.textContent='جاهز';
+  }catch(e){
+    console.error(e);
+    if(cached?.data?.length){
+      // لا نخفي المكتبة القديمة إذا كان السيرفر بطيئًا أو غير متاح.
+      E.syncStatus.textContent='آخر نسخة محفوظة • تعذر التحديث الآن';
+      toast('تم عرض آخر نسخة محفوظة. تعذر تحديث المكتبة الآن.','error');
+      stats();
+      return;
+    }
+    wallpapers=[];
+    filtered=[];
+    E.loading.classList.add('hidden');
+    E.empty.classList.remove('hidden');
+    E.empty.querySelector('strong').textContent='تعذر تحميل الخلفيات';
+    E.empty.querySelector('span').textContent='تحقق من تشغيل السيرفر ومسار /api/wallpapers ثم اضغط تحديث';
+    E.syncStatus.textContent='فشل التحميل';
+    stats();
+  }
+}
+E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{try{E.syncStatus.textContent='جاري التحديث...';await load();toast('تم تحديث مكتبة الخلفيات','success')}catch(e){console.error(e)}};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();
