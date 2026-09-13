@@ -4,7 +4,7 @@ const ADMIN_CATEGORY_API="/api/admin/wallpapers";
 const CATS=[['nature','🌿','الطبيعة'],['amoled','🖤','AMOLED'],['games','🎮','الألعاب'],['cars','🚗','السيارات'],['animals','🐾','الحيوانات'],['anime','🎨','الأنمي'],['space','🌌','الفضاء'],['ai','🤖','AI'],['city','🏙️','المدن'],['dark','🌑','داكن'],['4k','✨','4K'],['sports','⚽','الرياضة'],['minimal','◻️','Minimal'],['rain','🌧️','المطر'],['sunset','🌅','الغروب'],['architecture','🏛️','الهندسة'],['deep-space','🪐','Deep Space'],['wallhaven','🧩','Wallhaven'],['other','📁','أخرى']];
 const CM=new Map(CATS.map(x=>[x[0],{id:x[0],icon:x[1],label:x[2]}]));
 let wallpapers=[],filtered=[],selected=new Set(),editingId=null;
-const $=id=>document.getElementById(id);const E={totalCount:$('totalCount'),categoryCount:$('categoryCount'),selectedCount:$('selectedCount'),syncStatus:$('syncStatus'),resultCount:$('resultCount'),searchInput:$('searchInput'),clearSearch:$('clearSearch'),categoryFilter:$('categoryFilter'),typeFilter:$('typeFilter'),sortSelect:$('sortSelect'),selectVisibleBtn:$('selectVisibleBtn'),clearSelectionBtn:$('clearSelectionBtn'),selectionHint:$('selectionHint'),bulkCategory:$('bulkCategory'),bulkMoveBtn:$('bulkMoveBtn'),categoryChips:$('categoryChips'),grid:$('wallpaperGrid'),loading:$('loadingState'),empty:$('emptyState'),refresh:$('refreshBtn'),toast:$('toast'),modal:$('moveModal'),close:$('closeModal'),cancel:$('cancelModal'),single:$('singleCategory'),confirm:$('confirmMove'),modalTitle:$('modalTitle'),modalDesc:$('modalDescription')};
+const $=id=>document.getElementById(id);const E={totalCount:$('totalCount'),categoryCount:$('categoryCount'),selectedCount:$('selectedCount'),syncStatus:$('syncStatus'),resultCount:$('resultCount'),searchInput:$('searchInput'),clearSearch:$('clearSearch'),categoryFilter:$('categoryFilter'),typeFilter:$('typeFilter'),sortSelect:$('sortSelect'),selectVisibleBtn:$('selectVisibleBtn'),clearSelectionBtn:$('clearSelectionBtn'),selectionHint:$('selectionHint'),bulkCategory:$('bulkCategory'),bulkMoveBtn:$('bulkMoveBtn'),categoryChips:$('categoryChips'),grid:$('wallpaperGrid'),loading:$('loadingState'),empty:$('emptyState'),refresh:$('refreshBtn'),toast:$('toast'),modal:$('moveModal'),close:$('closeModal'),cancel:$('cancelModal'),single:$('singleCategory'),confirm:$('confirmMove'),modalTitle:$('modalTitle'),modalDesc:$('modalDescription'),libraryPercent:$('libraryPercent'),libraryLoaded:$('libraryLoaded'),libraryRemaining:$('libraryRemaining'),libraryProgressBar:$('libraryProgressBar'),libraryProgressText:$('libraryProgressText')};
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function norm(v){v=String(v??'').trim().toLowerCase();const a={'الطبيعة':'nature','أموليد':'amoled','الأنمي':'anime','أنمي':'anime','السيارات':'cars','car':'cars','الألعاب':'games','game':'games','الحيوانات':'animals','الفضاء':'space','المدن':'city'};return CM.has(v)?v:(a[v]||v||'other')}
 function ci(v){return CM.get(norm(v))||{id:norm(v),icon:'📁',label:norm(v)||'أخرى'}}
@@ -55,9 +55,21 @@ async function singleMove(){if(!editingId)return;const cat=E.single.value;if(!ca
 async function bulk(){const cat=E.bulkCategory.value,ws=[...selected].map(id=>wallpapers.find(w=>Number(w.id)===id)).filter(Boolean).filter(w=>norm(w.category)!==cat);if(!ws.length)return toast(cat?'كل المحدد موجود أصلًا في هذا التصنيف':'اختر التصنيف الجديد أولًا','error');if(!confirm(`سيتم نقل ${ws.length} خلفية إلى "${ci(cat).label}".\nسيتم تعديل التصنيف فقط ولن تتغير IDs أو الإحصائيات.\n\nمتابعة؟`))return;let ok=0,fail=0;E.syncStatus.textContent='جارٍ الحفظ...';for(const w of ws){try{await put(w.id,cat);w.category=cat;ok++;saveLibraryCache()}catch(e){fail++;console.error(e)}}ws.forEach(w=>selected.delete(Number(w.id)));apply();E.syncStatus.textContent='جاهز';toast(fail?`تم نقل ${ok} وفشل ${fail}`:`تم نقل ${ok} خلفية بنجاح 🎉`,fail?'error':'success')}
 const CACHE_KEY='wallpaperhub_organizer_library_v1';
 const CACHE_TTL=5*60*1000;
+let totalLibraryCount=0;
+function updateLibraryProgress(){
+  const loaded=wallpapers.length;
+  const total=Math.max(Number(totalLibraryCount)||0,loaded);
+  const percent=total?Math.min(100,Math.round((loaded/total)*100)):0;
+  const remaining=Math.max(total-loaded,0);
+  if(E.libraryPercent) E.libraryPercent.textContent=`${percent}%`;
+  if(E.libraryLoaded) E.libraryLoaded.textContent=`${loaded} / ${total}`;
+  if(E.libraryRemaining) E.libraryRemaining.textContent=remaining?`متبقي ${remaining}`:'اكتملت المكتبة';
+  if(E.libraryProgressBar) E.libraryProgressBar.style.width=`${percent}%`;
+  if(E.libraryProgressText) E.libraryProgressText.textContent=`${percent}%`;
+}
 function saveLibraryCache(){
   try{
-    localStorage.setItem(CACHE_KEY,JSON.stringify({time:Date.now(),data:wallpapers}));
+    localStorage.setItem(CACHE_KEY,JSON.stringify({time:Date.now(),data:wallpapers,totalCount:totalLibraryCount,pageOffset,hasMorePages}));
   }catch(e){console.warn('Organizer cache save failed',e)}
 }
 function readLibraryCache(){
@@ -79,6 +91,7 @@ async function fetchLibraryPage(offset=0,limit=PAGE_SIZE){
     return {
       data:Array.isArray(d)?d.map(w=>({...w,id:Number(w.id)})):[],
       hasMore:r.headers.get('X-Has-More')==='1',
+      totalCount:Number(r.headers.get('X-Total-Count')||0),
       nextOffset:Number(r.headers.get('X-Next-Offset')||offset+(Array.isArray(d)?d.length:0))
     };
   }finally{clearTimeout(timer)}
@@ -98,6 +111,7 @@ async function loadMore(){
   loadingMore=true;
   try{
     const page=await fetchLibraryPage(pageOffset,PAGE_SIZE);
+    if(page.totalCount) totalLibraryCount=page.totalCount;
     const existing=new Set(wallpapers.map(w=>Number(w.id)));
     page.data.forEach(w=>{if(!existing.has(Number(w.id)))wallpapers.push(w)});
     pageOffset=page.nextOffset;
@@ -106,6 +120,7 @@ async function loadMore(){
     saveLibraryCache();
     populate();
     apply();
+    updateLibraryProgress();
   }catch(e){
     console.warn('Organizer lazy load failed',e);
   }finally{
@@ -116,17 +131,21 @@ async function load(){
   const cached=readLibraryCache();
   if(cached?.data?.length){
     wallpapers=cached.data.map(w=>({...w,id:Number(w.id)}));
-    pageOffset=wallpapers.length;
-    // Cached data from an older version may already contain the whole library.
-    hasMorePages=false;
-    fullLibraryLoaded=true;
+    totalLibraryCount=Number(cached.totalCount||wallpapers.length);
+    pageOffset=Number(cached.pageOffset||wallpapers.length);
+    hasMorePages=typeof cached.hasMorePages==='boolean'?cached.hasMorePages:(wallpapers.length<totalLibraryCount);
+    fullLibraryLoaded=!hasMorePages;
     populate();
     apply();
-    E.syncStatus.textContent='نسخة محفوظة • جاهز';
+    updateLibraryProgress();
+    E.syncStatus.textContent=hasMorePages?'نسخة محفوظة • اسحب للمزيد':'نسخة محفوظة • جاهز';
     // Verify freshness without blocking the first paint.
     try{
       const first=await fetchLibraryPage(0,PAGE_SIZE);
-      if(first.data.length && Number(first.data[0]?.id)!==Number(wallpapers[0]?.id)){
+      if(first.totalCount) totalLibraryCount=first.totalCount;
+      const cacheIsComplete=totalLibraryCount>0 && wallpapers.length>=totalLibraryCount;
+      const firstPageChanged=first.data.length && Number(first.data[0]?.id)!==Number(wallpapers[0]?.id);
+      if(firstPageChanged){
         wallpapers=first.data;
         pageOffset=first.nextOffset;
         hasMorePages=first.hasMore;
@@ -134,8 +153,19 @@ async function load(){
         saveLibraryCache();
         populate();
         apply();
+      }else if(!cacheIsComplete){
+        // الكاش يحتوي جزءًا فقط: نكمل من آخر عنصر محفوظ.
+        pageOffset=wallpapers.length;
+        hasMorePages=wallpapers.length<totalLibraryCount && first.hasMore;
+        fullLibraryLoaded=!hasMorePages;
+        saveLibraryCache();
+      }else{
+        pageOffset=wallpapers.length;
+        hasMorePages=false;
+        fullLibraryLoaded=true;
       }
-      E.syncStatus.textContent='جاهز';
+      updateLibraryProgress();
+      E.syncStatus.textContent=hasMorePages?'نسخة محفوظة • اسحب للمزيد':'جاهز';
     }catch(e){
       E.syncStatus.textContent='آخر نسخة محفوظة • تعذر التحديث الآن';
     }
@@ -146,6 +176,7 @@ async function load(){
   E.syncStatus.textContent='جاري تحميل أول دفعة...';
   try{
     const page=await fetchLibraryPage(0,PAGE_SIZE);
+    totalLibraryCount=Number(page.totalCount||page.data.length||0);
     wallpapers=page.data;
     pageOffset=page.nextOffset;
     hasMorePages=page.hasMore;
@@ -153,18 +184,21 @@ async function load(){
     saveLibraryCache();
     populate();
     apply();
+    updateLibraryProgress();
     E.syncStatus.textContent=hasMorePages?'اسحب لعرض المزيد':'جاهز';
   }catch(e){
     console.warn('Paginated API unavailable, trying legacy endpoint',e);
     try{
       const all=await fetchLegacyAll();
       wallpapers=all;
+      totalLibraryCount=all.length;
       pageOffset=all.length;
       hasMorePages=false;
       fullLibraryLoaded=true;
       saveLibraryCache();
       populate();
       apply();
+      updateLibraryProgress();
       E.syncStatus.textContent='جاهز';
     }catch(err){
       console.error(err);
@@ -180,8 +214,11 @@ async function load(){
 }
 
 E.grid.addEventListener('scroll',()=>{
-  const nearEnd=E.grid.scrollLeft + E.grid.clientWidth >= E.grid.scrollWidth - Math.max(500,E.grid.clientWidth);
+  const max=E.grid.scrollWidth-E.grid.clientWidth;
+  const raw=Math.abs(E.grid.scrollLeft);
+  const distanceToEnd=Math.min(raw,Math.max(0,max-raw));
+  const nearEnd=distanceToEnd<=Math.max(500,E.grid.clientWidth);
   if(nearEnd)loadMore();
 });
 
-E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{try{localStorage.removeItem(CACHE_KEY);wallpapers=[];filtered=[];selected.clear();pageOffset=0;hasMorePages=true;fullLibraryLoaded=false;E.syncStatus.textContent='جاري التحديث...';await load();toast('تم تحديث مكتبة الخلفيات','success')}catch(e){console.error(e)}};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();
+E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{try{localStorage.removeItem(CACHE_KEY);wallpapers=[];filtered=[];selected.clear();pageOffset=0;hasMorePages=true;totalLibraryCount=0;fullLibraryLoaded=false;E.syncStatus.textContent='جاري التحديث...';await load();toast('تم تحديث مكتبة الخلفيات','success')}catch(e){console.error(e)}};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();
