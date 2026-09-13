@@ -1393,7 +1393,8 @@ function getList(key){
 
 
 async function getActualLikedIds(){
-    if(!currentUser?.id) return [];
+    let localLikes = [...new Set([...getList("likes"), ...getList("likedWallpapers")])];[span_3](start_span)[span_3](end_span)
+    if(!currentUser?.id) return localLikes;
 
     try{
         const { data, error } = await supabase
@@ -1403,18 +1404,24 @@ async function getActualLikedIds(){
 
         if(error) throw error;
 
-        return [...new Set((data || [])
-            .map(row => row?.wallpaper_id)
-            .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
-            .map(String))];
+        const cloudLikes = (data || []).map(row => row?.wallpaper_id).filter(Boolean).map(String);
+        return [...new Set([...cloudLikes, ...localLikes])];[span_4](start_span)[span_4](end_span)
     }catch(error){
         console.warn("PROFILE LIKES LOAD ERROR:", error);
-        return [];
+        return localLikes;
     }
 }
 
 async function getActualDownloadIds(){
-    if(!currentUser?.id) return getList("downloads");
+    // جلب التحميلات من كلا المفتاحين المحليين لضمان عدم ضياع أي بيانات
+    const localDownloads = getList("downloads");
+    const localDownloadedWalls = getList("downloads-wallpapers") || getList("downloadedWallpapers");
+    const combinedLocal = normalizeActionList([...localDownloads, ...localDownloadedWalls]);
+
+    // إذا لم يكن المستخدم مسجلاً للدخول، نعيد البيانات المحلية مباشرة
+    if(!currentUser?.id) {
+        return combinedLocal;
+    }
 
     try{
         const { data: cloud, error } = await supabase
@@ -1426,29 +1433,25 @@ async function getActualDownloadIds(){
         if(error) throw error;
 
         const cloudIds = normalizeActionList(cloud?.download_ids);
-        const localIds = getList("downloads");
-        const ids = normalizeActionList([...cloudIds, ...localIds]);
+        const finalIds = normalizeActionList([...cloudIds, ...combinedLocal]);
 
-        localStorage.setItem("downloads", JSON.stringify(ids));
+        // تحديث التخزين المحلي بالنتيجة المدمجة
+        localStorage.setItem("downloads", JSON.stringify(finalIds));
 
-        // إصلاح السجلات القديمة: إذا كانت التحميلات موجودة محلياً أو في الحساب،
-        // نضمن حفظ النسخة الموحّدة داخل حساب المستخدم.
-        if(cloud && ids.length !== cloudIds.length){
+        // مزامنة السحابة إذا كان هناك نقص في المعرفات
+        if(finalIds.length !== cloudIds.length){
             const merged = mergeSyncData(cloud, getLocalSyncData());
-            merged.download_ids = ids;
-            await saveCloudUserData(currentUser, merged);
-        }else if(!cloud && ids.length){
-            const merged = getLocalSyncData();
-            merged.download_ids = ids;
+            merged.download_ids = finalIds;
             await saveCloudUserData(currentUser, merged);
         }
 
-        return ids;
+        return finalIds;
     }catch(error){
         console.warn("PROFILE DOWNLOADS LOAD ERROR:", error);
-        return getList("downloads");
+        return combinedLocal;
     }
 }
+
 
 async function getActualFavoriteIds(){
     if(!currentUser?.id) return getList("favorites");
@@ -1674,121 +1677,49 @@ window.syncUserStats = function(type, id) {
 /* ==========================
    Render Cards
 ========================== */
+function renderWalls(container, ids){
+    if(!container) return;
+    container.innerHTML = "";
 
+    // تطهير المعرفات وتوحيدها لمنع أي تضارب
+    const cleanIds = normalizeActionList(ids);
 
-function renderWalls(
-container,
-ids
-){
+    if(cleanIds.length === 0){
+        container.innerHTML = `
+            <div class="empty-profile">
+                لا توجد خلفيات حاليا
+            </div>
+        `;
+        return;
+    }
 
+    cleanIds.forEach(id => {
+        // البحث بجميع الاحتمالات الممكنة لمُعرف الخلفية (id أو wallpaper_id أو wall_id)
+        const wall = wallpapers.find(item => {
+            const itemId = String(
+                item.id ?? item.wallpaperId ?? item.wallpaper_id ?? item.wallId ?? ""
+            ).trim();
+            return itemId === String(id).trim();
+        });
 
+        if(!wall) return;
 
-if(!container)
+        const card = document.createElement("div");
+        card.className = "profile-wall-card";
+        
+        card.innerHTML = `
+            <img src="${wall.thumbnail || wall.image}">
+        `;
 
-return;
+        card.onclick = () => {
+            const finalId = wall.id ?? wall.wallpaperId ?? wall.wallpaper_id ?? wall.wallId ?? id;
+            location.href = "wallpaper.html?id=" + finalId;
+        };
 
-
-
-
-container.innerHTML = "";
-
-
-
-
-if(ids.length===0){
-
-
-container.innerHTML = `
-
-<div class="empty-profile">
-
-لا توجد خلفيات حاليا
-
-</div>
-
-`;
-
-
-return;
-
-
+        container.appendChild(card);
+    });
 }
 
-
-
-
-
-ids.forEach(id=>{
-
-
-const wall =
-
-wallpapers.find(
-
-item =>
-
-String(item.id)
-===
-String(id)
-
-);
-
-
-
-
-if(!wall)
-
-return;
-
-
-
-
-
-const card =
-document.createElement(
-"div"
-);
-
-
-
-card.className =
-"profile-wall-card";
-
-
-
-card.innerHTML = `
-
-<img src="${
-    wall.thumbnail ||
-    wall.image
-}">
-
-`;
-
-
-
-card.onclick = ()=>{
-
-
-location.href =
-"wallpaper.html?id="
-+
-wall.id;
-
-
-};
-
-
-
-container.appendChild(card);
-
-
-
-});
-
-
-
-}
 
 /* ===================================================
    Edit Profile + Start
