@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id);const E={totalCount:$('totalCount'),cate
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function norm(v){v=String(v??'').trim().toLowerCase();const a={'الطبيعة':'nature','أموليد':'amoled','الأنمي':'anime','أنمي':'anime','السيارات':'cars','car':'cars','الألعاب':'games','game':'games','الحيوانات':'animals','الفضاء':'space','المدن':'city'};return CM.has(v)?v:(a[v]||v||'other')}
 function ci(v){return CM.get(norm(v))||{id:norm(v),icon:'📁',label:norm(v)||'أخرى'}}
-function media(w){let u=esc(w.thumbnail||w.image||'/assets/logo/no-image.png');return String(w.type).toLowerCase()==='video'?`<video src="${u}" muted loop autoplay playsinline preload="metadata"></video>`:`<img src="${u}" alt="${esc(w.title||'خلفية')}" loading="lazy" onerror="this.src='/assets/logo/no-image.png'">`}
+function media(w){let u=esc(w.thumbnail||w.image||'/assets/logo/no-image.png');return String(w.type).toLowerCase()==='video'?`<video src="${u}" muted loop autoplay playsinline preload="metadata"></video>`:`<img src="${u}" alt="${esc(w.title||'خلفية')}" loading="lazy" decoding="async" onerror="this.src='/assets/logo/no-image.png'">`}
 function populate(){const opts=CATS.map(c=>`<option value="${c[0]}">${c[1]} ${c[2]}</option>`).join('');E.bulkCategory.innerHTML='<option value="">اختر التصنيف الجديد</option>'+opts;E.single.innerHTML='<option value="">اختر التصنيف الجديد</option>'+opts;const used=[...new Set(wallpapers.map(w=>norm(w.category)))].sort();E.categoryFilter.innerHTML='<option value="all">كل التصنيفات</option>'+used.map(id=>`<option value="${esc(id)}">${ci(id).icon} ${esc(ci(id).label)}</option>`).join('')}
 function chips(){const n={};wallpapers.forEach(w=>{const c=norm(w.category);n[c]=(n[c]||0)+1});E.categoryChips.innerHTML=Object.entries(n).sort((a,b)=>b[1]-a[1]).map(([id,num])=>{const c=ci(id);return`<button class="chip ${E.categoryFilter.value===id?'active':''}" data-cat="${esc(id)}">${c.icon} ${esc(c.label)} <b>${num}</b></button>`}).join('')||'<span>لا توجد تصنيفات</span>';E.categoryChips.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{E.categoryFilter.value=b.dataset.cat;apply()})}
 function stats(){E.totalCount.textContent=wallpapers.length;E.categoryCount.textContent=new Set(wallpapers.map(w=>norm(w.category))).size;E.selectedCount.textContent=selected.size;E.resultCount.textContent=`${filtered.length} نتيجة`;E.selectionHint.textContent=selected.size?`تم تحديد ${selected.size} خلفية — اختر التصنيف الجديد`:'حدد خلفيات لنقلها دفعة واحدة';E.bulkCategory.disabled=!selected.size;E.bulkMoveBtn.disabled=!selected.size}
@@ -67,7 +67,23 @@ function readLibraryCache(){
     return x;
   }catch(e){return null}
 }
-async function fetchLibrary(){
+const PAGE_SIZE=24;
+let pageOffset=0,hasMorePages=true,loadingMore=false,fullLibraryLoaded=false;
+async function fetchLibraryPage(offset=0,limit=PAGE_SIZE){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),15000);
+  try{
+    const r=await fetch(`${API}?limit=${limit}&offset=${offset}`,{cache:'no-store',signal:ctrl.signal});
+    if(!r.ok) throw Error(r.status);
+    const d=await r.json();
+    return {
+      data:Array.isArray(d)?d.map(w=>({...w,id:Number(w.id)})):[],
+      hasMore:r.headers.get('X-Has-More')==='1',
+      nextOffset:Number(r.headers.get('X-Next-Offset')||offset+(Array.isArray(d)?d.length:0))
+    };
+  }finally{clearTimeout(timer)}
+}
+async function fetchLegacyAll(){
   const ctrl=new AbortController();
   const timer=setTimeout(()=>ctrl.abort(),15000);
   try{
@@ -77,44 +93,95 @@ async function fetchLibrary(){
     return Array.isArray(d)?d.map(w=>({...w,id:Number(w.id)})):[];
   }finally{clearTimeout(timer)}
 }
-async function load(){
-  const cached=readLibraryCache();
-
-  // اعرض النسخة المحفوظة فورًا بدل إبقاء المدير أمام شاشة التحميل.
-  if(cached?.data?.length){
-    wallpapers=cached.data;
-    populate();
-    apply();
-    E.syncStatus.textContent='نسخة محفوظة • جاري التحقق...';
-  }else{
-    E.loading.classList.remove('hidden');
-    E.syncStatus.textContent='جاري تحميل المكتبة...';
-  }
-
+async function loadMore(){
+  if(loadingMore||!hasMorePages||fullLibraryLoaded)return;
+  loadingMore=true;
   try{
-    const fresh=await fetchLibrary();
-    wallpapers=fresh;
+    const page=await fetchLibraryPage(pageOffset,PAGE_SIZE);
+    const existing=new Set(wallpapers.map(w=>Number(w.id)));
+    page.data.forEach(w=>{if(!existing.has(Number(w.id)))wallpapers.push(w)});
+    pageOffset=page.nextOffset;
+    hasMorePages=page.hasMore;
+    if(!hasMorePages)fullLibraryLoaded=true;
     saveLibraryCache();
     populate();
     apply();
-    E.syncStatus.textContent='جاهز';
   }catch(e){
-    console.error(e);
-    if(cached?.data?.length){
-      // لا نخفي المكتبة القديمة إذا كان السيرفر بطيئًا أو غير متاح.
-      E.syncStatus.textContent='آخر نسخة محفوظة • تعذر التحديث الآن';
-      toast('تم عرض آخر نسخة محفوظة. تعذر تحديث المكتبة الآن.','error');
-      stats();
-      return;
-    }
-    wallpapers=[];
-    filtered=[];
-    E.loading.classList.add('hidden');
-    E.empty.classList.remove('hidden');
-    E.empty.querySelector('strong').textContent='تعذر تحميل الخلفيات';
-    E.empty.querySelector('span').textContent='تحقق من تشغيل السيرفر ومسار /api/wallpapers ثم اضغط تحديث';
-    E.syncStatus.textContent='فشل التحميل';
-    stats();
+    console.warn('Organizer lazy load failed',e);
+  }finally{
+    loadingMore=false;
   }
 }
-E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{try{E.syncStatus.textContent='جاري التحديث...';await load();toast('تم تحديث مكتبة الخلفيات','success')}catch(e){console.error(e)}};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();
+async function load(){
+  const cached=readLibraryCache();
+  if(cached?.data?.length){
+    wallpapers=cached.data.map(w=>({...w,id:Number(w.id)}));
+    pageOffset=wallpapers.length;
+    // Cached data from an older version may already contain the whole library.
+    hasMorePages=false;
+    fullLibraryLoaded=true;
+    populate();
+    apply();
+    E.syncStatus.textContent='نسخة محفوظة • جاهز';
+    // Verify freshness without blocking the first paint.
+    try{
+      const first=await fetchLibraryPage(0,PAGE_SIZE);
+      if(first.data.length && Number(first.data[0]?.id)!==Number(wallpapers[0]?.id)){
+        wallpapers=first.data;
+        pageOffset=first.nextOffset;
+        hasMorePages=first.hasMore;
+        fullLibraryLoaded=!first.hasMore;
+        saveLibraryCache();
+        populate();
+        apply();
+      }
+      E.syncStatus.textContent='جاهز';
+    }catch(e){
+      E.syncStatus.textContent='آخر نسخة محفوظة • تعذر التحديث الآن';
+    }
+    return;
+  }
+
+  E.loading.classList.remove('hidden');
+  E.syncStatus.textContent='جاري تحميل أول دفعة...';
+  try{
+    const page=await fetchLibraryPage(0,PAGE_SIZE);
+    wallpapers=page.data;
+    pageOffset=page.nextOffset;
+    hasMorePages=page.hasMore;
+    fullLibraryLoaded=!page.hasMore;
+    saveLibraryCache();
+    populate();
+    apply();
+    E.syncStatus.textContent=hasMorePages?'اسحب لعرض المزيد':'جاهز';
+  }catch(e){
+    console.warn('Paginated API unavailable, trying legacy endpoint',e);
+    try{
+      const all=await fetchLegacyAll();
+      wallpapers=all;
+      pageOffset=all.length;
+      hasMorePages=false;
+      fullLibraryLoaded=true;
+      saveLibraryCache();
+      populate();
+      apply();
+      E.syncStatus.textContent='جاهز';
+    }catch(err){
+      console.error(err);
+      wallpapers=[];filtered=[];
+      E.loading.classList.add('hidden');
+      E.empty.classList.remove('hidden');
+      E.empty.querySelector('strong').textContent='تعذر تحميل الخلفيات';
+      E.empty.querySelector('span').textContent='تحقق من تشغيل السيرفر ومسار /api/wallpapers ثم اضغط تحديث';
+      E.syncStatus.textContent='فشل التحميل';
+      stats();
+    }
+  }
+}
+
+E.grid.addEventListener('scroll',()=>{
+  const nearEnd=E.grid.scrollLeft + E.grid.clientWidth >= E.grid.scrollWidth - Math.max(500,E.grid.clientWidth);
+  if(nearEnd)loadMore();
+});
+
+E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{try{localStorage.removeItem(CACHE_KEY);wallpapers=[];filtered=[];selected.clear();pageOffset=0;hasMorePages=true;fullLibraryLoaded=false;E.syncStatus.textContent='جاري التحديث...';await load();toast('تم تحديث مكتبة الخلفيات','success')}catch(e){console.error(e)}};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();
