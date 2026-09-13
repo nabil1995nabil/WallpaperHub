@@ -643,14 +643,28 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     } else {
         resetGuestProfile();
     }
-});// استعادة الإحصائيات من localStorage
-const downloads = getList("downloads");
-const views = getList("views");
+});// استعادة الإحصائيات من localStorage بشكل فوري قبل اكتمال Supabase.
+const initialDownloads = getList("downloads");
+const initialFavorites = getList("favorites");
+const initialLikes = [...new Set([
+    ...getList("likes"),
+    ...getList("likedWallpapers")
+])];
+const initialViews = getList("views");
 
+const initialWallpaperCount = document.getElementById("wallpaperCount");
 const initialDownloadCount = document.getElementById("downloadCount");
+const initialFavoriteCount =
+    document.getElementById("favoriteCount") ||
+    document.getElementById("favoritesCount");
+const initialLikeCount = document.getElementById("likeCount");
 const initialViewCount = document.getElementById("viewCount");
-if(initialDownloadCount) initialDownloadCount.textContent = downloads.length;
-if(initialViewCount) initialViewCount.textContent = views.length;
+
+if(initialWallpaperCount) initialWallpaperCount.textContent = "0";
+if(initialDownloadCount) initialDownloadCount.textContent = initialDownloads.length;
+if(initialFavoriteCount) initialFavoriteCount.textContent = initialFavorites.length;
+if(initialLikeCount) initialLikeCount.textContent = initialLikes.length;
+if(initialViewCount) initialViewCount.textContent = initialViews.length;
 
 /* ==========================
    Reset Guest Profile - FULL RESET
@@ -1393,7 +1407,7 @@ function getList(key){
 
 
 async function getActualLikedIds(){
-    let localLikes = [...new Set([...getList("likes"), ...getList("likedWallpapers")])];[span_3](start_span)[span_3](end_span)
+    let localLikes = [...new Set([...getList("likes"), ...getList("likedWallpapers")])];
     if(!currentUser?.id) return localLikes;
 
     try{
@@ -1405,7 +1419,7 @@ async function getActualLikedIds(){
         if(error) throw error;
 
         const cloudLikes = (data || []).map(row => row?.wallpaper_id).filter(Boolean).map(String);
-        return [...new Set([...cloudLikes, ...localLikes])];[span_4](start_span)[span_4](end_span)
+        return [...new Set([...cloudLikes, ...localLikes])];
     }catch(error){
         console.warn("PROFILE LIKES LOAD ERROR:", error);
         return localLikes;
@@ -1579,10 +1593,30 @@ error
 ========================== */
 
 async function renderProfile() {
-    const downloads = await getActualDownloadIds();
-    const saved = await getActualFavoriteIds(); // المحفوظات الحقيقية من جدول favorites
-    const views = getList("views");
-    const likes = await getActualLikedIds(); // الإعجابات الحقيقية من جدول likes
+    // كل إحصائية تُحمّل بشكل مستقل حتى لا يؤدي فشل جدول واحد
+    // (مثل favorites أو likes) إلى توقف بقية الإحصائيات.
+    const results = await Promise.allSettled([
+        getActualDownloadIds(),
+        getActualFavoriteIds(),
+        Promise.resolve(getList("views")),
+        getActualLikedIds()
+    ]);
+
+    const downloads = results[0].status === "fulfilled"
+        ? results[0].value : getList("downloads");
+
+    const saved = results[1].status === "fulfilled"
+        ? results[1].value : getList("favorites");
+
+    const views = results[2].status === "fulfilled"
+        ? results[2].value : getList("views");
+
+    const likes = results[3].status === "fulfilled"
+        ? results[3].value
+        : [...new Set([
+            ...getList("likes"),
+            ...getList("likedWallpapers")
+        ])];
 
     const ownUID = String(currentUser?.id || "").trim();
     const ownWalls = ownUID
@@ -1603,14 +1637,29 @@ async function renderProfile() {
     const viewCountEl = document.getElementById("viewCount");
     if(viewCountEl) viewCountEl.textContent = views.length;
 
+    // يدعم أي نسخة من profile.html تستخدم أحد هذين المعرفين.
+    const favoriteCountEl =
+        document.getElementById("favoriteCount") ||
+        document.getElementById("favoritesCount");
+    if(favoriteCountEl) favoriteCountEl.textContent = saved.length;
+
     updateWallpaperCount(ownWalls.length);
+
     renderWalls(ownWallpapersContainer, ownWalls.map(w => w.id));
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
 
     // لا نخلط المحفوظات مع الإعجابات: favorites مخصص للمحفوظات فقط.
-    const savedContainer = document.getElementById("favoriteWallpapers");
-    if(savedContainer) renderWalls(savedContainer, saved);
+    const savedContainer =
+        document.getElementById("favoriteWallpapers") ||
+        document.getElementById("favoritesWallpapers") ||
+        document.getElementById("likedWallpapers");
+
+    // إذا كان likedWallpapers هو اسم الحاوية القديم للمفضلة،
+    // نعرض المحفوظات فيه كما كانت الواجهة القديمة تتوقع.
+    if(savedContainer) {
+        renderWalls(savedContainer, saved);
+    }
 
     renderWalls(viewedContainer, views);
 }
@@ -1620,22 +1669,48 @@ async function renderProfile() {
 ========================== */
 
 async function updateUserStats() {
-    const downloads = await getActualDownloadIds();
-    const views = getList("views");
-    const likes = await getActualLikedIds();
+    const results = await Promise.allSettled([
+        getActualDownloadIds(),
+        getActualFavoriteIds(),
+        Promise.resolve(getList("views")),
+        getActualLikedIds()
+    ]);
+
+    const downloads = results[0].status === "fulfilled"
+        ? results[0].value : getList("downloads");
+
+    const saved = results[1].status === "fulfilled"
+        ? results[1].value : getList("favorites");
+
+    const views = results[2].status === "fulfilled"
+        ? results[2].value : getList("views");
+
+    const likes = results[3].status === "fulfilled"
+        ? results[3].value
+        : [...new Set([
+            ...getList("likes"),
+            ...getList("likedWallpapers")
+        ])];
 
     const downloadEl = document.getElementById("downloadCount");
     const likeEl = document.getElementById("likeCount");
     const viewEl = document.getElementById("viewCount");
+    const favoriteEl =
+        document.getElementById("favoriteCount") ||
+        document.getElementById("favoritesCount");
 
     if(downloadEl) downloadEl.textContent = downloads.length;
     if(likeEl) likeEl.textContent = likes.length;
     if(viewEl) viewEl.textContent = views.length;
+    if(favoriteEl) favoriteEl.textContent = saved.length;
 
     const ownUID = String(currentUser?.id || "").trim();
     const ownWalls = ownUID
-        ? wallpapers.filter(w => String(w.ownerUID || w.userId || w.user_id || w.owner_id || "").trim() === ownUID)
+        ? wallpapers.filter(w =>
+            String(w.ownerUID || w.userId || w.user_id || w.owner_id || "").trim() === ownUID
+        )
         : [];
+
     updateWallpaperCount(ownWalls.length);
 }
 
