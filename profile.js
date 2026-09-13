@@ -48,6 +48,7 @@ let currentUser = null;
    المصدر الدائم لبيانات المستخدم عبر الأجهزة
    =================================================== */
 const USER_SYNC_TABLE = "user_profile_sync";
+const DEFAULT_PROFILE_COVER = "assets/images/default-cover.jpg";
 
 function normalizeActionList(value){
     if(!Array.isArray(value)) return [];
@@ -676,6 +677,9 @@ function resetGuestProfile() {
     if(heroUsername) heroUsername.textContent = "@user";
     if(heroBio) heroBio.textContent = "مصمم خلفيات ومحب للتصميم ✨";
     if(heroJoinDate) heroJoinDate.textContent = "-";
+
+    const verifiedBadge = document.getElementById("verifiedBadge");
+    if(verifiedBadge) verifiedBadge.style.display = "none";
     
     // 2. تصفير UID
     const uidEl = document.getElementById("userUid");
@@ -702,8 +706,10 @@ function resetGuestProfile() {
     // 6. تنظيف localStorage من بيانات المستخدم
     const userKeys = [
         "userName", 
+        "username",
         "userEmail", 
         "userAvatar", 
+        "userCover",
         "joinDate", 
         "lastLogin",
         "profileBio",
@@ -742,8 +748,10 @@ if (loginBtn) {
                     "favorites",
                     "views",
                     "userName",
+                    "username",
                     "userEmail",
                     "userAvatar",
+                    "userCover",
                     "userData"
                 ];
 
@@ -1038,6 +1046,11 @@ function updateHeroIdentity(user, name, profileData = null){
         name ||
         "زائر"
     ).trim();
+
+    const verifiedBadge = document.getElementById("verifiedBadge");
+    if(verifiedBadge){
+        verifiedBadge.style.display = (user && isOwnProfile()) ? "flex" : "none";
+    }
 
     if(heroDisplayName) heroDisplayName.textContent = displayName;
     if(heroUsername) heroUsername.textContent = getHeroUsername(displayName, user, profileData);
@@ -2178,7 +2191,7 @@ window.addEventListener("wallpaperStatsChanged", () => {
 window.addEventListener("storage", event => {
     if(["favorites", "downloads", "views", "userCover"].includes(event.key)){
         if(event.key === "userCover" && coverImage){
-            coverImage.src = event.newValue || "";
+            coverImage.src = event.newValue || DEFAULT_PROFILE_COVER;
         }
         renderProfile();
         updateUserStats();

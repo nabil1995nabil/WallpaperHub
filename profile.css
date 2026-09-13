@@ -466,13 +466,22 @@ button{
 .verified-badge{
     width:24px;
     height:24px;
-    display:flex;
+    display:none;
     align-items:center;
     justify-content:center;
+    flex:0 0 24px;
     border-radius:50%;
     background:#168bf0;
     color:#fff;
     font-size:17px;
+    line-height:1;
+    box-shadow:none;
+    text-shadow:none;
+}
+.verified-badge::before,
+.verified-badge::after{
+    content:none !important;
+    display:none !important;
 }
 
 
@@ -1584,6 +1593,7 @@ body.dark #closeEditBtn{
     .verified-badge{
         width:20px;
         height:20px;
+        flex-basis:20px;
         font-size:14px;
     }
 
