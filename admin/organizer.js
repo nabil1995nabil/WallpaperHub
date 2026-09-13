@@ -11,7 +11,7 @@ function ci(v){return CM.get(norm(v))||{id:norm(v),icon:'📁',label:norm(v)||'�
 function media(w){let u=esc(w.thumbnail||w.image||'/assets/logo/no-image.png');return String(w.type).toLowerCase()==='video'?`<video src="${u}" muted loop autoplay playsinline preload="metadata"></video>`:`<img src="${u}" alt="${esc(w.title||'خلفية')}" loading="lazy" decoding="async" onerror="this.src='/assets/logo/no-image.png'">`}
 function populate(){const opts=CATS.map(c=>`<option value="${c[0]}">${c[1]} ${c[2]}</option>`).join('');E.bulkCategory.innerHTML='<option value="">اختر التصنيف الجديد</option>'+opts;E.single.innerHTML='<option value="">اختر التصنيف الجديد</option>'+opts;const used=[...new Set(wallpapers.map(w=>norm(w.category)))].sort();E.categoryFilter.innerHTML='<option value="all">كل التصنيفات</option>'+used.map(id=>`<option value="${esc(id)}">${ci(id).icon} ${esc(ci(id).label)}</option>`).join('')}
 function chips(){const n={};wallpapers.forEach(w=>{const c=norm(w.category);n[c]=(n[c]||0)+1});E.categoryChips.innerHTML=Object.entries(n).sort((a,b)=>b[1]-a[1]).map(([id,num])=>{const c=ci(id);return`<button class="chip ${E.categoryFilter.value===id?'active':''}" data-cat="${esc(id)}">${c.icon} ${esc(c.label)} <b>${num}</b></button>`}).join('')||'<span>لا توجد تصنيفات</span>';E.categoryChips.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{E.categoryFilter.value=b.dataset.cat;apply()})}
-function stats(){E.totalCount.textContent=wallpapers.length;E.categoryCount.textContent=new Set(wallpapers.map(w=>norm(w.category))).size;E.selectedCount.textContent=selected.size;E.resultCount.textContent=`${filtered.length} نتيجة`;E.selectionHint.textContent=selected.size?`تم تحديد ${selected.size} خلفية — اختر التصنيف الجديد`:'حدد خلفيات لنقلها دفعة واحدة';E.bulkCategory.disabled=!selected.size;E.bulkMoveBtn.disabled=!selected.size}
+function stats(){E.totalCount.textContent=totalLibraryCount||wallpapers.length;E.categoryCount.textContent=new Set(wallpapers.map(w=>norm(w.category))).size;E.selectedCount.textContent=selected.size;E.resultCount.textContent=`${filtered.length} نتيجة`;E.selectionHint.textContent=selected.size?`تم تحديد ${selected.size} خلفية — اختر التصنيف الجديد`:'حدد خلفيات لنقلها دفعة واحدة';E.bulkCategory.disabled=!selected.size;E.bulkMoveBtn.disabled=!selected.size;updateLibraryProgress?.()}
 function apply(){const q=E.searchInput.value.trim().toLowerCase(),cat=E.categoryFilter.value,type=E.typeFilter.value,sort=E.sortSelect.value;filtered=wallpapers.filter(w=>{const c=norm(w.category),text=[w.id,w.title,w.category,ci(c).label,...(Array.isArray(w.tags)?w.tags:[])].join(' ').toLowerCase();return(!q||text.includes(q))&&(cat==='all'||c===cat)&&(type==='all'||String(w.type||'image').toLowerCase()===type)});filtered.sort((a,b)=>sort==='title'?String(a.title||'').localeCompare(String(b.title||''),'ar'):sort==='category'?norm(a.category).localeCompare(norm(b.category)):sort==='oldest'?Number(a.id)-Number(b.id):Number(b.id)-Number(a.id));render();stats();chips()}
 function render(){E.loading.classList.add('hidden');if(!filtered.length){E.grid.innerHTML='';E.empty.classList.remove('hidden');return}E.empty.classList.add('hidden');E.grid.innerHTML=filtered.map(w=>{const id=Number(w.id),on=selected.has(id),c=ci(w.category);return`<article class="card ${on?'selected':''}"><div class="media">${media(w)}<button class="check ${on?'on':''}" data-a="select" data-id="${id}">${on?'✓':''}</button><span class="badge">${String(w.type).toLowerCase()==='video'?'VIDEO':'IMAGE'}</span></div><div class="body"><h4 class="title">${esc(w.title||'بدون عنوان')}</h4><div class="meta"><span class="cat">${c.icon} ${esc(c.label)}</span><span>#${id}</span></div><div class="actions"><button data-a="select" data-id="${id}">${on?'✓ محددة':'تحديد'}</button><button data-a="move" data-id="${id}">تغيير التصنيف</button></div></div></article>`}).join('')}
 function toast(msg,type=''){E.toast.textContent=msg;E.toast.className='toast show '+type;clearTimeout(window.tt);window.tt=setTimeout(()=>E.toast.className='toast',3200)}
@@ -53,7 +53,7 @@ async function put(id,cat){
 }
 async function singleMove(){if(!editingId)return;const cat=E.single.value;if(!cat)return toast('اختر تصنيفًا جديدًا أولًا','error');const w=wallpapers.find(x=>Number(x.id)===editingId);if(norm(w.category)===cat){close();return toast('الخلفية موجودة أصلًا في هذا التصنيف')}try{E.syncStatus.textContent='جارٍ الحفظ...';await put(editingId,cat);w.category=cat;selected.delete(editingId);saveLibraryCache();close();apply();toast('تم تغيير تصنيف الخلفية بنجاح','success')}catch(e){console.error(e);toast('فشل تغيير التصنيف. تحقق من صلاحية API.','error')}finally{E.syncStatus.textContent='جاهز'}}
 async function bulk(){const cat=E.bulkCategory.value,ws=[...selected].map(id=>wallpapers.find(w=>Number(w.id)===id)).filter(Boolean).filter(w=>norm(w.category)!==cat);if(!ws.length)return toast(cat?'كل المحدد موجود أصلًا في هذا التصنيف':'اختر التصنيف الجديد أولًا','error');if(!confirm(`سيتم نقل ${ws.length} خلفية إلى "${ci(cat).label}".\nسيتم تعديل التصنيف فقط ولن تتغير IDs أو الإحصائيات.\n\nمتابعة؟`))return;let ok=0,fail=0;E.syncStatus.textContent='جارٍ الحفظ...';for(const w of ws){try{await put(w.id,cat);w.category=cat;ok++;saveLibraryCache()}catch(e){fail++;console.error(e)}}ws.forEach(w=>selected.delete(Number(w.id)));apply();E.syncStatus.textContent='جاهز';toast(fail?`تم نقل ${ok} وفشل ${fail}`:`تم نقل ${ok} خلفية بنجاح 🎉`,fail?'error':'success')}
-const CACHE_KEY='wallpaperhub_organizer_library_v1';
+const CACHE_KEY='wallpaperhub_organizer_library_v2';
 const CACHE_TTL=5*60*1000;
 let totalLibraryCount=0;
 function updateLibraryProgress(){
@@ -88,11 +88,24 @@ async function fetchLibraryPage(offset=0,limit=PAGE_SIZE){
     const r=await fetch(`${API}?limit=${limit}&offset=${offset}`,{cache:'no-store',signal:ctrl.signal});
     if(!r.ok) throw Error(r.status);
     const d=await r.json();
+    const rows=Array.isArray(d)?d:(Array.isArray(d?.data)?d.data:[]);
+    const headerTotal=Number(r.headers.get('X-Total-Count')||0);
+    const headerMore=r.headers.get('X-Has-More');
+    const headerNext=Number(r.headers.get('X-Next-Offset')||0);
+    const bodyTotal=Number(d?.totalCount||d?.total||d?.count||0);
+    const bodyMore=typeof d?.hasMore==='boolean'?d.hasMore:null;
+    const data=rows.map(w=>({...w,id:Number(w.id)}));
+    const totalCount=headerTotal||bodyTotal||data.length;
+    const hasMore=headerMore!==null
+      ? headerMore==='1'
+      : bodyMore!==null
+        ? bodyMore
+        : (offset===0 && data.length>PAGE_SIZE);
     return {
-      data:Array.isArray(d)?d.map(w=>({...w,id:Number(w.id)})):[],
-      hasMore:r.headers.get('X-Has-More')==='1',
-      totalCount:Number(r.headers.get('X-Total-Count')||0),
-      nextOffset:Number(r.headers.get('X-Next-Offset')||offset+(Array.isArray(d)?d.length:0))
+      data,
+      hasMore,
+      totalCount,
+      nextOffset:headerNext||Number(d?.nextOffset)||offset+data.length
     };
   }finally{clearTimeout(timer)}
 }
@@ -153,10 +166,10 @@ async function load(){
         saveLibraryCache();
         populate();
         apply();
-      }else if(!cacheIsComplete){
+       }else if(!cacheIsComplete){
         // الكاش يحتوي جزءًا فقط: نكمل من آخر عنصر محفوظ.
         pageOffset=wallpapers.length;
-        hasMorePages=wallpapers.length<totalLibraryCount && first.hasMore;
+        hasMorePages=wallpapers.length<totalLibraryCount || first.hasMore;
         fullLibraryLoaded=!hasMorePages;
         saveLibraryCache();
       }else{
@@ -214,11 +227,10 @@ async function load(){
 }
 
 E.grid.addEventListener('scroll',()=>{
-  const max=E.grid.scrollWidth-E.grid.clientWidth;
-  const raw=Math.abs(E.grid.scrollLeft);
-  const distanceToEnd=Math.min(raw,Math.max(0,max-raw));
-  const nearEnd=distanceToEnd<=Math.max(500,E.grid.clientWidth);
-  if(nearEnd)loadMore();
-});
+  const max=Math.max(0,E.grid.scrollWidth-E.grid.clientWidth);
+  const left=Math.max(0,E.grid.scrollLeft);
+  const distanceToEnd=max-left;
+  if(distanceToEnd<=Math.max(220,E.grid.clientWidth*0.75)) loadMore();
+},{passive:true});
 
 E.searchInput.oninput=apply;E.clearSearch.onclick=()=>{E.searchInput.value='';apply();E.searchInput.focus()};E.categoryFilter.onchange=apply;E.typeFilter.onchange=apply;E.sortSelect.onchange=apply;E.selectVisibleBtn.onclick=()=>{filtered.forEach(w=>selected.add(Number(w.id)));apply()};E.clearSelectionBtn.onclick=()=>{selected.clear();apply()};E.bulkMoveBtn.onclick=bulk;E.refresh.onclick=async()=>{try{localStorage.removeItem(CACHE_KEY);wallpapers=[];filtered=[];selected.clear();pageOffset=0;hasMorePages=true;totalLibraryCount=0;fullLibraryLoaded=false;E.syncStatus.textContent='جاري التحديث...';await load();toast('تم تحديث مكتبة الخلفيات','success')}catch(e){console.error(e)}};E.grid.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=Number(b.dataset.id);if(b.dataset.a==='select'){selected.has(id)?selected.delete(id):selected.add(id);apply()}else open(id)};E.close.onclick=close;E.cancel.onclick=close;E.confirm.onclick=singleMove;E.modal.onclick=e=>{if(e.target===E.modal)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});load();

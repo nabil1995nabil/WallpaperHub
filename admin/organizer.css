@@ -9,10 +9,10 @@
 .library-head small{font-size:9px;font-weight:800;letter-spacing:1.5px;color:#818ba0}
 .library-head h3{margin:3px 0 0;font-size:18px}
 .library-head>span{color:#687388;font-size:9px}
-.library .grid{display:flex;flex-direction:row;direction:rtl;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 1px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.library .grid{display:flex;flex-direction:row;direction:ltr;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 1px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .library .grid::-webkit-scrollbar{height:5px}
 .library .grid::-webkit-scrollbar-thumb{background:#ffffff18;border-radius:99px}
-.library .card{flex:0 0 calc((100% - 30px)/4);min-width:calc((100% - 30px)/4);scroll-snap-align:start;border-radius:14px}
+.library .card{flex:0 0 calc((100% - 30px)/4);min-width:calc((100% - 30px)/4);scroll-snap-align:start;border-radius:14px;direction:rtl}
 .library .media{height:185px}
 .library .body{padding:9px}
 .library .title{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 6px}
@@ -38,20 +38,11 @@
   .library .actions button{min-height:28px;font-size:6.5px}
 }
 
-/* ======================================
-   Library loading progress
-   ====================================== */
-.library-title-row{display:flex;align-items:center;gap:9px;margin-top:3px}
-.library-title-row h3{margin:0}
-.library-title-row strong{display:inline-flex;align-items:center;justify-content:center;min-width:45px;height:27px;padding:0 9px;border:1px solid #6d5dfc55;border-radius:999px;background:#6d5dfc14;color:#bdb6ff;font-size:10px;direction:ltr}
-.library-progress-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;color:#7f899d;font-size:8px}
-.library-progress-info span{padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#ffffff04}
-.library-progress-info #libraryLoaded{color:#cbd2df}
-.library-progress{margin:2px 0 11px;padding:10px 11px;border:1px solid #6d5dfc1e;border-radius:14px;background:#6d5dfc08}
-.library-progress-track{height:7px;overflow:hidden;border-radius:99px;background:#ffffff0b;direction:ltr}
-.library-progress-track span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--cyan));box-shadow:0 0 16px #6d5dfc66;transition:width .35s ease}
-.library-progress-caption{display:flex;align-items:center;justify-content:space-between;margin-top:6px;color:#6f798d;font-size:7.5px}
-.library-progress-caption #libraryProgressText{color:#a9a1ff;font-weight:800;direction:ltr}
-.library-scroll-hint{display:flex;align-items:center;justify-content:center;gap:5px;margin:0 0 10px;color:#697388;font-size:8px;text-align:center}
-.library-scroll-hint span{font-size:14px;color:#9a92ff}
-@media(max-width:650px){.library-head{align-items:center}.library-head>div:first-child{min-width:0}.library-title-row h3{font-size:16px}.library-title-row strong{min-width:43px;height:25px;font-size:9px}.library-progress-info{font-size:7px;gap:4px}.library-progress-info span{padding:5px 7px}.library-progress{margin-top:1px}.library-scroll-hint{font-size:7.5px}}
+/* Stable horizontal scrolling: the rail itself is LTR so Android Chrome has
+   predictable scrollLeft values; each card keeps the Arabic RTL direction. */
+.library .grid{
+  overscroll-behavior-x:contain;
+  touch-action:pan-x;
+  cursor:grab;
+}
+.library .grid:active{cursor:grabbing}
