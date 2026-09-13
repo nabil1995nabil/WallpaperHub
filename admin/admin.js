@@ -2088,3 +2088,15 @@ openAIControl;
 
 
 loadDashboard();
+
+// ==========================================
+// فتح منظم الخلفيات
+// ==========================================
+
+function openWallpaperOrganizer(){
+    location.href = "organizer.html";
+}
+
+window.openWallpaperOrganizer = openWallpaperOrganizer;
+
+
