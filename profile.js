@@ -202,8 +202,9 @@ async function syncCloudAction(type, id){
     const keyMap = {
         favorites:"favorite_ids",
         favorite:"favorite_ids",
-        likes:"favorite_ids",
-        like:"favorite_ids",
+        // الإعجابات محفوظة في جدول likes، ولا تُحفظ داخل favorite_ids.
+        likes:null,
+        like:null,
         downloads:"download_ids",
         download:"download_ids",
         views:"view_ids",
@@ -623,15 +624,11 @@ supabase.auth.onAuthStateChange(async (event, session) => {
         const avatarEl = document.getElementById("userAvatar");
         if (avatarEl && photoURL) avatarEl.src = photoURL;
 
-        const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        const views = JSON.parse(localStorage.getItem("views") || "[]");
+        const downloads = getList("downloads");
+        const views = getList("views");
 
         const downloadCountEl = document.getElementById("downloadCount");
         if (downloadCountEl) downloadCountEl.textContent = downloads.length;
-
-        const likeCountEl = document.getElementById("likeCount");
-        if (likeCountEl) likeCountEl.textContent = favorites.length;
 
         const viewCountEl = document.getElementById("viewCount");
         if (viewCountEl) viewCountEl.textContent = views.length;
@@ -640,19 +637,18 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 
         console.log("✅ تم تسجيل الدخول واستعادة البيانات:");
         console.log("📥 تحميلات:", downloads.length);
-        console.log("❤️ إعجابات:", favorites.length);
         console.log("👁️ مشاهدات:", views.length);
     } else {
         resetGuestProfile();
     }
 });// استعادة الإحصائيات من localStorage
-const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-const views = JSON.parse(localStorage.getItem("views") || "[]");
+const downloads = getList("downloads");
+const views = getList("views");
 
-document.getElementById("downloadCount").textContent = downloads.length;
-document.getElementById("likeCount").textContent = favorites.length;
-document.getElementById("viewCount").textContent = views.length;;
+const initialDownloadCount = document.getElementById("downloadCount");
+const initialViewCount = document.getElementById("viewCount");
+if(initialDownloadCount) initialDownloadCount.textContent = downloads.length;
+if(initialViewCount) initialViewCount.textContent = views.length;
 
 /* ==========================
    Reset Guest Profile - FULL RESET
@@ -1382,6 +1378,27 @@ function getList(key){
 
 
 
+async function getActualLikedIds(){
+    if(!currentUser?.id) return [];
+
+    try{
+        const { data, error } = await supabase
+            .from("likes")
+            .select("wallpaper_id")
+            .eq("user_id", currentUser.id);
+
+        if(error) throw error;
+
+        return [...new Set((data || [])
+            .map(row => row?.wallpaper_id)
+            .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+            .map(String))];
+    }catch(error){
+        console.warn("PROFILE LIKES LOAD ERROR:", error);
+        return [];
+    }
+}
+
 function clearUserStats(){
 
 
@@ -1472,10 +1489,11 @@ error
    Render Statistics
 ========================== */
 
-function renderProfile() {
+async function renderProfile() {
     const downloads = getList("downloads");
-    const likes = getList("favorites");
+    const saved = getList("favorites"); // محفوظات المستخدم — نظام مستقل عن الإعجابات
     const views = getList("views");
+    const likes = await getActualLikedIds(); // الإعجابات الحقيقية من جدول likes
 
     const ownUID = String(currentUser?.id || "").trim();
     const ownWalls = ownUID
@@ -1500,23 +1518,31 @@ function renderProfile() {
     renderWalls(ownWallpapersContainer, ownWalls.map(w => w.id));
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
-    renderWalls(viewedContainer, views);
 
-    updateUserStats();
+    // لا نخلط المحفوظات مع الإعجابات: favorites مخصص للمحفوظات فقط.
+    const savedContainer = document.getElementById("favoriteWallpapers");
+    if(savedContainer) renderWalls(savedContainer, saved);
+
+    renderWalls(viewedContainer, views);
 }
 
 /* ==========================
    Update User Stats (after download/like/view)
 ========================== */
 
-function updateUserStats() {
-    const downloads = JSON.parse(localStorage.getItem("downloads") || "[]");
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    const views = JSON.parse(localStorage.getItem("views") || "[]");
-    
-    document.getElementById("downloadCount").textContent = downloads.length;
-    document.getElementById("likeCount").textContent = favorites.length;
-    document.getElementById("viewCount").textContent = views.length;
+async function updateUserStats() {
+    const downloads = getList("downloads");
+    const views = getList("views");
+    const likes = await getActualLikedIds();
+
+    const downloadEl = document.getElementById("downloadCount");
+    const likeEl = document.getElementById("likeCount");
+    const viewEl = document.getElementById("viewCount");
+
+    if(downloadEl) downloadEl.textContent = downloads.length;
+    if(likeEl) likeEl.textContent = likes.length;
+    if(viewEl) viewEl.textContent = views.length;
+
     const ownUID = String(currentUser?.id || "").trim();
     const ownWalls = ownUID
         ? wallpapers.filter(w => String(w.ownerUID || w.userId || w.user_id || w.owner_id || "").trim() === ownUID)
@@ -1532,8 +1558,8 @@ window.syncUserStats = function(type, id) {
     if(id === null || id === undefined || String(id).trim() === "") return;
 
     const allowed = {
-        like: "favorites",
-        likes: "favorites",
+        like: "likedWallpapers",
+        likes: "likedWallpapers",
         favorite: "favorites",
         favorites: "favorites",
         download: "downloads",

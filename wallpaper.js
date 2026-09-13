@@ -1828,8 +1828,11 @@ if (downloadBtn) {
         syncUserActionToSupabase("downloads", currentWallpaper.id);
 
         try {
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token || "";
             await fetch(`${API}/${currentWallpaper.id}/download`, {
-                method: "POST"
+                method: "POST",
+                headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
             });
         } catch (error) {
             console.error("DOWNLOAD ERROR", error);
@@ -1841,7 +1844,7 @@ if (downloadBtn) {
 // Like System (Wallpaper)
 // ===============================
 
-const favoriteBtn = document.getElementById("favoriteBtn");
+const likeBtn = document.getElementById("likeBtn");
 
 
 // فحص هل المستخدم ضغط إعجاب سابقاً
@@ -1849,7 +1852,7 @@ async function checkLikeStatus(){
 
     try{
 
-        if(!currentWallpaper || !favoriteBtn)
+        if(!currentWallpaper || !likeBtn)
             return;
 
 
@@ -1873,25 +1876,25 @@ if(
 
         if(data.liked){
 
-            favoriteBtn.innerHTML = `
+            likeBtn.innerHTML = `
             <span class="material-icons">
             favorite
             </span>
             `;
 
-            favoriteBtn.classList.add("liked");
-            saveUserAction("favorites", currentWallpaper.id);
-            syncUserActionToSupabase("favorites", currentWallpaper.id);
+            likeBtn.classList.add("liked");
+            // حالة الإعجاب تخص جدول likes فقط، ولا تُضاف إلى المحفوظات.
+            saveUserAction("likedWallpapers", currentWallpaper.id);
 
         }else{
 
-            favoriteBtn.innerHTML = `
+            likeBtn.innerHTML = `
             <span class="material-icons">
             favorite_border
             </span>
             `;
 
-            favoriteBtn.classList.remove("liked");
+            likeBtn.classList.remove("liked");
 
         }
 
@@ -1915,7 +1918,7 @@ async function likeWallpaper(){
 
     try{
 
-        if(!currentWallpaper || !favoriteBtn)
+        if(!currentWallpaper || !likeBtn)
             return;
 
 
@@ -1957,13 +1960,19 @@ async function likeWallpaper(){
         if(data.success){
 
             // إظهار القلب مباشرة
-            favoriteBtn.innerHTML = `
+            likeBtn.innerHTML = `
                 <span class="material-icons">
                     favorite
                 </span>
             `;
 
-            favoriteBtn.classList.add("liked");
+            likeBtn.classList.add("liked");
+
+            // الإعجاب بالخلفية نظام مستقل عن المحفوظات.
+            saveUserAction("likedWallpapers", currentWallpaper.id);
+            if (typeof window.syncUserStats === "function") {
+                window.syncUserStats("likes", currentWallpaper.id);
+            }
 
         }else{
 
@@ -1986,9 +1995,9 @@ async function likeWallpaper(){
 
 }
 
-if(favoriteBtn){
+if(likeBtn){
 
-    favoriteBtn.addEventListener(
+    likeBtn.addEventListener(
         "click",
         likeWallpaper
     );

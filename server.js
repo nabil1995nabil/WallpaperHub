@@ -1048,6 +1048,81 @@ app.get(
 );
 
 // ======================================
+// Wallpaper Downloads
+// ======================================
+// يسجل التحميل للخلفية ويضيفه إلى حساب المستخدم بدون لمس نظام المحفوظات أو الإعجابات.
+app.post("/api/wallpapers/:id/download", async (req, res) => {
+    try {
+        const wallpaperId = Number(req.params.id);
+        if(!Number.isFinite(wallpaperId) || wallpaperId <= 0){
+            return res.status(400).json({ success:false, message:"Invalid wallpaper ID" });
+        }
+
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if(!authenticatedUser){
+            return res.status(401).json({ success:false, message:"يجب تسجيل الدخول" });
+        }
+
+        const userId = String(authenticatedUser.id).trim();
+        const wall = await getWallpaperFromSupabase(wallpaperId);
+        if(!wall){
+            return res.status(404).json({ success:false, message:"Wallpaper not found" });
+        }
+
+        const nextDownloads = Number(wall.downloads || 0) + 1;
+        const { data: updatedWallpaper, error: wallpaperError } = await supabase
+            .from("wallpapers")
+            .update({ downloads: nextDownloads })
+            .eq("id", wallpaperId)
+            .select("id,downloads")
+            .single();
+
+        if(wallpaperError) throw wallpaperError;
+
+        const { data: syncRow, error: syncReadError } = await supabase
+            .from("user_profile_sync")
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        if(syncReadError) throw syncReadError;
+
+        const downloadIds = [...new Set([
+            ...(Array.isArray(syncRow?.download_ids) ? syncRow.download_ids : []),
+            String(wallpaperId)
+        ])];
+
+        const syncPayload = {
+            user_id: userId,
+            full_name: syncRow?.full_name || "",
+            username: syncRow?.username || "",
+            avatar_url: syncRow?.avatar_url || "",
+            cover_url: syncRow?.cover_url || "",
+            bio: syncRow?.bio || "",
+            join_date: syncRow?.join_date || "",
+            favorite_ids: Array.isArray(syncRow?.favorite_ids) ? syncRow.favorite_ids : [],
+            download_ids: downloadIds,
+            view_ids: Array.isArray(syncRow?.view_ids) ? syncRow.view_ids : []
+        };
+
+        const { error: syncError } = await supabase
+            .from("user_profile_sync")
+            .upsert(syncPayload, { onConflict:"user_id" });
+
+        if(syncError) throw syncError;
+
+        return res.json({
+            success:true,
+            wallpaperId,
+            downloads:Number(updatedWallpaper?.downloads ?? nextDownloads)
+        });
+    }catch(error){
+        console.log("DOWNLOAD ERROR:", error);
+        return res.status(500).json({ success:false, message:error.message });
+    }
+});
+
+// ======================================
 // Wallpaper Likes (Supabase)
 // =====================================// إضافة إعجاب//
 
@@ -1078,6 +1153,18 @@ app.post(
             }
 
             const wall = await getWallpaperFromSupabase(wallpaperId);
+
+            // تحديث عداد إعجابات الخلفية نفسه. جدول likes هو مصدر حقيقة من ضغط إعجاب،
+            // بينما wallpapers.likes مجرد عداد عرض متزامن.
+            if(wall){
+                const nextLikes = Number(wall.likes || 0) + 1;
+                const { error: likesCountError } = await supabase
+                    .from("wallpapers")
+                    .update({ likes: nextLikes })
+                    .eq("id", wallpaperId);
+                if(likesCountError) throw likesCountError;
+            }
+
             const wallpaperOwnerUID = String(wall?.ownerUID || wall?.userId || "").trim();
 
             if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
