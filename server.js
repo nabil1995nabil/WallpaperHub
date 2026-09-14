@@ -8,6 +8,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const fetch = require("node-fetch");
 
 const { createClient } = require("@supabase/supabase-js");
@@ -142,6 +143,20 @@ app.get("/api/admin/me", async (req, res) => {
 });
 
 
+
+
+// ======================================
+// Public Supabase browser configuration
+// لا نعرض Service Role Key هنا.
+// ======================================
+app.get("/api/supabase/config", (req, res) => {
+    const url = String(process.env.SUPABASE_URL || "").trim();
+    const anonKey = getPublicSupabaseKey();
+    if(!url || !anonKey){
+        return res.status(503).json({success:false,message:"Supabase public configuration is not configured"});
+    }
+    return res.json({success:true,url,anonKey});
+});
 
 
 // ======================================
@@ -1597,370 +1612,149 @@ app.delete(
 
 
 function createTokenValue(){
+    return "wall_live_" + crypto.randomBytes(32).toString("hex");
+}
 
-    return (
-        "wall_live_" +
-        Math.random()
-        .toString(36)
-        .substring(2) +
-        Date.now()
-    );
+function getPublicSupabaseKey(){
+    const explicit = String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || "").trim();
+    if(explicit) return explicit;
 
+    const legacy = String(process.env.SUPABASE_KEY || "").trim();
+    if(!legacy || legacy.startsWith("sb_secret_")) return "";
+    try{
+        const parts = legacy.split(".");
+        if(parts.length === 3){
+            const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+            if(String(payload.role || "").toLowerCase() === "service_role") return "";
+            return legacy;
+        }
+    }catch(_error){}
+    return "";
+}
+
+function normalizeAllowedOrigin(value){
+    const raw = String(value || "").trim();
+    if(!raw) return "";
+    try{
+        const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
+        if(!["http:","https:"].includes(url.protocol)) return "";
+        return url.origin.toLowerCase();
+    }catch(_error){
+        return "";
+    }
+}
+
+function requestOrigin(req){
+    const origin = String(req.headers.origin || "").trim();
+    if(origin) return normalizeAllowedOrigin(origin);
+    const referer = String(req.headers.referer || "").trim();
+    if(referer){
+        try{ return new URL(referer).origin.toLowerCase(); }catch(_error){}
+    }
+    return "";
 }
 
 
-
 // ======================================
-// Create API Token - Supabase
+// Developer API Tokens - Supabase Auth
 // ======================================
 
-app.post(
-    "/api/tokens/create",
-    async (req, res) => {
+function tokenResponse(token, includeSecret = false){
+    const result = {
+        id: token.id,
+        userId: token.user_id,
+        appName: token.app_name,
+        domain: token.domain,
+        limit: token.daily_limit,
+        requests: token.requests || 0,
+        lastRequestDate: token.last_request_date,
+        lastUsed: token.last_used,
+        lastIp: token.last_ip,
+        active: Boolean(token.active),
+        created: token.created_at
+    };
+    if(includeSecret) result.token = token.token;
+    return result;
+}
 
-        try {
+app.post("/api/tokens/create", async (req, res) => {
+    try {
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if(!authenticatedUser) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
 
-            const {
-                userId,
-                appName,
-                domain
-            } = req.body;
+        const appName = String(req.body?.appName || "My App").trim().slice(0, 100);
+        const domainInput = String(req.body?.domain || "").trim();
+        const domain = normalizeAllowedOrigin(domainInput);
+        if(!appName) return res.status(400).json({success:false,message:"اسم التطبيق مطلوب"});
+        if(domainInput && !domain) return res.status(400).json({success:false,message:"النطاق غير صالح"});
 
-            if (!userId) {
+        const tokenData = {
+            id: Date.now(),
+            user_id: String(authenticatedUser.id),
+            app_name: appName,
+            domain,
+            token: createTokenValue(),
+            daily_limit: 200,
+            requests: 0,
+            last_request_date: null,
+            last_used: null,
+            last_ip: null,
+            active: true,
+            created_at: new Date().toISOString()
+        };
 
-                return res.status(400).json({
-                    success: false,
-                    message: "User ID required"
-                });
+        const { data, error } = await supabase.from("api_tokens").insert([tokenData]).select("*").single();
+        if(error) throw error;
 
-            }
-
-            const tokenData = {
-
-                id:
-                    Date.now(),
-
-                user_id:
-                    String(userId),
-
-                app_name:
-                    appName ||
-                    "My App",
-
-                domain:
-                    domain ||
-                    "",
-
-                token:
-                    createTokenValue(),
-
-                daily_limit:
-                    200,
-
-                requests:
-                    0,
-
-                last_request_date:
-                    null,
-
-                last_used:
-                    null,
-
-                last_ip:
-                    null,
-
-                active:
-                    true,
-
-                created_at:
-                    new Date().toISOString()
-
-            };
-
-
-            // ======================================
-            // حفظ Token في Supabase
-            // ======================================
-
-            const {
-                data,
-                error
-            } =
-                await supabase
-                    .from("api_tokens")
-                    .insert([tokenData])
-                    .select()
-                    .single();
-
-
-            if (error) {
-
-                throw error;
-
-            }
-
-
-            // ======================================
-            // الشكل الذي تحتاجه developers.js
-            // ======================================
-
-            res.json({
-
-                success:
-                    true,
-
-                token: {
-
-                    id:
-                        data.id,
-
-                    userId:
-                        data.user_id,
-
-                    appName:
-                        data.app_name,
-
-                    domain:
-                        data.domain,
-
-                    token:
-                        data.token,
-
-                    limit:
-                        data.daily_limit,
-
-                    requests:
-                        data.requests || 0,
-
-                    lastRequestDate:
-                        data.last_request_date,
-
-                    lastUsed:
-                        data.last_used,
-
-                    lastIp:
-                        data.last_ip,
-
-                    active:
-                        data.active,
-
-                    created:
-                        data.created_at
-
-                }
-
-            });
-
-
-        } catch (error) {
-
-            console.log(
-                "CREATE TOKEN ERROR:",
-                error
-            );
-
-
-            res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    error.message ||
-                    "Failed to create token"
-
-            });
-
-        }
-
+        return res.json({success:true,token:tokenResponse(data,true),warning:"احفظ هذا المفتاح الآن. لن يتم عرضه كاملًا مرة أخرى."});
+    } catch(error) {
+        console.log("CREATE TOKEN ERROR:", error);
+        return res.status(500).json({success:false,message:error.message || "Failed to create token"});
     }
-);
-// ======================================
-// Get User Tokens - Supabase
-// ======================================
+});
 
-app.get(
-    "/api/tokens/:userId",
-    async (req, res) => {
+app.get("/api/tokens/:userId", async (req, res) => {
+    try {
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if(!authenticatedUser) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
 
-        try {
-
-            const userId =
-                String(
-                    req.params.userId
-                );
-
-
-            const {
-                data,
-                error
-            } =
-                await supabase
-                    .from("api_tokens")
-                    .select("*")
-                    .eq(
-                        "user_id",
-                        userId
-                    )
-                    .order(
-                        "created_at",
-                        {
-                            ascending: false
-                        }
-                    );
-
-
-            if (error) {
-
-                throw error;
-
-            }
-
-
-            const tokens =
-                (data || []).map(
-                    token => ({
-
-                        id:
-                            token.id,
-
-                        userId:
-                            token.user_id,
-
-                        appName:
-                            token.app_name,
-
-                        domain:
-                            token.domain,
-
-                        token:
-                            token.token,
-
-                        limit:
-                            token.daily_limit,
-
-                        requests:
-                            token.requests || 0,
-
-                        lastRequestDate:
-                            token.last_request_date,
-
-                        lastUsed:
-                            token.last_used,
-
-                        lastIp:
-                            token.last_ip,
-
-                        active:
-                            token.active,
-
-                        created:
-                            token.created_at
-
-                    })
-                );
-
-
-            res.json(
-                tokens
-            );
-
-
-        } catch (error) {
-
-            console.log(
-                "GET TOKEN ERROR:",
-                error
-            );
-
-
-            res.status(500).json([]);
-
-        }
-
+        const { data, error } = await supabase
+            .from("api_tokens")
+            .select("id,user_id,app_name,domain,daily_limit,requests,last_request_date,last_used,last_ip,active,created_at")
+            .eq("user_id", String(authenticatedUser.id))
+            .order("created_at", {ascending:false});
+        if(error) throw error;
+        return res.json((data || []).map(token => tokenResponse(token,false)));
+    } catch(error) {
+        console.log("GET TOKEN ERROR:", error);
+        return res.status(500).json([]);
     }
-);
-// ======================================
-// Delete Token - Supabase
-// ======================================
+});
 
-app.delete(
-    "/api/tokens/:id",
-    async (req, res) => {
+app.delete("/api/tokens/:id", async (req, res) => {
+    try {
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if(!authenticatedUser) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
 
-        try {
+        const id = Number(req.params.id);
+        if(!Number.isFinite(id) || id <= 0) return res.status(400).json({success:false,message:"Invalid Token ID"});
 
-            const id =
-                Number(
-                    req.params.id
-                );
-
-
-            if (!id) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Invalid Token ID"
-
-                });
-
-            }
-
-
-            const {
-                error
-            } =
-                await supabase
-                    .from("api_tokens")
-                    .delete()
-                    .eq(
-                        "id",
-                        id
-                    );
-
-
-            if (error) {
-
-                throw error;
-
-            }
-
-
-            res.json({
-
-                success:
-                    true
-
-            });
-
-
-        } catch (error) {
-
-            console.log(
-                "DELETE TOKEN ERROR:",
-                error
-            );
-
-
-            res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    error.message ||
-                    "Failed to delete token"
-
-            });
-
-        }
-
+        const { data, error } = await supabase
+            .from("api_tokens")
+            .delete()
+            .eq("id", id)
+            .eq("user_id", String(authenticatedUser.id))
+            .select("id")
+            .maybeSingle();
+        if(error) throw error;
+        if(!data) return res.status(404).json({success:false,message:"Token not found"});
+        return res.json({success:true,id});
+    } catch(error) {
+        console.log("DELETE TOKEN ERROR:", error);
+        return res.status(500).json({success:false,message:error.message || "Failed to delete token"});
     }
-);
+});
+
 // ======================================
 // API Token Middleware - Supabase
 // ======================================
@@ -2061,6 +1855,17 @@ async function verifyApiToken(
 
         }
 
+
+        // ======================================
+        // Domain restriction
+        // ======================================
+        const allowedOrigin = normalizeAllowedOrigin(apiToken.domain || "");
+        if(allowedOrigin){
+            const incomingOrigin = requestOrigin(req);
+            if(!incomingOrigin || incomingOrigin !== allowedOrigin){
+                return res.status(403).json({success:false,message:"Token is not allowed from this domain"});
+            }
+        }
 
         // ======================================
         // معرفة IP

@@ -1,119 +1,190 @@
 // =================================
 // WallpaperHub API Developer
+// Supabase Auth — بدون Firebase
 // =================================
 
-import { auth } from "./firebase.js";
-
-import {
-    onAuthStateChanged,
-    GoogleAuthProvider,
-    signInWithPopup
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const form = document.getElementById("createTokenForm");
 const tokensList = document.getElementById("tokensList");
 const googleLoginBtn = document.getElementById("googleLoginBtn");
+const developerPage = document.getElementById("developerPage");
+const loginPopup = document.getElementById("loginPopup");
 
+let supabase = null;
 let currentUser = null;
+let configPromise = null;
 
 // ================================
-// مراقبة تسجيل الدخول
+// Supabase Browser Client
 // ================================
-
-onAuthStateChanged(auth, (user) => {
-    console.log("Developer Auth:", user);
-    currentUser = user;
-
-    if (user) {
-        document.getElementById("developerPage").style.display = "block";
-        document.getElementById("loginPopup").style.display = "none";
-        loadTokens();
-    } else {
-        document.getElementById("developerPage").style.display = "none";
-        document.getElementById("loginPopup").style.display = "flex";
+async function getSupabaseClient(){
+    if(supabase) return supabase;
+    if(!configPromise){
+        configPromise = fetch("/api/supabase/config", {cache:"no-store"})
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+                if(!response.ok || !data.success || !data.url || !data.anonKey){
+                    throw new Error(data.message || "Supabase public configuration is unavailable");
+                }
+                return data;
+            });
     }
-});
 
-
-// ================================
-// تحميل Tokens
-// ================================
-
-async function loadTokens() {
-    try {
-        if (!currentUser) {
-            console.log("No user logged in, skipping token load");
-            return;
+    const config = await configPromise;
+    supabase = createClient(config.url, config.anonKey, {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
         }
+    });
+    return supabase;
+}
 
-        const response = await fetch("/api/tokens/" + currentUser.uid);
+async function getAccessToken(){
+    const client = await getSupabaseClient();
+    const { data, error } = await client.auth.getSession();
+    if(error) throw error;
+    return data?.session?.access_token || "";
+}
 
-        if (!response.ok) {
-            throw new Error("Server returned " + response.status);
-        }
+async function apiFetch(url, options = {}){
+    const accessToken = await getAccessToken();
+    if(!accessToken) throw new Error("انتهت جلسة تسجيل الدخول");
 
-        const tokens = await response.json();
-        renderTokens(tokens);
+    const headers = new Headers(options.headers || {});
+    headers.set("Authorization", `Bearer ${accessToken}`);
+    if(options.body && !headers.has("Content-Type")){
+        headers.set("Content-Type", "application/json");
+    }
 
-    } catch (error) {
-        console.error("Load Tokens Error:", error);
-        tokensList.innerHTML = `<p style="color:red;">⚠️ خطأ في تحميل التوكنات</p>`;
+    return fetch(url, {...options, headers});
+}
+
+function showLoggedIn(user){
+    currentUser = user || null;
+    if(currentUser){
+        developerPage.style.display = "block";
+        loginPopup.style.display = "none";
+        loadTokens();
+    }else{
+        developerPage.style.display = "none";
+        loginPopup.style.display = "flex";
     }
 }
+
+// ================================
+// مراقبة جلسة Supabase
+// ================================
+async function initAuth(){
+    try{
+        const client = await getSupabaseClient();
+
+        const { data } = await client.auth.getSession();
+        showLoggedIn(data?.session?.user || null);
+
+        client.auth.onAuthStateChange((_event, session) => {
+            showLoggedIn(session?.user || null);
+        });
+    }catch(error){
+        console.error("Supabase Auth Init Error:", error);
+        developerPage.style.display = "none";
+        loginPopup.style.display = "flex";
+        const message = loginPopup.querySelector("p");
+        if(message){
+            message.textContent = "تعذر الاتصال بـ Supabase. تأكد من إعداد SUPABASE_ANON_KEY في Vercel.";
+        }
+    }
+}
+
+// ================================
+// تحميل Tokens الخاصة بالمستخدم فقط
+// ================================
+async function loadTokens(){
+    try{
+        if(!currentUser) return;
+
+        const response = await apiFetch("/api/tokens/" + encodeURIComponent(currentUser.id), {
+            method: "GET",
+            cache: "no-store"
+        });
+
+        const tokens = await response.json().catch(() => []);
+        if(!response.ok){
+            throw new Error(tokens?.message || "Server returned " + response.status);
+        }
+
+        renderTokens(Array.isArray(tokens) ? tokens : []);
+    }catch(error){
+        console.error("Load Tokens Error:", error);
+        tokensList.innerHTML = `<p style="color:red;">⚠️ ${escapeHtml(error.message || "خطأ في تحميل التوكنات")}</p>`;
+    }
+}
+
 // ================================
 // إنشاء Token
 // ================================
-
-if (form) {
+if(form){
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        if (!currentUser) {
+        if(!currentUser){
             alert("سجل الدخول أولاً");
             return;
         }
 
         const appName = document.getElementById("appName").value.trim();
         const appDomain = document.getElementById("appDomain").value.trim();
+        const submitButton = form.querySelector("button[type='submit']");
 
-        console.log("CURRENT USER UID:", currentUser.uid);
+        if(!appName){
+            alert("أدخل اسم التطبيق");
+            return;
+        }
 
-        try {
-            const response = await fetch("/api/tokens/create", {
+        if(submitButton) submitButton.disabled = true;
+
+        try{
+            const response = await apiFetch("/api/tokens/create", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
-                    userId: currentUser.uid,
                     appName,
                     domain: appDomain
                 })
             });
 
-            const data = await response.json();
-
-            if (data.success) {
-                form.reset();
-                loadTokens();
-                alert("تم إنشاء Token بنجاح");
-            } else {
-                alert("خطأ: " + (data.message || "فشل إنشاء التوكن"));
+            const data = await response.json().catch(() => ({}));
+            if(!response.ok || !data.success){
+                throw new Error(data.message || "فشل إنشاء Token");
             }
-        } catch (error) {
+
+            form.reset();
+            await loadTokens();
+
+            // المفتاح الكامل يظهر مرة واحدة فقط بعد الإنشاء.
+            const secret = data.token?.token || "";
+            if(secret){
+                showNewToken(secret);
+            }else{
+                alert("تم إنشاء Token بنجاح");
+            }
+        }catch(error){
             console.error("Create Token Error:", error);
-            alert("⚠️ خطأ في الاتصال بالخادم");
+            alert("⚠️ " + (error.message || "فشل إنشاء Token"));
+        }finally{
+            if(submitButton) submitButton.disabled = false;
         }
     });
 }
-// ================================
-// عرض Tokens
-// ================================
 
-function renderTokens(tokens) {
+// ================================
+// عرض Tokens بدون كشف المفتاح
+// ================================
+function renderTokens(tokens){
     tokensList.innerHTML = "";
 
-    if (!tokens || tokens.length === 0) {
+    if(!tokens || tokens.length === 0){
         tokensList.innerHTML = `<p>لا يوجد Token حاليا</p>`;
         return;
     }
@@ -124,38 +195,36 @@ function renderTokens(tokens) {
         item.innerHTML = `
             <div class="token-meta">
                 <div>
-                    <div class="token-name">${token.appName}</div>
-                    <div class="token-domain">${token.domain} • ${token.limit} طلب / يوم</div>
+                    <div class="token-name">${escapeHtml(token.appName || "My App")}</div>
+                    <div class="token-domain">${escapeHtml(token.domain || "بدون نطاق")} • ${Number(token.limit || 0)} طلب / يوم</div>
                 </div>
-                <span class="badge badge-active">نشط</span>
+                <span class="badge ${token.active ? "badge-active" : "badge-inactive"}">${token.active ? "نشط" : "متوقف"}</span>
             </div>
             <div class="token-stats">
-                <p>📊 الطلبات اليوم: ${token.requests || 0} / 200</p>
-                <p>🕒 آخر استعمال: ${token.lastUsed || "لا يوجد"}</p>
+                <p>📊 الطلبات اليوم: ${Number(token.requests || 0)} / ${Number(token.limit || 0)}</p>
+                <p>🕒 آخر استعمال: ${escapeHtml(token.lastUsed || "لا يوجد")}</p>
             </div>
             <div class="token-value-box">
-                <code>${token.token}</code>
-                <button class="btn-action copy">نسخ</button>
-                <button class="btn-action btn-delete delete">حذف</button>
+                <code>wall_live_••••••••••••••••</code>
+                <button class="btn-action btn-delete delete" type="button">حذف</button>
             </div>
         `;
 
-        item.querySelector(".copy").onclick = () => {
-            navigator.clipboard.writeText(token.token);
-            alert("تم نسخ Token");
-        };
-
         item.querySelector(".delete").onclick = async () => {
-            if (!confirm("حذف Token؟")) return;
+            if(!confirm("حذف هذا Token نهائيًا؟")) return;
 
-            try {
-                await fetch("/api/tokens/" + token.id, {
+            try{
+                const response = await apiFetch("/api/tokens/" + encodeURIComponent(token.id), {
                     method: "DELETE"
                 });
+                const data = await response.json().catch(() => ({}));
+                if(!response.ok || !data.success){
+                    throw new Error(data.message || "فشل حذف Token");
+                }
                 loadTokens();
-            } catch (error) {
+            }catch(error){
                 console.error("Delete Token Error:", error);
-                alert("⚠️ فشل حذف التوكن");
+                alert("⚠️ " + (error.message || "فشل حذف التوكن"));
             }
         };
 
@@ -163,21 +232,68 @@ function renderTokens(tokens) {
     });
 }
 
-
 // ================================
-// تسجيل الدخول بـ Google
+// تسجيل الدخول بواسطة Google عبر Supabase
 // ================================
-
-if (googleLoginBtn) {
+if(googleLoginBtn){
     googleLoginBtn.addEventListener("click", async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            const result = await signInWithPopup(auth, provider);
-            console.log("Login Success:", result.user);
-            // localStorage يتم التعامل معه تلقائياً من Firebase
-        } catch (error) {
-            console.error("Login Error:", error);
-            alert("فشل تسجيل الدخول: " + error.message);
+        googleLoginBtn.disabled = true;
+        try{
+            const client = await getSupabaseClient();
+            const redirectTo = new URL("developers.html", window.location.origin).href;
+            const { error } = await client.auth.signInWithOAuth({
+                provider: "google",
+                options: { redirectTo }
+            });
+            if(error) throw error;
+        }catch(error){
+            console.error("Supabase Google Login Error:", error);
+            alert("فشل تسجيل الدخول: " + (error.message || "خطأ غير معروف"));
+            googleLoginBtn.disabled = false;
         }
     });
 }
+
+// ================================
+// عرض المفتاح الجديد مرة واحدة
+// ================================
+function showNewToken(secret){
+    const box = document.createElement("div");
+    box.className = "token-one-time-box";
+    box.innerHTML = `
+        <div class="one-time-inner">
+            <h3>🔐 تم إنشاء Token</h3>
+            <p>احفظ هذا المفتاح الآن. لن يتم عرضه كاملًا مرة أخرى.</p>
+            <div class="one-time-token"><code>${escapeHtml(secret)}</code></div>
+            <div class="one-time-actions">
+                <button type="button" class="btn-action copy-new-token">نسخ المفتاح</button>
+                <button type="button" class="btn-action close-new-token">تم الحفظ</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(box);
+
+    box.querySelector(".copy-new-token").onclick = async () => {
+        try{
+            await navigator.clipboard.writeText(secret);
+            alert("تم نسخ Token");
+        }catch(error){
+            console.error("Copy Token Error:", error);
+            alert("تعذر النسخ تلقائيًا");
+        }
+    };
+
+    box.querySelector(".close-new-token").onclick = () => box.remove();
+}
+
+function escapeHtml(value){
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+initAuth();

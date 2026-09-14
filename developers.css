@@ -408,3 +408,39 @@ color:#475569;
 font-size:12px;
 
 }
+/* One-time API token modal */
+.token-one-time-box{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(10px);
+}
+.one-time-inner{
+    width:min(680px,100%);
+    padding:24px;
+    border-radius:22px;
+    background:rgba(20,20,28,.98);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 25px 80px rgba(0,0,0,.45);
+    text-align:center;
+}
+.one-time-inner h3{margin:0 0 10px}
+.one-time-inner p{opacity:.8;line-height:1.7}
+.one-time-token{
+    margin:18px 0;
+    padding:16px;
+    overflow:auto;
+    direction:ltr;
+    text-align:left;
+    border-radius:14px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);
+}
+.one-time-token code{word-break:break-all}
+.one-time-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.badge-inactive{opacity:.65}
