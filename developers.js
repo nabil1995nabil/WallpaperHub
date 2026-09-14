@@ -255,6 +255,52 @@ if(googleLoginBtn){
 }
 
 // ================================
+// أدوات دمج WallpaperHub API
+// ================================
+// تساعد المطور على تجهيز أمثلة الاستخدام.
+// لا تحفظ أو ترسل المفتاح إلى أي مكان من هذه الدوال.
+window.WallpaperHubDeveloper = {
+    endpoint: new URL("/api/v1/wallpapers", window.location.origin).href,
+
+    getJavaScriptExample(apiKey = "YOUR_API_KEY"){
+        return `const API_KEY = "${apiKey}";
+
+const response = await fetch("${new URL("/api/v1/wallpapers", window.location.origin).href}", {
+    headers: {
+        "X-API-Key": API_KEY
+    }
+});
+
+const result = await response.json();
+console.log(result.data);`;
+    },
+
+    getReactExample(apiKey = "YOUR_API_KEY"){
+        return `const API_KEY = "${apiKey}";
+
+async function getWallpapers(){
+    const response = await fetch("${new URL("/api/v1/wallpapers", window.location.origin).href}", {
+        headers: {
+            "X-API-Key": API_KEY
+        }
+    });
+
+    if(!response.ok){
+        throw new Error("WallpaperHub API request failed");
+    }
+
+    const result = await response.json();
+    return result.data || [];
+}`;
+    },
+
+    getCurlExample(apiKey = "YOUR_API_KEY"){
+        return `curl "${new URL("/api/v1/wallpapers", window.location.origin).href}" \
+  -H "X-API-Key: ${apiKey}"`;
+    }
+};
+
+// ================================
 // عرض المفتاح الجديد مرة واحدة
 // ================================
 function showNewToken(secret){

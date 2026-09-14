@@ -1902,32 +1902,10 @@ async function verifyApiToken(
 
 
         // ======================================
-        // حماية Token من IP مختلف
+        // لا نقفل API Key على IP واحد.
+        // يمكن لنفس التطبيق استخدام المفتاح من عدة مستخدمين/خوادم.
+        // يبقى last_ip متاحًا للإحصائيات فقط.
         // ======================================
-
-        if(!apiToken.last_ip){
-
-            apiToken.last_ip =
-                clientIp;
-
-        }
-
-        else if(
-            apiToken.last_ip !==
-            clientIp
-        ){
-
-            return res.status(403).json({
-
-                success:
-                    false,
-
-                message:
-                    "Token used from another IP"
-
-            });
-
-        }
 
 
         // ======================================
