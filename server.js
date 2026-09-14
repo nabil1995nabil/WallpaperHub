@@ -8,7 +8,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-const fetch = globalThis.fetch.bind(globalThis);
+const fetch = require("node-fetch");
 
 const { createClient } = require("@supabase/supabase-js");
 
@@ -80,23 +80,6 @@ async function requireAdmin(req, res){
     return user;
 }
 
-app.get("/api/admin/me", async (req, res) => {
-    try{
-        const user = await getAuthenticatedUser(req);
-        if(!user){
-            return res.status(401).json({ success:false, isAdmin:false });
-        }
-        return res.json({
-            success:true,
-            isAdmin:isAdminUser(user),
-            userId:String(user.id)
-        });
-    }catch(error){
-        console.log("ADMIN ME ERROR:", error);
-        return res.status(500).json({ success:false, isAdmin:false });
-    }
-});
-
 async function getPublisherProfile(user){
     const metadata = user?.user_metadata || {};
     let fullName = String(
@@ -140,6 +123,24 @@ const GEMINI_IMAGE_MODEL = "gemini-3.5-flash-exp";
 const app = express();
 
 const PORT = process.env.PORT || 3000;
+
+app.get("/api/admin/me", async (req, res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user){
+            return res.status(401).json({ success:false, isAdmin:false });
+        }
+        return res.json({
+            success:true,
+            isAdmin:isAdminUser(user),
+            userId:String(user.id)
+        });
+    }catch(error){
+        console.log("ADMIN ME ERROR:", error);
+        return res.status(500).json({ success:false, isAdmin:false });
+    }
+});
+
 
 
 
@@ -249,7 +250,7 @@ app.get(/^\/(.+)$/, async (req, res, next) => {
         if (contentType) res.set("Content-Type", contentType);
         res.set("Cache-Control", "public, max-age=300");
 
-        const body = Buffer.from(await remote.arrayBuffer());
+        const body = await remote.buffer();
         return res.send(body);
     } catch (error) {
         console.error("Static asset proxy error:", error.message);
