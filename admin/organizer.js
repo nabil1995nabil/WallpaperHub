@@ -1,4 +1,7 @@
 import { supabase } from "./supabase.js";
+
+// حساب المدير المسموح له بإدارة تصنيفات الخلفيات
+const ADMIN_UID = "0bad1b2a-b993-45f2-992c-f18509d9fa34";
 const API="/api/wallpapers";
 const ADMIN_CATEGORY_API="/api/admin/wallpapers";
 const CATS=[['nature','🌿','الطبيعة'],['amoled','🖤','AMOLED'],['games','🎮','الألعاب'],['cars','🚗','السيارات'],['animals','🐾','الحيوانات'],['anime','🎨','الأنمي'],['space','🌌','الفضاء'],['ai','🤖','AI'],['city','🏙️','المدن'],['dark','🌑','داكن'],['4k','✨','4K'],['sports','⚽','الرياضة'],['minimal','◻️','Minimal'],['rain','🌧️','المطر'],['sunset','🌅','الغروب'],['architecture','🏛️','الهندسة'],['deep-space','🪐','Deep Space'],['wallhaven','🧩','Wallhaven'],['other','📁','أخرى']];
@@ -31,14 +34,23 @@ function getAccessToken(){
 }
 async function getAdminHeaders(){
     const {data,error}=await supabase.auth.getSession();
-    const token=data?.session?.access_token;
-    if(error || !token) throw Error("AUTH_REQUIRED");
+    const session=data?.session;
+    const user=session?.user;
+    const token=session?.access_token;
+
+    if(error || !session || !user || !token) {
+        throw Error("AUTH_REQUIRED");
+    }
+
+    if(user.id !== ADMIN_UID) {
+        throw Error("ADMIN_FORBIDDEN");
+    }
+
     return {
         "Content-Type":"application/json",
         "Authorization":`Bearer ${token}`
     };
 }
-
 async function put(id,cat){
     const headers=await getAdminHeaders();
     const r=await fetch(`/api/admin/wallpapers/${encodeURIComponent(id)}/category`,{
@@ -141,6 +153,27 @@ async function loadMore(){
   }
 }
 async function load(){
+  try{
+    const {data,error}=await supabase.auth.getSession();
+    const user=data?.session?.user;
+    if(error || !user) throw Error("AUTH_REQUIRED");
+    if(user.id !== ADMIN_UID) throw Error("ADMIN_FORBIDDEN");
+  }catch(e){
+    console.error("Organizer authorization failed:",e);
+    E.syncStatus.textContent = e.message === "ADMIN_FORBIDDEN"
+      ? "غير مصرح لهذا الحساب"
+      : "يجب تسجيل الدخول";
+    E.loading.classList.add("hidden");
+    E.empty.classList.remove("hidden");
+    const strong=E.empty.querySelector("strong");
+    const span=E.empty.querySelector("span");
+    if(strong) strong.textContent = e.message === "ADMIN_FORBIDDEN"
+      ? "ليس لديك صلاحية المدير"
+      : "يجب تسجيل الدخول أولًا";
+    if(span) span.textContent = `هذا المنظم مخصص لحساب المدير: ${ADMIN_UID}`;
+    return;
+  }
+
   const cached=readLibraryCache();
   if(cached?.data?.length){
     wallpapers=cached.data.map(w=>({...w,id:Number(w.id)}));
