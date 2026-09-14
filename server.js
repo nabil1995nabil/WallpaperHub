@@ -1546,6 +1546,52 @@ app.put(
 );
 
 // ======================================
+// Admin-only Wallpaper Delete
+// حذف الخلفية محمي للأدمن فقط.
+// ======================================
+app.delete(
+    "/api/wallpapers/:id",
+    async (req, res) => {
+        try {
+            const admin = await requireAdmin(req, res);
+            if (!admin) return;
+
+            const id = Number(req.params.id);
+            if (!Number.isFinite(id) || id <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid wallpaper ID"
+                });
+            }
+
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .delete()
+                .eq("id", id)
+                .select("id")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Wallpaper not found"
+                });
+            }
+
+            return res.json({ success: true, id });
+        } catch (error) {
+            console.log("ADMIN DELETE WALLPAPER ERROR:", error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || "Failed to delete wallpaper"
+            });
+        }
+    }
+);
+
+// ======================================
 // TOKEN SYSTEM
 // ======================================
 
