@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#080b12">
+  <title>الخلفيات - WallpaperHub</title>
+  <link rel="stylesheet" href="wallpapers.css">
+</head>
+
+<body>
+  <header class="page-header">
+    <div class="header-icon">🖼️</div>
+    <div>
+      <h1>جميع الخلفيات</h1>
+      <p>إدارة وتصنيف خلفيات WallpaperHub من مكان واحد</p>
+    </div>
+    <button id="refreshBtn" class="header-refresh">↻ تحديث</button>
+  </header>
+
+  <main>
+    <!-- الإضافات الجديدة في الأعلى -->
+    <section class="manager-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="eyebrow">ADMIN MANAGER</span>
+          <h2>إدارة وتصنيف الخلفيات</h2>
+        </div>
+        <span class="result-badge"><b id="resultCount">0</b> نتيجة</span>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <span>🖼️</span>
+          <div><small>إجمالي الخلفيات</small><strong id="statTotal">0</strong></div>
+        </div>
+        <div class="stat-card selected-stat">
+          <span>☑️</span>
+          <div><small>المحدد حاليًا</small><strong id="statSelected">0</strong></div>
+        </div>
+        <div class="stat-card">
+          <span>🌿</span>
+          <div><small>الطبيعة</small><strong id="statNature">0</strong></div>
+        </div>
+        <div class="stat-card">
+          <span>📦</span>
+          <div><small>أخرى</small><strong id="statOther">0</strong></div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <label class="search-box">
+          <span>⌕</span>
+          <input id="wallSearch" type="search" placeholder="ابحث بالاسم أو ID أو الوسوم...">
+        </label>
+
+        <label class="filter-box">
+          <span>🗂️</span>
+          <select id="categoryFilter">
+            <option value="all">كل الأقسام</option>
+            <option value="nature">🌿 الطبيعة</option>
+            <option value="amoled">🖤 AMOLED</option>
+            <option value="games">🎮 ألعاب</option>
+            <option value="cars">🚗 سيارات</option>
+            <option value="animals">🐾 حيوانات</option>
+            <option value="anime">🎌 أنمي</option>
+            <option value="space">🌌 فضاء</option>
+            <option value="ai">🤖 ذكاء اصطناعي</option>
+            <option value="city">🏙️ مدن</option>
+            <option value="dark">🌑 داكن</option>
+            <option value="4k">💎 4K</option>
+            <option value="sports">⚽ رياضة</option>
+            <option value="minimal">✨ مينيمال</option>
+            <option value="rain">🌧️ مطر</option>
+            <option value="sunset">🌅 غروب</option>
+            <option value="architecture">🏛️ عمارة</option>
+            <option value="deep-space">🌠 فضاء عميق</option>
+            <option value="wallhaven">🧱 Wallhaven</option>
+            <option value="other">📦 أخرى</option>
+          </select>
+        </label>
+
+        <label class="filter-box">
+          <span>🎞️</span>
+          <select id="typeFilter">
+            <option value="all">كل الأنواع</option>
+            <option value="image">🖼️ صور فقط</option>
+            <option value="video">🎞️ فيديو / متحركة</option>
+          </select>
+        </label>
+
+        <label class="filter-box">
+          <span>↕️</span>
+          <select id="sortFilter">
+            <option value="newest">الأحدث أولًا</option>
+            <option value="oldest">الأقدم أولًا</option>
+            <option value="downloads">الأكثر تحميلًا</option>
+            <option value="likes">الأكثر إعجابًا</option>
+            <option value="views">الأكثر مشاهدة</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="quick-title">أقسام سريعة</div>
+      <div id="quickCategoryRow" class="quick-categories">
+        <button data-category="all">الكل</button>
+        <button data-category="nature">🌿 الطبيعة</button>
+        <button data-category="amoled">🖤 AMOLED</button>
+        <button data-category="anime">🎌 أنمي</button>
+        <button data-category="games">🎮 ألعاب</button>
+        <button data-category="cars">🚗 سيارات</button>
+        <button data-category="space">🌌 فضاء</button>
+        <button data-category="animals">🐾 حيوانات</button>
+        <button data-category="other">📦 أخرى</button>
+      </div>
+    </section>
+
+    <section id="bulkBar" class="bulk-bar hidden">
+      <div class="bulk-info">
+        <span class="bulk-check">✓</span>
+        <strong><span id="bulkCount">0</span> خلفية محددة</strong>
+      </div>
+      <div class="bulk-actions">
+        <button id="selectAllBtn" class="ghost-btn">☑️ تحديد الظاهر</button>
+        <button id="selectCategoryBtn" class="ghost-btn">📌 تحديد هذا القسم</button>
+        <button id="moveSelectedBtn" class="move-btn">📁 نقل إلى قسم</button>
+        <button id="clearSelectionBtn" class="ghost-btn">إلغاء التحديد</button>
+        <button id="bulkDeleteBtn" class="danger-btn">🗑️ حذف المحدد</button>
+      </div>
+    </section>
+
+    <div class="grid-heading">
+      <h2>الخلفيات المنشورة</h2>
+      <span>حدد عدة خلفيات ثم اختر القسم الذي تريد نقلها إليه</span>
+    </div>
+
+    <div id="wallpaperContainer"></div>
+  </main>
+
+  <!-- نافذة نقل جماعي -->
+  <div id="moveModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeMoveBtn" class="modal-close" aria-label="إغلاق">×</button>
+      <div class="modal-icon">📁</div>
+      <h2>نقل الخلفيات</h2>
+      <p>سيتم نقل <strong id="moveCount">0</strong> خلفية إلى قسم جديد.</p>
+
+      <label class="modal-label">اختر القسم الجديد</label>
+      <select id="moveCategory"></select>
+
+      <div class="safe-note">
+        🔒 سيتم تعديل <b>category</b> فقط.<br>
+        ❤️ الإعجابات و 🔖 المحفوظات و 📥 التحميلات و 👁️ المشاهدات لن يتم تعديلها.
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancelMoveBtn" class="ghost-btn">إلغاء</button>
+        <button id="confirmMoveBtn" class="move-btn">تأكيد النقل</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="wallpapers.js"></script>
+</body>
+</html>

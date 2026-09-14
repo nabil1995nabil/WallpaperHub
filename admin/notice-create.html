@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+إدارة الإعلانات - WallpaperHub
+</title>
+
+
+<link rel="stylesheet" href="notice-create.css">
+
+
+</head>
+
+
+<body>
+
+
+<div class="admin-wrapper">
+
+
+
+<header class="admin-header">
+
+
+<div class="admin-title">
+
+<h1>
+⚙️ مركز إدارة الإعلانات
+</h1>
+
+
+<p>
+قم بإنشاء ونشر الإعلانات والإشعارات العامة للمستخدمين
+</p>
+
+
+</div>
+
+
+<span class="admin-badge">
+حساب أدمن موثق
+</span>
+
+
+</header>
+
+
+
+
+
+<div class="stats-grid">
+
+
+<div class="stat-card">
+
+<div class="stat-icon">
+📢
+</div>
+
+
+<div class="stat-info">
+
+<h4 id="stat-total">
+0
+</h4>
+
+<span>
+إجمالي الإعلانات
+</span>
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="stat-card">
+
+<div class="stat-icon">
+👁️
+</div>
+
+
+<div class="stat-info">
+
+<h4>
+0
+</h4>
+
+<span>
+إجمالي المشاهدات
+</span>
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="stat-card">
+
+<div class="stat-icon">
+❤️
+</div>
+
+
+<div class="stat-info">
+
+<h4>
+0
+</h4>
+
+<span>
+التفاعلات
+</span>
+
+</div>
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div class="dashboard-grid">
+
+
+
+
+
+<section class="panel-box">
+
+
+<h2>
+✨ نشر إعلان جديد
+</h2>
+
+
+
+<form id="create-ad-form">
+
+
+
+<div class="form-group">
+
+<label>
+عنوان الإعلان
+</label>
+
+
+<input
+type="text"
+id="ad-title"
+class="form-control"
+placeholder="أدخل عنوان الإعلان"
+required
+>
+
+</div>
+
+
+
+
+
+
+<div class="form-group">
+
+<label>
+التصنيف
+</label>
+
+
+<select
+id="ad-category"
+class="form-control"
+>
+
+
+<option value="admin">
+📢 إعلان عام
+</option>
+
+
+<option value="update">
+🚀 تحديث جديد
+</option>
+
+
+<option value="event">
+🎉 فعالية
+</option>
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="form-group">
+
+
+<label>
+رابط الصورة
+</label>
+
+
+<input
+
+type="url"
+
+id="ad-image"
+
+class="form-control"
+
+placeholder="https://"
+
+>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div class="form-group">
+
+
+<label>
+أو اختر صورة
+</label>
+
+
+<input
+
+type="file"
+
+id="ad-file"
+
+accept="image/*"
+
+class="file-input"
+
+>
+
+
+<label
+for="ad-file"
+class="file-upload-btn"
+>
+
+📁 اختيار صورة
+
+</label>
+
+
+<div
+id="file-preview-name"
+class="file-name-preview"
+></div>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="form-group">
+
+
+<label>
+محتوى الإعلان
+</label>
+
+
+<textarea
+
+id="ad-content"
+
+class="form-control"
+
+placeholder="اكتب الإعلان هنا..."
+
+required
+
+></textarea>
+
+
+</div>
+
+
+
+
+
+<button
+type="submit"
+class="btn-submit"
+>
+
+🚀 نشر الإعلان
+
+</button>
+
+
+
+
+</form>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<section class="panel-box">
+
+
+<h2>
+📋 الإعلانات المنشورة
+</h2>
+
+
+
+<div
+class="ads-list"
+id="ads-container"
+>
+
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+<script src="notice-create.js"></script>
+
+
+</body>
+
+</html>
