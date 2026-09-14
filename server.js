@@ -8,7 +8,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-const fetch = require("node-fetch");
+const fetch = globalThis.fetch.bind(globalThis);
 
 const { createClient } = require("@supabase/supabase-js");
 
@@ -249,7 +249,7 @@ app.get(/^\/(.+)$/, async (req, res, next) => {
         if (contentType) res.set("Content-Type", contentType);
         res.set("Cache-Control", "public, max-age=300");
 
-        const body = await remote.buffer();
+        const body = Buffer.from(await remote.arrayBuffer());
         return res.send(body);
     } catch (error) {
         console.error("Static asset proxy error:", error.message);
