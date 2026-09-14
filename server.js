@@ -38,6 +38,65 @@ async function getAuthenticatedUser(req){
     return data.user;
 }
 
+// ======================================
+// Admin authorization
+// تصنيف الخلفيات لا يتغير إلا بواسطة الأدمن.
+// ضع UID الأدمن في متغير البيئة ADMIN_UIDS (يمكن فصل أكثر من UID بفاصلة).
+// ويمكن أيضًا استخدام app_metadata.role = "admin" لأنه محفوظ من جهة الخادم.
+// لا نستخدم user_metadata.role لأنه قابل للتعديل من المستخدم.
+// ======================================
+function isAdminUser(user){
+    if(!user) return false;
+
+    const adminUIDs = String(process.env.ADMIN_UIDS || "")
+        .split(",")
+        .map(v => v.trim())
+        .filter(Boolean);
+
+    const uid = String(user.id || "").trim();
+    if(uid && adminUIDs.includes(uid)) return true;
+
+    return String(user.app_metadata?.role || "").trim().toLowerCase() === "admin";
+}
+
+async function requireAdmin(req, res){
+    const user = await getAuthenticatedUser(req);
+    if(!user){
+        res.status(401).json({
+            success:false,
+            message:"يجب تسجيل الدخول"
+        });
+        return null;
+    }
+
+    if(!isAdminUser(user)){
+        res.status(403).json({
+            success:false,
+            message:"غير مصرح: هذه العملية للأدمن فقط"
+        });
+        return null;
+    }
+
+    return user;
+}
+
+app.get("/api/admin/me", async (req, res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user){
+            return res.status(401).json({ success:false, isAdmin:false });
+        }
+        return res.json({
+            success:true,
+            isAdmin:isAdminUser(user),
+            userId:String(user.id)
+        });
+    }catch(error){
+        console.log("ADMIN ME ERROR:", error);
+        return res.status(500).json({ success:false, isAdmin:false });
+    }
+});
+
 async function getPublisherProfile(user){
     const metadata = user?.user_metadata || {};
     let fullName = String(
@@ -1362,26 +1421,90 @@ app.post(
 );
 
 // ======================================
-// Update Wallpaper
+// Admin-only Category Update
+// تغيير القسم عملية مستقلة ومحميّة.
+// لا تغيّر ID أو الصورة أو اللايكات أو التحميلات أو المشاهدات.
 // ======================================
+app.patch(
+    "/api/admin/wallpapers/:id/category",
+    async(req,res)=>{
+        try{
+            const admin = await requireAdmin(req, res);
+            if(!admin) return;
 
+            const id = Number(req.params.id);
+            const category = String(req.body?.category || "")
+                .trim()
+                .toLowerCase();
 
+            if(!Number.isFinite(id) || id <= 0){
+                return res.status(400).json({ success:false, message:"Invalid wallpaper ID" });
+            }
+
+            if(!category){
+                return res.status(400).json({ success:false, message:"Category required" });
+            }
+
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .update({ category })
+                .eq("id", id)
+                .select("*")
+                .maybeSingle();
+
+            if(error) throw error;
+            if(!data){
+                return res.status(404).json({ success:false, message:"Wallpaper not found" });
+            }
+
+            return res.json({
+                success:true,
+                wallpaper:wallpaperFromDb(data)
+            });
+        }catch(error){
+            console.log("ADMIN CATEGORY UPDATE ERROR:", error);
+            return res.status(500).json({ success:false, message:error.message });
+        }
+    }
+);
+
+// ======================================
+// Update Wallpaper - Safe compatibility route
+// مهم: العملاء العاديون لا يستطيعون تغيير category/likes/downloads/views
+// عبر هذا المسار حتى لو أرسلوا كائن الخلفية كاملًا.
+// الأدمن فقط يمكنه استخدام هذه الحقول.
+// ======================================
 app.put(
     "/api/wallpapers/:id",
     async(req,res)=>{
         try{
             const id = Number(req.params.id);
-            const updates = {};
+            if(!Number.isFinite(id) || id <= 0){
+                return res.status(400).json({ success:false, message:"Invalid wallpaper ID" });
+            }
+
             const body = req.body || {};
+            const authenticatedUser = await getAuthenticatedUser(req);
+            const admin = isAdminUser(authenticatedUser);
 
             const map = {
-                title:"title", category:"category", thumbnail:"thumbnail", image:"image",
-                resolution:"resolution", size:"size", downloads:"downloads", likes:"likes",
-                views:"views", rating:"rating", ratingCount:"rating_count", ratingSum:"rating_sum",
+                title:"title", thumbnail:"thumbnail", image:"image",
+                resolution:"resolution", size:"size",
+                rating:"rating", ratingCount:"rating_count", ratingSum:"rating_sum",
                 author:"author", date:"date", colors:"colors", tags:"tags", featured:"featured",
                 todayWallpaper:"today_wallpaper", popular:"popular", type:"type", animated:"animated"
             };
 
+            // هذه الحقول لا تُقبل من PUT العام للعملاء العاديين.
+            // category لها endpoint أدمن مستقل، والإحصائيات لها endpoints مستقلة.
+            if(admin){
+                map.category = "category";
+                map.downloads = "downloads";
+                map.likes = "likes";
+                map.views = "views";
+            }
+
+            const updates = {};
             for(const [input,column] of Object.entries(map)){
                 if(Object.prototype.hasOwnProperty.call(body,input)){
                     updates[column] = body[input];
@@ -1395,7 +1518,12 @@ app.put(
             if(updates.tags !== undefined && !Array.isArray(updates.tags)) delete updates.tags;
 
             if(Object.keys(updates).length === 0){
-                return res.status(400).json({ success:false, message:"No valid fields" });
+                return res.status(400).json({
+                    success:false,
+                    message: admin
+                        ? "No valid fields"
+                        : "No editable fields. Category and statistics use dedicated endpoints."
+                });
             }
 
             const { data, error } = await supabase
@@ -3430,13 +3558,8 @@ app.patch(
 
             if (error) throw error;
 
-            const index = wallpapersCache.findIndex(
-                w => Number(w.id) === wallpaperId
-            );
-
-            if (index !== -1) {
-                wallpapersCache[index].colors = colors;
-            }
+            // لا يوجد wallpapersCache في نسخة Supabase الحالية،
+            // لذلك لا نحاول تحديث كاش غير موجود. قاعدة Supabase هي المصدر الوحيد.
 
             res.json({
                 success: true,
