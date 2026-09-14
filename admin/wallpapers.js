@@ -1,3 +1,5 @@
+import { supabase } from "../supabase.js";
+
 // ==========================================
 // WallpaperHub — Admin Wallpapers Manager
 // ==========================================
@@ -37,6 +39,24 @@ const state = {
   type: "all",
   sort: "newest"
 };
+
+// ===============================
+// مصادقة الأدمن مع الخادم
+// ===============================
+async function getAdminHeaders() {
+  const { data, error } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if (error || !token) {
+    throw new Error("يجب تسجيل الدخول أولاً");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  };
+}
+
 
 function escapeHTML(value) {
   return String(value ?? "")
@@ -400,9 +420,7 @@ async function moveSelectedWallpapers() {
       try {
         const response = await fetch(`/api/admin/wallpapers/${encodeURIComponent(id)}/category`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: await getAdminHeaders(),
           body: JSON.stringify({ category: targetCategory })
         });
 
@@ -450,10 +468,18 @@ async function deleteWallpaper(id) {
 
   try {
     const response = await fetch("/api/wallpapers/" + encodeURIComponent(id), {
-      method: "DELETE"
+      method: "DELETE",
+      headers: await getAdminHeaders()
     });
 
-    if (!response.ok) throw new Error("DELETE FAILED");
+    if (!response.ok) {
+      let message = "فشل الحذف";
+      try {
+        const data = await response.json();
+        message = data?.message || message;
+      } catch (_) {}
+      throw new Error(message);
+    }
 
     selectedWallpapers.delete(String(id));
     wallpapers = wallpapers.filter(w => String(w.id) !== String(id));
@@ -461,7 +487,7 @@ async function deleteWallpaper(id) {
     renderAll();
   } catch (error) {
     console.error(error);
-    alert("فشل حذف الخلفية.");
+    alert(error?.message || "فشل حذف الخلفية.");
   }
 }
 
@@ -494,7 +520,8 @@ async function deleteSelectedWallpapers() {
     for (const id of ids) {
       try {
         const response = await fetch("/api/wallpapers/" + encodeURIComponent(id), {
-          method: "DELETE"
+          method: "DELETE",
+          headers: await getAdminHeaders()
         });
 
         if (!response.ok) {
@@ -594,4 +621,30 @@ window.selectAllVisible = selectAllVisible;
 window.clearSelection = clearSelection;
 
 // تشغيل
-loadWallpapers();
+(async () => {
+  try {
+    const headers = await getAdminHeaders();
+    const response = await fetch("/api/admin/me", { headers });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.isAdmin) {
+      wallpaperContainer.innerHTML = `
+        <div class="empty-state error-state">
+          <div class="empty-icon">🔐</div>
+          <h3>لا تملك صلاحية الأدمن</h3>
+          <p>سجّل الدخول بحساب الأدمن ثم أعد فتح الصفحة.</p>
+        </div>`;
+      return;
+    }
+
+    loadWallpapers();
+  } catch (error) {
+    console.error("ADMIN AUTH ERROR:", error);
+    wallpaperContainer.innerHTML = `
+      <div class="empty-state error-state">
+        <div class="empty-icon">🔐</div>
+        <h3>انتهت جلسة تسجيل الدخول</h3>
+        <p>سجّل الدخول بحساب الأدمن ثم أعد فتح الصفحة.</p>
+      </div>`;
+  }
+})();
