@@ -1,203 +1,207 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-<title>
-Artguru AI Enhancer
-</title>
-
-
-<link rel="stylesheet" href="artguru.css">
-
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0d14">
+    <title>WallpaperHub AI — تحسين الصور</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="artguru.css">
 </head>
 
-
 <body>
-
-
-<header>
-
-<div class="logo">
-⚡ Artguru Studio
-</div>
-
-
-<button class="ai-btn">
-✨ تحسين بالذكاء الاصطناعي
-</button>
-
-
-</header>
-
-
-
-
-<div class="container">
-
-
-
-<!-- قسم الرفع -->
-
-<div class="main-card">
-
-
-<h2>
-طور صورك إلى دقة خارقة
-</h2>
-
-
-
-<p class="description">
-
-ارفع صورتك الآن لتفعيل ميزات المعالجة الذكية عبر Artguru API
-
-</p>
-
-
-
-
-<div class="upload-zone">
-
-
-
-<input
-type="file"
-id="imageInput"
-accept="image/*"
-hidden
->
-
-
-
-
-<div class="camera-icon">
-
-📸
-
-</div>
-
-
-
-<p>
-
-اسحب الصورة هنا أو اضغط لتصفح الملفات
-
-</p>
-
-
-
-
-<img
-id="previewImage"
-alt="Preview"
->
-
-
-
-</div>
-
-
-
-
-<br>
-
-
-
-<button
-id="enhanceBtn"
-class="ai-btn"
->
-
-✨ تحسين بالذكاء الاصطناعي
-
-</button>
-
-
-
-</div>
-
-
-
-
-
-
-
-<!-- معرض النتائج -->
-
-
-<h3 class="gallery-title">
-
-مستودع الصور المرفوعة والمحسنة
-
-</h3>
-
-
-
-
-<div class="gallery-grid">
-
-
-
-<!-- النتيجة -->
-
-<div class="gallery-item">
-
-
-<img
-id="resultImage"
-src=""
-alt="Enhanced Result"
->
-
-
-
-<div class="download-overlay">
-
-
-<button
-id="downloadBtn"
-class="download-btn"
->
-
-⬇️ تحميل النسخة المحسنة
-
-</button>
-
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-
-
-
-<script src="artguru.js"></script>
-
-
+    <div class="app-shell">
+        <div class="ambient ambient-one"></div>
+        <div class="ambient ambient-two"></div>
+
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="WallpaperHub">
+                <span class="brand-mark">W</span>
+                <span>
+                    <strong>WallpaperHub</strong>
+                    <small>AI Studio</small>
+                </span>
+            </a>
+
+            <div class="topbar-actions">
+                <span class="status-pill" id="statusPill"><i></i> <span id="statusText">جاري التحقق...</span></span>
+                <button class="icon-btn" id="clearBtn" type="button" title="بدء صورة جديدة" aria-label="بدء صورة جديدة">↻</button>
+            </div>
+        </header>
+
+        <main class="page">
+            <section class="hero">
+                <div class="eyebrow"><span>✦</span> استوديو الذكاء الاصطناعي</div>
+                <h1>حوّل صورتك إلى <em>نسخة خارقة</em></h1>
+                <p>ارفع صورة واحدة ودع المعالجة الذكية تستعيد التفاصيل والوضوح بأقل مجهود.</p>
+
+                <div class="feature-row">
+                    <span>✓ تفاصيل أوضح</span>
+                    <span>✓ تحسين تلقائي</span>
+                    <span>✓ تنزيل بجودة عالية</span>
+                </div>
+            </section>
+
+            <section class="workspace">
+                <div class="workspace-head">
+                    <div>
+                        <span class="section-kicker">01 / المصدر</span>
+                        <h2>اختر الصورة</h2>
+                    </div>
+                    <span class="format-note">JPG · PNG · WEBP</span>
+                </div>
+
+                <div class="upload-zone" id="uploadZone" tabindex="0" role="button" aria-label="اختيار صورة">
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+
+                    <div class="upload-empty" id="uploadEmpty">
+                        <div class="upload-icon"><span>↑</span></div>
+                        <h3>اسحب الصورة هنا</h3>
+                        <p>أو اضغط لاختيارها من هاتفك</p>
+                        <button class="browse-btn" id="browseBtn" type="button">اختيار صورة</button>
+                        <div class="upload-trust">
+                            <span>⚡ معالجة ذكية</span>
+                            <span>•</span>
+                            <span>أقصى دقة ممكنة</span>
+                        </div>
+                    </div>
+
+                    <div class="source-preview" id="sourcePreview" hidden>
+                        <img id="previewImage" alt="معاينة الصورة الأصلية">
+                        <div class="preview-shade"></div>
+                        <div class="preview-meta">
+                            <div>
+                                <span>الصورة الأصلية</span>
+                                <strong id="fileName">image.jpg</strong>
+                            </div>
+                            <div class="preview-actions">
+                                <span class="image-stats" id="imageStats">—</span>
+                                <button class="change-btn" id="changeBtn" type="button">تغيير</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-grid">
+                    <div class="control-card">
+                        <span class="control-icon">✦</span>
+                        <div>
+                            <strong>تحسين التفاصيل</strong>
+                            <small>معالجة ذكية تلقائية</small>
+                        </div>
+                        <span class="enabled">مفعّل</span>
+                    </div>
+
+                    <div class="control-card">
+                        <span class="control-icon">◈</span>
+                        <div>
+                            <strong>الحفاظ على الصورة</strong>
+                            <small>بدون تغيير الشكل الأصلي</small>
+                        </div>
+                        <span class="enabled">مفعّل</span>
+                    </div>
+                </div>
+
+                <button id="enhanceBtn" class="enhance-btn" type="button" disabled>
+                    <span class="btn-icon">✦</span>
+                    <span class="btn-label">ابدأ التحسين بالذكاء الاصطناعي</span>
+                    <span class="btn-progress" aria-hidden="true"></span>
+                </button>
+
+                <div class="studio-notes">
+                    <span>⚡ تحسين تلقائي</span>
+                    <span>🖼️ يحافظ على الشكل الأصلي</span>
+                    <span>🔒 المفتاح محفوظ على الخادم</span>
+                </div>
+                <p class="privacy-note">🔒 لا يتم إرسال مفتاح Artguru إلى المتصفح.</p>
+            </section>
+
+            <section class="result-section" id="resultSection" hidden>
+                <div class="workspace-head">
+                    <div>
+                        <span class="section-kicker">02 / النتيجة</span>
+                        <h2>قبل وبعد</h2>
+                    </div>
+                    <span class="result-badge">AI Enhanced</span>
+                </div>
+
+                <div class="compare-card">
+                    <div class="compare-stage" id="compareStage">
+                        <img id="originalResultImage" class="compare-image" alt="الصورة الأصلية">
+                        <div class="after-layer" id="afterLayer">
+                            <img id="resultImage" class="compare-image" alt="الصورة المحسنة">
+                        </div>
+                        <div class="compare-label before-label">قبل</div>
+                        <div class="compare-label after-label">بعد</div>
+                        <div class="compare-divider" id="compareDivider">
+                            <span>↔</span>
+                        </div>
+                    </div>
+
+                    <div class="compare-control">
+                        <span>الأصل</span>
+                        <input id="compareRange" type="range" min="5" max="95" value="50" aria-label="مقارنة قبل وبعد">
+                        <span>محسّن</span>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button id="downloadBtn" class="download-btn" type="button">
+                        <span>↓</span> تحميل الصورة المحسنة
+                    </button>
+                    <button id="newImageBtn" class="secondary-btn" type="button">صورة جديدة</button>
+                </div>
+
+                <div class="result-info">
+                    <div><span>الحالة</span><strong id="resultStatus">تم التحسين بنجاح</strong></div>
+                    <div><span>المعالجة</span><strong>Artguru AI</strong></div>
+                    <div><span>الدقة</span><strong id="resultResolution">—</strong></div>
+                </div>
+            </section>
+
+            <section class="tools-section">
+                <div class="tools-title">
+                    <div>
+                        <span class="section-kicker">03 / أدوات الاستوديو</span>
+                        <h2>المزيد قادم</h2>
+                    </div>
+                    <span>قريباً</span>
+                </div>
+
+                <div class="tools-grid">
+                    <article class="tool-card active-tool">
+                        <span>✦</span>
+                        <div><strong>AI Enhance</strong><small>تحسين الصورة</small></div>
+                        <b>متاح</b>
+                    </article>
+                    <article class="tool-card">
+                        <span>⌁</span>
+                        <div><strong>AI Upscale</strong><small>تكبير إلى 4K</small></div>
+                        <b>قريباً</b>
+                    </article>
+                    <article class="tool-card">
+                        <span>◌</span>
+                        <div><strong>Photo Restore</strong><small>ترميم الصور القديمة</small></div>
+                        <b>قريباً</b>
+                    </article>
+                    <article class="tool-card">
+                        <span>◐</span>
+                        <div><strong>Smart Color</strong><small>استعادة الألوان</small></div>
+                        <b>قريباً</b>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span>WallpaperHub</span>
+            <span>AI Studio · إصدار جديد</span>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="artguru.js"></script>
 </body>
-
-
 </html>

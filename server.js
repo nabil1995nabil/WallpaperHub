@@ -117,6 +117,146 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const GEMINI_MODEL = "gemini-3.5-flash";
 const GEMINI_IMAGE_MODEL = "gemini-3.5-flash-exp";
+
+// ======================================
+// Artguru Open API
+// API key stays server-side only.
+// ======================================
+const ARTGURU_API_KEY = String(process.env.ARTGURU_API_KEY || "").trim();
+const ARTGURU_API_BASE = String(process.env.ARTGURU_API_BASE || "https://api.artguru.ai").replace(/\/$/, "");
+const ARTGURU_BUCKET = String(process.env.ARTGURU_BUCKET || "artguru-temp").trim();
+const ARTGURU_TASK_TIMEOUT_MS = Math.max(30000, Number(process.env.ARTGURU_TASK_TIMEOUT_MS || 180000));
+const ARTGURU_POLL_MS = Math.max(1500, Number(process.env.ARTGURU_POLL_MS || 2500));
+
+function parseDataImage(value){
+    const raw = String(value || "");
+    const match = raw.match(/^data:(image\/(?:jpeg|png|webp|gif|avif|bmp));base64,(.+)$/i);
+    if(!match) return null;
+    const mimeType = match[1].toLowerCase();
+    const buffer = Buffer.from(match[2], "base64");
+    if(!buffer.length) return null;
+    return { mimeType, buffer };
+}
+
+async function ensureArtguruBucket(){
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    if(listError) throw listError;
+    if((buckets || []).some(bucket => bucket.name === ARTGURU_BUCKET)) return;
+
+    const { error: createError } = await supabase.storage.createBucket(ARTGURU_BUCKET, {
+        public: false,
+        fileSizeLimit: "15MB"
+    });
+
+    // Another request may have created it at the same time.
+    if(createError && !/already exists|duplicate/i.test(String(createError.message || ""))){
+        throw createError;
+    }
+}
+
+async function uploadArtguruSource(dataImage){
+    const parsed = parseDataImage(dataImage);
+    if(!parsed) throw new Error("صيغة الصورة غير مدعومة. استخدم JPG أو PNG أو WEBP.");
+    if(parsed.buffer.length > 12 * 1024 * 1024){
+        throw new Error("حجم الصورة كبير جدًا. الحد الأقصى 12MB.");
+    }
+
+    await ensureArtguruBucket();
+
+    const ext = parsed.mimeType.split("/")[1] === "jpeg" ? "jpg" : parsed.mimeType.split("/")[1];
+    const objectPath = `enhance/${Date.now()}-${crypto.randomBytes(8).toString("hex")}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from(ARTGURU_BUCKET)
+        .upload(objectPath, parsed.buffer, {
+            contentType: parsed.mimeType,
+            upsert: false
+        });
+
+    if(uploadError) throw uploadError;
+
+    const { data: signed, error: signedError } = await supabase.storage
+        .from(ARTGURU_BUCKET)
+        .createSignedUrl(objectPath, 900);
+
+    if(signedError || !signed?.signedUrl){
+        await supabase.storage.from(ARTGURU_BUCKET).remove([objectPath]).catch(()=>{});
+        throw signedError || new Error("تعذر إنشاء رابط مؤقت للصورة.");
+    }
+
+    return { objectPath, signedUrl: signed.signedUrl };
+}
+
+async function deleteArtguruSource(objectPath){
+    if(!objectPath) return;
+    try{
+        await supabase.storage.from(ARTGURU_BUCKET).remove([objectPath]);
+    }catch(error){
+        console.log("ARTGURU SOURCE CLEANUP ERROR:", error.message);
+    }
+}
+
+async function artguruRequest(url, options = {}){
+    if(!ARTGURU_API_KEY) throw new Error("ARTGURU_API_KEY غير مضبوط على الخادم.");
+
+    const response = await fetch(url, {
+        ...options,
+        headers:{
+            ...(options.headers || {}),
+            "x-api-key": ARTGURU_API_KEY,
+            "Accept":"application/json"
+        }
+    });
+
+    const text = await response.text();
+    let data = {};
+    try{ data = text ? JSON.parse(text) : {}; }catch(_error){ data = { raw:text }; }
+
+    if(!response.ok){
+        const message = data?.message || data?.msg || `Artguru API error (${response.status})`;
+        const error = new Error(message);
+        error.status = response.status;
+        error.payload = data;
+        throw error;
+    }
+
+    return data;
+}
+
+async function createArtguruEnhanceTask(imageUrl){
+    const data = await artguruRequest(`${ARTGURU_API_BASE}/api/v1/enhance/generate`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ image:imageUrl })
+    });
+
+    if(Number(data?.code) !== 0){
+        throw new Error(data?.message || data?.msg || "تعذر إنشاء مهمة التحسين.");
+    }
+
+    const taskId = data?.data?.tasks?.[0]?.taskId;
+    if(!taskId) throw new Error("Artguru لم يرجع رقم المهمة.");
+    return { taskId, queueStatus:data?.data?.queueStatus || "PENDING" };
+}
+
+async function waitForArtguruTask(taskId){
+    const startedAt = Date.now();
+
+    while(Date.now() - startedAt < ARTGURU_TASK_TIMEOUT_MS){
+        const data = await artguruRequest(`${ARTGURU_API_BASE}/api/v1/tasks/ENHANCE/${encodeURIComponent(taskId)}`);
+        const status = String(data?.data?.status || "").toUpperCase();
+        const image = data?.data?.generateImage || data?.data?.image || data?.data?.url || "";
+
+        if(status === "SUCCESS" && image) return { image, status };
+        if(["FAILED","FAIL","ERROR","CANCELED","CANCELLED"].includes(status)){
+            throw new Error(data?.message || data?.data?.message || "فشلت معالجة Artguru للصورة.");
+        }
+
+        await new Promise(resolve => setTimeout(resolve, ARTGURU_POLL_MS));
+    }
+
+    throw new Error("انتهت مهلة انتظار Artguru. حاول مرة أخرى.");
+}
 // ======================================
 // Express
 // ======================================
@@ -172,7 +312,7 @@ app.use(
 
 app.use(
     express.json({
-        limit:"10mb"
+        limit:"20mb"
     })
 );
 
@@ -2513,134 +2653,112 @@ app.post(
 );
 
 // ==========================================
-// Artguru Enhance
+// Artguru Enhance — real Open API integration
 // ==========================================
+app.post("/api/artguru/enhance", async (req, res) => {
+    let source = null;
 
+    try{
+        if(!ARTGURU_API_KEY){
+            return res.status(503).json({
+                success:false,
+                code:"ARTGURU_NOT_CONFIGURED",
+                message:"خدمة تحسين الصور غير مهيأة بعد على الخادم."
+            });
+        }
 
-app.post(
-"/api/artguru/enhance",
-async(req,res)=>{
+        const image = String(req.body?.image || "").trim();
+        if(!image){
+            return res.status(400).json({ success:false, message:"Image required" });
+        }
 
+        source = await uploadArtguruSource(image);
+        const task = await createArtguruEnhanceTask(source.signedUrl);
+        const result = await waitForArtguruTask(task.taskId);
 
-try{
-
-
-const image =
-req.body.image;
-
-
-
-if(!image){
-
-
-return res.status(400).json({
-
-success:false,
-
-message:
-"Image required"
-
+        return res.json({
+            success:true,
+            provider:"artguru",
+            data:{
+                image:result.image,
+                imageUrl:result.image,
+                taskId:task.taskId,
+                status:result.status,
+                mode:"photo-enhance",
+                message:"تم تحسين الصورة بنجاح",
+                enhancedAt:new Date().toISOString()
+            }
+        });
+    }catch(error){
+        console.log("ARTGURU ERROR:", error?.message || error);
+        const status = Number(error?.status) === 401 ? 502 : (Number(error?.status) === 429 ? 429 : 500);
+        return res.status(status).json({
+            success:false,
+            code:Number(error?.status) === 429 ? "ARTGURU_RATE_LIMIT" : "ARTGURU_ERROR",
+            message:error?.message || "حدث خطأ أثناء تحسين الصورة."
+        });
+    }finally{
+        await deleteArtguruSource(source?.objectPath);
+    }
 });
-
-
-}
-
-
-
-
-await new Promise(
-resolve =>
-setTimeout(
-resolve,
-1500
-)
-);
-
-
-
-res.json({
-
-success:true,
-
-data:{
-
-image,
-
-mode:
-"enhanced",
-
-message:
-"تم تحسين الصورة بنجاح",
-
-enhancedAt:
-new Date()
-.toISOString()
-
-}
-
-});
-
-
-
-
-}catch(error){
-
-
-console.log(
-"ARTGURU ERROR:",
-error
-);
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-});
-
-
-
-
 
 // ==========================================
 // Artguru Status
+// Never expose the API key to the browser.
 // ==========================================
+app.get("/api/artguru/status", async (req, res) => {
+    const configured = Boolean(ARTGURU_API_KEY);
 
+    if(!configured){
+        return res.json({
+            success:true,
+            provider:"artguru",
+            configured:false,
+            status:"not_configured",
+            serverTime:new Date().toISOString()
+        });
+    }
 
-app.get(
-"/api/artguru/status",
-(req,res)=>{
+    try{
+        // A lightweight authenticated request validates the key without starting a paid task.
+        const response = await fetch(`${ARTGURU_API_BASE}/api/v1/tasks/ENHANCE/__status_check__`, {
+            method:"GET",
+            headers:{"x-api-key":ARTGURU_API_KEY,"Accept":"application/json"}
+        });
 
+        // 404 is expected for a fake task id and still proves the endpoint/key path is reachable.
+        if(response.status === 401){
+            return res.status(502).json({success:false,provider:"artguru",configured:true,status:"invalid_key"});
+        }
 
-res.json({
-
-success:true,
-
-provider:
-"mock",
-
-status:
-"ready",
-
-serverTime:
-new Date()
-.toISOString()
-
+        return res.json({
+            success:true,
+            provider:"artguru",
+            configured:true,
+            status:"ready",
+            serverTime:new Date().toISOString()
+        });
+    }catch(error){
+        return res.json({
+            success:true,
+            provider:"artguru",
+            configured:true,
+            status:"unreachable",
+            serverTime:new Date().toISOString()
+        });
+    }
 });
 
-
+// Backward-compatible status endpoint for older artguru.js versions.
+app.get("/api/status", async (req, res) => {
+    const configured = Boolean(ARTGURU_API_KEY);
+    return res.json({
+        success:true,
+        artguruKey:configured,
+        provider:"artguru",
+        status:configured ? "ready" : "not_configured"
+    });
 });
-
-
-
-
-
 
 // =========================
 // Comments API (Supabase)
