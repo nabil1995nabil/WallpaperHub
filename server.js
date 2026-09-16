@@ -459,6 +459,14 @@ app.get(
 
 
 app.get(
+    "/community",
+    (req,res)=>{
+        res.sendFile(path.join(__dirname, "community", "community.html"));
+    }
+);
+
+
+app.get(
     "/admin",
     (req,res)=>{
 
@@ -3524,6 +3532,157 @@ app.patch(
         }
     }
 );
+
+
+// ======================================
+// Community API
+// الرسائل العامة - هوية المستخدم تؤخذ من Supabase Auth
+// ======================================
+
+function communityMessageResponse(row, profile) {
+    return {
+        id: String(row.id),
+        userId: String(row.user_id),
+        text: String(row.content || ""),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at || null,
+        deleted: Boolean(row.deleted_at),
+        user: {
+            id: String(row.user_id),
+            name: String(profile?.full_name || profile?.username || "عضو"),
+            username: String(profile?.username || ""),
+            avatarUrl: String(profile?.avatar_url || "")
+        }
+    };
+}
+
+async function getCommunityProfiles(userIds) {
+    const ids = [...new Set((userIds || []).map(v => String(v).trim()).filter(Boolean))];
+    if (!ids.length) return new Map();
+
+    const { data, error } = await supabase
+        .from("profiles")
+        .select("id,full_name,username,avatar_url")
+        .in("id", ids);
+
+    if (error) throw error;
+
+    return new Map((data || []).map(profile => [String(profile.id), profile]));
+}
+
+app.get("/api/community/messages", async (req, res) => {
+    try {
+        const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 50, 1), 100);
+        const { data, error } = await supabase
+            .from("community_messages")
+            .select("id,user_id,content,created_at,updated_at,deleted_at")
+            .order("created_at", { ascending: true })
+            .limit(limit);
+
+        if (error) throw error;
+
+        const profiles = await getCommunityProfiles((data || []).map(row => row.user_id));
+        const messages = (data || []).map(row =>
+            communityMessageResponse(row, profiles.get(String(row.user_id)))
+        );
+
+        res.json({ success: true, messages });
+    } catch (error) {
+        console.log("GET COMMUNITY MESSAGES ERROR:", error);
+        res.status(500).json({ success: false, message: "تعذر تحميل رسائل المجتمع" });
+    }
+});
+
+app.post("/api/community/messages", async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user) {
+            return res.status(401).json({ success: false, message: "يجب تسجيل الدخول للمشاركة" });
+        }
+
+        const content = String(req.body?.content || "").trim();
+        if (!content) {
+            return res.status(400).json({ success: false, message: "اكتب رسالة أولاً" });
+        }
+        if (content.length > 2000) {
+            return res.status(400).json({ success: false, message: "الرسالة طويلة جدًا" });
+        }
+
+        const { data, error } = await supabase
+            .from("community_messages")
+            .insert({
+                user_id: user.id,
+                content
+            })
+            .select("id,user_id,content,created_at,updated_at,deleted_at")
+            .single();
+
+        if (error) throw error;
+
+        const profiles = await getCommunityProfiles([user.id]);
+        res.status(201).json({
+            success: true,
+            message: communityMessageResponse(data, profiles.get(String(user.id)))
+        });
+    } catch (error) {
+        console.log("POST COMMUNITY MESSAGE ERROR:", error);
+        res.status(500).json({ success: false, message: "تعذر إرسال الرسالة" });
+    }
+});
+
+app.get("/api/community/messages/:id", async (req, res) => {
+    try {
+        const id = String(req.params.id || "").trim();
+        if (!id) return res.status(400).json({ success:false, message:"معرّف الرسالة غير صالح" });
+
+        const { data, error } = await supabase
+            .from("community_messages")
+            .select("id,user_id,content,created_at,updated_at,deleted_at")
+            .eq("id", id)
+            .maybeSingle();
+        if (error) throw error;
+        if (!data) return res.status(404).json({ success:false, message:"الرسالة غير موجودة" });
+
+        const profiles = await getCommunityProfiles([data.user_id]);
+        res.json({ success:true, message:communityMessageResponse(data, profiles.get(String(data.user_id))) });
+    } catch (error) {
+        console.log("GET COMMUNITY MESSAGE ERROR:", error);
+        res.status(500).json({ success:false, message:"تعذر تحميل الرسالة" });
+    }
+});
+
+app.delete("/api/community/messages/:id", async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user) {
+            return res.status(401).json({ success: false, message: "يجب تسجيل الدخول" });
+        }
+
+        const id = String(req.params.id || "").trim();
+        if (!id) {
+            return res.status(400).json({ success: false, message: "معرّف الرسالة غير صالح" });
+        }
+
+        const { data, error } = await supabase
+            .from("community_messages")
+            .delete()
+            .eq("id", id)
+            .eq("user_id", user.id)
+            .select("id")
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!data) {
+            return res.status(404).json({ success: false, message: "الرسالة غير موجودة أو ليست لك" });
+        }
+
+        res.json({ success: true, id: String(data.id) });
+    } catch (error) {
+        console.log("DELETE COMMUNITY MESSAGE ERROR:", error);
+        res.status(500).json({ success: false, message: "تعذر حذف الرسالة" });
+    }
+});
+
 
 // ======================================
 // Start / Export Server
