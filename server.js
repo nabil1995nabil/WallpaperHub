@@ -3622,6 +3622,403 @@ function communityFallbackProfile(user) {
     };
 }
 
+
+// ======================================
+// Private one-to-one Community Chat API
+// ======================================
+
+function privateUserResponse(profile, fallbackId){
+    return {
+        id: String(profile?.id || fallbackId || ""),
+        name: String(profile?.full_name || profile?.username || "عضو"),
+        username: String(profile?.username || ""),
+        avatarUrl: String(profile?.avatar_url || "")
+    };
+}
+
+async function getPrivateProfiles(userIds){
+    const ids = [...new Set(
+        (userIds || []).map(v => String(v).trim()).filter(Boolean)
+    )];
+    if(!ids.length) return new Map();
+
+    const { data, error } = await supabase
+        .from("profiles")
+        .select("id,full_name,username,avatar_url")
+        .in("id", ids);
+
+    if(error) throw error;
+
+    return new Map((data || []).map(profile => [String(profile.id), profile]));
+}
+
+function privateFallbackUser(user){
+    const metadata = user?.user_metadata || {};
+    return {
+        id: String(user?.id || ""),
+        name: String(
+            metadata.full_name || metadata.name || metadata.user_name ||
+            user?.email?.split("@")[0] || "عضو"
+        ),
+        username: String(metadata.username || metadata.user_name || ""),
+        avatarUrl: String(metadata.avatar_url || metadata.picture || "")
+    };
+}
+
+async function getPrivateConversation(conversationId){
+    const { data, error } = await supabase
+        .from("private_conversations")
+        .select("id,user_one_id,user_two_id,created_at,updated_at")
+        .eq("id", conversationId)
+        .maybeSingle();
+
+    if(error) throw error;
+    return data || null;
+}
+
+async function requirePrivateConversationMember(conversationId, userId){
+    const data = await getPrivateConversation(conversationId);
+    if(!data) return null;
+
+    const uid = String(userId);
+    if(
+        String(data.user_one_id) !== uid &&
+        String(data.user_two_id) !== uid
+    ) return false;
+
+    return data;
+}
+
+function privateMessageResponse(row, sender){
+    return {
+        id: String(row.id),
+        conversationId: String(row.conversation_id),
+        senderId: String(row.sender_id),
+        text: String(row.content || ""),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at || null,
+        deleted: Boolean(row.deleted_at),
+        sender: sender || {
+            id: String(row.sender_id),
+            name: "عضو",
+            username: "",
+            avatarUrl: ""
+        }
+    };
+}
+
+app.get("/api/community/private/conversations", async (req,res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+
+        const limit = Math.min(
+            Math.max(Number.parseInt(req.query.limit,10) || 50,1),100
+        );
+        const uid = String(user.id);
+
+        const { data, error } = await supabase
+            .from("private_conversations")
+            .select("id,user_one_id,user_two_id,created_at,updated_at")
+            .or(`user_one_id.eq.${uid},user_two_id.eq.${uid}`)
+            .order("updated_at",{ascending:false})
+            .limit(limit);
+
+        if(error) throw error;
+
+        const rows = data || [];
+        const otherIds = rows.map(row =>
+            String(row.user_one_id) === uid ? row.user_two_id : row.user_one_id
+        );
+
+        let profiles = new Map();
+        try{
+            profiles = await getPrivateProfiles(otherIds);
+        }catch(profileError){
+            console.log("PRIVATE CONVERSATION PROFILE ERROR:",profileError?.message || profileError);
+        }
+
+        const conversations = [];
+        for(const row of rows){
+            const otherId =
+                String(row.user_one_id) === uid
+                    ? String(row.user_two_id)
+                    : String(row.user_one_id);
+
+            let lastMessage = null;
+            try{
+                const { data:lastRows, error:lastError } = await supabase
+                    .from("private_messages")
+                    .select("id,sender_id,content,created_at,deleted_at")
+                    .eq("conversation_id",row.id)
+                    .order("created_at",{ascending:false})
+                    .limit(1);
+                if(lastError) throw lastError;
+
+                const last = lastRows?.[0];
+                if(last){
+                    lastMessage = {
+                        id:String(last.id),
+                        text:last.deleted_at ? "تم حذف الرسالة" : String(last.content || ""),
+                        createdAt:last.created_at
+                    };
+                }
+            }catch(lastError){
+                console.log("PRIVATE LAST MESSAGE ERROR:",lastError?.message || lastError);
+            }
+
+            conversations.push({
+                id:String(row.id),
+                createdAt:row.created_at,
+                updatedAt:row.updated_at,
+                otherUser:
+                    profiles.get(otherId)
+                        ? privateUserResponse(profiles.get(otherId),otherId)
+                        : {id:otherId,name:"عضو",username:"",avatarUrl:""},
+                lastMessage
+            });
+        }
+
+        return res.json({success:true,conversations});
+    }catch(error){
+        console.log("GET PRIVATE CONVERSATIONS ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تحميل المحادثات الخاصة"});
+    }
+});
+
+app.post("/api/community/private/conversations", async (req,res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+
+        const targetId = String(req.body?.userId || "").trim();
+        const currentId = String(user.id);
+
+        if(!targetId) return res.status(400).json({success:false,message:"معرّف العضو غير صالح"});
+        if(targetId === currentId) return res.status(400).json({success:false,message:"لا يمكنك بدء محادثة مع نفسك"});
+
+        const firstId = currentId < targetId ? currentId : targetId;
+        const secondId = currentId < targetId ? targetId : currentId;
+
+        const { data:existing, error:existingError } = await supabase
+            .from("private_conversations")
+            .select("id,user_one_id,user_two_id,created_at,updated_at")
+            .eq("user_one_id",firstId)
+            .eq("user_two_id",secondId)
+            .maybeSingle();
+
+        if(existingError) throw existingError;
+
+        if(existing){
+            return res.json({
+                success:true,
+                conversation:{id:String(existing.id),createdAt:existing.created_at,updatedAt:existing.updated_at}
+            });
+        }
+
+        const id = crypto.randomUUID();
+        const now = new Date().toISOString();
+
+        const { error:insertError } = await supabase
+            .from("private_conversations")
+            .insert({
+                id,user_one_id:firstId,user_two_id:secondId,
+                created_at:now,updated_at:now
+            });
+
+        if(insertError) throw insertError;
+
+        return res.status(201).json({
+            success:true,
+            conversation:{id,createdAt:now,updatedAt:now}
+        });
+    }catch(error){
+        console.log("POST PRIVATE CONVERSATION ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر إنشاء المحادثة الخاصة"});
+    }
+});
+
+app.get("/api/community/private/messages/:conversationId", async (req,res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+
+        const conversationId = String(req.params.conversationId || "").trim();
+        if(!conversationId) return res.status(400).json({success:false,message:"معرّف المحادثة غير صالح"});
+
+        const membership = await requirePrivateConversationMember(conversationId,user.id);
+        if(membership === null) return res.status(404).json({success:false,message:"المحادثة غير موجودة"});
+        if(membership === false) return res.status(403).json({success:false,message:"هذه المحادثة ليست متاحة لك"});
+
+        const limit = Math.min(
+            Math.max(Number.parseInt(req.query.limit,10) || 100,1),100
+        );
+
+        const { data,error } = await supabase
+            .from("private_messages")
+            .select("id,conversation_id,sender_id,content,created_at,updated_at,deleted_at")
+            .eq("conversation_id",conversationId)
+            .order("created_at",{ascending:true})
+            .limit(limit);
+
+        if(error) throw error;
+
+        let profiles = new Map();
+        try{
+            profiles = await getPrivateProfiles((data || []).map(row => row.sender_id));
+        }catch(profileError){
+            console.log("PRIVATE MESSAGE PROFILE ERROR:",profileError?.message || profileError);
+        }
+
+        return res.json({
+            success:true,
+            messages:(data || []).map(row =>
+                privateMessageResponse(
+                    row,
+                    profiles.get(String(row.sender_id)) ||
+                    (String(row.sender_id) === String(user.id) ? privateFallbackUser(user) : null)
+                )
+            )
+        });
+    }catch(error){
+        console.log("GET PRIVATE MESSAGES ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تحميل المحادثة الخاصة"});
+    }
+});
+
+app.post("/api/community/private/messages/:conversationId", async (req,res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+
+        const conversationId = String(req.params.conversationId || "").trim();
+        const content = String(req.body?.content || "").trim();
+
+        if(!conversationId) return res.status(400).json({success:false,message:"معرّف المحادثة غير صالح"});
+        if(!content) return res.status(400).json({success:false,message:"اكتب رسالة أولاً"});
+        if(content.length > 2000) return res.status(400).json({success:false,message:"الرسالة طويلة جدًا"});
+
+        const membership = await requirePrivateConversationMember(conversationId,user.id);
+        if(membership === null) return res.status(404).json({success:false,message:"المحادثة غير موجودة"});
+        if(membership === false) return res.status(403).json({success:false,message:"لا يمكنك إرسال رسالة في هذه المحادثة"});
+
+        const id = crypto.randomUUID();
+        const createdAt = new Date().toISOString();
+
+        const { error:insertError } = await supabase
+            .from("private_messages")
+            .insert({
+                id,conversation_id:conversationId,sender_id:user.id,
+                content,created_at:createdAt
+            });
+
+        if(insertError) throw insertError;
+
+        const { error:updateError } = await supabase
+            .from("private_conversations")
+            .update({updated_at:createdAt})
+            .eq("id",conversationId);
+
+        if(updateError){
+            console.log("PRIVATE CONVERSATION UPDATE ERROR:",updateError?.message || updateError);
+        }
+
+        const profile = await getPrivateProfiles([user.id])
+            .then(map => map.get(String(user.id)) || null)
+            .catch(() => null);
+
+        return res.status(201).json({
+            success:true,
+            message:privateMessageResponse(
+                {
+                    id,conversation_id:conversationId,sender_id:user.id,content,
+                    created_at:createdAt,updated_at:null,deleted_at:null
+                },
+                profile || privateFallbackUser(user)
+            )
+        });
+    }catch(error){
+        console.log("POST PRIVATE MESSAGE ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر إرسال الرسالة الخاصة"});
+    }
+});
+
+app.get("/api/community/private/messages/by-id/:id", async (req,res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+
+        const id = String(req.params.id || "").trim();
+        if(!id) return res.status(400).json({success:false,message:"معرّف الرسالة غير صالح"});
+
+        const { data,error } = await supabase
+            .from("private_messages")
+            .select("id,conversation_id,sender_id,content,created_at,updated_at,deleted_at")
+            .eq("id",id)
+            .maybeSingle();
+
+        if(error) throw error;
+        if(!data) return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
+
+        const membership = await requirePrivateConversationMember(data.conversation_id,user.id);
+        if(membership === null) return res.status(404).json({success:false,message:"المحادثة غير موجودة"});
+        if(membership === false) return res.status(403).json({success:false,message:"غير مصرح"});
+
+        const profile = await getPrivateProfiles([data.sender_id])
+            .then(map => map.get(String(data.sender_id)) || null)
+            .catch(() => null);
+
+        return res.json({
+            success:true,
+            message:privateMessageResponse(data,profile)
+        });
+    }catch(error){
+        console.log("GET PRIVATE MESSAGE BY ID ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تحميل الرسالة الخاصة"});
+    }
+});
+
+app.delete("/api/community/private/messages/:id", async (req,res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+
+        const id = String(req.params.id || "").trim();
+        if(!id) return res.status(400).json({success:false,message:"معرّف الرسالة غير صالح"});
+
+        const { data:existing,error:readError } = await supabase
+            .from("private_messages")
+            .select("id,conversation_id,sender_id")
+            .eq("id",id)
+            .maybeSingle();
+
+        if(readError) throw readError;
+        if(!existing) return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
+
+        if(String(existing.sender_id) !== String(user.id)){
+            return res.status(403).json({success:false,message:"لا يمكنك حذف رسالة ليست لك"});
+        }
+
+        const membership = await requirePrivateConversationMember(existing.conversation_id,user.id);
+        if(membership === null) return res.status(404).json({success:false,message:"المحادثة غير موجودة"});
+        if(membership === false) return res.status(403).json({success:false,message:"غير مصرح"});
+
+        const { error:deleteError } = await supabase
+            .from("private_messages")
+            .delete()
+            .eq("id",id)
+            .eq("sender_id",user.id);
+
+        if(deleteError) throw deleteError;
+
+        return res.json({success:true,id});
+    }catch(error){
+        console.log("DELETE PRIVATE MESSAGE ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر حذف الرسالة الخاصة"});
+    }
+});
+
+
 app.get("/api/community/messages", async (req, res) => {
     try {
         const limit = Math.min(

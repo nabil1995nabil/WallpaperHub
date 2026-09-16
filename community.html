@@ -235,9 +235,15 @@
             <span class="eyebrow">COMMUNITY</span>
             <h2>أعضاء المجتمع</h2>
           </div>
-          <button class="panel-back" data-back-general type="button"><span class="material-icons-round">arrow_back</span> الغرفة العامة</button>
+          <div class="panel-heading-actions">
+            <button class="private-inbox-button" id="privateInboxButton" type="button">
+              <span class="material-icons-round">chat</span> محادثاتي الخاصة
+            </button>
+            <button class="panel-back" data-back-general type="button"><span class="material-icons-round">arrow_back</span> الغرفة العامة</button>
+          </div>
         </div>
         <div class="all-members" id="allMembers"></div>
+        <div class="private-conversations hidden" id="privateConversations"></div>
       </section>
 
       <section class="secondary-panel hidden" id="filesPanel">
@@ -254,6 +260,47 @@
           <h2>مواضيع المجتمع</h2>
           <p>اختر موضوعًا رائجًا من الجانب أو ابدأ نقاشًا جديدًا من هنا.</p>
           <button class="hero-cta" data-back-general type="button">العودة للغرفة العامة</button>
+        </div>
+      </section>
+
+
+      <section class="private-chat-overlay hidden" id="privateChatOverlay" aria-hidden="true">
+        <div class="private-chat-window" role="dialog" aria-modal="true" aria-labelledby="privateChatTitle">
+          <header class="private-chat-head">
+            <div class="private-chat-user">
+              <button class="private-close" id="privateClose" type="button" aria-label="إغلاق">
+                <span class="material-icons-round">arrow_forward</span>
+              </button>
+              <div class="private-user-avatar" id="privateUserAvatar">ع</div>
+              <div>
+                <strong id="privateChatTitle">محادثة خاصة</strong>
+                <small><i></i><span id="privateUserStatus">محادثة بينكما فقط</span></small>
+              </div>
+            </div>
+            <button class="small-icon" id="privateMore" type="button" aria-label="المزيد">
+              <span class="material-icons-round">more_vert</span>
+            </button>
+          </header>
+          <div class="private-feed" id="privateFeed">
+            <div class="private-empty">
+              <div class="private-empty-icon"><span class="material-icons-round">lock</span></div>
+              <h3>محادثة خاصة</h3>
+              <p>الرسائل هنا بينك وبين هذا العضو فقط.</p>
+            </div>
+          </div>
+          <form class="private-composer" id="privateComposer">
+            <button type="button" class="attach" id="privateAttach" aria-label="إرفاق">
+              <span class="material-icons-round">add</span>
+            </button>
+            <div class="composer-field">
+              <input id="privateMessage" maxlength="2000" autocomplete="off" placeholder="اكتب رسالة خاصة...">
+              <button type="button" class="emoji-button" id="privateEmoji" aria-label="إضافة رمز">☺</button>
+            </div>
+            <button class="send" type="submit" id="privateSend">
+              <span>إرسال</span>
+              <span class="material-icons-round">send</span>
+            </button>
+          </form>
         </div>
       </section>
 
