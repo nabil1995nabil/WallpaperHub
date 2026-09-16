@@ -168,9 +168,16 @@
           </div>
 
           <form class="composer" id="composer">
-            <button type="button" class="attach" id="attachButton" title="إرفاق" aria-label="إرفاق">
+            <button type="button" class="attach" id="attachButton" title="إرسال صورة" aria-label="إرسال صورة">
               <span class="material-icons-round">add</span>
             </button>
+            <input id="imageInput" type="file" accept="image/*" hidden>
+            <div class="attachment-preview hidden" id="attachmentPreview">
+              <img id="attachmentPreviewImage" alt="معاينة الصورة">
+              <button type="button" id="removeAttachment" aria-label="إزالة الصورة">
+                <span class="material-icons-round">close</span>
+              </button>
+            </div>
             <div class="composer-field">
               <input id="message" autocomplete="off" maxlength="2000" placeholder="اكتب رسالة للمجتمع..." aria-label="رسالة المجتمع">
               <button type="button" class="emoji-button" id="emojiButton" aria-label="إضافة رمز">☺</button>
@@ -289,9 +296,16 @@
             </div>
           </div>
           <form class="private-composer" id="privateComposer">
-            <button type="button" class="attach" id="privateAttach" aria-label="إرفاق">
+            <button type="button" class="attach" id="privateAttach" aria-label="إرسال صورة">
               <span class="material-icons-round">add</span>
             </button>
+            <input id="privateImageInput" type="file" accept="image/*" hidden>
+            <div class="attachment-preview hidden" id="privateAttachmentPreview">
+              <img id="privateAttachmentPreviewImage" alt="معاينة الصورة">
+              <button type="button" id="privateRemoveAttachment" aria-label="إزالة الصورة">
+                <span class="material-icons-round">close</span>
+              </button>
+            </div>
             <div class="composer-field">
               <input id="privateMessage" maxlength="2000" autocomplete="off" placeholder="اكتب رسالة خاصة...">
               <button type="button" class="emoji-button" id="privateEmoji" aria-label="إضافة رمز">☺</button>

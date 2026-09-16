@@ -3540,6 +3540,106 @@ app.patch(
 // ======================================
 
 // ======================================
+// Community chat media
+// صور المجتمع تُضغط في المتصفح ثم تُرفع هنا.
+// ======================================
+const COMMUNITY_MEDIA_BUCKET = "community-media";
+const COMMUNITY_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+
+function parseCommunityImage(value){
+    const raw = String(value || "");
+    const match = raw.match(/^data:(image\/(?:jpeg|jpg|png|webp|gif));base64,(.+)$/i);
+    if(!match) return null;
+
+    const mimeType = match[1].toLowerCase().replace("image/jpg","image/jpeg");
+    const buffer = Buffer.from(match[2], "base64");
+
+    if(!buffer.length) return null;
+    if(buffer.length > COMMUNITY_IMAGE_MAX_BYTES){
+        throw new Error("حجم الصورة كبير جدًا. الحد الأقصى 8MB.");
+    }
+
+    return {mimeType,buffer};
+}
+
+async function ensureCommunityMediaBucket(){
+    const {data:buckets,error:listError} = await supabase.storage.listBuckets();
+    if(listError) throw listError;
+
+    if((buckets || []).some(bucket => bucket.name === COMMUNITY_MEDIA_BUCKET)){
+        return;
+    }
+
+    const {error:createError} = await supabase.storage.createBucket(
+        COMMUNITY_MEDIA_BUCKET,
+        {
+            public:true,
+            fileSizeLimit:`${COMMUNITY_IMAGE_MAX_BYTES}B`,
+            allowedMimeTypes:[
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif"
+            ]
+        }
+    );
+
+    if(createError && !/already exists|duplicate/i.test(String(createError.message || ""))){
+        throw createError;
+    }
+}
+
+async function uploadCommunityImage(imageData,userId,messageId){
+    const parsed = parseCommunityImage(imageData);
+    if(!parsed) throw new Error("صيغة الصورة غير مدعومة.");
+
+    await ensureCommunityMediaBucket();
+
+    const ext =
+        parsed.mimeType === "image/jpeg" ? "jpg" :
+        parsed.mimeType === "image/png" ? "png" :
+        parsed.mimeType === "image/gif" ? "gif" : "webp";
+
+    const objectPath =
+        `messages/${String(userId)}/${String(messageId)}.${ext}`;
+
+    const {error:uploadError} = await supabase.storage
+        .from(COMMUNITY_MEDIA_BUCKET)
+        .upload(objectPath,parsed.buffer,{
+            contentType:parsed.mimeType,
+            cacheControl:"31536000",
+            upsert:false
+        });
+
+    if(uploadError) throw uploadError;
+
+    const {data} = supabase.storage
+        .from(COMMUNITY_MEDIA_BUCKET)
+        .getPublicUrl(objectPath);
+
+    if(!data?.publicUrl){
+        await supabase.storage.from(COMMUNITY_MEDIA_BUCKET).remove([objectPath]).catch(()=>{});
+        throw new Error("تعذر إنشاء رابط الصورة.");
+    }
+
+    return {
+        imageUrl:String(data.publicUrl),
+        imagePath:objectPath
+    };
+}
+
+async function deleteCommunityImage(imagePath){
+    if(!imagePath) return;
+    try{
+        await supabase.storage
+            .from(COMMUNITY_MEDIA_BUCKET)
+            .remove([String(imagePath)]);
+    }catch(error){
+        console.log("COMMUNITY IMAGE CLEANUP ERROR:",error?.message || error);
+    }
+}
+
+// ======================================
 // Community API
 // ======================================
 
@@ -3548,6 +3648,8 @@ function communityMessageResponse(row, profile) {
         id: String(row.id),
         userId: String(row.user_id),
         text: String(row.content || ""),
+        imageUrl: String(row.image_url || ""),
+        imagePath: String(row.image_path || ""),
         createdAt: row.created_at,
         updatedAt: row.updated_at || null,
         deleted: Boolean(row.deleted_at),
@@ -3739,6 +3841,8 @@ function privateMessageResponse(row, sender){
         conversationId: String(row.conversation_id),
         senderId: String(row.sender_id),
         text: String(row.content || ""),
+        imageUrl: String(row.image_url || ""),
+        imagePath: String(row.image_path || ""),
         createdAt: row.created_at,
         updatedAt: row.updated_at || null,
         deleted: Boolean(row.deleted_at),
@@ -3793,7 +3897,7 @@ app.get("/api/community/private/conversations", async (req,res) => {
             try{
                 const { data:lastRows, error:lastError } = await supabase
                     .from("private_messages")
-                    .select("id,sender_id,content,created_at,deleted_at")
+                    .select("id,sender_id,content,image_url,created_at,deleted_at")
                     .eq("conversation_id",row.id)
                     .order("created_at",{ascending:false})
                     .limit(1);
@@ -3804,6 +3908,7 @@ app.get("/api/community/private/conversations", async (req,res) => {
                     lastMessage = {
                         id:String(last.id),
                         text:last.deleted_at ? "تم حذف الرسالة" : String(last.content || ""),
+                        imageUrl:last.deleted_at ? "" : String(last.image_url || ""),
                         createdAt:last.created_at
                     };
                 }
@@ -3900,7 +4005,7 @@ app.get("/api/community/private/messages/:conversationId", async (req,res) => {
 
         const { data,error } = await supabase
             .from("private_messages")
-            .select("id,conversation_id,sender_id,content,created_at,updated_at,deleted_at")
+            .select("id,conversation_id,sender_id,content,image_url,image_path,created_at,updated_at,deleted_at")
             .eq("conversation_id",conversationId)
             .order("created_at",{ascending:true})
             .limit(limit);
@@ -3937,9 +4042,10 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
 
         const conversationId = String(req.params.conversationId || "").trim();
         const content = String(req.body?.content || "").trim();
+        const imageData = String(req.body?.imageData || "").trim();
 
         if(!conversationId) return res.status(400).json({success:false,message:"معرّف المحادثة غير صالح"});
-        if(!content) return res.status(400).json({success:false,message:"اكتب رسالة أولاً"});
+        if(!content && !imageData) return res.status(400).json({success:false,message:"اكتب رسالة أو اختر صورة أولاً"});
         if(content.length > 2000) return res.status(400).json({success:false,message:"الرسالة طويلة جدًا"});
 
         const membership = await requirePrivateConversationMember(conversationId,user.id);
@@ -3948,15 +4054,33 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
 
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();
+        let media = null;
 
-        const { error:insertError } = await supabase
-            .from("private_messages")
-            .insert({
-                id,conversation_id:conversationId,sender_id:user.id,
-                content,created_at:createdAt
-            });
+        try{
+            if(imageData){
+                media = await uploadCommunityImage(imageData,user.id,id);
+            }
 
-        if(insertError) throw insertError;
+            const { error:insertError } = await supabase
+                .from("private_messages")
+                .insert({
+                    id,
+                    conversation_id:conversationId,
+                    sender_id:user.id,
+                    content,
+                    image_url:media?.imageUrl || null,
+                    image_path:media?.imagePath || null,
+                    created_at:createdAt
+                });
+
+            if(insertError){
+                if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+                throw insertError;
+            }
+        }catch(error){
+            if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+            throw error;
+        }
 
         const { error:updateError } = await supabase
             .from("private_conversations")
@@ -3976,6 +4100,8 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
             message:privateMessageResponse(
                 {
                     id,conversation_id:conversationId,sender_id:user.id,content,
+                    image_url:media?.imageUrl || null,
+                    image_path:media?.imagePath || null,
                     created_at:createdAt,updated_at:null,deleted_at:null
                 },
                 profile || privateFallbackUser(user)
@@ -3997,7 +4123,7 @@ app.get("/api/community/private/messages/by-id/:id", async (req,res) => {
 
         const { data,error } = await supabase
             .from("private_messages")
-            .select("id,conversation_id,sender_id,content,created_at,updated_at,deleted_at")
+            .select("id,conversation_id,sender_id,content,image_url,image_path,created_at,updated_at,deleted_at")
             .eq("id",id)
             .maybeSingle();
 
@@ -4032,7 +4158,7 @@ app.delete("/api/community/private/messages/:id", async (req,res) => {
 
         const { data:existing,error:readError } = await supabase
             .from("private_messages")
-            .select("id,conversation_id,sender_id")
+            .select("id,conversation_id,sender_id,image_path")
             .eq("id",id)
             .maybeSingle();
 
@@ -4055,6 +4181,10 @@ app.delete("/api/community/private/messages/:id", async (req,res) => {
 
         if(deleteError) throw deleteError;
 
+        if(existing.image_path){
+            await deleteCommunityImage(existing.image_path);
+        }
+
         return res.json({success:true,id});
     }catch(error){
         console.log("DELETE PRIVATE MESSAGE ERROR:",error?.message || error);
@@ -4076,7 +4206,7 @@ app.get("/api/community/messages", async (req, res) => {
         const { data, error } = await supabase
             .from("community_messages")
             .select(
-                "id,user_id,content,created_at,updated_at,deleted_at"
+                "id,user_id,content,image_url,image_path,created_at,updated_at,deleted_at"
             )
             .order("created_at", { ascending: true })
             .limit(limit);
@@ -4137,10 +4267,12 @@ app.post("/api/community/messages", async (req, res) => {
             req.body?.content || ""
         ).trim();
 
-        if (!content) {
+        const imageData = String(req.body?.imageData || "").trim();
+
+        if (!content && !imageData) {
             return res.status(400).json({
                 success: false,
-                message: "اكتب رسالة أولاً"
+                message: "اكتب رسالة أو اختر صورة أولاً"
             });
         }
 
@@ -4151,36 +4283,48 @@ app.post("/api/community/messages", async (req, res) => {
             });
         }
 
-        // Generate the UUID ourselves. This lets the API return a
-        // successful message immediately after INSERT without relying
-        // on INSERT ... SELECT, which was the source of the false
-        // "تعذر إرسال الرسالة" state.
         const messageId = crypto.randomUUID();
         const createdAt = new Date().toISOString();
 
-        const { error } = await supabase
-            .from("community_messages")
-            .insert({
-                id: messageId,
-                user_id: user.id,
-                content,
-                created_at: createdAt
-            });
+        let media = null;
 
-        if (error) {
-            console.log(
-                "COMMUNITY MESSAGE INSERT ERROR:",
-                error?.message || error,
-                error?.code || ""
-            );
+        try{
+            if(imageData){
+                media = await uploadCommunityImage(
+                    imageData,
+                    user.id,
+                    messageId
+                );
+            }
 
-            return res.status(500).json({
-                success: false,
-                message: "تعذر حفظ الرسالة في قاعدة البيانات"
-            });
+            const { error } = await supabase
+                .from("community_messages")
+                .insert({
+                    id: messageId,
+                    user_id: user.id,
+                    content,
+                    image_url: media?.imageUrl || null,
+                    image_path: media?.imagePath || null,
+                    created_at: createdAt
+                });
+
+            if (error) {
+                console.log(
+                    "COMMUNITY MESSAGE INSERT ERROR:",
+                    error?.message || error,
+                    error?.code || ""
+                );
+                if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+                return res.status(500).json({
+                    success: false,
+                    message: "تعذر حفظ الرسالة في قاعدة البيانات"
+                });
+            }
+        }catch(error){
+            if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+            throw error;
         }
 
-        // Profile is best-effort only.
         const profile =
             await getCommunityProfileSafe(user.id) ||
             communityFallbackProfile(user);
@@ -4190,6 +4334,8 @@ app.post("/api/community/messages", async (req, res) => {
                 id: messageId,
                 user_id: user.id,
                 content,
+                image_url: media?.imageUrl || null,
+                image_path: media?.imagePath || null,
                 created_at: createdAt,
                 updated_at: null,
                 deleted_at: null
@@ -4230,7 +4376,7 @@ app.get("/api/community/messages/:id", async (req, res) => {
         const { data, error } = await supabase
             .from("community_messages")
             .select(
-                "id,user_id,content,created_at,updated_at,deleted_at"
+                "id,user_id,content,image_url,image_path,created_at,updated_at,deleted_at"
             )
             .eq("id", id)
             .maybeSingle();
@@ -4334,7 +4480,7 @@ app.delete("/api/community/messages/:id", async (req, res) => {
         const { data: existing, error: readError } =
             await supabase
                 .from("community_messages")
-                .select("id,user_id")
+                .select("id,user_id,image_path")
                 .eq("id", id)
                 .maybeSingle();
 
@@ -4361,6 +4507,10 @@ app.delete("/api/community/messages/:id", async (req, res) => {
             .eq("user_id", user.id);
 
         if (deleteError) throw deleteError;
+
+        if(existing.image_path){
+            await deleteCommunityImage(existing.image_path);
+        }
 
         return res.json({
             success: true,

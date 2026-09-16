@@ -13,6 +13,8 @@ let privateTarget = null;
 let privateConversationId = null;
 let privateRealtimeChannel = null;
 let privateConversationsCache = [];
+let pendingImageData = null;
+let pendingPrivateImageData = null;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -128,8 +130,36 @@ function renderMessage(message){
   meta.append(name,time);
 
   const bubble = document.createElement('div');
-  bubble.className = 'message-bubble';
-  bubble.textContent = message.deleted ? 'تم حذف هذه الرسالة' : String(message.text || '');
+  const hasImage = Boolean(message.imageUrl) && !message.deleted;
+  bubble.className = `message-bubble ${hasImage ? 'has-image' : ''}`;
+
+  if(message.deleted){
+    bubble.textContent = 'تم حذف هذه الرسالة';
+  }else if(hasImage){
+    const imageWrap = document.createElement('div');
+    imageWrap.className = 'message-image-wrap';
+
+    const image = document.createElement('img');
+    image.className = 'message-image';
+    image.src = message.imageUrl;
+    image.alt = 'صورة مرسلة';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+
+    imageWrap.appendChild(image);
+
+    const caption = String(message.text || '').trim();
+    if(caption){
+      const captionEl = document.createElement('div');
+      captionEl.className = 'message-image-caption';
+      captionEl.textContent = caption;
+      imageWrap.appendChild(captionEl);
+    }
+
+    bubble.appendChild(imageWrap);
+  }else{
+    bubble.textContent = String(message.text || '');
+  }
 
   stack.append(meta,bubble);
 
@@ -152,7 +182,6 @@ function renderMessage(message){
 
   return row;
 }
-
 function hasMessage(id){
   return Boolean(id && feed.querySelector(`[data-id="${CSS.escape(String(id))}"]`));
 }
@@ -261,9 +290,94 @@ async function deleteMessage(id, element){
   }
 }
 
+function prepareImageForChat(file){
+  return new Promise((resolve,reject) => {
+    if(!file.type || !file.type.startsWith('image/')){
+      reject(new Error('اختر صورة فقط'));
+      return;
+    }
+
+    if(file.size > 12 * 1024 * 1024){
+      reject(new Error('حجم الصورة الأصلية كبير جدًا. الحد الأقصى 12MB.'));
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onload = () => {
+        const maxSide = 1600;
+        const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        const width = Math.max(1, Math.round(img.naturalWidth * scale));
+        const height = Math.max(1, Math.round(img.naturalHeight * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if(!ctx){
+          reject(new Error('تعذر تجهيز الصورة'));
+          return;
+        }
+
+        ctx.drawImage(img,0,0,width,height);
+
+        let quality = 0.84;
+        let dataUrl = canvas.toDataURL('image/webp',quality);
+
+        // Keep uploads reasonably small while preserving good mobile quality.
+        for(let i=0;i<5 && dataUrl.length > 2_800_000;i++){
+          quality -= 0.08;
+          dataUrl = canvas.toDataURL('image/webp',Math.max(.5,quality));
+        }
+
+        if(dataUrl.length > 4_500_000){
+          reject(new Error('تعذر ضغط الصورة إلى حجم مناسب. اختر صورة أصغر.'));
+          return;
+        }
+
+        resolve(dataUrl);
+      };
+
+      img.onerror = () => reject(new Error('تعذر قراءة الصورة'));
+      img.src = String(reader.result || '');
+    };
+
+    reader.onerror = () => reject(new Error('تعذر قراءة الصورة'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function showPendingImage(dataUrl,previewSelector,imageSelector){
+  const preview = $(previewSelector);
+  const image = $(imageSelector);
+  if(!preview || !image) return;
+  image.src = dataUrl;
+  preview.classList.remove('hidden');
+}
+
+function clearPendingImage(){
+  pendingImageData = null;
+  const preview = $('#attachmentPreview');
+  const image = $('#attachmentPreviewImage');
+  if(image) image.removeAttribute('src');
+  if(preview) preview.classList.add('hidden');
+}
+
+function clearPendingPrivateImage(){
+  pendingPrivateImageData = null;
+  const preview = $('#privateAttachmentPreview');
+  const image = $('#privateAttachmentPreviewImage');
+  if(image) image.removeAttribute('src');
+  if(preview) preview.classList.add('hidden');
+}
+
 async function sendMessage(){
   const content = input.value.trim();
-  if(!content || !currentUser || send.disabled) return;
+  if((!content && !pendingImageData) || !currentUser || send.disabled) return;
 
   send.disabled = true;
 
@@ -274,7 +388,10 @@ async function sendMessage(){
         'Content-Type':'application/json',
         ...(await authHeaders())
       },
-      body:JSON.stringify({content})
+      body:JSON.stringify({
+        content,
+        imageData: pendingImageData || null
+      })
     });
 
     if(result?.message){
@@ -282,6 +399,7 @@ async function sendMessage(){
     }
 
     input.value = '';
+    clearPendingImage();
     input.focus();
   }catch(error){
     showToast(error.message);
@@ -289,7 +407,6 @@ async function sendMessage(){
     updateComposerState();
   }
 }
-
 form.addEventListener('submit',event => {
   event.preventDefault();
   sendMessage();
@@ -441,7 +558,7 @@ function renderPrivateConversations(){
     `;
     $('.private-conversation-info b',item).textContent = conversation.otherUser?.name || 'عضو';
     $('.private-conversation-info small',item).textContent =
-      conversation.lastMessage?.text || 'ابدأ محادثة خاصة';
+      conversation.lastMessage?.text || (conversation.lastMessage?.imageUrl ? '📷 صورة' : 'ابدأ محادثة خاصة');
     $('.private-conversation-time',item).textContent =
       conversation.lastMessage?.createdAt ? timeOf(conversation.lastMessage.createdAt) : '';
 
@@ -566,9 +683,37 @@ function renderPrivateMessage(message){
   time.className = 'private-message-time';
   time.textContent = timeOf(message.createdAt);
 
+  const hasImage = Boolean(message.imageUrl) && !message.deleted;
   const bubble = document.createElement('div');
-  bubble.className = `private-message-bubble ${message.deleted ? 'private-message-deleted' : ''}`;
-  bubble.textContent = message.deleted ? 'تم حذف هذه الرسالة' : String(message.text || '');
+  bubble.className = `private-message-bubble ${hasImage ? 'has-image' : ''} ${message.deleted ? 'private-message-deleted' : ''}`;
+
+  if(message.deleted){
+    bubble.textContent = 'تم حذف هذه الرسالة';
+  }else if(hasImage){
+    const imageWrap = document.createElement('div');
+    imageWrap.className = 'private-message-image-wrap';
+
+    const image = document.createElement('img');
+    image.className = 'private-message-image';
+    image.src = message.imageUrl;
+    image.alt = 'صورة مرسلة';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+
+    imageWrap.appendChild(image);
+
+    const caption = String(message.text || '').trim();
+    if(caption){
+      const captionEl = document.createElement('div');
+      captionEl.className = 'private-message-image-caption';
+      captionEl.textContent = caption;
+      imageWrap.appendChild(captionEl);
+    }
+
+    bubble.appendChild(imageWrap);
+  }else{
+    bubble.textContent = String(message.text || '');
+  }
 
   stack.append(time,bubble);
 
@@ -591,7 +736,6 @@ function renderPrivateMessage(message){
   row.append(avatar,stack);
   return row;
 }
-
 function addPrivateRealtimeMessage(message){
   const target = $('#privateFeed');
   if(!target || !message?.id || !privateConversationId) return;
@@ -638,7 +782,7 @@ async function sendPrivateMessage(){
   const sendButton = $('#privateSend');
   const content = messageInput.value.trim();
 
-  if(!content || !privateConversationId || !currentUser || sendButton.disabled) return;
+  if((!content && !pendingPrivateImageData) || !privateConversationId || !currentUser || sendButton.disabled) return;
   sendButton.disabled = true;
 
   try{
@@ -650,12 +794,16 @@ async function sendPrivateMessage(){
           'Content-Type':'application/json',
           ...(await authHeaders())
         },
-        body:JSON.stringify({content})
+        body:JSON.stringify({
+          content,
+          imageData: pendingPrivateImageData || null
+        })
       }
     );
 
     if(result?.message) addPrivateRealtimeMessage(result.message);
     messageInput.value = '';
+    clearPendingPrivateImage();
     messageInput.focus();
     loadPrivateConversations().catch(()=>{});
   }catch(error){
@@ -664,7 +812,6 @@ async function sendPrivateMessage(){
     sendButton.disabled = false;
   }
 }
-
 async function deletePrivateMessage(id,element){
   if(!window.confirm('حذف هذه الرسالة؟')) return;
 
@@ -788,8 +935,28 @@ $('#privateEmoji').addEventListener('click',() => {
   $('#privateMessage').focus();
 });
 $('#privateAttach').addEventListener('click',() => {
-  showToast('إرفاق الملفات في المحادثة الخاصة سيُفعّل لاحقًا');
+  $('#privateImageInput').click();
 });
+
+$('#privateImageInput').addEventListener('change', async event => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if(!file) return;
+
+  try{
+    pendingPrivateImageData = await prepareImageForChat(file);
+    showPendingImage(
+      pendingPrivateImageData,
+      '#privateAttachmentPreview',
+      '#privateAttachmentPreviewImage'
+    );
+    showToast('الصورة جاهزة للإرسال');
+  }catch(error){
+    showToast(error.message);
+  }
+});
+
+$('#privateRemoveAttachment').addEventListener('click',clearPendingPrivateImage);
 $('#privateMore').addEventListener('click',() => {
   showToast('خيارات المحادثة الخاصة ستُضاف لاحقًا');
 });
@@ -803,8 +970,28 @@ $('#emojiButton').addEventListener('click',() => {
 });
 
 $('#attachButton').addEventListener('click',() => {
-  showToast('إرفاق الملفات سيُفعّل عند إضافة دعم الملفات للمجتمع');
+  $('#imageInput').click();
 });
+
+$('#imageInput').addEventListener('change', async event => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if(!file) return;
+
+  try{
+    pendingImageData = await prepareImageForChat(file);
+    showPendingImage(
+      pendingImageData,
+      '#attachmentPreview',
+      '#attachmentPreviewImage'
+    );
+    showToast('الصورة جاهزة للإرسال');
+  }catch(error){
+    showToast(error.message);
+  }
+});
+
+$('#removeAttachment').addEventListener('click',clearPendingImage);
 
 $('.notification-button').addEventListener('click',() => {
   showToast('لا توجد إشعارات جديدة');
