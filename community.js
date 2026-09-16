@@ -173,7 +173,11 @@ form.addEventListener('submit', async event => {
     input.value = '';
     feed.scrollTop = feed.scrollHeight;
   }catch(error){
-    alert(error.message);
+    showStatus(error.message);
+    setTimeout(() => {
+      const status = feed.querySelector('.status-message');
+      if(status && status.textContent === error.message) status.remove();
+    }, 3500);
   }finally{
     updateComposerState();
   }

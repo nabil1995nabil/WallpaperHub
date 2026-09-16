@@ -3597,17 +3597,30 @@ app.post("/api/community/messages", async (req, res) => {
     try {
         const user = await getAuthenticatedUser(req);
         if (!user) {
-            return res.status(401).json({ success: false, message: "يجب تسجيل الدخول للمشاركة" });
+            return res.status(401).json({
+                success: false,
+                message: "يجب تسجيل الدخول للمشاركة"
+            });
         }
 
         const content = String(req.body?.content || "").trim();
+
         if (!content) {
-            return res.status(400).json({ success: false, message: "اكتب رسالة أولاً" });
-        }
-        if (content.length > 2000) {
-            return res.status(400).json({ success: false, message: "الرسالة طويلة جدًا" });
+            return res.status(400).json({
+                success: false,
+                message: "اكتب رسالة أولاً"
+            });
         }
 
+        if (content.length > 2000) {
+            return res.status(400).json({
+                success: false,
+                message: "الرسالة طويلة جدًا"
+            });
+        }
+
+        // حفظ الرسالة أولاً. إذا نجح INSERT فلا نجعل فشل جلب
+        // بيانات profile بعد ذلك يحوّل العملية إلى فشل للمستخدم.
         const { data, error } = await supabase
             .from("community_messages")
             .insert({
@@ -3617,16 +3630,54 @@ app.post("/api/community/messages", async (req, res) => {
             .select("id,user_id,content,created_at,updated_at,deleted_at")
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.log("COMMUNITY MESSAGE INSERT ERROR:", error);
+            return res.status(500).json({
+                success: false,
+                message: "تعذر حفظ الرسالة في قاعدة البيانات"
+            });
+        }
 
-        const profiles = await getCommunityProfiles([user.id]);
-        res.status(201).json({
+        // بيانات العضو اختيارية بعد نجاح الحفظ.
+        // في حال فشل profiles نستخدم بيانات Supabase Auth كاحتياط.
+        let profile = null;
+
+        try {
+            const profiles = await getCommunityProfiles([user.id]);
+            profile = profiles.get(String(user.id)) || null;
+        } catch (profileError) {
+            console.log("COMMUNITY PROFILE ERROR:", profileError);
+        }
+
+        const fallbackProfile = profile || {
+            full_name:
+                user.user_metadata?.full_name ||
+                user.user_metadata?.name ||
+                user.user_metadata?.user_name ||
+                user.email?.split("@")[0] ||
+                "عضو",
+
+            username:
+                user.user_metadata?.username ||
+                user.user_metadata?.user_name ||
+                "",
+
+            avatar_url:
+                user.user_metadata?.avatar_url ||
+                user.user_metadata?.picture ||
+                ""
+        };
+
+        return res.status(201).json({
             success: true,
-            message: communityMessageResponse(data, profiles.get(String(user.id)))
+            message: communityMessageResponse(data, fallbackProfile)
         });
     } catch (error) {
         console.log("POST COMMUNITY MESSAGE ERROR:", error);
-        res.status(500).json({ success: false, message: "تعذر إرسال الرسالة" });
+        return res.status(500).json({
+            success: false,
+            message: "تعذر إرسال الرسالة"
+        });
     }
 });
 
