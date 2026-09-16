@@ -3650,6 +3650,11 @@ function communityMessageResponse(row, profile) {
         text: String(row.content || ""),
         imageUrl: String(row.image_url || ""),
         imagePath: String(row.image_path || ""),
+        fileUrl: String(row.file_url || ""),
+        filePath: String(row.file_path || ""),
+        fileName: String(row.file_name || ""),
+        fileType: String(row.file_type || ""),
+        fileSize: Number(row.file_size || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at || null,
         deleted: Boolean(row.deleted_at),
@@ -3664,6 +3669,92 @@ function communityMessageResponse(row, profile) {
             avatarUrl: String(profile?.avatar_url || "")
         }
     };
+}
+
+
+// ======================================
+// Community generic file attachments
+// ======================================
+const COMMUNITY_FILES_BUCKET = "community-files";
+const COMMUNITY_FILE_MAX_BYTES = 10 * 1024 * 1024;
+
+function parseCommunityFile(value){
+    const raw = String(value || "");
+    const match = raw.match(/^data:([^;,]+);base64,(.+)$/i);
+    if(!match) return null;
+
+    const mimeType = String(match[1] || "application/octet-stream").toLowerCase().slice(0,160);
+    const buffer = Buffer.from(match[2], "base64");
+    if(!buffer.length) return null;
+    if(buffer.length > COMMUNITY_FILE_MAX_BYTES){
+        throw new Error("حجم الملف كبير جدًا. الحد الأقصى 10MB.");
+    }
+    return {mimeType,buffer};
+}
+
+async function ensureCommunityFilesBucket(){
+    const {data:buckets,error:listError} = await supabase.storage.listBuckets();
+    if(listError) throw listError;
+    if((buckets || []).some(bucket => bucket.name === COMMUNITY_FILES_BUCKET)) return;
+
+    const {error:createError} = await supabase.storage.createBucket(
+        COMMUNITY_FILES_BUCKET,
+        {public:true,fileSizeLimit:`${COMMUNITY_FILE_MAX_BYTES}B`}
+    );
+    if(createError && !/already exists|duplicate/i.test(String(createError.message || ""))){
+        throw createError;
+    }
+}
+
+function safeFileExtension(name,mime){
+    const clean=String(name||"").toLowerCase();
+    const match=clean.match(/\.([a-z0-9]{1,10})$/i);
+    if(match) return match[1];
+    const map={
+        "application/pdf":"pdf","text/plain":"txt","application/zip":"zip",
+        "application/json":"json","application/msword":"doc",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx",
+        "application/vnd.ms-excel":"xls",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"xlsx",
+        "application/vnd.ms-powerpoint":"ppt",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation":"pptx"
+    };
+    return map[String(mime||"").toLowerCase()] || "bin";
+}
+
+async function uploadCommunityFile(fileData,userId,messageId){
+    const parsed=parseCommunityFile(fileData?.dataUrl || fileData);
+    if(!parsed) throw new Error("صيغة الملف غير مدعومة.");
+
+    const originalName=String(fileData?.name || "ملف").trim().slice(0,180) || "ملف";
+    const blocked=/\.(exe|apk|bat|cmd|com|msi|scr|sh|ps1|dll)$/i.test(originalName);
+    if(blocked) throw new Error("هذا النوع من الملفات غير مسموح به لأسباب أمنية.");
+
+    await ensureCommunityFilesBucket();
+    const ext=safeFileExtension(originalName,parsed.mimeType);
+    const objectPath=`files/${String(userId)}/${String(messageId)}.${ext}`;
+
+    const {error:uploadError}=await supabase.storage
+        .from(COMMUNITY_FILES_BUCKET)
+        .upload(objectPath,parsed.buffer,{
+            contentType:parsed.mimeType,
+            cacheControl:"31536000",
+            upsert:false
+        });
+    if(uploadError) throw uploadError;
+
+    const {data}=supabase.storage.from(COMMUNITY_FILES_BUCKET).getPublicUrl(objectPath);
+    if(!data?.publicUrl){
+        await supabase.storage.from(COMMUNITY_FILES_BUCKET).remove([objectPath]).catch(()=>{});
+        throw new Error("تعذر إنشاء رابط الملف.");
+    }
+    return {fileUrl:String(data.publicUrl),filePath:objectPath,fileName:originalName,fileType:parsed.mimeType,fileSize:parsed.buffer.length};
+}
+
+async function deleteCommunityFile(filePath){
+    if(!filePath) return;
+    try{ await supabase.storage.from(COMMUNITY_FILES_BUCKET).remove([filePath]); }
+    catch(error){ console.log("COMMUNITY FILE CLEANUP ERROR:",error?.message || error); }
 }
 
 async function getCommunityProfiles(userIds) {
@@ -3843,6 +3934,11 @@ function privateMessageResponse(row, sender){
         text: String(row.content || ""),
         imageUrl: String(row.image_url || ""),
         imagePath: String(row.image_path || ""),
+        fileUrl: String(row.file_url || ""),
+        filePath: String(row.file_path || ""),
+        fileName: String(row.file_name || ""),
+        fileType: String(row.file_type || ""),
+        fileSize: Number(row.file_size || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at || null,
         deleted: Boolean(row.deleted_at),
@@ -3897,7 +3993,7 @@ app.get("/api/community/private/conversations", async (req,res) => {
             try{
                 const { data:lastRows, error:lastError } = await supabase
                     .from("private_messages")
-                    .select("id,sender_id,content,image_url,created_at,deleted_at")
+                    .select("id,sender_id,content,image_url,file_url,file_name,file_type,file_size,created_at,deleted_at")
                     .eq("conversation_id",row.id)
                     .order("created_at",{ascending:false})
                     .limit(1);
@@ -3909,6 +4005,10 @@ app.get("/api/community/private/conversations", async (req,res) => {
                         id:String(last.id),
                         text:last.deleted_at ? "تم حذف الرسالة" : String(last.content || ""),
                         imageUrl:last.deleted_at ? "" : String(last.image_url || ""),
+                        fileUrl:last.deleted_at ? "" : String(last.file_url || ""),
+                        fileName:last.deleted_at ? "" : String(last.file_name || ""),
+                        fileType:last.deleted_at ? "" : String(last.file_type || ""),
+                        fileSize:last.deleted_at ? 0 : Number(last.file_size || 0),
                         createdAt:last.created_at
                     };
                 }
@@ -4005,7 +4105,7 @@ app.get("/api/community/private/messages/:conversationId", async (req,res) => {
 
         const { data,error } = await supabase
             .from("private_messages")
-            .select("id,conversation_id,sender_id,content,image_url,image_path,created_at,updated_at,deleted_at")
+            .select("id,conversation_id,sender_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,created_at,updated_at,deleted_at")
             .eq("conversation_id",conversationId)
             .order("created_at",{ascending:true})
             .limit(limit);
@@ -4043,9 +4143,10 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
         const conversationId = String(req.params.conversationId || "").trim();
         const content = String(req.body?.content || "").trim();
         const imageData = String(req.body?.imageData || "").trim();
+        const fileData = req.body?.fileData || null;
 
         if(!conversationId) return res.status(400).json({success:false,message:"معرّف المحادثة غير صالح"});
-        if(!content && !imageData) return res.status(400).json({success:false,message:"اكتب رسالة أو اختر صورة أولاً"});
+        if(!content && !imageData && !fileData) return res.status(400).json({success:false,message:"اكتب رسالة أو اختر مرفقًا أولاً"});
         if(content.length > 2000) return res.status(400).json({success:false,message:"الرسالة طويلة جدًا"});
 
         const membership = await requirePrivateConversationMember(conversationId,user.id);
@@ -4055,11 +4156,11 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();
         let media = null;
+        let fileMedia = null;
 
         try{
-            if(imageData){
-                media = await uploadCommunityImage(imageData,user.id,id);
-            }
+            if(imageData){ media = await uploadCommunityImage(imageData,user.id,id); }
+            if(fileData){ fileMedia = await uploadCommunityFile(fileData,user.id,id); }
 
             const { error:insertError } = await supabase
                 .from("private_messages")
@@ -4070,15 +4171,22 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
                     content,
                     image_url:media?.imageUrl || null,
                     image_path:media?.imagePath || null,
+                    file_url:fileMedia?.fileUrl || null,
+                    file_path:fileMedia?.filePath || null,
+                    file_name:fileMedia?.fileName || null,
+                    file_type:fileMedia?.fileType || null,
+                    file_size:fileMedia?.fileSize || null,
                     created_at:createdAt
                 });
 
             if(insertError){
                 if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+                if(fileMedia?.filePath) await deleteCommunityFile(fileMedia.filePath);
                 throw insertError;
             }
         }catch(error){
             if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+            if(fileMedia?.filePath) await deleteCommunityFile(fileMedia.filePath);
             throw error;
         }
 
@@ -4102,6 +4210,11 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
                     id,conversation_id:conversationId,sender_id:user.id,content,
                     image_url:media?.imageUrl || null,
                     image_path:media?.imagePath || null,
+                    file_url:fileMedia?.fileUrl || null,
+                    file_path:fileMedia?.filePath || null,
+                    file_name:fileMedia?.fileName || null,
+                    file_type:fileMedia?.fileType || null,
+                    file_size:fileMedia?.fileSize || null,
                     created_at:createdAt,updated_at:null,deleted_at:null
                 },
                 profile || privateFallbackUser(user)
@@ -4123,7 +4236,7 @@ app.get("/api/community/private/messages/by-id/:id", async (req,res) => {
 
         const { data,error } = await supabase
             .from("private_messages")
-            .select("id,conversation_id,sender_id,content,image_url,image_path,created_at,updated_at,deleted_at")
+            .select("id,conversation_id,sender_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,created_at,updated_at,deleted_at")
             .eq("id",id)
             .maybeSingle();
 
@@ -4158,7 +4271,7 @@ app.delete("/api/community/private/messages/:id", async (req,res) => {
 
         const { data:existing,error:readError } = await supabase
             .from("private_messages")
-            .select("id,conversation_id,sender_id,image_path")
+            .select("id,conversation_id,sender_id,image_path,file_path")
             .eq("id",id)
             .maybeSingle();
 
@@ -4181,9 +4294,8 @@ app.delete("/api/community/private/messages/:id", async (req,res) => {
 
         if(deleteError) throw deleteError;
 
-        if(existing.image_path){
-            await deleteCommunityImage(existing.image_path);
-        }
+        if(existing.image_path){ await deleteCommunityImage(existing.image_path); }
+        if(existing.file_path){ await deleteCommunityFile(existing.file_path); }
 
         return res.json({success:true,id});
     }catch(error){
@@ -4206,7 +4318,7 @@ app.get("/api/community/messages", async (req, res) => {
         const { data, error } = await supabase
             .from("community_messages")
             .select(
-                "id,user_id,content,image_url,image_path,created_at,updated_at,deleted_at"
+                "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,created_at,updated_at,deleted_at"
             )
             .order("created_at", { ascending: true })
             .limit(limit);
@@ -4269,10 +4381,12 @@ app.post("/api/community/messages", async (req, res) => {
 
         const imageData = String(req.body?.imageData || "").trim();
 
-        if (!content && !imageData) {
+        const fileData = req.body?.fileData || null;
+
+        if (!content && !imageData && !fileData) {
             return res.status(400).json({
                 success: false,
-                message: "اكتب رسالة أو اختر صورة أولاً"
+                message: "اكتب رسالة أو اختر مرفقًا أولاً"
             });
         }
 
@@ -4287,14 +4401,14 @@ app.post("/api/community/messages", async (req, res) => {
         const createdAt = new Date().toISOString();
 
         let media = null;
+        let fileMedia = null;
 
         try{
             if(imageData){
-                media = await uploadCommunityImage(
-                    imageData,
-                    user.id,
-                    messageId
-                );
+                media = await uploadCommunityImage(imageData,user.id,messageId);
+            }
+            if(fileData){
+                fileMedia = await uploadCommunityFile(fileData,user.id,messageId);
             }
 
             const { error } = await supabase
@@ -4315,6 +4429,7 @@ app.post("/api/community/messages", async (req, res) => {
                     error?.code || ""
                 );
                 if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+                if(fileMedia?.filePath) await deleteCommunityFile(fileMedia.filePath);
                 return res.status(500).json({
                     success: false,
                     message: "تعذر حفظ الرسالة في قاعدة البيانات"
@@ -4322,6 +4437,7 @@ app.post("/api/community/messages", async (req, res) => {
             }
         }catch(error){
             if(media?.imagePath) await deleteCommunityImage(media.imagePath);
+            if(fileMedia?.filePath) await deleteCommunityFile(fileMedia.filePath);
             throw error;
         }
 
@@ -4336,6 +4452,11 @@ app.post("/api/community/messages", async (req, res) => {
                 content,
                 image_url: media?.imageUrl || null,
                 image_path: media?.imagePath || null,
+                file_url: fileMedia?.fileUrl || null,
+                file_path: fileMedia?.filePath || null,
+                file_name: fileMedia?.fileName || null,
+                file_type: fileMedia?.fileType || null,
+                file_size: fileMedia?.fileSize || null,
                 created_at: createdAt,
                 updated_at: null,
                 deleted_at: null
@@ -4376,7 +4497,7 @@ app.get("/api/community/messages/:id", async (req, res) => {
         const { data, error } = await supabase
             .from("community_messages")
             .select(
-                "id,user_id,content,image_url,image_path,created_at,updated_at,deleted_at"
+                "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,created_at,updated_at,deleted_at"
             )
             .eq("id", id)
             .maybeSingle();
@@ -4480,7 +4601,7 @@ app.delete("/api/community/messages/:id", async (req, res) => {
         const { data: existing, error: readError } =
             await supabase
                 .from("community_messages")
-                .select("id,user_id,image_path")
+                .select("id,user_id,image_path,file_path")
                 .eq("id", id)
                 .maybeSingle();
 
@@ -4508,9 +4629,8 @@ app.delete("/api/community/messages/:id", async (req, res) => {
 
         if (deleteError) throw deleteError;
 
-        if(existing.image_path){
-            await deleteCommunityImage(existing.image_path);
-        }
+        if(existing.image_path){ await deleteCommunityImage(existing.image_path); }
+        if(existing.file_path){ await deleteCommunityFile(existing.file_path); }
 
         return res.json({
             success: true,

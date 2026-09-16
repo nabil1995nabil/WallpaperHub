@@ -168,13 +168,17 @@
           </div>
 
           <form class="composer" id="composer">
-            <button type="button" class="attach" id="attachButton" title="إرسال صورة" aria-label="إرسال صورة">
+            <button type="button" class="attach" id="attachButton" title="إرفاق ملف أو صورة" aria-label="إرفاق ملف أو صورة">
               <span class="material-icons-round">add</span>
             </button>
-            <input id="imageInput" type="file" accept="image/*" hidden>
+            <input id="fileInput" type="file" accept="*/*" hidden>
             <div class="attachment-preview hidden" id="attachmentPreview">
               <img id="attachmentPreviewImage" alt="معاينة الصورة">
-              <button type="button" id="removeAttachment" aria-label="إزالة الصورة">
+              <div class="file-preview-card" id="filePreviewCard">
+                <span class="material-icons-round" id="filePreviewIcon">description</span>
+                <span class="file-preview-name" id="filePreviewName"></span>
+              </div>
+              <button type="button" id="removeAttachment" aria-label="إزالة المرفق">
                 <span class="material-icons-round">close</span>
               </button>
             </div>
@@ -257,7 +261,7 @@
         <div class="empty-panel">
           <span class="material-icons-round">folder_open</span>
           <h2>الملفات المشتركة</h2>
-          <p>لا توجد ملفات مشتركة بعد. يمكنك تجهيز الإرفاق من زر + عند إضافة دعم الملفات.</p>
+          <p>يمكنك إرسال الملفات مباشرة من زر + داخل المحادثة. الحد الأقصى للملف 10MB.</p>
         </div>
       </section>
 
@@ -296,15 +300,17 @@
             </div>
           </div>
           <form class="private-composer" id="privateComposer">
-            <button type="button" class="attach" id="privateAttach" aria-label="إرسال صورة">
+            <button type="button" class="attach" id="privateAttach" aria-label="إرفاق ملف أو صورة">
               <span class="material-icons-round">add</span>
             </button>
-            <input id="privateImageInput" type="file" accept="image/*" hidden>
+            <input id="privateFileInput" type="file" accept="*/*" hidden>
             <div class="attachment-preview hidden" id="privateAttachmentPreview">
               <img id="privateAttachmentPreviewImage" alt="معاينة الصورة">
-              <button type="button" id="privateRemoveAttachment" aria-label="إزالة الصورة">
-                <span class="material-icons-round">close</span>
-              </button>
+              <div class="file-preview-card" id="privateFilePreviewCard">
+                <span class="material-icons-round" id="privateFilePreviewIcon">description</span>
+                <span class="file-preview-name" id="privateFilePreviewName"></span>
+              </div>
+              <button type="button" id="privateRemoveAttachment" aria-label="إزالة المرفق"><span class="material-icons-round">close</span></button>
             </div>
             <div class="composer-field">
               <input id="privateMessage" maxlength="2000" autocomplete="off" placeholder="اكتب رسالة خاصة...">
