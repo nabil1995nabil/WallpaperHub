@@ -1,1 +1,274 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WallpaperHub Community</title><link rel="stylesheet" href="community.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main class="app"><header><div><span class="eyebrow">WALLPAPERHUB</span><h1>المجتمع</h1><p>شارك، ناقش، واكتشف مع مجتمع الخلفيات.</p></div><button class="avatar" aria-label="الملف الشخصي">U</button></header><section class="rooms"><button class="room active"><span>🌐</span><div><b>الغرفة العامة</b><small>النقاشات والمنشورات العامة</small></div></button><button class="room"><span>👥</span><div><b>الأعضاء</b><small>اكتشف أعضاء المجتمع</small></div></button><button class="room"><span>📁</span><div><b>الملفات المشتركة</b><small>صور وملفات المجتمع</small></div></button></section><section class="feed" id="feed"><article class="welcome"><div class="welcome-icon">✦</div><h2>أهلاً بك في المجتمع</h2><p>هنا تبدأ المحادثات والمشاركة. كن أول من يكتب شيئاً.</p></article></section><form class="composer" id="composer"><button type="button" class="attach" title="إرفاق">＋</button><input id="message" autocomplete="off" placeholder="اكتب رسالة للمجتمع..." maxlength="2000"><button class="send" type="submit">إرسال</button></form></main><script src="community.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070b16">
+  <title>WallpaperHub | المجتمع</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="community.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <div class="page-shell">
+
+    <aside class="sidebar" aria-label="التنقل الرئيسي">
+      <a class="brand" href="/" aria-label="WallpaperHub">
+        <span class="brand-mark"><span class="material-icons-round">wallpaper</span></span>
+        <span>Wallpaper<span>Hub</span></span>
+      </a>
+
+      <nav class="side-nav">
+        <a href="/" class="nav-item">
+          <span class="material-icons-round">home</span>
+          <span>الرئيسية</span>
+        </a>
+        <a href="/explore" class="nav-item">
+          <span class="material-icons-round">explore</span>
+          <span>استكشف</span>
+        </a>
+        <a href="/categories" class="nav-item">
+          <span class="material-icons-round">grid_view</span>
+          <span>الأقسام</span>
+        </a>
+        <a href="/favorites" class="nav-item">
+          <span class="material-icons-round">favorite_border</span>
+          <span>المفضلة</span>
+        </a>
+        <a href="/downloads" class="nav-item">
+          <span class="material-icons-round">download</span>
+          <span>التنزيلات</span>
+        </a>
+        <a href="/community" class="nav-item active">
+          <span class="material-icons-round">groups</span>
+          <span>المجتمع</span>
+        </a>
+        <a href="/premium" class="nav-item">
+          <span class="material-icons-round">workspace_premium</span>
+          <span>المميز</span>
+        </a>
+        <a href="/settings" class="nav-item">
+          <span class="material-icons-round">settings</span>
+          <span>الإعدادات</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-promo">
+        <div class="promo-glow"></div>
+        <span class="material-icons-round">landscape</span>
+        <b>خلفيات أجمل</b>
+        <small>لعالم أجمل</small>
+      </div>
+
+      <div class="sidebar-footer">© 2026 WallpaperHub</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand">
+          <span class="brand-mark"><span class="material-icons-round">wallpaper</span></span>
+          <strong>Wallpaper<span>Hub</span></strong>
+        </div>
+
+        <label class="search-box">
+          <span class="material-icons-round">search</span>
+          <input id="memberSearch" type="search" placeholder="ابحث عن أعضاء أو رسائل..." autocomplete="off">
+        </label>
+
+        <div class="top-actions">
+          <button class="icon-button theme-button" type="button" aria-label="المظهر">
+            <span class="material-icons-round">dark_mode</span>
+          </button>
+          <button class="icon-button notification-button" type="button" aria-label="الإشعارات">
+            <span class="material-icons-round">notifications_none</span>
+            <i></i>
+          </button>
+          <button class="profile-button" id="profileButton" type="button" aria-label="الملف الشخصي">
+            <span class="avatar-fallback">U</span>
+            <span class="online-dot"></span>
+          </button>
+        </div>
+      </header>
+
+      <section class="community-hero">
+        <div class="hero-copy">
+          <span class="eyebrow">W A L L P A P E R H U B</span>
+          <h1>مجتمع <em>WallpaperHub</em></h1>
+          <p>شارك، ناقش، واكتشف مع عشاق الخلفيات من جميع أنحاء العالم.</p>
+          <button class="hero-cta" id="joinChat" type="button">
+            انضم إلى النقاش الآن
+            <span class="material-icons-round">groups</span>
+          </button>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-card hero-card-back"></div>
+          <div class="hero-card hero-card-front"></div>
+          <div class="hero-bubble">
+            <span class="material-icons-round">groups</span>
+          </div>
+          <span class="spark spark-a">✦</span>
+          <span class="spark spark-b">✧</span>
+          <span class="hero-note">Good<br>Wallpapers<br>Better People</span>
+        </div>
+      </section>
+
+      <section class="room-tabs" role="tablist" aria-label="أقسام المجتمع">
+        <button class="room-tab active" data-tab="general" role="tab" aria-selected="true">
+          <span class="tab-icon"><span class="material-icons-round">public</span></span>
+          <span><b>الغرفة العامة</b><small>النقاشات والمنشورات العامة</small></span>
+        </button>
+
+        <button class="room-tab" data-tab="members" role="tab" aria-selected="false">
+          <span class="tab-icon"><span class="material-icons-round">group</span></span>
+          <span><b>الأعضاء</b><small>اكتشف أعضاء المجتمع</small></span>
+        </button>
+
+        <button class="room-tab" data-tab="files" role="tab" aria-selected="false">
+          <span class="tab-icon"><span class="material-icons-round">folder</span></span>
+          <span><b>الملفات المشتركة</b><small>صور وملفات المجتمع</small></span>
+        </button>
+
+        <button class="room-tab" data-tab="topics" role="tab" aria-selected="false">
+          <span class="tab-icon"><span class="material-icons-round">add</span></span>
+          <span><b>مواضيع أخرى</b><small>اقترح نقاشًا جديدًا</small></span>
+        </button>
+      </section>
+
+      <section class="content-layout">
+        <section class="chat-card" id="generalPanel">
+          <div class="chat-head">
+            <div class="chat-title">
+              <span class="room-status-icon"><span class="material-icons-round">public</span></span>
+              <div>
+                <b>الغرفة العامة</b>
+                <small><i></i><span id="onlineCount">متصلون الآن</span></small>
+              </div>
+            </div>
+
+            <div class="chat-tools">
+              <button class="small-icon" type="button" aria-label="تثبيت"><span class="material-icons-round">push_pin</span></button>
+              <button class="small-icon" id="focusSearch" type="button" aria-label="بحث"><span class="material-icons-round">search</span></button>
+              <button class="small-icon" type="button" aria-label="المزيد"><span class="material-icons-round">more_vert</span></button>
+            </div>
+          </div>
+
+          <div class="feed" id="feed">
+            <article class="welcome">
+              <div class="welcome-icon"><span class="material-icons-round">forum</span></div>
+              <h2>أهلاً بك في المجتمع</h2>
+              <p>شارك أفكارك واكتشف خلفيات جديدة وتحدث مع محبي WallpaperHub.</p>
+            </article>
+          </div>
+
+          <form class="composer" id="composer">
+            <button type="button" class="attach" id="attachButton" title="إرفاق" aria-label="إرفاق">
+              <span class="material-icons-round">add</span>
+            </button>
+            <div class="composer-field">
+              <input id="message" autocomplete="off" maxlength="2000" placeholder="اكتب رسالة للمجتمع..." aria-label="رسالة المجتمع">
+              <button type="button" class="emoji-button" id="emojiButton" aria-label="إضافة رمز">☺</button>
+            </div>
+            <button class="send" type="submit">
+              <span>إرسال</span>
+              <span class="material-icons-round">send</span>
+            </button>
+          </form>
+        </section>
+
+        <aside class="right-column">
+          <section class="side-card profile-card">
+            <div class="profile-cover"></div>
+            <div class="profile-content">
+              <div class="big-avatar" id="profileAvatar">U</div>
+              <h3 id="profileName">عضو في المجتمع</h3>
+              <p id="profileSubtitle">شارك أفكارك مع WallpaperHub</p>
+              <div class="profile-stats">
+                <span><b id="statMessages">0</b><small>مشاركة</small></span>
+                <span><b id="statMembers">0</b><small>أعضاء</small></span>
+                <span><b>24</b><small>شارة</small></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="side-card">
+            <div class="side-card-head">
+              <h3><i class="green"></i> الأعضاء المتصلون</h3>
+              <button id="viewMembers" type="button">عرض الكل</button>
+            </div>
+            <div class="members-list" id="membersPreview">
+              <div class="mini-loading">جاري تحميل الأعضاء...</div>
+            </div>
+          </section>
+
+          <section class="side-card topics-card">
+            <div class="side-card-head">
+              <h3>🔥 مواضيع رائجة</h3>
+            </div>
+            <div class="topics-list">
+              <button type="button"><span>#خلفيات_طبيعة</span><small>124 مشاركة</small></button>
+              <button type="button"><span>#خلفيات_4K</span><small>98 مشاركة</small></button>
+              <button type="button"><span>#تصميم</span><small>76 مشاركة</small></button>
+              <button type="button"><span>#خلفيات_متحركة</span><small>54 مشاركة</small></button>
+              <button type="button"><span>#نقاش_عام</span><small>42 مشاركة</small></button>
+            </div>
+          </section>
+
+          <section class="side-card quote-card">
+            <span class="material-icons-round">landscape</span>
+            <b>خلفيات رائعة<br>تجمعنا دائمًا</b>
+            <span>♥</span>
+            <small>GOOD PEOPLE · BETTER WALLPAPERS</small>
+          </section>
+        </aside>
+      </section>
+
+      <section class="secondary-panel hidden" id="membersPanel">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">COMMUNITY</span>
+            <h2>أعضاء المجتمع</h2>
+          </div>
+          <button class="panel-back" data-back-general type="button"><span class="material-icons-round">arrow_back</span> الغرفة العامة</button>
+        </div>
+        <div class="all-members" id="allMembers"></div>
+      </section>
+
+      <section class="secondary-panel hidden" id="filesPanel">
+        <div class="empty-panel">
+          <span class="material-icons-round">folder_open</span>
+          <h2>الملفات المشتركة</h2>
+          <p>لا توجد ملفات مشتركة بعد. يمكنك تجهيز الإرفاق من زر + عند إضافة دعم الملفات.</p>
+        </div>
+      </section>
+
+      <section class="secondary-panel hidden" id="topicsPanel">
+        <div class="empty-panel">
+          <span class="material-icons-round">forum</span>
+          <h2>مواضيع المجتمع</h2>
+          <p>اختر موضوعًا رائجًا من الجانب أو ابدأ نقاشًا جديدًا من هنا.</p>
+          <button class="hero-cta" data-back-general type="button">العودة للغرفة العامة</button>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <nav class="mobile-nav" aria-label="التنقل">
+        <a href="/"><span class="material-icons-round">home</span><small>الرئيسية</small></a>
+        <a href="/explore"><span class="material-icons-round">explore</span><small>استكشف</small></a>
+        <a href="/categories"><span class="material-icons-round">grid_view</span><small>الأقسام</small></a>
+        <a href="/community" class="active"><span class="material-icons-round">groups</span><small>المجتمع</small></a>
+        <a href="/settings"><span class="material-icons-round">settings</span><small>الإعدادات</small></a>
+      </nav>
+    </main>
+  </div>
+
+  <script src="community.js"></script>
+</body>
+</html>
