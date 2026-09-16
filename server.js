@@ -3573,19 +3573,74 @@ async function getCommunityProfiles(userIds) {
 
     if (!ids.length) return new Map();
 
-    const { data, error } = await supabase
-        .from("profiles")
-        .select("id,full_name,username,avatar_url")
-        .in("id", ids);
+    const profiles = new Map();
 
-    if (error) throw error;
+    // First use the normal public profile table.
+    try {
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("id,full_name,username,avatar_url")
+            .in("id", ids);
 
-    return new Map(
-        (data || []).map(profile => [
-            String(profile.id),
-            profile
-        ])
-    );
+        if (!error) {
+            (data || []).forEach(profile => {
+                profiles.set(String(profile.id), profile);
+            });
+        } else {
+            console.log(
+                "COMMUNITY PROFILES TABLE ERROR:",
+                error?.message || error
+            );
+        }
+    } catch (error) {
+        console.log(
+            "COMMUNITY PROFILES TABLE ERROR:",
+            error?.message || error
+        );
+    }
+
+    // Important: some accounts may not have a row in profiles yet.
+    // In that case use Supabase Auth metadata so other users still see
+    // the real name and avatar instead of the generic "عضو".
+    const missingIds = ids.filter(id => !profiles.has(id));
+
+    if (missingIds.length) {
+        const fallbackResults = await Promise.all(
+            missingIds.map(async id => {
+                try {
+                    const { data, error } =
+                        await supabase.auth.admin.getUserById(id);
+
+                    if (error || !data?.user) return null;
+
+                    const user = data.user;
+                    const fallback = communityFallbackProfile(user);
+
+                    return [
+                        id,
+                        {
+                            id,
+                            full_name: fallback.full_name,
+                            username: fallback.username,
+                            avatar_url: fallback.avatar_url
+                        }
+                    ];
+                } catch (error) {
+                    console.log(
+                        "COMMUNITY AUTH PROFILE FALLBACK ERROR:",
+                        error?.message || error
+                    );
+                    return null;
+                }
+            })
+        );
+
+        fallbackResults.forEach(result => {
+            if (result) profiles.set(result[0], result[1]);
+        });
+    }
+
+    return profiles;
 }
 
 async function getCommunityProfileSafe(userId) {
@@ -3637,19 +3692,8 @@ function privateUserResponse(profile, fallbackId){
 }
 
 async function getPrivateProfiles(userIds){
-    const ids = [...new Set(
-        (userIds || []).map(v => String(v).trim()).filter(Boolean)
-    )];
-    if(!ids.length) return new Map();
-
-    const { data, error } = await supabase
-        .from("profiles")
-        .select("id,full_name,username,avatar_url")
-        .in("id", ids);
-
-    if(error) throw error;
-
-    return new Map((data || []).map(profile => [String(profile.id), profile]));
+    // Use the same robust profile resolver as the public community chat.
+    return getCommunityProfiles(userIds);
 }
 
 function privateFallbackUser(user){
@@ -4200,8 +4244,8 @@ app.get("/api/community/messages/:id", async (req, res) => {
             });
         }
 
-        const profile =
-            await getCommunityProfileSafe(data.user_id);
+        const profiles = await getCommunityProfiles([data.user_id]);
+        const profile = profiles.get(String(data.user_id)) || null;
 
         return res.json({
             success: true,
