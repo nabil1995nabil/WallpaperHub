@@ -355,55 +355,65 @@ function createDynamicSections() {
 
 }
 // =======================================
-// عرض خلفيات القسم
+// عرض خلفيات القسم (نسخة محسنة)
 // =======================================
 
 function renderCategory(category) {
 
-    const container =
-        document.getElementById(
-            `section-${category}`
-        );
-
+    const container = document.getElementById(`section-${category}`);
     if (!container) return;
 
     container.innerHTML = "";
 
-    const normalizedCategory =
-        String(category || "")
-            .trim()
-            .toLowerCase();
+    const targetCat = String(category || "").trim().toLowerCase();
 
-    const sectionWalls =
-        wallpapers.filter(w => {
+    const sectionWalls = wallpapers.filter(w => {
+        if (!w || !w.category) return false;
+        
+        const wallCat = String(w.category).trim().toLowerCase();
 
-            const wallCategory =
-                String(w.category || "")
-                    .trim()
-                    .toLowerCase();
+        // 1. مطابقة مباشرة
+        if (wallCat === targetCat) return true;
 
-            return wallCategory === normalizedCategory;
+        // 2. مطابقة الأقسام الخاصة والأسماء العربية/البديلة
+        const aliasMap = {
+            "nature": ["طبيعة", "الطبيعة"],
+            "cars": ["سيارات", "السيارات"],
+            "games": ["العاب", "الألعاب"],
+            "space": ["فضاء", "الفضاء"],
+            "ai": ["ذكاء اصطناعي", "الذكاء الاصطناعي"],
+            "amoled": ["اموليد"],
+            "animals": ["حيوانات", "الحيوانات"],
+            "anime": ["انمي", "الأنمي"],
+            "city": ["مدن", "المدن"],
+            "dark": ["داكن", "مظلم"],
+            "4k": ["فور كي"],
+            "sports": ["رياضة", "الرياضة"],
+            "minimal": ["مينيمال"],
+            "rain": ["مطر", "المطر"],
+            "sunset": ["غروب", "الغروب"],
+            "architecture": ["عمارة", "العمارة"],
+            "deep-space": ["فضاء عميق", "الفضاء العميق"]
+        };
 
-        });
+        if (aliasMap[targetCat] && aliasMap[targetCat].includes(wallCat)) {
+            return true;
+        }
 
-    console.log(
-        "SECTION:",
-        normalizedCategory,
-        sectionWalls
-    );
+        return false;
+    });
+
+    console.log(`SECTION [${targetCat}] Found:`, sectionWalls.length);
 
     sectionWalls
         .slice()
         .reverse()
         .slice(0, 6)
         .forEach(wall => {
-
-            container.innerHTML +=
-                createWallpaperCard(wall);
-
+            container.innerHTML += createWallpaperCard(wall);
         });
-
 }
+
 // =======================================
 // فتح صفحة الخلفية
 // =======================================
@@ -1027,3 +1037,42 @@ document.addEventListener(
     }
 
 );
+
+
+// =========================================================
+// Compact Header interactions
+// =========================================================
+document.addEventListener("DOMContentLoaded", () => {
+
+    const searchInput = document.getElementById("homeSearch");
+
+    if (searchInput) {
+        searchInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            window.location.href =
+                "all-wallpapers.html?search=" +
+                encodeURIComponent(query);
+        });
+    }
+
+    const themeBtn = document.getElementById("headerThemeBtn");
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", () => {
+            document.body.classList.toggle("header-dark-mode");
+
+            const icon = themeBtn.querySelector(".material-icons");
+            if (icon) {
+                icon.textContent =
+                    document.body.classList.contains("header-dark-mode")
+                        ? "light_mode"
+                        : "dark_mode";
+            }
+        });
+    }
+
+});
