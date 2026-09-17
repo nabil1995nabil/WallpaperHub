@@ -600,3 +600,292 @@ color:#fff;
 transform:scale(.96);
 
 }
+
+
+/* ==========================================================
+   WallpaperHub — Header مطابق للصورة المرجعية
+   ترتيب RTL: القائمة ← الشعار W + الاسم ← الإشعارات
+   ========================================================== */
+
+.wh-reference-header{
+    position:sticky !important;
+    top:0 !important;
+    z-index:1000;
+    width:100%;
+    height:76px;
+    padding:0 18px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:14px;
+    direction:rtl;
+    background:#ffffff !important;
+    border:0;
+    border-bottom:1px solid #ececf2;
+    box-shadow:0 2px 12px rgba(20,20,35,.06) !important;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    animation:none !important;
+}
+
+/* القائمة في اليمين */
+.wh-menu-btn{
+    order:1;
+    width:42px !important;
+    height:42px !important;
+    min-width:42px;
+    margin-right:auto;
+    padding:9px !important;
+    border:0 !important;
+    border-radius:12px !important;
+    background:transparent !important;
+    display:flex !important;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:5px;
+    cursor:pointer;
+}
+
+.wh-menu-btn span{
+    width:27px !important;
+    height:3px !important;
+    border-radius:4px;
+    background:#303033 !important;
+}
+
+/* الشعار قبل الجرس مباشرة */
+.wh-brand{
+    order:2;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    direction:ltr;
+    flex:0 0 auto;
+    min-width:0;
+}
+
+/* حرف W صغير وأنيق */
+.wh-w-logo{
+    position:relative;
+    width:42px;
+    height:42px;
+    flex:0 0 42px;
+    overflow:hidden;
+}
+
+.wh-w-logo .w-part{
+    position:absolute;
+    top:4px;
+    width:12px;
+    height:34px;
+    border-radius:10px;
+    transform-origin:center;
+    filter:drop-shadow(0 2px 3px rgba(255,137,36,.12));
+}
+
+/* برتقالي + أبيض كما طلبت */
+.wh-w-logo .w-one{
+    left:4px;
+    background:linear-gradient(180deg,#ffb35b,#f47721);
+    transform:rotate(-19deg) skewX(-10deg);
+}
+
+.wh-w-logo .w-two{
+    left:15px;
+    top:5px;
+    height:32px;
+    background:linear-gradient(180deg,#ffffff,#ececf1);
+    transform:rotate(4deg) skewX(5deg);
+}
+
+.wh-w-logo .w-three{
+    left:26px;
+    background:linear-gradient(180deg,#ffbd6b,#f47721);
+    transform:rotate(20deg) skewX(11deg);
+}
+
+/* نص الشعار */
+.wh-brand-copy{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    line-height:1;
+}
+
+.wh-brand-name{
+    white-space:nowrap;
+    font-size:19px;
+    font-weight:900;
+    letter-spacing:-.6px;
+    line-height:20px;
+}
+
+.wh-brand-name span{
+    color:#ffffff;
+    text-shadow:0 0 0 #222;
+    /* جعل Wallpaper أبيض حتى يظهر على الخلفية الداكنة للشعار فقط */
+    color:#34343a;
+}
+
+.wh-brand-name b{
+    color:#f47721;
+    font-weight:900;
+}
+
+.wh-brand-tagline{
+    margin-top:5px;
+    color:#8a8a91;
+    font-size:8.5px;
+    font-weight:500;
+    white-space:nowrap;
+}
+
+/* الإشعارات قبل الشعار في اتجاه RTL */
+.wh-notification{
+    order:3;
+    width:42px;
+    height:42px;
+    min-width:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* توافق مع notification-button.js/components.js */
+.wh-notification button,
+.wh-notification > button,
+.wh-notification .notification-btn,
+.wh-notification > div{
+    width:42px !important;
+    height:42px !important;
+    min-width:42px !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:50% !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    color:#a5aeba !important;
+}
+
+.wh-notification .material-icons{
+    color:#a5aeba !important;
+}
+
+/* لا نعرض AI داخل الشريط */
+.wh-ai-hidden{
+    display:none !important;
+}
+
+/* الهاتف — نفس فكرة الصورة: شريط أبيض صغير ونظيف */
+@media (max-width:600px){
+    .wh-reference-header{
+        height:76px;
+        padding:0 14px;
+        gap:12px;
+    }
+
+    .wh-menu-btn{
+        width:40px !important;
+        height:40px !important;
+        min-width:40px;
+    }
+
+    .wh-menu-btn span{
+        width:25px !important;
+        height:3px !important;
+    }
+
+    .wh-brand{
+        gap:7px;
+    }
+
+    .wh-w-logo{
+        width:38px;
+        height:38px;
+        flex-basis:38px;
+    }
+
+    .wh-w-logo .w-part{
+        height:31px;
+        width:11px;
+        top:4px;
+    }
+
+    .wh-w-logo .w-one{left:4px}
+    .wh-w-logo .w-two{left:14px;top:5px}
+    .wh-w-logo .w-three{left:24px}
+
+    .wh-brand-name{
+        font-size:18px;
+        line-height:19px;
+    }
+
+    .wh-brand-tagline{
+        font-size:8px;
+        margin-top:4px;
+    }
+
+    .wh-notification{
+        width:40px;
+        height:40px;
+        min-width:40px;
+    }
+
+    .wh-notification button,
+    .wh-notification > button,
+    .wh-notification .notification-btn,
+    .wh-notification > div{
+        width:40px !important;
+        height:40px !important;
+    }
+}
+
+/* الشاشات شديدة الصغر: الاسم يبقى واضحاً لكن بحجم أنيق */
+@media (max-width:390px){
+    .wh-reference-header{
+        padding:0 9px;
+        gap:8px;
+    }
+
+    .wh-brand{
+        gap:5px;
+    }
+
+    .wh-w-logo{
+        width:34px;
+        height:34px;
+        flex-basis:34px;
+    }
+
+    .wh-w-logo .w-part{
+        width:10px;
+        height:28px;
+    }
+
+    .wh-w-logo .w-one{left:3px}
+    .wh-w-logo .w-two{left:12px}
+    .wh-w-logo .w-three{left:21px}
+
+    .wh-brand-name{
+        font-size:16px;
+    }
+
+    .wh-brand-tagline{
+        font-size:7px;
+    }
+
+    .wh-menu-btn{
+        width:36px !important;
+        min-width:36px;
+    }
+
+    .wh-notification,
+    .wh-notification button,
+    .wh-notification > button,
+    .wh-notification .notification-btn{
+        width:36px !important;
+        min-width:36px;
+    }
+}

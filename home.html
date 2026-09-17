@@ -29,27 +29,36 @@
 <div id="sidebar-container"></div>
 
 <!-- Header -->
+<header class="header wh-reference-header">
 
-<header class="header">
+    <!-- زر القائمة في أقصى اليمين -->
+    <button id="menuBtn" class="menu-btn wh-menu-btn" aria-label="القائمة">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 
-    <button id="menuBtn" class="menu-btn">
-    <span></span>
-    <span></span>
-    <span></span>
-</button>
+    <!-- الشعار: W + WallpaperHub + الوصف -->
+    <div class="wh-brand" aria-label="WallpaperHub">
+        <div class="wh-w-logo" aria-hidden="true">
+            <span class="w-part w-one"></span>
+            <span class="w-part w-two"></span>
+            <span class="w-part w-three"></span>
+        </div>
 
-    <div class="logo">
-
-        <span class="material-icons">wallpaper</span>
-
-        <h2>
-<span class="typing-title">WallpaperHub</span>
-</h2>
-
+        <div class="wh-brand-copy">
+            <div class="wh-brand-name">
+                <span>Wallpaper</span><b>Hub</b>
+            </div>
+            <div class="wh-brand-tagline">أكثر من مجرد خلفيات</div>
+        </div>
     </div>
 
-<div id="aiButton"></div>
-<div id="notificationButton"></div>
+    <!-- الإشعارات -->
+    <div id="notificationButton" class="wh-notification"></div>
+
+    <!-- زر AI يبقى موجوداً للوظيفة، لكن مخفي بصرياً من الشريط -->
+    <div id="aiButton" class="wh-ai-hidden"></div>
 
 </header>
 

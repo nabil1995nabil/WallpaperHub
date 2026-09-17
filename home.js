@@ -1037,3 +1037,8 @@ document.addEventListener(
     }
 
 );
+
+
+// WH_REFERENCE_HEADER
+// الشريط العلوي الجديد يعتمد على نفس menuBtn و notificationButton
+// الموجودين أصلاً، لذلك لا نغيّر وظائف الصفحة الحالية.
