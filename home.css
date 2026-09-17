@@ -600,3 +600,527 @@ color:#fff;
 transform:scale(.96);
 
 }
+
+
+
+/* =========================================================
+   WallpaperHub Home — Radical Dark / Glass Redesign
+   Keeps all existing home.js IDs and functionality.
+   ========================================================= */
+
+:root{
+    --wh-bg:#050916;
+    --wh-bg-2:#081126;
+    --wh-card:rgba(14,24,49,.78);
+    --wh-card-strong:#0c1730;
+    --wh-border:rgba(154,170,255,.24);
+    --wh-text:#f8f9ff;
+    --wh-muted:#a8b1cf;
+    --wh-primary:#7c4dff;
+    --wh-primary-2:#a855f7;
+    --wh-cyan:#57d7ff;
+    --wh-shadow:0 22px 60px rgba(0,0,0,.38);
+}
+
+html{
+    background:var(--wh-bg);
+    scroll-behavior:smooth;
+}
+
+body{
+    min-height:100vh;
+    background:
+        radial-gradient(circle at 12% 8%,rgba(124,77,255,.18),transparent 26%),
+        radial-gradient(circle at 88% 18%,rgba(46,142,255,.13),transparent 24%),
+        radial-gradient(circle at 50% 55%,rgba(168,85,247,.08),transparent 30%),
+        linear-gradient(180deg,#050916 0%,#070d1e 48%,#040815 100%);
+    color:var(--wh-text);
+    overflow-x:hidden;
+}
+
+/* ---------- Desktop rail ---------- */
+.home-desktop-rail{
+    position:fixed;
+    inset:0 auto 0 0;
+    width:148px;
+    z-index:1100;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:22px 12px 18px;
+    background:rgba(5,10,25,.84);
+    border-right:1px solid rgba(145,157,255,.16);
+    backdrop-filter:blur(24px);
+}
+
+.rail-logo{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:2px 4px 20px;
+    direction:ltr;
+}
+.rail-logo-mark{
+    width:42px;height:42px;
+    display:grid;place-items:center;
+    border-radius:14px;
+    font-size:27px;font-weight:900;
+    color:#fff;
+    background:linear-gradient(145deg,#7047ff,#bd65ff);
+    box-shadow:0 0 28px rgba(124,77,255,.38);
+}
+.rail-logo strong{
+    display:block;
+    color:#fff;
+    font-size:15px;
+    white-space:nowrap;
+}
+.rail-logo strong span{color:#a46bff}
+.rail-logo small{
+    display:block;
+    color:#8490b3;
+    font-size:8px;
+    margin-top:3px;
+    direction:rtl;
+}
+
+.rail-nav{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin-top:6px;
+}
+.rail-item{
+    min-height:58px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    color:#8491b5;
+    text-decoration:none;
+    border-radius:16px;
+    transition:.22s ease;
+}
+.rail-item .material-icons{font-size:24px}
+.rail-item b{font-size:11px;font-weight:600}
+.rail-item:hover{
+    color:#fff;
+    background:rgba(112,79,255,.12);
+}
+.rail-item.active{
+    color:#fff;
+    background:linear-gradient(145deg,#7047ff,#5b45ed);
+    box-shadow:0 12px 28px rgba(91,69,237,.32);
+}
+
+.rail-promo{
+    width:100%;
+    margin-top:auto;
+    padding:16px 10px;
+    border:1px solid rgba(122,105,255,.46);
+    border-radius:18px;
+    background:
+        radial-gradient(circle at 75% 10%,rgba(166,84,255,.24),transparent 42%),
+        rgba(14,23,48,.82);
+    text-align:center;
+}
+.rail-promo .material-icons{
+    font-size:29px;
+    color:#9b7cff;
+    margin-bottom:7px;
+}
+.rail-promo strong{display:block;font-size:12px}
+.rail-promo small{
+    display:block;
+    color:#8e9abc;
+    font-size:9px;
+    line-height:1.6;
+    margin:5px 0 10px;
+}
+.rail-promo a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    color:#fff;
+    text-decoration:none;
+    font-size:10px;
+}
+.rail-promo a .material-icons{font-size:15px;margin:0}
+.rail-copy{
+    color:#59637f;
+    font-size:8px;
+    margin-top:13px;
+}
+
+/* ---------- Header ---------- */
+.header{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    width:calc(100% - 148px);
+    margin-left:148px;
+    height:78px;
+    padding:0 28px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    background:rgba(5,10,25,.76);
+    border-bottom:1px solid rgba(148,161,255,.14);
+    backdrop-filter:blur(22px);
+    box-shadow:0 10px 34px rgba(0,0,0,.22);
+}
+.header .menu-btn{display:none}
+.header .logo{order:3;margin-left:0}
+.header .logo h2{font-size:21px;color:#fff}
+.header .logo h2 .typing-title{
+    background:linear-gradient(90deg,#fff,#a76bff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+.header .logo .material-icons{color:#a46bff;font-size:27px}
+
+.home-header-search{
+    order:2;
+    flex:1;
+    max-width:520px;
+    height:46px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 16px;
+    border:1px solid rgba(151,165,255,.32);
+    border-radius:24px;
+    background:linear-gradient(180deg,rgba(26,40,77,.88),rgba(11,20,43,.82));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 30px rgba(0,0,0,.18);
+}
+.home-header-search .material-icons{color:#aab6dd;font-size:25px}
+.home-header-search input{
+    width:100%;
+    border:0;
+    outline:0;
+    background:transparent;
+    color:#fff;
+    font-size:14px;
+    direction:rtl;
+}
+.home-header-search input::placeholder{color:#7f8aaa}
+
+.home-header-actions{
+    order:1;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.home-header-icon{
+    width:46px;height:46px;
+    border:1px solid rgba(151,165,255,.2);
+    border-radius:50%;
+    background:rgba(18,29,57,.9);
+    color:#fff;
+    cursor:pointer;
+}
+.home-header-icon .material-icons{font-size:21px}
+
+.mobile-home-heading{display:none}
+
+/* ---------- Main content ---------- */
+body > #sidebar-container{position:relative;z-index:1300}
+
+.today-wallpaper,
+.slider-section,
+#homeCategories,
+.wall-section,
+.categories-section,
+#dynamicSections{
+    width:calc(100% - 148px);
+    margin-left:148px;
+}
+
+.today-wallpaper{
+    margin-top:20px;
+    margin-right:0;
+    height:390px;
+    border:1px solid rgba(165,174,255,.34);
+    border-radius:28px;
+    box-shadow:var(--wh-shadow);
+    background:#090f21;
+}
+.today-wallpaper:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(90deg,rgba(5,8,18,.76),transparent 48%,rgba(5,8,18,.12));
+}
+.today-wallpaper img{filter:saturate(1.12) contrast(1.04)}
+.today-overlay{
+    z-index:2;
+    padding:38px 54px;
+    background:linear-gradient(90deg,rgba(4,7,16,.94),rgba(4,7,16,.46) 48%,transparent 75%);
+}
+.today-overlay .today-badge{
+    background:linear-gradient(135deg,#8b46ff,#bf59ff);
+    color:#fff;
+    border:1px solid rgba(255,255,255,.22);
+}
+.today-overlay h2{
+    font-size:clamp(25px,3vw,43px);
+    max-width:560px;
+}
+.today-overlay p{
+    color:#d3d8e8;
+    max-width:500px;
+}
+.today-buttons,.today-actions{
+    display:flex;
+    gap:12px;
+}
+.today-buttons button,.today-actions button{
+    min-width:145px;
+    height:48px;
+    border-radius:25px;
+}
+#todayView{
+    background:rgba(16,25,49,.82)!important;
+    color:#fff!important;
+    border:1px solid rgba(190,198,255,.35)!important;
+}
+#todayDownload{
+    background:linear-gradient(135deg,#7b43ff,#b34dff)!important;
+    color:#fff!important;
+    box-shadow:0 12px 28px rgba(122,67,255,.28);
+}
+
+/* Slider overrides */
+.slider-section{
+    padding:18px 0 4px;
+}
+.slider-section .slider{
+    margin:0;
+    border-radius:24px;
+}
+
+/* ---------- Categories ---------- */
+#homeCategories{
+    padding:8px 22px 4px;
+}
+#homeCategories > *{max-width:none}
+.categories-section{
+    padding:0 22px;
+}
+.categories-section .title,
+.wall-section .title{
+    color:#fff;
+}
+.title h3{
+    font-size:21px;
+    font-weight:800;
+}
+.title a{
+    color:#9e8cff;
+}
+.categories-grid,
+.category-list{
+    scrollbar-width:none;
+}
+.category-list{
+    gap:12px;
+}
+.category{
+    min-width:108px;
+    height:112px;
+    border-radius:20px;
+    color:#dfe5ff;
+    background:linear-gradient(160deg,rgba(24,37,72,.95),rgba(10,18,38,.95));
+    border:1px solid rgba(143,157,255,.2);
+    box-shadow:0 14px 30px rgba(0,0,0,.2);
+}
+.category.active{
+    background:linear-gradient(145deg,#7447ff,#b452ff);
+    box-shadow:0 15px 35px rgba(122,67,255,.3);
+}
+
+/* ---------- Wallpaper rows ---------- */
+.wall-section{
+    padding:4px 22px 8px;
+    margin-top:18px;
+    margin-right:0;
+}
+.wall-grid{
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:14px!important;
+    overflow:visible!important;
+    padding:0!important;
+    background:transparent!important;
+}
+.wall-card{
+    width:auto!important;
+    height:250px!important;
+    border-radius:18px!important;
+    border:1px solid rgba(148,161,255,.25);
+    background:#0b142a;
+    box-shadow:0 15px 34px rgba(0,0,0,.25);
+    overflow:hidden;
+}
+.wall-card img,
+.wall-card video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+.wall-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 20px 42px rgba(0,0,0,.34);
+}
+.wall-card:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    border-radius:inherit;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+}
+
+/* Dynamic sections should stay visually compact */
+#dynamicSections .wall-section{
+    margin-left:148px;
+}
+
+/* ---------- Mobile ---------- */
+@media(max-width:900px){
+    .home-desktop-rail{display:none}
+
+    .header{
+        width:100%;
+        margin-left:0;
+        height:72px;
+        padding:0 16px;
+        gap:9px;
+    }
+    .header .menu-btn{
+        display:flex;
+        order:1;
+    }
+    .header .logo{order:3}
+    .header .logo .material-icons{display:none}
+    .header .logo h2{font-size:20px}
+    .home-header-search{
+        order:2;
+        max-width:none;
+        height:44px;
+        padding:0 11px;
+    }
+    .home-header-search input{font-size:12px}
+    .home-header-actions{order:4}
+    .home-header-actions .home-header-icon{display:none}
+
+    .mobile-home-heading{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin:14px 16px 4px;
+        padding:0 4px;
+    }
+    .mobile-home-heading span:first-child{
+        display:block;
+        font-size:18px;
+        font-weight:900;
+        background:linear-gradient(90deg,#fff,#9c68ff);
+        -webkit-background-clip:text;
+        background-clip:text;
+        color:transparent;
+    }
+    .mobile-home-heading small{
+        display:block;
+        color:#7f8bab;
+        font-size:9px;
+        margin-top:2px;
+    }
+    .mobile-home-heading > .material-icons{
+        color:#9d77ff;
+        font-size:23px;
+    }
+
+    .today-wallpaper,
+    .slider-section,
+    #homeCategories,
+    .wall-section,
+    .categories-section,
+    #dynamicSections,
+    #dynamicSections .wall-section{
+        width:100%;
+        margin-left:0;
+    }
+
+    .today-wallpaper{
+        height:300px;
+        margin:12px 16px 0;
+        width:calc(100% - 32px);
+        border-radius:24px;
+    }
+    .today-overlay{
+        padding:22px;
+        background:linear-gradient(0deg,rgba(4,7,16,.94),rgba(4,7,16,.22) 80%);
+    }
+    .today-overlay h2{font-size:25px}
+    .today-overlay p{font-size:12px}
+    .today-buttons,.today-actions{gap:8px}
+    .today-buttons button,.today-actions button{
+        min-width:0;
+        flex:1;
+        height:44px;
+        font-size:13px;
+    }
+
+    .slider-section{padding:12px 16px 2px}
+    .slider-section .slider{height:210px}
+
+    #homeCategories{padding:6px 16px}
+    .wall-section{padding:4px 16px 8px}
+    .wall-grid{
+        display:flex!important;
+        gap:11px!important;
+        overflow-x:auto!important;
+        overflow-y:hidden!important;
+        padding:2px 2px 8px!important;
+        scrollbar-width:none;
+    }
+    .wall-card{
+        flex:0 0 132px!important;
+        width:132px!important;
+        height:224px!important;
+        border-radius:17px!important;
+    }
+    .title h3{font-size:18px}
+    .title a{font-size:12px}
+
+    .categories-section{padding:0 16px}
+    .category{min-width:92px;height:92px;border-radius:18px}
+}
+
+@media(max-width:430px){
+    .header{padding:0 10px}
+    .header .logo h2{font-size:18px}
+    .home-header-search{flex:1}
+    .today-wallpaper{height:285px}
+    .wall-card{
+        flex-basis:126px!important;
+        width:126px!important;
+        height:216px!important;
+    }
+}
+
+/* Reduce old bright white surfaces from home.css */
+.wall-grid,
+.category,
+.today-wallpaper,
+.slider-section{
+    color-scheme:dark;
+}

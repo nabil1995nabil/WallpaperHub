@@ -17,12 +17,42 @@
 <link rel="stylesheet" href="css/ai-button.css">
 <link rel="stylesheet" href="css/notification-button.css">
 <link rel="stylesheet" href="css/bottom-nav.css">
-<link rel="stylesheet" href="sidebar.css">
+<link rel="stylesheet" href="sidebar.css">\n<link rel="stylesheet" href="home-redesign.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 </head>
 
 <body>
+
+<!-- Desktop navigation rail: visual redesign, existing routes preserved -->
+<aside class="home-desktop-rail" aria-label="التنقل الرئيسي">
+    <div class="rail-logo">
+        <span class="rail-logo-mark">W</span>
+        <div>
+            <strong>Wallpaper<span>Hub</span></strong>
+            <small>أكثر من مجرد خلفيات</small>
+        </div>
+    </div>
+
+    <nav class="rail-nav">
+        <a class="rail-item active" href="home.html"><span class="material-icons">home</span><b>الرئيسية</b></a>
+        <a class="rail-item" href="all-wallpapers.html"><span class="material-icons">explore</span><b>استكشف</b></a>
+        <a class="rail-item" href="categories.html"><span class="material-icons">grid_view</span><b>الأقسام</b></a>
+        <a class="rail-item" href="favorites.html"><span class="material-icons">favorite_border</span><b>المفضلة</b></a>
+        <a class="rail-item" href="downloads.html"><span class="material-icons">download</span><b>التنزيلات</b></a>
+        <a class="rail-item" href="community.html"><span class="material-icons">groups</span><b>المجتمع</b></a>
+        <a class="rail-item" href="settings.html"><span class="material-icons">settings</span><b>الإعدادات</b></a>
+    </nav>
+
+    <div class="rail-promo">
+        <span class="material-icons">auto_awesome</span>
+        <strong>خلفيات أجمل</strong>
+        <small>اكتشف عالمًا جديدًا من الخلفيات</small>
+        <a href="categories.html">استكشف الآن <span class="material-icons">arrow_back</span></a>
+    </div>
+
+    <div class="rail-copy">© 2026 WallpaperHub</div>
+</aside>
 
 <!-- قائمة جانبية-->
 
@@ -48,10 +78,28 @@
 
     </div>
 
-<div id="aiButton"></div>
-<div id="notificationButton"></div>
+<div class="home-header-search">
+    <span class="material-icons">search</span>
+    <input id="homeSearchInput" type="search" placeholder="ابحث عن خلفياتك المفضلة..." autocomplete="off">
+</div>
+
+<div class="home-header-actions">
+    <button class="home-header-icon" type="button" aria-label="الوضع الليلي">
+        <span class="material-icons">dark_mode</span>
+    </button>
+    <div id="aiButton"></div>
+    <div id="notificationButton"></div>
+</div>
 
 </header>
+
+<div class="mobile-home-heading">
+    <div>
+        <span>WallpaperHub</span>
+        <small>أكثر من مجرد خلفيات</small>
+    </div>
+    <span class="material-icons">auto_awesome</span>
+</div>
 
 <!-- Wallpaper Of The Day -->
 
@@ -244,5 +292,16 @@
 <script src="effects.js"></script>
 <script src="ai-fab.js"></script>
 <script src="sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("homeSearchInput");
+    if (!input) return;
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && input.value.trim()) {
+            window.location.href = "all-wallpapers.html?search=" + encodeURIComponent(input.value.trim());
+        }
+    });
+});
+</script>
 </body>
 </html>
