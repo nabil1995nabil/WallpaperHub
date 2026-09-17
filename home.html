@@ -28,37 +28,55 @@
 
 <div id="sidebar-container"></div>
 
-<!-- Header -->
-<header class="header wh-reference-header">
+<!-- Compact Premium Header — Reference Match -->
+<header class="header premium-header">
 
-    <!-- زر القائمة في أقصى اليمين -->
-    <button id="menuBtn" class="menu-btn wh-menu-btn" aria-label="القائمة">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
+    <div class="reference-brand">
+        <button id="menuBtn" class="menu-btn reference-menu" aria-label="القائمة">
+            <span></span><span></span><span></span>
+        </button>
 
-    <!-- الشعار: W + WallpaperHub + الوصف -->
-    <div class="wh-brand" aria-label="WallpaperHub">
-        <div class="wh-w-logo" aria-hidden="true">
-            <span class="w-part w-one"></span>
-            <span class="w-part w-two"></span>
-            <span class="w-part w-three"></span>
-        </div>
-
-        <div class="wh-brand-copy">
-            <div class="wh-brand-name">
-                <span>Wallpaper</span><b>Hub</b>
+        <div class="reference-logo">
+            <div class="reference-w-mark" aria-hidden="true">
+                <i></i><i></i><i></i>
             </div>
-            <div class="wh-brand-tagline">أكثر من مجرد خلفيات</div>
+            <div class="reference-brand-text">
+                <div class="reference-brand-name">
+                    <span>Wallpaper</span><b>Hub</b>
+                </div>
+                <small>أكثر من مجرد خلفيات</small>
+            </div>
         </div>
     </div>
 
-    <!-- الإشعارات -->
-    <div id="notificationButton" class="wh-notification"></div>
+    <label class="reference-search">
+        <span class="material-icons">search</span>
+        <input id="homeSearch" type="search"
+               placeholder="ابحث عن خلفياتك المفضلة..."
+               autocomplete="off">
+    </label>
 
-    <!-- زر AI يبقى موجوداً للوظيفة، لكن مخفي بصرياً من الشريط -->
-    <div id="aiButton" class="wh-ai-hidden"></div>
+    <div class="reference-actions">
+
+        <button class="reference-icon-btn theme-toggle"
+                id="headerThemeBtn"
+                aria-label="تغيير المظهر">
+            <span class="material-icons">dark_mode</span>
+        </button>
+
+        <div class="reference-notification" id="notificationButton"></div>
+
+        <button class="reference-profile" id="profileChip" aria-label="الحساب">
+            <span class="reference-avatar">N</span>
+            <span class="reference-profile-copy">
+                <strong>NABIL</strong>
+                <small>مستكشف الجمال</small>
+            </span>
+            <span class="material-icons reference-chevron">expand_more</span>
+        </button>
+
+        <div id="aiButton" class="header-ai-wrap"></div>
+    </div>
 
 </header>
 

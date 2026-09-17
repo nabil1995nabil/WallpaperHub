@@ -602,290 +602,459 @@ transform:scale(.96);
 }
 
 
-/* ==========================================================
-   WallpaperHub — Header مطابق للصورة المرجعية
-   ترتيب RTL: القائمة ← الشعار W + الاسم ← الإشعارات
-   ========================================================== */
+/* =========================================================
+   WALLPAPERHUB — REFERENCE HEADER
+   Compact / premium / RTL-friendly
+   ========================================================= */
 
-.wh-reference-header{
-    position:sticky !important;
-    top:0 !important;
+.premium-header{
+    position:sticky;
+    top:14px;
     z-index:1000;
-    width:100%;
-    height:76px;
-    padding:0 18px;
+    width:calc(100% - 34px);
+    max-width:1000px;
+    height:66px;
+    margin:14px auto 0;
+    padding:7px 10px 7px 14px;
     display:flex;
     align-items:center;
-    justify-content:flex-start;
-    gap:14px;
-    direction:rtl;
-    background:#ffffff !important;
-    border:0;
-    border-bottom:1px solid #ececf2;
-    box-shadow:0 2px 12px rgba(20,20,35,.06) !important;
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
+    gap:16px;
+    direction:ltr;
+    color:#fff;
+    background:
+        linear-gradient(180deg,rgba(28,45,91,.94),rgba(13,25,56,.94));
+    border:1px solid rgba(128,151,216,.25);
+    border-radius:21px;
+    box-shadow:
+        0 9px 28px rgba(0,0,0,.30),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
     animation:none !important;
 }
 
-/* القائمة في اليمين */
-.wh-menu-btn{
-    order:1;
-    width:42px !important;
-    height:42px !important;
-    min-width:42px;
-    margin-right:auto;
-    padding:9px !important;
-    border:0 !important;
-    border-radius:12px !important;
-    background:transparent !important;
-    display:flex !important;
-    flex-direction:column;
-    justify-content:center;
+.premium-header::after{
+    content:"";
+    position:absolute;
+    left:12px;
+    right:12px;
+    bottom:-1px;
+    height:1px;
+    border-radius:100%;
+    background:linear-gradient(90deg,transparent,#8c5cff,transparent);
+    opacity:.55;
+    pointer-events:none;
+}
+
+/* ---------------- Brand ---------------- */
+
+.reference-brand{
+    flex:0 0 226px;
+    min-width:226px;
+    height:100%;
+    display:flex;
     align-items:center;
-    gap:5px;
-    cursor:pointer;
+    gap:9px;
+    position:relative;
+    z-index:2;
 }
 
-.wh-menu-btn span{
-    width:27px !important;
-    height:3px !important;
-    border-radius:4px;
-    background:#303033 !important;
+.reference-menu{
+    display:none !important;
 }
 
-/* الشعار قبل الجرس مباشرة */
-.wh-brand{
-    order:2;
+.reference-logo{
     display:flex;
     align-items:center;
     gap:9px;
     direction:ltr;
-    flex:0 0 auto;
-    min-width:0;
 }
 
-/* حرف W صغير وأنيق */
-.wh-w-logo{
+.reference-w-mark{
     position:relative;
-    width:42px;
-    height:42px;
-    flex:0 0 42px;
-    overflow:hidden;
-}
-
-.wh-w-logo .w-part{
-    position:absolute;
-    top:4px;
-    width:12px;
-    height:34px;
-    border-radius:10px;
-    transform-origin:center;
-    filter:drop-shadow(0 2px 3px rgba(255,137,36,.12));
-}
-
-/* برتقالي + أبيض كما طلبت */
-.wh-w-logo .w-one{
-    left:4px;
-    background:linear-gradient(180deg,#ffb35b,#f47721);
-    transform:rotate(-19deg) skewX(-10deg);
-}
-
-.wh-w-logo .w-two{
-    left:15px;
-    top:5px;
-    height:32px;
-    background:linear-gradient(180deg,#ffffff,#ececf1);
-    transform:rotate(4deg) skewX(5deg);
-}
-
-.wh-w-logo .w-three{
-    left:26px;
-    background:linear-gradient(180deg,#ffbd6b,#f47721);
-    transform:rotate(20deg) skewX(11deg);
-}
-
-/* نص الشعار */
-.wh-brand-copy{
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    justify-content:center;
-    line-height:1;
-}
-
-.wh-brand-name{
-    white-space:nowrap;
-    font-size:19px;
-    font-weight:900;
-    letter-spacing:-.6px;
-    line-height:20px;
-}
-
-.wh-brand-name span{
-    color:#ffffff;
-    text-shadow:0 0 0 #222;
-    /* جعل Wallpaper أبيض حتى يظهر على الخلفية الداكنة للشعار فقط */
-    color:#34343a;
-}
-
-.wh-brand-name b{
-    color:#f47721;
-    font-weight:900;
-}
-
-.wh-brand-tagline{
-    margin-top:5px;
-    color:#8a8a91;
-    font-size:8.5px;
-    font-weight:500;
-    white-space:nowrap;
-}
-
-/* الإشعارات قبل الشعار في اتجاه RTL */
-.wh-notification{
-    order:3;
-    width:42px;
-    height:42px;
-    min-width:42px;
+    width:45px;
+    height:45px;
+    flex:0 0 45px;
     display:flex;
     align-items:center;
     justify-content:center;
+    filter:drop-shadow(0 5px 11px rgba(119,72,255,.35));
 }
 
-/* توافق مع notification-button.js/components.js */
-.wh-notification button,
-.wh-notification > button,
-.wh-notification .notification-btn,
-.wh-notification > div{
-    width:42px !important;
-    height:42px !important;
-    min-width:42px !important;
+.reference-w-mark i{
+    position:absolute;
+    width:13px;
+    height:37px;
+    border-radius:9px;
+    transform:skewX(-14deg) rotate(10deg);
+    background:linear-gradient(180deg,#a987ff 0%,#7436ff 100%);
+}
+
+.reference-w-mark i:nth-child(1){
+    left:5px;
+    top:4px;
+    transform:skewX(-14deg) rotate(-18deg);
+}
+
+.reference-w-mark i:nth-child(2){
+    left:16px;
+    top:5px;
+    transform:skewX(8deg) rotate(4deg);
+    background:linear-gradient(180deg,#8d66ff,#5e27f1);
+}
+
+.reference-w-mark i:nth-child(3){
+    left:28px;
+    top:3px;
+    transform:skewX(17deg) rotate(21deg);
+    background:linear-gradient(180deg,#b39aff,#6e3bff);
+}
+
+.reference-brand-text{
+    min-width:0;
+}
+
+.reference-brand-name{
+    font-size:20px;
+    line-height:20px;
+    font-weight:900;
+    letter-spacing:-.7px;
+    white-space:nowrap;
+}
+
+.reference-brand-name span{
+    color:#f7f8ff;
+}
+
+.reference-brand-name b{
+    color:#8d4fff;
+    font-weight:900;
+}
+
+.reference-brand-text small{
+    display:block;
+    margin-top:4px;
+    color:rgba(255,255,255,.67);
+    font-size:9px;
+    line-height:10px;
+    white-space:nowrap;
+}
+
+/* ---------------- Search ---------------- */
+
+.reference-search{
+    flex:1 1 auto;
+    max-width:390px;
+    min-width:180px;
+    height:42px;
+    margin:0 auto;
+    padding:0 13px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    direction:rtl;
+    border:1px solid rgba(166,181,227,.22);
+    border-radius:22px;
+    background:rgba(7,18,45,.48);
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,.035),
+        0 3px 12px rgba(0,0,0,.10);
+    transition:.2s ease;
+}
+
+.reference-search:focus-within{
+    border-color:rgba(139,91,255,.75);
+    box-shadow:
+        0 0 0 3px rgba(126,76,255,.10),
+        inset 0 1px 1px rgba(255,255,255,.04);
+}
+
+.reference-search .material-icons{
+    flex:0 0 auto;
+    color:#fff;
+    font-size:22px;
+    opacity:.95;
+}
+
+.reference-search input{
+    width:100%;
+    height:100%;
+    min-width:0;
+    padding:0;
+    border:0;
+    outline:0;
+    color:#fff;
+    background:transparent;
+    font-family:Arial,sans-serif;
+    font-size:12px;
+    text-align:right;
+}
+
+.reference-search input::placeholder{
+    color:rgba(255,255,255,.64);
+}
+
+/* ---------------- Right controls ---------------- */
+
+.reference-actions{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    direction:ltr;
+    position:relative;
+    z-index:2;
+}
+
+.reference-icon-btn{
+    width:43px !important;
+    height:43px !important;
+    min-width:43px !important;
     padding:0 !important;
-    border:0 !important;
+    display:grid !important;
+    place-items:center !important;
+    border:1px solid rgba(255,255,255,.08) !important;
     border-radius:50% !important;
-    background:transparent !important;
+    color:#fff !important;
+    background:rgba(7,17,42,.60) !important;
     box-shadow:none !important;
-    color:#a5aeba !important;
+    cursor:pointer;
+    transition:.2s ease;
 }
 
-.wh-notification .material-icons{
-    color:#a5aeba !important;
+.reference-icon-btn:hover{
+    background:rgba(255,255,255,.09) !important;
+    transform:translateY(-1px);
 }
 
-/* لا نعرض AI داخل الشريط */
-.wh-ai-hidden{
+.reference-icon-btn .material-icons{
+    font-size:21px;
+}
+
+.reference-notification{
+    width:43px;
+    height:43px;
+    min-width:43px;
+    display:grid;
+    place-items:center;
+    position:relative;
+}
+
+/* components.js may create the notification button with different
+   class names, so target the common direct button patterns. */
+.reference-notification button,
+.reference-notification > div,
+.reference-notification .notification-btn{
+    width:43px !important;
+    height:43px !important;
+    min-width:43px !important;
+    border-radius:50% !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    background:rgba(7,17,42,.60) !important;
+    color:#fff !important;
+    box-shadow:none !important;
+}
+
+.reference-profile{
+    height:45px;
+    min-width:158px;
+    padding:3px 8px 3px 4px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:23px;
+    color:#fff;
+    background:rgba(7,17,42,.52);
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.reference-profile:hover{
+    background:rgba(255,255,255,.07);
+}
+
+.reference-avatar{
+    width:37px;
+    height:37px;
+    flex:0 0 37px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    color:#fff;
+    font-size:16px;
+    font-weight:800;
+    background:linear-gradient(145deg,#b49cff 0%,#6d42ec 100%);
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,.30),
+        0 4px 13px rgba(102,65,225,.25);
+}
+
+.reference-profile-copy{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    line-height:1;
+}
+
+.reference-profile-copy strong{
+    font-size:11px;
+    letter-spacing:.6px;
+    font-weight:800;
+}
+
+.reference-profile-copy small{
+    margin-top:5px;
+    color:rgba(255,255,255,.60);
+    font-size:8px;
+    white-space:nowrap;
+}
+
+.reference-chevron{
+    margin-left:auto;
+    color:rgba(255,255,255,.82);
+    font-size:20px;
+}
+
+.header-ai-wrap{
     display:none !important;
 }
 
-/* الهاتف — نفس فكرة الصورة: شريط أبيض صغير ونظيف */
-@media (max-width:600px){
-    .wh-reference-header{
-        height:76px;
-        padding:0 14px;
-        gap:12px;
-    }
+/* ---------------- Tablet / mobile ---------------- */
 
-    .wh-menu-btn{
-        width:40px !important;
-        height:40px !important;
-        min-width:40px;
-    }
-
-    .wh-menu-btn span{
-        width:25px !important;
-        height:3px !important;
-    }
-
-    .wh-brand{
-        gap:7px;
-    }
-
-    .wh-w-logo{
-        width:38px;
-        height:38px;
-        flex-basis:38px;
-    }
-
-    .wh-w-logo .w-part{
-        height:31px;
-        width:11px;
-        top:4px;
-    }
-
-    .wh-w-logo .w-one{left:4px}
-    .wh-w-logo .w-two{left:14px;top:5px}
-    .wh-w-logo .w-three{left:24px}
-
-    .wh-brand-name{
-        font-size:18px;
-        line-height:19px;
-    }
-
-    .wh-brand-tagline{
-        font-size:8px;
-        margin-top:4px;
-    }
-
-    .wh-notification{
-        width:40px;
-        height:40px;
-        min-width:40px;
-    }
-
-    .wh-notification button,
-    .wh-notification > button,
-    .wh-notification .notification-btn,
-    .wh-notification > div{
-        width:40px !important;
-        height:40px !important;
-    }
-}
-
-/* الشاشات شديدة الصغر: الاسم يبقى واضحاً لكن بحجم أنيق */
-@media (max-width:390px){
-    .wh-reference-header{
-        padding:0 9px;
+@media (max-width:850px){
+    .premium-header{
+        top:8px;
+        width:calc(100% - 18px);
+        height:60px;
+        margin-top:8px;
+        padding:6px 8px;
         gap:8px;
+        border-radius:18px;
     }
 
-    .wh-brand{
+    .reference-brand{
+        flex:0 0 auto;
+        min-width:auto;
+    }
+
+    .reference-brand-text{
+        display:none;
+    }
+
+    .reference-w-mark{
+        width:39px;
+        height:39px;
+        flex-basis:39px;
+    }
+
+    .reference-w-mark i{
+        height:33px;
+        width:11px;
+    }
+
+    .reference-w-mark i:nth-child(1){left:4px;top:3px}
+    .reference-w-mark i:nth-child(2){left:14px;top:4px}
+    .reference-w-mark i:nth-child(3){left:25px;top:2px}
+
+    .reference-search{
+        height:40px;
+        min-width:0;
+        max-width:none;
+        border-radius:20px;
+    }
+
+    .reference-actions{
         gap:5px;
     }
 
-    .wh-w-logo{
+    .reference-icon-btn,
+    .reference-notification{
+        width:37px !important;
+        height:37px !important;
+        min-width:37px !important;
+    }
+
+    .reference-notification button,
+    .reference-notification > div,
+    .reference-notification .notification-btn{
+        width:37px !important;
+        height:37px !important;
+    }
+
+    .reference-profile{
+        min-width:37px;
+        width:37px;
+        height:37px;
+        padding:2px;
+        justify-content:center;
+    }
+
+    .reference-profile-copy,
+    .reference-chevron{
+        display:none;
+    }
+
+    .reference-avatar{
+        width:31px;
+        height:31px;
+        flex-basis:31px;
+        font-size:13px;
+    }
+}
+
+@media (max-width:500px){
+    .premium-header{
+        width:calc(100% - 12px);
+        margin-top:6px;
+        top:6px;
+    }
+
+    .reference-search{
+        flex:1;
+    }
+
+    .reference-search input::placeholder{
+        font-size:9px;
+    }
+
+    .reference-icon-btn,
+    .reference-notification{
+        width:34px !important;
+        height:34px !important;
+        min-width:34px !important;
+    }
+
+    .reference-notification button,
+    .reference-notification > div,
+    .reference-notification .notification-btn{
+        width:34px !important;
+        height:34px !important;
+    }
+
+    .reference-profile{
         width:34px;
+        min-width:34px;
         height:34px;
-        flex-basis:34px;
     }
 
-    .wh-w-logo .w-part{
-        width:10px;
+    .reference-avatar{
+        width:28px;
         height:28px;
+        flex-basis:28px;
+    }
+}
+
+@media (max-width:370px){
+    .reference-search{
+        flex:0 0 38px;
+        width:38px;
+        padding:0;
+        justify-content:center;
     }
 
-    .wh-w-logo .w-one{left:3px}
-    .wh-w-logo .w-two{left:12px}
-    .wh-w-logo .w-three{left:21px}
-
-    .wh-brand-name{
-        font-size:16px;
-    }
-
-    .wh-brand-tagline{
-        font-size:7px;
-    }
-
-    .wh-menu-btn{
-        width:36px !important;
-        min-width:36px;
-    }
-
-    .wh-notification,
-    .wh-notification button,
-    .wh-notification > button,
-    .wh-notification .notification-btn{
-        width:36px !important;
-        min-width:36px;
+    .reference-search input{
+        display:none;
     }
 }

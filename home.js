@@ -1039,6 +1039,40 @@ document.addEventListener(
 );
 
 
-// WH_REFERENCE_HEADER
-// الشريط العلوي الجديد يعتمد على نفس menuBtn و notificationButton
-// الموجودين أصلاً، لذلك لا نغيّر وظائف الصفحة الحالية.
+// =========================================================
+// Compact Header interactions
+// =========================================================
+document.addEventListener("DOMContentLoaded", () => {
+
+    const searchInput = document.getElementById("homeSearch");
+
+    if (searchInput) {
+        searchInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            window.location.href =
+                "all-wallpapers.html?search=" +
+                encodeURIComponent(query);
+        });
+    }
+
+    const themeBtn = document.getElementById("headerThemeBtn");
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", () => {
+            document.body.classList.toggle("header-dark-mode");
+
+            const icon = themeBtn.querySelector(".material-icons");
+            if (icon) {
+                icon.textContent =
+                    document.body.classList.contains("header-dark-mode")
+                        ? "light_mode"
+                        : "dark_mode";
+            }
+        });
+    }
+
+});
