@@ -4419,6 +4419,11 @@ app.post("/api/community/messages", async (req, res) => {
                     content,
                     image_url: media?.imageUrl || null,
                     image_path: media?.imagePath || null,
+                    file_url: fileMedia?.fileUrl || null,
+                    file_path: fileMedia?.filePath || null,
+                    file_name: fileMedia?.fileName || null,
+                    file_type: fileMedia?.fileType || null,
+                    file_size: fileMedia?.fileSize || null,
                     created_at: createdAt
                 });
 
