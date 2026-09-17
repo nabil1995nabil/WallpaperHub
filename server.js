@@ -4546,25 +4546,88 @@ app.get("/api/community/members", async (req, res) => {
             100
         );
 
-        const { data, error } = await supabase
-            .from("profiles")
-            .select("id,full_name,username,avatar_url")
-            .limit(limit);
+        // profiles is the preferred source for names/usernames/avatars.
+        // However, some authenticated users may not have a profiles row yet.
+        // Build the member list from both profiles and Supabase Auth so that
+        // every registered account can appear in the Community members list.
+        const memberMap = new Map();
 
-        if (error) throw error;
+        try {
+            const { data: profileRows, error: profileError } = await supabase
+                .from("profiles")
+                .select("id,full_name,username,avatar_url")
+                .limit(1000);
+
+            if (profileError) {
+                console.log(
+                    "COMMUNITY MEMBERS PROFILE TABLE ERROR:",
+                    profileError?.message || profileError
+                );
+            } else {
+                (profileRows || []).forEach(profile => {
+                    const id = String(profile?.id || "").trim();
+                    if (!id) return;
+
+                    memberMap.set(id, {
+                        id,
+                        name: String(
+                            profile.full_name ||
+                            profile.username ||
+                            "عضو"
+                        ),
+                        username: String(profile.username || ""),
+                        avatarUrl: String(profile.avatar_url || "")
+                    });
+                });
+            }
+        } catch (profileError) {
+            console.log(
+                "COMMUNITY MEMBERS PROFILE TABLE ERROR:",
+                profileError?.message || profileError
+            );
+        }
+
+        // Fill missing members directly from Supabase Auth.
+        // This is important for accounts created before a profiles row existed.
+        try {
+            const { data: authData, error: authError } =
+                await supabase.auth.admin.listUsers({
+                    page: 1,
+                    perPage: 1000
+                });
+
+            if (authError) {
+                console.log(
+                    "COMMUNITY MEMBERS AUTH LIST ERROR:",
+                    authError?.message || authError
+                );
+            } else {
+                (authData?.users || []).forEach(user => {
+                    const id = String(user?.id || "").trim();
+                    if (!id || memberMap.has(id)) return;
+
+                    const fallback = communityFallbackProfile(user);
+
+                    memberMap.set(id, {
+                        id,
+                        name: String(fallback.full_name || "عضو"),
+                        username: String(fallback.username || ""),
+                        avatarUrl: String(fallback.avatar_url || "")
+                    });
+                });
+            }
+        } catch (authError) {
+            console.log(
+                "COMMUNITY MEMBERS AUTH LIST ERROR:",
+                authError?.message || authError
+            );
+        }
+
+        const members = [...memberMap.values()].slice(0, limit);
 
         return res.json({
             success: true,
-            members: (data || []).map(profile => ({
-                id: String(profile.id),
-                name: String(
-                    profile.full_name ||
-                    profile.username ||
-                    "عضو"
-                ),
-                username: String(profile.username || ""),
-                avatarUrl: String(profile.avatar_url || "")
-            }))
+            members
         });
     } catch (error) {
         console.log(
