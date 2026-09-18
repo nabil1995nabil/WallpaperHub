@@ -1,877 +1,602 @@
-/* =========================================================
-   WallpaperHub — HOME / Modern Dark UI
-   إعادة بناء كاملة لواجهة الصفحة الرئيسية
-   ملاحظة: لا توجد قواعد للـ bottom navigation هنا.
-========================================================= */
-
-:root{
-    --home-bg:#070a18;
-    --home-bg-2:#0c1024;
-    --home-panel:rgba(17,23,52,.76);
-    --home-panel-solid:#111733;
-    --home-border:rgba(160,169,255,.22);
-    --home-text:#f7f8ff;
-    --home-muted:#aeb5d3;
-    --home-purple:#8b45ff;
-    --home-violet:#b34cff;
-    --home-blue:#3977ff;
-    --home-shadow:0 18px 55px rgba(0,0,0,.35);
-    --home-radius:24px;
-}
+/* ===================================
+   WallpaperHub - home.css
+   Part 1
+=================================== */
 
 *{
-    box-sizing:border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
 }
 
-html{
-    background:var(--home-bg);
-    scroll-behavior:smooth;
+:root{
+
+--primary:#5b5df5;
+--primary2:#7d5fff;
+--bg:#f5f7fb;
+--card:#ffffff;
+--text:#1d1d1f;
+--gray:#777;
+
 }
 
 body{
-    margin:0;
-    min-height:100vh;
-    overflow-x:hidden;
-    color:var(--home-text);
-    background:
-        radial-gradient(circle at 78% 8%,rgba(116,54,255,.20),transparent 28rem),
-        radial-gradient(circle at 18% 46%,rgba(41,106,255,.13),transparent 30rem),
-        linear-gradient(180deg,#070a18 0%,#0b1023 52%,#070a17 100%);
-    font-family:Arial,"Segoe UI",sans-serif;
-}
 
-body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    z-index:-1;
-    opacity:.35;
-    background:
-        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
-    background-size:34px 34px;
-    mask-image:linear-gradient(to bottom,#000,transparent 82%);
+background:var(--bg);
+
+color:var(--text);
+
+
 }
 
 /* ================= HEADER ================= */
 
 .header{
-    position:sticky;
-    top:0;
-    z-index:1000;
-    width:100%;
-    min-height:76px;
-    padding:12px clamp(14px,3vw,34px);
-    display:grid;
-    grid-template-columns:auto minmax(240px,520px) auto;
-    align-items:center;
-    gap:24px;
-    direction:ltr;
-    background:rgba(6,9,24,.84);
-    border-bottom:1px solid rgba(170,178,255,.13);
-    box-shadow:0 10px 35px rgba(0,0,0,.20);
-    backdrop-filter:blur(22px);
-    -webkit-backdrop-filter:blur(22px);
-}
 
-.brand{
-    min-width:0;
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
+position:sticky;
 
-.menu-btn{
-    width:42px;
-    height:42px;
-    flex:0 0 42px;
-    border:1px solid rgba(172,160,255,.35);
-    border-radius:14px;
-    display:grid;
-    place-items:center;
-    cursor:pointer;
-    color:#fff;
-    background:linear-gradient(145deg,#813cff,#4d3bd7);
-    box-shadow:0 8px 25px rgba(118,55,255,.35);
-    transition:transform .2s ease,box-shadow .2s ease;
-}
+top:0;
 
-.menu-btn:active{
-    transform:scale(.94);
-}
+z-index:1000;
 
-.brand-w{
-    font-size:23px;
-    line-height:1;
-    font-weight:900;
-    letter-spacing:-2px;
+height:72px;
+
+padding:0 20px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+background:rgba(255,255,255,.92);
+
+backdrop-filter:blur(15px);
+
+box-shadow:0 4px 18px rgba(0,0,0,.05);
+
 }
 
 .logo{
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    gap:3px;
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
+}
+
+.logo .material-icons{
+
+font-size:20px;
+
+color:var(--primary);
+
 }
 
 .logo h2{
-    margin:0;
-    font-size:21px;
-    line-height:1;
-    font-weight:900;
-    color:#fff;
-    white-space:nowrap;
+
+font-size:16px;
+
+font-weight:900;
+
+color:var(--primary);
+
 }
 
-.typing-title span{
-    color:#9d43ff;
+.header-icons{
+
+display:flex;
+
+gap:16px;
+
 }
 
-.logo small{
-    color:#8f97bb;
-    font-size:10px;
-    font-weight:600;
-    white-space:nowrap;
+.header-icons span{
+
+font-size:24px;
+
+cursor:pointer;
+
+transition:.3s;
+
 }
 
-.home-search{
-    min-width:0;
-    height:46px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:0 16px;
-    direction:rtl;
-    color:#b8bfdc;
-    font-size:14px;
-    border:1px solid rgba(148,158,222,.28);
-    border-radius:17px;
-    background:linear-gradient(180deg,rgba(43,54,100,.70),rgba(24,31,66,.75));
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 8px 25px rgba(0,0,0,.15);
+.header-icons span:active{
+
+transform:scale(.9);
+
 }
 
-.home-search .material-icons{
-    color:#fff;
-    font-size:23px;
-    flex:0 0 auto;
+/* ================= SLIDER ================= */
+
+.slider{
+
+margin:18px;
+
+height:220px;
+
+border-radius:26px;
+
+overflow:hidden;
+
+position:relative;
+
+box-shadow:var(--shadow);
+
 }
 
-.header-actions{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:9px;
-    direction:ltr;
+.slide{
+
+position:absolute;
+
+inset:0;
+
+opacity:0;
+
+transition:.8s;
+
 }
 
-.header-quick{
-    width:42px;
-    height:42px;
-    padding:0;
-    border:1px solid rgba(148,158,222,.20);
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    color:#fff;
-    background:rgba(29,38,78,.72);
-    cursor:pointer;
+.slide.active{
+
+opacity:1;
+
 }
 
-.header-quick .material-icons{
-    font-size:21px;
+.slide img{
+
+width:100%;
+
+height:100%;
+
+object-fit:cover;
+
 }
 
-/* keep the notification component compact without changing its JS */
-.header-actions #notificationButton{
-    width:42px;
-    height:42px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+/* ================= CATEGORIES ================= */
+
+.categories{
+
+margin:20px 18px;
+
 }
 
-.header-actions #notificationButton > *{
-    max-width:42px;
-    max-height:42px;
+.categories h3{
+
+margin-bottom:15px;
+
+font-size:20px;
+
 }
 
-.header-actions .material-icons{
-    font-size:22px !important;
+.category-list{
+
+display:flex;
+
+gap:14px;
+
+overflow-x:auto;
+
+padding-bottom:8px;
+
+scrollbar-width:none;
+
 }
 
-.header-actions button,
-.header-actions .notification-btn{
-    width:42px !important;
-    height:42px !important;
-    min-width:42px !important;
-    min-height:42px !important;
-    padding:0 !important;
-    margin:0 !important;
+.category-list::-webkit-scrollbar{
+
+display:none;
+
 }
 
-/* ================= PAGE ================= */
+.category{
 
-.home-page{
-    width:min(1480px,100%);
-    margin:0 auto;
-    padding:20px clamp(14px,3vw,32px) 90px;
+min-width:90px;
+
+height:90px;
+
+background:#fff;
+
+border-radius:22px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:var(--shadow);
+
+transition:.35s;
+
+cursor:pointer;
+
 }
 
-/* ================= TODAY — existing section preserved ================= */
+.category:hover{
 
-.today-wallpaper{
-    position:relative;
-    margin:0 0 22px;
-    height:240px;
-    border-radius:28px;
-    overflow:hidden;
+transform:translateY(-4px);
+
 }
 
-.today-wallpaper img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    transition:.5s;
+.category:active{
+
+transform:scale(.95);
+
 }
 
-.today-wallpaper:hover img{
-    transform:scale(1.04);
+.category.active{
+
+background:linear-gradient(135deg,var(--primary),var(--primary2));
+
+color:#fff;
+
 }
 
-.today-overlay{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    padding:22px;
-    background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.15));
-    color:#fff;
+.category p{
+
+margin-top:8px;
+
+font-size:13px;
+
+font-weight:600;
+
 }
 
-.today-overlay span{
-    display:inline-block;
-    padding:6px 14px;
-    border-radius:30px;
-    background:#ffb300;
-    color:#222;
-    font-size:12px;
-    font-weight:bold;
-    margin-bottom:10px;
-}
+/* ===================================
+   WallpaperHub - home.css
+   Part 2
+=================================== */
 
-.today-overlay h2{
-    font-size:24px;
-    margin:0 0 6px;
-}
+/* ================= WALLPAPERS ================= */
 
-.today-overlay p{
-    opacity:.9;
-    margin:0 0 16px;
-}
+.wall-section{
 
-.today-actions{
-    display:flex;
-    gap:12px;
-}
+margin:22px 18px;
 
-.today-actions button{
-    flex:1;
-    height:46px;
-    border:none;
-    border-radius:14px;
-    font-size:15px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:.3s;
-}
-
-#todayView{
-    background:#fff;
-    color:#222;
-}
-
-#todayDownload{
-    background:#5b5df5;
-    color:#fff;
-}
-
-.today-actions button:active{
-    transform:scale(.96);
-}
-
-/* ================= HERO / SLIDER ================= */
-
-.hero-section{
-    position:relative;
-    margin:0 0 24px;
-}
-
-.hero-glow{
-    position:absolute;
-    inset:12% 10% -5%;
-    z-index:0;
-    pointer-events:none;
-    border-radius:50%;
-    background:radial-gradient(ellipse,rgba(121,54,255,.24),transparent 66%);
-    filter:blur(35px);
-}
-
-.hero-section .slider-section{
-    position:relative;
-    z-index:1;
-    width:100%;
-}
-
-/* The slider component keeps its own internals/JS. */
-.hero-section #sliderContent{
-    border:1px solid rgba(182,175,255,.32);
-    border-radius:26px;
-    overflow:hidden;
-    box-shadow:var(--home-shadow),0 0 40px rgba(108,59,255,.12);
-}
-
-.hero-section .mini-wrapper{
-    margin-top:12px;
-}
-
-/* ================= CATEGORIES AREA ================= */
-/* The actual homeCategories component is intentionally untouched. */
-
-.categories-area{
-    margin:0 0 26px;
-    min-width:0;
-}
-
-/* ================= SECTION TITLES ================= */
-
-.wall-section,
-.categories-section{
-    margin:0 0 30px;
 }
 
 .title{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:18px;
-    margin-bottom:14px;
-    direction:rtl;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin-bottom:14px;
+
 }
 
-.section-heading{
-    display:flex;
-    align-items:center;
-    gap:11px;
-    min-width:0;
+.title h3{
+
+font-size:20px;
+
+font-weight:700;
+
 }
 
-.section-heading h3{
-    margin:0;
-    color:#fff;
-    font-size:21px;
-    line-height:1.2;
-    font-weight:850;
-    letter-spacing:-.4px;
+.title a{
+
+text-decoration:none;
+
+color:var(--primary);
+
+font-size:14px;
+
+font-weight:600;
+
 }
 
-.section-heading small{
-    display:block;
-    margin-top:4px;
-    color:#7f88ad;
-    font-size:11px;
-    font-weight:500;
+.wall-grid {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+    background: #ffffff; /* لضمان أن خلفية الشريط أبيض بالكامل */
 }
 
-.heading-icon{
-    width:38px;
-    height:38px;
-    flex:0 0 38px;
-    display:grid;
-    place-items:center;
-    border:1px solid rgba(168,147,255,.28);
-    border-radius:12px;
-    color:#fff;
-    background:linear-gradient(145deg,rgba(129,61,255,.32),rgba(50,74,180,.22));
-    box-shadow:0 6px 22px rgba(93,55,255,.14);
-    font-size:20px;
-}
 
-.new-badge{
-    padding:5px 9px;
-    border-radius:8px;
-    color:#fff;
-    background:linear-gradient(135deg,#1599ff,#3675ff);
-    box-shadow:0 5px 18px rgba(39,119,255,.24);
-    font-size:10px;
-    font-weight:900;
-    letter-spacing:.5px;
-}
-
-.title > a{
-    flex:0 0 auto;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    color:#b6bcda;
-    text-decoration:none;
-    font-size:13px;
-    font-weight:700;
-    transition:color .2s ease;
-}
-
-.title > a:hover{
-    color:#fff;
-}
-
-.title > a span{
-    width:30px;
-    height:30px;
-    display:grid;
-    place-items:center;
-    border-radius:50%;
-    color:#fff;
-    background:linear-gradient(135deg,#8b3dff,#5139df);
-    box-shadow:0 6px 18px rgba(110,51,255,.30);
-    font-size:17px;
-}
-
-/* ================= WALLPAPER CAROUSELS ================= */
-
-.wall-grid{
-    display:flex;
-    align-items:stretch;
-    gap:12px;
-    overflow-x:auto;
-    overflow-y:hidden;
-    padding:2px 2px 9px;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x proximity;
-    background:transparent;
-}
-
-.wall-grid::-webkit-scrollbar{
-    display:none;
-}
+/* ===== Wallpaper Card ===== */
 
 .wall-card{
     position:relative;
-    flex:0 0 154px;
-    width:154px;
-    height:220px;
+    flex-shrink:0;
+    width:140px;
+    height:250px;
+    border-radius:20px;
     overflow:hidden;
-    border:1px solid rgba(167,174,235,.23);
-    border-radius:17px;
     cursor:pointer;
-    scroll-snap-align:start;
-    background:#11172f;
-    box-shadow:0 10px 28px rgba(0,0,0,.30);
-    transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
-}
-
-.wall-card:hover{
-    transform:translateY(-4px);
-    border-color:rgba(177,122,255,.68);
-    box-shadow:0 16px 35px rgba(0,0,0,.38),0 0 24px rgba(111,57,255,.15);
+    transition:transform .3s ease;
 }
 
 .wall-card:active{
-    transform:scale(.97);
+
+transform:scale(.96);
+
 }
 
-.wall-card img,
-.wall-card video{
+.wall-card img{
     width:100%;
     height:100%;
     display:block;
     object-fit:cover;
+    border-radius:20px;
+    transition:transform .4s ease;
 }
 
-.wall-card::after{
-    content:"";
-    position:absolute;
-    inset:auto 0 0;
-    height:42%;
-    pointer-events:none;
-    background:linear-gradient(to top,rgba(3,5,15,.84),transparent);
+.wall-card:hover img{
+
+transform:scale(1.08);
+
 }
 
-.video-preview{
-    width:100%;
-    height:100%;
-    position:relative;
-}
+/* معلومات الخلفية */
 
-.video-preview video{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-}
-
-.video-icon{
-    position:absolute;
-    top:10px;
-    left:10px;
-    z-index:3;
-    width:30px;
-    height:30px;
-    display:grid;
-    place-items:center;
-    border:1px solid rgba(255,255,255,.25);
-    border-radius:50%;
-    color:#fff;
-    background:rgba(8,10,25,.65);
-    backdrop-filter:blur(8px);
-}
-
-/* cards generated by old/new data can expose these stats when present */
 .wall-info{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    z-index:4;
-    padding:12px;
-    color:#fff;
-    background:linear-gradient(to top,rgba(2,4,13,.96),rgba(2,4,13,.05));
+
+position:absolute;
+
+left:0;
+
+right:0;
+
+bottom:0;
+
+padding:15px;
+
+background:linear-gradient(
+
+to top,
+
+rgba(0,0,0,.82),
+
+rgba(0,0,0,.05)
+
+);
+
+color:#fff;
+
 }
 
 .wall-info h4{
-    margin:0 0 4px;
-    font-size:13px;
+
+font-size:16px;
+
+margin-bottom:5px;
+
+font-weight:700;
+
 }
 
 .wall-info p{
-    margin:0;
-    color:#c1c7e0;
-    font-size:11px;
+
+font-size:13px;
+
+opacity:.9;
+
 }
 
-/* ================= PROMOS ================= */
+/* ================= ANIMATION ================= */
 
-.promo-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-    margin:2px 0 30px;
+.header,
+
+.slider,
+
+.categories,
+
+.wall-section{
+
+animation:fade .7s ease;
+
 }
 
-.promo-card{
-    position:relative;
-    min-height:164px;
-    overflow:hidden;
-    border:1px solid rgba(167,174,235,.23);
-    border-radius:22px;
-    background:linear-gradient(135deg,#111b46,#15142d);
-    box-shadow:var(--home-shadow);
+@keyframes fade{
+
+from{
+
+opacity:0;
+
+transform:translateY(20px);
+
 }
 
-.promo-card::before{
-    content:"";
-    position:absolute;
-    width:240px;
-    height:240px;
-    top:-110px;
-    left:38%;
-    border-radius:50%;
-    background:radial-gradient(circle,rgba(146,65,255,.42),transparent 68%);
-    filter:blur(8px);
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
 }
 
-.promo-content{
-    position:relative;
-    z-index:2;
-    max-width:78%;
-    padding:22px;
-}
-
-.promo-icon{
-    width:35px;
-    height:35px;
-    display:grid;
-    place-items:center;
-    margin-bottom:9px;
-    border-radius:11px;
-    color:#fff;
-    background:linear-gradient(135deg,#7c3dff,#3f5ce8);
-    box-shadow:0 7px 20px rgba(106,52,255,.35);
-    font-size:15px;
-    font-weight:900;
-}
-
-.promo-card h3{
-    margin:0 0 7px;
-    font-size:19px;
-}
-
-.promo-card p{
-    margin:0 0 14px;
-    color:#aeb5d1;
-    font-size:12px;
-    line-height:1.7;
-}
-
-.promo-card a{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:9px 15px;
-    border-radius:13px;
-    color:#fff;
-    background:linear-gradient(135deg,#843dff,#5337df);
-    text-decoration:none;
-    font-size:12px;
-    font-weight:800;
-}
-
-.promo-ai{
-    background:linear-gradient(135deg,#27174f,#111a3e 78%);
-}
-
-.promo-ai .promo-icon{
-    border-radius:50%;
-}
-
-.promo-orb{
-    position:absolute;
-    width:190px;
-    height:190px;
-    right:-48px;
-    bottom:-70px;
-    border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#b54cff,rgba(89,35,202,.45) 34%,transparent 68%);
-    filter:blur(3px);
-}
-
-/* ================= LOWER SECTIONS ================= */
-
-.compact-section .wall-card{
-    height:200px;
-}
-
-.wallhaven-section{
-    position:relative;
-}
-
-.categories-section{
-    padding-bottom:10px;
-}
-
-.categories-grid{
-    min-height:20px;
-}
-
-/* dynamic sections generated by JS */
-#dynamicSections > .wall-section{
-    animation:sectionIn .55s ease both;
-}
-
-@keyframes sectionIn{
-    from{opacity:0;transform:translateY(12px)}
-    to{opacity:1;transform:translateY(0)}
 }
 
 /* ================= RESPONSIVE ================= */
 
-@media (min-width:900px){
-    .home-page{
-        padding-top:26px;
+@media(max-width:600px){
+    .wall-grid{
+        gap:12px;
+        padding-bottom:10px;
     }
 
     .wall-card{
-        flex-basis:175px;
-        width:175px;
-        height:248px;
+        width:130px;
+        height:230px;
+        border-radius:18px;
     }
 
-    .compact-section .wall-card{
-        height:225px;
-    }
-}
+    .wall-card img{
 
-@media (max-width:760px){
-    .header{
-        min-height:64px;
-        padding:9px 12px;
-        grid-template-columns:auto 1fr auto;
-        gap:10px;
-    }
+        width:100%;
 
-    .menu-btn{
-        width:38px;
-        height:38px;
-        flex-basis:38px;
-        border-radius:12px;
-    }
+        height:100%;
 
-    .brand{
-        gap:9px;
-    }
+        border-radius:18px;
 
-    .brand-w{
-        font-size:20px;
     }
 
     .logo h2{
-        font-size:17px;
+
+        font-size:21px;
+
     }
 
-    .logo small{
-        font-size:9px;
-    }
-
-    .home-search{
-        height:39px;
-        padding:0 11px;
-        border-radius:13px;
-        font-size:11px;
-    }
-
-    .home-search .material-icons{
-        font-size:19px;
-    }
-
-    .header-quick{
-        display:none;
-    }
-
-    .header-actions #notificationButton,
-    .header-actions button,
-    .header-actions .notification-btn{
-        width:38px !important;
-        height:38px !important;
-        min-width:38px !important;
-        min-height:38px !important;
-    }
-
-    .home-page{
-        padding:14px 12px 85px;
-    }
-
-    .today-wallpaper{
-        margin-bottom:17px;
-        height:218px;
-        border-radius:22px;
-    }
-
-    .today-overlay{
-        padding:17px;
-    }
-
-    .today-overlay h2{
-        font-size:20px;
-    }
-
-    .today-overlay p{
-        font-size:12px;
-    }
-
-    .hero-section{
-        margin-bottom:19px;
-    }
-
-    .hero-section #sliderContent{
-        border-radius:22px;
-    }
-
-    .wall-section,
-    .categories-section{
-        margin-bottom:24px;
-    }
-
-    .section-heading h3{
-        font-size:18px;
-    }
-
-    .section-heading small{
-        display:none;
-    }
-
-    .heading-icon{
-        width:34px;
-        height:34px;
-        flex-basis:34px;
-    }
-
-    .wall-card{
-        flex-basis:143px;
-        width:143px;
-        height:205px;
-        border-radius:16px;
-    }
-
-    .compact-section .wall-card{
-        height:190px;
-    }
-
-    .promo-grid{
-        grid-template-columns:1fr;
-        gap:12px;
-    }
-
-    .promo-card{
-        min-height:145px;
-    }
-
-    .promo-content{
-        max-width:85%;
-        padding:18px;
-    }
 }
 
-@media (max-width:430px){
-    .logo small{
-        display:none;
-    }
+/* ===========================
+      Wallpaper Of The Day
+=========================== */
 
-    .home-search{
-        font-size:10px;
-    }
+.today-wallpaper{
 
-    .home-search span:last-child{
-        overflow:hidden;
-        white-space:nowrap;
-        text-overflow:ellipsis;
-    }
+position:relative;
 
-    .title{
-        gap:8px;
-    }
+margin:18px;
 
-    .title > a{
-        font-size:11px;
-    }
+height:240px;
 
-    .title > a span{
-        width:27px;
-        height:27px;
-    }
+border-radius:28px;
 
-    .wall-card{
-        flex-basis:137px;
-        width:137px;
-        height:196px;
-    }
+overflow:hidden;
 
-    .compact-section .wall-card{
-        height:183px;
-    }
-
-    .today-actions{
-        gap:8px;
-    }
-
-    .today-actions button{
-        height:42px;
-        font-size:13px;
-    }
 }
 
-@media (prefers-reduced-motion:reduce){
-    *,*::before,*::after{
-        scroll-behavior:auto !important;
-        animation-duration:.01ms !important;
-        transition-duration:.01ms !important;
-    }
+.today-wallpaper img{
+
+width:100%;
+
+height:100%;
+
+object-fit:cover;
+
+transition:.5s;
+
+}
+
+.today-wallpaper:hover img{
+
+transform:scale(1.08);
+
+}
+
+.today-overlay{
+
+position:absolute;
+
+left:0;
+
+right:0;
+
+bottom:0;
+
+padding:22px;
+
+background:linear-gradient(
+
+to top,
+
+rgba(0,0,0,.88),
+
+rgba(0,0,0,.15)
+
+);
+
+color:#fff;
+
+}
+
+.today-overlay span{
+
+display:inline-block;
+
+padding:6px 14px;
+
+border-radius:30px;
+
+background:#ffb300;
+
+color:#222;
+
+font-size:12px;
+
+font-weight:bold;
+
+margin-bottom:10px;
+
+}
+
+.today-overlay h2{
+
+font-size:24px;
+
+margin-bottom:6px;
+
+}
+
+.today-overlay p{
+
+opacity:.9;
+
+margin-bottom:16px;
+
+}
+
+.today-buttons{
+
+display:flex;
+
+gap:12px;
+
+}
+
+.today-buttons button{
+
+flex:1;
+
+height:46px;
+
+border:none;
+
+border-radius:14px;
+
+font-size:15px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+transition:.3s;
+
+}
+
+#todayView{
+
+background:#ffffff;
+
+color:#222;
+
+}
+
+#todayDownload{
+
+background:#5b5df5;
+
+color:#fff;
+
+}
+
+.today-buttons button:active{
+
+transform:scale(.96);
+
 }

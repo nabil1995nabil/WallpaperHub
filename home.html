@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<meta name="theme-color" content="#080b1c">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
 <title>WallpaperHub</title>
 
 <link rel="stylesheet" href="home.css">
@@ -17,208 +19,221 @@
 <link rel="stylesheet" href="css/bottom-nav.css">
 <link rel="stylesheet" href="sidebar.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 </head>
 
 <body>
 
+<!-- قائمة جانبية-->
+
 <div id="sidebar-container"></div>
 
+<!-- Header -->
+
 <header class="header">
-    <div class="brand">
-        <button id="menuBtn" class="menu-btn" aria-label="فتح القائمة">
-            <span class="brand-w">W</span>
-        </button>
 
-        <div class="logo">
-            <h2>
-                <span class="typing-title">Wallpaper<span>Hub</span></span>
-            </h2>
-            <small>أكثر من مجرد خلفيات</small>
-        </div>
+    <button id="menuBtn" class="menu-btn">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+    <div class="logo">
+
+        <span class="material-icons">wallpaper</span>
+
+        <h2>
+<span class="typing-title">WallpaperHub</span>
+</h2>
+
     </div>
 
-    <div class="home-search" role="search">
-        <span class="material-icons">search</span>
-        <span>ابحث عن خلفيتك المفضلة...</span>
-    </div>
+<div id="aiButton"></div>
+<div id="notificationButton"></div>
 
-    <div class="header-actions">
-        <button class="header-quick" type="button" aria-label="الوضع الليلي">
-            <span class="material-icons">dark_mode</span>
-        </button>
-        <div id="notificationButton"></div>
-    </div>
 </header>
 
-<main class="home-page">
+<!-- Wallpaper Of The Day -->
 
-    <!-- Wallpaper Of The Day: محفوظ كما هو -->
-    <section class="today-wallpaper">
-        <img id="todayImage" alt="خلفية اليوم">
+<section class="today-wallpaper">
 
-        <div class="today-overlay">
-            <span class="today-badge">⭐ خلفية اليوم</span>
-            <h2 id="todayTitle"></h2>
-            <p id="todayDescription"></p>
+<img id="todayImage">
 
-            <div class="today-actions">
-                <button id="todayView">👁 مشاهدة</button>
-                <button id="todayDownload">⬇ تحميل</button>
-            </div>
-        </div>
-    </section>
+<div class="today-overlay">
 
-    <!-- Slider / Hero -->
-    <section class="hero-section" aria-label="الخلفيات المميزة">
-        <div class="hero-glow"></div>
-        <div class="slider-section">
-            <div id="sliderContent"></div>
+<span class="today-badge">
+⭐ خلفية اليوم
+</span>
 
-            <div class="mini-wrapper">
-                <div class="mini-cards"></div>
-            </div>
-        </div>
-    </section>
+<h2 id="todayTitle"></h2>
 
-    <!-- Categories: لا نغيّر مكوّن الأقسام الأصلي -->
-    <section class="categories-area">
-        <div id="homeCategories"></div>
-    </section>
+<p id="todayDescription"></p>
 
-    <!-- Popular -->
-    <section class="wall-section featured-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="heading-icon">🔥</span>
-                <div>
-                    <h3>الأكثر شعبية</h3>
-                    <small>الخلفيات التي يحبها الجميع</small>
-                </div>
-            </div>
-            <a href="all-wallpapers.html?type=popular">عرض الكل <span>←</span></a>
-        </div>
-        <div class="wall-grid" id="popularWallpapers"></div>
-    </section>
+<div class="today-actions">
 
-    <!-- Promotional cards -->
-    <section class="promo-grid" aria-label="عروض WallpaperHub">
-        <article class="promo-card promo-today">
-            <div class="promo-content">
-                <span class="promo-icon">✦</span>
-                <h3>اكتشف خلفية جديدة اليوم</h3>
-                <p>اختيارات مميزة تمنح شاشة هاتفك مظهراً مختلفاً كل يوم.</p>
-                <a href="all-wallpapers.html">استكشف الآن <span>←</span></a>
-            </div>
-        </article>
+<button id="todayView">
+👁 مشاهدة
+</button>
 
-        <article class="promo-card promo-ai">
-            <div class="promo-content">
-                <span class="promo-icon">AI</span>
-                <h3>خلفيات بالذكاء الاصطناعي</h3>
-                <p>اكتشف عالماً من التصاميم الخيالية والخلفيات الفريدة.</p>
-                <a href="all-wallpapers.html?category=ai">جرّب الآن <span>←</span></a>
-            </div>
-            <div class="promo-orb"></div>
-        </article>
-    </section>
+<button id="todayDownload">
+⬇ تحميل
+</button>
 
-    <!-- Latest -->
-    <section class="wall-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="new-badge">NEW</span>
-                <div>
-                    <h3>أحدث الخلفيات</h3>
-                    <small>وصلت حديثاً إلى WallpaperHub</small>
-                </div>
-            </div>
-            <a href="all-wallpapers.html?type=latest">عرض الكل <span>←</span></a>
-        </div>
-        <div class="wall-grid" id="latestWallpapers"></div>
-    </section>
+</div>
 
-    <!-- Downloaded -->
-    <section class="wall-section compact-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="heading-icon">⬇</span>
-                <div>
-                    <h3>الأكثر تحميلاً</h3>
-                    <small>الأكثر استخداماً هذا الأسبوع</small>
-                </div>
-            </div>
-            <a href="all-wallpapers.html?type=downloaded">عرض الكل <span>←</span></a>
-        </div>
-        <div class="wall-grid" id="downloadedWallpapers"></div>
-    </section>
+</section>
 
-    <!-- Liked -->
-    <section class="wall-section compact-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="heading-icon">♥</span>
-                <div>
-                    <h3>الأكثر إعجاباً</h3>
-                    <small>اختيارات المجتمع</small>
-                </div>
-            </div>
-            <a href="all-wallpapers.html?type=liked">عرض الكل <span>←</span></a>
-        </div>
-        <div class="wall-grid" id="likedWallpapers"></div>
-    </section>
+<!-- Slider -->
 
-    <!-- Recommended -->
-    <section class="wall-section compact-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="heading-icon">★</span>
-                <div>
-                    <h3>المقترحة لك</h3>
-                    <small>اختيارات مميزة حسب المحتوى</small>
-                </div>
-            </div>
-            <a href="all-wallpapers.html?type=recommended">عرض الكل <span>←</span></a>
-        </div>
-        <div class="wall-grid" id="recommendedWallpapers"></div>
-    </section>
+<div class="slider-section">
 
-    <!-- Wallhaven -->
-    <section class="wall-section wallhaven-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="heading-icon">◎</span>
-                <div>
-                    <h3>Wallhaven AI</h3>
-                    <small>اختيارات من المصدر الخارجي</small>
-                </div>
-            </div>
-            <a href="all-wallpapers.html?category=wallhaven">عرض الكل <span>←</span></a>
-        </div>
-        <div id="wallhavenAI" class="wall-grid"></div>
-    </section>
+    <div id="sliderContent"></div>
 
-    <!-- Categories page -->
-    <section class="categories-section">
-        <div class="title">
-            <div class="section-heading">
-                <span class="heading-icon">▦</span>
-                <div>
-                    <h3>الأقسام</h3>
-                    <small>تصفح حسب النوع</small>
-                </div>
-            </div>
-            <a href="categories.html">عرض الكل <span>←</span></a>
-        </div>
-        <div id="categoriesContainer" class="categories-grid"></div>
-    </section>
+    <div class="mini-wrapper">
 
-    <!-- Dynamic category sections -->
-    <div id="dynamicSections"></div>
+        <div class="mini-cards"></div>
 
-</main>
+    </div>
 
-<!-- Bottom Navigation: بدون أي تعديل -->
+
+</div>
+
+<!-- CATEGORIES -->
+
+<div id="homeCategories"></div>
+
+<!-- الأكثر شعبية -->
+
+<section class="wall-section">
+
+<div class="title">
+
+<h3>🔥 الأكثر شعبية</h3>
+
+<a href="all-wallpapers.html?type=popular">
+    عرض الكل
+</a>
+
+</div>
+
+<div class="wall-grid" id="popularWallpapers"></div>
+
+</section>
+
+<!-- أحدث الخلفيات -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+        <h3>🆕 أحدث الخلفيات</h3>
+
+<a href="all-wallpapers.html?type=latest">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="latestWallpapers"></div>
+
+</section>
+
+<!-- الأكثر تحميلاً -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+<h3>📥 الأكثر تحميلاً</h3>
+
+<a href="all-wallpapers.html?type=downloaded">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="downloadedWallpapers"></div>
+
+</section>
+
+<!-- الأكثر إعجاباً -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+<h3>❤️ الأكثر إعجاباً</h3>
+
+<a href="all-wallpapers.html?type=liked">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="likedWallpapers"></div>
+
+</section>
+
+<!-- المقترحة لك -->
+
+<section class="wall-section">
+
+    <div class="title">
+
+<h3>⭐ المقترحة لك</h3>
+
+<a href="all-wallpapers.html?type=recommended">
+    عرض الكل
+</a>
+
+    </div>
+
+    <div class="wall-grid" id="recommendedWallpapers"></div>
+
+</section>
+
+<section class="wall-section wallhaven-section">
+
+<div class="title">
+
+<h3>🌐 Wallhaven AI</h3>
+
+<a href="#">عرض الكل</a>
+
+</div>
+
+
+<div id="wallhavenAI" class="wall-grid"></div>
+
+
+</section>
+
+<!-- الأقسام -->
+
+<section class="categories-section">
+
+    <div class="title">
+
+<h3>📂 الأقسام</h3>
+
+<a href="categories.html">
+   عرض الكل
+</a>
+
+    </div>
+
+    <div id="categoriesContainer" class="categories-grid"></div>
+
+</section>
+
+<!-- Dynamic Categories -->
+<div id="dynamicSections"></div>
+
+
+<!-- Bottom Navigation -->
+
 <div id="bottomNav"></div>
+
 
 <script src="js/components.js"></script>
 <script src="js/bottom-nav-20d.js"></script>
