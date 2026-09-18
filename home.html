@@ -1,89 +1,152 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
 
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>WallpaperHub</title>
 
-<link rel="stylesheet" href="home.css">
+
+<!-- ملفات الستايل الحالية مع دعم تصميم الشريط الضوئي الجديد -->
+
+<link rel="stylesheet" href="home_step1.css">
+
 <link rel="stylesheet" href="css/slider.css">
+
 <link rel="stylesheet" href="css/home-categories.css">
+
 <link rel="stylesheet" href="effects.css">
+
 <link rel="stylesheet" href="ai-fab.css">
+
 <link rel="stylesheet" href="css/theme.css">
+
 <link rel="stylesheet" href="css/ai-button.css">
+
 <link rel="stylesheet" href="css/notification-button.css">
+
 <link rel="stylesheet" href="css/bottom-nav.css">
+
 <link rel="stylesheet" href="sidebar.css">
+
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 </head>
 
+
 <body>
 
-<!-- قائمة جانبية-->
+
+<!--أعدي الوصفة -->
 
 <div id="sidebar-container"></div>
 
-<!-- Header -->
+
+<!-- ================= HEADER (المصمم حديثاً خطوة بخطوة) ================= -->
 
 <header class="header">
 
-    <button id="menuBtn" class="menu-btn">
-    <span></span>
-    <span></span>
-    <span></span>
-</button>
+    <div class="header-left">
 
-    <div class="logo">
+        <button id="menuBtn" class="menu-btn">
 
-        <span class="material-icons">wallpaper</span>
+            <span></span>
 
-        <h2>
-<span class="typing-title">WallpaperHub</span>
-</h2>
+            <span></span>
+
+            <span></span>
+
+        </button>
+
+        <div class="logo">
+
+            <div class="logo-icon-wrapper">
+
+                <span class="material-icons">خلفية</span>
+
+            </div>
+
+            <div class="logo-text">
+
+                <h2>WallpaperHub</h2>
+
+                <span class="logo-subtitle">أكثر من مجرد خلفيات</span>
+
+            </div>
+
+        </div>
 
     </div>
 
-<div id="aiButton"></div>
-<div id="notificationButton"></div>
+
+    <div class="header-right">
+
+        <div class="header-icon-btn" id="themeToggleBtn" title="الوضع الليلي">
+
+            <span class="material-icons">dark_mode</span>
+
+        </div>
+
+        <div class="header-icon-btn notification-wrapper" id="notificationBtnHeader" onclick="openNotifications()" title="الإشعارات">
+
+            <span class="material-icons">الإشعارات</span>
+
+            <span class="notification-badge" id="notificationCount">3</span>
+
+        </div>
+
+        <div class="user-profile-badge" onclick="location.href='profile.html'">
+
+            <div class="user-avatar">N</div>
+
+            <div class="user-info">
+
+                <span class="user-name">نابيل</span>
+
+                <span class="user-role">مستكشف الجمال</span>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </header>
 
-<!-- Wallpaper Of The Day -->
+
+<!-- خلفية اليوم -->
 
 <section class="today-wallpaper">
 
-<img id="todayImage">
+    <img id="todayImage" alt=" توقيت اليوم">
 
-<div class="today-overlay">
+    <div class="today-overlay">
 
-<span class="today-badge">
-⭐ خلفية اليوم
-</span>
+        <span class="today-badge">⭐ خلفية اليوم</span>
 
-<h2 id="todayTitle"></h2>
+        <h2 id="todayTitle"></h2>
 
-<p id="todayDescription"></p>
+        <p id="todayDescription"></p>
 
-<div class="today-actions">
+        <div class="today-buttons">
 
-<button id="todayView">
-👁 مشاهدة
-</button>
+            <button id="todayView">👁 مشاهدة</button>
 
-<button id="todayDownload">
-⬇ تحميل
-</button>
+            <button id="todayDownload">⬇ تحميل</button>
 
-</div>
+        </div>
+
+    </div>
 
 </section>
 
-<!-- Slider -->
+
+<!-- Slider (ملفك الخارجي الأصلي) -->
 
 <div class="slider-section">
 
@@ -95,30 +158,30 @@
 
     </div>
 
-
 </div>
 
-<!-- CATEGORIES -->
+
+<!-- الفئات -->
 
 <div id="homeCategories"></div>
+
 
 <!-- الأكثر شعبية -->
 
 <section class="wall-section">
 
-<div class="title">
+    <div class="title">
 
-<h3>🔥 الأكثر شعبية</h3>
+        <h3>🔥الاكثر شعبية</h3>
 
-<a href="all-wallpapers.html?type=popular">
-    عرض الكل
-</a>
+        <a href="all-wallpapers.html?type=popular">عرض الكل</a>
 
-</div>
+    </div>
 
-<div class="wall-grid" id="popularWallpapers"></div>
+    <div class="wall-grid" id="popularWallpapers"></div>
 
 </section>
+
 
 <!-- أحدث الخلفيات -->
 
@@ -126,11 +189,9 @@
 
     <div class="title">
 
-        <h3>🆕 أحدث الخلفيات</h3>
+        <h3>🆕أحدث الخلفيات</h3>
 
-<a href="all-wallpapers.html?type=latest">
-    عرض الكل
-</a>
+        <a href="all-wallpapers.html?type=latest">عرض الكل</a>
 
     </div>
 
@@ -138,17 +199,16 @@
 
 </section>
 
+
 <!-- الأكثر تحميلاً -->
 
 <section class="wall-section">
 
     <div class="title">
 
-<h3>📥 الأكثر تحميلاً</h3>
+        <h3>📥الاكثر تحميلا</h3>
 
-<a href="all-wallpapers.html?type=downloaded">
-    عرض الكل
-</a>
+        <a href="all-wallpapers.html?type=downloaded">عرض الكل</a>
 
     </div>
 
@@ -156,17 +216,16 @@
 
 </section>
 
+
 <!-- الأكثر إعجاباً -->
 
 <section class="wall-section">
 
     <div class="title">
 
-<h3>❤️ الأكثر إعجاباً</h3>
+        <h3>❤️ الأكثر إعجاباً</h3>
 
-<a href="all-wallpapers.html?type=liked">
-    عرض الكل
-</a>
+        <a href="all-wallpapers.html?type=liked">عرض الكل</a>
 
     </div>
 
@@ -174,17 +233,16 @@
 
 </section>
 
-<!-- المقترحة لك -->
+
+<!-- ولك -->
 
 <section class="wall-section">
 
     <div class="title">
 
-<h3>⭐ المقترحة لك</h3>
+        <h3>⭐ توجيهاتك</h3>
 
-<a href="all-wallpapers.html?type=recommended">
-    عرض الكل
-</a>
+        <a href="all-wallpapers.html?type=recommending">عرض الكل</a>
 
     </div>
 
@@ -192,33 +250,31 @@
 
 </section>
 
+
 <section class="wall-section wallhaven-section">
 
-<div class="title">
+    <div class="title">
 
-<h3>🌐 Wallhaven AI</h3>
+        <h3>🌐 Wallhaven AI</h3>
 
-<a href="#">عرض الكل</a>
+        <a href="#">عرض الكل</a>
 
-</div>
+    </div>
 
-
-<div id="wallhavenAI" class="wall-grid"></div>
-
+    <div id="wallhavenAI" class="wall-grid"></div>
 
 </section>
 
-<!-- الأقسام -->
+
+<!--الخيار -->
 
 <section class="categories-section">
 
     <div class="title">
 
-<h3>📂 الأقسام</h3>
+        <h3>📂 </h3>
 
-<a href="categories.html">
-   عرض الكل
-</a>
+        <a href="categories.html">عرض الكل</a>
 
     </div>
 
@@ -226,23 +282,35 @@
 
 </section>
 
-<!-- Dynamic Categories -->
+
+<!-- فئات ديناميكية -->
+
 <div id="dynamicSections"></div>
 
 
-<!-- Bottom Navigation -->
+<!-- التنقل السفلي (ملفك الخارجي الأصلي) -->
 
 <div id="bottomNav"></div>
 
 
 <script src="js/components.js"></script>
+
 <script src="js/bottom-nav-20d.js"></script>
+
 <script src="js/slider.js"></script>
+
 <script src="js/performance-engine.js"></script>
+
 <script type="module" src="home.js"></script>
+
 <script src="theme.js"></script>
+
 <script src="effects.js"></script>
+
 <script src="ai-fab.js"></script>
+
 <script src="sidebar.js"></script>
+
 </body>
+
 </html>
