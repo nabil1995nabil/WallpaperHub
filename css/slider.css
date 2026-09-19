@@ -1,68 +1,112 @@
 /* =====================================
- WallpaperHub Interactive Slider
+   WallpaperHub — Interactive Slider Pro
 ===================================== */
 
+
+/* منطقة السلايدر */
 
 .slider-section{
 
     width:100%;
+
     padding:20px 100px;
+
     overflow:hidden;
-    touch-action:pan-y;
-    user-select:none;
-    -webkit-user-select:none;
 
 }
 
 
+/* إطار السلايدر الكامل */
+
+.slider-frame{
+
+    position:relative;
+
+    width:100%;
+
+}
+
+
+/* السلايدر الرئيسي */
 
 #sliderContent{
 
     position:relative;
+
     width:100%;
-    height:390px;
+
+    height:375px;
+
     border-radius:30px;
+
     overflow:hidden;
 
+    touch-action:pan-y;
+
+    user-select:none;
+
+    -webkit-user-select:none;
+
+    box-shadow:
+        0 18px 45px rgba(15,20,45,.16);
+
 }
-/* الصورة */
+
+
+/* الصورة / السلايد */
 
 .slide{
 
     position:absolute;
+
     inset:0;
 
     opacity:0;
-    transform:scale(1.05);
+
+    transform:scale(1.045);
 
     transition:
-    opacity .8s ease,
-    transform .8s ease;
+        opacity .55s ease,
+        transform .7s ease;
+
+    pointer-events:none;
 
 }
-
 
 
 .slide.active{
 
     opacity:1;
+
     transform:scale(1);
+
+    pointer-events:auto;
 
 }
 
 
-
 .slide img{
+
     width:100%;
+
     height:100%;
+
     object-fit:cover;
+
+    display:block;
+
     image-rendering:auto;
 
     filter:
         brightness(1.05)
         contrast(1.30)
         saturate(1.10);
+
+    -webkit-user-drag:none;
+
 }
+
+
 /* التدرج فوق الصورة */
 
 .slide::after{
@@ -73,21 +117,21 @@
 
     inset:0;
 
+    pointer-events:none;
 
     background:
-    linear-gradient(
-        180deg,
-        transparent 20%,
-        rgba(0,0,0,.8)
-    );
+        linear-gradient(
+            180deg,
+            rgba(0,0,0,0) 22%,
+            rgba(0,0,0,.82) 100%
+        );
 
 }
 
 
+/* معلومات السلايد */
 
-/* معلومات الصورة */
-
-.slider-info {
+.slider-info{
 
     position:absolute;
 
@@ -101,38 +145,71 @@
 
     text-align:center;
 
+    pointer-events:none;
+
 }
 
 
-/* التصنيف فوق اليمين */
-.slider-category{
+/* عنوان الخلفية */
+
+.slider-title{
+
     position:absolute;
-    top:0;
+
+    top:4px;
+
+    left:0;
+
+    right:0;
+
+    padding-right:70px;
+
+    color:#ffffff;
+
+    font-size:26px;
+
+    line-height:1.2;
+
+    font-weight:900;
+
+    text-align:left;
+
+    text-shadow:
+        0 3px 12px rgba(0,0,0,.55);
+
+}
+
+
+/* التصنيف */
+
+.slider-category{
+
+    position:absolute;
+
+    top:43px;
+
     right:0;
 
     color:#ffffff;
+
     font-size:13px;
+
     font-weight:400;
-}
-.slider-info p{
 
-    margin-top:70px;
-
-    margin-left:auto;
-
-    margin-right:auto;
-
-    max-width:300px;
+    text-shadow:
+        0 2px 8px rgba(0,0,0,.5);
 
 }
 
 
+/* زر عرض الخلفية */
 
 .slider-info button{
 
     position:absolute;
 
     top:130px;
+
     right:9px;
 
     padding:10px 20px;
@@ -141,7 +218,7 @@
 
     border-radius:30px;
 
-    background:rgba(255,255,255,0.92);
+    background:rgba(255,255,255,.94);
 
     color:#111;
 
@@ -149,85 +226,569 @@
 
     font-size:10px;
 
-    box-shadow:0 8px 20px rgba(0,0,0,.25);
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.25);
 
-    backdrop-filter:blur(5px);
+    backdrop-filter:blur(8px);
 
-}
+    -webkit-backdrop-filter:blur(8px);
 
-/* تم نقل السحب إلى السلايدر الرئيسي */
+    cursor:pointer;
 
-/* الهاتف */
+    pointer-events:auto;
 
-@media(max-width:600px){
-
-
-.slider-section{
-
-    padding:15px 15px;
+    transition:
+        transform .2s ease,
+        background .2s ease;
 
 }
 
 
+.slider-info button:active{
 
-#sliderContent{
-
-    height:350px;
+    transform:scale(.95);
 
 }
 
 
+/* =====================================
+   الأسهم يمين / يسار
+===================================== */
 
-.slider-info{
+.slider-arrow{
 
-    bottom:100px;
+    position:absolute;
+
+    top:50%;
+
+    z-index:30;
+
+    width:58px;
+
+    height:58px;
+
+    margin-top:-29px;
+
+    border:1px solid rgba(255,255,255,.22);
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#ffffff;
+
+    background:
+        rgba(30,34,55,.42);
+
+    backdrop-filter:blur(12px);
+
+    -webkit-backdrop-filter:blur(12px);
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.18);
+
+    cursor:pointer;
+
+    transition:
+        transform .2s ease,
+        background .2s ease;
+
+}
+
+
+.slider-arrow span{
+
+    display:block;
+
+    margin-top:-4px;
+
+    font-family:Arial,sans-serif;
+
+    font-size:47px;
+
+    font-weight:200;
+
+    line-height:1;
+
+}
+
+
+.slider-arrow:hover{
+
+    background:
+        rgba(255,255,255,.20);
+
+}
+
+
+.slider-arrow:active{
+
+    transform:scale(.91);
+
+}
+
+
+.slider-arrow-prev{
+
+    left:25px;
+
+}
+
+
+.slider-arrow-next{
 
     right:25px;
 
 }
 
 
+/* =====================================
+   إطار شريط الصور المصغرة
+===================================== */
 
-.slider-info h2{
+.mini-wrapper{
 
-    font-size:24px;
+    position:absolute;
+
+    z-index:25;
+
+    left:50%;
+
+    bottom:42px;
+
+    transform:translateX(-50%);
+
+    width:min(82%,760px);
+
+    height:92px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:5px;
+
+    box-sizing:border-box;
+
+    border:1px solid rgba(255,255,255,.28);
+
+    border-radius:20px;
+
+    background:
+        rgba(12,15,29,.30);
+
+    backdrop-filter:blur(13px);
+
+    -webkit-backdrop-filter:blur(13px);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.24),
+        inset 0 1px 0 rgba(255,255,255,.12);
 
 }
 
 
+/* منفذ مرور الشريط */
+
+.mini-viewport{
+
+    width:100%;
+
+    height:100%;
+
+    overflow-x:auto;
+
+    overflow-y:hidden;
+
+    scrollbar-width:none;
+
+    -webkit-overflow-scrolling:touch;
+
+    cursor:grab;
+
+    border-radius:15px;
+
+    touch-action:pan-x;
 
 }
 
-.title-box{
 
-width:280px;
+.mini-viewport::-webkit-scrollbar{
 
-overflow:hidden;
-
-white-space:nowrap;
+    display:none;
 
 }
 
 
-.title-box h2{
+.mini-viewport.is-dragging{
 
-display:inline-block;
-
-animation:moveTitle 8s linear infinite;
+    cursor:grabbing;
 
 }
 
 
-@keyframes moveTitle{
+/* الشريط */
 
-from{
-transform:translateX(0);
+.mini-cards{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:flex-start;
+
+    gap:12px;
+
+    width:max-content;
+
+    min-width:100%;
+
+    height:100%;
+
+    padding:5px 8px;
+
+    box-sizing:border-box;
+
 }
 
 
-to{
-transform:translateX(-100%);
-}
+/* البطاقة الصغيرة */
+
+.mini-card{
+
+    flex:0 0 88px;
+
+    width:88px;
+
+    height:70px;
+
+    padding:0;
+
+    border-radius:15px;
+
+    overflow:hidden;
+
+    position:relative;
+
+    cursor:pointer;
+
+    background:#171a28;
+
+    border:2px solid rgba(255,255,255,.28);
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,.25);
+
+    transition:
+        transform .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
 
 }
 
+
+/* الصورة */
+
+.mini-card img{
+
+    width:100%;
+
+    height:100%;
+
+    display:block;
+
+    object-fit:cover;
+
+    pointer-events:none;
+
+    -webkit-user-drag:none;
+
+}
+
+
+/* الخلفية النشطة */
+
+.mini-card.active{
+
+    border-color:#a948ff;
+
+    box-shadow:
+        0 0 0 2px rgba(169,72,255,.25),
+        0 8px 22px rgba(121,45,255,.34);
+
+    transform:translateY(-2px);
+
+}
+
+
+/* لا نرفع البطاقة النشطة عند hover */
+
+.mini-card:hover{
+
+    transform:translateY(-3px);
+
+}
+
+
+.mini-card.active:hover{
+
+    transform:translateY(-3px);
+
+}
+
+
+/* =====================================
+   نقاط السلايدر
+===================================== */
+
+.slider-dots{
+
+    position:absolute;
+
+    z-index:28;
+
+    left:50%;
+
+    bottom:13px;
+
+    transform:translateX(-50%);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    max-width:80%;
+
+}
+
+
+.slider-dot{
+
+    width:9px;
+
+    height:9px;
+
+    padding:0;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:
+        rgba(255,255,255,.50);
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.25);
+
+    cursor:pointer;
+
+    transition:
+        width .25s ease,
+        background .25s ease,
+        transform .25s ease;
+
+}
+
+
+.slider-dot.active{
+
+    width:24px;
+
+    border-radius:99px;
+
+    background:#a944ff;
+
+    transform:scale(1.02);
+
+}
+
+
+/* =====================================
+   الهاتف
+===================================== */
+
+@media(max-width:600px){
+
+    .slider-section{
+
+        padding:15px 15px;
+
+    }
+
+
+    #sliderContent{
+
+        height:335px;
+
+        border-radius:25px;
+
+        box-shadow:
+            0 14px 32px rgba(15,20,45,.13);
+
+    }
+
+
+    .slider-info{
+
+        top:32px;
+
+        left:18px;
+
+        right:18px;
+
+    }
+
+
+    .slider-title{
+
+        top:3px;
+
+        padding-right:48px;
+
+        font-size:20px;
+
+        text-align:right;
+
+    }
+
+
+    .slider-category{
+
+        top:34px;
+
+        font-size:11px;
+
+    }
+
+
+    .slider-info button{
+
+        top:108px;
+
+        right:4px;
+
+        padding:10px 16px;
+
+        font-size:10px;
+
+    }
+
+
+    /* الأسهم */
+
+    .slider-arrow{
+
+        width:45px;
+
+        height:45px;
+
+        margin-top:-22.5px;
+
+    }
+
+
+    .slider-arrow span{
+
+        font-size:38px;
+
+    }
+
+
+    .slider-arrow-prev{
+
+        left:12px;
+
+    }
+
+
+    .slider-arrow-next{
+
+        right:12px;
+
+    }
+
+
+    /* إطار الصور الصغيرة */
+
+    .mini-wrapper{
+
+        bottom:42px;
+
+        width:88%;
+
+        height:70px;
+
+        padding:4px;
+
+        border-radius:16px;
+
+    }
+
+
+    .mini-viewport{
+
+        border-radius:12px;
+
+    }
+
+
+    .mini-cards{
+
+        gap:9px;
+
+        padding:4px 7px;
+
+    }
+
+
+    .mini-card{
+
+        flex-basis:65px;
+
+        width:65px;
+
+        height:56px;
+
+        border-radius:11px;
+
+    }
+
+
+    /* النقاط */
+
+    .slider-dots{
+
+        bottom:14px;
+
+        gap:7px;
+
+    }
+
+
+    .slider-dot{
+
+        width:7px;
+
+        height:7px;
+
+    }
+
+
+    .slider-dot.active{
+
+        width:20px;
+
+    }
+
+}
