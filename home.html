@@ -47,7 +47,50 @@
      1. SLIDER — أول محتوى في الصفحة
 ================================================== -->
 <section class="slider-section home-hero-slider">
-    <div id="sliderContent"></div>
+    <div class="slider-frame">
+
+        <div id="sliderContent"></div>
+
+        <!-- زر الخلفية السابقة -->
+        <button
+            id="sliderPrev"
+            class="slider-arrow slider-arrow-prev"
+            type="button"
+            aria-label="الخلفية السابقة">
+            <span>‹</span>
+        </button>
+
+        <!-- زر الخلفية التالية -->
+        <button
+            id="sliderNext"
+            class="slider-arrow slider-arrow-next"
+            type="button"
+            aria-label="الخلفية التالية">
+            <span>›</span>
+        </button>
+
+        <!-- إطار شريط الخلفيات المصغرة -->
+        <div class="mini-wrapper">
+            <div
+                class="mini-viewport"
+                id="miniViewport">
+
+                <div
+                    class="mini-cards"
+                    id="miniCards">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- نقاط السلايدر بدون أسماء -->
+        <div
+            class="slider-dots"
+            id="sliderDots"
+            aria-label="التنقل بين الخلفيات">
+        </div>
+
+    </div>
 </section>
 
 
