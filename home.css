@@ -1,40 +1,25 @@
-
 /* ===================================
-
-   WallpaperHub - home_step1.css (Step 1: Header Only)
-
+   WallpaperHub - home.css
+   Part 1
 =================================== */
 
-
 *{
-
 margin:0;
-
 padding:0;
-
 box-sizing:border-box;
-
 font-family:Arial,sans-serif;
-
 }
-
 
 :root{
 
 --primary:#5b5df5;
-
 --primary2:#7d5fff;
-
---bg:#12121c;
-
---card:#1a1b26;
-
---text:#ffffff;
-
---gray:#9494a0;
+--bg:#f5f7fb;
+--card:#ffffff;
+--text:#1d1d1f;
+--gray:#777;
 
 }
-
 
 body{
 
@@ -42,370 +27,90 @@ background:var(--bg);
 
 color:var(--text);
 
-}
-
-
-/* ================= HEADER (Redesigned matching image) ================= */
-
-
-.header {
-
-    position: sticky;
-
-    top: 0;
-
-    z-index: 1000;
-
-    height: 76px;
-
-    padding: 0 18px;
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    background: rgba(18, 18, 28, 0.92);
-
-    backdrop-filter: blur(20px);
-
-    -webkit-backdrop-filter: blur(20px);
-
-    border-bottom: 2px solid transparent;
-
-    border-image: linear-gradient(90deg, #ff416c, #ff4b2b, #7d5fff, #5b5df5) 1;
-
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
 
 }
 
+/* ================= HEADER ================= */
 
-.header-left {
+.header{
 
-    display: flex;
+position:sticky;
 
-    align-items: center;
+top:0;
 
-    gap: 12px;
+z-index:1000;
 
-}
+height:72px;
 
+padding:0 20px;
 
-.menu-btn {
+display:flex;
 
-    background: none;
+justify-content:space-between;
 
-    border: none;
+align-items:center;
 
-    cursor: pointer;
+background:rgba(255,255,255,.92);
 
-    display: flex;
+backdrop-filter:blur(15px);
 
-    flex-direction: column;
-
-    gap: 5px;
-
-    padding: 6px;
+box-shadow:0 4px 18px rgba(0,0,0,.05);
 
 }
 
+.logo{
 
-.menu-btn span {
+display:flex;
 
-    display: block;
+align-items:center;
 
-    width: 22px;
-
-    height: 2.5px;
-
-    background: #ffffff;
-
-    border-radius: 2px;
-
-    transition: 0.3s;
+gap:10px;
 
 }
 
+.logo .material-icons{
 
-.logo {
+font-size:20px;
 
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
+color:var(--primary);
 
 }
 
+.logo h2{
 
-.logo-icon-wrapper {
+font-size:16px;
 
-    width: 38px;
+font-weight:900;
 
-    height: 38px;
-
-    background: linear-gradient(135deg, #7d5fff, #ff416c);
-
-    border-radius: 12px;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    box-shadow: 0 4px 12px rgba(125, 95, 255, 0.4);
+color:var(--primary);
 
 }
 
+.header-icons{
 
-.logo-icon-wrapper .material-icons {
+display:flex;
 
-    font-size: 22px;
-
-    color: #ffffff;
-
-}
-
-
-.logo-text {
-
-    display: flex;
-
-    flex-direction: column;
+gap:16px;
 
 }
 
+.header-icons span{
 
-.logo-text h2 {
+font-size:24px;
 
-    font-size: 17px;
+cursor:pointer;
 
-    font-weight: 800;
-
-    color: #ffffff;
-
-    letter-spacing: 0.5px;
-
-    line-height: 1.2;
+transition:.3s;
 
 }
 
+.header-icons span:active{
 
-.logo-subtitle {
-
-    font-size: 10px;
-
-    color: #a0a0b0;
-
-    font-weight: 500;
+transform:scale(.9);
 
 }
 
-
-.header-right {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
-
-.header-icon-btn {
-
-    width: 38px;
-
-    height: 38px;
-
-    background: rgba(255, 255, 255, 0.07);
-
-    border-radius: 50%;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    cursor: pointer;
-
-    position: relative;
-
-    transition: 0.3s;
-
-}
-
-
-.header-icon-btn:hover {
-
-    background: rgba(255, 255, 255, 0.15);
-
-}
-
-
-.header-icon-btn .material-icons {
-
-    font-size: 20px;
-
-    color: #ffffff;
-
-}
-
-
-.notification-badge {
-
-    position: absolute;
-
-    top: 3px;
-
-    right: 3px;
-
-    background: #ff3366;
-
-    color: #fff;
-
-    font-size: 9px;
-
-    font-weight: bold;
-
-    width: 15px;
-
-    height: 15px;
-
-    border-radius: 50%;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    box-shadow: 0 2px 6px rgba(255, 51, 102, 0.5);
-
-}
-
-
-.user-profile-badge {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    background: rgba(255, 255, 255, 0.07);
-
-    padding: 3px 10px 3px 3px;
-
-    border-radius: 30px;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-}
-
-
-.user-profile-badge:hover {
-
-    background: rgba(255, 255, 255, 0.12);
-
-}
-
-
-.user-avatar {
-
-    width: 30px;
-
-    height: 30px;
-
-    background: linear-gradient(135deg, #5b5df5, #7d5fff);
-
-    color: #ffffff;
-
-    font-weight: bold;
-
-    font-size: 13px;
-
-    border-radius: 50%;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    box-shadow: 0 2px 8px rgba(91, 93, 245, 0.5);
-
-}
-
-
-.user-info {
-
-    display: flex;
-
-    flex-direction: column;
-
-}
-
-
-.user-name {
-
-    font-size: 11px;
-
-    font-weight: 700;
-
-    color: #ffffff;
-
-    line-height: 1.2;
-
-}
-
-
-.user-role {
-
-    font-size: 8.5px;
-
-    color: #8c8ca0;
-
-    font-weight: 500;
-
-}
-
-
-@media(max-width: 480px) {
-
-    .header {
-
-        padding: 0 10px;
-
-        height: 70px;
-
-    }
-
-    .user-role {
-
-        display: none;
-
-    }
-
-    .logo-subtitle {
-
-        display: none;
-
-    }
-
-}
-
-
-/* ================= SLIDER & OTHER COMPONENTS PRESERVED ================= */
-
+/* ================= SLIDER ================= */
 
 .slider{
 
@@ -419,8 +124,9 @@ overflow:hidden;
 
 position:relative;
 
-}
+box-shadow:var(--shadow);
 
+}
 
 .slide{
 
@@ -434,13 +140,11 @@ transition:.8s;
 
 }
 
-
 .slide.active{
 
 opacity:1;
 
 }
-
 
 .slide img{
 
@@ -452,16 +156,110 @@ object-fit:cover;
 
 }
 
+/* ================= CATEGORIES ================= */
+
+.categories{
+
+margin:20px 18px;
+
+}
+
+.categories h3{
+
+margin-bottom:15px;
+
+font-size:20px;
+
+}
+
+.category-list{
+
+display:flex;
+
+gap:14px;
+
+overflow-x:auto;
+
+padding-bottom:8px;
+
+scrollbar-width:none;
+
+}
+
+.category-list::-webkit-scrollbar{
+
+display:none;
+
+}
+
+.category{
+
+min-width:90px;
+
+height:90px;
+
+background:#fff;
+
+border-radius:22px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:var(--shadow);
+
+transition:.35s;
+
+cursor:pointer;
+
+}
+
+.category:hover{
+
+transform:translateY(-4px);
+
+}
+
+.category:active{
+
+transform:scale(.95);
+
+}
+
+.category.active{
+
+background:linear-gradient(135deg,var(--primary),var(--primary2));
+
+color:#fff;
+
+}
+
+.category p{
+
+margin-top:8px;
+
+font-size:13px;
+
+font-weight:600;
+
+}
+
+/* ===================================
+   WallpaperHub - home.css
+   Part 2
+=================================== */
 
 /* ================= WALLPAPERS ================= */
-
 
 .wall-section{
 
 margin:22px 18px;
 
 }
-
 
 .title{
 
@@ -475,23 +273,19 @@ margin-bottom:14px;
 
 }
 
-
 .title h3{
 
 font-size:20px;
 
 font-weight:700;
 
-color:#fff;
-
 }
-
 
 .title a{
 
 text-decoration:none;
 
-color:#7d5fff;
+color:var(--primary);
 
 font-size:14px;
 
@@ -499,50 +293,32 @@ font-weight:600;
 
 }
 
-
 .wall-grid {
-
     display: flex;
-
     align-items: stretch;
-
     gap: 14px;
-
     overflow-x: auto;
-
     overflow-y: hidden;
-
     scrollbar-width: none;
-
     -webkit-overflow-scrolling: touch;
-
     padding: 2px 2px 8px;
-
+    scroll-snap-type: x proximity;
+    background: #ffffff; /* لضمان أن خلفية الشريط أبيض بالكامل */
 }
 
+
+/* ===== Wallpaper Card ===== */
 
 .wall-card{
-
     position:relative;
-
     flex-shrink:0;
-
     width:140px;
-
     height:250px;
-
     border-radius:20px;
-
     overflow:hidden;
-
     cursor:pointer;
-
     transition:transform .3s ease;
-
-    background:var(--card);
-
 }
-
 
 .wall-card:active{
 
@@ -550,23 +326,14 @@ transform:scale(.96);
 
 }
 
-
 .wall-card img{
-
     width:100%;
-
     height:100%;
-
     display:block;
-
     object-fit:cover;
-
     border-radius:20px;
-
     transition:transform .4s ease;
-
 }
-
 
 .wall-card:hover img{
 
@@ -574,9 +341,121 @@ transform:scale(1.08);
 
 }
 
+/* معلومات الخلفية */
 
-/* ================= Wallpaper Of The Day ================= */
+.wall-info{
 
+position:absolute;
+
+left:0;
+
+right:0;
+
+bottom:0;
+
+padding:15px;
+
+background:linear-gradient(
+
+to top,
+
+rgba(0,0,0,.82),
+
+rgba(0,0,0,.05)
+
+);
+
+color:#fff;
+
+}
+
+.wall-info h4{
+
+font-size:16px;
+
+margin-bottom:5px;
+
+font-weight:700;
+
+}
+
+.wall-info p{
+
+font-size:13px;
+
+opacity:.9;
+
+}
+
+/* ================= ANIMATION ================= */
+
+.header,
+
+.slider,
+
+.categories,
+
+.wall-section{
+
+animation:fade .7s ease;
+
+}
+
+@keyframes fade{
+
+from{
+
+opacity:0;
+
+transform:translateY(20px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:600px){
+    .wall-grid{
+        gap:12px;
+        padding-bottom:10px;
+    }
+
+    .wall-card{
+        width:130px;
+        height:230px;
+        border-radius:18px;
+    }
+
+    .wall-card img{
+
+        width:100%;
+
+        height:100%;
+
+        border-radius:18px;
+
+    }
+
+    .logo h2{
+
+        font-size:21px;
+
+    }
+
+}
+
+/* ===========================
+      Wallpaper Of The Day
+=========================== */
 
 .today-wallpaper{
 
@@ -592,7 +471,6 @@ overflow:hidden;
 
 }
 
-
 .today-wallpaper img{
 
 width:100%;
@@ -605,6 +483,11 @@ transition:.5s;
 
 }
 
+.today-wallpaper:hover img{
+
+transform:scale(1.08);
+
+}
 
 .today-overlay{
 
@@ -618,12 +501,19 @@ bottom:0;
 
 padding:22px;
 
-background:linear-gradient(to top, rgba(18,18,28,.95), rgba(18,18,28,.15));
+background:linear-gradient(
+
+to top,
+
+rgba(0,0,0,.88),
+
+rgba(0,0,0,.15)
+
+);
 
 color:#fff;
 
 }
-
 
 .today-overlay span{
 
@@ -645,7 +535,6 @@ margin-bottom:10px;
 
 }
 
-
 .today-overlay h2{
 
 font-size:24px;
@@ -653,7 +542,6 @@ font-size:24px;
 margin-bottom:6px;
 
 }
-
 
 .today-overlay p{
 
@@ -663,7 +551,6 @@ margin-bottom:16px;
 
 }
 
-
 .today-buttons{
 
 display:flex;
@@ -671,7 +558,6 @@ display:flex;
 gap:12px;
 
 }
-
 
 .today-buttons button{
 
@@ -693,7 +579,6 @@ transition:.3s;
 
 }
 
-
 #todayView{
 
 background:#ffffff;
@@ -701,7 +586,6 @@ background:#ffffff;
 color:#222;
 
 }
-
 
 #todayDownload{
 
@@ -711,3 +595,8 @@ color:#fff;
 
 }
 
+.today-buttons button:active{
+
+transform:scale(.96);
+
+}
