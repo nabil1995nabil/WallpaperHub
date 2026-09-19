@@ -90,7 +90,6 @@ ${wall.category || ""}
 
     });
 
-    createMiniCards(items);
     startAutoSlider(items.length);
 
 }
@@ -123,105 +122,107 @@ function showSlider(index){
 
     });
 
-    updateMiniCards(index);
 
 }
 
-function updateMiniCards(index){
 
-    const cards =
-    document.querySelectorAll(".mini-card img");
+// =======================================
+// السحب على السلايدر الرئيسي
+// =======================================
+
+function bindSliderSwipe(){
+
+    const slider =
+        document.getElementById("sliderContent");
+
+    if(!slider)
+        return;
+
+    let startX = 0;
+    let startY = 0;
+    let touching = false;
+
+    slider.addEventListener("touchstart", (event)=>{
+
+        if(!event.touches || !event.touches.length)
+            return;
+
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+        touching = true;
+
+    }, {passive:true});
 
 
-    const labels =
-    document.querySelectorAll(".mini-card span");
+    slider.addEventListener("touchend", (event)=>{
+
+        if(!touching ||
+           !event.changedTouches ||
+           !event.changedTouches.length)
+            return;
+
+        touching = false;
+
+        const endX =
+            event.changedTouches[0].clientX;
+
+        const endY =
+            event.changedTouches[0].clientY;
+
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
 
 
-    const total =
-    wallpapers.length;
+        // تجاهل السحب العمودي
+        if(
+            Math.abs(deltaX) < 45 ||
+            Math.abs(deltaX) <= Math.abs(deltaY)
+        ){
+            return;
+        }
 
 
-    cards.forEach((card,i)=>{
-
-        let imgIndex =
-        (index + i + total - 1) % total;
-
-
-        card.src =
-        wallpapers[imgIndex].thumbnail ||
-        wallpapers[imgIndex].image;
+        const total =
+            document.querySelectorAll(
+                "#sliderContent .slide"
+            ).length;
 
 
-        if(labels[i]){
+        if(!total)
+            return;
 
-            labels[i].textContent =
-            wallpapers[imgIndex].title || "";
+
+        // سحب إلى اليسار = التالية
+        if(deltaX < 0){
+
+            sliderIndex++;
+
+            if(sliderIndex >= total)
+                sliderIndex = 0;
+
+        }
+
+        // سحب إلى اليمين = السابقة
+        else{
+
+            sliderIndex--;
+
+            if(sliderIndex < 0)
+                sliderIndex = total - 1;
 
         }
 
 
-    });
+        showSlider(sliderIndex);
 
-
-    document
-    .querySelectorAll(".mini-card")
-    .forEach((card,i)=>{
-
-        card.classList.toggle(
-            "active",
-            i === 1
-        );
-
-    });
+    }, {passive:true});
 
 }
 
-// الصور الصغيرة
 
-function createMiniCards(items){
-
-    const container =
-    document.querySelector(".mini-cards");
-
-
-    if(!container) return;
-
-
-    container.innerHTML="";
-
-
-    items.forEach((wall,index)=>{
-
-
-        const card =
-        document.createElement("div");
-
-
-        card.className="mini-card";
-
-
-        card.innerHTML=`
-
-        <img src="${wall.thumbnail || wall.image}">
-
-        `;
-
-
-        card.onclick=()=>{
-
-            showSlider(index);
-
-        };
-
-
-        container.appendChild(card);
-
-
-    });
-
-}
-
+// =======================================
 // تشغيل تلقائي
+// =======================================
 
 function startAutoSlider(length){
 
@@ -250,3 +251,10 @@ function startAutoSlider(length){
 
 
 }
+
+// تفعيل السحب على السلايدر الكبير
+document.addEventListener("DOMContentLoaded", ()=>{
+
+    bindSliderSwipe();
+
+});
