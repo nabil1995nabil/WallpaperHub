@@ -1,539 +1,304 @@
 /* =========================================================
-   Categories
+   WallpaperHub — Home Categories
+   CLEAN SOURCE FIX
+   Unique home-* classes prevent conflicts with home.css
    ========================================================= */
 
-.categories {
+.home-categories {
     width: 100%;
-
-    margin: 24px 0 28px;
-
+    margin: 24px 0 32px;
     box-sizing: border-box;
-
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Helvetica,
-        Arial,
-        sans-serif;
-
-    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
 }
 
-
-/* =========================================================
-   Header
-   ========================================================= */
-
-.categories-header {
+.home-categories-header {
     display: flex;
-
+    flex-direction: row;
+    align-items: flex-end;
     justify-content: space-between;
-    align-items: center;
-
-    padding: 0 16px;
-
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 18px;
     margin-bottom: 14px;
-
-    background: #ffffff;
 }
 
-.categories-header h3 {
+.home-categories-heading {
+    min-width: 0;
+}
+
+.home-categories-kicker {
+    display: block;
+    margin-bottom: 3px;
+    color: #98a0b2;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.home-categories-header h3 {
     margin: 0;
-
-    color: #111111;
-
-    font-size: 18px;
-    font-weight: 700;
-
-    line-height: 1.2;
+    color: #111827;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.1;
 }
 
-.categories-header .see-all {
-    display: flex;
-
+.home-categories-header .see-all {
+    display: inline-flex;
     align-items: center;
-
     gap: 4px;
-
-    color: #5060ff;
-
-    font-size: 13px;
-    font-weight: 600;
-
+    flex-shrink: 0;
+    color: #7c3aed;
+    font-size: 13.5px;
+    font-weight: 750;
     text-decoration: none;
-
-    animation: none !important;
-    transition: none !important;
 }
 
+.home-categories-header .see-all span {
+    font-size: 20px;
+    line-height: 1;
+}
 
-/* =========================================================
-   Category Grid
-   سطر أفقي واحد فقط
-   ========================================================= */
-
-.category-grid {
-    display: flex !important;
-
-    flex-direction: row !important;
-
-    flex-wrap: nowrap !important;
-
+/* Horizontal rail */
+.home-category-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: stretch;
-
-    gap: 10px;
+    justify-content: flex-start;
 
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
 
-    padding: 2px 16px 10px;
-
+    gap: 12px;
+    padding: 4px 18px 14px;
     box-sizing: border-box;
 
-    overflow-x: auto !important;
-
-    overflow-y: hidden !important;
+    overflow-x: auto;
+    overflow-y: hidden;
 
     scrollbar-width: none;
-
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
 
-    background: #ffffff;
+    direction: rtl;
 }
 
-.category-grid::-webkit-scrollbar {
+.home-category-grid::-webkit-scrollbar {
     display: none;
 }
 
-
-/* =========================================================
-   Category Card
-   ========================================================= */
-
-.category {
-    flex: 0 0 140px !important;
-
-    width: 140px !important;
-
-    min-width: 140px !important;
-
-    max-width: 140px !important;
-
-    height: 118px !important;
-
-    min-height: 118px !important;
-
-    max-height: 118px !important;
-
-    padding: 10px;
-
-    box-sizing: border-box;
-
-    display: flex !important;
-
-    flex-direction: column !important;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 7px;
-
-    background: #ffffff !important;
-
-    border: 1px solid #eeeeee !important;
-
-    border-radius: 12px;
-
-    box-shadow: none !important;
-
-    outline: none !important;
-
+/* Cards */
+.home-category-grid > .home-category {
     position: relative;
 
+    flex: 0 0 120px;
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+
+    height: 176px;
+    min-height: 176px;
+
+    margin: 0;
+    padding: 0;
+
+    display: block;
+
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 18px;
+    overflow: hidden;
+
+    background: #0f172a;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .15);
+
     cursor: pointer;
+    scroll-snap-align: start;
+    outline: none;
+    box-sizing: border-box;
 
     user-select: none;
-
     -webkit-tap-highlight-color: transparent;
-
-    animation: none !important;
-
-    transition: none !important;
-
-    transform: none !important;
 }
 
-
-/* =========================================================
-   إزالة أي حواف أو طبقات ملونة
-   ========================================================= */
-
-.category::before,
-.category::after {
-    content: none !important;
-
-    display: none !important;
-
-    width: 0 !important;
-    height: 0 !important;
-
-    background: none !important;
-
-    border: none !important;
-
-    box-shadow: none !important;
-
-    animation: none !important;
-
-    transition: none !important;
-
-    transform: none !important;
+.home-category-grid > .home-category.active {
+    border: 2px solid #a855f7;
+    box-shadow:
+        0 0 0 2px rgba(168, 85, 247, .35),
+        0 0 22px rgba(168, 85, 247, .5);
 }
 
-
-/* =========================================================
-   منع جميع تأثيرات Hover / Active
-   ========================================================= */
-
-.category:hover,
-.category:active,
-.category:focus,
-.category:focus-visible,
-.category.active {
-    background: #ffffff !important;
-
-    color: inherit;
-
-    border: 1px solid #eeeeee !important;
-
-    box-shadow: none !important;
-
-    outline: none !important;
-
-    transform: none !important;
-
-    animation: none !important;
-
-    transition: none !important;
+/* Image */
+.home-category-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
+.home-category-media img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+}
 
-/* =========================================================
-   Category Icon
-   ========================================================= */
+.home-category-fallback {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(139, 92, 246, .55), transparent 42%),
+        linear-gradient(135deg, #1e1b4b 0%, #0f172a 55%, #020617 100%);
+}
 
-.emoji-box {
-    width: 42px;
+.home-category-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, .04) 0%,
+        rgba(0, 0, 0, .15) 40%,
+        rgba(0, 0, 0, .70) 70%,
+        rgba(0, 0, 0, .90) 100%
+    );
+}
 
-    height: 42px;
+/* Icon */
+.home-category-icon {
+    position: absolute;
+    left: 50%;
+    bottom: 50px;
+    transform: translateX(-50%);
 
-    min-width: 42px;
+    width: 30px;
+    height: 30px;
 
-    min-height: 42px;
+    display: grid;
+    place-items: center;
 
-    border-radius: 50%;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6));
+}
+
+.home-category[data-category="all"] .home-category-icon::before { content: "▦"; }
+.home-category[data-category="nature"] .home-category-icon::before { content: "⌁"; }
+.home-category[data-category="cars"] .home-category-icon::before { content: "▣"; }
+.home-category[data-category="anime"] .home-category-icon::before { content: "✦"; }
+.home-category[data-category="space"] .home-category-icon::before { content: "◈"; }
+.home-category[data-category="minimal"] .home-category-icon::before { content: "◌"; }
+.home-category[data-category="games"] .home-category-icon::before { content: "⌘"; }
+.home-category[data-category="ai"] .home-category-icon::before { content: "◇"; }
+.home-category[data-category="city"] .home-category-icon::before { content: "▥"; }
+.home-category[data-category="amoled"] .home-category-icon::before { content: "◐"; }
+.home-category[data-category="animals"] .home-category-icon::before { content: "✦"; }
+.home-category[data-category="dark"] .home-category-icon::before { content: "●"; }
+.home-category[data-category="4k"] .home-category-icon::before { content: "◆"; }
+.home-category[data-category="sports"] .home-category-icon::before { content: "○"; }
+
+/* Text */
+.home-category-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+
+    min-height: 54px;
+    padding: 8px 6px 10px;
 
     display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 19px;
-
-    line-height: 1;
-
-    flex-shrink: 0;
-
-    animation: none !important;
-
-    transition: none !important;
-
-    transform: none !important;
-}
-
-
-/* =========================================================
-   Icon Colors
-   الألوان داخل دائرة الأيقونة فقط
-   ========================================================= */
-
-.all-bg {
-    background-color: #f1efff;
-    color: #5060ff;
-}
-
-.nature-bg {
-    background-color: #ecfdf3;
-    color: #16a34a;
-}
-
-.anime-bg {
-    background-color: #fdf0f7;
-    color: #db2777;
-}
-
-.cars-bg {
-    background-color: #fff3e8;
-    color: #ea580c;
-}
-
-.space-bg {
-    background-color: #eef0ff;
-    color: #4f46e5;
-}
-
-.minimal-bg {
-    background-color: #eafaf8;
-    color: #0f9f91;
-}
-
-.games-bg {
-    background-color: #fff9df;
-    color: #ca8a04;
-}
-
-.ai-bg {
-    background-color: #e8faff;
-    color: #0891b2;
-}
-
-.city-bg {
-    background-color: #edf4ff;
-    color: #2563eb;
-}
-
-.amoled-bg {
-    background-color: #eaf8ff;
-    color: #0284c7;
-}
-
-.animals-bg {
-    background-color: #fff7e6;
-    color: #d97706;
-}
-
-.dark-bg {
-    background-color: #f1f3f5;
-    color: #64748b;
-}
-
-.k4-bg {
-    background-color: #f2edff;
-    color: #7c3aed;
-}
-
-.sports-bg {
-    background-color: #eafaf5;
-    color: #059669;
-}
-
-
-/* =========================================================
-   Category Information
-   ========================================================= */
-
-.cat-info {
-    display: flex;
-
     flex-direction: column;
-
     align-items: center;
-
-    justify-content: center;
-
-    min-width: 0;
+    justify-content: flex-end;
 
     text-align: center;
+
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, .88),
+        transparent
+    );
 }
 
-.cat-title {
+.home-cat-title {
     margin: 0;
+    max-width: 100%;
+    overflow: hidden;
 
-    color: #202020;
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.15;
 
-    font-size: 13px;
-
-    font-weight: 600;
-
-    line-height: 1.2;
-
-    text-align: center;
-
-    animation: none !important;
-
-    transition: none !important;
-
-    transform: none !important;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
 }
 
-.cat-count {
+.home-cat-count {
+    display: block;
     margin-top: 3px;
 
-    color: #777777;
-
-    font-size: 11px;
-
-    font-weight: 400;
-
-    line-height: 1.2;
-
-    text-align: center;
-
-    animation: none !important;
-
-    transition: none !important;
-
-    transform: none !important;
+    color: rgba(255, 255, 255, .78);
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1;
+    white-space: nowrap;
 }
 
+.home-categories-state {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 24px 18px;
+    box-sizing: border-box;
 
-/* =========================================================
-   Mobile
-   ========================================================= */
+    color: #8a92a3;
+    font-size: 13px;
+    text-align: center;
+}
 
+/* Mobile */
 @media (max-width: 480px) {
-
-    .categories {
-        margin-top: 20px;
-
-        margin-bottom: 24px;
+    .home-categories {
+        margin: 18px 0 26px;
     }
 
-
-    /* Header */
-
-    .categories-header {
-        padding: 0 16px;
-
+    .home-categories-header {
+        padding: 0 18px;
         margin-bottom: 12px;
     }
 
-    .categories-header h3 {
-        font-size: 18px;
+    .home-categories-header h3 {
+        font-size: 22px;
     }
 
-    .categories-header .see-all {
-        font-size: 13px;
-    }
-
-
-    /* =====================================================
-       سطر واحد أفقي
-       ===================================================== */
-
-    .category-grid {
-        display: flex !important;
-
-        flex-direction: row !important;
-
-        flex-wrap: nowrap !important;
-
-        align-items: stretch;
-
+    .home-category-grid {
         gap: 10px;
-
-        width: 100%;
-
-        padding: 2px 16px 10px;
-
-        overflow-x: auto !important;
-
-        overflow-y: hidden !important;
-
-        scrollbar-width: none;
-
-        -webkit-overflow-scrolling: touch;
+        padding: 4px 18px 14px;
     }
 
-    .category-grid::-webkit-scrollbar {
-        display: none;
+    .home-category-grid > .home-category {
+        flex-basis: 110px;
+        width: 110px;
+        min-width: 110px;
+        max-width: 110px;
+
+        height: 164px;
+        min-height: 164px;
     }
 
-
-    /* =====================================================
-       Category Card
-       ===================================================== */
-
-    .category {
-        flex: 0 0 130px !important;
-
-        width: 100px !important;
-
-        min-width: 130px !important;
-
-        max-width: 130px !important;
-
-        height: 118px !important;
-
-        min-height: 70px !important;
-
-        max-height: 118px !important;
-
-        padding: 10px 6px;
-
-        gap: 7px;
-
-        background: #ffffff !important;
-
-        border: 1px solid #eeeeee !important;
-
-        border-radius: 12px;
-
-        box-shadow: none !important;
-
-        animation: none !important;
-
-        transition: none !important;
-
-        transform: none !important;
-    }
-
-
-    /* =====================================================
-       Icon
-       ===================================================== */
-
-    .emoji-box {
-        width: 42px;
-
-        height: 42px;
-
-        min-width: 42px;
-
-        min-height: 42px;
-
-        font-size: 18px;
-
-        animation: none !important;
-
-        transition: none !important;
-
-        transform: none !important;
-    }
-
-
-    /* =====================================================
-       Text
-       ===================================================== */
-
-    .cat-title {
-        font-size: 13px;
-
-        animation: none !important;
-
-        transition: none !important;
-    }
-
-    .cat-count {
-        font-size: 11px;
-
-        margin-top: 3px;
-
-        animation: none !important;
-
-        transition: none !important;
+    .home-category-icon {
+        bottom: 46px;
     }
 }
