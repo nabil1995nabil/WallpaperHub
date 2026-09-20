@@ -1,55 +1,130 @@
-// =======================================
-// WallpaperHub — Dynamic Categories
-// Counts come from the server / Supabase.
-// No fake/static counts and no old animation.
-// =======================================
+// WallpaperHub — Categories (fixed)
+// Uses the same /api/wallpapers endpoint already used by the home page.
+// This avoids depending on a separate /api/categories route.
 
 const HOME_CATEGORY_DEFINITIONS = [
-    { key: "all",      title: "All",     icon: "🌍", iconClass: "all-bg" },
-    { key: "nature",  title: "Nature", icon: "🌿", iconClass: "nature-bg" },
-    { key: "anime",   title: "Anime",  icon: "⭐", iconClass: "anime-bg" },
-    { key: "cars",    title: "Cars",   icon: "🚗", iconClass: "cars-bg" },
-    { key: "space",   title: "Space",  icon: "🪐", iconClass: "space-bg" },
-    { key: "minimal", title: "Minimal",icon: "◎",  iconClass: "minimal-bg" },
-    { key: "games",   title: "Gaming", icon: "🎮", iconClass: "games-bg" },
-    { key: "ai",      title: "AI Art", icon: "🤖", iconClass: "ai-bg" },
-    { key: "city",    title: "City",   icon: "🏙️", iconClass: "city-bg" },
-    { key: "amoled",  title: "AMOLED", icon: "📱", iconClass: "amoled-bg" },
-    { key: "animals", title: "Animals",icon: "🐱", iconClass: "animals-bg" },
-    { key: "dark",    title: "Dark",   icon: "🖤", iconClass: "dark-bg" },
-    { key: "4k",      title: "4K Ultra",icon:"💎", iconClass: "k4-bg" },
-    { key: "sports",  title: "Sports", icon: "⚽", iconClass: "sports-bg" }
+    { key: "all", title: "All" },
+    { key: "nature", title: "Nature" },
+    { key: "cars", title: "Cars" },
+    { key: "anime", title: "Anime" },
+    { key: "space", title: "Space" },
+    { key: "ai", title: "AI Art" },
+    { key: "animals", title: "Animals" },
+    { key: "city", title: "City" },
+    { key: "amoled", title: "AMOLED" },
+    { key: "minimal", title: "Minimal" },
+    { key: "games", title: "Gaming" },
+    { key: "dark", title: "Dark" },
+    { key: "4k", title: "4K Ultra" },
+    { key: "sports", title: "Sports" }
 ];
+
+const CATEGORY_ALIASES = {
+    nature: ["nature", "طبيعة", "الطبيعة"],
+    cars: ["cars", "car", "سيارات", "السيارات"],
+    anime: ["anime", "انمي", "الأنمي", "أنمي"],
+    space: ["space", "فضاء", "الفضاء"],
+    ai: ["ai", "ai art", "ذكاء اصطناعي", "الذكاء الاصطناعي"],
+    animals: ["animals", "animal", "حيوانات", "الحيوانات"],
+    city: ["city", "cities", "مدن", "المدن"],
+    amoled: ["amoled", "اموليد"],
+    minimal: ["minimal", "مينيمال"],
+    games: ["games", "gaming", "game", "العاب", "الألعاب", "ألعاب"],
+    dark: ["dark", "داكن", "مظلم"],
+    "4k": ["4k", "فور كي"],
+    sports: ["sports", "sport", "رياضة", "الرياضة"]
+};
+
+function normalizeCategory(value) {
+    return String(value ?? "").trim().toLowerCase();
+}
+
+function categoryMatches(key, value) {
+    const normalized = normalizeCategory(value);
+    return normalized === key ||
+        (CATEGORY_ALIASES[key] || []).some(alias => normalizeCategory(alias) === normalized);
+}
 
 function formatCategoryCount(value) {
     const count = Number(value);
-    if (!Number.isFinite(count)) return "—";
-    return new Intl.NumberFormat("en-US").format(Math.max(0, count));
+    return Number.isFinite(count)
+        ? new Intl.NumberFormat("en-US").format(Math.max(0, count))
+        : "0";
 }
 
-function createCategoryCard(definition, count) {
+function getImageUrl(value) {
+    if (!value) return "";
+    const image = String(value);
+
+    if (/^https?:\/\//i.test(image) || image.startsWith("//")) return image;
+    if (image.startsWith("/")) return image;
+    if (image.startsWith("assets/")) return image;
+
+    return "assets/wallpapers/" + image;
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function buildCategoryData(wallpapers) {
+    const list = Array.isArray(wallpapers) ? wallpapers.filter(Boolean) : [];
+
+    return HOME_CATEGORY_DEFINITIONS.map(definition => {
+        if (definition.key === "all") {
+            return {
+                ...definition,
+                count: list.length,
+                preview: list[0] ? getImageUrl(list[0].thumbnail || list[0].image) : ""
+            };
+        }
+
+        const matches = list.filter(wallpaper =>
+            categoryMatches(definition.key, wallpaper.category)
+        );
+
+        return {
+            ...definition,
+            count: matches.length,
+            preview: matches[0] ? getImageUrl(matches[0].thumbnail || matches[0].image) : ""
+        };
+    });
+}
+
+function createCategoryCard(item) {
     const card = document.createElement("div");
     card.className = "category";
-    card.dataset.category = definition.key;
+    card.dataset.category = item.key;
     card.setAttribute("role", "listitem");
     card.setAttribute("tabindex", "0");
-    card.setAttribute("aria-label", `${definition.title}: ${formatCategoryCount(count)} wallpapers`);
+    card.setAttribute("aria-label",
+        `${item.title}: ${formatCategoryCount(item.count)} wallpapers`);
 
     card.innerHTML = `
-        <div class="emoji-box ${definition.iconClass}" aria-hidden="true">${definition.icon}</div>
-        <div class="cat-info">
-            <p class="cat-title">${definition.title}</p>
-            <span class="cat-count">${formatCategoryCount(count)}</span>
+        <div class="category-media">
+            <div class="category-fallback" aria-hidden="true"></div>
+            ${item.preview ? `<img src="${escapeHtml(item.preview)}" alt="" loading="lazy" decoding="async">` : ""}
+            <div class="category-overlay" aria-hidden="true"></div>
+            <span class="category-icon" aria-hidden="true"></span>
+        </div>
+        <div class="category-bottom">
+            <p class="cat-title">${escapeHtml(item.title)}</p>
+            <span class="cat-count" data-count>${formatCategoryCount(item.count)}</span>
         </div>
     `;
 
+    const image = card.querySelector("img");
+    if (image) image.addEventListener("error", () => image.remove(), { once: true });
+
     const openCategory = () => {
-        if (definition.key === "all") {
-            window.location.href = "all-wallpapers.html";
-            return;
-        }
-        window.location.href =
-            "all-wallpapers.html?category=" + encodeURIComponent(definition.key);
+        window.location.href = item.key === "all"
+            ? "all-wallpapers.html"
+            : "all-wallpapers.html?category=" + encodeURIComponent(item.key);
     };
 
     card.addEventListener("click", openCategory);
@@ -63,56 +138,54 @@ function createCategoryCard(definition, count) {
     return card;
 }
 
-async function fetchCategoryCounts() {
-    const response = await fetch("/api/categories?_=" + Date.now(), {
-        method: "GET",
-        cache: "no-store",
-        headers: { "Accept": "application/json" }
-    });
-
-    if (!response.ok) {
-        throw new Error(`Categories API failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!data || !Array.isArray(data.categories)) {
-        throw new Error("Invalid categories response");
-    }
-
-    return data.categories;
-}
-
-async function initCategories() {
-    const container = document.getElementById("homeCategories") ||
-        document.querySelector(".category-grid");
-
+function renderHomeCategories(wallpapers) {
+    const container = document.getElementById("homeCategories");
     if (!container) return;
 
     container.innerHTML = "";
+    buildCategoryData(wallpapers).forEach(item => {
+        container.appendChild(createCategoryCard(item));
+    });
+
+    const allCard = container.querySelector('[data-category="all"]');
+    if (allCard) allCard.classList.add("active");
+}
+
+async function fetchWallpapersForCategories() {
+    const response = await fetch("/api/wallpapers?_categories=" + Date.now(), {
+        method: "GET",
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Wallpaper API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error("Wallpaper API did not return an array.");
+
+    return data;
+}
+
+async function initCategories() {
+    const container = document.getElementById("homeCategories");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="categories-state" role="status">Loading categories…</div>
+    `;
 
     try {
-        const serverCategories = await fetchCategoryCounts();
-        const countMap = new Map(
-            serverCategories.map(item => [String(item.key).toLowerCase(), Number(item.count)])
-        );
-
-        HOME_CATEGORY_DEFINITIONS.forEach(definition => {
-            container.appendChild(
-                createCategoryCard(definition, countMap.get(definition.key) ?? 0)
-            );
-        });
+        const wallpapers = await fetchWallpapersForCategories();
+        renderHomeCategories(wallpapers);
     } catch (error) {
         console.error("CATEGORIES LOAD ERROR:", error);
-
-        const state = document.createElement("div");
-        state.className = "categories-state error";
-        state.textContent = "Unable to load category counts.";
-        state.setAttribute("role", "status");
-        container.appendChild(state);
+        // لا نترك Loading عالقًا. نعرض البطاقات حتى لو تعذر API.
+        renderHomeCategories([]);
     }
 }
 
 document.addEventListener("DOMContentLoaded", initCategories);
-
-// Compatibility with the rest of WallpaperHub.
 window.initHomeCategories = initCategories;
+window.renderHomeCategories = renderHomeCategories;
