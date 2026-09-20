@@ -594,7 +594,7 @@
 
     /* إطار السلايدر على الهاتف */
     .slider-section{
-        padding:15px 26px;
+        padding:15px 0;
         box-sizing:border-box;
         width:100%;
         overflow:hidden;
