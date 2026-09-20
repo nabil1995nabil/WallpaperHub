@@ -98,7 +98,7 @@ function buildCategoryData(wallpapers) {
 
 function createCategoryCard(item) {
     const card = document.createElement("div");
-    card.className = "category";
+    card.className = "home-category";
     card.dataset.category = item.key;
     card.setAttribute("role", "listitem");
     card.setAttribute("tabindex", "0");
@@ -106,15 +106,15 @@ function createCategoryCard(item) {
         `${item.title}: ${formatCategoryCount(item.count)} wallpapers`);
 
     card.innerHTML = `
-        <div class="category-media">
-            <div class="category-fallback" aria-hidden="true"></div>
+        <div class="home-category-media">
+            <div class="home-category-fallback" aria-hidden="true"></div>
             ${item.preview ? `<img src="${escapeHtml(item.preview)}" alt="" loading="lazy" decoding="async">` : ""}
-            <div class="category-overlay" aria-hidden="true"></div>
-            <span class="category-icon" aria-hidden="true"></span>
+            <div class="home-category-overlay" aria-hidden="true"></div>
+            <span class="home-category-icon" aria-hidden="true"></span>
         </div>
-        <div class="category-bottom">
-            <p class="cat-title">${escapeHtml(item.title)}</p>
-            <span class="cat-count" data-count>${formatCategoryCount(item.count)}</span>
+        <div class="home-category-bottom">
+            <p class="home-cat-title">${escapeHtml(item.title)}</p>
+            <span class="home-cat-count" data-count>${formatCategoryCount(item.count)}</span>
         </div>
     `;
 
@@ -173,7 +173,7 @@ async function initCategories() {
     if (!container) return;
 
     container.innerHTML = `
-        <div class="categories-state" role="status">Loading categories…</div>
+        <div class="home-categories-state" role="status">Loading categories…</div>
     `;
 
     try {
