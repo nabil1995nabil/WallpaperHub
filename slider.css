@@ -35,7 +35,7 @@
 
     width:100%;
 
-    height:250px;
+    height:180px; /* تم تقليص الارتفاع هنا من 250px إلى 180px */
 
     border-radius:30px;
 
@@ -46,9 +46,6 @@
     user-select:none;
 
     -webkit-user-select:none;
-
-    box-shadow:
-        0 18px 45px rgba(15,20,45,.16);
 
 }
 
@@ -135,7 +132,7 @@
 
     position:absolute;
 
-    top:45px;
+    top:25px;
 
     left:14px;
 
@@ -156,7 +153,7 @@
 
     position:absolute;
 
-    top:43px;
+    top:25px;
 
     right:0;
 
@@ -178,7 +175,7 @@
 
     position:absolute;
 
-    top:108px;
+    top:75px;
 
     right:12px;
 
@@ -198,7 +195,7 @@
 
     line-height:1;
 
-    min-height:32px;
+    min-height:30px;
 
     box-shadow:
         0 8px 20px rgba(0,0,0,.25);
@@ -237,11 +234,11 @@
 
     z-index:30;
 
-    width:40px;
+    width:38px;
 
-    height:40px;
+    height:38px;
 
-    margin-top:-20px;
+    margin-top:-19px;
 
     border:1px solid rgba(255,255,255,.28);
 
@@ -282,7 +279,7 @@
 
     font-family:Arial,sans-serif;
 
-    font-size:32px;
+    font-size:28px;
 
     font-weight:200;
 
@@ -308,14 +305,14 @@
 
 .slider-arrow-prev{
 
-    left:25px;
+    left:20px;
 
 }
 
 
 .slider-arrow-next{
 
-    right:25px;
+    right:20px;
 
 }
 
@@ -332,13 +329,13 @@
 
     left:50%;
 
-    bottom:30px;
+    bottom:15px;
 
     transform:translateX(-50%);
 
     width:min(88%,760px);
 
-    height:76px;
+    height:68px;
 
     display:flex;
 
@@ -416,7 +413,7 @@
 
     justify-content:flex-start;
 
-    gap:12px;
+    gap:10px;
 
     width:max-content;
 
@@ -424,7 +421,7 @@
 
     height:100%;
 
-    padding:5px 8px;
+    padding:4px 6px;
 
     box-sizing:border-box;
 
@@ -435,15 +432,15 @@
 
 .mini-card{
 
-    flex:0 0 78px;
+    flex:0 0 70px;
 
-    width:78px;
+    width:70px;
 
-    height:62px;
+    height:54px;
 
     padding:0;
 
-    border-radius:15px;
+    border-radius:12px;
 
     overflow:hidden;
 
@@ -500,8 +497,6 @@
 }
 
 
-/* لا نرفع البطاقة النشطة عند hover */
-
 .mini-card:hover{
 
     transform:translateY(-3px);
@@ -528,7 +523,7 @@
 
     left:50%;
 
-    bottom:13px;
+    bottom:6px;
 
     transform:translateX(-50%);
 
@@ -538,7 +533,7 @@
 
     justify-content:center;
 
-    gap:10px;
+    gap:8px;
 
     max-width:80%;
 
@@ -547,9 +542,9 @@
 
 .slider-dot{
 
-    width:9px;
+    width:7px;
 
-    height:9px;
+    height:7px;
 
     padding:0;
 
@@ -575,7 +570,7 @@
 
 .slider-dot.active{
 
-    width:24px;
+    width:20px;
 
     border-radius:99px;
 
@@ -592,108 +587,95 @@
 
 @media(max-width:600px){
 
-    /* إطار السلايدر على الهاتف */
     .slider-section{
-        padding:15px 0;
+        padding:12px 0;
         box-sizing:border-box;
         width:100%;
         overflow:hidden;
     }
 
-    /* الارتفاع يطابق الإطار الأحمر في التصميم */
+    /* تقليص الارتفاع في الجوال ليتطابق مع المساحة المطلوبة */
     #sliderContent{
         width:100%;
-        height:250px;
-        border-radius:25px;
+        height:160px; /* الارتفاع المناسب تماماً في الجوال */
+        border-radius:22px;
         overflow:hidden;
-
-        box-shadow:
-            0 14px 32px rgba(15,20,45,.13);
     }
 
     .slider-info{
-        top:32px;
-        left:18px;
-        right:18px;
-    }
-
-    .slider-title{
-        top:3px;
-        padding-right:48px;
-        font-size:20px;
-        text-align:right;
+        top:18px;
+        left:14px;
+        right:14px;
     }
 
     .slider-category{
-        top:34px;
+        top:19px;
         font-size:11px;
     }
 
     .slider-info button{
-        top:92px;
+        top:62px;
         right:4px;
-        padding:7px 11px;
-        min-height:30px;
+        padding:5px 10px;
+        min-height:26px;
         font-size:9px;
     }
 
     /* الأسهم */
     .slider-arrow{
-        width:36px;
-        height:36px;
-        margin-top:-18px;
+        width:32px;
+        height:32px;
+        margin-top:-16px;
     }
 
     .slider-arrow span{
-        font-size:30px;
+        font-size:24px;
     }
 
     .slider-arrow-prev{
-        left:9px;
+        left:8px;
     }
 
     .slider-arrow-next{
-        right:9px;
+        right:8px;
     }
 
-    /* الصور المصغرة تبقى داخل إطار السلايدر */
+    /* الصور المصغرة */
     .mini-wrapper{
-        bottom:22px;
+        bottom:12px;
         width:92%;
-        height:62px;
-        padding:0;
-        border-radius:0;
+        height:54px;
     }
 
     .mini-viewport{
-        border-radius:12px;
+        border-radius:10px;
     }
 
     .mini-cards{
-        gap:9px;
-        padding:4px 7px;
+        gap:8px;
+        padding:3px 5px;
     }
 
     .mini-card{
-        flex-basis:58px;
-        width:58px;
-        height:50px;
-        border-radius:11px;
+        flex-basis:52px;
+        width:52px;
+        height:44px;
+        border-radius:9px;
     }
 
     /* النقاط */
     .slider-dots{
-        bottom:9px;
-        gap:7px;
+        bottom:4px;
+        gap:6px;
     }
 
     .slider-dot{
-        width:7px;
-        height:7px;
+        width:6px;
+        height:6px;
     }
 
     .slider-dot.active{
-        width:20px;
+        width:16px;
     }
 
 }
