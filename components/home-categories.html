@@ -1,17 +1,17 @@
 <section class="categories" aria-labelledby="categories-title">
 
-  <!-- هيدر القسم -->
   <div class="categories-header">
     <div class="categories-heading">
       <span class="categories-kicker">EXPLORE</span>
       <h3 id="categories-title">Categories</h3>
     </div>
-    <a href="all-wallpapers.html" class="see-all">See All <span>&rsaquo;</span></a>
+    <a href="all-wallpapers.html" class="see-all" aria-label="See all wallpapers">
+      See All <span aria-hidden="true">›</span>
+    </a>
   </div>
 
-  <!-- قائمة الأقسام (تتمدد أفقياً) -->
   <div class="category-grid" id="homeCategories" role="list" aria-label="Wallpaper categories">
-    <!-- سيتم تعبئتها ديناميكياً بواسطة الجافاسكريبت -->
+    <div class="categories-state" aria-live="polite">Loading categories…</div>
   </div>
 
 </section>
