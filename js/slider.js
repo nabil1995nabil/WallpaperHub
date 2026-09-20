@@ -56,10 +56,6 @@ function initSlider(data){
 
             <div class="slider-info">
 
-                <div class="slider-title">
-                    ${wall.title || ""}
-                </div>
-
                 <div class="slider-category">
                     ${wall.category || ""}
                 </div>
@@ -320,13 +316,26 @@ function updateMiniCards(index){
     const activeCard =
         cards[index];
 
+    const viewport =
+        document.getElementById("miniViewport");
 
-    if(activeCard){
+    /*
+     * تحريك شريط الصور المصغرة أفقياً فقط.
+     * لا نستخدم scrollIntoView() لأنه قد يحرك الصفحة
+     * الرئيسية إلى أعلى/أسفل عند تغيير الخلفية.
+     */
+    if(activeCard && viewport){
 
-        activeCard.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "center"
+        const targetLeft =
+            activeCard.offsetLeft -
+            (viewport.clientWidth - activeCard.offsetWidth) / 2;
+
+        const maxLeft =
+            Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+
+        viewport.scrollTo({
+            left: Math.max(0, Math.min(targetLeft, maxLeft)),
+            behavior: "smooth"
         });
 
     }
