@@ -402,6 +402,57 @@ color:var(--text);
     }
 
 }
+
+
+/* ================= SLIDER & OTHER COMPONENTS PRESERVED ================= */
+
+
+.slider{
+
+margin:18px;
+
+height:220px;
+
+border-radius:26px;
+
+overflow:hidden;
+
+position:relative;
+
+}
+
+
+.slide{
+
+position:absolute;
+
+inset:0;
+
+opacity:0;
+
+transition:.8s;
+
+}
+
+
+.slide.active{
+
+opacity:1;
+
+}
+
+
+.slide img{
+
+width:100%;
+
+height:100%;
+
+object-fit:cover;
+
+}
+
+
 /* ================= WALLPAPERS ================= */
 
 
