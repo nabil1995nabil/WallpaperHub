@@ -1310,6 +1310,93 @@ app.get(
 );
 
 // ======================================
+// Public Categories API
+// يرجع عدد الخلفيات الحقيقي لكل قسم من Supabase.
+// لا نرسل Service Role Key إلى المتصفح.
+// ======================================
+
+const HOME_CATEGORY_KEYS = [
+    "nature",
+    "anime",
+    "cars",
+    "space",
+    "minimal",
+    "games",
+    "ai",
+    "city",
+    "amoled",
+    "animals",
+    "dark",
+    "4k",
+    "sports"
+];
+
+app.get("/api/categories", async (req, res) => {
+    try {
+        // نستخدم count=exact مع limit=1 لكل قسم حتى نحصل على العدد
+        // الحقيقي بدون تحميل جميع الخلفيات إلى المتصفح.
+        const categoryResults = await Promise.all(
+            HOME_CATEGORY_KEYS.map(async (category) => {
+                const { data, count, error } = await supabase
+                    .from("wallpapers")
+                    .select("id,thumbnail,image", { count: "exact" })
+                    .eq("category", category)
+                    .order("id", { ascending: false })
+                    .limit(1);
+
+                if (error) throw error;
+
+                const preview = Array.isArray(data) && data[0]
+                    ? {
+                        id: Number(data[0].id),
+                        thumbnail: data[0].thumbnail || "",
+                        image: data[0].image || ""
+                    }
+                    : null;
+
+                return {
+                    key: category,
+                    count: Number(count || 0),
+                    preview
+                };
+            })
+        );
+
+        const allResult = await supabase
+            .from("wallpapers")
+            .select("id,thumbnail,image", { count: "exact" })
+            .order("id", { ascending: false })
+            .limit(1);
+
+        if (allResult.error) throw allResult.error;
+
+        const allCategory = {
+            key: "all",
+            count: Number(allResult.count || 0),
+            preview: Array.isArray(allResult.data) && allResult.data[0]
+                ? {
+                    id: Number(allResult.data[0].id),
+                    thumbnail: allResult.data[0].thumbnail || "",
+                    image: allResult.data[0].image || ""
+                }
+                : null
+        };
+
+        return res.json({
+            success: true,
+            categories: [allCategory, ...categoryResults]
+        });
+    } catch (error) {
+        console.log("GET CATEGORIES ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            categories: [],
+            message: error.message || "Failed to load categories"
+        });
+    }
+});
+
+// ======================================
 // Wallpaper Downloads
 // ======================================
 // يسجل التحميل للخلفية ويضيفه إلى حساب المستخدم بدون لمس نظام المحفوظات أو الإعجابات.
