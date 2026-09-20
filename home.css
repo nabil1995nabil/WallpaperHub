@@ -1,726 +1,662 @@
-/* =========================================================
-   WallpaperHub — Home Redesign
-   White / Clean / Professional Mobile UI
-========================================================= */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, "Tahoma", sans-serif;
-}
+/* ===================================
 
-:root {
-    --primary: #5b5df5;
-    --primary-dark: #4849df;
-    --primary-soft: #eef0ff;
-    --accent: #7d5fff;
-    --bg: #ffffff;
-    --surface: #f7f8fc;
-    --card: #ffffff;
-    --text: #171821;
-    --muted: #7c8191;
-    --line: #eceef4;
-    --shadow: 0 10px 30px rgba(33, 38, 70, .08);
-    --radius: 24px;
-}
+   WallpaperHub - home_step1.css (Step 1: Header Only)
 
-html {
-    scroll-behavior: smooth;
-    overscroll-behavior-x: none;
-}
+=================================== */
 
-body {
-    background: var(--bg);
-    color: var(--text);
-    overflow-x: hidden;
-    overscroll-behavior-x: none;
-}
 
-button,
-a {
-    -webkit-tap-highlight-color: transparent;
-}
+*{
 
-a {
-    color: inherit;
+margin:0;
+
+padding:0;
+
+box-sizing:border-box;
+
+font-family:Arial,sans-serif;
+
 }
 
 
-/* =========================================================
-   HEADER
-========================================================= */
+:root{
+
+--primary:#5b5df5;
+
+--primary2:#7d5fff;
+
+--bg:#12121c;
+
+--card:#1a1b26;
+
+--text:#ffffff;
+
+--gray:#9494a0;
+
+}
+
+
+body{
+
+background:var(--bg);
+
+color:var(--text);
+
+}
+
+
+/* ================= HEADER (Redesigned matching image) ================= */
+
 
 .header {
+
     position: sticky;
+
     top: 0;
+
     z-index: 1000;
-    min-height: 72px;
+
+    height: 76px;
+
     padding: 0 18px;
+
     display: flex;
-    align-items: center;
+
     justify-content: space-between;
-    background: rgba(255, 255, 255, .96);
-    backdrop-filter: blur(18px);
-    border-bottom: 1px solid rgba(30, 32, 50, .06);
+
+    align-items: center;
+
+    background: rgba(18, 18, 28, 0.92);
+
+    backdrop-filter: blur(20px);
+
+    -webkit-backdrop-filter: blur(20px);
+
+    border-bottom: 2px solid transparent;
+
+    border-image: linear-gradient(90deg, #ff416c, #ff4b2b, #7d5fff, #5b5df5) 1;
+
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+
 }
+
+
+.header-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+}
+
+
+.menu-btn {
+
+    background: none;
+
+    border: none;
+
+    cursor: pointer;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+    padding: 6px;
+
+}
+
+
+.menu-btn span {
+
+    display: block;
+
+    width: 22px;
+
+    height: 2.5px;
+
+    background: #ffffff;
+
+    border-radius: 2px;
+
+    transition: 0.3s;
+
+}
+
 
 .logo {
+
     display: flex;
+
     align-items: center;
-    gap: 8px;
+
+    gap: 10px;
+
 }
 
-.logo .material-icons {
-    color: var(--primary);
-    font-size: 24px;
-}
 
-.logo h2 {
-    font-size: 21px;
-    font-weight: 900;
-    color: var(--primary);
-    letter-spacing: -.5px;
-}
+.logo-icon-wrapper {
 
-.header-icons {
+    width: 38px;
+
+    height: 38px;
+
+    background: linear-gradient(135deg, #7d5fff, #ff416c);
+
+    border-radius: 12px;
+
     display: flex;
-    gap: 16px;
+
+    justify-content: center;
+
     align-items: center;
-}
 
-.header-icons span {
-    font-size: 24px;
-    cursor: pointer;
-    transition: transform .2s ease;
-}
+    box-shadow: 0 4px 12px rgba(125, 95, 255, 0.4);
 
-.header-icons span:active {
-    transform: scale(.9);
 }
 
 
-/* =========================================================
-   SLIDER AREA
-   السلايدر أصبح أول محتوى بعد الـHeader
-========================================================= */
+.logo-icon-wrapper .material-icons {
 
-.home-hero-slider {
-    padding-top: 10px;
-    background: #fff;
-}
+    font-size: 22px;
 
-.slider {
-    margin: 10px 16px 0;
-    height: 225px;
-    border-radius: 28px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: var(--shadow);
-}
+    color: #ffffff;
 
-.slide {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity .55s ease;
-}
-
-.slide.active {
-    opacity: 1;
-}
-
-.slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 
-/* =========================================================
-   HOME CATEGORIES
-========================================================= */
+.logo-text {
 
-.home-categories-block {
-    background: #fff;
-    padding: 4px 0 8px;
-}
-
-
-/* =========================================================
-   COMMON SECTION
-========================================================= */
-
-.wall-section,
-.today-section,
-.categories-section {
-    margin: 28px 16px;
-}
-
-.title,
-.section-heading {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 15px;
+
+    flex-direction: column;
+
 }
 
-.title h3,
-.section-heading h3 {
-    font-size: 20px;
-    line-height: 1.25;
-    font-weight: 900;
-}
 
-.title a {
-    text-decoration: none;
-    color: var(--primary);
-    font-size: 13px;
+.logo-text h2 {
+
+    font-size: 17px;
+
     font-weight: 800;
-    white-space: nowrap;
+
+    color: #ffffff;
+
+    letter-spacing: 0.5px;
+
+    line-height: 1.2;
+
 }
 
-.section-kicker {
-    display: block;
-    margin-bottom: 4px;
-    color: #9a9eae;
+
+.logo-subtitle {
+
+    font-size: 10px;
+
+    color: #a0a0b0;
+
+    font-weight: 500;
+
+}
+
+
+.header-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+
+.header-icon-btn {
+
+    width: 38px;
+
+    height: 38px;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    position: relative;
+
+    transition: 0.3s;
+
+}
+
+
+.header-icon-btn:hover {
+
+    background: rgba(255, 255, 255, 0.15);
+
+}
+
+
+.header-icon-btn .material-icons {
+
+    font-size: 20px;
+
+    color: #ffffff;
+
+}
+
+
+.notification-badge {
+
+    position: absolute;
+
+    top: 3px;
+
+    right: 3px;
+
+    background: #ff3366;
+
+    color: #fff;
+
     font-size: 9px;
-    font-weight: 900;
-    letter-spacing: 1.2px;
-    direction: ltr;
+
+    font-weight: bold;
+
+    width: 15px;
+
+    height: 15px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    box-shadow: 0 2px 6px rgba(255, 51, 102, 0.5);
+
 }
 
 
-/* =========================================================
-   WALLPAPER ROW
-========================================================= */
+.user-profile-badge {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    padding: 3px 10px 3px 3px;
+
+    border-radius: 30px;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+
+.user-profile-badge:hover {
+
+    background: rgba(255, 255, 255, 0.12);
+
+}
+
+
+.user-avatar {
+
+    width: 30px;
+
+    height: 30px;
+
+    background: linear-gradient(135deg, #5b5df5, #7d5fff);
+
+    color: #ffffff;
+
+    font-weight: bold;
+
+    font-size: 13px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    box-shadow: 0 2px 8px rgba(91, 93, 245, 0.5);
+
+}
+
+
+.user-info {
+
+    display: flex;
+
+    flex-direction: column;
+
+}
+
+
+.user-name {
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    color: #ffffff;
+
+    line-height: 1.2;
+
+}
+
+
+.user-role {
+
+    font-size: 8.5px;
+
+    color: #8c8ca0;
+
+    font-weight: 500;
+
+}
+
+
+@media(max-width: 480px) {
+
+    .header {
+
+        padding: 0 10px;
+
+        height: 70px;
+
+    }
+
+    .user-role {
+
+        display: none;
+
+    }
+
+    .logo-subtitle {
+
+        display: none;
+
+    }
+
+}
+/* ================= WALLPAPERS ================= */
+
+
+.wall-section{
+
+margin:22px 18px;
+
+}
+
+
+.title{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin-bottom:14px;
+
+}
+
+
+.title h3{
+
+font-size:20px;
+
+font-weight:700;
+
+color:#fff;
+
+}
+
+
+.title a{
+
+text-decoration:none;
+
+color:#7d5fff;
+
+font-size:14px;
+
+font-weight:600;
+
+}
+
 
 .wall-grid {
+
     display: flex;
+
     align-items: stretch;
-    gap: 12px;
+
+    gap: 14px;
+
     overflow-x: auto;
+
     overflow-y: hidden;
+
     scrollbar-width: none;
+
     -webkit-overflow-scrolling: touch;
-    padding: 2px 2px 9px;
-    scroll-snap-type: x proximity;
-    background: #fff;
-}
 
-.wall-grid::-webkit-scrollbar {
-    display: none;
-}
+    padding: 2px 2px 8px;
 
-.wall-card {
-    position: relative;
-    flex: 0 0 auto;
-    width: 142px;
-    height: 235px;
-    border-radius: 21px;
-    overflow: hidden;
-    cursor: pointer;
-    background: #edf0f6;
-    box-shadow: 0 5px 18px rgba(24, 29, 55, .08);
-    scroll-snap-align: start;
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.wall-card:active {
-    transform: scale(.965);
-}
-
-.wall-card img,
-.wall-card video {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-}
-
-.wall-card img {
-    border-radius: 21px;
-    transition: transform .35s ease;
-}
-
-.wall-card:hover img {
-    transform: scale(1.04);
-}
-
-.wall-info {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 14px;
-    background: linear-gradient(to top, rgba(0, 0, 0, .8), rgba(0, 0, 0, 0));
-    color: #fff;
-}
-
-.wall-info h4 {
-    font-size: 15px;
-    margin-bottom: 4px;
-    font-weight: 800;
-}
-
-.wall-info p {
-    font-size: 12px;
-    opacity: .9;
 }
 
 
-/* =========================================================
-   خلفية اليوم
-========================================================= */
+.wall-card{
 
-.today-section {
-    margin-top: 32px;
-}
+    position:relative;
 
-.today-wallpaper {
-    position: relative;
-    height: 300px;
-    border-radius: 28px;
-    overflow: hidden;
-    background: #151622;
-    box-shadow: var(--shadow);
-}
+    flex-shrink:0;
 
-.today-wallpaper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform .45s ease;
-}
+    width:140px;
 
-.today-wallpaper:hover img {
-    transform: scale(1.035);
-}
+    height:250px;
 
-.today-overlay {
-    position: absolute;
-    inset: auto 0 0;
-    padding: 24px 20px 20px;
-    background: linear-gradient(
-        to top,
-        rgba(0, 0, 0, .9),
-        rgba(0, 0, 0, .5) 48%,
-        rgba(0, 0, 0, 0)
-    );
-    color: #fff;
-}
+    border-radius:20px;
 
-.today-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 7px 13px;
-    margin-bottom: 9px;
-    border-radius: 999px;
-    background: #ffb516;
-    color: #202020;
-    font-size: 12px;
-    font-weight: 900;
-}
+    overflow:hidden;
 
-.today-overlay h2 {
-    font-size: 25px;
-    line-height: 1.2;
-    margin-bottom: 5px;
-}
+    cursor:pointer;
 
-.today-overlay p {
-    margin-bottom: 14px;
-    color: rgba(255, 255, 255, .82);
-    font-size: 14px;
-}
+    transition:transform .3s ease;
 
-.today-actions {
-    display: flex;
-    gap: 9px;
-}
+    background:var(--card);
 
-.today-actions button {
-    min-width: 105px;
-    height: 43px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 14px;
-    font-size: 14px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform .2s ease;
-}
-
-.today-actions button:active {
-    transform: scale(.96);
-}
-
-#todayView {
-    background: rgba(255, 255, 255, .96);
-    color: #171821;
-}
-
-#todayDownload {
-    background: var(--primary);
-    color: #fff;
 }
 
 
-/* =========================================================
-   COMMUNITY
-   القسم الذي طلبت وضعه تحت "الأكثر تحميلاً"
-========================================================= */
+.wall-card:active{
 
-.community-section {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    margin: 32px 16px;
-    padding: 25px 20px 20px;
-    border-radius: 28px;
-    background:
-        radial-gradient(circle at 18% 80%, rgba(113, 68, 255, .42), transparent 34%),
-        radial-gradient(circle at 58% 20%, rgba(0, 190, 255, .20), transparent 32%),
-        linear-gradient(135deg, #111b55 0%, #182c77 48%, #10193e 100%);
-    color: #fff;
-    box-shadow: 0 16px 35px rgba(22, 34, 103, .22);
-}
+transform:scale(.96);
 
-.community-section::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    width: 230px;
-    height: 90px;
-    left: 28%;
-    bottom: 30px;
-    border-radius: 50%;
-    background: rgba(107, 54, 255, .55);
-    filter: blur(38px);
-    transform: rotate(-18deg);
-}
-
-.community-glow {
-    position: absolute;
-    z-index: -1;
-    border-radius: 50%;
-    filter: blur(25px);
-    opacity: .7;
-}
-
-.glow-one {
-    width: 85px;
-    height: 85px;
-    top: -35px;
-    right: 20px;
-    background: rgba(124, 92, 255, .55);
-}
-
-.glow-two {
-    width: 100px;
-    height: 100px;
-    bottom: -55px;
-    left: 45%;
-    background: rgba(0, 175, 255, .3);
-}
-
-.community-content {
-    position: relative;
-    z-index: 2;
-}
-
-.community-label {
-    display: block;
-    margin-bottom: 7px;
-    color: #9caaff;
-    font-size: 9px;
-    font-weight: 900;
-    letter-spacing: 1.4px;
-    direction: ltr;
-}
-
-.community-content h2 {
-    font-size: 24px;
-    line-height: 1.35;
-    margin-bottom: 8px;
-}
-
-.community-content h2 strong {
-    color: #fff;
-}
-
-.community-content p {
-    max-width: 430px;
-    margin-bottom: 16px;
-    color: rgba(255, 255, 255, .76);
-    font-size: 13px;
-    line-height: 1.8;
-}
-
-.community-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 43px;
-    padding: 0 19px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #7651ff, #4b38ef);
-    color: #fff;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 900;
-    box-shadow: 0 8px 20px rgba(69, 46, 235, .35);
-}
-
-.community-cta span {
-    font-size: 20px;
-    line-height: 1;
-}
-
-.community-stats {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 22px;
-}
-
-.community-stat {
-    min-width: 0;
-    padding: 12px 5px 10px;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, .07);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, .055);
-    backdrop-filter: blur(8px);
-}
-
-.community-stat .material-icons {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 21px;
-    color: #a8b2ff;
-}
-
-.community-stat:nth-child(3) .material-icons {
-    color: #d7a2ff;
-}
-
-.community-stat:nth-child(4) .material-icons {
-    color: #ff6d92;
-}
-
-.community-stat strong {
-    display: block;
-    font-size: 17px;
-    line-height: 1.1;
-}
-
-.community-stat small {
-    display: block;
-    margin-top: 4px;
-    color: rgba(255, 255, 255, .62);
-    font-size: 9px;
-    white-space: nowrap;
 }
 
 
-/* =========================================================
-   CATEGORIES / DYNAMIC SECTIONS
-========================================================= */
+.wall-card img{
 
-.categories-section {
-    padding-top: 4px;
-}
+    width:100%;
 
-.categories {
-    margin: 18px 16px;
-}
+    height:100%;
 
-.categories h3 {
-    margin-bottom: 14px;
-    font-size: 20px;
-}
+    display:block;
 
-.category-list {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    scrollbar-width: none;
-}
+    object-fit:cover;
 
-.category-list::-webkit-scrollbar {
-    display: none;
-}
+    border-radius:20px;
 
-.category {
-    min-width: 90px;
-    height: 90px;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 5px 16px rgba(28, 34, 60, .06);
-    transition: transform .2s ease, background .2s ease;
-    cursor: pointer;
-}
+    transition:transform .4s ease;
 
-.category:hover {
-    transform: translateY(-3px);
-}
-
-.category:active {
-    transform: scale(.96);
-}
-
-.category.active {
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: #fff;
-}
-
-.category p {
-    margin-top: 7px;
-    font-size: 13px;
-    font-weight: 700;
 }
 
 
-/* =========================================================
-   WALLHAVEN
-========================================================= */
+.wall-card:hover img{
 
-.wallhaven-section {
-    margin-top: 32px;
+transform:scale(1.08);
+
 }
 
 
-/* =========================================================
-   REMOVE OLD GLOBAL PAGE ANIMATION
-   تصميم ثابت ونظيف كما طلبنا
-========================================================= */
+/* ================= Wallpaper Of The Day ================= */
 
-.header,
-.slider,
-.categories,
-.wall-section,
-.today-section,
-.community-section {
-    animation: none;
+
+.today-wallpaper{
+
+position:relative;
+
+margin:18px;
+
+height:240px;
+
+border-radius:28px;
+
+overflow:hidden;
+
 }
 
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+.today-wallpaper img{
 
-@media (min-width: 700px) {
-    .slider {
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 850px;
-    }
+width:100%;
 
-    .wall-section,
-    .today-section,
-    .community-section,
-    .categories-section {
-        max-width: 1000px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+height:100%;
 
-    .community-section {
-        padding: 30px;
-    }
+object-fit:cover;
 
-    .community-content {
-        max-width: 55%;
-    }
+transition:.5s;
+
 }
 
-@media (max-width: 600px) {
-    .header {
-        min-height: 68px;
-        padding: 0 15px;
-    }
 
-    .logo h2 {
-        font-size: 20px;
-    }
+.today-overlay{
 
-    .slider {
-        height: 215px;
-        margin-left: 14px;
-        margin-right: 14px;
-        border-radius: 25px;
-    }
+position:absolute;
 
-    .wall-section,
-    .today-section,
-    .categories-section {
-        margin-left: 14px;
-        margin-right: 14px;
-    }
+left:0;
 
-    .wall-card {
-        width: 132px;
-        height: 220px;
-        border-radius: 19px;
-    }
+right:0;
 
-    .wall-card img {
-        border-radius: 19px;
-    }
+bottom:0;
 
-    .today-wallpaper {
-        height: 285px;
-        border-radius: 25px;
-    }
+padding:22px;
 
-    .today-overlay {
-        padding: 20px 17px 17px;
-    }
+background:linear-gradient(to top, rgba(18,18,28,.95), rgba(18,18,28,.15));
 
-    .today-overlay h2 {
-        font-size: 22px;
-    }
+color:#fff;
 
-    .today-actions button {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .community-section {
-        margin-left: 14px;
-        margin-right: 14px;
-        border-radius: 25px;
-        padding: 22px 15px 15px;
-    }
-
-    .community-content h2 {
-        font-size: 21px;
-    }
-
-    .community-stats {
-        gap: 6px;
-    }
-
-    .community-stat {
-        padding-left: 3px;
-        padding-right: 3px;
-    }
-
-    .community-stat strong {
-        font-size: 15px;
-    }
-
-    .community-stat small {
-        font-size: 8px;
-    }
 }
+
+
+.today-overlay span{
+
+display:inline-block;
+
+padding:6px 14px;
+
+border-radius:30px;
+
+background:#ffb300;
+
+color:#222;
+
+font-size:12px;
+
+font-weight:bold;
+
+margin-bottom:10px;
+
+}
+
+
+.today-overlay h2{
+
+font-size:24px;
+
+margin-bottom:6px;
+
+}
+
+
+.today-overlay p{
+
+opacity:.9;
+
+margin-bottom:16px;
+
+}
+
+
+.today-buttons{
+
+display:flex;
+
+gap:12px;
+
+}
+
+
+.today-buttons button{
+
+flex:1;
+
+height:46px;
+
+border:none;
+
+border-radius:14px;
+
+font-size:15px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+transition:.3s;
+
+}
+
+
+#todayView{
+
+background:#ffffff;
+
+color:#222;
+
+}
+
+
+#todayDownload{
+
+background:#5b5df5;
+
+color:#fff;
+
+}
+
