@@ -1,5 +1,4 @@
-// WallpaperHub — Categories
-// Uses the preview image + real Supabase count returned by /api/categories.
+// WallpaperHub — Categories (Updated Reference Design)
 
 const HOME_CATEGORY_DEFINITIONS = [
     { key: "all", title: "All" },
@@ -137,7 +136,7 @@ async function initCategories() {
             container.appendChild(createCategoryCard(definition, item));
         });
 
-        // Reference-image style: All is the active/selected card.
+        // جعل القسم الأول (All) هو النشط افتراضياً بالإطار المضيء
         const allCard = container.querySelector('[data-category="all"]');
         if (allCard) allCard.classList.add("active");
     } catch (error) {
