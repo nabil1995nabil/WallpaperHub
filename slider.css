@@ -1,681 +1,421 @@
 /* =====================================
-   WallpaperHub — Interactive Slider Pro
+   WallpaperHub — Interactive Slider Pro (Complete & Responsive)
 ===================================== */
 
-
-/* منطقة السلايدر */
-
+/* منطقة السلايدر - متمددة بالكامل وتتجاوب مع وضع سطح المكتب */
 .slider-section{
-
-    width:100%;
-
-    padding:20px 100px;
-
-    overflow:hidden;
-
+    width: 100%;
+    padding: 15px 12px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
-
 
 /* إطار السلايدر الكامل */
-
 .slider-frame{
-
-    position:relative;
-
-    width:100%;
-
+    position: relative;
+    width: 100%;
 }
-
 
 /* السلايدر الرئيسي */
-
 #sliderContent{
-
-    position:relative;
-
-    width:100%;
-
-    height:180px; /* تم تقليص الارتفاع هنا من 250px إلى 180px */
-
-    border-radius:30px;
-
-    overflow:hidden;
-
-    touch-action:pan-y;
-
-    user-select:none;
-
-    -webkit-user-select:none;
-
+    position: relative;
+    width: 100%;
+    height: 180px; /* الارتفاع المخفض والمناسب */
+    border-radius: 30px;
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-
 /* الصورة / السلايد */
-
 .slide{
-
-    position:absolute;
-
-    inset:0;
-
-    opacity:0;
-
-    transform:scale(1.045);
-
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(1.045);
     transition:
         opacity .55s ease,
         transform .7s ease;
-
-    pointer-events:none;
-
+    pointer-events: none;
 }
-
 
 .slide.active{
-
-    opacity:1;
-
-    transform:scale(1);
-
-    pointer-events:auto;
-
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
 }
 
-
 .slide img{
-
-    width:100%;
-
-    height:100%;
-
-    object-fit:cover;
-
-    display:block;
-
-    image-rendering:auto;
-
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    image-rendering: auto;
     filter:
         brightness(1.05)
         contrast(1.30)
         saturate(1.10);
-
-    -webkit-user-drag:none;
-
+    -webkit-user-drag: none;
 }
 
-
 /* التدرج فوق الصورة */
-
 .slide::after{
-
-    content:"";
-
-    position:absolute;
-
-    inset:0;
-
-    pointer-events:none;
-
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     background:
         linear-gradient(
             180deg,
             rgba(0,0,0,0) 22%,
             rgba(0,0,0,.82) 100%
         );
-
 }
-
 
 /* معلومات السلايد */
-
 .slider-info{
-
-    position:absolute;
-
-    top:25px;
-
-    left:14px;
-
-    right:14px;
-
-    z-index:10;
-
-    text-align:center;
-
-    pointer-events:none;
-
+    position: absolute;
+    top: 25px;
+    left: 14px;
+    right: 14px;
+    z-index: 10;
+    text-align: center;
+    pointer-events: none;
 }
-
 
 /* التصنيف */
-
 .slider-category{
-
-    position:absolute;
-
-    top:25px;
-
-    right:0;
-
-    color:#ffffff;
-
-    font-size:13px;
-
-    font-weight:400;
-
+    position: absolute;
+    top: 25px;
+    right: 0;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 400;
     text-shadow:
         0 2px 8px rgba(0,0,0,.5);
-
 }
 
-
 /* زر عرض الخلفية */
-
 .slider-info button{
-
-    position:absolute;
-
-    top:75px;
-
-    right:12px;
-
-    padding:7px 13px;
-
-    border:0;
-
-    border-radius:18px;
-
-    background:rgba(255,255,255,.94);
-
-    color:#111;
-
-    font-weight:800;
-
-    font-size:10px;
-
-    line-height:1;
-
-    min-height:30px;
-
+    position: absolute;
+    top: 75px;
+    right: 12px;
+    padding: 7px 13px;
+    border: 0;
+    border-radius: 18px;
+    background: rgba(255,255,255,.94);
+    color: #111;
+    font-weight: 800;
+    font-size: 10px;
+    line-height: 1;
+    min-height: 30px;
     box-shadow:
         0 8px 20px rgba(0,0,0,.25);
-
-    backdrop-filter:blur(8px);
-
-    -webkit-backdrop-filter:blur(8px);
-
-    cursor:pointer;
-
-    pointer-events:auto;
-
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    pointer-events: auto;
     transition:
         transform .2s ease,
         background .2s ease;
-
 }
-
 
 .slider-info button:active{
-
-    transform:scale(.95);
-
+    transform: scale(.95);
 }
-
 
 /* =====================================
    الأسهم يمين / يسار
 ===================================== */
-
 .slider-arrow{
-
-    position:absolute;
-
-    top:50%;
-
-    z-index:30;
-
-    width:38px;
-
-    height:38px;
-
-    margin-top:-19px;
-
-    border:1px solid rgba(255,255,255,.28);
-
-    border-radius:50%;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    color:#ffffff;
-
-    background:rgba(255,255,255,.12);
-
-    backdrop-filter:blur(12px);
-
-    -webkit-backdrop-filter:blur(12px);
-
+    position: absolute;
+    top: 50%;
+    z-index: 30;
+    width: 38px;
+    height: 38px;
+    margin-top: -19px;
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     box-shadow:
         0 8px 25px rgba(0,0,0,.22),
         inset 0 1px 0 rgba(255,255,255,.18);
-
-    cursor:pointer;
-
+    cursor: pointer;
     transition:
         transform .2s ease,
         background .2s ease;
-
 }
-
 
 .slider-arrow span{
-
-    display:block;
-
-    margin-top:-4px;
-
-    font-family:Arial,sans-serif;
-
-    font-size:28px;
-
-    font-weight:200;
-
-    line-height:1;
-
+    display: block;
+    margin-top: -4px;
+    font-family: Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 200;
+    line-height: 1;
 }
-
 
 .slider-arrow:hover{
-
-    background:
-        rgba(255,255,255,.20);
-
+    background: rgba(255,255,255,.20);
 }
-
 
 .slider-arrow:active{
-
-    transform:scale(.91);
-
+    transform: scale(.91);
 }
-
 
 .slider-arrow-prev{
-
-    left:20px;
-
+    left: 20px;
 }
-
 
 .slider-arrow-next{
-
-    right:20px;
-
+    right: 20px;
 }
-
 
 /* =====================================
    إطار شريط الصور المصغرة
 ===================================== */
-
 .mini-wrapper{
-
-    position:absolute;
-
-    z-index:25;
-
-    left:50%;
-
-    bottom:15px;
-
-    transform:translateX(-50%);
-
-    width:min(88%,760px);
-
-    height:68px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    padding:0;
-
-    box-sizing:border-box;
-
-    border:0;
-
-    border-radius:0;
-
-    background:transparent;
-
-    backdrop-filter:none;
-
-    -webkit-backdrop-filter:none;
-
-    box-shadow:none;
-
+    position: absolute;
+    z-index: 25;
+    left: 50%;
+    bottom: 15px;
+    transform: translateX(-50%);
+    width: min(88%, 760px);
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
 }
-
 
 /* منفذ مرور الشريط */
-
 .mini-viewport{
-
-    width:100%;
-
-    height:100%;
-
-    overflow-x:auto;
-
-    overflow-y:hidden;
-
-    scrollbar-width:none;
-
-    -webkit-overflow-scrolling:touch;
-
-    cursor:grab;
-
-    border-radius:15px;
-
-    touch-action:pan-x;
-
-    overscroll-behavior-x:contain;
-
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+    border-radius: 15px;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
 }
-
 
 .mini-viewport::-webkit-scrollbar{
-
-    display:none;
-
+    display: none;
 }
-
 
 .mini-viewport.is-dragging{
-
-    cursor:grabbing;
-
+    cursor: grabbing;
 }
-
 
 /* الشريط */
-
 .mini-cards{
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:flex-start;
-
-    gap:10px;
-
-    width:max-content;
-
-    min-width:100%;
-
-    height:100%;
-
-    padding:4px 6px;
-
-    box-sizing:border-box;
-
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: max-content;
+    min-width: 100%;
+    height: 100%;
+    padding: 4px 6px;
+    box-sizing: border-box;
 }
 
-
 /* البطاقة الصغيرة */
-
 .mini-card{
-
-    flex:0 0 70px;
-
-    width:70px;
-
-    height:54px;
-
-    padding:0;
-
-    border-radius:12px;
-
-    overflow:hidden;
-
-    position:relative;
-
-    cursor:pointer;
-
-    background:#171a28;
-
-    border:2px solid rgba(255,255,255,.28);
-
+    flex: 0 0 70px;
+    width: 70px;
+    height: 54px;
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    background: #171a28;
+    border: 2px solid rgba(255,255,255,.28);
     box-shadow:
         0 5px 15px rgba(0,0,0,.25);
-
     transition:
         transform .25s ease,
         border-color .25s ease,
         box-shadow .25s ease;
-
 }
-
 
 /* الصورة */
-
 .mini-card img{
-
-    width:100%;
-
-    height:100%;
-
-    display:block;
-
-    object-fit:cover;
-
-    pointer-events:none;
-
-    -webkit-user-drag:none;
-
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    pointer-events: none;
+    -webkit-user-drag: none;
 }
 
-
 /* الخلفية النشطة */
-
 .mini-card.active{
-
-    border-color:#a948ff;
-
+    border-color: #a948ff;
     box-shadow:
         0 0 0 2px rgba(169,72,255,.25),
         0 8px 22px rgba(121,45,255,.34);
-
-    transform:translateY(-2px);
-
+    transform: translateY(-2px);
 }
-
 
 .mini-card:hover{
-
-    transform:translateY(-3px);
-
+    transform: translateY(-3px);
 }
-
 
 .mini-card.active:hover{
-
-    transform:translateY(-3px);
-
+    transform: translateY(-3px);
 }
-
 
 /* =====================================
    نقاط السلايدر
 ===================================== */
-
 .slider-dots{
-
-    position:absolute;
-
-    z-index:28;
-
-    left:50%;
-
-    bottom:6px;
-
-    transform:translateX(-50%);
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    gap:8px;
-
-    max-width:80%;
-
+    position: absolute;
+    z-index: 28;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 80%;
 }
 
-
 .slider-dot{
-
-    width:7px;
-
-    height:7px;
-
-    padding:0;
-
-    border:none;
-
-    border-radius:50%;
-
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
     background:
         rgba(255,255,255,.50);
-
     box-shadow:
         0 2px 8px rgba(0,0,0,.25);
-
-    cursor:pointer;
-
+    cursor: pointer;
     transition:
         width .25s ease,
         background .25s ease,
         transform .25s ease;
-
 }
-
 
 .slider-dot.active{
-
-    width:20px;
-
-    border-radius:99px;
-
-    background:#a944ff;
-
-    transform:scale(1.02);
-
+    width: 20px;
+    border-radius: 99px;
+    background: #a944ff;
+    transform: scale(1.02);
 }
-
 
 /* =====================================
    الهاتف
 ===================================== */
-
 @media(max-width:600px){
 
     .slider-section{
-        padding:12px 0;
-        box-sizing:border-box;
-        width:100%;
-        overflow:hidden;
+        padding: 12px 10px; /* تمدد كامل وتجنب التقلص عند تفعيل وضع سطح المكتب */
+        box-sizing: border-box;
+        width: 100%;
+        overflow: hidden;
     }
 
-    /* تقليص الارتفاع في الجوال ليتطابق مع المساحة المطلوبة */
     #sliderContent{
-        width:100%;
-        height:160px; /* الارتفاع المناسب تماماً في الجوال */
-        border-radius:22px;
-        overflow:hidden;
+        width: 100%;
+        height: 160px; /* ارتفاع متناسق ومضبوط تماماً */
+        border-radius: 22px;
+        overflow: hidden;
     }
 
     .slider-info{
-        top:18px;
-        left:14px;
-        right:14px;
+        top: 18px;
+        left: 14px;
+        right: 14px;
     }
 
     .slider-category{
-        top:19px;
-        font-size:11px;
+        top: 19px;
+        font-size: 11px;
     }
 
     .slider-info button{
-        top:62px;
-        right:4px;
-        padding:5px 10px;
-        min-height:26px;
-        font-size:9px;
+        top: 62px;
+        right: 4px;
+        padding: 5px 10px;
+        min-height: 26px;
+        font-size: 9px;
     }
 
     /* الأسهم */
     .slider-arrow{
-        width:32px;
-        height:32px;
-        margin-top:-16px;
+        width: 32px;
+        height: 32px;
+        margin-top: -16px;
     }
 
     .slider-arrow span{
-        font-size:24px;
+        font-size: 24px;
     }
 
     .slider-arrow-prev{
-        left:8px;
+        left: 8px;
     }
 
     .slider-arrow-next{
-        right:8px;
+        right: 8px;
     }
 
     /* الصور المصغرة */
     .mini-wrapper{
-        bottom:12px;
-        width:92%;
-        height:54px;
+        bottom: 12px;
+        width: 92%;
+        height: 54px;
     }
 
     .mini-viewport{
-        border-radius:10px;
+        border-radius: 10px;
     }
 
     .mini-cards{
-        gap:8px;
-        padding:3px 5px;
+        gap: 8px;
+        padding: 3px 5px;
     }
 
     .mini-card{
-        flex-basis:52px;
-        width:52px;
-        height:44px;
-        border-radius:9px;
+        flex-basis: 52px;
+        width: 52px;
+        height: 44px;
+        border-radius: 9px;
     }
 
     /* النقاط */
     .slider-dots{
-        bottom:4px;
-        gap:6px;
+        bottom: 4px;
+        gap: 6px;
     }
 
     .slider-dot{
-        width:6px;
-        height:6px;
+        width: 6px;
+        height: 6px;
     }
 
     .slider-dot.active{
-        width:16px;
+        width: 16px;
     }
-
 }
