@@ -1055,14 +1055,12 @@ function currentVoiceProfile(){
 }
 
 function showCommunityHero(){
-  document.body.classList.remove('voice-active');
   communityHero?.classList.remove('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','false');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','true');
 }
 
 function showVoiceHero(){
-  document.body.classList.add('voice-active');
   communityHero?.classList.add('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','true');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','false');
@@ -1239,21 +1237,16 @@ function updateVoicePresenceUI(){
   const joinButton = $('#joinVoice');
   const backButton = $('#voiceBackToChat');
   const actions = $('.voice-actions');
-  const copy = $('.voice-copy');
 
   if(joinButton){
     joinButton.hidden = voiceJoined || count >= VOICE_MAX_PARTICIPANTS;
   }
 
-  if(voiceJoined){
-    if(actions) actions.hidden = true;
-    if(copy) copy.classList.add('voice-copy-hidden');
-  }else{
-    if(actions) actions.hidden = false;
-    if(backButton) backButton.hidden = false;
-    if(copy) copy.classList.remove('voice-copy-hidden');
-  }
+  // Keep the return button visible even while connected.
+  if(actions) actions.hidden = false;
+  if(backButton) backButton.hidden = false;
 }
+
 
 function setVoiceSpeaking(peerId,speaking){
   const id = String(peerId || '');
