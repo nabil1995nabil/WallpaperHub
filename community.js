@@ -1016,11 +1016,54 @@ $$('[data-back-general]').forEach(button => {
 
 $('#viewMembers').addEventListener('click',() => showTab('members'));
 
+const communityHero = $('#communityHero');
+const normalHero = $('#normalHero');
+const voiceHeroMode = $('#voiceHeroMode');
+
+function showCommunityHero(){
+  communityHero?.classList.remove('is-voice');
+  if(normalHero) normalHero.setAttribute('aria-hidden','false');
+  if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','true');
+}
+
+function showVoiceHero(){
+  communityHero?.classList.add('is-voice');
+  if(normalHero) normalHero.setAttribute('aria-hidden','true');
+  if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','false');
+  communityHero?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 $('#joinChat').addEventListener('click',() => {
+  showCommunityHero();
   showTab('general');
   input.focus();
   document.querySelector('.chat-card').scrollIntoView({behavior:'smooth',block:'start'});
 });
+
+$('#openVoice')?.addEventListener('click',showVoiceHero);
+$('#voiceBackToChat')?.addEventListener('click',() => {
+  showCommunityHero();
+  showTab('general');
+});
+
+const joinVoiceButton = $('#joinVoice');
+if(joinVoiceButton){
+  joinVoiceButton.addEventListener('click', async () => {
+    showToast(currentUser ? 'تم اختيار المحادثة الصوتية المباشرة' : 'سجّل الدخول أولًا للانضمام إلى المحادثة الصوتية');
+    if(!currentUser) return;
+    try{
+      if(!navigator.mediaDevices?.getUserMedia){
+        showToast('المتصفح لا يدعم الوصول إلى الميكروفون');
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      stream.getTracks().forEach(track => track.stop());
+      showToast('تم السماح بالميكروفون. نجهّز الغرفة الصوتية...');
+    }catch(error){
+      showToast('لم يتم السماح بالميكروفون');
+    }
+  });
+}
 
 $('#focusSearch').addEventListener('click',() => {
   $('#memberSearch').focus();

@@ -96,26 +96,76 @@
         </div>
       </header>
 
-      <section class="community-hero">
-        <div class="hero-copy">
-          <span class="eyebrow">W A L L P A P E R H U B</span>
-          <h1>مجتمع <em>WallpaperHub</em></h1>
-          <p>شارك، ناقش، واكتشف مع عشاق الخلفيات من جميع أنحاء العالم.</p>
-          <button class="hero-cta" id="joinChat" type="button">
-            انضم إلى النقاش الآن
-            <span class="material-icons-round">groups</span>
-          </button>
+      <section class="community-hero community-hero-switch" id="communityHero" aria-label="مجتمع WallpaperHub">
+        <!-- الواجهة الافتراضية: تظهر عند دخول صفحة المجتمع -->
+        <div class="hero-mode hero-normal" id="normalHero">
+          <div class="hero-copy">
+            <span class="eyebrow">W A L L P A P E R H U B</span>
+            <h1>مجتمع <em>WallpaperHub</em></h1>
+            <p>شارك، ناقش، واكتشف مع عشاق الخلفيات من جميع أنحاء العالم.</p>
+            <div class="hero-actions">
+              <button class="hero-cta" id="joinChat" type="button">
+                انضم إلى النقاش الآن
+                <span class="material-icons-round">forum</span>
+              </button>
+              <button class="hero-cta hero-cta-secondary voice-open-button" id="openVoice" type="button">
+                انضم إلى المحادثة المباشرة
+                <span class="material-icons-round">mic</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-art" aria-hidden="true">
+            <div class="hero-card hero-card-back"></div>
+            <div class="hero-card hero-card-front"></div>
+            <div class="hero-bubble"><span class="material-icons-round">groups</span></div>
+            <span class="spark spark-a">✦</span>
+            <span class="spark spark-b">✧</span>
+            <span class="hero-note">Good<br>Wallpapers<br>Better People</span>
+          </div>
         </div>
 
-        <div class="hero-art" aria-hidden="true">
-          <div class="hero-card hero-card-back"></div>
-          <div class="hero-card hero-card-front"></div>
-          <div class="hero-bubble">
-            <span class="material-icons-round">groups</span>
+        <!-- واجهة المحادثة الصوتية: تظهر فقط بعد الضغط على المحادثة المباشرة -->
+        <div class="hero-mode voice-mode" id="voiceHeroMode" aria-hidden="true">
+          <div class="hero-copy voice-copy">
+            <div class="voice-live"><span class="live-dot"></span><span>LIVE</span></div>
+            <span class="eyebrow">W A L L P A P E R H U B · VOICE</span>
+            <h1>انضم إلى <em>المحادثة الصوتية</em></h1>
+            <p>تحدث الآن مع أعضاء مجتمع WallpaperHub واكتشف خلفيات وأفكارًا جديدة معًا.</p>
+
+            <div class="voice-stats" aria-label="إحصائيات المحادثة">
+              <span><i></i><b id="voiceOnlineCount">6</b> متحدثون الآن</span>
+              <span><span class="material-icons-round">headphones</span><b id="voiceListenerCount">48</b> مستمع</span>
+              <span><span class="material-icons-round">groups</span>مجتمع نشط</span>
+            </div>
+
+            <div class="voice-actions">
+              <button class="hero-cta" id="joinVoice" type="button">
+                انضم إلى المحادثة المباشرة
+                <span class="material-icons-round">mic</span>
+              </button>
+              <button class="hero-cta hero-cta-secondary" id="voiceBackToChat" type="button">
+                العودة إلى النقاش
+                <span class="material-icons-round">forum</span>
+              </button>
+            </div>
           </div>
-          <span class="spark spark-a">✦</span>
-          <span class="spark spark-b">✧</span>
-          <span class="hero-note">Good<br>Wallpapers<br>Better People</span>
+
+          <div class="voice-stage" aria-hidden="true">
+            <div class="voice-rings"><span></span><span></span><span></span></div>
+            <div class="voice-mic"><span class="material-icons-round">mic</span></div>
+            <div class="voice-wave voice-wave-a"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="voice-wave voice-wave-b"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="voice-people" id="voicePeople">
+              <div class="voice-person person-1"><span class="avatar-placeholder">N</span><i></i></div>
+              <div class="voice-person person-2"><span class="avatar-placeholder">A</span><i></i></div>
+              <div class="voice-person person-3"><span class="avatar-placeholder">M</span><i></i></div>
+              <div class="voice-person person-4"><span class="avatar-placeholder">S</span><i></i></div>
+              <div class="voice-person person-5"><span class="avatar-placeholder">Y</span><i></i></div>
+              <div class="voice-person person-6"><span class="avatar-placeholder">R</span><i></i></div>
+            </div>
+            <div class="voice-room-label"><span class="material-icons-round">graphic_eq</span> الغرفة الصوتية العامة</div>
+          </div>
         </div>
       </section>
 
