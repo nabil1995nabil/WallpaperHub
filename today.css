@@ -1,0 +1,117 @@
+/* =========================================================
+   WallpaperHub — Today Wallpaper
+   خلفية اليوم
+========================================================= */
+
+.today-section {
+    margin-top: 32px;
+}
+
+.today-wallpaper {
+    position: relative;
+    height: 300px;
+    border-radius: 28px;
+    overflow: hidden;
+    background: #151622;
+    box-shadow: var(--shadow);
+}
+
+.today-wallpaper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .45s ease;
+}
+
+.today-wallpaper:hover img {
+    transform: scale(1.035);
+}
+
+.today-overlay {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 24px 20px 20px;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, .9),
+        rgba(0, 0, 0, .5) 48%,
+        rgba(0, 0, 0, 0)
+    );
+    color: #fff;
+}
+
+.today-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 13px;
+    margin-bottom: 9px;
+    border-radius: 999px;
+    background: #ffb516;
+    color: #202020;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.today-overlay h2 {
+    font-size: 25px;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.today-overlay p {
+    margin-bottom: 14px;
+    color: rgba(255, 255, 255, .82);
+    font-size: 14px;
+}
+
+.today-actions {
+    display: flex;
+    gap: 9px;
+}
+
+.today-actions button {
+    min-width: 105px;
+    height: 43px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .2s ease;
+}
+
+.today-actions button:active {
+    transform: scale(.96);
+}
+
+#todayView {
+    background: rgba(255, 255, 255, .96);
+    color: #171821;
+}
+
+#todayDownload {
+    background: var(--primary);
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+
+    .today-wallpaper {
+        height: 285px;
+        border-radius: 25px;
+    }
+
+    .today-overlay {
+        padding: 20px 17px 17px;
+    }
+
+    .today-overlay h2 {
+        font-size: 22px;
+    }
+
+    .today-actions button {
+        flex: 1;
+        min-width: 0;
+    }
+}
