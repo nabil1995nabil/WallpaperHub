@@ -1,5 +1,5 @@
 /* =====================================
-   WallpaperHub — Interactive Slider Pro (Complete & Responsive)
+   WallpaperHub — Interactive Slider Pro (Updated Layout)
 ===================================== */
 
 /* منطقة السلايدر - متمددة بالكامل وتتجاوب مع وضع سطح المكتب */
@@ -20,7 +20,7 @@
 #sliderContent{
     position: relative;
     width: 100%;
-    height: 180px; /* الارتفاع المخفض والمناسب */
+    height: 180px;
     border-radius: 30px;
     overflow: hidden;
     touch-action: pan-y;
@@ -76,7 +76,7 @@
 /* معلومات السلايد */
 .slider-info{
     position: absolute;
-    top: 25px;
+    top: 12px;
     left: 14px;
     right: 14px;
     z-index: 10;
@@ -84,11 +84,11 @@
     pointer-events: none;
 }
 
-/* التصنيف */
+/* التصنيف (نوع الخلفية) - منحاز للأعلى */
 .slider-category{
     position: absolute;
-    top: 25px;
-    right: 0;
+    top: 12px;
+    right: 5px;
     color: #ffffff;
     font-size: 13px;
     font-weight: 400;
@@ -96,12 +96,12 @@
         0 2px 8px rgba(0,0,0,.5);
 }
 
-/* زر عرض الخلفية */
+/* زر عرض الخلفية - يصبح بين نوع الخلفية والأعلى */
 .slider-info button{
     position: absolute;
-    top: 75px;
-    right: 12px;
-    padding: 7px 13px;
+    top: 38px;
+    right: 4px;
+    padding: 6px 12px;
     border: 0;
     border-radius: 18px;
     background: rgba(255,255,255,.94);
@@ -109,7 +109,7 @@
     font-weight: 800;
     font-size: 10px;
     line-height: 1;
-    min-height: 30px;
+    min-height: 28px;
     box-shadow:
         0 8px 20px rgba(0,0,0,.25);
     backdrop-filter: blur(8px);
@@ -330,7 +330,7 @@
 @media(max-width:600px){
 
     .slider-section{
-        padding: 12px 10px; /* تمدد كامل وتجنب التقلص عند تفعيل وضع سطح المكتب */
+        padding: 12px 10px;
         box-sizing: border-box;
         width: 100%;
         overflow: hidden;
@@ -338,27 +338,28 @@
 
     #sliderContent{
         width: 100%;
-        height: 160px; /* ارتفاع متناسق ومضبوط تماماً */
+        height: 160px;
         border-radius: 22px;
         overflow: hidden;
     }
 
     .slider-info{
-        top: 18px;
+        top: 10px;
         left: 14px;
         right: 14px;
     }
 
     .slider-category{
-        top: 19px;
+        top: 10px;
+        right: 4px;
         font-size: 11px;
     }
 
     .slider-info button{
-        top: 62px;
+        top: 32px;
         right: 4px;
         padding: 5px 10px;
-        min-height: 26px;
+        min-height: 25px;
         font-size: 9px;
     }
 
