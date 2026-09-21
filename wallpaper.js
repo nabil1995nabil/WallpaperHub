@@ -4,6 +4,16 @@
 import { supabase } from "./supabase.js";
 
 console.log("WallpaperHub Player Loaded");
+
+// Modern detail UI: forward presentation buttons to the original controls.
+// The existing business logic remains untouched.
+document.querySelectorAll(".modern-action[data-trigger]").forEach(button => {
+    button.addEventListener("click", () => {
+        const targetId = button.dataset.trigger;
+        const target = targetId ? document.getElementById(targetId) : null;
+        if (target) target.click();
+    });
+});
 // ===============================
 // URL Helper
 // ===============================

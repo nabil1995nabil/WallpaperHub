@@ -317,7 +317,25 @@ close
     </div>
 </div>
 
-
+<!-- Modern wallpaper actions: existing functionality is triggered through the original controls -->
+<section class="modern-wall-actions" aria-label="إجراءات الخلفية">
+    <button type="button" class="modern-action modern-action-primary" data-trigger="downloadBtn">
+        <span class="material-icons">download</span>
+        <span><b>تحميل</b><small id="modernDownloadSize">تحميل الخلفية</small></span>
+    </button>
+    <button type="button" class="modern-action" data-trigger="likeBtn">
+        <span class="material-icons">favorite</span>
+        <span><b>المفضلة</b><small>إضافة إلى المفضلة</small></span>
+    </button>
+    <button type="button" class="modern-action" data-trigger="setWallpaperBtn">
+        <span class="material-icons">wallpaper</span>
+        <span><b>تعيين</b><small>تعيين كخلفية</small></span>
+    </button>
+    <button type="button" class="modern-action" data-trigger="shareBtn">
+        <span class="material-icons">share</span>
+        <span><b>مشاركة</b><small>مشاركة الخلفية</small></span>
+    </button>
+</section>
 
 <!-- =========================
      COMMENTS SECTION NEW
@@ -358,9 +376,7 @@ close
     <div class="info-details">
 <div class="info-item">
 
-<span>
-الدقة
-</span>
+<span class="modern-info-label"><span class="material-icons">aspect_ratio</span><span>الدقة</span></span>
 
 <span id="wallResolution"></span>
 
@@ -372,9 +388,7 @@ close
 
 <div class="info-item">
 
-<span>
-الحجم
-</span>
+<span class="modern-info-label"><span class="material-icons">description</span><span>الحجم</span></span>
 
 <span id="wallSize"></span>
 
@@ -386,9 +400,7 @@ close
 
 <div class="info-item">
 
-<span>
-عدد التحميلات
-</span>
+<span class="modern-info-label"><span class="material-icons">download</span><span>عدد التحميلات</span></span>
 
 <span id="wallDownloads"></span>
 
@@ -460,9 +472,7 @@ close
 
 <div class="info-item">
 
-<span>
-الناشر
-</span>
+<span class="modern-info-label"><span class="material-icons">person</span><span>الناشر</span></span>
 
 
 <span id="wallAuthor"></span>
@@ -476,9 +486,7 @@ close
 
 <div class="info-item">
 
-<span>
-تاريخ الإضافة
-</span>
+<span class="modern-info-label"><span class="material-icons">calendar_today</span><span>تاريخ الإضافة</span></span>
 
 
 <span id="wallDate"></span>
@@ -489,9 +497,7 @@ close
 
 <div class="info-item">
 
-<span>
-📍 مكان الالتقاط
-</span>
+<span class="modern-info-label"><span class="material-icons">location_on</span><span>📍 مكان الالتقاط</span></span>
 
 
 <span id="captureLocation">
@@ -505,9 +511,7 @@ close
 
 <div class="info-item">
 
-<span>
-📅 تاريخ الالتقاط
-</span>
+<span class="modern-info-label"><span class="material-icons">event</span><span>📅 تاريخ الالتقاط</span></span>
 
 
 <span id="captureDate">
@@ -521,9 +525,7 @@ close
 
 <div class="info-item">
 
-<span>
-⏰ وقت الالتقاط
-</span>
+<span class="modern-info-label"><span class="material-icons">schedule</span><span>⏰ وقت الالتقاط</span></span>
 
 
 <span id="captureTime">
@@ -535,9 +537,7 @@ close
 
 <div class="info-item">
 
-<span>
-🤖 مصدر الصورة
-</span>
+<span class="modern-info-label"><span class="material-icons">auto_awesome</span><span>🤖 مصدر الصورة</span></span>
 
 
 <span id="imageSource">
@@ -550,9 +550,7 @@ close
 <div class="info-item image-link-item">
 
 
-<span>
-رابط الخلفية
-</span>
+<span class="modern-info-label"><span class="material-icons">link</span><span>رابط الخلفية</span></span>
 
 
 
