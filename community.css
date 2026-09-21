@@ -597,6 +597,39 @@ body.private-chat-open{overflow:hidden}
   .message-file-meta{font-size:7px}
 }
 
+
+/* ================= Full-screen Voice Mode ================= */
+/* عند اختيار المحادثة الصوتية تصبح الصفحة واجهة الصوت فقط، بدون شعار/هيدر أو أقسام المجتمع. */
+body.voice-mode-active{
+  overflow:hidden;
+}
+body.voice-mode-active .sidebar,
+body.voice-mode-active .topbar,
+body.voice-mode-active .room-tabs,
+body.voice-mode-active .content-layout,
+body.voice-mode-active .secondary-panel,
+body.voice-mode-active .mobile-nav{
+  display:none!important;
+}
+body.voice-mode-active .main{
+  width:100%;
+  max-width:none;
+  margin-left:0;
+  padding:0;
+}
+body.voice-mode-active .community-hero{
+  width:100%;
+  min-height:100vh;
+  height:100vh;
+  margin:0;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+body.voice-mode-active .voice-mode{
+  min-height:100vh;
+}
+
 /* ================= Community / Voice Hero Switch ================= */
 .community-hero-switch{position:relative;overflow:hidden}
 .hero-mode{width:100%;min-height:inherit}
