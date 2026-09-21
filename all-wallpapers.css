@@ -32,10 +32,8 @@ html{scroll-behavior:smooth;background:var(--bg)}
 body{
     min-height:100vh;
     padding:0 0 96px;
-    background:
-        radial-gradient(circle at 15% -5%,rgba(70,104,255,.18),transparent 32%),
-        radial-gradient(circle at 90% 18%,rgba(95,58,255,.13),transparent 28%),
-        linear-gradient(180deg,#050a16 0%,#071021 46%,#050a16 100%);
+    margin:0;
+    background:#030712 !important;
     color:var(--text);
     font-family:var(--font);
     -webkit-font-smoothing:antialiased;
@@ -467,15 +465,17 @@ button{border:0}
 @keyframes loadingSpin{to{transform:rotate(360deg)}}
 @keyframes cardIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 
-/* Keep the page intentionally dark when the global theme script toggles body.dark. */
-body.dark{background:
-    radial-gradient(circle at 15% -5%,rgba(70,104,255,.18),transparent 32%),
-    radial-gradient(circle at 90% 18%,rgba(95,58,255,.13),transparent 28%),
-    linear-gradient(180deg,#050a16 0%,#071021 46%,#050a16 100%);
-    color:var(--text);
-}
 
 /* Optional compact view — prepared for the new toolbar. */
 .wallpapers-grid.compact-grid .wallpaper-card{aspect-ratio:1 / 1}
 .wallpapers-grid.compact-grid .wallpaper-overlay{padding-top:28px}
 .wallpapers-grid.compact-grid .wallpaper-title{font-size:10px}
+
+
+/* FINAL DARK BASE: prevents legacy/light theme bleed */
+html, body { background:#030712 !important; color:var(--text); }
+body::before, body::after { content:none !important; display:none !important; }
+body.dark { background:#030712 !important; color:var(--text) !important; }
+main, .search-section, .filters-wrap, .toolbar { background:transparent !important; }
+.wallpaper-card { background:#0b1426; }
+.wallpaper-card img { background:#080f1d; }
