@@ -1522,10 +1522,22 @@ async function syncVoicePeers(){
 }
 
 async function ensureVoicePresenceChannel(){
-  if(voiceChannel || !supabaseClient) return;
-  if(!document.body.classList.contains('voice-active')) return;
+  // Prevent race conditions when the user opens the voice room and
+  // immediately presses "Join". All concurrent calls share one promise.
+  if(!supabaseClient) return null;
 
-  const presenceKey = String(currentUser?.id || `guest-${Math.random().toString(36).slice(2,9)}`);
+  if(voiceReadyPromise){
+    return voiceReadyPromise;
+  }
+
+  if(voiceChannel){
+    return voiceChannel;
+  }
+
+  const presenceKey = String(
+    currentUser?.id || `guest-${Math.random().toString(36).slice(2,9)}`
+  );
+
   voiceChannel = supabaseClient.channel('wallpaperhub-public-voice',{
     config:{
       broadcast:{ack:true},
@@ -1560,21 +1572,26 @@ async function ensureVoicePresenceChannel(){
       updateVoicePresenceUI();
     });
 
-  const status = await new Promise((resolve,reject) => {
+  voiceReadyPromise = new Promise((resolve,reject) => {
     let settled = false;
+
     const timer = setTimeout(() => {
-      if(!settled){
-        settled = true;
-        reject(new Error('تعذر الاتصال بغرفة الصوت'));
-      }
+      if(settled) return;
+      settled = true;
+      reject(new Error('تعذر الاتصال بغرفة الصوت'));
     },8000);
 
     voiceChannel.subscribe(channelStatus => {
-      if(channelStatus === 'SUBSCRIBED' && !settled){
+      if(settled) return;
+
+      if(channelStatus === 'SUBSCRIBED'){
         settled = true;
         clearTimeout(timer);
         resolve(channelStatus);
-      }else if((channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT') && !settled){
+        return;
+      }
+
+      if(channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT'){
         settled = true;
         clearTimeout(timer);
         reject(new Error('تعذر الاتصال بغرفة الصوت'));
@@ -1582,8 +1599,27 @@ async function ensureVoicePresenceChannel(){
     });
   });
 
-  if(status !== 'SUBSCRIBED') throw new Error('تعذر الاتصال بغرفة الصوت');
-  updateVoicePresenceUI();
+  try{
+    const status = await voiceReadyPromise;
+
+    if(status !== 'SUBSCRIBED' || !voiceChannel){
+      throw new Error('تعذر الاتصال بغرفة الصوت');
+    }
+
+    updateVoicePresenceUI();
+    return voiceChannel;
+  }catch(error){
+    const failedChannel = voiceChannel;
+    voiceChannel = null;
+
+    if(supabaseClient && failedChannel){
+      try{ await supabaseClient.removeChannel(failedChannel); }catch(_error){}
+    }
+
+    throw error;
+  }finally{
+    voiceReadyPromise = null;
+  }
 }
 
 async function leaveVoiceRoom(){
@@ -1615,6 +1651,7 @@ async function leaveVoiceRoom(){
   }
 
   voiceChannel = null;
+  voiceReadyPromise = null;
   voiceJoined = false;
   voiceMuted = false;
   voiceSlotByUser.clear();
@@ -1641,7 +1678,11 @@ async function joinRealVoiceRoom(){
     return;
   }
 
-  await ensureVoicePresenceChannel();
+  const readyChannel = await ensureVoicePresenceChannel();
+
+  if(!readyChannel || !voiceChannel){
+    throw new Error('تعذر تجهيز الاتصال الصوتي، حاول مرة أخرى');
+  }
 
   const currentCount = voicePresenceProfiles().length;
   if(currentCount >= VOICE_MAX_PARTICIPANTS){
@@ -1668,6 +1709,11 @@ async function joinRealVoiceRoom(){
     }
 
     const me = currentVoiceProfile();
+
+    if(!voiceChannel){
+      throw new Error('تعذر تجهيز غرفة الصوت');
+    }
+
     await voiceChannel.track({
       user_id:me.id,
       name:me.name,
