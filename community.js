@@ -18,6 +18,15 @@ let pendingFileData = null;
 let pendingPrivateImageData = null;
 let pendingPrivateFileData = null;
 
+// ================= Real WebRTC Voice Room =================
+let voiceChannel = null;
+let voiceLocalStream = null;
+let voicePeers = new Map();
+let voiceIceQueues = new Map();
+let voiceJoined = false;
+let voiceMuted = false;
+let voiceReadyPromise = null;
+
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -1030,8 +1039,286 @@ function showVoiceHero(){
   communityHero?.classList.add('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','true');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','false');
-  // Swap only the hero. Keep tabs, chat, members and the rest of the page intact.
-  // Do not force-scroll the page: the voice UI should not hide the discussion below it.
+}
+
+function voiceParticipantIds(){
+  if(!voiceChannel || !currentUser) return [];
+  const state = voiceChannel.presenceState?.() || {};
+  return Object.keys(state).filter(id => id && id !== String(currentUser.id));
+}
+
+function updateVoicePresenceUI(){
+  const count = (voiceJoined ? 1 : 0) + voiceParticipantIds().length;
+  const online = $('#voiceOnlineCount');
+  const listeners = $('#voiceListenerCount');
+  if(online) online.textContent = String(count);
+  if(listeners) listeners.textContent = String(count);
+}
+
+function setVoiceButtonState(active){
+  const button = $('#joinVoice');
+  if(!button) return;
+  if(active){
+    button.innerHTML = voiceMuted
+      ? '<span>الميكروفون مكتوم · إلغاء الكتم</span><span class="material-icons-round">mic_off</span>'
+      : '<span>متصل الآن · كتم الميكروفون</span><span class="material-icons-round">mic</span>';
+    button.classList.add('voice-connected');
+    button.classList.toggle('voice-muted',voiceMuted);
+    button.setAttribute('aria-pressed',String(voiceMuted));
+  }else{
+    button.innerHTML = '<span>انضم إلى المحادثة المباشرة</span><span class="material-icons-round">mic</span>';
+    button.classList.remove('voice-connected','voice-muted');
+    button.removeAttribute('aria-pressed');
+  }
+}
+
+function removeVoiceAudio(peerId){
+  const safe = String(peerId).replace(/[^a-zA-Z0-9_-]/g,'_');
+  const audio = document.getElementById(`voice-audio-${safe}`);
+  if(audio) audio.remove();
+}
+
+function closeVoicePeer(peerId){
+  const entry = voicePeers.get(String(peerId));
+  if(entry){
+    try{ entry.pc.close(); }catch(_error){}
+    if(entry.audio) entry.audio.remove();
+  }
+  voicePeers.delete(String(peerId));
+  voiceIceQueues.delete(String(peerId));
+  updateVoicePresenceUI();
+}
+
+function createVoicePeer(peerId, initiator){
+  peerId = String(peerId);
+  if(!voiceLocalStream || !voiceChannel || !peerId) return null;
+
+  const existing = voicePeers.get(peerId);
+  if(existing) return existing.pc;
+
+  const pc = new RTCPeerConnection({
+    iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'}
+    ]
+  });
+
+  voiceLocalStream.getTracks().forEach(track => pc.addTrack(track,voiceLocalStream));
+
+  const entry = {pc,audio:null,remoteDescription:false};
+  voicePeers.set(peerId,entry);
+  voiceIceQueues.set(peerId,[]);
+
+  pc.onicecandidate = event => {
+    if(!event.candidate || !voiceChannel) return;
+    voiceChannel.send({
+      type:'broadcast',
+      event:'voice-signal',
+      payload:{
+        type:'candidate',
+        from:String(currentUser.id),
+        to:peerId,
+        candidate:event.candidate.toJSON ? event.candidate.toJSON() : event.candidate
+      }
+    }).catch(()=>{});
+  };
+
+  pc.ontrack = event => {
+    const stream = event.streams?.[0];
+    if(!stream) return;
+    let audio = entry.audio;
+    if(!audio){
+      audio = document.createElement('audio');
+      audio.id = `voice-audio-${peerId.replace(/[^a-zA-Z0-9_-]/g,'_')}`;
+      audio.autoplay = true;
+      audio.playsInline = true;
+      audio.controls = false;
+      audio.hidden = true;
+      document.body.appendChild(audio);
+      entry.audio = audio;
+    }
+    audio.srcObject = stream;
+    audio.play().catch(()=>showToast('اضغط انضم إلى المحادثة للسماح بتشغيل الصوت'));
+  };
+
+  pc.onconnectionstatechange = () => {
+    const state = pc.connectionState;
+    if(state === 'failed' || state === 'closed') closeVoicePeer(peerId);
+  };
+
+  if(initiator){
+    pc.createOffer({offerToReceiveAudio:true})
+      .then(offer => pc.setLocalDescription(offer).then(() => offer))
+      .then(offer => voiceChannel?.send({
+        type:'broadcast',event:'voice-signal',
+        payload:{type:'offer',from:String(currentUser.id),to:peerId,description:offer}
+      }))
+      .catch(() => showToast('تعذر إنشاء اتصال صوتي مع أحد الأعضاء'));
+  }
+
+  return pc;
+}
+
+async function flushVoiceIce(peerId){
+  const entry = voicePeers.get(String(peerId));
+  const queue = voiceIceQueues.get(String(peerId)) || [];
+  if(!entry?.remoteDescription || !queue.length) return;
+  while(queue.length){
+    const candidate = queue.shift();
+    try{ await entry.pc.addIceCandidate(candidate); }catch(_error){}
+  }
+}
+
+async function handleVoiceSignal(payload){
+  if(!voiceJoined || !payload || !currentUser) return;
+  const from = String(payload.from || '');
+  const to = String(payload.to || '');
+  if(!from || !to || to !== String(currentUser.id) || from === String(currentUser.id)) return;
+
+  if(payload.type === 'bye'){
+    closeVoicePeer(from);
+    return;
+  }
+
+  let pc = voicePeers.get(from)?.pc;
+  if(!pc) pc = createVoicePeer(from,false);
+  const entry = voicePeers.get(from);
+  if(!entry) return;
+
+  try{
+    if(payload.type === 'offer'){
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.description));
+      entry.remoteDescription = true;
+      await flushVoiceIce(from);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await voiceChannel?.send({
+        type:'broadcast',event:'voice-signal',
+        payload:{type:'answer',from:String(currentUser.id),to:from,description:answer}
+      });
+      return;
+    }
+
+    if(payload.type === 'answer'){
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.description));
+      entry.remoteDescription = true;
+      await flushVoiceIce(from);
+      return;
+    }
+
+    if(payload.type === 'candidate'){
+      const candidate = new RTCIceCandidate(payload.candidate);
+      if(entry.remoteDescription) await pc.addIceCandidate(candidate);
+      else voiceIceQueues.get(from)?.push(candidate);
+    }
+  }catch(_error){
+    closeVoicePeer(from);
+  }
+}
+
+async function syncVoicePeers(){
+  if(!voiceJoined || !voiceChannel || !currentUser) return;
+  const ids = voiceParticipantIds();
+  for(const peerId of ids){
+    // One side creates the offer. This prevents offer/offer collisions.
+    const initiator = String(currentUser.id) < String(peerId);
+    createVoicePeer(peerId,initiator);
+  }
+  updateVoicePresenceUI();
+}
+
+async function leaveVoiceRoom(){
+  if(voiceChannel && currentUser){
+    for(const peerId of voicePeers.keys()){
+      voiceChannel.send({
+        type:'broadcast',event:'voice-signal',
+        payload:{type:'bye',from:String(currentUser.id),to:String(peerId)}
+      }).catch(()=>{});
+    }
+  }
+
+  for(const peerId of [...voicePeers.keys()]) closeVoicePeer(peerId);
+  if(voiceLocalStream){
+    voiceLocalStream.getTracks().forEach(track => track.stop());
+    voiceLocalStream = null;
+  }
+  if(voiceChannel && supabaseClient){
+    try{ await supabaseClient.removeChannel(voiceChannel); }catch(_error){}
+  }
+  voiceChannel = null;
+  voiceJoined = false;
+  voiceMuted = false;
+  updateVoicePresenceUI();
+  setVoiceButtonState(false);
+}
+
+async function joinRealVoiceRoom(){
+  if(voiceJoined) return;
+  if(!currentUser){
+    showToast('سجّل الدخول أولًا للانضمام إلى المحادثة الصوتية');
+    return;
+  }
+  if(!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection){
+    showToast('هذا المتصفح لا يدعم المكالمة الصوتية');
+    return;
+  }
+  if(!supabaseClient){
+    showToast('جاري تجهيز الاتصال، حاول مرة أخرى بعد لحظة');
+    return;
+  }
+
+  try{
+    voiceLocalStream = await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
+      video:false
+    });
+
+    voiceChannel = supabaseClient.channel('wallpaperhub-public-voice',{
+      config:{
+        broadcast:{ack:true},
+        presence:{key:String(currentUser.id)}
+      }
+    });
+
+    voiceChannel
+      .on('broadcast',{event:'voice-signal'},({payload}) => handleVoiceSignal(payload))
+      .on('presence',{event:'sync'},syncVoicePeers)
+      .on('presence',{event:'join'},() => { syncVoicePeers(); })
+      .on('presence',{event:'leave'},payload => {
+        const left = payload?.key || payload?.leftPresences?.[0]?.user_id;
+        if(left) closeVoicePeer(String(left));
+        updateVoicePresenceUI();
+      });
+
+    const status = await new Promise((resolve,reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if(!settled){settled=true;reject(new Error('تعذر الاتصال بغرفة الصوت'));}
+      },8000);
+      voiceChannel.subscribe(async channelStatus => {
+        if(channelStatus === 'SUBSCRIBED' && !settled){
+          settled=true;clearTimeout(timer);resolve(channelStatus);
+        }else if((channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT') && !settled){
+          settled=true;clearTimeout(timer);reject(new Error('تعذر الاتصال بغرفة الصوت'));
+        }
+      });
+    });
+
+    if(status !== 'SUBSCRIBED') throw new Error('تعذر الاتصال بغرفة الصوت');
+    await voiceChannel.track({
+      user_id:String(currentUser.id),
+      name:currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'عضو'
+    });
+
+    voiceJoined = true;
+    setVoiceButtonState(true);
+    updateVoicePresenceUI();
+    await syncVoicePeers();
+    showToast('تم الاتصال بالغرفة الصوتية 🎙️');
+  }catch(error){
+    await leaveVoiceRoom();
+    showToast(error.message || 'تعذر بدء المكالمة الصوتية');
+  }
 }
 
 $('#joinChat').addEventListener('click',() => {
@@ -1042,7 +1329,8 @@ $('#joinChat').addEventListener('click',() => {
 });
 
 $('#openVoice')?.addEventListener('click',showVoiceHero);
-$('#voiceBackToChat')?.addEventListener('click',() => {
+$('#voiceBackToChat')?.addEventListener('click',async () => {
+  await leaveVoiceRoom();
   showCommunityHero();
   showTab('general');
 });
@@ -1050,19 +1338,14 @@ $('#voiceBackToChat')?.addEventListener('click',() => {
 const joinVoiceButton = $('#joinVoice');
 if(joinVoiceButton){
   joinVoiceButton.addEventListener('click', async () => {
-    showToast(currentUser ? 'تم اختيار المحادثة الصوتية المباشرة' : 'سجّل الدخول أولًا للانضمام إلى المحادثة الصوتية');
-    if(!currentUser) return;
-    try{
-      if(!navigator.mediaDevices?.getUserMedia){
-        showToast('المتصفح لا يدعم الوصول إلى الميكروفون');
-        return;
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      stream.getTracks().forEach(track => track.stop());
-      showToast('تم السماح بالميكروفون. نجهّز الغرفة الصوتية...');
-    }catch(error){
-      showToast('لم يتم السماح بالميكروفون');
+    if(voiceJoined){
+      voiceMuted = !voiceMuted;
+      voiceLocalStream?.getAudioTracks().forEach(track => {track.enabled = !voiceMuted;});
+      setVoiceButtonState(true);
+      showToast(voiceMuted ? 'تم كتم الميكروفون' : 'تم تشغيل الميكروفون');
+      return;
     }
+    await joinRealVoiceRoom();
   });
 }
 
