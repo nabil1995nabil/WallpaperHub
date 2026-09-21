@@ -20,46 +20,125 @@ function todayGetImageUrl(image) {
     return "assets/wallpapers/" + image;
 }
 
+
+/* =========================================================
+   تحميل واجهة خلفية اليوم من today.html
+========================================================= */
+
+async function loadTodayComponent() {
+
+    const container =
+        document.getElementById("todaySection");
+
+    if (!container) {
+        console.error("Today: #todaySection غير موجود في home.html");
+        return false;
+    }
+
+    try {
+
+        const response =
+            await fetch("today.html?_=" + Date.now());
+
+        if (!response.ok) {
+            throw new Error(
+                "تعذر تحميل today.html: " + response.status
+            );
+        }
+
+        const html =
+            await response.text();
+
+        container.innerHTML = html;
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Today component load error:",
+            error
+        );
+
+        return false;
+    }
+}
+
+
+/* =========================================================
+   تحميل بيانات خلفية اليوم
+========================================================= */
+
 async function loadTodayWallpaper() {
 
     try {
 
-        const response = await fetch(
-            "/api/wallpapers?_=" + Date.now()
-        );
+        const response =
+            await fetch(
+                "/api/wallpapers?_=" + Date.now()
+            );
 
-        const wallpapers = await response.json();
+        if (!response.ok) {
+            throw new Error(
+                "API error: " + response.status
+            );
+        }
 
-        if (!Array.isArray(wallpapers) || wallpapers.length === 0) {
+        const wallpapers =
+            await response.json();
+
+        if (
+            !Array.isArray(wallpapers) ||
+            wallpapers.length === 0
+        ) {
+            console.warn(
+                "Today: لا توجد خلفيات في API"
+            );
             return;
         }
 
+
+        /* تاريخ اليوم */
         const todayKey =
-            new Date().toISOString().split("T")[0];
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
 
         let today = null;
 
+
+        /* الخلفية المحفوظة */
         const saved =
-            localStorage.getItem("dailyWallpaper");
+            localStorage.getItem(
+                "dailyWallpaper"
+            );
+
 
         if (saved) {
 
             try {
 
-                const data = JSON.parse(saved);
+                const data =
+                    JSON.parse(saved);
 
-                if (data.date === todayKey) {
+                if (
+                    data.date === todayKey
+                ) {
 
-                    today = wallpapers.find(
-                        w => String(w.id) === String(data.id)
-                    );
+                    today =
+                        wallpapers.find(
+                            w =>
+                                String(w.id) ===
+                                String(data.id)
+                        );
 
                 }
 
             } catch (error) {
 
-                console.log(
-                    "Daily wallpaper cache error:",
+                console.warn(
+                    "Today cache error:",
                     error
                 );
 
@@ -67,14 +146,18 @@ async function loadTodayWallpaper() {
 
         }
 
+
+        /* إذا لم توجد خلفية محفوظة */
         if (!today) {
 
             today =
                 wallpapers[
                     Math.floor(
-                        Math.random() * wallpapers.length
+                        Math.random() *
+                        wallpapers.length
                     )
                 ];
+
 
             localStorage.setItem(
                 "dailyWallpaper",
@@ -86,75 +169,119 @@ async function loadTodayWallpaper() {
 
         }
 
+
         if (!today) {
             return;
         }
 
+
+        /* عناصر today.html */
         const img =
-            document.getElementById("todayImage");
+            document.getElementById(
+                "todayImage"
+            );
 
         const title =
-            document.getElementById("todayTitle");
+            document.getElementById(
+                "todayTitle"
+            );
 
         const desc =
-            document.getElementById("todayDescription");
+            document.getElementById(
+                "todayDescription"
+            );
 
         const view =
-            document.getElementById("todayView");
+            document.getElementById(
+                "todayView"
+            );
 
         const download =
-            document.getElementById("todayDownload");
+            document.getElementById(
+                "todayDownload"
+            );
 
+
+        /* الصورة */
         if (img) {
 
             img.src =
                 todayGetImageUrl(
-                    today.thumbnail || today.image
+                    today.thumbnail ||
+                    today.image
                 );
 
             img.onerror = () => {
-                img.src = "assets/logo/no-image.png";
+
+                img.src =
+                    "assets/logo/no-image.png";
+
             };
+
         }
 
+
+        /* العنوان */
         if (title) {
+
             title.textContent =
-                today.title || "خلفية اليوم";
+                today.title ||
+                "خلفية اليوم";
+
         }
 
+
+        /* الوصف / القسم */
         if (desc) {
+
             desc.textContent =
-                today.category || "Wallpaper";
+                today.category ||
+                "Wallpaper";
+
         }
 
+
+        /* مشاهدة */
         if (view) {
 
             view.onclick = () => {
 
                 window.location.href =
                     "wallpaper.html?id=" +
-                    encodeURIComponent(today.id);
+                    encodeURIComponent(
+                        today.id
+                    );
 
             };
 
         }
 
+
+        /* تحميل */
         if (download) {
 
             download.onclick = () => {
 
                 const a =
-                    document.createElement("a");
+                    document.createElement(
+                        "a"
+                    );
 
                 a.href =
-                    todayGetImageUrl(today.image);
+                    todayGetImageUrl(
+                        today.image
+                    );
 
                 a.download =
-                    (today.title || "wallpaper") +
-                    ".jpg";
+                    (
+                        today.title ||
+                        "wallpaper"
+                    ) + ".jpg";
 
                 document.body.appendChild(a);
+
                 a.click();
+
                 a.remove();
 
             };
@@ -171,9 +298,26 @@ async function loadTodayWallpaper() {
     }
 }
 
+
+/* =========================================================
+   التشغيل بالترتيب الصحيح
+
+   1. تحميل today.html
+   2. بعدها تحميل بيانات الخلفية
+========================================================= */
+
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
-        loadTodayWallpaper();
+    async () => {
+
+        const loaded =
+            await loadTodayComponent();
+
+        if (!loaded) {
+            return;
+        }
+
+        await loadTodayWallpaper();
+
     }
 );

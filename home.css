@@ -105,7 +105,6 @@ a {
 ========================================================= */
 
 .wall-section,
-.today-section,
 .categories-section {
     margin: 28px 16px;
 }
@@ -464,7 +463,6 @@ a {
 .header,
 .categories,
 .wall-section,
-.today-section,
 .community-section {
     animation: none;
 }
@@ -518,24 +516,6 @@ a {
 
     .wall-card img {
         border-radius: 19px;
-    }
-
-    .today-wallpaper {
-        height: 285px;
-        border-radius: 25px;
-    }
-
-    .today-overlay {
-        padding: 20px 17px 17px;
-    }
-
-    .today-overlay h2 {
-        font-size: 22px;
-    }
-
-    .today-actions button {
-        flex: 1;
-        min-width: 0;
     }
 
     .community-section {
