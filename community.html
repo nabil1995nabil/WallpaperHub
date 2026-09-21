@@ -127,44 +127,64 @@
 
         <!-- واجهة المحادثة الصوتية: تظهر فقط بعد الضغط على المحادثة المباشرة -->
         <div class="hero-mode voice-mode" id="voiceHeroMode" aria-hidden="true">
-          <div class="hero-copy voice-copy">
+          <div class="voice-copy" aria-live="polite">
             <div class="voice-live"><span class="live-dot"></span><span>LIVE</span></div>
-            <span class="eyebrow">W A L L P A P E R H U B · VOICE</span>
-            <h1>انضم إلى <em>المحادثة الصوتية</em></h1>
-            <p>تحدث الآن مع أعضاء مجتمع WallpaperHub واكتشف خلفيات وأفكارًا جديدة معًا.</p>
+            <div class="voice-heading">
+              <span class="eyebrow">W A L L P A P E R H U B · VOICE</span>
+              <h1>الغرفة <em>الصوتية العامة</em></h1>
+              <p>تحدث مباشرة مع مجتمع WallpaperHub.</p>
+            </div>
 
-            <div class="voice-stats" aria-label="إحصائيات المحادثة">
-              <span><i></i><b id="voiceOnlineCount">6</b> متحدثون الآن</span>
-              <span><span class="material-icons-round">headphones</span><b id="voiceListenerCount">48</b> مستمع</span>
-              <span><span class="material-icons-round">groups</span>مجتمع نشط</span>
+            <div class="voice-stats" aria-label="إحصائيات المحادثة الصوتية">
+              <span><i></i><b id="voiceOnlineCount">0</b>/6 متحدثون الآن</span>
+              <span><span class="material-icons-round">headphones</span><b id="voiceListenerCount">0/6</b> سعة الغرفة</span>
             </div>
 
             <div class="voice-actions">
               <button class="hero-cta" id="joinVoice" type="button">
-                انضم إلى المحادثة المباشرة
+                <span>انضم إلى المحادثة المباشرة</span>
                 <span class="material-icons-round">mic</span>
-              </button>
+              </div>
               <button class="hero-cta hero-cta-secondary" id="voiceBackToChat" type="button">
-                العودة إلى النقاش
+                <span>العودة إلى النقاش</span>
                 <span class="material-icons-round">forum</span>
-              </button>
+              </div>
             </div>
           </div>
 
-          <div class="voice-stage" aria-hidden="true">
-            <div class="voice-rings"><span></span><span></span><span></span></div>
-            <div class="voice-mic"><span class="material-icons-round">mic</span></div>
-            <div class="voice-wave voice-wave-a"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="voice-wave voice-wave-b"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="voice-people" id="voicePeople">
-              <div class="voice-person person-1"><span class="avatar-placeholder">N</span><i></i></div>
-              <div class="voice-person person-2"><span class="avatar-placeholder">A</span><i></i></div>
-              <div class="voice-person person-3"><span class="avatar-placeholder">M</span><i></i></div>
-              <div class="voice-person person-4"><span class="avatar-placeholder">S</span><i></i></div>
-              <div class="voice-person person-5"><span class="avatar-placeholder">Y</span><i></i></div>
-              <div class="voice-person person-6"><span class="avatar-placeholder">R</span><i></i></div>
+          <div class="voice-stage">
+            <div class="voice-background-rings" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
             </div>
-            <div class="voice-room-label"><span class="material-icons-round">graphic_eq</span> الغرفة الصوتية العامة</div>
+            <div class="voice-mic" aria-hidden="true">
+              <span class="material-icons-round">mic</span>
+            </div>
+
+            <div class="voice-people" id="voicePeople" aria-label="المشاركون في الغرفة الصوتية">
+              <div class="voice-person person-1 is-empty" data-slot="1" aria-label="مكان شاغر">
+                <span class="voice-empty-avatar"><span class="material-icons-round">add</span></span>
+              </div>
+              <div class="voice-person person-2 is-empty" data-slot="2" aria-label="مكان شاغر">
+                <span class="voice-empty-avatar"><span class="material-icons-round">add</span></span>
+              </div>
+              <div class="voice-person person-3 is-empty" data-slot="3" aria-label="مكان شاغر">
+                <span class="voice-empty-avatar"><span class="material-icons-round">add</span></span>
+              </div>
+              <div class="voice-person person-4 is-empty" data-slot="4" aria-label="مكان شاغر">
+                <span class="voice-empty-avatar"><span class="material-icons-round">add</span></span>
+              </div>
+              <div class="voice-person person-5 is-empty" data-slot="5" aria-label="مكان شاغر">
+                <span class="voice-empty-avatar"><span class="material-icons-round">add</span></span>
+              </div>
+              <div class="voice-person person-6 is-empty" data-slot="6" aria-label="مكان شاغر">
+                <span class="voice-empty-avatar"><span class="material-icons-round">add</span></span>
+              </div>
+            </div>
+
+            <div class="voice-room-label">
+              <span class="material-icons-round">graphic_eq</span>
+              <span>الغرفة الصوتية العامة</span>
+            </div>
           </div>
         </div>
       </section>

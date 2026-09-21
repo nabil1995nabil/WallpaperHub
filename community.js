@@ -19,6 +19,7 @@ let pendingPrivateImageData = null;
 let pendingPrivateFileData = null;
 
 // ================= Real WebRTC Voice Room =================
+const VOICE_MAX_PARTICIPANTS = 6;
 let voiceChannel = null;
 let voiceLocalStream = null;
 let voicePeers = new Map();
@@ -26,6 +27,9 @@ let voiceIceQueues = new Map();
 let voiceJoined = false;
 let voiceMuted = false;
 let voiceReadyPromise = null;
+let voiceAudioContext = null;
+let voiceAudioMonitors = new Map();
+let voiceSlotByUser = new Map();
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -1029,39 +1033,312 @@ const communityHero = $('#communityHero');
 const normalHero = $('#normalHero');
 const voiceHeroMode = $('#voiceHeroMode');
 
+function currentVoiceProfile(){
+  const metadata = currentUser?.user_metadata || {};
+  const member = membersCache.find(member => String(member?.id || '') === String(currentUser?.id || ''));
+  return {
+    id:String(currentUser?.id || ''),
+    name:
+      metadata.full_name ||
+      metadata.name ||
+      metadata.user_name ||
+      member?.name ||
+      currentUser?.email?.split('@')[0] ||
+      'عضو',
+    avatarUrl:
+      metadata.avatar_url ||
+      metadata.avatarUrl ||
+      metadata.picture ||
+      member?.avatarUrl ||
+      ''
+  };
+}
+
 function showCommunityHero(){
+  document.body.classList.remove('voice-active');
   communityHero?.classList.remove('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','false');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','true');
 }
 
 function showVoiceHero(){
+  document.body.classList.add('voice-active');
   communityHero?.classList.add('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','true');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','false');
+  ensureVoicePresenceChannel().catch(() => {});
+  requestAnimationFrame(() => updateVoicePresenceUI());
+}
+
+function voicePresenceProfiles(){
+  const profiles = new Map();
+  const state = voiceChannel?.presenceState?.() || {};
+
+  Object.entries(state).forEach(([key,presences]) => {
+    const latest = Array.isArray(presences) ? presences[presences.length - 1] : presences;
+    if(!latest) return;
+
+    const id = String(latest.user_id || key || '');
+    if(!id) return;
+
+    profiles.set(id,{
+      id,
+      name:String(latest.name || 'عضو'),
+      avatarUrl:String(latest.avatarUrl || latest.avatar_url || latest.picture || '').trim()
+    });
+  });
+
+  if(voiceJoined && currentUser){
+    const me = currentVoiceProfile();
+    profiles.set(me.id,me);
+  }
+
+  return [...profiles.values()];
 }
 
 function voiceParticipantIds(){
-  if(!voiceChannel || !currentUser) return [];
-  const state = voiceChannel.presenceState?.() || {};
-  return Object.keys(state).filter(id => id && id !== String(currentUser.id));
+  return voicePresenceProfiles()
+    .map(profile => profile.id)
+    .filter(id => id && (!currentUser || id !== String(currentUser.id)));
+}
+
+function releaseVoiceSlot(userId){
+  const id = String(userId || '');
+  if(id) voiceSlotByUser.delete(id);
+}
+
+function assignVoiceSlot(userId){
+  const id = String(userId || '');
+  if(!id) return 0;
+
+  const current = voiceSlotByUser.get(id);
+  if(current) return current;
+
+  const occupied = new Set(voiceSlotByUser.values());
+  for(let slot = 1; slot <= VOICE_MAX_PARTICIPANTS; slot += 1){
+    if(!occupied.has(slot)){
+      voiceSlotByUser.set(id,slot);
+      return slot;
+    }
+  }
+  return 0;
+}
+
+function voiceSlotElement(slotNumber){
+  return document.querySelector(`#voicePeople [data-slot="${slotNumber}"]`);
+}
+
+function clearVoiceSlot(slot){
+  if(!slot) return;
+  slot.classList.remove('is-speaking','is-own','is-occupied');
+  slot.classList.add('is-empty');
+  slot.dataset.userId = '';
+  slot.setAttribute('aria-label','مكان شاغر في الغرفة الصوتية');
+  slot.innerHTML = `
+    <span class="voice-empty-avatar">
+      <span class="material-icons-round">add</span>
+    </span>
+  `;
+}
+
+function setVoiceSlot(slotNumber,profile){
+  const slot = voiceSlotElement(slotNumber);
+  if(!slot) return;
+
+  if(!profile){
+    clearVoiceSlot(slot);
+    return;
+  }
+
+  const own = currentUser && String(profile.id) === String(currentUser.id);
+  const avatar = String(profile.avatarUrl || '').trim();
+
+  slot.classList.remove('is-empty');
+  slot.classList.add('is-occupied');
+  slot.classList.toggle('is-own',Boolean(own));
+  slot.dataset.userId = String(profile.id);
+  slot.setAttribute('aria-label',`${profile.name}${own ? ' — أنت' : ''}`);
+
+  const avatarWrap = document.createElement('span');
+  avatarWrap.className = 'avatar-placeholder';
+
+  if(avatar){
+    const image = document.createElement('img');
+    image.src = avatar;
+    image.alt = '';
+    image.loading = 'eager';
+    image.decoding = 'async';
+    avatarWrap.appendChild(image);
+  }else{
+    avatarWrap.textContent = initials(profile.name);
+  }
+
+  const speakingWave = document.createElement('span');
+  speakingWave.className = 'voice-speaking-wave';
+  speakingWave.setAttribute('aria-hidden','true');
+  speakingWave.innerHTML = '<span></span><span></span><span></span>';
+
+  const onlineDot = document.createElement('i');
+  onlineDot.className = 'voice-online-dot';
+  onlineDot.setAttribute('aria-hidden','true');
+
+  slot.innerHTML = '';
+  slot.append(avatarWrap,speakingWave,onlineDot);
+
+  if(own){
+    const leaveButton = document.createElement('button');
+    leaveButton.type = 'button';
+    leaveButton.className = 'voice-person-exit';
+    leaveButton.title = 'الخروج من المحادثة';
+    leaveButton.setAttribute('aria-label','الخروج من المحادثة الصوتية');
+    leaveButton.innerHTML = '<span class="material-icons-round">close</span>';
+    leaveButton.addEventListener('click',event => {
+      event.stopPropagation();
+      leaveVoiceRoom().then(() => {
+        showCommunityHero();
+        showToast('تم الخروج من المحادثة الصوتية');
+      });
+    });
+    slot.appendChild(leaveButton);
+  }
+}
+
+function syncVoiceSlots(){
+  const participants = voicePresenceProfiles();
+  const activeIds = new Set(participants.map(profile => String(profile.id)));
+
+  for(const id of [...voiceSlotByUser.keys()]){
+    if(!activeIds.has(String(id))){
+      const oldSlotNumber = voiceSlotByUser.get(id);
+      releaseVoiceSlot(id);
+      if(oldSlotNumber) clearVoiceSlot(voiceSlotElement(oldSlotNumber));
+      stopVoiceSpeakingMonitor(id);
+    }
+  }
+
+  participants.forEach(profile => assignVoiceSlot(profile.id));
+
+  for(let slotNumber = 1; slotNumber <= VOICE_MAX_PARTICIPANTS; slotNumber += 1){
+    const id = [...voiceSlotByUser.entries()]
+      .find(([,number]) => number === slotNumber)?.[0];
+
+    const profile = participants.find(item => String(item.id) === String(id));
+    setVoiceSlot(slotNumber,profile || null);
+  }
 }
 
 function updateVoicePresenceUI(){
-  const count = (voiceJoined ? 1 : 0) + voiceParticipantIds().length;
+  syncVoiceSlots();
+
+  const count = Math.min(voicePresenceProfiles().length,VOICE_MAX_PARTICIPANTS);
   const online = $('#voiceOnlineCount');
   const listeners = $('#voiceListenerCount');
   if(online) online.textContent = String(count);
-  if(listeners) listeners.textContent = String(count);
+  if(listeners) listeners.textContent = `${count}/${VOICE_MAX_PARTICIPANTS}`;
+
+  const joinButton = $('#joinVoice');
+  const backButton = $('#voiceBackToChat');
+  const actions = $('.voice-actions');
+  const copy = $('.voice-copy');
+
+  if(joinButton){
+    joinButton.hidden = voiceJoined || count >= VOICE_MAX_PARTICIPANTS;
+  }
+
+  if(voiceJoined){
+    if(actions) actions.hidden = true;
+    if(copy) copy.classList.add('voice-copy-hidden');
+  }else{
+    if(actions) actions.hidden = false;
+    if(backButton) backButton.hidden = false;
+    if(copy) copy.classList.remove('voice-copy-hidden');
+  }
+}
+
+function setVoiceSpeaking(peerId,speaking){
+  const id = String(peerId || '');
+  const slotNumber = voiceSlotByUser.get(id);
+  const slot = slotNumber ? voiceSlotElement(slotNumber) : null;
+  if(!slot) return;
+  slot.classList.toggle('is-speaking',Boolean(speaking));
+}
+
+function stopVoiceSpeakingMonitor(peerId){
+  const id = String(peerId || '');
+  const monitor = voiceAudioMonitors.get(id);
+  if(!monitor) return;
+
+  cancelAnimationFrame(monitor.raf);
+  try{ monitor.source?.disconnect(); }catch(_error){}
+  try{ monitor.analyser?.disconnect(); }catch(_error){}
+  voiceAudioMonitors.delete(id);
+  setVoiceSpeaking(id,false);
+}
+
+async function startVoiceSpeakingMonitor(peerId,stream){
+  const id = String(peerId || '');
+  if(!id || !stream) return;
+
+  stopVoiceSpeakingMonitor(id);
+
+  try{
+    if(!voiceAudioContext){
+      voiceAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if(voiceAudioContext.state === 'suspended'){
+      await voiceAudioContext.resume();
+    }
+
+    const analyser = voiceAudioContext.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.72;
+
+    const source = voiceAudioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    const data = new Uint8Array(analyser.fftSize);
+    const monitor = {source,analyser,raf:0,speaking:false};
+    voiceAudioMonitors.set(id,monitor);
+
+    const tick = () => {
+      const current = voiceAudioMonitors.get(id);
+      if(current !== monitor) return;
+
+      analyser.getByteTimeDomainData(data);
+
+      let sum = 0;
+      for(let i = 0; i < data.length; i += 1){
+        const normalized = (data[i] - 128) / 128;
+        sum += normalized * normalized;
+      }
+
+      const rms = Math.sqrt(sum / data.length);
+      const threshold = monitor.speaking ? 0.035 : 0.055;
+      const nextSpeaking = rms > threshold;
+
+      if(nextSpeaking !== monitor.speaking){
+        monitor.speaking = nextSpeaking;
+        setVoiceSpeaking(id,nextSpeaking);
+      }
+
+      monitor.raf = requestAnimationFrame(tick);
+    };
+
+    tick();
+  }catch(_error){
+    // Visual speaking detection is optional; the audio call remains active.
+  }
 }
 
 function setVoiceButtonState(active){
   const button = $('#joinVoice');
   if(!button) return;
+
   if(active){
     button.innerHTML = voiceMuted
-      ? '<span>الميكروفون مكتوم · إلغاء الكتم</span><span class="material-icons-round">mic_off</span>'
-      : '<span>متصل الآن · كتم الميكروفون</span><span class="material-icons-round">mic</span>';
+      ? '<span>الميكروفون مكتوم</span><span class="material-icons-round">mic_off</span>'
+      : '<span>متصل الآن</span><span class="material-icons-round">mic</span>';
     button.classList.add('voice-connected');
     button.classList.toggle('voice-muted',voiceMuted);
     button.setAttribute('aria-pressed',String(voiceMuted));
@@ -1070,6 +1347,8 @@ function setVoiceButtonState(active){
     button.classList.remove('voice-connected','voice-muted');
     button.removeAttribute('aria-pressed');
   }
+
+  updateVoicePresenceUI();
 }
 
 function removeVoiceAudio(peerId){
@@ -1079,17 +1358,19 @@ function removeVoiceAudio(peerId){
 }
 
 function closeVoicePeer(peerId){
-  const entry = voicePeers.get(String(peerId));
+  const id = String(peerId || '');
+  const entry = voicePeers.get(id);
   if(entry){
     try{ entry.pc.close(); }catch(_error){}
     if(entry.audio) entry.audio.remove();
   }
-  voicePeers.delete(String(peerId));
-  voiceIceQueues.delete(String(peerId));
+  voicePeers.delete(id);
+  voiceIceQueues.delete(id);
+  stopVoiceSpeakingMonitor(id);
   updateVoicePresenceUI();
 }
 
-function createVoicePeer(peerId, initiator){
+function createVoicePeer(peerId,initiator){
   peerId = String(peerId);
   if(!voiceLocalStream || !voiceChannel || !peerId) return null;
 
@@ -1126,6 +1407,7 @@ function createVoicePeer(peerId, initiator){
   pc.ontrack = event => {
     const stream = event.streams?.[0];
     if(!stream) return;
+
     let audio = entry.audio;
     if(!audio){
       audio = document.createElement('audio');
@@ -1137,8 +1419,10 @@ function createVoicePeer(peerId, initiator){
       document.body.appendChild(audio);
       entry.audio = audio;
     }
+
     audio.srcObject = stream;
-    audio.play().catch(()=>showToast('اضغط انضم إلى المحادثة للسماح بتشغيل الصوت'));
+    audio.play().catch(() => {});
+    startVoiceSpeakingMonitor(peerId,stream).catch(()=>{});
   };
 
   pc.onconnectionstatechange = () => {
@@ -1150,8 +1434,14 @@ function createVoicePeer(peerId, initiator){
     pc.createOffer({offerToReceiveAudio:true})
       .then(offer => pc.setLocalDescription(offer).then(() => offer))
       .then(offer => voiceChannel?.send({
-        type:'broadcast',event:'voice-signal',
-        payload:{type:'offer',from:String(currentUser.id),to:peerId,description:offer}
+        type:'broadcast',
+        event:'voice-signal',
+        payload:{
+          type:'offer',
+          from:String(currentUser.id),
+          to:peerId,
+          description:offer
+        }
       }))
       .catch(() => showToast('تعذر إنشاء اتصال صوتي مع أحد الأعضاء'));
   }
@@ -1163,6 +1453,7 @@ async function flushVoiceIce(peerId){
   const entry = voicePeers.get(String(peerId));
   const queue = voiceIceQueues.get(String(peerId)) || [];
   if(!entry?.remoteDescription || !queue.length) return;
+
   while(queue.length){
     const candidate = queue.shift();
     try{ await entry.pc.addIceCandidate(candidate); }catch(_error){}
@@ -1171,6 +1462,7 @@ async function flushVoiceIce(peerId){
 
 async function handleVoiceSignal(payload){
   if(!voiceJoined || !payload || !currentUser) return;
+
   const from = String(payload.from || '');
   const to = String(payload.to || '');
   if(!from || !to || to !== String(currentUser.id) || from === String(currentUser.id)) return;
@@ -1190,11 +1482,19 @@ async function handleVoiceSignal(payload){
       await pc.setRemoteDescription(new RTCSessionDescription(payload.description));
       entry.remoteDescription = true;
       await flushVoiceIce(from);
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+
       await voiceChannel?.send({
-        type:'broadcast',event:'voice-signal',
-        payload:{type:'answer',from:String(currentUser.id),to:from,description:answer}
+        type:'broadcast',
+        event:'voice-signal',
+        payload:{
+          type:'answer',
+          from:String(currentUser.id),
+          to:from,
+          description:answer
+        }
       });
       return;
     }
@@ -1217,103 +1517,184 @@ async function handleVoiceSignal(payload){
 }
 
 async function syncVoicePeers(){
+  updateVoicePresenceUI();
+
   if(!voiceJoined || !voiceChannel || !currentUser) return;
-  const ids = voiceParticipantIds();
+
+  const ids = voiceParticipantIds().filter(id => !voicePeers.has(String(id)));
   for(const peerId of ids){
-    // One side creates the offer. This prevents offer/offer collisions.
     const initiator = String(currentUser.id) < String(peerId);
     createVoicePeer(peerId,initiator);
   }
+}
+
+async function ensureVoicePresenceChannel(){
+  if(voiceChannel || !supabaseClient) return;
+  if(!document.body.classList.contains('voice-active')) return;
+
+  const presenceKey = String(currentUser?.id || `guest-${Math.random().toString(36).slice(2,9)}`);
+  voiceChannel = supabaseClient.channel('wallpaperhub-public-voice',{
+    config:{
+      broadcast:{ack:true},
+      presence:{key:presenceKey}
+    }
+  });
+
+  voiceChannel
+    .on('broadcast',{event:'voice-signal'},({payload}) => handleVoiceSignal(payload))
+    .on('presence',{event:'sync'},() => {
+      updateVoicePresenceUI();
+      syncVoicePeers();
+    })
+    .on('presence',{event:'join'},() => {
+      updateVoicePresenceUI();
+      syncVoicePeers();
+    })
+    .on('presence',{event:'leave'},payload => {
+      const ids = new Set();
+      if(payload?.key) ids.add(String(payload.key));
+      (payload?.leftPresences || []).forEach(item => {
+        if(item?.user_id) ids.add(String(item.user_id));
+      });
+
+      ids.forEach(id => {
+        const slot = voiceSlotByUser.get(id);
+        releaseVoiceSlot(id);
+        if(slot) clearVoiceSlot(voiceSlotElement(slot));
+        closeVoicePeer(id);
+      });
+
+      updateVoicePresenceUI();
+    });
+
+  const status = await new Promise((resolve,reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if(!settled){
+        settled = true;
+        reject(new Error('تعذر الاتصال بغرفة الصوت'));
+      }
+    },8000);
+
+    voiceChannel.subscribe(channelStatus => {
+      if(channelStatus === 'SUBSCRIBED' && !settled){
+        settled = true;
+        clearTimeout(timer);
+        resolve(channelStatus);
+      }else if((channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT') && !settled){
+        settled = true;
+        clearTimeout(timer);
+        reject(new Error('تعذر الاتصال بغرفة الصوت'));
+      }
+    });
+  });
+
+  if(status !== 'SUBSCRIBED') throw new Error('تعذر الاتصال بغرفة الصوت');
   updateVoicePresenceUI();
 }
 
 async function leaveVoiceRoom(){
-  if(voiceChannel && currentUser){
+  if(voiceChannel && currentUser && voiceJoined){
     for(const peerId of voicePeers.keys()){
       voiceChannel.send({
-        type:'broadcast',event:'voice-signal',
-        payload:{type:'bye',from:String(currentUser.id),to:String(peerId)}
+        type:'broadcast',
+        event:'voice-signal',
+        payload:{
+          type:'bye',
+          from:String(currentUser.id),
+          to:String(peerId)
+        }
       }).catch(()=>{});
     }
   }
 
   for(const peerId of [...voicePeers.keys()]) closeVoicePeer(peerId);
+
   if(voiceLocalStream){
     voiceLocalStream.getTracks().forEach(track => track.stop());
     voiceLocalStream = null;
   }
+
+  for(const id of [...voiceAudioMonitors.keys()]) stopVoiceSpeakingMonitor(id);
+
   if(voiceChannel && supabaseClient){
     try{ await supabaseClient.removeChannel(voiceChannel); }catch(_error){}
   }
+
   voiceChannel = null;
   voiceJoined = false;
   voiceMuted = false;
-  updateVoicePresenceUI();
+  voiceSlotByUser.clear();
   setVoiceButtonState(false);
+
+  if(document.body.classList.contains('voice-active')) updateVoicePresenceUI();
 }
 
 async function joinRealVoiceRoom(){
   if(voiceJoined) return;
+
   if(!currentUser){
     showToast('سجّل الدخول أولًا للانضمام إلى المحادثة الصوتية');
     return;
   }
+
   if(!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection){
     showToast('هذا المتصفح لا يدعم المكالمة الصوتية');
     return;
   }
+
   if(!supabaseClient){
     showToast('جاري تجهيز الاتصال، حاول مرة أخرى بعد لحظة');
     return;
   }
 
+  await ensureVoicePresenceChannel();
+
+  const currentCount = voicePresenceProfiles().length;
+  if(currentCount >= VOICE_MAX_PARTICIPANTS){
+    updateVoicePresenceUI();
+    showToast('الغرفة الصوتية ممتلئة حاليًا');
+    return;
+  }
+
   try{
     voiceLocalStream = await navigator.mediaDevices.getUserMedia({
-      audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true
+      },
       video:false
     });
 
-    voiceChannel = supabaseClient.channel('wallpaperhub-public-voice',{
-      config:{
-        broadcast:{ack:true},
-        presence:{key:String(currentUser.id)}
-      }
-    });
+    if(!voiceAudioContext){
+      voiceAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(voiceAudioContext.state === 'suspended'){
+      await voiceAudioContext.resume().catch(()=>{});
+    }
 
-    voiceChannel
-      .on('broadcast',{event:'voice-signal'},({payload}) => handleVoiceSignal(payload))
-      .on('presence',{event:'sync'},syncVoicePeers)
-      .on('presence',{event:'join'},() => { syncVoicePeers(); })
-      .on('presence',{event:'leave'},payload => {
-        const left = payload?.key || payload?.leftPresences?.[0]?.user_id;
-        if(left) closeVoicePeer(String(left));
-        updateVoicePresenceUI();
-      });
-
-    const status = await new Promise((resolve,reject) => {
-      let settled = false;
-      const timer = setTimeout(() => {
-        if(!settled){settled=true;reject(new Error('تعذر الاتصال بغرفة الصوت'));}
-      },8000);
-      voiceChannel.subscribe(async channelStatus => {
-        if(channelStatus === 'SUBSCRIBED' && !settled){
-          settled=true;clearTimeout(timer);resolve(channelStatus);
-        }else if((channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT') && !settled){
-          settled=true;clearTimeout(timer);reject(new Error('تعذر الاتصال بغرفة الصوت'));
-        }
-      });
-    });
-
-    if(status !== 'SUBSCRIBED') throw new Error('تعذر الاتصال بغرفة الصوت');
+    const me = currentVoiceProfile();
     await voiceChannel.track({
-      user_id:String(currentUser.id),
-      name:currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'عضو'
+      user_id:me.id,
+      name:me.name,
+      avatarUrl:me.avatarUrl
     });
 
     voiceJoined = true;
+    voiceMuted = false;
     setVoiceButtonState(true);
     updateVoicePresenceUI();
+    startVoiceSpeakingMonitor(me.id,voiceLocalStream).catch(()=>{});
     await syncVoicePeers();
+
+    const total = voicePresenceProfiles().length;
+    if(total > VOICE_MAX_PARTICIPANTS){
+      await leaveVoiceRoom();
+      showToast('الغرفة امتلأت قبل اكتمال انضمامك');
+      return;
+    }
+
     showToast('تم الاتصال بالغرفة الصوتية 🎙️');
   }catch(error){
     await leaveVoiceRoom();
@@ -1340,7 +1721,9 @@ if(joinVoiceButton){
   joinVoiceButton.addEventListener('click', async () => {
     if(voiceJoined){
       voiceMuted = !voiceMuted;
-      voiceLocalStream?.getAudioTracks().forEach(track => {track.enabled = !voiceMuted;});
+      voiceLocalStream?.getAudioTracks().forEach(track => {
+        track.enabled = !voiceMuted;
+      });
       setVoiceButtonState(true);
       showToast(voiceMuted ? 'تم كتم الميكروفون' : 'تم تشغيل الميكروفون');
       return;
