@@ -30,7 +30,11 @@ const advancedFilterBtn = document.getElementById("advancedFilterBtn");
 const sortSelect = document.getElementById("sortSelect");
 const gridViewBtn = document.getElementById("gridViewBtn");
 const compactViewBtn = document.getElementById("compactViewBtn");
-const filterButtons = document.querySelectorAll(".filter-btn");
+const filterButtons = document.querySelectorAll(".filter-btn:not(.categories-trigger)");
+const allCategoriesBtn = document.getElementById("allCategoriesBtn");
+const categoriesPanel = document.getElementById("categoriesPanel");
+const categoriesContent = document.getElementById("categoriesContent");
+const closeCategoriesBtn = document.getElementById("closeCategoriesBtn");
 
 const params = new URLSearchParams(location.search);
 const type = params.get("type");
@@ -50,13 +54,30 @@ const categoryNames = {
     space:"🌌 خلفيات الفضاء",
     ai:"🤖 خلفيات الذكاء الاصطناعي",
     amoled:"📱 خلفيات AMOLED",
-    animals:"🐱 خلفيات الحيوانات",
+    animals:"🐾 خلفيات الحيوانات",
     anime:"🌀 خلفيات الأنمي",
     city:"🏙️ خلفيات المدن",
+    architecture:"🏛️ خلفيات العمارة",
     dark:"🖤 الخلفيات الداكنة",
     "4k":"💎 خلفيات 4K",
     sports:"⚽ خلفيات الرياضة",
-    minimal:"✨ خلفيات Minimal"
+    minimal:"✨ خلفيات Minimal",
+    bikes:"🏍️ خلفيات الدراجات",
+    ocean:"🌊 خلفيات البحر والمحيطات",
+    mountains:"🏔️ خلفيات الجبال",
+    sunset:"🌅 الغروب والشروق",
+    flowers:"🌸 الزهور",
+    technology:"💻 التقنية",
+    abstract:"🎨 Abstract",
+    colors:"🌈 الألوان",
+    "3d":"🧊 3D",
+    neon:"💠 Neon",
+    sports_cars:"🏎️ السيارات الرياضية",
+    gaming:"👾 Gaming",
+    pc:"🖥️ خلفيات PC",
+    mobile:"📱 خلفيات الهاتف",
+    tablet:"📲 خلفيات Tablet",
+    featured:"🔥 خلفيات مميزة"
 };
 
 const typeNames = {
@@ -87,14 +108,35 @@ function categoryMatches(wallpaper, target){
     if(value === wanted) return true;
 
     const aliases = {
-        space:["spaces","galaxy","astronomy","فضاء"],
-        nature:["nature","natural","طبيعه","طبيعة"],
-        cars:["car","cars","vehicle","سيارات"],
+        space:["spaces","galaxy","astronomy","فضاء","الفضاء"],
+        nature:["nature","natural","طبيعه","طبيعة","الطبيعة"],
+        cars:["car","cars","vehicle","vehicles","سيارات","السيارات"],
+        games:["game","games","gaming","لعبة","العاب","ألعاب","gaming"],
         anime:["anime","انمي","أنمي"],
-        dark:["dark","داكن","داكنه"],
-        city:["city","cities","مدن","مدينه"],
-        sports:["sport","sports","رياضه","رياضة"],
-        minimal:["minimal","بسيط","مينيمال"]
+        ai:["ai","artificial intelligence","artificial-intelligence","ذكاء اصطناعي","الذكاء الاصطناعي"],
+        amoled:["amoled","black oled","oled"],
+        animals:["animal","animals","حيوانات","الحيوانات","pets","حيوان"],
+        dark:["dark","داكن","داكنه","داكنة","الخلفيات الداكنة"],
+        city:["city","cities","مدن","مدينه","مدينة","المدن"],
+        architecture:["architecture","building","buildings","عمارة","هندسة معمارية","مباني"],
+        sports:["sport","sports","رياضه","رياضة","الرياضة"],
+        minimal:["minimal","بسيط","بسيطة","مينيمال"],
+        bikes:["bike","bikes","motorcycle","motorcycles","دراجات","دراجة"],
+        ocean:["ocean","sea","marine","بحر","محيط","المحيطات","البحر"],
+        mountains:["mountain","mountains","جبال","جبل"],
+        sunset:["sunset","sunrise","dawn","غروب","شروق","غروب وشروق"],
+        flowers:["flower","flowers","زهور","زهرة"],
+        technology:["technology","tech","تقنية","تكنولوجيا"],
+        abstract:["abstract","تجريدي","مجرد"],
+        colors:["color","colors","ألوان","الوان"],
+        "3d":["3d","three dimensional","ثلاثي الأبعاد","ثلاثي الابعاد"],
+        neon:["neon","نيون"],
+        sports_cars:["sports car","sports cars","سيارات رياضية","سيارة رياضية"],
+        gaming:["gaming","gamer","gamers","ألعاب","العاب","قيمنق"],
+        pc:["pc","desktop","computer","حاسوب","كمبيوتر"],
+        mobile:["mobile","phone","smartphone","هاتف","هاتف ذكي"],
+        tablet:["tablet","تابلت","لوحي"],
+        featured:["featured","مميز","مميزة","مميزّة","خلفيات مميزة"]
     };
 
     return (aliases[wanted] || []).some(alias => value === normalizeText(alias));
@@ -233,16 +275,140 @@ function applyFilters(){
 
     if(currentFilter === "4k"){
         visibleWallpapers = visibleWallpapers.filter(wallpaper => getQuality(wallpaper.resolution) === "4K");
-    }else if(currentFilter === "downloads"){
+    }else if(currentFilter === "downloads" || currentFilter === "downloaded"){
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => Number(wallpaper.downloads || 0) > 0);
         visibleWallpapers.sort((a,b) => Number(b.downloads || 0) - Number(a.downloads || 0));
     }else if(currentFilter === "rating"){
         visibleWallpapers.sort((a,b) => Number(b.rating || 0) - Number(a.rating || 0));
-    }else if(["anime","city","dark","sports","minimal","nature","cars","space"].includes(currentFilter)){
+    }else if(currentFilter === "likes" || currentFilter === "liked"){
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => Number(wallpaper.likes || 0) > 0);
+        visibleWallpapers.sort((a,b) => Number(b.likes || 0) - Number(a.likes || 0));
+    }else if(currentFilter === "latest"){
+        visibleWallpapers.sort((a,b) => Number(b.id || 0) - Number(a.id || 0));
+    }else if(currentFilter === "popular"){
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => wallpaper.popular === true || wallpaper.popular === "true");
+        visibleWallpapers.sort((a,b) => Number(b.downloads || 0) - Number(a.downloads || 0));
+    }else if(currentFilter === "recommended"){
+        visibleWallpapers.sort((a,b) => {
+            const scoreA = Number(a.rating || 0) * 10 + Number(a.downloads || 0) + (a.popular ? 50 : 0);
+            const scoreB = Number(b.rating || 0) * 10 + Number(b.downloads || 0) + (b.popular ? 50 : 0);
+            return scoreB - scoreA;
+        });
+    }else if(currentFilter !== "all"){
         visibleWallpapers = visibleWallpapers.filter(wallpaper => categoryMatches(wallpaper,currentFilter));
     }
 
     applySort(visibleWallpapers);
     renderWallpapers();
+}
+
+const categoryGroups = [
+    {
+        title:"🔥 الشعبية",
+        icon:"local_fire_department",
+        items:[
+            ["popular","الأكثر شعبية","local_fire_department"],
+            ["latest","الأحدث","new_releases"],
+            ["downloads","الأكثر تحميلاً","file_download"],
+            ["rating","الأعلى تقييماً","star"],
+            ["likes","الأكثر إعجاباً","favorite"],
+            ["recommended","المقترحة لك","auto_awesome"]
+        ]
+    },
+    {
+        title:"🎨 التصنيفات",
+        icon:"category",
+        items:[
+            ["nature","طبيعة","park"], ["animals","حيوانات","pets"],
+            ["cars","سيارات","directions_car"], ["bikes","دراجات","two_wheeler"],
+            ["games","ألعاب","sports_esports"], ["anime","أنمي","animation"],
+            ["space","فضاء","public"], ["city","مدن","location_city"],
+            ["architecture","عمارة","apartment"], ["sports","رياضة","sports_soccer"]
+        ]
+    },
+    {
+        title:"✨ الأنماط",
+        icon:"auto_awesome",
+        items:[
+            ["minimal","Minimal","auto_awesome"], ["dark","Dark","dark_mode"],
+            ["amoled","AMOLED","contrast"], ["abstract","Abstract","blur_on"],
+            ["3d","3D","view_in_ar"], ["neon","Neon","lightbulb"],
+            ["colors","ألوان","palette"], ["ai","ذكاء اصطناعي","smart_toy"]
+        ]
+    },
+    {
+        title:"🌍 المشاهد",
+        icon:"landscape",
+        items:[
+            ["mountains","جبال","landscape"], ["ocean","بحر ومحيطات","water"],
+            ["sunset","غروب وشروق","wb_twilight"], ["flowers","زهور","local_florist"],
+            ["technology","تقنية","memory"], ["featured","خلفيات مميزة","verified"]
+        ]
+    },
+    {
+        title:"💻 الأجهزة والاستخدام",
+        icon:"devices",
+        items:[
+            ["mobile","خلفيات الهاتف","smartphone"], ["pc","خلفيات PC","desktop_windows"],
+            ["tablet","خلفيات Tablet","tablet"], ["sports_cars","سيارات رياضية","sports_motorsports"],
+            ["gaming","Gaming","videogame_asset"], ["4k","4K","4k"]
+        ]
+    }
+];
+
+function renderCategoriesPanel(){
+    if(!categoriesContent) return;
+    categoriesContent.innerHTML = "";
+
+    categoryGroups.forEach(group => {
+        const section = document.createElement("section");
+        const title = document.createElement("div");
+        title.className = "category-group-title";
+        title.append(createIcon(group.icon),document.createTextNode(group.title));
+
+        const items = document.createElement("div");
+        items.className = "category-items";
+
+        group.items.forEach(([value,label,icon]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "category-item";
+            button.dataset.filter = value;
+            button.append(createIcon(icon),document.createTextNode(label));
+            button.addEventListener("click",() => selectFilter(value,label));
+            items.appendChild(button);
+        });
+
+        section.append(title,items);
+        categoriesContent.appendChild(section);
+    });
+}
+
+function selectFilter(value,label){
+    currentFilter = value;
+    filterButtons.forEach(btn => btn.classList.toggle("active",btn.dataset.filter === value));
+    document.querySelectorAll(".category-item").forEach(btn => btn.classList.toggle("active",btn.dataset.filter === value));
+
+    if(value === "all") pageTitle.textContent = "جميع الخلفيات";
+    else pageTitle.textContent = categoryNames[value] || label || "الخلفيات";
+
+    closeCategoriesPanel();
+    applyFilters();
+}
+
+function openCategoriesPanel(){
+    if(!categoriesPanel) return;
+    renderCategoriesPanel();
+    categoriesPanel.classList.add("is-open");
+    categoriesPanel.setAttribute("aria-hidden","false");
+    document.body.classList.add("categories-open");
+}
+
+function closeCategoriesPanel(){
+    if(!categoriesPanel) return;
+    categoriesPanel.classList.remove("is-open");
+    categoriesPanel.setAttribute("aria-hidden","true");
+    document.body.classList.remove("categories-open");
 }
 
 function createIcon(name,className=""){
@@ -490,11 +656,15 @@ advancedFilterBtn?.addEventListener("click",() => {
 
 filterButtons.forEach(button => {
     button.addEventListener("click",() => {
-        filterButtons.forEach(btn => btn.classList.remove("active"));
-        button.classList.add("active");
-        currentFilter = button.dataset.filter || "all";
-        applyFilters();
+        selectFilter(button.dataset.filter || "all",button.textContent.trim());
     });
+});
+
+allCategoriesBtn?.addEventListener("click",openCategoriesPanel);
+closeCategoriesBtn?.addEventListener("click",closeCategoriesPanel);
+document.querySelector("[data-close-categories]")?.addEventListener("click",closeCategoriesPanel);
+document.addEventListener("keydown",event => {
+    if(event.key === "Escape") closeCategoriesPanel();
 });
 
 sortSelect?.addEventListener("change",applyFilters);
