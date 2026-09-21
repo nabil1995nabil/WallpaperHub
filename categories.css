@@ -1,311 +1,559 @@
-/* ===================================================
-   WallpaperHub - 3D Clay Block Categories & Back Button
-   =================================================== */
+/* =========================================================
+   WallpaperHub — Categories / Clean Futuristic Redesign
+   الهدف: تصميم قريب من المرجع، بدون 3D أو Tilt أو Hover أو Animation.
+   ========================================================= */
 
-* {
-    margin: 0;
-    padding: 0;
+*,
+*::before,
+*::after {
     box-sizing: border-box;
-    font-family: "Cairo", system-ui, -apple-system, sans-serif;
 }
 
-body {
-    background: #eef2f7;
-    padding-bottom: 90px;
-    color: #1a253c;
+html {
+    min-height: 100%;
+    background: #050a16;
+}
+
+body.categories-page-body {
+    --bg: #050a16;
+    --surface: #0b1324;
+    --surface-2: #101a2d;
+    --line: rgba(92, 125, 180, 0.28);
+    --text: #f7f9ff;
+    --muted: #aab6ca;
+    --accent: #2d7dff;
+
+    margin: 0;
+    min-height: 100vh;
+    padding: 0 0 32px;
+    background:
+        radial-gradient(circle at 50% -10%, rgba(38, 91, 180, 0.20), transparent 34%),
+        radial-gradient(circle at 100% 55%, rgba(64, 37, 170, 0.08), transparent 30%),
+        var(--bg);
+    color: var(--text);
+    font-family: "Cairo", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+/* ضمان عدم وجود أي حركة في هذه الصفحة */
+.categories-page-body *,
+.categories-page-body *::before,
+.categories-page-body *::after {
+    animation: none !important;
+    transition: none !important;
 }
 
 /* ================= HEADER ================= */
+
 .header {
-    position: sticky;
-    top: 0;
-    height: 70px;
-    background: rgba(238, 242, 247, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    width: min(1180px, calc(100% - 32px));
+    min-height: 142px;
+    margin: 0 auto;
+    padding: 28px 88px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
 }
 
-.header h2 {
-    font-size: 22px;
-    font-weight: 800;
-    color: #5060ff;
+.header-content {
+    text-align: center;
 }
 
-/* --- زر الرجوع المجسم 3D Clay --- */
+.header h1 {
+    margin: 0;
+    font-size: clamp(28px, 5vw, 46px);
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    color: #ffffff;
+}
+
+.header p {
+    margin: 9px 0 0;
+    color: #9eabc1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
 .back-btn {
     position: absolute;
-    left: 18px;
-    width: 44px;
-    height: 44px;
-    border: none;
-    background: #eef2f7;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #1a253c;
-    
-    /* ظلال بارزة غائرية تعطي سمكاً مجسماً للزر */
-    box-shadow: 
-        0px 5px 0px #d0d7e3,
-        -3px 10px 12px rgba(166, 180, 200, 0.5),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.9),
-        inset 0px -4px 6px rgba(166, 180, 200, 0.4);
-        
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-}
-
-.back-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0px 7px 0px #d0d7e3,
-        -4px 14px 15px rgba(166, 180, 200, 0.6),
-        inset 0px 4px 5px rgba(255, 255, 255, 1),
-        inset 0px -4px 6px rgba(166, 180, 200, 0.4);
-}
-
-.back-btn:active {
-    transform: translateY(3px);
-    box-shadow: 
-        0px 2px 0px #d0d7e3,
-        -2px 6px 8px rgba(166, 180, 200, 0.4),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.6),
-        inset 0px -3px 4px rgba(166, 180, 200, 0.5);
-}
-
-/* ================= CATEGORIES GRID ================= */
-.categories-page {
-    padding: 24px 18px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-/* --- كروت الأقسام بنمط كتل الصلصال ثلاثية الأبعاد (3D Clay Block Cards) --- */
-.category-card {
-    position: relative;
-    background: #eef2f7;
-    border-radius: 28px;
-    padding: 24px 14px;
-    text-align: center;
-    border: none;
-    cursor: pointer;
-    overflow: hidden;
-    z-index: 1;
-
-    /* سُمك بارز وإضاءة حافة ناعمة */
-    box-shadow: 
-        0px 10px 0px #d0d7e3,
-        -4px 18px 16px rgba(166, 180, 200, 0.45),
-        inset 0px 4px 6px rgba(255, 255, 255, 0.9),
-        inset 0px -6px 8px rgba(166, 180, 200, 0.35);
-
-    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
-}
-
-/* الغطاء الداخلي للحفاظ على لون الكتلة فوق الإطار الدوار */
-.category-card::before {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    background: #eef2f7;
-    border-radius: 24px;
-    z-index: 2;
-    transition: background 0.3s ease;
-}
-
-/* رفع الأيقونات والنصوص فوق الغطاء الداخلي */
-.category-card span,
-.category-card .card-icon,
-.category-card h3,
-.category-card p {
-    position: relative;
-    z-index: 3;
-}
-
-/* محرك الإطار الضوئي الدوّار */
-.category-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: transparent;
-    z-index: 0;
-    transform-origin: center;
-}
-
-.category-card.active-border::after {
-    animation: rotateBorder 2.5s linear infinite;
-}
-
-@keyframes rotateBorder {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* حركات الضغط والتحويم للبطاقة */
-.category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 
-        0px 15px 0px #d0d7e3,
-        -5px 24px 20px rgba(166, 180, 200, 0.55),
-        inset 0px 5px 8px rgba(255, 255, 255, 1),
-        inset 0px -6px 8px rgba(166, 180, 200, 0.35);
-}
-
-.category-card:active {
-    transform: translateY(4px);
-    box-shadow: 
-        0px 5px 0px #d0d7e3,
-        -3px 10px 10px rgba(166, 180, 200, 0.35),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.7),
-        inset 0px -4px 6px rgba(166, 180, 200, 0.4);
-}
-
-/* --- حاوية الأيقونة الغائرة (Clay Recessed Container) --- */
-.category-card span,
-.category-card .card-icon {
-    font-size: 38px;
+    top: 30px;
+    left: 0;
+    width: 58px;
+    height: 58px;
+    border: 1px solid rgba(83, 116, 176, 0.42);
+    border-radius: 18px;
+    background: #0b1426;
+    color: #ffffff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 62px;
-    height: 62px;
-    margin-bottom: 12px;
+    cursor: pointer;
+    box-shadow: none;
+    outline: none;
+}
+
+.back-btn .material-icons {
+    font-size: 31px;
+}
+
+.back-btn:focus-visible {
+    border-color: #4b82ff;
+    outline: 2px solid rgba(75, 130, 255, 0.28);
+    outline-offset: 3px;
+}
+
+.header-badge {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    min-width: 168px;
+    min-height: 58px;
+    padding: 9px 13px;
+    border: 1px solid rgba(83, 116, 176, 0.42);
+    border-radius: 18px;
+    background: #0b1426;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-align: right;
+}
+
+.header-badge > .material-icons {
+    font-size: 29px;
+    color: #dce6ff;
+}
+
+.header-badge span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.header-badge strong {
+    font-size: 13px;
+    color: #f4f7ff;
+}
+
+.header-badge small {
+    font-size: 11px;
+    color: #8492aa;
+}
+
+/* ================= GRID ================= */
+
+.categories-page {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+}
+
+/* ================= CARD ================= */
+
+.category-card {
+    --card-accent: #287cff;
+    --card-glow: rgba(40, 124, 255, 0.20);
+
+    position: relative;
+    min-width: 0;
+    min-height: 148px;
+    padding: 0;
+    border: 1px solid var(--line);
     border-radius: 20px;
-    background: #eef2f7;
-    
-    /* تجويف محفور داخل كتلة الكرت */
-    box-shadow: 
-        inset 4px 4px 8px rgba(166, 180, 200, 0.6),
-        inset -4px -4px 8px rgba(255, 255, 255, 1);
-
-    transition: transform 0.3s ease;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 82% 22%, var(--card-glow), transparent 34%),
+        linear-gradient(135deg, #101a2c, #080f1d 72%);
+    color: var(--text);
+    text-align: right;
+    cursor: pointer;
+    box-shadow: none;
+    appearance: none;
+    -webkit-appearance: none;
+    isolation: isolate;
 }
 
-.category-card:hover span,
-.category-card:hover .card-icon {
-    transform: scale(1.1);
+.category-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(90deg, transparent 0 38%, rgba(255,255,255,0.025) 58%, transparent 100%),
+        radial-gradient(circle at 12% 110%, var(--card-glow), transparent 42%);
+    pointer-events: none;
 }
 
-/* --- التنسيق النصي داخل الكرت --- */
-.category-card h3 {
-    font-size: 16px;
-    font-weight: 800;
-    color: #1a253c;
-    margin-bottom: 4px;
+.category-card:focus-visible {
+    outline: 2px solid var(--card-accent);
+    outline-offset: 3px;
 }
 
-.category-card p {
-    font-size: 12px;
-    color: #7a889b;
+.category-card.is-selected {
+    border-color: var(--card-accent);
+}
+
+/* صورة/منطقة علوية مصنوعة بالكامل بـ CSS؛ لا تعتمد على ملفات خارجية */
+.category-media {
+    position: relative;
+    display: block;
+    height: 78px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 78% 35%, rgba(255,255,255,0.24), transparent 16%),
+        linear-gradient(135deg, #17284a, #0b1426 62%, #070d18);
+}
+
+.category-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 42%, rgba(5, 10, 22, 0.78));
+    pointer-events: none;
+}
+
+.category-icon {
+    position: absolute;
+    left: 20px;
+    bottom: -16px;
+    z-index: 3;
+    width: 58px;
+    height: 58px;
+    border-radius: 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-accent);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 8px 22px var(--card-glow);
+}
+
+.category-icon .material-icons {
+    font-size: 30px;
+}
+
+.category-arrow {
+    position: absolute;
+    right: 19px;
+    bottom: 12px;
+    z-index: 4;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--card-accent);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--card-accent);
+    font-size: 29px;
+    background: rgba(5, 10, 22, 0.30);
+}
+
+.category-content {
+    min-height: 70px;
+    padding: 19px 76px 12px 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+}
+
+.category-content strong {
+    display: block;
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.category-content small {
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.55;
     font-weight: 600;
+    color: var(--muted);
 }
 
-/* ===================================================
-   تخصيص الألوان والنيون لجميع البطاقات (14 قسماً)
-   =================================================== */
+/* ================= CATEGORY COLORS ================= */
 
-.category-card[data-category="all"].active-border::after { background: conic-gradient(#5060ff, transparent 60%, #5060ff); }
-.category-card[data-category="all"].active-border { box-shadow: 0 0 25px rgba(80, 96, 255, 0.4); }
+.category-card[data-category="all"]     { --card-accent:#1677ff; --card-glow:rgba(22,119,255,.24); }
+.category-card[data-category="nature"]  { --card-accent:#22c55e; --card-glow:rgba(34,197,94,.22); }
+.category-card[data-category="cars"]    { --card-accent:#ff304f; --card-glow:rgba(255,48,79,.22); }
+.category-card[data-category="games"]   { --card-accent:#8b4dff; --card-glow:rgba(139,77,255,.24); }
+.category-card[data-category="space"]   { --card-accent:#7347ff; --card-glow:rgba(115,71,255,.24); }
+.category-card[data-category="ai"]      { --card-accent:#1ba7ff; --card-glow:rgba(27,167,255,.24); }
+.category-card[data-category="amoled"]  { --card-accent:#9ba7bd; --card-glow:rgba(155,167,189,.14); }
+.category-card[data-category="animals"] { --card-accent:#ff8a16; --card-glow:rgba(255,138,22,.23); }
+.category-card[data-category="anime"]   { --card-accent:#f02da0; --card-glow:rgba(240,45,160,.23); }
+.category-card[data-category="city"]    { --card-accent:#ff6b18; --card-glow:rgba(255,107,24,.22); }
+.category-card[data-category="dark"]    { --card-accent:#9aa7c4; --card-glow:rgba(154,167,196,.14); }
+.category-card[data-category="4k"]      { --card-accent:#168cff; --card-glow:rgba(22,140,255,.24); }
+.category-card[data-category="sports"]  { --card-accent:#2bcf65; --card-glow:rgba(43,207,101,.22); }
+.category-card[data-category="minimal"] { --card-accent:#ffc52e; --card-glow:rgba(255,197,46,.22); }
 
-.category-card[data-category="nature"].active-border::after { background: conic-gradient(#2ecc71, transparent 60%, #2ecc71); }
-.category-card[data-category="nature"].active-border { box-shadow: 0 0 25px rgba(46, 204, 113, 0.4); }
-
-.category-card[data-category="cars"].active-border::after { background: conic-gradient(#e74c3c, transparent 60%, #e74c3c); }
-.category-card[data-category="cars"].active-border { box-shadow: 0 0 25px rgba(231, 76, 60, 0.4); }
-
-.category-card[data-category="games"].active-border::after { background: conic-gradient(#9b59b6, transparent 60%, #9b59b6); }
-.category-card[data-category="games"].active-border { box-shadow: 0 0 25px rgba(155, 89, 182, 0.4); }
-
-.category-card[data-category="space"].active-border::after { background: conic-gradient(#1abc9c, transparent 60%, #1abc9c); }
-.category-card[data-category="space"].active-border { box-shadow: 0 0 25px rgba(26, 188, 156, 0.4); }
-
-.category-card[data-category="ai"].active-border::after { background: conic-gradient(#3498db, transparent 60%, #3498db); }
-.category-card[data-category="ai"].active-border { box-shadow: 0 0 25px rgba(52, 152, 219, 0.4); }
-
-.category-card[data-category="amoled"].active-border::after { background: conic-gradient(#f1c40f, transparent 60%, #f1c40f); }
-.category-card[data-category="amoled"].active-border { box-shadow: 0 0 25px rgba(241, 196, 15, 0.4); }
-
-.category-card[data-category="animals"].active-border::after { background: conic-gradient(#e67e22, transparent 60%, #e67e22); }
-.category-card[data-category="animals"].active-border { box-shadow: 0 0 25px rgba(230, 126, 34, 0.4); }
-
-.category-card[data-category="anime"].active-border::after { background: conic-gradient(#ff4081, transparent 60%, #ff4081); }
-.category-card[data-category="anime"].active-border { box-shadow: 0 0 25px rgba(255, 64, 129, 0.4); }
-
-.category-card[data-category="city"].active-border::after { background: conic-gradient(#00bcd4, transparent 60%, #00bcd4); }
-.category-card[data-category="city"].active-border { box-shadow: 0 0 25px rgba(0, 188, 212, 0.4); }
-
-.category-card[data-category="dark"].active-border::after { background: conic-gradient(#3f51b5, transparent 60%, #3f51b5); }
-.category-card[data-category="dark"].active-border { box-shadow: 0 0 25px rgba(63, 81, 181, 0.4); }
-
-.category-card[data-category="4k"].active-border::after { background: conic-gradient(#00e5ff, transparent 60%, #00e5ff); }
-.category-card[data-category="4k"].active-border { box-shadow: 0 0 25px rgba(0, 229, 255, 0.4); }
-
-.category-card[data-category="sports"].active-border::after { background: conic-gradient(#ff3d00, transparent 60%, #ff3d00); }
-.category-card[data-category="sports"].active-border { box-shadow: 0 0 25px rgba(255, 61, 0, 0.4); }
-
-.category-card[data-category="minimal"].active-border::after { background: conic-gradient(#78909c, transparent 60%, #78909c); }
-.category-card[data-category="minimal"].active-border { box-shadow: 0 0 25px rgba(120, 144, 156, 0.4); }
-
-/* ================= DARK MODE ================= */
-body.dark {
-    background: #0d0f17;
-    color: #ffffff;
+/* أنماط خلفية مختلفة لكل قسم لإعطاء إحساس بصري قوي بدون صور خارجية */
+.category-card[data-category="all"] .category-media {
+    background: radial-gradient(circle at 72% 28%, #2b91ff 0 7%, transparent 8%),
+                radial-gradient(circle at 34% 75%, #164ea0 0 23%, transparent 24%),
+                linear-gradient(125deg,#071b3b,#0b5ebd 48%,#061326);
+}
+.category-card[data-category="nature"] .category-media {
+    background: radial-gradient(circle at 75% 22%, #8dd8ff 0 8%, transparent 9%),
+                linear-gradient(145deg,#0a332b,#176b45 48%,#0b1e22);
+}
+.category-card[data-category="cars"] .category-media {
+    background: radial-gradient(ellipse at 70% 55%, #ff244c 0 10%, transparent 11%),
+                linear-gradient(145deg,#3b0713,#9e152e 45%,#090c15);
+}
+.category-card[data-category="games"] .category-media {
+    background: radial-gradient(circle at 72% 30%, #ff46d5 0 8%, transparent 9%),
+                radial-gradient(circle at 30% 60%, #5e36ff 0 16%, transparent 17%),
+                linear-gradient(145deg,#10072b,#32106e 50%,#080b19);
+}
+.category-card[data-category="space"] .category-media {
+    background: radial-gradient(circle at 72% 28%, #c7a2ff 0 4%, transparent 5%),
+                radial-gradient(circle at 30% 65%, #7b42ff 0 18%, transparent 19%),
+                linear-gradient(145deg,#09051d,#251052 50%,#03050d);
+}
+.category-card[data-category="ai"] .category-media {
+    background: radial-gradient(circle at 72% 32%, #55caff 0 8%, transparent 9%),
+                linear-gradient(145deg,#061b34,#07558b 52%,#06101d);
+}
+.category-card[data-category="amoled"] .category-media {
+    background: radial-gradient(circle at 78% 40%, #303c53 0 8%, transparent 9%),
+                linear-gradient(145deg,#020306,#0a0e17 58%,#010204);
+}
+.category-card[data-category="animals"] .category-media {
+    background: radial-gradient(circle at 72% 35%, #9b6a40 0 15%, transparent 16%),
+                linear-gradient(145deg,#25150d,#50301d 48%,#090a0f);
+}
+.category-card[data-category="anime"] .category-media {
+    background: radial-gradient(circle at 72% 38%, #ff3da8 0 9%, transparent 10%),
+                linear-gradient(145deg,#25051e,#7d164f 48%,#090712);
+}
+.category-card[data-category="city"] .category-media {
+    background: radial-gradient(circle at 76% 20%, #ffad72 0 9%, transparent 10%),
+                linear-gradient(145deg,#20233e,#8e4c4a 48%,#0b101d);
+}
+.category-card[data-category="dark"] .category-media {
+    background: radial-gradient(circle at 74% 28%, #d6d9e3 0 5%, transparent 6%),
+                radial-gradient(circle at 70% 30%, #252c3c 0 16%, transparent 17%),
+                linear-gradient(145deg,#010207,#080c15 55%,#000);
+}
+.category-card[data-category="4k"] .category-media {
+    background: radial-gradient(circle at 70% 25%, #61d8ff 0 7%, transparent 8%),
+                linear-gradient(145deg,#071a3b,#0b63a8 50%,#07101e);
+}
+.category-card[data-category="sports"] .category-media {
+    background: radial-gradient(circle at 72% 42%, #d9f3ff 0 9%, transparent 10%),
+                linear-gradient(145deg,#0b3d2a,#188a4c 50%,#06151a);
+}
+.category-card[data-category="minimal"] .category-media {
+    background: radial-gradient(ellipse at 72% 40%, #e3c8a4 0 12%, transparent 13%),
+                linear-gradient(145deg,#6f5848,#c49c76 50%,#15151a);
 }
 
-body.dark .header {
-    background: rgba(13, 15, 23, 0.85);
+/* ================= LIGHT THEME ================= */
+
+body.categories-page-body:not(.dark) {
+    --bg: #eef3fa;
+    --surface: #ffffff;
+    --surface-2: #f5f8fd;
+    --line: rgba(36, 67, 110, 0.16);
+    --text: #142033;
+    --muted: #68768c;
+
+    background:
+        radial-gradient(circle at 50% -10%, rgba(67, 117, 220, 0.13), transparent 35%),
+        #eef3fa;
+    color: var(--text);
 }
 
-body.dark .header h2 {
-    color: #ffffff;
+body.categories-page-body:not(.dark) .header h1 {
+    color: #122039;
 }
 
-body.dark .back-btn {
-    background: #2b3145;
-    color: #ffffff;
-    box-shadow: 
-        0px 5px 0px #1a1e2c,
-        -3px 10px 12px rgba(0, 0, 0, 0.5),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.3),
-        inset 0px -4px 6px rgba(0, 0, 0, 0.4);
+body.categories-page-body:not(.dark) .header p {
+    color: #6b7890;
 }
 
-body.dark .category-card {
-    background: #2b3145;
-    box-shadow: 
-        0px 10px 0px #1a1e2c,
-        -4px 18px 16px rgba(0, 0, 0, 0.5),
-        inset 0px 4px 6px rgba(255, 255, 255, 0.25),
-        inset 0px -6px 8px rgba(0, 0, 0, 0.4);
+body.categories-page-body:not(.dark) .back-btn,
+body.categories-page-body:not(.dark) .header-badge {
+    background: rgba(255,255,255,.88);
+    color: #17243a;
+    border-color: rgba(42, 72, 115, .16);
 }
 
-body.dark .category-card::before {
-    background: #2b3145;
+body.categories-page-body:not(.dark) .header-badge strong {
+    color: #17243a;
 }
 
-body.dark .category-card span,
-body.dark .category-card .card-icon {
-    background: #181b26;
-    box-shadow: 
-        inset 0px 6px 8px rgba(0, 0, 0, 0.6),
-        inset 0px -2px 4px rgba(255, 255, 255, 0.1);
+body.categories-page-body:not(.dark) .header-badge small {
+    color: #718096;
 }
 
-body.dark .category-card h3 {
-    color: #ffffff;
+body.categories-page-body:not(.dark) .category-card {
+    background:
+        radial-gradient(circle at 82% 22%, var(--card-glow), transparent 34%),
+        linear-gradient(135deg, #ffffff, #f1f5fb 72%);
 }
 
-body.dark .category-card p {
-    color: #9aa5b9;
+body.categories-page-body:not(.dark) .category-content strong {
+    color: #17243a;
+}
+
+body.categories-page-body:not(.dark) .category-content small {
+    color: #68768c;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 760px) {
+    .header {
+        width: calc(100% - 28px);
+        min-height: 154px;
+        padding: 26px 74px 20px;
+    }
+
+    .back-btn {
+        top: 26px;
+        left: 0;
+        width: 52px;
+        height: 52px;
+        border-radius: 17px;
+    }
+
+    .header-badge {
+        top: 26px;
+        right: 0;
+        min-width: 52px;
+        width: 52px;
+        height: 52px;
+        min-height: 52px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 17px;
+    }
+
+    .header-badge > .material-icons {
+        font-size: 27px;
+    }
+
+    .header-badge span:last-child {
+        display: none;
+    }
+
+    .header h1 {
+        font-size: 30px;
+    }
+
+    .header p {
+        font-size: 12px;
+    }
+
+    .categories-page {
+        width: calc(100% - 28px);
+        gap: 12px;
+    }
+
+    .category-card {
+        min-height: 132px;
+        border-radius: 17px;
+    }
+
+    .category-media {
+        height: 67px;
+    }
+
+    .category-icon {
+        left: 14px;
+        bottom: -14px;
+        width: 51px;
+        height: 51px;
+        border-radius: 15px;
+    }
+
+    .category-icon .material-icons {
+        font-size: 26px;
+    }
+
+    .category-arrow {
+        right: 12px;
+        bottom: 9px;
+        width: 35px;
+        height: 35px;
+        font-size: 25px;
+    }
+
+    .category-content {
+        min-height: 64px;
+        padding: 16px 56px 10px 59px;
+    }
+
+    .category-content strong {
+        font-size: 14px;
+    }
+
+    .category-content small {
+        font-size: 9.5px;
+    }
+}
+
+@media (max-width: 420px) {
+    .header {
+        width: calc(100% - 20px);
+        min-height: 143px;
+        padding-left: 64px;
+        padding-right: 64px;
+    }
+
+    .categories-page {
+        width: calc(100% - 20px);
+        gap: 10px;
+    }
+
+    .category-card {
+        min-height: 124px;
+        border-radius: 15px;
+    }
+
+    .category-media {
+        height: 62px;
+    }
+
+    .category-icon {
+        left: 11px;
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+    }
+
+    .category-icon .material-icons {
+        font-size: 23px;
+    }
+
+    .category-arrow {
+        right: 9px;
+        bottom: 8px;
+        width: 32px;
+        height: 32px;
+        font-size: 23px;
+    }
+
+    .category-content {
+        padding: 15px 49px 9px 51px;
+    }
+
+    .category-content strong {
+        font-size: 13px;
+    }
+
+    .category-content small {
+        font-size: 8.5px;
+    }
 }

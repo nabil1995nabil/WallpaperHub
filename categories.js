@@ -1,6 +1,5 @@
 const categories = document.querySelectorAll(".category-card");
 
-// تحديث أسماء كافة الأقسام الـ 14 بالكامل لمنع أي توقف برمي
 const categoryNames = {
     all: "الكل",
     nature: "الطبيعة",
@@ -18,54 +17,41 @@ const categoryNames = {
     minimal: "Minimal"
 };
 
-// محرك الإمالة ثلاثي الأبعاد المطور (1000D)
-categories.forEach(card => {
-    card.style.transition = "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
-    card.style.transformStyle = "preserve-3d";
-
-    card.addEventListener("mousemove", (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        card.style.transform = `perspective(1000px) rotateX(${y * -8}deg) rotateY(${x * 8}deg) translateZ(5px)`;
-    });
-
-    card.addEventListener("mouseleave", () => {
-        card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)";
-    });
-});
-
-// معالجة الضغط وتفعيل الإطارات الدوارة لجميع الأقسام بدون استثناء
+/*
+ * تم حذف كل محرك 3D / Tilt / translateZ / hover / animation.
+ * الضغط الآن يحفظ الاختيار وينتقل مباشرة بدون انتظار ثانيتين.
+ */
 categories.forEach(card => {
     card.addEventListener("click", () => {
         const category = card.dataset.category;
 
-        categories.forEach(c => {
-            c.classList.remove("active-border");
-            c.style.border = "1px solid rgba(255, 255, 255, 0.6)";
+        categories.forEach(item => {
+            item.classList.remove("is-selected");
         });
 
-        card.classList.add("active-border");
-        card.style.border = "none";
+        card.classList.add("is-selected");
 
         localStorage.setItem("selectedCategory", category);
-        localStorage.setItem("selectedCategoryName", categoryNames[category] || category);
+        localStorage.setItem(
+            "selectedCategoryName",
+            categoryNames[category] || category
+        );
 
-        card.style.transform = "scale(0.95) translateZ(0px)";
-
-        setTimeout(() => {
-            card.style.transform = "";
-            location.href = "all-wallpapers.html?category=" + encodeURIComponent(category);
-        }, 2000); // مهلة ثانيتين لمشاهدة الدوران اللوني الفاخر لإطار الحافة
+        location.href =
+            "all-wallpapers.html?category=" +
+            encodeURIComponent(category);
     });
 });
 
-// تفعيل كرت آخر قسم تلقائياً عند تحميل الصفحة
+/* إبقاء القسم الأخير محدداً عند العودة للصفحة */
 const lastCategory = localStorage.getItem("selectedCategory");
+
 if (lastCategory) {
-    const activeCard = document.querySelector(`.category-card[data-category="${lastCategory}"]`);
+    const activeCard = document.querySelector(
+        `.category-card[data-category="${CSS.escape(lastCategory)}"]`
+    );
+
     if (activeCard) {
-        activeCard.classList.add("active-border");
-        activeCard.style.border = "none";
+        activeCard.classList.add("is-selected");
     }
 }
