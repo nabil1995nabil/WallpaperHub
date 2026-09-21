@@ -1021,22 +1021,17 @@ const normalHero = $('#normalHero');
 const voiceHeroMode = $('#voiceHeroMode');
 
 function showCommunityHero(){
-  document.body.classList.remove('voice-mode-active');
   communityHero?.classList.remove('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','false');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','true');
 }
 
 function showVoiceHero(){
-  document.body.classList.add('voice-mode-active');
   communityHero?.classList.add('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','true');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','false');
-
-  // بعد تفعيل الوضع الكامل نعيد ضبط موضع الصفحة حتى لا يبقى الهيدر فوق واجهة الصوت.
-  requestAnimationFrame(() => {
-    communityHero?.scrollIntoView({behavior:'smooth',block:'start'});
-  });
+  // Swap only the hero. Keep tabs, chat, members and the rest of the page intact.
+  // Do not force-scroll the page: the voice UI should not hide the discussion below it.
 }
 
 $('#joinChat').addEventListener('click',() => {
