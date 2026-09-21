@@ -1,37 +1,51 @@
 <section class="today-section">
-    <div class="section-heading">
-        <div>
-            <span class="section-kicker">DAILY PICK</span>
-            <h3>⭐ خلفية اليوم</h3>
-        </div>
-    </div>
-
-    <div class="today-wallpaper">
-
-        <img id="todayImage" alt="خلفية اليوم">
-
-        <div class="today-overlay">
-
-            <span class="today-badge">
-                ⭐ خلفية اليوم
-            </span>
-
-            <h2 id="todayTitle"></h2>
-
-            <p id="todayDescription"></p>
-
-            <div class="today-actions">
-
-                <button id="todayView">
-                    👁 مشاهدة
+    <div class="banners-grid">
+        
+        <!-- 1. بطاقة خلفية اليوم (على اليسار) -->
+        <div class="today-card">
+            <div class="today-content">
+                <div class="today-badge-wrapper">
+                    <span class="today-icon">🌱</span>
+                    <span class="today-label">خلفية اليوم</span>
+                </div>
+                <h2 id="todayTitle">هدوء الطبيعة</h2>
+                <p id="todayDescription">جمال العالم بين يديك</p>
+                
+                <button id="todayView" class="today-btn">
+                    <span>عرض الآن</span>
+                    <span class="btn-arrow">←</span>
                 </button>
-
-                <button id="todayDownload">
-                    ⬇ تحميل
-                </button>
-
             </div>
 
+            <div class="today-image-wrapper">
+                <img id="todayImage" alt="خلفية اليوم">
+            </div>
+        </div>
+
+        <!-- 2. بطاقة الذكاء الاصطناعي (على اليمين - مطابقة للصورة) -->
+        <div class="ai-card">
+            <div class="ai-content">
+                <div class="ai-badge-wrapper">
+                    <span class="ai-badge-icon">AI</span>
+                    <span class="ai-title">أنشئ خلفيات بالذكاء الاصطناعي</span>
+                </div>
+                <p class="ai-desc">حول أفكارك إلى خلفيات مذهلة بضغطة واحدة</p>
+                
+                <a href="ai.html" id="aiBtn" class="ai-btn">
+                    <span>جرب الآن</span>
+                    <span class="btn-arrow">←</span>
+                </a>
+            </div>
+
+            <div class="ai-visual-wrapper">
+                <div class="ai-floating-cards">
+                    <div class="mini-floating-card card-back-2"></div>
+                    <div class="mini-floating-card card-back-1"></div>
+                    <div class="mini-floating-card card-main">
+                        <img src="assets/wallpapers/ai-preview.jpg" alt="AI Wallpaper" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300&auto=format&fit=crop'">
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

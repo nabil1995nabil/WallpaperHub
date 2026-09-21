@@ -1,117 +1,296 @@
 /* =========================================================
-   WallpaperHub — Today Wallpaper
-   خلفية اليوم
+   WallpaperHub — Banners Section (Today & AI)
 ========================================================= */
 
 .today-section {
     margin-top: 32px;
+    width: 100%;
 }
 
-.today-wallpaper {
+/* شبكة البطاقتين جنباً إلى جنب */
+.banners-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+}
+
+/* تصميم بطاقة خلفية اليوم */
+.today-card {
     position: relative;
-    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #1b172a 0%, #121019 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
+    padding: 20px;
+    gap: 15px;
     overflow: hidden;
-    background: #151622;
-    box-shadow: var(--shadow);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.today-wallpaper img {
+.today-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 2;
+}
+
+.today-badge-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.today-icon {
+    font-size: 14px;
+}
+
+.today-label {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.today-content h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.today-content p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+.today-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #ffffff;
+    color: #111111;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    width: fit-content;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.today-btn:active {
+    transform: scale(0.95);
+}
+
+.today-image-wrapper {
+    width: 42%;
+    height: 130px;
+    border-radius: 18px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.today-image-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform .45s ease;
+    display: block;
+    transition: transform 0.4s ease;
 }
 
-.today-wallpaper:hover img {
-    transform: scale(1.035);
+.today-card:hover .today-image-wrapper img {
+    transform: scale(1.05);
 }
 
-.today-overlay {
-    position: absolute;
-    inset: auto 0 0;
-    padding: 24px 20px 20px;
-    background: linear-gradient(
-        to top,
-        rgba(0, 0, 0, .9),
-        rgba(0, 0, 0, .5) 48%,
-        rgba(0, 0, 0, 0)
-    );
-    color: #fff;
+
+/* =========================================================
+   تصميم بطاقة الذكاء الاصطناعي (AI Card) المطابقة للصورة
+========================================================= */
+
+.ai-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #23153c 0%, #120e1c 100%);
+    border: 1px solid rgba(169, 72, 255, 0.2);
+    border-radius: 28px;
+    padding: 20px;
+    gap: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.today-badge {
+.ai-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 2;
+}
+
+.ai-badge-wrapper {
     display: inline-flex;
     align-items: center;
-    padding: 7px 13px;
-    margin-bottom: 9px;
-    border-radius: 999px;
-    background: #ffb516;
-    color: #202020;
-    font-size: 12px;
-    font-weight: 900;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.today-overlay h2 {
-    font-size: 25px;
-    line-height: 1.2;
-    margin-bottom: 5px;
-}
-
-.today-overlay p {
-    margin-bottom: 14px;
-    color: rgba(255, 255, 255, .82);
-    font-size: 14px;
-}
-
-.today-actions {
+.ai-badge-icon {
     display: flex;
-    gap: 9px;
-}
-
-.today-actions button {
-    min-width: 105px;
-    height: 43px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 14px;
-    font-size: 14px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform .2s ease;
-}
-
-.today-actions button:active {
-    transform: scale(.96);
-}
-
-#todayView {
-    background: rgba(255, 255, 255, .96);
-    color: #171821;
-}
-
-#todayDownload {
-    background: var(--primary);
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
     color: #fff;
+    font-size: 11px;
+    font-weight: 900;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
 }
 
-@media (max-width: 600px) {
+.ai-title {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.2;
+}
 
-    .today-wallpaper {
-        height: 285px;
-        border-radius: 25px;
+.ai-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+/* زر جرب الآن بتدرج بنفسجي مميز */
+.ai-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+    color: #ffffff;
+    text-decoration: none;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    width: fit-content;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ai-btn:active {
+    transform: scale(0.95);
+}
+
+/* حاوية الصور المتداخلة للذكاء الاصطناعي */
+.ai-visual-wrapper {
+    width: 40%;
+    height: 130px;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-floating-cards {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.mini-floating-card {
+    position: absolute;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+.card-back-2 {
+    width: 50px;
+    height: 65px;
+    background: #4c1d95;
+    top: 5px;
+    left: 5px;
+    transform: rotate(-12deg);
+    opacity: 0.6;
+}
+
+.card-back-1 {
+    width: 60px;
+    height: 75px;
+    background: #6d28d9;
+    top: 15px;
+    left: 22px;
+    transform: rotate(-6deg);
+    opacity: 0.85;
+}
+
+.card-main {
+    width: 75px;
+    height: 95px;
+    top: 10px;
+    right: 10px;
+    transform: rotate(6deg);
+    z-index: 3;
+}
+
+.card-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+
+/* =========================================================
+   التجاوب مع الهواتف المحمولة (تصبح البطاقات فوق بعضها عمودياً)
+========================================================= */
+@media (max-width: 768px) {
+    .banners-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .today-overlay {
-        padding: 20px 17px 17px;
+    .today-card, .ai-card {
+        padding: 16px;
+        border-radius: 22px;
     }
 
-    .today-overlay h2 {
-        font-size: 22px;
+    .today-content h2, .ai-title {
+        font-size: 16px;
     }
 
-    .today-actions button {
-        flex: 1;
-        min-width: 0;
+    .today-content p, .ai-desc {
+        font-size: 11px;
+        margin-bottom: 12px;
+    }
+
+    .today-btn, .ai-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .today-image-wrapper, .ai-visual-wrapper {
+        width: 38%;
+        height: 110px;
     }
 }
