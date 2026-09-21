@@ -1,48 +1,73 @@
-/* ============================
-   WallpaperHub
-   All Wallpapers Page (3D Clay Upgrade)
-============================ */
+/* =========================================================
+   WallpaperHub — All Wallpapers / Premium Mobile UI
+   Dark glass + compact wallpaper cards
+   ========================================================= */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:system-ui, -apple-system, sans-serif;
+:root{
+    --bg:#050a16;
+    --bg-2:#091225;
+    --surface:rgba(15,25,48,.82);
+    --surface-2:rgba(20,32,60,.92);
+    --surface-soft:rgba(17,29,54,.68);
+    --line:rgba(125,153,255,.18);
+    --line-strong:rgba(116,140,255,.45);
+    --text:#f5f7ff;
+    --muted:#8d9bb8;
+    --muted-2:#64728f;
+    --accent:#6558ff;
+    --accent-2:#35a7ff;
+    --accent-soft:rgba(101,88,255,.18);
+    --danger:#ff4f78;
+    --radius-xl:26px;
+    --radius-lg:20px;
+    --radius-md:15px;
+    --shadow:0 16px 42px rgba(0,0,0,.30);
+    --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{scroll-behavior:smooth;background:var(--bg)}
 
 body{
-    background:#eef2f7;
-    color:#1a253c;
-    padding-bottom:40px;
-    -webkit-font-smoothing: antialiased;
+    min-height:100vh;
+    padding:0 0 96px;
+    background:
+        radial-gradient(circle at 15% -5%,rgba(70,104,255,.18),transparent 32%),
+        radial-gradient(circle at 90% 18%,rgba(95,58,255,.13),transparent 28%),
+        linear-gradient(180deg,#050a16 0%,#071021 46%,#050a16 100%);
+    color:var(--text);
+    font-family:var(--font);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
 }
 
-/* ============================
-   HEADER
-============================ */
+button,input,select{font:inherit}
+button{border:0}
 
+/* ================= HEADER ================= */
 .header{
     position:sticky;
     top:0;
     z-index:100;
-    min-height:70px;
-    display:flex;
+    min-height:74px;
+    display:grid;
+    grid-template-columns:46px 1fr 46px;
     align-items:center;
-    justify-content:space-between;
-    padding:8px 16px;
-    background:rgba(238, 242, 247, 0.85);
-    backdrop-filter:blur(15px);
-    -webkit-backdrop-filter:blur(15px);
+    gap:10px;
+    padding:10px 14px;
+    background:rgba(5,10,22,.76);
+    border-bottom:1px solid rgba(130,153,255,.12);
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
 }
 
-.header-info{
-    flex:1;
-    text-align:center;
-}
-
+.header-info{text-align:center;min-width:0}
 .header-info h2{
     font-size:20px;
-    color:#3f51b5;
+    line-height:1.2;
+    font-weight:850;
+    color:#fff;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -50,540 +75,407 @@ body{
 
 #wallpaperCount{
     display:block;
-    margin-top:3px;
-    color:#888;
-    font-size:12px;
+    margin-top:4px;
+    color:var(--muted);
+    font-size:11px;
 }
 
-/* --- أزرار الهيدر ثلاثية الأبعاد (Back & Search Buttons) --- */
-.back-btn,
-.search-btn{
-    width:42px;
-    height:42px;
-    flex-shrink:0;
-    border:none;
-    border-radius:50%;
+.back-btn,.search-btn,.header-more{
+    width:46px;
+    height:46px;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:#eef2f7;
-    color:#1a253c;
+    border-radius:50%;
+    color:#dce5ff;
+    background:linear-gradient(145deg,rgba(34,51,88,.95),rgba(13,24,48,.95));
+    border:1px solid rgba(134,159,255,.16);
+    box-shadow:0 8px 20px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.06);
     cursor:pointer;
-    
-    box-shadow: 
-        0px 4px 0px #d0d7e3,
-        -2px 8px 10px rgba(166, 180, 200, 0.4),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
-        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
-
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+    transition:.2s ease;
 }
 
-.back-btn:hover,
-.search-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0px 6px 0px #d0d7e3,
-        -3px 12px 12px rgba(166, 180, 200, 0.5),
-        inset 0px 3px 4px rgba(255, 255, 255, 1),
-        inset 0px -3px 5px rgba(166, 180, 200, 0.4);
-}
+.back-btn:hover,.search-btn:hover,.header-more:hover{transform:translateY(-1px);border-color:var(--line-strong)}
+.back-btn:active,.search-btn:active,.header-more:active{transform:scale(.95)}
 
-.back-btn:active,
-.search-btn:active{
-    transform: translateY(2px);
-    box-shadow: 
-        0px 2px 0px #d0d7e3,
-        -1px 4px 6px rgba(166, 180, 200, 0.3),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.6),
-        inset 0px -2px 4px rgba(166, 180, 200, 0.5);
-}
+.header-actions{display:flex;gap:8px;justify-content:flex-end}
+.header-actions .search-btn{display:flex}
+.header-actions .header-more{display:none}
 
-/* ============================
-   SEARCH (بدون تأثير Clay)
-============================ */
+/* ================= SEARCH ================= */
+.search-section{
+    display:flex;
+    gap:10px;
+    padding:14px 14px 7px;
+}
 
 .search-box{
-    margin:15px 16px 5px;
+    flex:1;
+    min-width:0;
     height:52px;
     display:flex;
     align-items:center;
     gap:10px;
     padding:0 15px;
-    background:#fff;
+    background:linear-gradient(145deg,rgba(25,39,70,.9),rgba(12,22,43,.94));
+    border:1px solid var(--line);
     border-radius:18px;
-    box-shadow:
-        0 5px 18px rgba(0,0,0,.05);
+    box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.04);
 }
 
-.search-box span{
-    color:#777;
-}
-
+.search-box .material-icons{font-size:23px;color:#8da3d6}
 .search-box input{
-    flex:1;
     width:100%;
-    border:none;
-    outline:none;
+    min-width:0;
+    border:0;
+    outline:0;
     background:transparent;
-    color:#222;
-    font-size:15px;
+    color:#fff;
+    font-size:14px;
+}
+.search-box input::placeholder{color:#7483a2}
+
+.advanced-filter-btn{
+    width:52px;
+    flex:0 0 52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:18px;
+    color:#dbe3ff;
+    background:linear-gradient(145deg,rgba(39,43,91,.95),rgba(18,24,53,.95));
+    border:1px solid rgba(119,111,255,.34);
+    box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.06);
 }
 
-/* ============================
-   FILTERS (أزرار الفلاتر 3D Clay)
-============================ */
-
+/* ================= FILTERS ================= */
+.filters-wrap{padding:7px 0 8px}
 .filters{
     display:flex;
-    gap:10px;
+    gap:9px;
     overflow-x:auto;
-    padding:16px;
+    padding:0 14px 6px;
     scrollbar-width:none;
+    scroll-snap-type:x proximity;
 }
-
-.filters::-webkit-scrollbar{
-    display:none;
-}
+.filters::-webkit-scrollbar{display:none}
 
 .filter-btn{
-    flex-shrink:0;
-    border:none;
-    padding:10px 18px;
-    border-radius:20px;
-    background:#eef2f7;
-    color:#555;
-    font-size:13px;
-    font-weight:bold;
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-height:42px;
+    padding:0 15px;
+    border-radius:15px;
+    color:#c3cee5;
+    background:linear-gradient(145deg,rgba(25,40,72,.92),rgba(12,23,44,.96));
+    border:1px solid rgba(128,153,255,.13);
+    box-shadow:0 7px 16px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.04);
+    font-size:12px;
+    font-weight:750;
     cursor:pointer;
-    
-    box-shadow: 
-        0px 4px 0px #d0d7e3,
-        -2px 8px 10px rgba(166, 180, 200, 0.35),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.9),
-        inset 0px -3px 4px rgba(166, 180, 200, 0.3);
-
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, background 0.2s ease;
+    scroll-snap-align:start;
+    transition:.2s ease;
 }
 
-.filter-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0px 6px 0px #d0d7e3,
-        -3px 10px 12px rgba(166, 180, 200, 0.45),
-        inset 0px 3px 4px rgba(255, 255, 255, 1),
-        inset 0px -3px 4px rgba(166, 180, 200, 0.3);
-}
-
-.filter-btn:active{
-    transform: translateY(2px);
-    box-shadow: 
-        0px 2px 0px #d0d7e3,
-        inset 0px 2px 3px rgba(255, 255, 255, 0.6),
-        inset 0px -2px 3px rgba(166, 180, 200, 0.4);
-}
-
-/* الزر النشط مثل "الكل" أو "4K" */
+.filter-btn:hover{border-color:var(--line-strong);transform:translateY(-1px)}
 .filter-btn.active{
-    background:#3f51b5;
     color:#fff;
-    box-shadow: 
-        0px 4px 0px #2c3983,
-        -2px 8px 10px rgba(63, 81, 181, 0.35),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+    background:linear-gradient(135deg,#6657ff,#437cff);
+    border-color:rgba(152,165,255,.6);
+    box-shadow:0 9px 24px rgba(82,79,255,.34),inset 0 1px rgba(255,255,255,.22);
 }
 
-.filter-btn.active:hover {
-    box-shadow: 
-        0px 6px 0px #2c3983,
-        -3px 10px 12px rgba(63, 81, 181, 0.45),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+/* ================= TOOLBAR ================= */
+.toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:3px 14px 12px;
 }
 
-/* ============================
-   WALLPAPER GRID & CARDS
-============================ */
+.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:7px}
 
+.toolbar-btn,.sort-select{
+    height:36px;
+    border:1px solid rgba(124,150,255,.14);
+    border-radius:12px;
+    color:#aebbd5;
+    background:rgba(17,30,56,.76);
+    outline:0;
+}
+
+.toolbar-btn{width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.toolbar-btn.active{color:#fff;background:rgba(93,87,255,.22);border-color:rgba(109,105,255,.5)}
+.sort-select{padding:0 10px;font-size:11px}
+
+/* ================= GRID ================= */
 .wallpapers-grid{
     display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:14px;
-    padding:8px 14px 30px;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:9px;
+    padding:0 10px 26px;
+    max-width:1180px;
+    margin:0 auto;
 }
 
 .wallpaper-card{
     position:relative;
+    min-width:0;
     overflow:hidden;
-    width:100%;
-    aspect-ratio:9 / 16;
-    border-radius:22px;
-    background:#e8e8e8;
+    aspect-ratio:4 / 5;
+    border-radius:17px;
+    background:#101b31;
+    border:1px solid rgba(117,145,255,.26);
+    box-shadow:0 10px 25px rgba(0,0,0,.27);
     cursor:pointer;
-    
-    /* نمط 3D Clay للبطاقات */
-    box-shadow: 
-        0px 8px 0px #d0d7e3,
-        -4px 14px 15px rgba(166, 180, 200, 0.4),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
-        inset 0px -4px 6px rgba(0, 0, 0, 0.2);
-
-    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
-    animation: wallpaperFade .45s ease;
+    isolation:isolate;
+    animation:cardIn .34s ease both;
+    transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
 }
+
+.wallpaper-card:hover{
+    transform:translateY(-3px);
+    border-color:rgba(111,142,255,.62);
+    box-shadow:0 16px 32px rgba(0,0,0,.35),0 0 20px rgba(75,106,255,.08);
+}
+.wallpaper-card:active{transform:scale(.985)}
 
 .wallpaper-card img{
     width:100%;
     height:100%;
     display:block;
     object-fit:cover;
-    image-rendering:auto;
-    transition: transform .35s ease;
+    background:#0c1527;
+    transition:transform .4s ease,filter .3s ease;
+}
+.wallpaper-card:hover img{transform:scale(1.045)}
+
+.wallpaper-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,.12) 0%,transparent 38%,rgba(0,0,0,.78) 100%);
 }
 
-.wallpaper-card:hover{
-    transform: translateY(-4px);
-    box-shadow: 
-        0px 12px 0px #d0d7e3,
-        -5px 18px 20px rgba(166, 180, 200, 0.5),
-        inset 0px 4px 5px rgba(255, 255, 255, 0.6),
-        inset 0px -4px 6px rgba(0, 0, 0, 0.2);
+/* ================= CARD UI ================= */
+.quality-badge{
+    position:absolute;
+    top:8px;
+    left:8px;
+    z-index:4;
+    min-width:38px;
+    height:28px;
+    padding:0 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    color:#fff;
+    background:rgba(15,27,52,.9);
+    border:1px solid rgba(151,173,255,.2);
+    box-shadow:0 6px 15px rgba(0,0,0,.24);
+    font-size:10px;
+    font-weight:850;
+    backdrop-filter:blur(8px);
 }
 
-.wallpaper-card:active{
-    transform: translateY(3px);
-    box-shadow: 
-        0px 4px 0px #d0d7e3,
-        -2px 8px 10px rgba(166, 180, 200, 0.3),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+.card-favorite{
+    position:absolute;
+    top:8px;
+    right:8px;
+    z-index:5;
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    color:#eef3ff;
+    background:rgba(10,20,40,.74);
+    border:1px solid rgba(167,185,255,.2);
+    box-shadow:0 6px 15px rgba(0,0,0,.25);
+    cursor:pointer;
+    backdrop-filter:blur(8px);
+    transition:.2s ease;
 }
-
-.wallpaper-card:hover img{
-    transform:scale(1.04);
-}
-
-/* ============================
-   CARD OVERLAY & BADGES
-============================ */
+.card-favorite:hover{transform:scale(1.07);background:rgba(30,43,76,.9)}
+.card-favorite.is-favorite{color:#ff557d;background:rgba(72,23,49,.84);border-color:rgba(255,87,125,.28)}
+.card-favorite span{font-size:18px}
 
 .wallpaper-overlay{
     position:absolute;
     right:0;
     left:0;
     bottom:0;
-    padding:35px 11px 11px;
+    z-index:3;
+    padding:34px 9px 9px;
     color:#fff;
-    background:linear-gradient(transparent, rgba(0,0,0,.8));
 }
 
 .wallpaper-title{
-    font-size:14px;
-    font-weight:bold;
+    max-width:100%;
+    margin-bottom:6px;
+    font-size:11px;
+    line-height:1.35;
+    font-weight:800;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.wallpaper-meta{
-    margin-top:5px;
+.wallpaper-meta{display:flex;align-items:center;justify-content:space-between;gap:5px;color:#d8e1f7;font-size:9px}
+.wallpaper-resolution{opacity:.8;white-space:nowrap}
+.wallpaper-stats{display:flex;align-items:center;gap:7px}
+.wallpaper-stat{display:flex;align-items:center;gap:2px;white-space:nowrap}
+.wallpaper-stat .material-icons{font-size:12px}
+
+.card-more{
+    width:27px;
+    height:27px;
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:5px;
-    font-size:11px;
-    color:rgba(255,255,255,.9);
-}
-
-.wallpaper-stats{
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-
-.wallpaper-stat{
-    display:flex;
-    align-items:center;
-    gap:2px;
-    font-size:11px;
-    color:rgba(255,255,255,.95);
-}
-
-.wallpaper-stat .material-icons{
-    font-size:15px;
-    line-height:1;
-}
-
-.wallpaper-resolution{
-    white-space:nowrap;
-}
-
-/* --- شارة الدقة ثلاثية الأبعاد (3D Clay Quality Badge) --- */
-.quality-badge{
-    position:absolute;
-    top:9px;
-    left:9px;
-    z-index:5;
-    padding:5px 10px;
-    border-radius:12px;
-    background:#2b3145;
-    color:#fff;
-    font-size:10px;
-    font-weight:bold;
-    
-    box-shadow: 
-        0px 3px 0px #1a1e2c,
-        0px 4px 8px rgba(0, 0, 0, 0.4),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
-        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* --- زر المفضلة ثلاثي الأبعاد (3D Clay Favorite Button) --- */
-.card-favorite{
-    position:absolute;
-    top:8px;
-    right:8px;
-    z-index:6;
-    width:36px;
-    height:36px;
-    border:none;
-    border-radius:50%;
-    display:flex;
     justify-content:center;
-    align-items:center;
-    background:#ff5277;
-    color:#fff;
-    cursor:pointer;
-    
-    box-shadow: 
-        0px 3px 0px #b82e4d,
-        0px 5px 10px rgba(0, 0, 0, 0.35),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
-
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-inline-start:2px;
+    border-radius:50%;
+    color:#dce5ff;
+    background:rgba(18,31,57,.86);
+    border:1px solid rgba(147,169,255,.18);
 }
+.card-more .material-icons{font-size:16px}
 
-.card-favorite:hover {
-    transform: scale(1.08);
-}
-
-.card-favorite:active {
-    transform: translateY(2px) scale(0.95);
-    box-shadow: 
-        0px 1px 0px #b82e4d,
-        inset 0px 2px 3px rgba(255, 255, 255, 0.2),
-        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
-}
-
-.card-favorite span{
-    font-size:18px;
-}
-
-/* ============================
-   LOADING & EMPTY STATE
-============================ */
-
+/* ================= LOADING ================= */
 .loading{
-    min-height:220px;
     display:flex;
     flex-direction:column;
-    justify-content:center;
     align-items:center;
-    gap:15px;
-    color:#777;
+    justify-content:center;
+    min-height:240px;
+    gap:12px;
+    color:var(--muted);
 }
-
 .loader{
-    width:38px;
-    height:38px;
+    width:34px;
+    height:34px;
     border-radius:50%;
-    border:4px solid #ddd;
-    border-top-color:#3f51b5;
+    border:3px solid rgba(116,143,255,.15);
+    border-top-color:#6b60ff;
     animation:loadingSpin .8s linear infinite;
 }
+.loading p{font-size:12px}
 
-@keyframes loadingSpin{
-    to{ transform:rotate(360deg); }
-}
+.empty-state{padding:72px 20px;text-align:center;color:var(--muted)}
+.empty-state > span{display:block;margin-bottom:12px;color:#5e6e8e;font-size:58px}
+.empty-state h3{margin-bottom:7px;color:#fff;font-size:17px}
+.empty-state p{font-size:12px}
 
-.empty-state{
-    padding:70px 20px;
-    text-align:center;
-    color:#777;
-}
-
-.empty-state > span{
-    display:block;
-    margin-bottom:15px;
-    color:#aaa;
-    font-size:60px;
-}
-
-.empty-state h3{
-    margin-bottom:8px;
-    color:#333;
-}
-
-.empty-state p{
-    font-size:14px;
-}
-
-/* ============================
-   SCROLL TOP BUTTON (3D Clay)
-============================ */
-
+/* ================= SCROLL TOP ================= */
 .scroll-top{
     position:fixed;
-    right:18px;
-    bottom:22px;
-    z-index:80;
-    width:48px;
-    height:48px;
+    right:16px;
+    bottom:86px;
+    z-index:85;
+    width:44px;
+    height:44px;
     display:none;
     align-items:center;
     justify-content:center;
-    border:none;
     border-radius:50%;
-    background:#3f51b5;
     color:#fff;
+    background:linear-gradient(135deg,#6657ff,#3c82ff);
+    border:1px solid rgba(178,190,255,.3);
+    box-shadow:0 12px 25px rgba(48,56,180,.35);
+}
+
+/* ================= BOTTOM NAV ================= */
+.page-bottom-nav{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:10px;
+    z-index:90;
+    height:68px;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    align-items:center;
+    padding:6px;
+    border-radius:22px;
+    background:rgba(9,18,35,.88);
+    border:1px solid rgba(126,153,255,.18);
+    box-shadow:0 18px 40px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.05);
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
+}
+
+.page-bottom-nav button{
+    min-width:0;
+    height:56px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    border-radius:17px;
+    color:#8290ae;
+    background:transparent;
     cursor:pointer;
-    
-    box-shadow: 
-        0px 5px 0px #2c3983,
-        0px 8px 16px rgba(63, 81, 181, 0.4),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.4),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
-
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+    transition:.2s ease;
+}
+.page-bottom-nav button .material-icons{font-size:22px}
+.page-bottom-nav button span:last-child{font-size:9px;font-weight:750}
+.page-bottom-nav button.active{
+    color:#fff;
+    background:linear-gradient(145deg,#715bff,#4a67ff);
+    box-shadow:0 8px 20px rgba(82,78,255,.32),inset 0 1px rgba(255,255,255,.18);
 }
 
-.scroll-top:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-        0px 7px 0px #2c3983,
-        0px 12px 20px rgba(63, 81, 181, 0.5),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.5),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.3);
+/* ================= RESPONSIVE ================= */
+@media(min-width:600px){
+    .header{padding-inline:22px}
+    .search-section{padding-inline:22px}
+    .filters{padding-inline:22px}
+    .toolbar{padding-inline:22px}
+    .wallpapers-grid{gap:12px;padding-inline:22px}
+    .page-bottom-nav{max-width:720px;left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 32px)}
 }
 
-.scroll-top:active {
-    transform: translateY(3px);
-    box-shadow: 
-        0px 2px 0px #2c3983,
-        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
-        inset 0px -2px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* ============================
-   ANIMATIONS & MEDIA QUERIES
-============================ */
-
-@keyframes wallpaperFade{
-    from{
-        opacity:0;
-        transform:translateY(15px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-@media(min-width:700px){
-    .wallpapers-grid{
-        grid-template-columns:repeat(3,minmax(0,1fr));
-        gap:16px;
-        max-width:1000px;
-        margin:auto;
-    }
-}
-
-@media(min-width:1100px){
-    .wallpapers-grid{
-        grid-template-columns:repeat(4,minmax(0,1fr));
-    }
+@media(min-width:900px){
+    .header-actions .header-more{display:flex}
+    .wallpapers-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .wallpaper-card{border-radius:19px}
 }
 
 @media(max-width:380px){
-    .wallpapers-grid{
-        gap:8px;
-        padding-left:9px;
-        padding-right:9px;
-    }
-    .wallpaper-card{
-        border-radius:16px;
-    }
-    .wallpaper-title{
-        font-size:12px;
-    }
+    .header{grid-template-columns:42px 1fr 42px;padding-inline:10px}
+    .back-btn,.search-btn{width:42px;height:42px}
+    .search-section{padding-inline:10px}
+    .filters{padding-inline:10px}
+    .wallpapers-grid{gap:7px;padding-inline:8px}
+    .wallpaper-card{border-radius:14px}
+    .quality-badge{top:6px;left:6px;height:25px;min-width:34px;padding-inline:6px}
+    .card-favorite{top:6px;right:6px;width:31px;height:31px}
+    .wallpaper-overlay{padding:30px 7px 7px}
+    .wallpaper-title{font-size:10px}
+    .wallpaper-meta{font-size:8px}
 }
 
-/* ============================
-   DARK MODE (3D Clay OLED)
-============================ */
+/* ================= ANIMATIONS ================= */
+@keyframes loadingSpin{to{transform:rotate(360deg)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 
-body.dark{
-    background:#0d0f17;
-    color:#fff;
+/* Keep the page intentionally dark when the global theme script toggles body.dark. */
+body.dark{background:
+    radial-gradient(circle at 15% -5%,rgba(70,104,255,.18),transparent 32%),
+    radial-gradient(circle at 90% 18%,rgba(95,58,255,.13),transparent 28%),
+    linear-gradient(180deg,#050a16 0%,#071021 46%,#050a16 100%);
+    color:var(--text);
 }
 
-body.dark .header{
-    background:rgba(13,15,23,.95);
-}
-
-body.dark .header-info h2{
-    color:#8d9aff;
-}
-
-body.dark .back-btn,
-body.dark .search-btn{
-    background:#2b3145;
-    color:#fff;
-    box-shadow: 
-        0px 4px 0px #1a1e2c,
-        -2px 8px 10px rgba(0, 0, 0, 0.5),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.25),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
-}
-
-body.dark .search-box{
-    background:#1e1e1e;
-}
-
-body.dark .search-box input{
-    color:#fff;
-}
-
-body.dark .filter-btn{
-    background:#2b3145;
-    color:#fff;
-    box-shadow: 
-        0px 4px 0px #1a1e2c,
-        -2px 8px 10px rgba(0, 0, 0, 0.4),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.2),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
-}
-
-body.dark .filter-btn.active{
-    background:#4c5cff;
-    box-shadow: 
-        0px 4px 0px #2533b8,
-        -2px 8px 10px rgba(76, 92, 255, 0.4),
-        inset 0px 2px 3px rgba(255, 255, 255, 0.3),
-        inset 0px -3px 4px rgba(0, 0, 0, 0.4);
-}
-
-body.dark .wallpaper-card{
-    background:#2b3145;
-    box-shadow: 
-        0px 8px 0px #1a1e2c,
-        -4px 14px 15px rgba(0, 0, 0, 0.5),
-        inset 0px 3px 4px rgba(255, 255, 255, 0.2),
-        inset 0px -4px 6px rgba(0, 0, 0, 0.4);
-}
-
-body.dark .empty-state h3{
-    color:#fff;
-}
+/* Optional compact view — prepared for the new toolbar. */
+.wallpapers-grid.compact-grid .wallpaper-card{aspect-ratio:1 / 1}
+.wallpapers-grid.compact-grid .wallpaper-overlay{padding-top:28px}
+.wallpapers-grid.compact-grid .wallpaper-title{font-size:10px}

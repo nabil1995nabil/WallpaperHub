@@ -1,267 +1,117 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-name="viewport"
-content="width=device-width,initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#050a16">
 <title>الخلفيات | WallpaperHub</title>
-
-<link
-rel="stylesheet"
-href="all-wallpapers.css">
-
-<link
-rel="stylesheet"
-href="effects.css">
-
+<link rel="stylesheet" href="all-wallpapers.css">
+<link rel="stylesheet" href="effects.css">
 <link rel="stylesheet" href="css/theme.css">
-
-<link
-href="https://fonts.googleapis.com/icon?family=Material+Icons"
-rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-
-
 <body>
 
-
-<!-- HEADER -->
-
 <header class="header">
-
-    <button
-        id="backBtn"
-        class="back-btn"
-        type="button">
-
-        <span class="material-icons">
-            arrow_back
-        </span>
-
+    <button id="backBtn" class="back-btn" type="button" aria-label="رجوع">
+        <span class="material-icons">arrow_back</span>
     </button>
-
 
     <div class="header-info">
-
-        <h2 id="pageTitle">
-            الخلفيات
-        </h2>
-
-        <span id="wallpaperCount">
-            0 خلفية
-        </span>
-
+        <h2 id="pageTitle">جميع الخلفيات</h2>
+        <span id="wallpaperCount">0 خلفية</span>
     </div>
 
-
-    <button
-        id="searchBtn"
-        class="search-btn"
-        type="button">
-
-        <span class="material-icons">
-            search
-        </span>
-
-    </button>
-
+    <div class="header-actions">
+        <button id="searchBtn" class="search-btn" type="button" aria-label="بحث">
+            <span class="material-icons">search</span>
+        </button>
+        <button class="header-more" type="button" aria-label="المزيد">
+            <span class="material-icons">more_vert</span>
+        </button>
+    </div>
 </header>
 
-
-
-<!-- SEARCH -->
-
-<section
-id="searchBox"
-class="search-box">
-
-    <span class="material-icons">
-        search
-    </span>
-
-    <input
-        id="searchInput"
-        type="search"
-        placeholder="ابحث عن خلفية...">
-
+<section class="search-section" aria-label="البحث">
+    <div id="searchBox" class="search-box">
+        <span class="material-icons" aria-hidden="true">search</span>
+        <input id="searchInput" type="search" autocomplete="off" placeholder="ابحث عن خلفية...">
+    </div>
+    <button id="advancedFilterBtn" class="advanced-filter-btn" type="button" aria-label="الفلاتر">
+        <span class="material-icons">tune</span>
+    </button>
 </section>
 
-
-
-<!-- FILTERS -->
-
-<section class="filters">
-
-
-<button
-class="filter-btn active"
-data-filter="all">
-
-🌍 الكل
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="4k">
-
-💎 4K
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="anime">
-
-🌀 أنمي
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="space">
-
-🌌 فضاء
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="cars">
-
-🚗 سيارات
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="nature">
-
-🌿 طبيعة
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="dark">
-
-🖤 Dark
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="downloads">
-
-📥 الأكثر تحميلاً
-
-</button>
-
-
-
-<button
-class="filter-btn"
-data-filter="rating">
-
-⭐ الأعلى تقييماً
-
-</button>
-
-
+<section class="filters-wrap" aria-label="الأقسام">
+    <div class="filters" id="filters">
+        <button class="filter-btn active" data-filter="all" type="button">🌍 الكل</button>
+        <button class="filter-btn" data-filter="4k" type="button">💎 4K</button>
+        <button class="filter-btn" data-filter="anime" type="button">🌀 أنمي</button>
+        <button class="filter-btn" data-filter="nature" type="button">🌿 طبيعة</button>
+        <button class="filter-btn" data-filter="cars" type="button">🚗 سيارات</button>
+        <button class="filter-btn" data-filter="space" type="button">🌌 فضاء</button>
+        <button class="filter-btn" data-filter="downloads" type="button">📥 الأكثر تحميلاً</button>
+        <button class="filter-btn" data-filter="rating" type="button">⭐ الأعلى تقييماً</button>
+    </div>
 </section>
 
+<section class="toolbar" aria-label="خيارات العرض">
+    <div class="toolbar-left">
+        <button class="toolbar-btn active" id="gridViewBtn" type="button" aria-label="عرض الشبكة">
+            <span class="material-icons">grid_view</span>
+        </button>
+        <button class="toolbar-btn" id="compactViewBtn" type="button" aria-label="عرض مضغوط">
+            <span class="material-icons">view_comfy</span>
+        </button>
+    </div>
+    <div class="toolbar-right">
+        <select id="sortSelect" class="sort-select" aria-label="ترتيب الخلفيات">
+            <option value="default">الترتيب الافتراضي</option>
+            <option value="latest">الأحدث</option>
+            <option value="downloads">الأكثر تحميلاً</option>
+            <option value="rating">الأعلى تقييماً</option>
+            <option value="likes">الأكثر إعجاباً</option>
+        </select>
+    </div>
+</section>
 
-
-<!-- LOADING -->
-
-<div
-id="loading"
-class="loading">
-
-    <div class="loader"></div>
-
-    <p>
-        جاري تحميل الخلفيات...
-    </p>
-
+<div id="loading" class="loading">
+    <div class="loader" aria-hidden="true"></div>
+    <p>جاري تحميل الخلفيات...</p>
 </div>
 
+<main id="wallpapersGrid" class="wallpapers-grid" aria-live="polite"></main>
 
-
-<!-- WALLPAPERS -->
-
-<main
-id="wallpapersGrid"
-class="wallpapers-grid">
-</main>
-
-
-
-<!-- EMPTY -->
-
-<div
-id="emptyState"
-class="empty-state"
-style="display:none;">
-
-    <span class="material-icons">
-        image_not_supported
-    </span>
-
-    <h3>
-        لا توجد خلفيات
-    </h3>
-
-    <p>
-        لم نجد خلفيات في هذا القسم.
-    </p>
-
+<div id="emptyState" class="empty-state" style="display:none;">
+    <span class="material-icons">image_not_supported</span>
+    <h3>لا توجد خلفيات</h3>
+    <p>لم نجد خلفيات مطابقة للبحث أو الفلتر الحالي.</p>
 </div>
 
-
-
-<!-- SCROLL TOP -->
-
-<button
-id="scrollTop"
-class="scroll-top"
-type="button">
-
-    <span class="material-icons">
-        keyboard_arrow_up
-    </span>
-
+<button id="scrollTop" class="scroll-top" type="button" aria-label="العودة للأعلى">
+    <span class="material-icons">keyboard_arrow_up</span>
 </button>
 
-
+<nav class="page-bottom-nav" aria-label="التنقل">
+    <button type="button" data-nav="home">
+        <span class="material-icons">home</span><span>الرئيسية</span>
+    </button>
+    <button type="button" data-nav="explore">
+        <span class="material-icons">explore</span><span>استكشف</span>
+    </button>
+    <button type="button" class="active" data-nav="wallpapers" aria-current="page">
+        <span class="material-icons">image</span><span>الخلفيات</span>
+    </button>
+    <button type="button" data-nav="favorites">
+        <span class="material-icons">favorite_border</span><span>المفضلة</span>
+    </button>
+    <button type="button" data-nav="account">
+        <span class="material-icons">person</span><span>حسابي</span>
+    </button>
+</nav>
 
 <script src="all-wallpapers.js"></script>
-
 <script src="effects.js"></script>
-
 <script src="theme.js"></script>
-
-
 </body>
-
 </html>
