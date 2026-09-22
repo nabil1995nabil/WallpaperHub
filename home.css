@@ -611,3 +611,78 @@ video {
     right: 0;
     width: 100%;
 }
+
+
+/* =========================================================
+   FINAL FIX — prevent mobile horizontal page drift
+========================================================= */
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden !important;
+}
+
+body {
+    position: relative;
+}
+
+/* Keep every main wrapper inside the viewport */
+main,
+header,
+footer,
+section,
+.wall-section,
+.categories-section,
+.community-section {
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Intentional horizontal scrolling only inside these rows */
+.wall-grid,
+.category-list {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent RTL layout from shifting the whole page.
+   Card text can remain RTL independently. */
+.category-list {
+    direction: ltr;
+}
+
+.category {
+    flex: 0 0 auto;
+}
+
+.category p {
+    direction: rtl;
+}
+
+/* Make section margins symmetrical on mobile */
+@media (max-width: 600px) {
+    .wall-section,
+    .today-section,
+    .categories-section {
+        width: calc(100% - 28px);
+        max-width: calc(100% - 28px);
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .categories {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
