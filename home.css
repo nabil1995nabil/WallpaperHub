@@ -700,3 +700,24 @@ section,
         height: 100%;
     }
 }
+
+/* =========================================================
+   COMMUNITY 4K BACKGROUND
+========================================================= */
+.community-section {
+    background-image:
+        linear-gradient(90deg, rgba(8, 14, 52, .84), rgba(20, 24, 92, .58)),
+        url("assets/community-4k.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.community-section::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(8, 12, 45, .10), rgba(7, 10, 34, .48));
+}
