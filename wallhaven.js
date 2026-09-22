@@ -8,6 +8,7 @@
     "use strict";
 
     const API_URL = "/api/wallpapers";
+    const IMPORT_URL = "/api/wallhaven/import";
     const SECTION_URL = "wallhaven.html";
 
     async function loadWallhavenSection() {
@@ -29,18 +30,53 @@
         }
     }
 
+    async function importWallhavenWallpapers() {
+        try {
+            const response = await fetch(
+                `${IMPORT_URL}?_=${Date.now()}`,
+                {
+                    method: "POST",
+                    cache: "no-store",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({})
+                }
+            );
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || data?.success === false) {
+                throw new Error(
+                    data?.message ||
+                    `Wallhaven import error: ${response.status}`
+                );
+            }
+
+            return data;
+        } catch (error) {
+            console.error("Wallhaven import error:", error);
+            return null;
+        }
+    }
+
     async function loadWallhavenWallpapers() {
         const container = document.getElementById("wallhavenAI");
         if (!container) return;
 
         try {
+            // Import fresh Wallhaven images before reading the local collection.
+            await importWallhavenWallpapers();
+
             const response = await fetch(
                 `${API_URL}?_=${Date.now()}`,
                 { cache: "no-store" }
             );
 
             if (!response.ok) {
-                throw new Error(`Wallhaven wallpapers API error: ${response.status}`);
+                throw new Error(
+                    `Wallhaven wallpapers API error: ${response.status}`
+                );
             }
 
             const data = await response.json();
@@ -76,17 +112,17 @@
                     w.image ||
                     "assets/logo/no-image.png";
 
-                img.alt = w.title || "Wallhaven wallpaper";
+                img.alt = "Wallhaven wallpaper";
                 img.loading = "lazy";
                 img.decoding = "async";
 
                 img.addEventListener("error", () => {
+                    if (img.src.endsWith("no-image.png")) return;
                     img.src = "assets/logo/no-image.png";
                 }, { once: true });
 
                 card.appendChild(img);
 
-                // يفتح صفحة التفاصيل في موقع WallpaperHub نفسه.
                 card.addEventListener("click", () => {
                     if (!w.id) return;
 
