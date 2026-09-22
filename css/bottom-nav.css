@@ -5,7 +5,6 @@
 .bottom-nav {
     position: fixed;
 
-    /* تثبيت الشريط في مركز نافذة الجهاز نفسها */
     left: 50%;
     right: auto;
     margin: 0;
@@ -213,11 +212,6 @@ body.dark .nav-item.active {
 }
 
 
-/* ===================================================
-   MOBILE VIEWPORT ALIGNMENT
-   الشريط يتبع عرض نافذة الجهاز مباشرة ولا يتأثر
-   بأي انحياز أو overflow من محتوى الصفحة.
-   =================================================== */
 @media (max-width: 600px) {
     .bottom-nav {
         left: 50%;
