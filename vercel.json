@@ -19,17 +19,9 @@
           "assets/**"
         ]
       }
-    },
-    {
-      "src": "api/unsplash.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/unsplash",
-      "dest": "/api/unsplash.js"
-    },
     {
       "src": "/(.*)",
       "dest": "server.js"
