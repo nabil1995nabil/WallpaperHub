@@ -77,6 +77,119 @@ document.getElementById("downloadedWallpapers");
 const wallhavenContainer =
 document.getElementById("wallhavenAI");
 
+const unsplashContainer =
+document.getElementById("unsplashWallpapers");
+
+
+// =======================================
+// Unsplash — جلب الخلفيات للقسم الأفقي
+// =======================================
+
+function createUnsplashCard(photo) {
+    if (!photo || !photo.urls || !photo.urls.small) return null;
+
+    const card = document.createElement("div");
+    card.className = "wall-card unsplash-card";
+    card.dataset.unsplashId = photo.id || "";
+
+    const img = document.createElement("img");
+    img.src = photo.urls.small;
+    img.alt = photo.alt_description || photo.description || "Unsplash wallpaper";
+    img.loading = "lazy";
+    img.decoding = "async";
+
+    img.addEventListener("error", () => card.remove(), { once: true });
+    card.appendChild(img);
+
+    const credit = document.createElement("div");
+    credit.className = "unsplash-credit";
+
+    const photographer = document.createElement("a");
+    photographer.className = "unsplash-name";
+    photographer.href =
+        (photo.user && photo.user.profile_url) ||
+        "https://unsplash.com/?utm_source=WallpaperHub&utm_medium=referral";
+    photographer.target = "_blank";
+    photographer.rel = "noopener noreferrer";
+    photographer.textContent =
+        "Photo by " + ((photo.user && photo.user.name) || "Unsplash photographer");
+
+    const brand = document.createElement("a");
+    brand.className = "unsplash-brand";
+    brand.href =
+        "https://unsplash.com/?utm_source=WallpaperHub&utm_medium=referral";
+    brand.target = "_blank";
+    brand.rel = "noopener noreferrer";
+    brand.textContent = "Unsplash";
+
+    credit.appendChild(photographer);
+    credit.appendChild(brand);
+    card.appendChild(credit);
+
+    card.addEventListener("click", () => {
+        if (!photo.links || !photo.links.html) return;
+
+        const separator = photo.links.html.includes("?") ? "&" : "?";
+        window.open(
+            photo.links.html +
+            separator +
+            "utm_source=WallpaperHub&utm_medium=referral",
+            "_blank",
+            "noopener,noreferrer"
+        );
+    });
+
+    return card;
+}
+
+async function loadUnsplashWallpapers() {
+    if (!unsplashContainer) return;
+
+    try {
+        const response = await fetch(
+            "/api/unsplash?query=wallpaper&per_page=12&order_by=latest&_=" + Date.now(),
+            {
+                headers: { "Accept": "application/json" },
+                cache: "no-store"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Unsplash API error");
+        }
+
+        const photos = Array.isArray(data.results) ? data.results : [];
+
+        unsplashContainer.innerHTML = "";
+
+        if (!photos.length) {
+            const state = document.createElement("div");
+            state.className = "unsplash-state";
+            state.textContent = "لا توجد خلفيات متاحة من Unsplash حالياً.";
+            unsplashContainer.appendChild(state);
+            return;
+        }
+
+        photos.forEach(photo => {
+            const card = createUnsplashCard(photo);
+            if (card) unsplashContainer.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error("Unsplash error:", error);
+
+        unsplashContainer.innerHTML = "";
+
+        const state = document.createElement("div");
+        state.className = "unsplash-state is-error";
+        state.textContent =
+            "تعذر تحميل خلفيات Unsplash. أضف UNSPLASH_ACCESS_KEY في Vercel.";
+        unsplashContainer.appendChild(state);
+    }
+}
+
 // =======================================
 // تحميل البيانات
 // =======================================
@@ -810,6 +923,7 @@ document.addEventListener(
 
         loadWallpapers();
         loadWallhavenAI();
+        loadUnsplashWallpapers();
 
     }
 
