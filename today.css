@@ -294,3 +294,287 @@
         height: 110px;
     }
 }
+
+
+/* =========================================================
+   V2 — Full Background Cards
+   الصورة تصبح جزءاً من البطاقة وليس مربعاً منفصلاً
+========================================================= */
+
+/* ---------- خلفية اليوم ---------- */
+.today-card{
+    min-height: 180px;
+    padding: 22px;
+    border-radius: 28px;
+    isolation: isolate;
+    background: #101016;
+    overflow: hidden;
+}
+
+/* الصورة تملأ البطاقة بالكامل */
+.today-image-wrapper{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    z-index: -2;
+    box-shadow: none;
+}
+
+.today-image-wrapper::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(8,7,14,.92) 0%,
+            rgba(10,9,16,.70) 38%,
+            rgba(10,9,16,.20) 72%,
+            rgba(10,9,16,.05) 100%
+        ),
+        linear-gradient(
+            0deg,
+            rgba(0,0,0,.38),
+            transparent 55%
+        );
+}
+
+.today-image-wrapper img{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.02);
+    transition: transform .6s ease, filter .4s ease;
+    filter: saturate(1.08) contrast(1.06);
+}
+
+.today-card:hover .today-image-wrapper img{
+    transform: scale(1.07);
+}
+
+/* المحتوى فوق الصورة */
+.today-content{
+    position: relative;
+    z-index: 4;
+    width: 58%;
+    min-height: 136px;
+    justify-content: center;
+    text-align: right;
+    margin-left: auto;
+    align-items: flex-start;
+}
+
+.today-badge-wrapper{
+    margin-bottom: 7px;
+}
+
+.today-label{
+    font-size: 13px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.55);
+}
+
+.today-content h2{
+    margin: 0 0 4px;
+    text-shadow: 0 3px 14px rgba(0,0,0,.65);
+}
+
+.today-content p{
+    margin: 0 0 14px;
+    text-shadow: 0 2px 10px rgba(0,0,0,.65);
+}
+
+.today-btn{
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.30),
+        inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+/* ---------- بطاقة الذكاء الاصطناعي ---------- */
+.ai-card{
+    min-height: 180px;
+    padding: 22px;
+    border-radius: 28px;
+    isolation: isolate;
+    overflow: hidden;
+    background: #160d28;
+    border: 1px solid rgba(190,120,255,.28);
+}
+
+/* صورة AI تملأ البطاقة */
+.ai-visual-wrapper{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    display: block;
+}
+
+.ai-visual-wrapper::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(20,8,38,.96) 0%,
+            rgba(29,10,51,.78) 40%,
+            rgba(55,17,91,.30) 75%,
+            rgba(50,10,80,.12) 100%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(124,58,237,.38),
+            transparent 55%
+        );
+}
+
+.ai-visual-wrapper::after{
+    content: "✦  AI";
+    position: absolute;
+    right: 18px;
+    top: 15px;
+    z-index: 6;
+    padding: 7px 11px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .5px;
+    background: rgba(125,58,237,.72);
+    border: 1px solid rgba(255,255,255,.22);
+    box-shadow:
+        0 8px 25px rgba(124,58,237,.38),
+        inset 0 1px 0 rgba(255,255,255,.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* استعمل الصورة الموجودة أصلاً كخلفية */
+.ai-floating-cards{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ai-floating-cards .card-main{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: inherit;
+    transform: none;
+    box-shadow: none;
+}
+
+.ai-floating-cards .card-main img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(1.18) contrast(1.08);
+}
+
+/* نلغي البطاقات الصغيرة القديمة */
+.ai-floating-cards .card-back-1,
+.ai-floating-cards .card-back-2{
+    display: none;
+}
+
+/* المحتوى فوق خلفية AI */
+.ai-content{
+    position: relative;
+    z-index: 7;
+    width: 62%;
+    min-height: 136px;
+    justify-content: center;
+    text-align: right;
+    margin-left: auto;
+    align-items: flex-start;
+}
+
+.ai-title{
+    text-shadow: 0 3px 14px rgba(0,0,0,.7);
+}
+
+.ai-desc{
+    text-shadow: 0 2px 10px rgba(0,0,0,.7);
+}
+
+.ai-btn{
+    box-shadow:
+        0 9px 25px rgba(124,58,237,.45),
+        inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* ---------- الهاتف ---------- */
+@media (max-width: 768px){
+
+    .today-card,
+    .ai-card{
+        min-height: 180px;
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .today-content,
+    .ai-content{
+        width: 61%;
+        min-height: 140px;
+    }
+
+    .today-content h2,
+    .ai-title{
+        font-size: 17px;
+    }
+
+    .today-content p,
+    .ai-desc{
+        font-size: 11px;
+    }
+
+    .today-image-wrapper::after{
+        background:
+            linear-gradient(
+                90deg,
+                rgba(8,7,14,.94) 0%,
+                rgba(10,9,16,.66) 50%,
+                rgba(10,9,16,.12) 100%
+            ),
+            linear-gradient(
+                0deg,
+                rgba(0,0,0,.45),
+                transparent 60%
+            );
+    }
+
+    .ai-visual-wrapper::before{
+        background:
+            linear-gradient(
+                90deg,
+                rgba(20,8,38,.95) 0%,
+                rgba(29,10,51,.72) 52%,
+                rgba(55,17,91,.18) 100%
+            ),
+            linear-gradient(
+                135deg,
+                rgba(124,58,237,.42),
+                transparent 60%
+            );
+    }
+
+    .ai-visual-wrapper::after{
+        right: 14px;
+        top: 12px;
+        padding: 6px 9px;
+        font-size: 10px;
+    }
+}
