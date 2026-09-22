@@ -272,24 +272,14 @@ async function loadAllUnsplash(){
     allUnsplashSection.hidden = false;
 
     try{
-        const response = await fetch(
+        const data = await fetchJsonWithTimeout(
             `/api/unsplash?query=wallpaper&order_by=latest&_=${Date.now()}`,
             {
                 headers:{Accept:"application/json"},
                 cache:"no-store"
-            }
+            },
+            10000
         );
-
-        let data = {};
-        try{
-            data = await response.json();
-        }catch(_error){}
-
-        if(!response.ok){
-            throw new Error(
-                data?.error || `Unsplash API error ${response.status}`
-            );
-        }
 
         const photos = Array.isArray(data?.results)
             ? data.results.slice(0,10)
@@ -320,27 +310,127 @@ async function loadAllUnsplash(){
     }
 }
 
+async function fetchJsonWithTimeout(url, options = {}, timeout = 10000){
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try{
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+
+        let data = null;
+        try{
+            data = await response.json();
+        }catch(_error){}
+
+        if(!response.ok){
+            throw new Error(
+                data?.error ||
+                data?.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        return data;
+    }finally{
+        clearTimeout(timer);
+    }
+}
+
+async function loadWallpapersDirectFromSupabase(){
+    // Fallback مستقل: إذا توقف /api/wallpapers لا نبقي الصفحة عالقة
+    // في spinner. نقرأ نفس جدول wallpapers مباشرة من Supabase.
+    const { supabase } = await import("./supabase.js");
+
+    const { data, error } = await supabase
+        .from("wallpapers")
+        .select("*")
+        .order("id", { ascending: true });
+
+    if(error) throw error;
+
+    return (data || []).map(row => ({
+        id: Number(row.id),
+        title: row.title ?? "",
+        category: row.category ?? "other",
+        thumbnail: row.thumbnail ?? row.image ?? "",
+        image: row.image ?? row.thumbnail ?? "",
+        resolution: row.resolution ?? "",
+        size: row.size ?? "",
+        downloads: Number(row.downloads ?? 0),
+        likes: Number(row.likes ?? 0),
+        views: Number(row.views ?? 0),
+        rating: Number(row.rating ?? 0),
+        ratingCount: Number(row.rating_count ?? row.ratingCount ?? 0),
+        ratingSum: Number(row.rating_sum ?? row.ratingSum ?? 0),
+        author: row.author ?? "WallpaperHub",
+        date: row.date ?? "",
+        colors: Array.isArray(row.colors) ? row.colors : [],
+        tags: Array.isArray(row.tags) ? row.tags : [],
+        featured: Boolean(row.featured),
+        todayWallpaper: Boolean(row.today_wallpaper ?? row.todayWallpaper),
+        popular: Boolean(row.popular),
+        type: row.type ?? "image",
+        animated: Boolean(row.animated),
+        source: row.source ?? ""
+    }));
+}
+
 async function loadWallpapers(){
     loading.style.display = "flex";
     emptyState.style.display = "none";
 
     try{
-        const response = await fetch(API_URL,{headers:{Accept:"application/json"}});
-        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+        let data;
 
-        const data = await response.json();
-        allWallpapers = Array.isArray(data) ? data : [];
+        try{
+            // حد زمني حتى لا تبقى الصفحة مجمدة إذا تعطل endpoint.
+            data = await fetchJsonWithTimeout(
+                `${API_URL}?_=${Date.now()}`,
+                {
+                    headers:{Accept:"application/json"},
+                    cache:"no-store"
+                },
+                10000
+            );
+        }catch(apiError){
+            console.warn(
+                "WALLPAPERS API FAILED — USING SUPABASE FALLBACK:",
+                apiError
+            );
+            data = await loadWallpapersDirectFromSupabase();
+        }
+
+        allWallpapers =
+            Array.isArray(data)
+                ? data
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data?.wallpapers)
+                        ? data.wallpapers
+                        : [];
 
         preparePage();
         applyFilters();
         syncFavoritesOnLogin().catch(()=>{});
+
     }catch(error){
         console.error("Wallpaper load error:",error);
+
         loading.style.display = "none";
         wallpapersGrid.innerHTML = "";
         emptyState.style.display = "block";
-        emptyState.querySelector("h3").textContent = "تعذر تحميل الخلفيات";
-        emptyState.querySelector("p").textContent = "تأكد أن السيرفر يعمل ثم حاول مرة أخرى.";
+
+        const title = emptyState.querySelector("h3");
+        const message = emptyState.querySelector("p");
+
+        if(title) title.textContent = "تعذر تحميل الخلفيات";
+        if(message){
+            message.textContent =
+                "تعذر الاتصال بالخادم وقاعدة البيانات. أعد المحاولة بعد لحظات.";
+        }
     }
 }
 
