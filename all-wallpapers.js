@@ -36,6 +36,10 @@ const categoriesPanel = document.getElementById("categoriesPanel");
 const categoriesContent = document.getElementById("categoriesContent");
 const closeCategoriesBtn = document.getElementById("closeCategoriesBtn");
 
+const allUnsplashGrid = document.getElementById("allUnsplashGrid");
+const allUnsplashState = document.getElementById("allUnsplashState");
+const allUnsplashSection = document.getElementById("unsplashSection");
+
 
 const params = new URLSearchParams(location.search);
 const type = params.get("type");
@@ -176,6 +180,136 @@ function escapeHTML(value){
         .replace(/"/g,"&quot;")
         .replace(/'/g,"&#039;");
 }
+
+
+// =========================================================
+// Unsplash — قسم مستقل داخل صفحة جميع الخلفيات
+// المصدر: /api/unsplash -> server.js -> Supabase/localId
+// الضغط على الصورة يبقى داخل WallpaperHub.
+// =========================================================
+function createAllUnsplashCard(photo){
+    const localId = Number(photo?.localId ?? photo?.id);
+
+    const imageUrl =
+        photo?.urls?.small ||
+        photo?.thumbnail ||
+        photo?.urls?.regular ||
+        photo?.image;
+
+    if(!imageUrl || !Number.isFinite(localId)) return null;
+
+    const card = document.createElement("article");
+    card.className = "wallpaper-card all-unsplash-card";
+    card.dataset.id = String(localId);
+
+    const image = document.createElement("img");
+    image.src = imageUrl;
+    image.alt =
+        photo?.alt_description ||
+        photo?.description ||
+        photo?.title ||
+        "Unsplash wallpaper";
+    image.loading = "lazy";
+    image.decoding = "async";
+
+    image.addEventListener("error",() => {
+        card.remove();
+    },{once:true});
+
+    const qualityBadge = document.createElement("span");
+    qualityBadge.className = "quality-badge";
+    qualityBadge.textContent = getQuality(
+        photo?.width && photo?.height
+            ? `${photo.width}x${photo.height}`
+            : ""
+    );
+
+    const overlay = document.createElement("div");
+    overlay.className = "wallpaper-overlay";
+
+    const title = document.createElement("div");
+    title.className = "wallpaper-title";
+    title.textContent =
+        photo?.alt_description ||
+        photo?.description ||
+        "Unsplash";
+
+    const meta = document.createElement("div");
+    meta.className = "wallpaper-meta";
+
+    const resolution = document.createElement("span");
+    resolution.className = "wallpaper-resolution";
+    resolution.textContent =
+        photo?.width && photo?.height
+            ? `${photo.width} × ${photo.height}`
+            : "Unsplash";
+
+    const credit = document.createElement("span");
+    credit.className = "all-unsplash-credit";
+    credit.textContent =
+        photo?.user?.name ||
+        photo?.author ||
+        "Unsplash";
+
+    meta.append(resolution,credit);
+    overlay.append(title,meta);
+
+    card.append(image,qualityBadge,overlay);
+
+    card.addEventListener("click",() => {
+        localStorage.setItem("selectedWallpaper",String(localId));
+        location.href =
+            `wallpaper.html?id=${encodeURIComponent(localId)}`;
+    });
+
+    return card;
+}
+
+async function loadAllUnsplash(){
+    if(!allUnsplashGrid || !allUnsplashSection) return;
+
+    allUnsplashGrid.innerHTML = "";
+    allUnsplashSection.hidden = true;
+
+    try{
+        const data = await fetchJsonWithTimeout(
+            `/api/unsplash?query=wallpaper&order_by=latest&_=${Date.now()}`,
+            {
+                headers:{Accept:"application/json"},
+                cache:"no-store"
+            },
+            10000
+        );
+
+        const photos = Array.isArray(data?.results)
+            ? data.results.slice(0,10)
+            : [];
+
+        if(!photos.length){
+            allUnsplashSection.hidden = true;
+            return;
+        }
+
+        photos.forEach(photo => {
+            const card = createAllUnsplashCard(photo);
+            if(card) allUnsplashGrid.appendChild(card);
+        });
+
+        if(!allUnsplashGrid.children.length){
+            allUnsplashSection.hidden = true;
+        }
+    }catch(error){
+        console.error("ALL WALLPAPERS UNSPLASH ERROR:",error);
+        allUnsplashSection.hidden = true;
+
+        if(allUnsplashState){
+            allUnsplashState.hidden = false;
+            allUnsplashState.textContent =
+                "تعذر تحميل خلفيات Unsplash حالياً.";
+        }
+    }
+}
+
 async function fetchJsonWithTimeout(url, options = {}, timeout = 10000){
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
@@ -359,6 +493,17 @@ function applySort(list){
 }
 
 function applyFilters(){
+    // Unsplash is a separate source and is displayed in its horizontal row.
+    if(currentFilter === "unsplash"){
+        loading.style.display = "none";
+        emptyState.style.display = "none";
+        wallpapersGrid.innerHTML = "";
+        if(allUnsplashSection) allUnsplashSection.hidden = false;
+        return;
+    }
+
+    if(allUnsplashSection) allUnsplashSection.hidden = true;
+
     visibleWallpapers = [...pageWallpapers];
 
     const search = normalizeText(searchInput.value);
@@ -486,6 +631,7 @@ function renderCategoriesPanel(){
 
 function selectFilter(value,label){
     currentFilter = value;
+    if(allUnsplashSection) allUnsplashSection.hidden = value !== "unsplash";
     filterButtons.forEach(btn => btn.classList.toggle("active",btn.dataset.filter === value));
     document.querySelectorAll(".category-item").forEach(btn => btn.classList.toggle("active",btn.dataset.filter === value));
 
@@ -805,3 +951,4 @@ document.querySelectorAll(".page-bottom-nav button").forEach(button => {
 
 setView("grid");
 loadWallpapers();
+loadAllUnsplash();
