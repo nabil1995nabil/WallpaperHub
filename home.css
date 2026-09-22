@@ -182,7 +182,6 @@ a {
     overflow: hidden;
     cursor: pointer;
     background: #edf0f6;
-    box-shadow: 0 5px 18px rgba(24, 29, 55, .08);
     scroll-snap-align: start;
     transition: transform .2s ease, box-shadow .2s ease;
 }
@@ -334,7 +333,6 @@ a {
     text-decoration: none;
     font-size: 14px;
     font-weight: 900;
-    box-shadow: 0 8px 20px rgba(69, 46, 235, .35);
 }
 
 .community-cta span {
@@ -430,7 +428,6 @@ a {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 5px 16px rgba(28, 34, 60, .06);
     transition: transform .2s ease, background .2s ease;
     cursor: pointer;
 }
@@ -684,5 +681,22 @@ section,
         max-width: 100%;
         margin-left: 0;
         margin-right: 0;
+    }
+}
+
+/* =========================================================
+   MOBILE CARD HEIGHT — RED FRAME SIZE
+   تم تقليل ارتفاع بطاقات الخلفيات ليطابق الحجم المحدد في الصورة
+========================================================= */
+@media (max-width: 600px) {
+    .wall-card {
+        height: 150px !important;
+        min-height: 150px;
+        max-height: 150px;
+    }
+
+    .wall-card img,
+    .wall-card video {
+        height: 100%;
     }
 }
