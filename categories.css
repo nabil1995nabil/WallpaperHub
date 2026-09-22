@@ -1,6 +1,5 @@
 /* =========================================================
-   WallpaperHub — Categories / Clean Futuristic Redesign
-   الهدف: تصميم قريب من المرجع، بدون 3D أو Tilt أو Hover أو Animation.
+   WallpaperHub — Categories / Full Background Card Redesign
    ========================================================= */
 
 *,
@@ -36,7 +35,6 @@ body.categories-page-body {
     overflow-x: hidden;
 }
 
-/* ضمان عدم وجود أي حركة في هذه الصفحة */
 .categories-page-body *,
 .categories-page-body *::before,
 .categories-page-body *::after {
@@ -149,43 +147,30 @@ body.categories-page-body {
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 20px;
+    gap: 16px 20px;
 }
 
-/* ================= CARD ================= */
+/* ================= CARD (Full Background Image) ================= */
 
 .category-card {
     --card-accent: #287cff;
-    --card-glow: rgba(40, 124, 255, 0.20);
+    --card-glow: rgba(40, 124, 255, 0.25);
 
     position: relative;
     min-width: 0;
-    min-height: 148px;
+    min-height: 156px;
     padding: 0;
     border: 1px solid var(--line);
     border-radius: 20px;
     overflow: hidden;
-    background:
-        radial-gradient(circle at 82% 22%, var(--card-glow), transparent 34%),
-        linear-gradient(135deg, #101a2c, #080f1d 72%);
+    background: #080f1d;
     color: var(--text);
     text-align: right;
     cursor: pointer;
-    box-shadow: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     appearance: none;
     -webkit-appearance: none;
     isolation: isolate;
-}
-
-.category-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-        linear-gradient(90deg, transparent 0 38%, rgba(255,255,255,0.025) 58%, transparent 100%),
-        radial-gradient(circle at 12% 110%, var(--card-glow), transparent 42%);
-    pointer-events: none;
 }
 
 .category-card:focus-visible {
@@ -195,175 +180,127 @@ body.categories-page-body {
 
 .category-card.is-selected {
     border-color: var(--card-accent);
+    box-shadow: 0 0 0 2px var(--card-accent), 0 8px 24px var(--card-glow);
 }
 
-/* صورة/منطقة علوية مصنوعة بالكامل بـ CSS؛ لا تعتمد على ملفات خارجية */
+/* جعل منطقة الوسائط تغطي البطاقة بالكامل */
 .category-media {
-    position: relative;
-    display: block;
-    height: 78px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    background:
-        radial-gradient(circle at 78% 35%, rgba(255,255,255,0.24), transparent 16%),
-        linear-gradient(135deg, #17284a, #0b1426 62%, #070d18);
+    background: #0b1426;
 }
 
+/* تدرج لوني داكن متناسق فوق الصورة لضمان قراءة النصوص بوضوح تامة */
 .category-media::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 35%, rgba(5, 10, 22, 0.72));
+    background: linear-gradient(180deg, rgba(5, 10, 22, 0.15) 0%, rgba(5, 10, 22, 0.70) 55%, rgba(5, 10, 22, 0.95) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.category-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 1;
     pointer-events: none;
 }
 
 .category-icon {
     position: absolute;
-    left: 20px;
-    bottom: -16px;
-    z-index: 3;
-    width: 58px;
-    height: 58px;
-    border-radius: 17px;
+    top: 16px;
+    left: 16px;
+    z-index: 4;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: var(--card-accent);
     color: #fff;
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: 0 8px 22px var(--card-glow);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 6px 18px var(--card-glow);
 }
 
 .category-icon .material-icons {
-    font-size: 30px;
+    font-size: 26px;
 }
 
 .category-arrow {
     position: absolute;
-    right: 19px;
-    bottom: 12px;
+    top: 16px;
+    right: 16px;
     z-index: 4;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border: 2px solid var(--card-accent);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--card-accent);
-    font-size: 29px;
-    background: rgba(5, 10, 22, 0.30);
+    font-size: 24px;
+    background: rgba(5, 10, 22, 0.40);
+    backdrop-filter: blur(4px);
 }
 
 .category-content {
-    min-height: 70px;
-    padding: 19px 76px 12px 70px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    padding: 14px 18px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 2px;
 }
 
 .category-content strong {
     display: block;
-    font-size: 17px;
-    line-height: 1.35;
+    font-size: 16px;
+    line-height: 1.3;
     font-weight: 900;
     color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .category-content small {
     display: block;
-    font-size: 11.5px;
-    line-height: 1.55;
+    font-size: 11px;
+    line-height: 1.4;
     font-weight: 600;
-    color: var(--muted);
+    color: #cbd5e1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* ================= CATEGORY COLORS ================= */
 
-.category-card[data-category="all"]     { --card-accent:#1677ff; --card-glow:rgba(22,119,255,.24); }
-.category-card[data-category="nature"]  { --card-accent:#22c55e; --card-glow:rgba(34,197,94,.22); }
-.category-card[data-category="cars"]    { --card-accent:#ff304f; --card-glow:rgba(255,48,79,.22); }
-.category-card[data-category="games"]   { --card-accent:#8b4dff; --card-glow:rgba(139,77,255,.24); }
-.category-card[data-category="space"]   { --card-accent:#7347ff; --card-glow:rgba(115,71,255,.24); }
-.category-card[data-category="ai"]      { --card-accent:#1ba7ff; --card-glow:rgba(27,167,255,.24); }
-.category-card[data-category="amoled"]  { --card-accent:#9ba7bd; --card-glow:rgba(155,167,189,.14); }
-.category-card[data-category="animals"] { --card-accent:#ff8a16; --card-glow:rgba(255,138,22,.23); }
-.category-card[data-category="anime"]   { --card-accent:#f02da0; --card-glow:rgba(240,45,160,.23); }
-.category-card[data-category="city"]    { --card-accent:#ff6b18; --card-glow:rgba(255,107,24,.22); }
-.category-card[data-category="dark"]    { --card-accent:#9aa7c4; --card-glow:rgba(154,167,196,.14); }
-.category-card[data-category="4k"]      { --card-accent:#168cff; --card-glow:rgba(22,140,255,.24); }
-.category-card[data-category="sports"]  { --card-accent:#2bcf65; --card-glow:rgba(43,207,101,.22); }
-.category-card[data-category="minimal"] { --card-accent:#ffc52e; --card-glow:rgba(255,197,46,.22); }
-
-/* أنماط خلفية مختلفة لكل قسم لإعطاء إحساس بصري قوي بدون صور خارجية */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ================= LIGHT THEME ================= */
-
-body.categories-page-body:not(.dark) {
-    --bg: #eef3fa;
-    --surface: #ffffff;
-    --surface-2: #f5f8fd;
-    --line: rgba(36, 67, 110, 0.16);
-    --text: #142033;
-    --muted: #68768c;
-
-    background:
-        radial-gradient(circle at 50% -10%, rgba(67, 117, 220, 0.13), transparent 35%),
-        #eef3fa;
-    color: var(--text);
-}
-
-body.categories-page-body:not(.dark) .header h1 {
-    color: #122039;
-}
-
-body.categories-page-body:not(.dark) .header p {
-    color: #6b7890;
-}
-
-body.categories-page-body:not(.dark) .back-btn,
-body.categories-page-body:not(.dark) .header-badge {
-    background: rgba(255,255,255,.88);
-    color: #17243a;
-    border-color: rgba(42, 72, 115, .16);
-}
-
-body.categories-page-body:not(.dark) .header-badge strong {
-    color: #17243a;
-}
-
-body.categories-page-body:not(.dark) .header-badge small {
-    color: #718096;
-}
-
-body.categories-page-body:not(.dark) .category-card {
-    background:
-        radial-gradient(circle at 82% 22%, var(--card-glow), transparent 34%),
-        linear-gradient(135deg, #ffffff, #f1f5fb 72%);
-}
-
-body.categories-page-body:not(.dark) .category-content strong {
-    color: #17243a;
-}
-
-body.categories-page-body:not(.dark) .category-content small {
-    color: #68768c;
-}
+.category-card[data-category="all"]     { --card-accent:#1677ff; --card-glow:rgba(22,119,255,.3); }
+.category-card[data-category="nature"]  { --card-accent:#22c55e; --card-glow:rgba(34,197,94,.3); }
+.category-card[data-category="cars"]    { --card-accent:#ff304f; --card-glow:rgba(255,48,79,.3); }
+.category-card[data-category="games"]   { --card-accent:#8b4dff; --card-glow:rgba(139,77,255,.3); }
+.category-card[data-category="space"]   { --card-accent:#7347ff; --card-glow:rgba(115,71,255,.3); }
+.category-card[data-category="ai"]      { --card-accent:#1ba7ff; --card-glow:rgba(27,167,255,.3); }
+.category-card[data-category="amoled"]  { --card-accent:#9ba7bd; --card-glow:rgba(155,167,189,.2); }
+.category-card[data-category="animals"] { --card-accent:#ff8a16; --card-glow:rgba(255,138,22,.3); }
+.category-card[data-category="anime"]   { --card-accent:#f02da0; --card-glow:rgba(240,45,160,.3); }
+.category-card[data-category="city"]    { --card-accent:#ff6b18; --card-glow:rgba(255,107,24,.3); }
+.category-card[data-category="dark"]    { --card-accent:#9aa7c4; --card-glow:rgba(154,167,196,.2); }
+.category-card[data-category="4k"]      { --card-accent:#168cff; --card-glow:rgba(22,140,255,.3); }
+.category-card[data-category="sports"]  { --card-accent:#2bcf65; --card-glow:rgba(43,207,101,.3); }
+.category-card[data-category="minimal"] { --card-accent:#ffc52e; --card-glow:rgba(255,197,46,.3); }
 
 /* ================= RESPONSIVE ================= */
 
@@ -416,37 +353,32 @@ body.categories-page-body:not(.dark) .category-content small {
     }
 
     .category-card {
-        min-height: 132px;
+        min-height: 140px;
         border-radius: 17px;
     }
 
-    .category-media {
-        height: 67px;
-    }
-
     .category-icon {
-        left: 14px;
-        bottom: -14px;
-        width: 51px;
-        height: 51px;
-        border-radius: 15px;
+        top: 12px;
+        left: 12px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
     }
 
     .category-icon .material-icons {
-        font-size: 26px;
+        font-size: 22px;
     }
 
     .category-arrow {
+        top: 12px;
         right: 12px;
-        bottom: 9px;
-        width: 35px;
-        height: 35px;
-        font-size: 25px;
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
     }
 
     .category-content {
-        min-height: 64px;
-        padding: 16px 56px 10px 59px;
+        padding: 12px 14px;
     }
 
     .category-content strong {
@@ -472,35 +404,32 @@ body.categories-page-body:not(.dark) .category-content small {
     }
 
     .category-card {
-        min-height: 124px;
+        min-height: 130px;
         border-radius: 15px;
     }
 
-    .category-media {
-        height: 62px;
-    }
-
     .category-icon {
-        left: 11px;
-        width: 46px;
-        height: 46px;
-        border-radius: 13px;
+        top: 10px;
+        left: 10px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
     }
 
     .category-icon .material-icons {
-        font-size: 23px;
+        font-size: 20px;
     }
 
     .category-arrow {
-        right: 9px;
-        bottom: 8px;
-        width: 32px;
-        height: 32px;
-        font-size: 23px;
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        font-size: 18px;
     }
 
     .category-content {
-        padding: 15px 49px 9px 51px;
+        padding: 10px 12px;
     }
 
     .category-content strong {
@@ -512,46 +441,18 @@ body.categories-page-body:not(.dark) .category-content small {
     }
 }
 
-
-/* ================= STATIC VIRTUAL CATEGORY IMAGES =================
-   صور SVG محلية ثابتة — لا animation / لا parallax / لا حركة.
-*/
-.category-image {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    display: block;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    opacity: 1;
-    pointer-events: none;
-}
-
-.category-media > .category-icon,
-.category-media > .category-arrow {
-    z-index: 4;
-}
-
-.category-media::before {
-    z-index: 2;
-}
-
-.category-media::after {
-    z-index: 3;
-}
-
-.category-card[data-image="all.svg"] .category-image     { background-image: url("assets/category-images/all.svg"); }
-.category-card[data-image="nature.svg"] .category-image  { background-image: url("assets/category-images/nature.svg"); }
-.category-card[data-image="cars.svg"] .category-image    { background-image: url("assets/category-images/cars.svg"); }
-.category-card[data-image="games.svg"] .category-image   { background-image: url("assets/category-images/games.svg"); }
-.category-card[data-image="space.svg"] .category-image   { background-image: url("assets/category-images/space.svg"); }
-.category-card[data-image="ai.svg"] .category-image      { background-image: url("assets/category-images/ai.svg"); }
-.category-card[data-image="amoled.svg"] .category-image  { background-image: url("assets/category-images/amoled.svg"); }
-.category-card[data-image="animals.svg"] .category-image { background-image: url("assets/category-images/animals.svg"); }
-.category-card[data-image="anime.svg"] .category-image   { background-image: url("assets/category-images/anime.svg"); }
-.category-card[data-image="city.svg"] .category-image    { background-image: url("assets/category-images/city.svg"); }
-.category-card[data-image="dark.svg"] .category-image    { background-image: url("assets/category-images/dark.svg"); }
-.category-card[data-image="4k.svg"] .category-image      { background-image: url("assets/category-images/4k.svg"); }
-.category-card[data-image="sports.svg"] .category-image  { background-image: url("assets/category-images/sports.svg"); }
-.category-card[data-image="minimal.svg"] .category-image { background-image: url("assets/category-images/minimal.svg"); }
+/* ربط صور احترافية عالية الجودة لكل قسم لتطابق الصورة المرجعية تماماً */
+.category-card[data-image="all.svg"] .category-image     { background-image: url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="nature.svg"] .category-image  { background-image: url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="cars.svg"] .category-image    { background-image: url("https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="games.svg"] .category-image   { background-image: url("https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="space.svg"] .category-image   { background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="ai.svg"] .category-image      { background-image: url("https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="amoled.svg"] .category-image  { background-image: url("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="animals.svg"] .category-image { background-image: url("https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="anime.svg"] .category-image   { background-image: url("https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="city.svg"] .category-image    { background-image: url("https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="dark.svg"] .category-image    { background-image: url("https://images.unsplash.com/photo-1507499739999-097706ad8914?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="4k.svg"] .category-image      { background-image: url("https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="sports.svg"] .category-image  { background-image: url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop"); }
+.category-card[data-image="minimal.svg"] .category-image { background-image: url("https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=600&auto=format&fit=crop"); }
