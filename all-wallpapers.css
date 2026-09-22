@@ -482,7 +482,8 @@ main, .search-section, .filters-wrap, .toolbar { background:transparent !importa
 
 
 /* =========================================================
-   UNSPLASH SECTION — داخل صفحة جميع الخلفيات
+   UNSPLASH SECTION — نفس شبكة الأقسام الأخرى
+   3 بطاقات عمودية في كل سطر على الهاتف
    ========================================================= */
 .all-unsplash-section{
     margin:18px 10px 26px;
@@ -521,32 +522,26 @@ main, .search-section, .filters-wrap, .toolbar { background:transparent !importa
     white-space:nowrap;
 }
 
-/* شريط أفقي مثل أقسام الصفحة الرئيسية، وليس Grid عمودي كبير. */
+/* نفس شبكة الخلفيات الرئيسية: 3 صور في السطر */
 .all-unsplash-grid{
-    display:flex !important;
-    grid-template-columns:none !important;
-    flex-wrap:nowrap;
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
     gap:9px;
     width:100%;
-    max-width:none;
-    margin:0;
-    padding:0 2px 8px;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scrollbar-width:none;
-    scroll-snap-type:x proximity;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 0 8px;
+    overflow:visible;
 }
 
-.all-unsplash-grid::-webkit-scrollbar{
-    display:none;
-}
-
+/* بطاقات عمودية مثل باقي أقسام الخلفيات */
 .all-unsplash-card{
     position:relative;
-    flex:0 0 142px;
-    width:142px;
-    aspect-ratio:3 / 4;
-    scroll-snap-align:start;
+    width:auto;
+    min-width:0;
+    flex:none;
+    aspect-ratio:4 / 5;
+    scroll-snap-align:none;
 }
 
 .all-unsplash-card .wallpaper-overlay{
@@ -582,11 +577,6 @@ main, .search-section, .filters-wrap, .toolbar { background:transparent !importa
     .all-unsplash-section{
         margin-inline:22px;
     }
-
-    .all-unsplash-card{
-        flex-basis:170px;
-        width:170px;
-    }
 }
 
 @media(max-width:380px){
@@ -596,11 +586,6 @@ main, .search-section, .filters-wrap, .toolbar { background:transparent !importa
 
     .all-unsplash-header h2{
         font-size:16px;
-    }
-
-    .all-unsplash-card{
-        flex-basis:136px;
-        width:136px;
     }
 }
 
