@@ -29,6 +29,7 @@ html {
     scroll-behavior: smooth;
     overscroll-behavior-x: none;
     width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
 }
 
@@ -37,6 +38,7 @@ body {
     color: var(--text);
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     overflow-x: hidden;
     overscroll-behavior-x: none;
 }
@@ -556,6 +558,7 @@ section,
 header,
 footer {
     max-width: 100%;
+    min-width: 0;
 }
 
 img,

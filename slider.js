@@ -240,26 +240,28 @@ function createMiniCards(){
     container.innerHTML = "";
 
     /*
-     * نبني الشريط كـ Infinite Carousel حقيقي.
-     * نكرر البيانات عدة مرات، ونبدأ من النسخة الوسطى،
-     * لذلك لا يصل الشريط أبداً إلى نهاية مرئية.
+     * Mini carousel architecture:
+     * - the purple frame belongs to .mini-wrapper and never moves
+     * - this track is the only thing that moves
+     * - five copies give us enough room to move in either direction
+     * - after a transition, we silently return to the middle copy
      */
-    const copies = 3;
-    const middleCopy = Math.floor(copies / 2);
+    const copies = 5;
+    const middleCopy = 2;
+    const count = sliderItems.length;
 
     container.dataset.copies = String(copies);
     container.dataset.middleCopy = String(middleCopy);
-    container.dataset.itemCount = String(sliderItems.length);
-    container.dataset.visualIndex = String(
-        middleCopy * sliderItems.length
-    );
+    container.dataset.itemCount = String(count);
+    container.dataset.visualIndex = String(middleCopy * count);
+    container.dataset.trackX = "0";
 
     for(let copy = 0; copy < copies; copy++){
 
         sliderItems.forEach((wall,index)=>{
 
             const visualIndex =
-                copy * sliderItems.length + index;
+                copy * count + index;
 
             const card =
                 document.createElement("button");
@@ -268,6 +270,7 @@ function createMiniCards(){
             card.className = "mini-card";
             card.dataset.index = String(index);
             card.dataset.visualIndex = String(visualIndex);
+
             card.setAttribute(
                 "aria-label",
                 `الخلفية ${index + 1}`
@@ -296,14 +299,69 @@ function createMiniCards(){
             container.appendChild(card);
         });
     }
+
+    /*
+     * The track is positioned only after it has been laid out.
+     * This prevents the first render from being shifted.
+     */
+    requestAnimationFrame(()=>{
+        updateMiniCards(0, false);
+    });
 }
 
 
-// =======================================
-// تحديث الصورة المصغرة النشطة
-// =======================================
+/* =======================================
+   حساب موضع بطاقة داخل الإطار الثابت
+======================================= */
 
-function updateMiniCards(index){
+function getMiniTargetLeft(card){
+
+    const viewport =
+        document.getElementById("miniViewport");
+
+    if(!viewport || !card)
+        return 0;
+
+    return (
+        card.offsetLeft -
+        (viewport.clientWidth - card.offsetWidth) / 2
+    );
+}
+
+
+/* =======================================
+   تحريك شريط الصور المصغرة
+   الإطار ثابت — الـ track فقط يتحرك
+======================================= */
+
+function moveMiniTrack(left, animate = true){
+
+    const viewport =
+        document.getElementById("miniViewport");
+
+    const container =
+        document.getElementById("miniCards");
+
+    if(!viewport || !container)
+        return;
+
+    container.style.transition =
+        animate
+            ? "transform .45s cubic-bezier(.22,.61,.36,1)"
+            : "none";
+
+    container.style.transform =
+        `translate3d(${-left}px, 0, 0)`;
+
+    container.dataset.trackX = String(left);
+}
+
+
+/* =======================================
+   مزامنة البطاقة الحالية مع الإطار الثابت
+======================================= */
+
+function updateMiniCards(index, animate = true){
 
     const viewport =
         document.getElementById("miniViewport");
@@ -315,85 +373,273 @@ function updateMiniCards(index){
         return;
 
     const count = sliderItems.length;
-    const copies = Number(container.dataset.copies) || 3;
     const middleCopy =
-        Number(container.dataset.middleCopy) || Math.floor(copies / 2);
+        Number(container.dataset.middleCopy) || 2;
 
-    let visualIndex =
+    const currentVisual =
         Number(container.dataset.visualIndex);
 
-    if(!Number.isFinite(visualIndex)){
-        visualIndex = middleCopy * count + index;
-    }
+    const baseTarget =
+        middleCopy * count + index;
 
     /*
-     * اختر أقرب نسخة من نفس الخلفية إلى الموضع الحالي.
-     * هذا يمنع القفزة من آخر صورة إلى أول صورة.
+     * اختر النسخة الأقرب للموضع الحالي.
+     * لا يوجد scrollLeft ولا إعادة تمركز أثناء الحركة.
      */
-    let target = middleCopy * count + index;
-    const candidates = [target - count, target, target + count];
+    let target = baseTarget;
 
-    target = candidates.reduce((nearest, candidate)=>{
-        return Math.abs(candidate - visualIndex) <
-               Math.abs(nearest - visualIndex)
-            ? candidate
-            : nearest;
-    });
+    if(Number.isFinite(currentVisual)){
+
+        const candidates = [
+            baseTarget - count * 2,
+            baseTarget - count,
+            baseTarget,
+            baseTarget + count,
+            baseTarget + count * 2
+        ];
+
+        target = candidates.reduce((nearest, candidate)=>{
+            return Math.abs(candidate - currentVisual) <
+                   Math.abs(nearest - currentVisual)
+                ? candidate
+                : nearest;
+        });
+    }
 
     const cards =
         container.querySelectorAll(".mini-card");
 
-    const activeCard = cards[target];
+    const card = cards[target];
 
-    if(!activeCard)
+    if(!card)
         return;
-
-    /* لا توجد بطاقة active: الإطار منفصل وثابت. */
-    cards.forEach(card => card.classList.remove("active"));
 
     container.dataset.visualIndex = String(target);
 
-    const targetLeft =
-        activeCard.offsetLeft -
-        (viewport.clientWidth - activeCard.offsetWidth) / 2;
+    const left = getMiniTargetLeft(card);
 
-    viewport.scrollTo({
-        left: Math.max(0, targetLeft),
-        behavior: "smooth"
-    });
+    moveMiniTrack(left, animate);
 
     /*
-     * بعد عدة دورات نعيد موضع الشريط إلى النسخة الوسطى
-     * بدون حركة مرئية، مع الحفاظ على الخلفية الموجودة
-     * داخل الإطار نفسه.
+     * بعد انتهاء الحركة، إذا اقتربنا من نسخة خارجية،
+     * ننقل الموضع إلى النسخة الوسطى بدون أي حركة مرئية.
      */
-    const safeLow = Math.floor(count * 0.5);
-    const safeHigh = count * 2 + Math.floor(count * 0.5);
+    const lowLimit = count;
+    const highLimit = count * 4;
 
-    if(target < safeLow || target >= safeHigh){
-        const recentered = middleCopy * count + index;
+    if(target < lowLimit || target >= highLimit){
 
-        requestAnimationFrame(()=>{
-            const recenterCard = cards[recentered];
+        const middleTarget =
+            middleCopy * count + index;
 
-            if(!recenterCard)
-                return;
+        const middleCard =
+            cards[middleTarget];
 
-            container.dataset.visualIndex =
-                String(recentered);
+        if(middleCard){
 
-            const left =
-                recenterCard.offsetLeft -
-                (viewport.clientWidth - recenterCard.offsetWidth) / 2;
+            const middleLeft =
+                getMiniTargetLeft(middleCard);
 
-            viewport.scrollTo({
-                left: Math.max(0, left),
-                behavior: "auto"
-            });
-        });
+            window.setTimeout(()=>{
+
+                container.dataset.visualIndex =
+                    String(middleTarget);
+
+                moveMiniTrack(middleLeft, false);
+
+            }, animate ? 470 : 0);
+        }
     }
 }
 
+
+/* =======================================
+   تحديد البطاقة الأقرب للإطار
+======================================= */
+
+function getCenteredMiniIndex(){
+
+    const viewport =
+        document.getElementById("miniViewport");
+
+    const container =
+        document.getElementById("miniCards");
+
+    if(!viewport || !container || !sliderItems.length)
+        return sliderIndex;
+
+    const cards =
+        container.querySelectorAll(".mini-card");
+
+    const viewportCenter =
+        viewport.clientWidth / 2;
+
+    const trackX =
+        Number(container.dataset.trackX) || 0;
+
+    let nearest = 0;
+    let nearestDistance = Infinity;
+
+    cards.forEach((card, visualIndex)=>{
+
+        const center =
+            card.offsetLeft -
+            trackX +
+            card.offsetWidth / 2;
+
+        const distance =
+            Math.abs(center - viewportCenter);
+
+        if(distance < nearestDistance){
+            nearestDistance = distance;
+            nearest = visualIndex;
+        }
+    });
+
+    return Number(cards[nearest]?.dataset.index) || 0;
+}
+
+
+/* =======================================
+   سحب شريط الصور المصغرة
+   نفس نظام الـ track المستخدم في كل الحالات
+======================================= */
+
+function bindMiniSliderDrag(){
+
+    const viewport =
+        document.getElementById("miniViewport");
+
+    const cards =
+        document.getElementById("miniCards");
+
+    if(!viewport || !cards)
+        return;
+
+    let pointerActive = false;
+    let pointerStartX = 0;
+    let pointerStartTrack = 0;
+
+    const beginDrag = (x)=>{
+        pointerActive = true;
+        miniDragging = false;
+        miniSuppressClick = false;
+        pointerStartX = x;
+        pointerStartTrack =
+            Number(cards.dataset.trackX) || 0;
+
+        cards.style.transition = "none";
+        viewport.classList.add("is-dragging");
+    };
+
+    const moveDrag = (x)=>{
+        if(!pointerActive)
+            return;
+
+        const delta = x - pointerStartX;
+
+        if(Math.abs(delta) > 6){
+            miniDragging = true;
+            miniSuppressClick = true;
+        }
+
+        const nextLeft =
+            pointerStartTrack - delta;
+
+        moveMiniTrack(nextLeft, false);
+    };
+
+    const endDrag = ()=>{
+        if(!pointerActive)
+            return;
+
+        pointerActive = false;
+        viewport.classList.remove("is-dragging");
+
+        if(!miniDragging){
+            miniSuppressClick = false;
+            return;
+        }
+
+        /*
+         * Snap to the card that is now under the fixed frame.
+         * Then make that card the main wallpaper.
+         */
+        const index = getCenteredMiniIndex();
+
+        miniDragging = false;
+
+        showSlider(index);
+
+        window.setTimeout(()=>{
+            miniSuppressClick = false;
+        }, 80);
+    };
+
+    viewport.addEventListener(
+        "touchstart",
+        (event)=>{
+            if(!event.touches?.length)
+                return;
+
+            beginDrag(event.touches[0].clientX);
+        },
+        {passive:true}
+    );
+
+    viewport.addEventListener(
+        "touchmove",
+        (event)=>{
+            if(!event.touches?.length)
+                return;
+
+            moveDrag(event.touches[0].clientX);
+        },
+        {passive:true}
+    );
+
+    viewport.addEventListener(
+        "touchend",
+        endDrag,
+        {passive:true}
+    );
+
+    viewport.addEventListener(
+        "mousedown",
+        (event)=>{
+            event.preventDefault();
+            beginDrag(event.clientX);
+        }
+    );
+
+    window.addEventListener(
+        "mousemove",
+        (event)=>{
+            moveDrag(event.clientX);
+        }
+    );
+
+    window.addEventListener(
+        "mouseup",
+        endDrag
+    );
+}
+
+
+/* =======================================
+   إعادة ضبط موضع الـ track عند تغيير حجم الشاشة
+======================================= */
+
+window.addEventListener("resize", ()=>{
+
+    if(!sliderItems.length)
+        return;
+
+    requestAnimationFrame(()=>{
+        updateMiniCards(sliderIndex, false);
+    });
+
+});
 
 // =======================================
 // النقاط
