@@ -2,24 +2,45 @@
    WallpaperHub — Interactive Slider Pro (Updated Layout)
 ===================================== */
 
-/* منطقة السلايدر - متمددة بالكامل وتتجاوب مع وضع سطح المكتب */
+/* منطقة السلايدر - مرتبطة مباشرة بعرض نافذة العرض */
 .slider-section{
+    position: relative;
     width: 100%;
+    max-width: 100%;
+    margin: 0;
     padding: 15px 12px;
     box-sizing: border-box;
     overflow: hidden;
+    overflow-x: clip;
+    isolation: isolate;
+}
+
+/* يمنع محتوى السلايدر من إنشاء إزاحة أفقية للصفحة */
+html,
+body{
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* إطار السلايدر الكامل */
 .slider-frame{
     position: relative;
+    display: block;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
 }
 
 /* السلايدر الرئيسي */
 #sliderContent{
     position: relative;
+    display: block;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
     height: 180px;
     border-radius: 30px;
     overflow: hidden;
@@ -188,6 +209,7 @@
     bottom: 15px;
     transform: translateX(-50%);
     width: min(88%, 760px);
+    max-width: 100%;
     height: 68px;
     display: flex;
     align-items: center;
@@ -347,14 +369,20 @@
 @media(max-width:600px){
 
     .slider-section{
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
         padding: 12px 10px;
         box-sizing: border-box;
-        width: 100%;
         overflow: hidden;
+        overflow-x: clip;
     }
 
     #sliderContent{
         width: 100%;
+        max-width: 100%;
+        margin: 0;
         height: 270px;
         border-radius: 26px;
         overflow: hidden;
