@@ -115,7 +115,6 @@
     overflow: hidden;
 
     background: #0f172a;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, .15);
 
     cursor: pointer;
     scroll-snap-align: start;
@@ -128,9 +127,6 @@
 
 .home-category-grid > .home-category.active {
     border: 2px solid #a855f7;
-    box-shadow:
-        0 0 0 2px rgba(168, 85, 247, .35),
-        0 0 22px rgba(168, 85, 247, .5);
 }
 
 /* Image */
