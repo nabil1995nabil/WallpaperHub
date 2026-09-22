@@ -231,63 +231,71 @@ function createMiniCards(){
     const container =
         document.getElementById("miniCards");
 
+    const viewport =
+        document.getElementById("miniViewport");
 
-    if(!container)
+    if(!container || !viewport || !sliderItems.length)
         return;
-
 
     container.innerHTML = "";
 
+    /*
+     * نبني الشريط كـ Infinite Carousel حقيقي.
+     * نكرر البيانات عدة مرات، ونبدأ من النسخة الوسطى،
+     * لذلك لا يصل الشريط أبداً إلى نهاية مرئية.
+     */
+    const copies = 3;
+    const middleCopy = Math.floor(copies / 2);
 
-    sliderItems.forEach((wall,index)=>{
+    container.dataset.copies = String(copies);
+    container.dataset.middleCopy = String(middleCopy);
+    container.dataset.itemCount = String(sliderItems.length);
+    container.dataset.visualIndex = String(
+        middleCopy * sliderItems.length
+    );
 
-        const card =
-            document.createElement("button");
+    for(let copy = 0; copy < copies; copy++){
 
+        sliderItems.forEach((wall,index)=>{
 
-        card.type = "button";
+            const visualIndex =
+                copy * sliderItems.length + index;
 
-        card.className = "mini-card";
+            const card =
+                document.createElement("button");
 
-        card.setAttribute(
-            "aria-label",
-            `الخلفية ${index + 1}`
-        );
+            card.type = "button";
+            card.className = "mini-card";
+            card.dataset.index = String(index);
+            card.dataset.visualIndex = String(visualIndex);
+            card.setAttribute(
+                "aria-label",
+                `الخلفية ${index + 1}`
+            );
 
+            card.innerHTML = `
+                <img
+                    src="${wall.thumbnail || wall.image}"
+                    alt=""
+                    draggable="false"
+                    loading="lazy"
+                    decoding="async">
+            `;
 
-        card.innerHTML = `
+            card.addEventListener("click", (event)=>{
 
-            <img
-                src="${wall.thumbnail || wall.image}"
-                alt=""
-                draggable="false">
-
-        `;
-
-
-        card.addEventListener(
-            "click",
-            (event)=>{
-
-                // إذا كانت العملية سحباً لا نعتبرها نقرة
                 if(miniDragging || miniSuppressClick){
                     miniSuppressClick = false;
                     return;
                 }
 
-
                 event.preventDefault();
-
                 showSlider(index);
+            });
 
-            }
-        );
-
-
-        container.appendChild(card);
-
-    });
-
+            container.appendChild(card);
+        });
+    }
 }
 
 
@@ -297,48 +305,93 @@ function createMiniCards(){
 
 function updateMiniCards(index){
 
-    const cards =
-        document.querySelectorAll(
-            "#miniCards .mini-card"
-        );
-
-
-    /*
-     * الإطار البنفسجي أصبح ثابتاً فوق منتصف الشريط.
-     * لا نضيف active للبطاقات حتى لا يتحرك الإطار مع الخلفية.
-     * الخلفيات نفسها هي التي تمر من تحت الإطار.
-     */
-    cards.forEach((card)=>{
-        card.classList.remove("active");
-    });
-
-
-    const activeCard =
-        cards[index];
-
     const viewport =
         document.getElementById("miniViewport");
 
-    /*
-     * نحرك محتوى الصور المصغرة فقط داخل النافذة الثابتة.
-     * النافذة والإطار لا يتحركان مع الصفحة أو مع الخلفية.
-     */
-    if(activeCard && viewport){
+    const container =
+        document.getElementById("miniCards");
 
-        const targetLeft =
-            activeCard.offsetLeft -
-            (viewport.clientWidth - activeCard.offsetWidth) / 2;
+    if(!viewport || !container || !sliderItems.length)
+        return;
 
-        const maxLeft =
-            Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    const count = sliderItems.length;
+    const copies = Number(container.dataset.copies) || 3;
+    const middleCopy =
+        Number(container.dataset.middleCopy) || Math.floor(copies / 2);
 
-        viewport.scrollTo({
-            left: Math.max(0, Math.min(targetLeft, maxLeft)),
-            behavior: "smooth"
-        });
+    let visualIndex =
+        Number(container.dataset.visualIndex);
 
+    if(!Number.isFinite(visualIndex)){
+        visualIndex = middleCopy * count + index;
     }
 
+    /*
+     * اختر أقرب نسخة من نفس الخلفية إلى الموضع الحالي.
+     * هذا يمنع القفزة من آخر صورة إلى أول صورة.
+     */
+    let target = middleCopy * count + index;
+    const candidates = [target - count, target, target + count];
+
+    target = candidates.reduce((nearest, candidate)=>{
+        return Math.abs(candidate - visualIndex) <
+               Math.abs(nearest - visualIndex)
+            ? candidate
+            : nearest;
+    });
+
+    const cards =
+        container.querySelectorAll(".mini-card");
+
+    const activeCard = cards[target];
+
+    if(!activeCard)
+        return;
+
+    /* لا توجد بطاقة active: الإطار منفصل وثابت. */
+    cards.forEach(card => card.classList.remove("active"));
+
+    container.dataset.visualIndex = String(target);
+
+    const targetLeft =
+        activeCard.offsetLeft -
+        (viewport.clientWidth - activeCard.offsetWidth) / 2;
+
+    viewport.scrollTo({
+        left: Math.max(0, targetLeft),
+        behavior: "smooth"
+    });
+
+    /*
+     * بعد عدة دورات نعيد موضع الشريط إلى النسخة الوسطى
+     * بدون حركة مرئية، مع الحفاظ على الخلفية الموجودة
+     * داخل الإطار نفسه.
+     */
+    const safeLow = Math.floor(count * 0.5);
+    const safeHigh = count * 2 + Math.floor(count * 0.5);
+
+    if(target < safeLow || target >= safeHigh){
+        const recentered = middleCopy * count + index;
+
+        requestAnimationFrame(()=>{
+            const recenterCard = cards[recentered];
+
+            if(!recenterCard)
+                return;
+
+            container.dataset.visualIndex =
+                String(recentered);
+
+            const left =
+                recenterCard.offsetLeft -
+                (viewport.clientWidth - recenterCard.offsetWidth) / 2;
+
+            viewport.scrollTo({
+                left: Math.max(0, left),
+                behavior: "auto"
+            });
+        });
+    }
 }
 
 
