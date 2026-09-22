@@ -8,6 +8,7 @@
     <title>WallpaperHub</title>
 
     <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="wallhaven.css">
         <link rel="stylesheet" href="unsplash.css">
 <link rel="stylesheet" href="slider.css">
     <link rel="stylesheet" href="home-categories.css">
@@ -238,27 +239,12 @@
     <div class="wall-grid" id="recommendedWallpapers"></div>
 </section>
 
-
-<!-- ==================================================
-     10. Wallhaven AI
-================================================== -->
-<section class="wall-section wallhaven-section">
-    <div class="title">
-        <div>
-            <span class="section-kicker">DISCOVER</span>
-            <h3>🌐 Wallhaven AI</h3>
-        </div>
-        <a href="#">عرض الكل</a>
-    </div>
-
-    <div id="wallhavenAI" class="wall-grid"></div>
-</section>
-
+<!-- Wallhaven module mount -->
+<div id="wallhavenSection"></div>
 <!-- ==================================================
      3. Unsplash — يتم تحميله من public/unsplash.html
 ================================================== -->
 <div id="unsplashSection"></div>
-
 
 <!-- ==================================================
      11. الأقسام الإضافية
@@ -290,6 +276,7 @@
 <script src="today.js"></script>
 <script src="js/performance-engine.js"></script>
     <script src="unsplash.js"></script>
+<script src="wallhaven.js"></script>
 <script type="module" src="home.js"></script>
 <script src="theme.js"></script>
 <script src="effects.js"></script>

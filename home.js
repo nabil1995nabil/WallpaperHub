@@ -74,9 +74,6 @@ document.getElementById("likedWallpapers");
 
 const downloadedContainer =
 document.getElementById("downloadedWallpapers");
-const wallhavenContainer =
-document.getElementById("wallhavenAI");
-
 // =======================================
 // تحميل البيانات
 // =======================================
@@ -274,9 +271,6 @@ const categoryNames = {
     sports: "⚽ الرياضة",
 
     minimal: "✨ Minimal",
-    
-    wallhaven:"Wallhaven AI 🌐",
-    
 rain:"🌧️ المطر",
 
 sunset:"🌅 الغروب",
@@ -314,9 +308,7 @@ function createDynamicSections() {
         "rain",
         "sunset",
         "architecture",
-        "deep-space",
-        "wallhaven"
-    ];
+        "deep-space",];
 
     categories.forEach(category => {
 
@@ -705,77 +697,7 @@ if(navItems.length && indicator){
     });
 
 }
-
-//دالة جلب خلفيات //
-
-async function loadWallhavenAI(){
-
-try{
-
-
-const res =
-await fetch("/api/wallpapers?_=" + Date.now());
-
-
-
-
-const wallpapers =
-await res.json();
-
-
-
-const container =
-document.getElementById("wallhavenAI");
-
-
-
-if(!container)
-return;
-
-
-
-container.innerHTML="";
-
-
-
-wallpapers
-
-.filter(w =>
-w.source === "wallhaven" &&
-w.category === "wallhaven"
-)
-
-.slice(0,10)
-
-.forEach(w=>{
-
-
-const card =
-document.createElement("div");
-
-
-card.className =
-"wall-card";
-
-
-
-card.innerHTML = `
-
-<img src="${w.thumbnail || w.image}">
-
-
-`;
-
-
-
-card.onclick=()=>{
-
-
-location.href =
-"wallpaper.html?id="+w.id;
-
-
-};
+;
 
 
 
@@ -809,8 +731,6 @@ document.addEventListener(
     () => {
 
         loadWallpapers();
-        loadWallhavenAI();
-
-    }
+}
 
 );
