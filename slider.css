@@ -305,3 +305,55 @@
         width: 16px;
     }
 }
+
+
+/* =========================================================
+   FINAL FIX — slider must never create page-level overflow
+========================================================= */
+
+.slider-section,
+.slider-frame,
+#sliderContent {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.slider-section {
+    overflow-x: clip;
+}
+
+#sliderContent {
+    overflow: hidden;
+}
+
+/* Keep transformed slides clipped inside the rounded frame */
+.slide {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Mobile viewport safety */
+@media (max-width: 600px) {
+    .slider-section {
+        width: 100%;
+        max-width: 100vw;
+        padding-left: 10px;
+        padding-right: 10px;
+        overflow-x: clip;
+    }
+
+    #sliderContent {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .slider-arrow-prev {
+        left: 8px;
+    }
+
+    .slider-arrow-next {
+        right: 8px;
+    }
+}
