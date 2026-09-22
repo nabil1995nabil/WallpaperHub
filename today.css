@@ -27,7 +27,6 @@
     padding: 20px;
     gap: 15px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .today-content {
@@ -129,7 +128,6 @@
     padding: 20px;
     gap: 15px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .ai-content {
