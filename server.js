@@ -1274,20 +1274,14 @@ app.get("/api/unsplash", async (req, res) => {
         .trim()
         .slice(0, 80);
 
-    const page = Math.max(
-        1,
-        Math.min(Number(req.query.page) || 1, 100)
-    );
-
-    const perPage = Math.max(
-        1,
-        Math.min(Number(req.query.per_page) || 12, 30)
-    );
-
     const orderBy =
         req.query.order_by === "relevant"
             ? "relevant"
             : "latest";
+
+    // قسم Unsplash يعرض 10 صور فقط.
+    const perPage = 10;
+    const page = 1;
 
     const params = new URLSearchParams({
         query: query || "wallpaper",
@@ -1321,45 +1315,173 @@ app.get("/api/unsplash", async (req, res) => {
             });
         }
 
-        const results = (data.results || []).map(photo => ({
-            id: photo.id,
-            width: photo.width,
-            height: photo.height,
-            alt_description: photo.alt_description,
-            description: photo.description,
-            urls: {
-                small: photo.urls?.small,
-                regular: photo.urls?.regular,
-                full: photo.urls?.full
-            },
-            links: {
-                html: photo.links?.html,
-                download_location: photo.links?.download_location
-            },
-            user: {
-                name: photo.user?.name,
-                username: photo.user?.username,
-                profile_url: photo.user?.links?.html
-            }
-        }));
+        const photos = Array.isArray(data.results)
+            ? data.results.slice(0, 10)
+            : [];
+
+        // نقرأ الصور التي سبق تخزينها حتى لا نكرر نفس صورة Unsplash.
+        const { data: existingRows, error: existingError } = await supabase
+            .from("wallpapers")
+            .select("id,image,source")
+            .eq("source", "unsplash");
+
+        if (existingError) throw existingError;
+
+        const existingImages = new Set(
+            (existingRows || [])
+                .map(row => String(row.image || "").trim())
+                .filter(Boolean)
+        );
+
+        // ID محلي رقمي حتى تعمل الصورة مع النظام الحالي:
+        // wallpaper.html?id=<local-id>
+        let importBase = Date.now() * 1000;
+        const usedIds = new Set(
+            (existingRows || [])
+                .map(row => Number(row.id))
+                .filter(Number.isFinite)
+        );
+
+        while (usedIds.has(importBase)) {
+            importBase += 1000;
+        }
+
+        const rows = [];
+
+        for (const photo of photos) {
+            const image = String(
+                photo?.urls?.full ||
+                photo?.urls?.regular ||
+                ""
+            ).trim();
+
+            if (!image || existingImages.has(image)) continue;
+
+            const id = importBase + rows.length;
+            usedIds.add(id);
+            existingImages.add(image);
+
+            const width = Number(photo?.width || 0);
+            const height = Number(photo?.height || 0);
+
+            rows.push({
+                id,
+                title:
+                    photo?.description ||
+                    photo?.alt_description ||
+                    "Unsplash",
+
+                category: "unsplash",
+
+                thumbnail: String(
+                    photo?.urls?.small ||
+                    photo?.urls?.regular ||
+                    image
+                ),
+
+                image,
+
+                resolution:
+                    width && height
+                        ? `${width}x${height}`
+                        : "",
+
+                size: "",
+                downloads: 0,
+                likes: 0,
+                views: 0,
+                rating: 0,
+                rating_count: 0,
+                rating_sum: 0,
+
+                author:
+                    photo?.user?.name ||
+                    "Unsplash",
+
+                date: new Date().toLocaleString("ar-MA"),
+
+                colors: [],
+                tags: ["unsplash"],
+
+                featured: false,
+                today_wallpaper: false,
+                popular: false,
+
+                type: "image",
+                animated: false,
+
+                source: "unsplash",
+
+                user_id: null
+            });
+        }
+
+        if (rows.length) {
+            const { error: insertError } = await supabase
+                .from("wallpapers")
+                .insert(rows);
+
+            if (insertError) throw insertError;
+        }
+
+        // نرجع آخر 10 خلفيات Unsplash الموجودة فعلياً في Supabase.
+        // لذلك الواجهة لا تعتمد على ID الخاص بـ Unsplash.
+        const { data: storedRows, error: storedError } = await supabase
+            .from("wallpapers")
+            .select("*")
+            .eq("source", "unsplash")
+            .eq("category", "unsplash")
+            .order("id", { ascending: false })
+            .limit(10);
+
+        if (storedError) throw storedError;
+
+        const results = (storedRows || []).map(row => {
+            const wallpaper = wallpaperFromDb(row);
+
+            return {
+                ...wallpaper,
+
+                // هذا هو ID المحلي الحقيقي داخل WallpaperHub.
+                localId: wallpaper.id,
+
+                urls: {
+                    small: wallpaper.thumbnail,
+                    regular: wallpaper.image,
+                    full: wallpaper.image
+                },
+
+                user: {
+                    name: wallpaper.author || "Unsplash",
+                    username: "",
+                    profile_url: "https://unsplash.com/"
+                },
+
+                links: {
+                    html: "https://unsplash.com/"
+                }
+            };
+        });
 
         res.set(
             "Cache-Control",
-            "s-maxage=300, stale-while-revalidate=600"
+            "no-store, no-cache, must-revalidate"
         );
 
         return res.status(200).json({
-            total: data.total || 0,
-            total_pages: data.total_pages || 0,
-            page,
+            total: Number(data.total || results.length),
+            total_pages: Number(data.total_pages || 1),
+            page: 1,
+            imported: rows.length,
             results
         });
 
     } catch (error) {
-        console.error("Unsplash proxy error:", error);
+        console.error("Unsplash import/proxy error:", error);
 
         return res.status(502).json({
-            error: "Unable to reach Unsplash"
+            error: "Unable to load and save Unsplash wallpapers",
+            message: error.message || "Unsplash request failed"
         });
     }
 });
