@@ -5,15 +5,18 @@
 .bottom-nav {
     position: fixed;
 
-    left: 0;
-    right: 0;
-    margin: auto;
+    /* تثبيت الشريط في مركز نافذة الجهاز نفسها */
+    left: 50%;
+    right: auto;
+    margin: 0;
+    transform: translateX(-50%);
 
     bottom: 22px;
 
-    width: 90%;
+    width: min(90%, 420px);
     max-width: 420px;
     height: 72px;
+    box-sizing: border-box;
 
     display: flex;
     align-items: center;
@@ -207,4 +210,21 @@ body.dark .nav-item.active {
 
 .nav-item.active span {
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ===================================================
+   MOBILE VIEWPORT ALIGNMENT
+   الشريط يتبع عرض نافذة الجهاز مباشرة ولا يتأثر
+   بأي انحياز أو overflow من محتوى الصفحة.
+   =================================================== */
+@media (max-width: 600px) {
+    .bottom-nav {
+        left: 50%;
+        right: auto;
+        width: calc(100vw - 24px);
+        max-width: 420px;
+        margin: 0;
+        transform: translateX(-50%);
+    }
 }
