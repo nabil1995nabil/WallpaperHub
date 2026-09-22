@@ -303,13 +303,13 @@ function updateMiniCards(index){
         );
 
 
-    cards.forEach((card,i)=>{
-
-        card.classList.toggle(
-            "active",
-            i === index
-        );
-
+    /*
+     * الإطار البنفسجي أصبح ثابتاً فوق منتصف الشريط.
+     * لا نضيف active للبطاقات حتى لا يتحرك الإطار مع الخلفية.
+     * الخلفيات نفسها هي التي تمر من تحت الإطار.
+     */
+    cards.forEach((card)=>{
+        card.classList.remove("active");
     });
 
 
@@ -320,9 +320,8 @@ function updateMiniCards(index){
         document.getElementById("miniViewport");
 
     /*
-     * تحريك شريط الصور المصغرة أفقياً فقط.
-     * لا نستخدم scrollIntoView() لأنه قد يحرك الصفحة
-     * الرئيسية إلى أعلى/أسفل عند تغيير الخلفية.
+     * نحرك محتوى الصور المصغرة فقط داخل النافذة الثابتة.
+     * النافذة والإطار لا يتحركان مع الصفحة أو مع الخلفية.
      */
     if(activeCard && viewport){
 
