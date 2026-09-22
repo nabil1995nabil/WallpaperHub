@@ -6,7 +6,7 @@
 (() => {
     "use strict";
 
-    const SECTION_URL = "public/unsplash.html";
+    const SECTION_URL = "unsplash.html";
     const API_URL = "/api/unsplash";
 
     async function loadUnsplashSection() {
