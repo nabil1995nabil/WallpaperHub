@@ -1,4 +1,9 @@
-/* WallpaperHub — isolated Wallhaven module */
+// =====================================
+// WallpaperHub - Wallhaven Section
+// Wallhaven images are imported by server.js
+// and then treated as normal Supabase wallpapers.
+// =====================================
+
 (() => {
     "use strict";
 
@@ -11,9 +16,14 @@
 
         try {
             const response = await fetch(SECTION_URL, { cache: "no-cache" });
-            if (!response.ok) throw new Error(`Wallhaven HTML error: ${response.status}`);
+
+            if (!response.ok) {
+                throw new Error(`Wallhaven HTML error: ${response.status}`);
+            }
+
             mount.innerHTML = await response.text();
             await loadWallhavenWallpapers();
+
         } catch (error) {
             console.error("Wallhaven module error:", error);
         }
@@ -24,43 +34,80 @@
         if (!container) return;
 
         try {
-            const response = await fetch(`${API_URL}?_=${Date.now()}`, { cache: "no-store" });
-            if (!response.ok) throw new Error(`Wallhaven API error: ${response.status}`);
+            const response = await fetch(
+                `${API_URL}?_=${Date.now()}`,
+                { cache: "no-store" }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Wallhaven wallpapers API error: ${response.status}`);
+            }
 
             const data = await response.json();
-            const wallpapers = Array.isArray(data) ? data : [];
+
+            const wallpapers = (Array.isArray(data) ? data : [])
+                .filter(w =>
+                    w &&
+                    (
+                        String(w.source || "").toLowerCase() === "wallhaven" ||
+                        String(w.category || "").toLowerCase() === "wallhaven"
+                    )
+                )
+                .slice(0, 10);
 
             container.innerHTML = "";
 
-            wallpapers
-                .filter(w => w && w.source === "wallhaven" && w.category === "wallhaven")
-                .slice(0, 10)
-                .forEach(w => {
-                    const card = document.createElement("div");
-                    card.className = "wall-card";
+            if (!wallpapers.length) {
+                container.innerHTML = `
+                    <div class="wallhaven-empty">
+                        لا توجد خلفيات Wallhaven حالياً.
+                    </div>
+                `;
+                return;
+            }
 
-                    const img = document.createElement("img");
-                    img.src = w.thumbnail || w.image || "assets/logo/no-image.png";
-                    img.alt = w.title || "Wallhaven wallpaper";
-                    img.loading = "lazy";
-                    img.decoding = "async";
-                    img.addEventListener("error", () => {
-                        img.src = "assets/logo/no-image.png";
-                    }, { once: true });
+            wallpapers.forEach(w => {
+                const card = document.createElement("div");
+                card.className = "wall-card";
 
-                    card.appendChild(img);
-                    card.addEventListener("click", () => {
-                        if (w.id) location.href = `wallpaper.html?id=${encodeURIComponent(w.id)}`;
-                    });
-                    container.appendChild(card);
+                const img = document.createElement("img");
+                img.src =
+                    w.thumbnail ||
+                    w.image ||
+                    "assets/logo/no-image.png";
+
+                img.alt = w.title || "Wallhaven wallpaper";
+                img.loading = "lazy";
+                img.decoding = "async";
+
+                img.addEventListener("error", () => {
+                    img.src = "assets/logo/no-image.png";
+                }, { once: true });
+
+                card.appendChild(img);
+
+                // يفتح صفحة التفاصيل في موقع WallpaperHub نفسه.
+                card.addEventListener("click", () => {
+                    if (!w.id) return;
+
+                    location.href =
+                        `wallpaper.html?id=${encodeURIComponent(w.id)}`;
                 });
+
+                container.appendChild(card);
+            });
+
         } catch (error) {
-            console.error("Wallhaven API error:", error);
+            console.error("Wallhaven wallpapers load error:", error);
         }
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", loadWallhavenSection, { once: true });
+        document.addEventListener(
+            "DOMContentLoaded",
+            loadWallhavenSection,
+            { once: true }
+        );
     } else {
         loadWallhavenSection();
     }

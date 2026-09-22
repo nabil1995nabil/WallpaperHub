@@ -513,6 +513,7 @@ function wallpaperFromDb(row){
         popular: Boolean(row.popular),
         type: row.type ?? "image",
         animated: Boolean(row.animated),
+        source: row.source ?? "",
         // صاحب الخلفية الحقيقي محفوظ في wallpapers.user_id
         // ونستخدم ownerUID كاسم توافق مع الكود القديم.
         ownerUID: row.user_id ?? "",
@@ -544,6 +545,7 @@ function wallpaperToDb(w){
         popular: Boolean(w.popular),
         type: w.type ?? "image",
         animated: Boolean(w.animated),
+        source: w.source ?? null,
         user_id: w.userId ?? w.user_id ?? null
     };
 }
@@ -2795,68 +2797,122 @@ error.message
 // ======================================
 // Wallhaven Import
 // ======================================
-
+// Wallhaven Import
+// يجلب 10 خلفيات جديدة من Wallhaven ويحفظها في Supabase.
+// بعد الحفظ تصبح الخلفيات عادية داخل WallpaperHub:
+// wallpaper.html?id=<local-id>
+// ======================================
 
 app.post(
     "/api/wallhaven/import",
     async(req,res)=>{
         try{
             const response = await fetch(
-                "https://wallhaven.cc/api/v1/search?sorting=toplist&purity=100&categories=111"
+                "https://wallhaven.cc/api/v1/search?sorting=toplist&purity=100&categories=111&per_page=24"
             );
+
             const data = await response.json();
-            const items = data.data || [];
+
+            if(!response.ok){
+                return res.status(response.status).json({
+                    success:false,
+                    message:"Wallhaven API request failed",
+                    details:data
+                });
+            }
+
+            const items = Array.isArray(data.data) ? data.data : [];
 
             const { data: existing, error: existingError } = await supabase
                 .from("wallpapers")
                 .select("image");
+
             if(existingError) throw existingError;
 
-            const existingImages = new Set((existing || []).map(x => x.image));
-            const rows = [];
+            const existingImages = new Set(
+                (existing || [])
+                    .map(row => String(row.image || "").trim())
+                    .filter(Boolean)
+            );
 
-            for(const item of items){
-                if(existingImages.has(item.path)) continue;
-                rows.push({
-                    id: Date.now() + Math.floor(Math.random()*9999),
-                    title:"Wallhaven",
-                    image:item.path,
-                    thumbnail:item.thumbs?.large || item.path,
-                    category:"wallhaven",
-                    resolution:"",
-                    size:"",
-                    downloads:0,
-                    likes:0,
-                    views:0,
-                    rating:0,
-                    rating_count:0,
-                    rating_sum:0,
-                    author:"Wallhaven",
-                    date:new Date().toLocaleString("ar-MA"),
-                    colors:[],
-                    tags:[],
-                    featured:false,
-                    today_wallpaper:false,
-                    popular:false,
-                    type:"image",
-                    animated:false
-                });
-            }
+            const freshItems = items
+                .filter(item => {
+                    const image = String(item?.path || "").trim();
+                    return image && !existingImages.has(image);
+                })
+                .slice(0, 10);
+
+            const importBase = Date.now() * 100;
+
+            const rows = freshItems.map((item, index) => ({
+                id: importBase + index,
+
+                title: "Wallhaven",
+                image: String(item.path),
+                thumbnail:
+                    item?.thumbs?.large ||
+                    item?.thumbs?.original ||
+                    String(item.path),
+
+                category: "wallhaven",
+                source: "wallhaven",
+
+                resolution:
+                    item?.dimension ||
+                    item?.resolution ||
+                    "",
+
+                size: "",
+                downloads: 0,
+                likes: 0,
+                views: 0,
+                rating: 0,
+                rating_count: 0,
+                rating_sum: 0,
+
+                author: "Wallhaven",
+                date: new Date().toLocaleString("ar-MA"),
+
+                colors: [],
+                tags: Array.isArray(item?.tags)
+                    ? item.tags.map(tag => tag?.name).filter(Boolean)
+                    : [],
+
+                featured: false,
+                today_wallpaper: false,
+                popular: false,
+
+                type: "image",
+                animated: false,
+                user_id: null
+            }));
 
             if(rows.length){
                 const { error } = await supabase
                     .from("wallpapers")
                     .insert(rows);
+
                 if(error) throw error;
             }
 
-            res.json({ success:true, count:rows.length });
+            return res.json({
+                success:true,
+                count:rows.length,
+                requested:10,
+                wallpapers:rows.map(wallpaperFromDb)
+            });
+
         }catch(error){
-            console.log("WALLHAVEN ERROR:", error);
-            res.status(500).json({ success:false, message:error.message });
+            console.log("WALLHAVEN IMPORT ERROR:", error);
+
+            return res.status(500).json({
+                success:false,
+                message:error.message || "Failed to import Wallhaven wallpapers"
+            });
         }
     }
 );
+
 
 // ==========================================
 // Artguru Enhance — real Open API integration
