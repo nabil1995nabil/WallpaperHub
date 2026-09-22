@@ -697,29 +697,6 @@ if(navItems.length && indicator){
     });
 
 }
-;
-
-
-
-container.appendChild(card);
-
-
-});
-
-
-
-}catch(error){
-
-console.log(
-"Wallhaven AI Error",
-error
-);
-
-
-}
-
-}
-
 // =======================================
 // تحميل الصفحة
 // =======================================
