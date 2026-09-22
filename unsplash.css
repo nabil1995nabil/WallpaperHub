@@ -1,0 +1,110 @@
+/* =========================================================
+   UNSPLASH — قسم أفقي ثابت ونظيف
+========================================================= */
+
+.unsplash-section {
+    position: relative;
+}
+
+.unsplash-row-wrap {
+    position: relative;
+    overflow: hidden;
+}
+
+.unsplash-grid {
+    background: transparent;
+    padding: 2px 2px 10px;
+    gap: 12px;
+    overscroll-behavior-x: contain;
+}
+
+.unsplash-grid .wall-card.unsplash-card {
+    width: 150px;
+    height: 225px;
+    border: 1px solid rgba(91, 93, 245, .14);
+    background: #edf0f6;
+}
+
+.unsplash-card img {
+    transition: none !important;
+}
+
+.unsplash-card:hover img {
+    transform: none !important;
+}
+
+.unsplash-card:active {
+    transform: none;
+}
+
+.unsplash-credit {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 0;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: rgba(8, 12, 25, .78);
+    color: #fff;
+    font-size: 9px;
+    line-height: 1.25;
+    backdrop-filter: blur(8px);
+}
+
+.unsplash-credit a {
+    min-width: 0;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unsplash-credit .unsplash-name {
+    font-weight: 800;
+}
+
+.unsplash-credit .unsplash-brand {
+    flex: 0 0 auto;
+    opacity: .8;
+}
+
+.unsplash-state {
+    flex: 0 0 100%;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    padding: 20px;
+    text-align: center;
+}
+
+.unsplash-state.is-error {
+    color: #a24b5e;
+}
+
+@media (max-width: 600px) {
+    .unsplash-grid .wall-card.unsplash-card {
+        width: 138px;
+        height: 215px;
+        border-radius: 19px;
+    }
+
+    .unsplash-credit {
+        left: 7px;
+        right: 7px;
+        bottom: 7px;
+        font-size: 8px;
+    }
+}
