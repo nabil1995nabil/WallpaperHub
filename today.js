@@ -19,6 +19,14 @@ function todayGetImageUrl(image) {
     return "assets/wallpapers/" + image;
 }
 
+function todayIsGifMedia(wallpaper){
+    if(!wallpaper) return false;
+    const type = String(wallpaper.type || "").toLowerCase();
+    if(type === "gif") return true;
+    return String(wallpaper.image || "").toLowerCase().includes(".gif");
+}
+
+
 
 /* =========================================================
    تحميل واجهة خلفية اليوم وبطاقة الذكاء الاصطناعي من today.html
@@ -113,7 +121,7 @@ async function loadTodayWallpaper() {
 
         /* تعيين الصورة */
         if (img) {
-            img.src = todayGetImageUrl(today.thumbnail || today.image);
+            img.src = todayGetImageUrl(todayIsGifMedia(today) ? today.image : (today.thumbnail || today.image));
             img.onerror = () => {
                 img.src = "assets/logo/no-image.png";
             };
@@ -141,7 +149,7 @@ async function loadTodayWallpaper() {
             download.onclick = () => {
                 const a = document.createElement("a");
                 a.href = todayGetImageUrl(today.image);
-                a.download = (today.title || "wallpaper") + ".jpg";
+                a.download = (today.title || "wallpaper") + (todayIsGifMedia(today) ? ".gif" : ".jpg");
                 document.body.appendChild(a);
                 a.click();
                 a.remove();

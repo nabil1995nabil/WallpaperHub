@@ -1752,6 +1752,13 @@ window.syncUserStats = function(type, id) {
 /* ==========================
    Render Cards
 ========================== */
+function profileIsGifMedia(wallpaper){
+    if(!wallpaper) return false;
+    const type = String(wallpaper.type || "").toLowerCase();
+    if(type === "gif") return true;
+    return String(wallpaper.image || "").toLowerCase().includes(".gif");
+}
+
 function renderWalls(container, ids){
     if(!container) return;
     container.innerHTML = "";
@@ -1783,7 +1790,7 @@ function renderWalls(container, ids){
         card.className = "profile-wall-card";
         
         card.innerHTML = `
-            <img src="${wall.thumbnail || wall.image}">
+            <img src="${profileIsGifMedia(wall) ? wall.image : (wall.thumbnail || wall.image)}" alt="">
         `;
 
         card.onclick = () => {

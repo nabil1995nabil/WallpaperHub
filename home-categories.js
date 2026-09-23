@@ -63,6 +63,14 @@ function getImageUrl(value) {
     return "assets/wallpapers/" + image;
 }
 
+function categoryIsGifMedia(wallpaper){
+    if(!wallpaper) return false;
+    const type = String(wallpaper.type || "").toLowerCase();
+    if(type === "gif") return true;
+    return String(wallpaper.image || "").toLowerCase().includes(".gif");
+}
+
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -80,7 +88,7 @@ function buildCategoryData(wallpapers) {
             return {
                 ...definition,
                 count: list.length,
-                preview: list[0] ? getImageUrl(list[0].thumbnail || list[0].image) : ""
+                preview: list[0] ? getImageUrl(categoryIsGifMedia(list[0]) ? list[0].image : (list[0].thumbnail || list[0].image)) : ""
             };
         }
 
@@ -91,7 +99,7 @@ function buildCategoryData(wallpapers) {
         return {
             ...definition,
             count: matches.length,
-            preview: matches[0] ? getImageUrl(matches[0].thumbnail || matches[0].image) : ""
+            preview: matches[0] ? getImageUrl(categoryIsGifMedia(matches[0]) ? matches[0].image : (matches[0].thumbnail || matches[0].image)) : ""
         };
     });
 }

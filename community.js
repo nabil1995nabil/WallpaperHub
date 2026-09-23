@@ -396,8 +396,31 @@ function clearFilePreview(previewSelector, imageSelector){
 }
 
 function prepareAttachment(file){
-  if(file?.type?.startsWith('image/')) return prepareImageForChat(file).then(dataUrl => ({kind:'image',dataUrl}));
+  if(file?.type === 'image/gif'){
+    return readFileAsDataUrl(file).then(dataUrl => ({
+      kind:'image',
+      dataUrl,
+      animated:true,
+      mime:file.type,
+      name:file.name,
+      size:file.size
+    }));
+  }
+
+  if(file?.type?.startsWith('image/')){
+    return prepareImageForChat(file).then(dataUrl => ({kind:'image',dataUrl}));
+  }
+
   return prepareFileForChat(file).then(data => ({kind:'file',...data}));
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('تعذر قراءة ملف GIF'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function prepareImageForChat(file){

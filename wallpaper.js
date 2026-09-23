@@ -41,6 +41,13 @@ function isVideoMedia(wallpaper){
         url.toLowerCase().includes(ext)
     );
 }
+
+function isGifMedia(wallpaper){
+    if(!wallpaper) return false;
+    const type = String(wallpaper.type || "").toLowerCase();
+    if(type === "gif") return true;
+    return String(wallpaper.image || "").toLowerCase().includes(".gif");
+}
 // ===============================
 // API
 // ===============================
@@ -1517,7 +1524,7 @@ media = `
 
 src="${getImageUrl(
 
-item.thumbnail || item.image
+isGifMedia(item) ? item.image : (item.thumbnail || item.image)
 
 )}"
 

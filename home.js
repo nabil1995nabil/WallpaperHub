@@ -55,6 +55,16 @@ function isVideoMedia(wallpaper){
 
 
 
+
+function isGifMedia(wallpaper){
+    if(!wallpaper) return false;
+    const type = String(wallpaper.type || "").toLowerCase();
+    if(type === "gif") return true;
+    return String(wallpaper.image || "").toLowerCase().includes(".gif");
+}
+
+
+
 let wallpapers = [];
 
 const latestContainer =
@@ -122,8 +132,22 @@ function createWallpaperCard(wall) {
     let mediaHTML = "";
 
 
+    // GIF متحرك: استخدم الملف الأصلي، وليس thumbnail ثابت.
+    if(isGifMedia(wall)){
+
+        mediaHTML = `
+
+        <img
+        src="${getImageUrl(wall.image)}"
+        alt="${wall.title || 'Wallpaper'}"
+        loading="lazy"
+        decoding="async"
+        onerror="this.src='assets/logo/no-image.png'">
+
+        `;
+
     // فيديو
-    if(isVideoMedia(wall)){
+    }else if(isVideoMedia(wall)){
 
         mediaHTML = `
 

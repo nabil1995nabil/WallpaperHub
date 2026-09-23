@@ -16,6 +16,14 @@ function getImageUrl(imagePath){
     return "/assets/wallpapers/" + value.replace(/^\/+/, "");
 }
 
+function isGifMedia(wallpaper){
+    if(!wallpaper) return false;
+    const type = String(wallpaper.type || "").toLowerCase();
+    if(type === "gif") return true;
+    return String(wallpaper.image || "").toLowerCase().includes(".gif");
+}
+
+
 const wallpapersGrid = document.getElementById("wallpapersGrid");
 const pageTitle = document.getElementById("pageTitle");
 const wallpaperCount = document.getElementById("wallpaperCount");
@@ -526,7 +534,7 @@ function renderWallpapers(){
 
         const quality = getQuality(wallpaper.resolution);
         const image = document.createElement("img");
-        image.src = getImageUrl(wallpaper.thumbnail || wallpaper.image || "");
+        image.src = getImageUrl(isGifMedia(wallpaper) ? wallpaper.image : (wallpaper.thumbnail || wallpaper.image || ""));
         image.alt = String(wallpaper.title || "Wallpaper");
         image.loading = "lazy";
         image.decoding = "async";
