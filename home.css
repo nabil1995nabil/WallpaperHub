@@ -722,49 +722,43 @@ section,
     background: linear-gradient(180deg, rgba(8, 12, 45, .10), rgba(7, 10, 34, .48));
 }
 
+
 /* =========================================================
-   HEADER THEME BUTTON
-   هلال / شمس — الوظيفة ستتم برمجتها لاحقًا
+   HEADER TOOLS + THEME BUTTON
+   زر الهلال/الشمس بين AI والإشعارات
 ========================================================= */
-
+.header-tools {
+    display:flex !important; align-items:center; justify-content:center; gap:8px;
+    flex:0 0 auto; min-width:max-content; position:relative; z-index:1005; direction:ltr;
+}
+.header-tools > #aiButton,
+.header-tools > #notificationButton {
+    display:flex !important; align-items:center; justify-content:center;
+    flex:0 0 34px; width:34px; height:34px; min-width:34px;
+}
+.header-tools > #aiButton > *,
+.header-tools > #notificationButton > * { max-width:34px; max-height:34px; }
 .header-switch {
-    position: relative;
-    flex: 0 0 auto;
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    color: #171821;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform .2s ease, background .2s ease, color .2s ease;
+    display:flex !important; align-items:center; justify-content:center;
+    flex:0 0 34px !important; width:34px !important; min-width:34px !important;
+    height:34px !important; min-height:34px !important; margin:0 !important; padding:0 !important;
+    border:0 !important; border-radius:50% !important; background:transparent !important;
+    color:#202124 !important; appearance:none; -webkit-appearance:none; cursor:pointer;
+    outline:none; opacity:1 !important; visibility:visible !important; position:relative;
+    z-index:1006; box-shadow:none !important; -webkit-tap-highlight-color:transparent;
 }
-
-.header-theme-icon {
-    font-size: 23px;
-    line-height: 1;
-    pointer-events: none;
+.header-switch-icon {
+    display:block !important; width:24px; height:24px; line-height:24px;
+    font-size:24px !important; color:#202124 !important; visibility:visible !important;
+    opacity:1 !important; pointer-events:none;
 }
-
-.header-switch:active {
-    transform: scale(.88);
-}
-
-@media (max-width: 600px) {
-    .header-switch {
-        width: 36px;
-        height: 36px;
+.header-switch:active { transform:scale(.88); }
+@media (max-width:600px) {
+    .header-tools { gap:5px; }
+    .header-tools > #aiButton, .header-tools > #notificationButton, .header-switch {
+        width:32px !important; min-width:32px !important; height:32px !important;
+        min-height:32px !important; flex-basis:32px !important;
     }
-
-    .header-theme-icon {
-        font-size: 22px;
-    }
+    .header-tools > #aiButton > *, .header-tools > #notificationButton > * { max-width:32px; max-height:32px; }
+    .header-switch-icon { font-size:22px !important; line-height:22px; width:22px; height:22px; }
 }
