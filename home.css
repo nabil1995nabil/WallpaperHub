@@ -721,3 +721,55 @@ section,
     pointer-events: none;
     background: linear-gradient(180deg, rgba(8, 12, 45, .10), rgba(7, 10, 34, .48));
 }
+
+/* =========================================================
+   HEADER SWITCH
+   سويتش صغير بين زر AI والإشعارات
+   الوظيفة ستتم برمجتها لاحقًا
+========================================================= */
+.header-switch {
+    position: relative;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #111111;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.header-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+    pointer-events: none;
+}
+
+.header-switch:active {
+    transform: scale(.94);
+}
+
+@media (max-width: 600px) {
+    .header-switch {
+        width: 40px;
+        height: 23px;
+    }
+
+    .header-switch-knob {
+        width: 17px;
+        height: 17px;
+        top: 3px;
+        left: 3px;
+    }
+}
