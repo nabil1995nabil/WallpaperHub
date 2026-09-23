@@ -723,53 +723,48 @@ section,
 }
 
 /* =========================================================
-   HEADER SWITCH
-   سويتش صغير بين زر AI والإشعارات
-   الوظيفة ستتم برمجتها لاحقًا
+   HEADER THEME BUTTON
+   هلال / شمس — الوظيفة ستتم برمجتها لاحقًا
 ========================================================= */
+
 .header-switch {
     position: relative;
     flex: 0 0 auto;
-    width: 42px;
-    height: 24px;
+    width: 38px;
+    height: 38px;
     padding: 0;
     border: 0;
-    border-radius: 999px;
-    background: #111111;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #171821;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
-    box-shadow: none;
     outline: none;
     -webkit-tap-highlight-color: transparent;
+    transition: transform .2s ease, background .2s ease, color .2s ease;
 }
 
-.header-switch-knob {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+.header-theme-icon {
+    font-size: 23px;
+    line-height: 1;
     pointer-events: none;
 }
 
 .header-switch:active {
-    transform: scale(.94);
+    transform: scale(.88);
 }
 
 @media (max-width: 600px) {
     .header-switch {
-        width: 40px;
-        height: 23px;
+        width: 36px;
+        height: 36px;
     }
 
-    .header-switch-knob {
-        width: 17px;
-        height: 17px;
-        top: 3px;
-        left: 3px;
+    .header-theme-icon {
+        font-size: 22px;
     }
 }
