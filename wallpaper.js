@@ -782,17 +782,16 @@ stopVideo();
 
 if(wallImage){
 
+    // عرض النسخة الأصلية الموجودة في image، وليس thumbnail.
+    const originalImageUrl = getImageUrl(currentWallpaper.image || media);
 
-wallImage.src =
+    wallImage.removeAttribute("srcset");
+    wallImage.removeAttribute("sizes");
+    wallImage.decoding = "sync";
+    wallImage.loading = "eager";
+    wallImage.src = originalImageUrl;
 
-getImageUrl(media);
-
-
-
-wallImage.style.display =
-
-"block";
-
+    wallImage.style.display = "block";
 
 }
 
@@ -1706,13 +1705,10 @@ fullscreenImage.style.display =
 
 "block";
 
-fullscreenImage.src =
-
-getImageUrl(
-
-currentWallpaper.image
-
-);
+fullscreenImage.removeAttribute("srcset");
+fullscreenImage.removeAttribute("sizes");
+fullscreenImage.decoding = "sync";
+fullscreenImage.src = getImageUrl(currentWallpaper.image);
 
 }
 
@@ -1769,45 +1765,46 @@ function getWatermarkColor(ctx, canvas) {
 }
 
 async function downloadWithWatermark(imageUrl, title) {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = imageUrl;
+    // تحميل الملف الأصلي بدون تصغير أو إعادة ضغط.
+    try {
+        const response = await fetch(imageUrl, { mode: "cors" });
+        if (!response.ok) throw new Error("IMAGE DOWNLOAD ERROR");
 
-    img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const maxWidth = 1440;
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
 
-        let scale = 1;
-        if (img.width > maxWidth) {
-            scale = maxWidth / img.width;
-        }
-
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-
-        // رسم الخلفية
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        // =========================
-        // WallpaperHub Watermark
-        // =========================
-        ctx.font = "300 24px Arial";
-        ctx.fillStyle = getWatermarkColor(ctx, canvas);
-        ctx.shadowColor = "rgba(0,0,0,0.30)";
-        ctx.shadowBlur = 3;
-        ctx.fillText("WallpaperHub", 35, canvas.height - 35);
-
-        // =========================
-        // تحميل الصورة
-        // =========================
         const link = document.createElement("a");
-        link.download = (title || "wallpaper") + ".jpg";
-        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.download = (title || "wallpaper") + getExtensionFromMime(blob.type);
+        link.href = objectUrl;
+
         document.body.appendChild(link);
         link.click();
         link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch (error) {
+        console.error("ORIGINAL IMAGE DOWNLOAD ERROR:", error);
+
+        const link = document.createElement("a");
+        link.href = imageUrl;
+        link.download = title || "wallpaper";
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+}
+
+function getExtensionFromMime(mime) {
+    const map = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/avif": ".avif",
+        "image/gif": ".gif"
     };
+
+    return map[mime] || "";
 }
 
 if (downloadBtn) {
@@ -1818,7 +1815,7 @@ if (downloadBtn) {
 
         const url = getImageUrl(currentWallpaper.image);
 
-        // تحميل مع الشعار
+        // تحميل الملف الأصلي بدون تصغير أو إعادة ضغط
         downloadWithWatermark(url, currentWallpaper.title);
 
         // ✅ حفظ التحميل في الإحصائيات
