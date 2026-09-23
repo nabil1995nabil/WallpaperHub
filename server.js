@@ -514,6 +514,8 @@ function wallpaperFromDb(row){
         type: row.type ?? "image",
         animated: Boolean(row.animated),
         source: row.source ?? "",
+        // وصف Gemini المحفوظ مع الخلفية.
+        aiDescription: row.ai_description ?? row.aiDescription ?? "",
         // صاحب الخلفية الحقيقي محفوظ في wallpapers.user_id
         // ونستخدم ownerUID كاسم توافق مع الكود القديم.
         ownerUID: row.user_id ?? "",
@@ -2815,18 +2817,74 @@ success:false
 // Analyze Wallpaper
 // ======================================
 
-
 app.post(
     "/api/wallpapers/:id/analyze",
     async(req,res)=>{
         try{
             const id = Number(req.params.id);
+            if(!Number.isFinite(id)){
+                return res.status(400).json({
+                    success:false,
+                    message:"Invalid wallpaper id"
+                });
+            }
+
             const wall = await getWallpaperFromSupabase(id);
 
-            if(!wall) return res.status(404).json({ success:false });
+            if(!wall){
+                return res.status(404).json({
+                    success:false,
+                    message:"Wallpaper not found"
+                });
+            }
+
+            // إذا كان الوصف محفوظًا، لا نستهلك طلب Gemini مرة أخرى.
+            if(wall.ai_description || wall.aiDescription){
+                return res.json({
+                    success:true,
+                    description:String(wall.ai_description || wall.aiDescription)
+                });
+            }
+
+            if(!GEMINI_API_KEY){
+                return res.status(503).json({
+                    success:false,
+                    message:"GEMINI_API_KEY غير مضبوط على Vercel"
+                });
+            }
+
+            if(!wall.image){
+                return res.status(400).json({
+                    success:false,
+                    message:"Wallpaper image is missing"
+                });
+            }
 
             const image = await fetch(wall.image);
-            if(!image.ok) return res.status(400).json({ success:false });
+            if(!image.ok){
+                return res.status(400).json({
+                    success:false,
+                    message:"تعذر تحميل صورة الخلفية"
+                });
+            }
+
+            const contentType =
+                String(image.headers.get("content-type") || "image/jpeg")
+                    .split(";")[0]
+                    .trim()
+                    .toLowerCase();
+
+            // Gemini يحتاج MIME حقيقي للصورة بدل فرض image/jpeg على كل الملفات.
+            const allowedMimeTypes = new Set([
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif"
+            ]);
+
+            const mimeType = allowedMimeTypes.has(contentType)
+                ? contentType
+                : "image/jpeg";
 
             const buffer = await image.arrayBuffer();
             const base64 = Buffer.from(buffer).toString("base64");
@@ -2835,12 +2893,24 @@ app.post(
                 `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
                 {
                     method:"POST",
-                    headers:{ "Content-Type":"application/json" },
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
                     body:JSON.stringify({
                         contents:[{
                             parts:[
-                                { text:`حلل هذه الخلفية.\n\nاكتب وصف احترافي بين 100 و200 حرف.\n\nاذكر:\nالألوان،\nالعناصر،\nالأسلوب.` },
-                                { inlineData:{ mimeType:"image/jpeg", data:base64 } }
+                                {
+                                    text:
+`حلل هذه الخلفية واكتب وصفًا احترافيًا قصيرًا بين 100 و200 حرف.
+اذكر الألوان والعناصر والأسلوب.
+أعد الوصف فقط بدون عنوان أو نقاط أو شرح إضافي.`
+                                },
+                                {
+                                    inlineData:{
+                                        mimeType,
+                                        data:base64
+                                    }
+                                }
                             ]
                         }]
                     })
@@ -2848,21 +2918,64 @@ app.post(
             );
 
             const data = await response.json();
-            const description = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-            if(!description){
-                return res.status(500).json({ success:false, message:"No AI response" });
+            if(!response.ok){
+                console.log("GEMINI ANALYZE RESPONSE:", data);
+                return res.status(response.status || 500).json({
+                    success:false,
+                    message:data?.error?.message || "Gemini analysis failed"
+                });
             }
 
-            // wallpapers has no aiDescription column, so we return the analysis
-            // without writing an unsupported column to Supabase.
-            res.json({ success:true, description });
+            const description =
+                data?.candidates?.[0]?.content?.parts
+                    ?.map(part => part?.text || "")
+                    .join("")
+                    .trim();
+
+            if(!description){
+                return res.status(500).json({
+                    success:false,
+                    message:"No AI description returned"
+                });
+            }
+
+            // نحاول حفظ الوصف في Supabase حتى لا يعاد تحليل الخلفية.
+            // إذا كانت قاعدة البيانات القديمة لا تحتوي العمود بعد، لا نفشل التحليل.
+            try{
+                const { error: saveError } = await supabase
+                    .from("wallpapers")
+                    .update({ ai_description: description })
+                    .eq("id", id);
+
+                if(saveError){
+                    console.warn(
+                        "AI DESCRIPTION SAVE WARNING:",
+                        saveError.message
+                    );
+                }
+            }catch(saveError){
+                console.warn(
+                    "AI DESCRIPTION SAVE ERROR:",
+                    saveError?.message || saveError
+                );
+            }
+
+            return res.json({
+                success:true,
+                description
+            });
+
         }catch(error){
             console.log("ANALYZE ERROR:", error);
-            res.status(500).json({ success:false });
+            return res.status(500).json({
+                success:false,
+                message:error?.message || "Internal server error"
+            });
         }
     }
 );
+
 
 // ======================================
 // Developer Protected Wall API

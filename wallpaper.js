@@ -1281,6 +1281,9 @@ function changeWallpaper(index) {
 
 showWallpaper();
 
+// تحليل الخلفية الجديدة أيضًا عند التنقل بين الخلفيات.
+autoAnalyzeWallpaper();
+
 loadSimilar();
 
 checkLikeStatus();
@@ -2424,19 +2427,14 @@ await res.json();
 
 
 
-if(data.success){
-
+if(data.success && data.description){
 
 currentWallpaper.aiDescription =
-data.description;
-
-
+String(data.description).trim();
 
 if(wallDescription)
-
 wallDescription.textContent =
-data.description;
-
+currentWallpaper.aiDescription;
 
 }
 
