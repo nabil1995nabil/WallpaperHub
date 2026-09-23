@@ -116,7 +116,7 @@ async function getPublisherProfile(user){
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const GEMINI_MODEL = "gemini-3.5-flash";
-const GEMINI_IMAGE_MODEL = "gemini-3.5-flash-exp";
+const GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
 
 // ======================================
 // Artguru Open API
@@ -2706,111 +2706,320 @@ reply:
 
 
 // ======================================
-// Generate Image
+// AI Image Generation + Direct Publishing
+// Gemini -> Cloudinary -> Supabase
+// لا يمر هذا المسار عبر لوحة النشر اليدوي.
 // ======================================
 
+const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+const CLOUDINARY_API_KEY = String(process.env.CLOUDINARY_API_KEY || "").trim();
+const CLOUDINARY_API_SECRET = String(process.env.CLOUDINARY_API_SECRET || "").trim();
+const AI_PUBLISH_SECRET = String(process.env.AI_PUBLISH_SECRET || "").trim();
 
-app.post(
-"/api/generate-image",
-async(req,res)=>{
-
-
-try{
-
-
-const prompt =
-req.body.prompt;
-
-
-
-if(!prompt){
-
-
-return res.status(400).json({
-
-success:false,
-
-message:
-"Prompt required"
-
-});
-
-
+function sha1(value){
+    return crypto.createHash("sha1").update(String(value)).digest("hex");
 }
 
+function requireAiPublishSecret(req, res){
+    if(!AI_PUBLISH_SECRET){
+        res.status(503).json({
+            success:false,
+            message:"AI_PUBLISH_SECRET غير مضبوط في متغيرات البيئة"
+        });
+        return false;
+    }
 
+    const supplied = String(
+        req.headers["x-ai-publish-secret"] ||
+        req.body?.aiSecret ||
+        ""
+    ).trim();
 
+    if(!supplied || supplied !== AI_PUBLISH_SECRET){
+        res.status(401).json({
+            success:false,
+            message:"غير مصرح"
+        });
+        return false;
+    }
 
+    return true;
+}
 
-const response =
-await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-{
-    method:"POST",
+async function generateGeminiImage(prompt, { aspectRatio = "9:16", imageSize = "1K" } = {}){
+    if(!GEMINI_API_KEY){
+        throw new Error("GEMINI_API_KEY غير مضبوط");
+    }
 
-    headers:{
-        "Content-Type":"application/json"
-    },
+    const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/interactions",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                "x-goog-api-key":GEMINI_API_KEY
+            },
+            body:JSON.stringify({
+                model:GEMINI_IMAGE_MODEL,
+                input:String(prompt).trim(),
+                response_format:{
+                    type:"image",
+                    mime_type:"image/jpeg",
+                    aspect_ratio:aspectRatio,
+                    image_size:imageSize
+                }
+            })
+        }
+    );
 
-    body:JSON.stringify({
-        contents:[
-            {
-                parts:[
-                    {
-                        text:
-                        `Create wallpaper image:
-${prompt}`
-                    }
-                ]
+    const data = await response.json();
+
+    if(!response.ok){
+        throw new Error(
+            data?.error?.message ||
+            data?.message ||
+            `Gemini image generation failed (${response.status})`
+        );
+    }
+
+    // Current Interactions API returns the generated image in output_image.
+    if(data?.output_image?.data){
+        return {
+            base64:String(data.output_image.data),
+            mimeType:String(data.output_image.mime_type || "image/jpeg")
+        };
+    }
+
+    // Defensive fallback for model/API responses that expose image blocks in steps.
+    for(const step of (data?.steps || [])){
+        for(const block of (step?.content || [])){
+            if(block?.type === "image" && block?.data){
+                return {
+                    base64:String(block.data),
+                    mimeType:String(block.mime_type || "image/jpeg")
+                };
             }
-        ]
-    })
-});
+        }
+    }
 
-const data =
-await response.json();
+    throw new Error("Gemini لم يرجع صورة مولدة");
+}
 
+async function uploadBase64ToCloudinary(base64, mimeType = "image/jpeg", folder = "wallpaperhub/ai"){
+    if(!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET){
+        throw new Error("متغيرات Cloudinary ناقصة: CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET");
+    }
 
+    const timestamp = Math.floor(Date.now() / 1000);
+    const publicId = `ai-${Date.now()}-${crypto.randomBytes(6).toString("hex")}`;
+    const signaturePayload = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+    const signature = sha1(signaturePayload);
+    const dataUri = `data:${mimeType};base64,${base64}`;
 
+    const form = new URLSearchParams();
+    form.set("file", dataUri);
+    form.set("api_key", CLOUDINARY_API_KEY);
+    form.set("timestamp", String(timestamp));
+    form.set("signature", signature);
+    form.set("folder", folder);
+    form.set("public_id", publicId);
 
+    const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/image/upload`,
+        {
+            method:"POST",
+            headers:{"Content-Type":"application/x-www-form-urlencoded"},
+            body:form.toString()
+        }
+    );
 
-res.json({
+    const data = await response.json();
 
-success:true,
+    if(!response.ok || !data?.secure_url){
+        throw new Error(data?.error?.message || `Cloudinary upload failed (${response.status})`);
+    }
 
-data
+    return data;
+}
 
-});
+async function publishAiWallpaper({
+    imageUrl,
+    title,
+    prompt,
+    resolution = "",
+    tags = [],
+    colors = []
+}){
+    const metadata = await getImageMetadata(imageUrl);
+    const id = Date.now();
 
+    const wallpaper = {
+        id,
+        title: String(title || "AI Wallpaper").trim(),
+        category:"ai",
+        image:imageUrl,
+        thumbnail:imageUrl,
+        resolution:String(resolution || "").trim(),
+        size:"",
+        downloads:0,
+        likes:0,
+        views:0,
+        rating:0,
+        ratingCount:0,
+        ratingSum:0,
+        author:"WallpaperHub AI",
+        userId:null,
+        date:new Date().toLocaleString("ar-MA"),
+        colors:Array.isArray(colors) ? colors : [],
+        tags:Array.isArray(tags) ? tags : [],
+        featured:false,
+        todayWallpaper:false,
+        popular:false,
+        type:"image",
+        animated:false,
+        location:metadata.location || "غير معروف",
+        captureDate:null,
+        camera:null,
+        source:"ai"
+    };
 
+    const payload = wallpaperToDb(wallpaper);
 
+    // AI publisher does not use the normal /api/wallpapers route.
+    const { data, error } = await supabase
+        .from("wallpapers")
+        .insert([payload])
+        .select("*")
+        .single();
 
-}catch(error){
+    if(error) throw error;
 
+    return {
+        wallpaper:wallpaperFromDb(data),
+        prompt:String(prompt || "")
+    };
+}
 
-console.log(
-"GENERATE IMAGE ERROR:",
-error
+// Generate only: kept for compatibility with existing callers.
+app.post(
+    "/api/generate-image",
+    async(req,res)=>{
+        try{
+            const prompt = String(req.body?.prompt || "").trim();
+            if(!prompt){
+                return res.status(400).json({success:false,message:"Prompt required"});
+            }
+
+            const generated = await generateGeminiImage(prompt, {
+                aspectRatio:String(req.body?.aspectRatio || "9:16"),
+                imageSize:String(req.body?.imageSize || "1K")
+            });
+
+            return res.json({
+                success:true,
+                model:GEMINI_IMAGE_MODEL,
+                mimeType:generated.mimeType,
+                imageData:generated.base64
+            });
+        }catch(error){
+            console.log("GENERATE IMAGE ERROR:", error?.message || error);
+            return res.status(500).json({success:false,message:error?.message || "Image generation failed"});
+        }
+    }
 );
 
+// AI direct publisher:
+// Gemini generates -> Cloudinary stores -> Supabase stores metadata.
+app.post(
+    "/api/ai/generate-and-publish",
+    async(req,res)=>{
+        try{
+            if(!requireAiPublishSecret(req,res)) return;
 
-res.status(500).json({
+            const prompt = String(req.body?.prompt || "").trim();
+            if(!prompt){
+                return res.status(400).json({success:false,message:"Prompt required"});
+            }
 
-success:false
+            const generated = await generateGeminiImage(prompt, {
+                aspectRatio:String(req.body?.aspectRatio || "9:16"),
+                imageSize:String(req.body?.imageSize || "1K")
+            });
 
-});
+            const cloudinary = await uploadBase64ToCloudinary(
+                generated.base64,
+                generated.mimeType,
+                "wallpaperhub/ai"
+            );
 
+            const published = await publishAiWallpaper({
+                imageUrl:cloudinary.secure_url,
+                title:req.body?.title || "AI Wallpaper",
+                prompt,
+                resolution:String(req.body?.resolution || "1K"),
+                tags:req.body?.tags,
+                colors:req.body?.colors
+            });
 
-}
+            return res.json({
+                success:true,
+                model:GEMINI_IMAGE_MODEL,
+                cloudinaryUrl:cloudinary.secure_url,
+                wallpaper:published.wallpaper
+            });
+        }catch(error){
+            console.log("AI DIRECT PUBLISH ERROR:", error?.message || error);
+            return res.status(500).json({
+                success:false,
+                message:error?.message || "AI publishing failed"
+            });
+        }
+    }
+);
 
+// Publish an already-generated AI image without using the manual publishing dashboard.
+app.post(
+    "/api/ai/publish",
+    async(req,res)=>{
+        try{
+            if(!requireAiPublishSecret(req,res)) return;
 
+            const imageData = String(req.body?.imageData || "").trim();
+            if(!imageData.startsWith("data:image/")){
+                return res.status(400).json({success:false,message:"imageData يجب أن يكون Data URI لصورة"});
+            }
 
-});
+            const match = imageData.match(/^data:(image\/[^;]+);base64,(.+)$/i);
+            if(!match){
+                return res.status(400).json({success:false,message:"صيغة الصورة غير صالحة"});
+            }
 
+            const cloudinary = await uploadBase64ToCloudinary(
+                match[2],
+                match[1],
+                "wallpaperhub/ai"
+            );
 
+            const published = await publishAiWallpaper({
+                imageUrl:cloudinary.secure_url,
+                title:req.body?.title || "AI Wallpaper",
+                prompt:req.body?.prompt || "",
+                resolution:req.body?.resolution || "",
+                tags:req.body?.tags,
+                colors:req.body?.colors
+            });
 
-
-
+            return res.json({
+                success:true,
+                cloudinaryUrl:cloudinary.secure_url,
+                wallpaper:published.wallpaper
+            });
+        }catch(error){
+            console.log("AI PUBLISH ERROR:", error?.message || error);
+            return res.status(500).json({success:false,message:error?.message || "AI publishing failed"});
+        }
+    }
+);
 
 
 // ======================================
