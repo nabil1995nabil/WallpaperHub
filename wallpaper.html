@@ -399,28 +399,80 @@ close
 
 
 <div class="info-item rating-info-item">
+    <span class="info-label">التقييم</span>
 
-<span class="info-label">التقييم</span>
+    <div class="rating-panel" aria-label="تقييم الخلفية">
+        <div class="rating-panel-head">
+            <div class="rating-score">
+                <strong id="wallRating">0.0</strong>
+                <span>/ 5</span>
+            </div>
 
-<div class="rating-control">
+            <div class="rating-summary">
+                <span class="rating-summary-title">إجمالي التقييمات</span>
+                <strong id="ratingTotalInline">0</strong>
+            </div>
+        </div>
 
-<div class="rating-value-row">
-<strong id="wallRating">0</strong>
-<small id="ratingCount">(0 تقييم)</small>
-</div>
+        <div class="rating-distribution" id="ratingDistribution">
+            <div class="rating-row" data-rate="5">
+                <span class="rating-row-number">5</span>
+                <div class="rating-bar" aria-hidden="true">
+                    <span class="rating-bar-fill"></span>
+                </div>
+                <button class="rating-row-star" type="button"
+                        data-rate="5" aria-label="تقييم 5 نجوم">★</button>
+                <span class="rating-row-count">0</span>
+            </div>
 
-<div id="ratingStars" class="rating-stars" aria-label="اختر تقييمك من نجمة إلى خمس نجوم">
+            <div class="rating-row" data-rate="4">
+                <span class="rating-row-number">4</span>
+                <div class="rating-bar" aria-hidden="true">
+                    <span class="rating-bar-fill"></span>
+                </div>
+                <button class="rating-row-star" type="button"
+                        data-rate="4" aria-label="تقييم 4 نجوم">★</button>
+                <span class="rating-row-count">0</span>
+            </div>
 
-<span class="star" data-rate="1" role="button" tabindex="0" aria-label="نجمة واحدة">☆</span>
-<span class="star" data-rate="2" role="button" tabindex="0" aria-label="نجمتان">☆</span>
-<span class="star" data-rate="3" role="button" tabindex="0" aria-label="ثلاث نجوم">☆</span>
-<span class="star" data-rate="4" role="button" tabindex="0" aria-label="أربع نجوم">☆</span>
-<span class="star" data-rate="5" role="button" tabindex="0" aria-label="خمس نجوم">☆</span>
+            <div class="rating-row" data-rate="3">
+                <span class="rating-row-number">3</span>
+                <div class="rating-bar" aria-hidden="true">
+                    <span class="rating-bar-fill"></span>
+                </div>
+                <button class="rating-row-star" type="button"
+                        data-rate="3" aria-label="تقييم 3 نجوم">★</button>
+                <span class="rating-row-count">0</span>
+            </div>
 
-</div>
+            <div class="rating-row" data-rate="2">
+                <span class="rating-row-number">2</span>
+                <div class="rating-bar" aria-hidden="true">
+                    <span class="rating-bar-fill"></span>
+                </div>
+                <button class="rating-row-star" type="button"
+                        data-rate="2" aria-label="تقييم نجمتين">★</button>
+                <span class="rating-row-count">0</span>
+            </div>
 
-</div>
+            <div class="rating-row" data-rate="1">
+                <span class="rating-row-number">1</span>
+                <div class="rating-bar" aria-hidden="true">
+                    <span class="rating-bar-fill"></span>
+                </div>
+                <button class="rating-row-star" type="button"
+                        data-rate="1" aria-label="تقييم نجمة واحدة">★</button>
+                <span class="rating-row-count">0</span>
+            </div>
+        </div>
 
+        <div class="rating-panel-footer">
+            <span class="rating-footer-hint">اضغط على النجمة لإضافة تقييمك</span>
+            <span class="rating-footer-total">
+                <b id="ratingTotalFooter">0</b> تقييم
+            </span>
+        </div>
+    </div>
 </div>
 
 

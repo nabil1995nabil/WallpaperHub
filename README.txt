@@ -1,21 +1,23 @@
-WallpaperHub — Real Voice Room
+# WallpaperHub Rating System
 
-This version implements a real multi-user voice room using WebRTC for audio and Supabase Realtime Broadcast/Presence for signaling and participant discovery.
+تم تعديل نظام التقييم ليصبح 5 صفوف:
 
-Files:
-- community.html
-- community.css
-- community.js
+5  ━━━━━━━━━  ★  العدد
+4  ━━━━━━━━━  ★  العدد
+3  ━━━━━━━━━  ★  العدد
+2  ━━━━━━━━━  ★  العدد
+1  ━━━━━━━━━  ★  العدد
 
-Requirements:
-1. Supabase Realtime must be available/enabled for the project.
-2. Users must be authenticated to join the voice room.
-3. The site must run over HTTPS (Vercel is fine).
-4. WebRTC uses Google public STUN servers. For users behind restrictive NAT/firewalls, add a TURN server for production reliability.
+- كل نجمة في الصف قابلة للضغط.
+- كل ضغطة تضيف تقييمًا جديدًا للدرجة المختارة.
+- 200 تقييم من نفس الدرجة = امتلاء الشريط 100%.
+- العدد يستمر بالزيادة بعد 200 بينما يبقى الشريط ممتلئًا.
+- المتوسط يحسب من rating_sum / rating_count.
+- إجمالي التقييمات يظهر أسفل التوزيع وفي أعلى اللوحة.
+- التقييمات تحفظ في Supabase بشكل ذري عبر PostgreSQL RPC.
 
-Behavior:
-- Opening the voice UI only changes the hero; the written community chat remains visible.
-- "انضم إلى المحادثة المباشرة" requests the microphone and joins the shared WebRTC room.
-- Users in the same public room hear each other in real time.
-- The same button mutes/unmutes the local microphone after joining.
-- "العودة إلى النقاش" closes all peer connections, stops the microphone, leaves Supabase Presence, and returns to the normal community hero.
+مهم:
+1. شغّل `rating_migration.sql` مرة واحدة في Supabase SQL Editor قبل استخدام نظام التقييم.
+2. استبدل `server.js`, `wallpaper.html`, `wallpaper.css`, `wallpaper.js` بالنسخ الموجودة هنا.
+3. التقييم الحالي يسمح لكل ضغطة بتسجيل تقييم جديد، كما طلبت؛ لا يوجد منع للتقييم المتكرر من نفس المستخدم.
+4. التوزيع القديم 1–5 لا يمكن استنتاجه من rating/rating_count/rating_sum الموجودة سابقًا، لذلك يبدأ توزيع الصفوف القديمة من 0. التقييمات الجديدة ستظهر وتتحرك بشكل صحيح.

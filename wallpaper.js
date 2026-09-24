@@ -297,6 +297,22 @@ function normalizeWallpaperData(base = {}, row = {}) {
         first(row.rating_sum, row.ratingSum, base.ratingSum), 0
     );
 
+    merged.ratingDistribution = normalizeRatingDistribution(
+        first(
+            row.rating_distribution,
+            row.ratingDistribution,
+            row.rating_breakdown,
+            row.ratingBreakdown,
+            base.ratingDistribution
+        ) || {
+            1: row.rating_1_count ?? base.rating_1_count ?? 0,
+            2: row.rating_2_count ?? base.rating_2_count ?? 0,
+            3: row.rating_3_count ?? base.rating_3_count ?? 0,
+            4: row.rating_4_count ?? base.rating_4_count ?? 0,
+            5: row.rating_5_count ?? base.rating_5_count ?? 0
+        }
+    );
+
     merged.author = first(
         row.author, row.author_name, row.username, base.author
     ) ?? "WallpaperHub";
@@ -1038,7 +1054,8 @@ currentWallpaper.captureTime ||
 
 updateRatingUI(
     currentWallpaper.rating || 0,
-    currentWallpaper.ratingCount || 0
+    currentWallpaper.ratingCount || 0,
+    getWallpaperRatingDistribution(currentWallpaper)
 );
 
 
@@ -2079,36 +2096,88 @@ alert(
 
 
 // ===============================
-// Rating
+// Rating — 5-row distribution
 // ===============================
 
-function updateStars(value){
-    const numericValue = Number(value) || 0;
+const ratingRows = document.querySelectorAll(".rating-row");
+const ratingStars = document.querySelectorAll(".rating-row-star");
+const ratingTotalInline = document.getElementById("ratingTotalInline");
+const ratingTotalFooter = document.getElementById("ratingTotalFooter");
 
-    ratingStars.forEach((star, index) => {
-        star.classList.toggle(
-            "active",
-            index < Math.round(numericValue)
+function normalizeRatingDistribution(source = {}){
+    return {
+        1: Number(source[1] ?? source["1"] ?? source.rating_1_count ?? source.rating1 ?? 0) || 0,
+        2: Number(source[2] ?? source["2"] ?? source.rating_2_count ?? source.rating2 ?? 0) || 0,
+        3: Number(source[3] ?? source["3"] ?? source.rating_3_count ?? source.rating3 ?? 0) || 0,
+        4: Number(source[4] ?? source["4"] ?? source.rating_4_count ?? source.rating4 ?? 0) || 0,
+        5: Number(source[5] ?? source["5"] ?? source.rating_5_count ?? source.rating5 ?? 0) || 0
+    };
+}
+
+function getWallpaperRatingDistribution(wallpaper){
+    return normalizeRatingDistribution(
+        wallpaper?.ratingDistribution ||
+        wallpaper?.rating_distribution ||
+        wallpaper?.ratingBreakdown ||
+        wallpaper?.rating_breakdown ||
+        {}
+    );
+}
+
+function updateRatingDistribution(distribution = {}){
+    const counts = normalizeRatingDistribution(distribution);
+
+    ratingRows.forEach(row => {
+        const rate = Number(row.dataset.rate);
+        const count = counts[rate] || 0;
+        const fill = row.querySelector(".rating-bar-fill");
+        const countEl = row.querySelector(".rating-row-count");
+        const star = row.querySelector(".rating-row-star");
+
+        // كل 200 تقييم من نفس الدرجة يملأ الشريط 100%.
+        const percent = Math.min(100, (count / 200) * 100);
+
+        if(fill) fill.style.width = `${percent}%`;
+        if(countEl) countEl.textContent = formatQuickStat(count);
+
+        row.classList.toggle("has-ratings", count > 0);
+        if(star) star.classList.toggle("active", count > 0);
+    });
+
+    if(currentWallpaper){
+        currentWallpaper.ratingDistribution = counts;
+    }
+}
+
+function updateStars(value){
+    // النجوم داخل الصفوف لا تمثل "نجوم المتوسط"،
+    // لذلك لا نلوّنها حسب المتوسط هنا.
+    const selected = Number(value) || 0;
+    ratingRows.forEach(row => {
+        row.classList.toggle(
+            "selected-rating-row",
+            Number(row.dataset.rate) === selected
         );
     });
 }
 
-function updateRatingUI(rating, ratingCountValue){
+function updateRatingUI(rating, ratingCountValue, distribution){
     const average = Number(rating) || 0;
     const total = Number(ratingCountValue) || 0;
+    const counts = normalizeRatingDistribution(distribution);
 
     if(wallRating){
-        wallRating.textContent = average
-            .toFixed(2)
-            .replace(/\.00$/, "")
-            .replace(/(\.\d)0$/, "$1");
+        wallRating.textContent = average.toFixed(1);
     }
 
-    if(ratingCount){
-        ratingCount.textContent = `(${total} تقييم)`;
+    if(ratingTotalInline){
+        ratingTotalInline.textContent = formatQuickStat(total);
     }
 
-    // الشريط العلوي يعرض إجمالي عدد التقييمات، وليس متوسط النجوم.
+    if(ratingTotalFooter){
+        ratingTotalFooter.textContent = formatQuickStat(total);
+    }
+
     if(wallQuickRating){
         wallQuickRating.textContent = formatQuickStat(total);
     }
@@ -2116,96 +2185,106 @@ function updateRatingUI(rating, ratingCountValue){
     if(currentWallpaper){
         currentWallpaper.rating = average;
         currentWallpaper.ratingCount = total;
+        currentWallpaper.ratingDistribution = counts;
     }
 
-    updateStars(average);
+    updateRatingDistribution(counts);
+    updateStars(0);
 }
 
 function createRatingBurst(star){
     if(!star) return;
 
-    const host = document.getElementById("ratingStars");
-    if(!host) return;
+    const row = star.closest(".rating-row");
+    if(!row) return;
 
     const burst = document.createElement("span");
     burst.className = "rating-burst";
     burst.setAttribute("aria-hidden", "true");
 
     const directions = [
-        [-34,-18], [-24,-30], [-8,-38], [12,-34], [30,-23], [38,-5],
-        [31,17], [17,30], [-4,36], [-22,29], [-36,15], [-40,-4]
+        [-25,-12],[-18,-22],[-7,-28],[9,-25],[20,-17],
+        [26,-4],[22,11],[12,21],[-3,27],[-17,21],[-25,10]
     ];
 
-    directions.forEach(([x, y], index) => {
+    directions.forEach(([x,y],index)=>{
         const particle = document.createElement("span");
         particle.className = "rating-burst-star";
         particle.textContent = "★";
-        particle.style.setProperty("--dx", `${x + ((index % 3) - 1) * 4}px`);
-        particle.style.setProperty("--dy", `${y + ((index % 2) ? 3 : -2)}px`);
-        particle.style.setProperty("--delay", `${index * 16}ms`);
-        particle.style.setProperty("--size", `${3 + (index % 3)}px`);
+        particle.style.setProperty("--dx",`${x}px`);
+        particle.style.setProperty("--dy",`${y}px`);
+        particle.style.setProperty("--delay",`${index*14}ms`);
+        particle.style.setProperty("--size",`${3+(index%2)}px`);
         burst.appendChild(particle);
     });
 
-    host.appendChild(burst);
+    row.appendChild(burst);
 
-    const hostRect = host.getBoundingClientRect();
-    const starRect = star.getBoundingClientRect();
-    burst.style.left = `${starRect.left - hostRect.left + starRect.width / 2}px`;
-    burst.style.top = `${starRect.top - hostRect.top + starRect.height / 2}px`;
+    const rr=row.getBoundingClientRect();
+    const sr=star.getBoundingClientRect();
 
-    setTimeout(() => burst.remove(), 850);
+    burst.style.left=`${sr.left-rr.left+sr.width/2}px`;
+    burst.style.top=`${sr.top-rr.top+sr.height/2}px`;
+
+    setTimeout(()=>burst.remove(),760);
+}
+
+function animateRatingRow(rate){
+    const row=document.querySelector(`.rating-row[data-rate="${rate}"]`);
+    if(!row) return;
+
+    row.classList.remove("rating-row-pulse");
+    void row.offsetWidth;
+    row.classList.add("rating-row-pulse");
 }
 
 async function submitRating(star){
     if(!currentWallpaper || !star) return;
 
-    const value = Number(star.dataset.rate);
-    if(!Number.isInteger(value) || value < 1 || value > 5) return;
+    const value=Number(star.dataset.rate);
+    if(!Number.isInteger(value) || value<1 || value>5) return;
 
-    // التفاعل يظهر فوراً مع كل ضغطة.
     createRatingBurst(star);
-    star.classList.remove("rating-pulse");
-    void star.offsetWidth;
-    star.classList.add("rating-pulse");
+    animateRatingRow(value);
 
     try{
-        const res = await fetch(
+        const res=await fetch(
             `${API}/${currentWallpaper.id}/rate`,
             {
                 method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    rating:value
-                })
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({rating:value})
             }
         );
 
-        const data = await res.json();
+        const data=await res.json();
 
         if(!res.ok || !data.success){
             throw new Error(data?.message || "Rating request failed");
         }
 
-        updateRatingUI(data.rating, data.ratingCount);
+        updateRatingUI(
+            data.rating,
+            data.ratingCount,
+            data.ratingDistribution || data.rating_distribution || {}
+        );
 
     }catch(error){
-        console.error("RATE ERROR", error);
+        console.error("RATE ERROR:",error);
     }
 }
 
-ratingStars.forEach(star => {
-    star.addEventListener("click", () => submitRating(star));
+ratingStars.forEach(star=>{
+    star.addEventListener("click",()=>submitRating(star));
 
-    star.addEventListener("keydown", event => {
-        if(event.key === "Enter" || event.key === " "){
+    star.addEventListener("keydown",event=>{
+        if(event.key==="Enter" || event.key===" "){
             event.preventDefault();
             submitRating(star);
         }
     });
 });
+
 // ===============================
 // Swipe Close Fullscreen
 // ===============================
