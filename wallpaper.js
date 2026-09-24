@@ -2241,14 +2241,18 @@ function animateRatingRow(rate){
 async function submitRating(star){
     if(!currentWallpaper || !star) return;
 
-    const value=Number(star.dataset.rate);
-    if(!Number.isInteger(value) || value<1 || value>5) return;
+    const value = Number(star.dataset.rate);
+    if(!Number.isInteger(value) || value < 1 || value > 5) return;
 
     createRatingBurst(star);
     animateRatingRow(value);
 
+    // تفاعل فوري صغير: النجمة التي ضغط عليها المستخدم تصبح صفراء.
+    ratingStars.forEach(s => s.classList.remove("pressed"));
+    star.classList.add("pressed");
+
     try{
-        const res=await fetch(
+        const res = await fetch(
             `${API}/${currentWallpaper.id}/rate`,
             {
                 method:"POST",
@@ -2257,7 +2261,7 @@ async function submitRating(star){
             }
         );
 
-        const data=await res.json();
+        const data = await res.json();
 
         if(!res.ok || !data.success){
             throw new Error(data?.message || "Rating request failed");
@@ -2269,12 +2273,19 @@ async function submitRating(star){
             data.ratingDistribution || data.rating_distribution || {}
         );
 
+        // نبقي نجمة الاختيار قابلة للرؤية حتى بعد تحديث الأشرطة.
+        const selected = document.querySelector(
+            `.rating-row-star[data-rate="${value}"]`
+        );
+        if(selected) selected.classList.add("pressed");
+
     }catch(error){
-        console.error("RATE ERROR:",error);
+        star.classList.remove("pressed");
+        console.error("RATE ERROR:", error);
     }
 }
 
-ratingStars.forEach(star=>{
+ratingStars.forEachratingStars.forEach(star=>{
     star.addEventListener("click",()=>submitRating(star));
 
     star.addEventListener("keydown",event=>{
