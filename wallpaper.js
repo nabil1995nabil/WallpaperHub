@@ -995,7 +995,9 @@ if(wallViews){
     );
 }
 if(wallQuickRating){
-    wallQuickRating.textContent = currentWallpaper.rating ?? 0;
+    wallQuickRating.textContent = formatQuickStat(
+        currentWallpaper.ratingCount ?? 0
+    );
 }
 if(wallQuickDate){
     wallQuickDate.textContent = currentWallpaper.date || "—";
@@ -1034,26 +1036,9 @@ currentWallpaper.captureTime ||
 
 }
 
-if(wallRating)
-
-wallRating.textContent =
-
-currentWallpaper.rating || 0;
-
-
-
-if(ratingCount)
-
-ratingCount.textContent =
-
-`(${currentWallpaper.ratingCount || 0} تقييم)`;
-
-
-
-updateStars(
-
-currentWallpaper.rating || 0
-
+updateRatingUI(
+    currentWallpaper.rating || 0,
+    currentWallpaper.ratingCount || 0
 );
 
 
@@ -2097,161 +2082,130 @@ alert(
 // Rating
 // ===============================
 
-
 function updateStars(value){
+    const numericValue = Number(value) || 0;
 
+    ratingStars.forEach((star, index) => {
+        star.classList.toggle(
+            "active",
+            index < Math.round(numericValue)
+        );
+    });
+}
 
+function updateRatingUI(rating, ratingCountValue){
+    const average = Number(rating) || 0;
+    const total = Number(ratingCountValue) || 0;
 
-ratingStars.forEach(
+    if(wallRating){
+        wallRating.textContent = average
+            .toFixed(2)
+            .replace(/\.00$/, "")
+            .replace(/(\.\d)0$/, "$1");
+    }
 
-(star,index)=>{
+    if(ratingCount){
+        ratingCount.textContent = `(${total} تقييم)`;
+    }
 
+    // الشريط العلوي يعرض إجمالي عدد التقييمات، وليس متوسط النجوم.
+    if(wallQuickRating){
+        wallQuickRating.textContent = formatQuickStat(total);
+    }
 
-star.classList.toggle(
+    if(currentWallpaper){
+        currentWallpaper.rating = average;
+        currentWallpaper.ratingCount = total;
+    }
 
-"active",
+    updateStars(average);
+}
 
-index < Math.round(value)
+function createRatingBurst(star){
+    if(!star) return;
 
-);
+    const host = document.getElementById("ratingStars");
+    if(!host) return;
 
+    const burst = document.createElement("span");
+    burst.className = "rating-burst";
+    burst.setAttribute("aria-hidden", "true");
 
+    const directions = [
+        [-34,-18], [-24,-30], [-8,-38], [12,-34], [30,-23], [38,-5],
+        [31,17], [17,30], [-4,36], [-22,29], [-36,15], [-40,-4]
+    ];
 
+    directions.forEach(([x, y], index) => {
+        const particle = document.createElement("span");
+        particle.className = "rating-burst-star";
+        particle.textContent = "★";
+        particle.style.setProperty("--dx", `${x + ((index % 3) - 1) * 4}px`);
+        particle.style.setProperty("--dy", `${y + ((index % 2) ? 3 : -2)}px`);
+        particle.style.setProperty("--delay", `${index * 16}ms`);
+        particle.style.setProperty("--size", `${3 + (index % 3)}px`);
+        burst.appendChild(particle);
+    });
+
+    host.appendChild(burst);
+
+    const hostRect = host.getBoundingClientRect();
+    const starRect = star.getBoundingClientRect();
+    burst.style.left = `${starRect.left - hostRect.left + starRect.width / 2}px`;
+    burst.style.top = `${starRect.top - hostRect.top + starRect.height / 2}px`;
+
+    setTimeout(() => burst.remove(), 850);
+}
+
+async function submitRating(star){
+    if(!currentWallpaper || !star) return;
+
+    const value = Number(star.dataset.rate);
+    if(!Number.isInteger(value) || value < 1 || value > 5) return;
+
+    // التفاعل يظهر فوراً مع كل ضغطة.
+    createRatingBurst(star);
+    star.classList.remove("rating-pulse");
+    void star.offsetWidth;
+    star.classList.add("rating-pulse");
+
+    try{
+        const res = await fetch(
+            `${API}/${currentWallpaper.id}/rate`,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    rating:value
+                })
+            }
+        );
+
+        const data = await res.json();
+
+        if(!res.ok || !data.success){
+            throw new Error(data?.message || "Rating request failed");
+        }
+
+        updateRatingUI(data.rating, data.ratingCount);
+
+    }catch(error){
+        console.error("RATE ERROR", error);
+    }
+}
+
+ratingStars.forEach(star => {
+    star.addEventListener("click", () => submitRating(star));
+
+    star.addEventListener("keydown", event => {
+        if(event.key === "Enter" || event.key === " "){
+            event.preventDefault();
+            submitRating(star);
+        }
+    });
 });
-
-
-}
-
-
-
-
-
-
-
-ratingStars.forEach(star=>{
-
-
-
-star.onclick = async()=>{
-
-
-
-if(!currentWallpaper)
-
-return;
-
-
-
-
-const value =
-
-Number(
-
-star.dataset.rate
-
-);
-
-
-
-
-
-try{
-
-
-
-const res =
-
-await fetch(
-
-`${API}/${currentWallpaper.id}/rate`,
-
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":
-
-"application/json"
-
-},
-
-body:JSON.stringify({
-
-rating:value
-
-})
-
-}
-
-);
-
-
-
-
-
-const data =
-
-await res.json();
-
-
-
-
-
-if(data.success){
-
-
-
-wallRating.textContent =
-
-data.rating;
-
-
-
-ratingCount.textContent =
-
-`(${data.ratingCount} تقييم)`;
-
-
-
-
-
-updateStars(
-
-data.rating
-
-);
-
-
-
-}
-
-
-
-}catch(error){
-
-
-
-console.error(
-
-"RATE ERROR",
-
-error
-
-);
-
-
-
-}
-
-
-
-};
-
-
-});
-
 // ===============================
 // Swipe Close Fullscreen
 // ===============================

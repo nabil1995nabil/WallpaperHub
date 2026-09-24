@@ -2337,3 +2337,198 @@ body{
         margin-top:28px !important;
     }
 }
+
+
+/* =========================================================
+   RATING — منع القص + تفاعل نجوم صغير جداً عند كل ضغطة
+   ========================================================= */
+
+.rating-info-item{
+    align-items:flex-start !important;
+    gap:18px;
+    min-width:0;
+}
+
+.rating-info-item > .info-label{
+    flex:0 0 auto;
+    padding-top:7px;
+}
+
+.rating-control{
+    position:relative;
+    min-width:0;
+    flex:1 1 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    overflow:visible !important;
+}
+
+.rating-value-row{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    min-height:22px;
+    white-space:nowrap;
+}
+
+.rating-value-row #wallRating{
+    font-size:16px;
+    line-height:1.2;
+}
+
+.rating-value-row #ratingCount{
+    font-size:11px;
+    color:#777;
+    white-space:nowrap;
+}
+
+.rating-stars{
+    position:relative;
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap !important;
+    align-items:center;
+    justify-content:flex-start;
+    gap:4px;
+    width:max-content;
+    max-width:100%;
+    min-width:0;
+    margin-top:7px;
+    overflow:visible !important;
+    direction:ltr;
+}
+
+.rating-stars .star{
+    position:relative;
+    flex:0 0 31px;
+    width:31px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    line-height:1;
+    color:#aaa;
+    cursor:pointer;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .14s ease, color .16s ease;
+}
+
+.rating-stars .star:hover{
+    transform:scale(1.08);
+}
+
+.rating-stars .star:active,
+.rating-stars .star.rating-pulse{
+    transform:scale(.88);
+}
+
+.rating-stars .star:focus-visible{
+    outline:2px solid #1877f2;
+    outline-offset:2px;
+    border-radius:8px;
+}
+
+.rating-burst{
+    position:absolute;
+    width:0;
+    height:0;
+    pointer-events:none;
+    z-index:20;
+    overflow:visible;
+}
+
+.rating-burst-star{
+    position:absolute;
+    left:calc(var(--size) * -0.5);
+    top:calc(var(--size) * -0.5);
+    width:var(--size);
+    height:var(--size);
+    font-size:var(--size);
+    line-height:1;
+    color:#ffc400;
+    opacity:0;
+    transform:translate(0,0) scale(.35) rotate(0deg);
+    animation:ratingMicroStar .68s cubic-bezier(.2,.8,.25,1) var(--delay) forwards;
+    text-shadow:0 0 2px rgba(255,196,0,.22);
+}
+
+@keyframes ratingMicroStar{
+    0%{
+        opacity:0;
+        transform:translate(0,0) scale(.35) rotate(0deg);
+    }
+    12%{
+        opacity:1;
+    }
+    72%{
+        opacity:.92;
+    }
+    100%{
+        opacity:0;
+        transform:translate(var(--dx),var(--dy)) scale(.72) rotate(90deg);
+    }
+}
+
+@media(max-width:600px){
+    .rating-info-item{
+        gap:12px;
+        align-items:flex-start !important;
+    }
+
+    .rating-info-item > .info-label{
+        min-width:48px;
+        padding-top:7px;
+    }
+
+    .rating-control{
+        width:calc(100% - 60px);
+        overflow:visible !important;
+    }
+
+    .rating-stars{
+        max-width:100%;
+        gap:2px;
+    }
+
+    .rating-stars .star{
+        flex-basis:30px;
+        width:30px;
+        height:34px;
+        font-size:28px;
+    }
+
+    .rating-value-row #wallRating{
+        font-size:15px;
+    }
+
+    .rating-value-row #ratingCount{
+        font-size:10px;
+    }
+}
+
+@media(max-width:350px){
+    .rating-info-item{
+        gap:8px;
+    }
+
+    .rating-info-item > .info-label{
+        min-width:42px;
+    }
+
+    .rating-control{
+        width:calc(100% - 50px);
+    }
+
+    .rating-stars{
+        gap:0;
+    }
+
+    .rating-stars .star{
+        flex-basis:27px;
+        width:27px;
+        font-size:25px;
+    }
+}
