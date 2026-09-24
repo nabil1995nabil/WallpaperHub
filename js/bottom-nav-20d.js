@@ -17,7 +17,7 @@ if (bottomNav) {
     function moveBlob(item, stretch = true) {
         const rect = item.getBoundingClientRect();
         const navRect = bottomNav.getBoundingClientRect();
-        const targetX = rect.left - navRect.left + rect.width / 2;
+        const targetX = rect.left - navRect.left + rect.width / 2 - 41;
 
         if (stretch) {
             blob.classList.add("stretch");
