@@ -2900,7 +2900,12 @@ async function publishAiWallpaper({
     };
 }
 
-// Generate only: kept for compatibility with existing callers.
+// Generate image + publish automatically.
+// The existing AI UI already calls /api/generate-image, so this route now
+// completes the full pipeline without sending the user through the manual
+// publishing dashboard:
+// Gemini -> Cloudinary -> Supabase(category=ai, source=ai).
+// Set publish:false only when a caller explicitly needs preview-only behavior.
 app.post(
     "/api/generate-image",
     async(req,res)=>{
@@ -2910,20 +2915,57 @@ app.post(
                 return res.status(400).json({success:false,message:"Prompt required"});
             }
 
+            const aspectRatio = String(req.body?.aspectRatio || "9:16");
+            const imageSize = String(req.body?.imageSize || "1K");
+
             const generated = await generateGeminiImage(prompt, {
-                aspectRatio:String(req.body?.aspectRatio || "9:16"),
-                imageSize:String(req.body?.imageSize || "1K")
+                aspectRatio,
+                imageSize
             });
 
-            return res.json({
+            // Keep the old imageData response so existing frontend code can
+            // still preview the generated image immediately.
+            const responsePayload = {
                 success:true,
                 model:GEMINI_IMAGE_MODEL,
                 mimeType:generated.mimeType,
-                imageData:generated.base64
-            });
+                imageData:generated.base64,
+                published:false,
+                wallpaper:null
+            };
+
+            // Publishing is ON by default. The browser does not need to know
+            // AI_PUBLISH_SECRET because this is the endpoint already used by
+            // the AI generator UI. The secret-protected endpoint remains
+            // available separately for server/automation callers.
+            if(req.body?.publish !== false){
+                const cloudinary = await uploadBase64ToCloudinary(
+                    generated.base64,
+                    generated.mimeType,
+                    "wallpaperhub/ai"
+                );
+
+                const published = await publishAiWallpaper({
+                    imageUrl:cloudinary.secure_url,
+                    title:req.body?.title || "AI Wallpaper",
+                    prompt,
+                    resolution:String(req.body?.resolution || imageSize),
+                    tags:req.body?.tags,
+                    colors:req.body?.colors
+                });
+
+                responsePayload.published = true;
+                responsePayload.cloudinaryUrl = cloudinary.secure_url;
+                responsePayload.wallpaper = published.wallpaper;
+            }
+
+            return res.json(responsePayload);
         }catch(error){
-            console.log("GENERATE IMAGE ERROR:", error?.message || error);
-            return res.status(500).json({success:false,message:error?.message || "Image generation failed"});
+            console.log("GENERATE IMAGE / AUTO PUBLISH ERROR:", error?.message || error);
+            return res.status(500).json({
+                success:false,
+                message:error?.message || "Image generation/publishing failed"
+            });
         }
     }
 );
