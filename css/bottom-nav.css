@@ -222,3 +222,85 @@ body.dark .nav-item.active {
         transform: translateX(-50%);
     }
 }
+
+/* =========================================================
+   WALLPAPERHUB — STYLE #8
+   Liquid Wave + Neon Home
+   ========================================================= */
+.bottom-nav {
+    height: 74px;
+    width: min(92%, 430px);
+    overflow: visible;
+    background: linear-gradient(110deg, rgba(4,7,20,.98), rgba(7,10,27,.98) 52%, rgba(13,8,31,.98));
+    border: 1px solid rgba(65,177,255,.85);
+    border-radius: 38px;
+    box-shadow: 0 0 10px rgba(0,153,255,.45), 0 0 28px rgba(125,45,255,.28), 0 18px 45px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.bottom-nav::before {
+    inset: -2px;
+    border-radius: 40px;
+    padding: 2px;
+    background: linear-gradient(90deg,#00b7ff 0%,#3978ff 28%,#8b35ff 62%,#ff32e7 100%);
+    animation: none;
+    opacity: .95;
+}
+.bottom-nav::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(circle at 88% 50%,rgba(149,55,255,.18),transparent 26%), linear-gradient(90deg,transparent,rgba(0,174,255,.04) 45%,rgba(210,48,255,.12));
+    z-index: 0;
+}
+.liquid-blob {
+    top: 50%;
+    width: 152px;
+    height: 66px;
+    border-radius: 34px 48px 48px 34px;
+    background: linear-gradient(100deg,rgba(0,157,255,.82),rgba(52,92,255,.88) 36%,rgba(131,39,255,.96) 70%,rgba(224,42,232,.92));
+    box-shadow: 0 0 12px rgba(0,153,255,.65), 0 0 28px rgba(145,44,255,.55), inset 0 1px 2px rgba(255,255,255,.3);
+    z-index: 1;
+    transition: left .52s cubic-bezier(.22,1.25,.36,1), width .35s cubic-bezier(.22,1.25,.36,1);
+}
+.liquid-blob::before {
+    content: "";
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 28%,rgba(255,255,255,.28),rgba(255,255,255,.08) 18%,transparent 40%), linear-gradient(145deg,#7d38ff,#b92cff 58%,#4b63ff);
+    border: 1px solid rgba(255,255,255,.3);
+    box-shadow: 0 0 8px rgba(120,65,255,.95),0 0 25px rgba(206,42,255,.75),0 0 42px rgba(39,115,255,.45),inset 0 2px 5px rgba(255,255,255,.3);
+}
+.liquid-blob::after {
+    content: "";
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle,rgba(255,255,255,.16),transparent 62%);
+    filter: none;
+    opacity: 1;
+    animation: none;
+    z-index: 1;
+}
+.nav-item { color: #aeb7d0; z-index: 3; }
+.nav-item.active { color: #fff; transform: translateY(-2px); }
+.nav-item.active span { transform: scale(1.13) translateY(-1px); filter: drop-shadow(0 0 5px rgba(255,255,255,.75)) drop-shadow(0 0 10px rgba(142,68,255,.75)); }
+.nav-item p { font-size: 10.5px; text-shadow: 0 1px 5px rgba(0,0,0,.35); }
+.ripple { background: radial-gradient(circle,rgba(168,70,255,.42),rgba(30,150,255,.12) 38%,transparent 72%); }
+body:not(.dark) .bottom-nav { background: linear-gradient(110deg,rgba(5,8,22,.97),rgba(10,11,30,.98),rgba(17,8,31,.98)); border-color: rgba(77,169,255,.75); }
+body:not(.dark) .nav-item { color: #aeb7d0; }
+body:not(.dark) .nav-item.active { color: #fff; }
+@media (max-width:600px) {
+    .bottom-nav { bottom:18px; width:calc(100vw - 22px); height:72px; border-radius:37px; }
+    .liquid-blob { width:142px; height:64px; }
+    .liquid-blob::before,.liquid-blob::after { width:68px; height:68px; }
+}
