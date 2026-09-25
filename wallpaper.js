@@ -112,7 +112,7 @@ const wallLikes = document.getElementById("wallLikes");
 const wallViews = document.getElementById("wallViews");
 const wallQuickRating = document.getElementById("wallQuickRating");
 const wallQuickDate = document.getElementById("wallQuickDate");
-if(moreOptionsBtn){
+if(moreOptionsBtn && optionsMenu){
 moreOptionsBtn.onclick = ()=>{
 optionsMenu.classList.toggle("active");
 };
@@ -144,28 +144,25 @@ let currentWallpaperIndex = -1;
 // ===============================
 // User Actions
 // ===============================
-function saveUserAction(key,id){
-let list =
-JSON.parse(
-localStorage.getItem(key)
-||
-"[]"
-);
-id = String(id);
-if(!list.map(String).includes(id)){
-list.push(id);
-localStorage.setItem(
+function saveUserAction(key, id){
+    let list = [];
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+        list = Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.warn("LOCAL ACTION DATA RESET:", key, error);
+        list = [];
+    }
 
-key,
-
-JSON.stringify(list)
-
-);
-
-
-}
-
-
+    id = String(id);
+    if(!list.map(String).includes(id)){
+        list.push(id);
+        try {
+            localStorage.setItem(key, JSON.stringify(list));
+        } catch (error) {
+            console.warn("LOCAL ACTION SAVE ERROR:", key, error);
+        }
+    }
 }
 
 
@@ -502,40 +499,25 @@ async function loadWallpaper() {
 
 
 async function sendView(id){
+    const key = `wallpaper_view_${String(id)}`;
+    const now = Date.now();
+    const cooldown = 10 * 60 * 1000;
 
+    try {
+        const lastView = Number(sessionStorage.getItem(key) || 0);
+        if(lastView && now - lastView < cooldown) return;
+        sessionStorage.setItem(key, String(now));
+    } catch (error) {
+        // لا نمنع تسجيل المشاهدة إذا كان sessionStorage غير متاح.
+    }
 
-try{
-
-
-await fetch(
-
-`${API}/${id}/view`,
-
-{
-
-method:"POST"
-
-}
-
-);
-
-
-
-}catch(error){
-
-
-console.error(
-
-"VIEW ERROR",
-
-error
-
-);
-
-
-}
-
-
+    try {
+        await fetch(`${API}/${encodeURIComponent(id)}/view`, {
+            method: "POST"
+        });
+    } catch(error) {
+        console.error("VIEW ERROR", error);
+    }
 }
 
 
@@ -1571,93 +1553,27 @@ card.className =
 
 
 
-let media = "";
-
-
-
-
-
-// ===============================
-// تحديد نوع الوسائط
-// ===============================
-
+// إنشاء عناصر الوسائط مباشرةً بدل إدخال روابط/عناوين البيانات داخل innerHTML.
+let mediaElement;
 
 if(isVideoMedia(item)){
-
-
-
-media = `
-
-
-<video
-
-src="${getImageUrl(item.image)}"
-
-muted
-
-loop
-
-autoplay
-
-playsinline
-
-loading="lazy"
-
->
-
-</video>
-
-
-`;
-
-
-
+    mediaElement = document.createElement("video");
+    mediaElement.src = getImageUrl(item.image);
+    mediaElement.muted = true;
+    mediaElement.loop = true;
+    mediaElement.autoplay = true;
+    mediaElement.playsInline = true;
+    mediaElement.setAttribute("loading", "lazy");
 }else{
-
-
-
-media = `
-
-
-<img
-
-src="${getImageUrl(
-
-isGifMedia(item) ? item.image : (item.thumbnail || item.image)
-
-)}"
-
-loading="lazy"
-
-alt="${item.title || "Wallpaper"}"
-
->
-
-
-`;
-
-
-
+    mediaElement = document.createElement("img");
+    mediaElement.src = getImageUrl(
+        isGifMedia(item) ? item.image : (item.thumbnail || item.image)
+    );
+    mediaElement.loading = "lazy";
+    mediaElement.alt = String(item.title || "Wallpaper");
 }
 
-
-
-
-
-
-
-card.innerHTML = `
-
-
-
-${media}
-
-
-
-`;
-
-
-
+card.appendChild(mediaElement);
 
 
 
@@ -1871,26 +1787,51 @@ function getWatermarkColor(ctx, canvas) {
 }
 
 async function downloadWithWatermark(imageUrl, title) {
-    // تحميل الملف الأصلي بدون تصغير أو إعادة ضغط.
     try {
         const response = await fetch(imageUrl, { mode: "cors" });
         if (!response.ok) throw new Error("IMAGE DOWNLOAD ERROR");
 
         const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
+        if(!blob.type.startsWith("image/")){
+            throw new Error("WATERMARK_NOT_SUPPORTED_FOR_MEDIA");
+        }
 
+        const bitmap = await createImageBitmap(blob);
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if(!ctx) throw new Error("CANVAS_NOT_SUPPORTED");
+
+        ctx.drawImage(bitmap, 0, 0);
+
+        const padding = Math.max(24, Math.round(canvas.width * 0.025));
+        const fontSize = Math.max(18, Math.round(canvas.width * 0.025));
+        ctx.font = `600 ${fontSize}px Arial, sans-serif`;
+        ctx.textBaseline = "bottom";
+        ctx.textAlign = "right";
+        ctx.fillStyle = getWatermarkColor(ctx, canvas);
+        ctx.shadowColor = "rgba(0,0,0,.18)";
+        ctx.shadowBlur = 4;
+        ctx.fillText("WallpaperHub", canvas.width - padding, canvas.height - padding);
+        ctx.shadowBlur = 0;
+
+        const outputType = blob.type === "image/png" ? "image/png" : "image/jpeg";
+        const outputBlob = await new Promise((resolve, reject) => {
+            canvas.toBlob(result => result ? resolve(result) : reject(new Error("CANVAS_EXPORT_FAILED")), outputType, 0.96);
+        });
+
+        bitmap.close();
+        const objectUrl = URL.createObjectURL(outputBlob);
         const link = document.createElement("a");
-        link.download = (title || "wallpaper") + getExtensionFromMime(blob.type);
+        link.download = (title || "wallpaper") + (outputType === "image/png" ? ".png" : ".jpg");
         link.href = objectUrl;
-
         document.body.appendChild(link);
         link.click();
         link.remove();
-
         setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch (error) {
-        console.error("ORIGINAL IMAGE DOWNLOAD ERROR:", error);
-
+        console.error("WATERMARK DOWNLOAD ERROR:", error);
         const link = document.createElement("a");
         link.href = imageUrl;
         link.download = title || "wallpaper";
@@ -2334,11 +2275,15 @@ function animateRatingRow(rate){
     row.classList.add("rating-row-pulse");
 }
 
+let ratingSubmitting = false;
+
 async function submitRating(star){
-    if(!currentWallpaper || !star) return;
+    if(!currentWallpaper || !star || ratingSubmitting) return;
 
     const value = Number(star.dataset.rate);
     if(!Number.isInteger(value) || value < 1 || value > 5) return;
+
+    ratingSubmitting = true;
 
     createRatingBurst(star);
     animateRatingRow(value);
@@ -2348,11 +2293,16 @@ async function submitRating(star){
     star.classList.add("pressed");
 
     try{
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || "";
         const res = await fetch(
             `${API}/${currentWallpaper.id}/rate`,
             {
                 method:"POST",
-                headers:{"Content-Type":"application/json"},
+                headers:{
+                    "Content-Type":"application/json",
+                    ...(accessToken ? { Authorization:`Bearer ${accessToken}` } : {})
+                },
                 body:JSON.stringify({rating:value})
             }
         );
@@ -2378,6 +2328,8 @@ async function submitRating(star){
     }catch(error){
         star.classList.remove("pressed");
         console.error("RATE ERROR:", error);
+    } finally {
+        ratingSubmitting = false;
     }
 }
 
@@ -2567,6 +2519,13 @@ async function autoAnalyzeWallpaper(){
         return;
 
     const analyzedWallpaperId = Number(currentWallpaper.id);
+
+    // لا نعيد استدعاء AI إذا كانت بيانات التحليل موجودة بالفعل.
+    if(currentWallpaper.aiDescription &&
+       (currentWallpaper.source || currentWallpaper.location || currentWallpaper.captureDate)) {
+        updateWallpaperAnalysisUI();
+        return;
+    }
 
     try{
 
