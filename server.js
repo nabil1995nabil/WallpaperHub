@@ -504,13 +504,9 @@ function wallpaperFromDb(row){
         rating: Number(row.rating ?? 0),
         ratingCount: Number(row.rating_count ?? 0),
         ratingSum: Number(row.rating_sum ?? 0),
-        ratingDistribution: {
-            1: Number(row.rating_1_count ?? 0),
-            2: Number(row.rating_2_count ?? 0),
-            3: Number(row.rating_3_count ?? 0),
-            4: Number(row.rating_4_count ?? 0),
-            5: Number(row.rating_5_count ?? 0)
-        },
+        ratingDistribution: row.rating_distribution && typeof row.rating_distribution === "object"
+            ? row.rating_distribution
+            : {},
         author: row.author ?? "WallpaperHub",
         date: row.date ?? "",
         colors: Array.isArray(row.colors) ? row.colors : [],
@@ -545,11 +541,9 @@ function wallpaperToDb(w){
         rating: Number(w.rating ?? 0),
         rating_count: Number(w.ratingCount ?? 0),
         rating_sum: Number(w.ratingSum ?? 0),
-        rating_1_count: Number(w.ratingDistribution?.[1] ?? w.ratingDistribution?.["1"] ?? 0),
-        rating_2_count: Number(w.ratingDistribution?.[2] ?? w.ratingDistribution?.["2"] ?? 0),
-        rating_3_count: Number(w.ratingDistribution?.[3] ?? w.ratingDistribution?.["3"] ?? 0),
-        rating_4_count: Number(w.ratingDistribution?.[4] ?? w.ratingDistribution?.["4"] ?? 0),
-        rating_5_count: Number(w.ratingDistribution?.[5] ?? w.ratingDistribution?.["5"] ?? 0),
+        rating_distribution: w.ratingDistribution && typeof w.ratingDistribution === "object"
+            ? w.ratingDistribution
+            : {},
         author: w.author ?? null,
         date: w.date ?? null,
         colors: Array.isArray(w.colors) ? w.colors : [],
@@ -1850,6 +1844,66 @@ liked:false
 });
 
 // ======================================
+// Wallpaper Ratings (Supabase)
+// كل ضغطة تقييم تُحفظ في توزيع 1..5 وتحدّث المتوسط والعدد بشكل ذري.
+// ======================================
+app.post(
+    "/api/wallpapers/:id/rate",
+    async (req, res) => {
+        try {
+            const wallpaperId = Number(req.params.id);
+            const ratingValue = Number(req.body?.rating);
+
+            if (!Number.isInteger(wallpaperId) || wallpaperId <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid wallpaper ID"
+                });
+            }
+
+            if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Rating must be an integer from 1 to 5"
+                });
+            }
+
+            // RPC ذري لضمان عدم ضياع الضغطات إذا قيّم أكثر من مستخدم في نفس الوقت.
+            const { data, error } = await supabase.rpc("rate_wallpaper", {
+                p_wallpaper_id: wallpaperId,
+                p_rating: ratingValue
+            });
+
+            if (error) throw error;
+
+            const row = Array.isArray(data) ? data[0] : data;
+            if (!row) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Wallpaper not found"
+                });
+            }
+
+            const distribution = row.rating_distribution || {};
+
+            return res.json({
+                success: true,
+                rating: Number(row.rating ?? 0),
+                ratingCount: Number(row.rating_count ?? 0),
+                ratingSum: Number(row.rating_sum ?? 0),
+                ratingDistribution: distribution
+            });
+        } catch (error) {
+            console.log("RATE WALLPAPER ERROR:", error);
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+);
+
+// ======================================
 // Add Wallpaper
 // ======================================
 
@@ -1916,79 +1970,6 @@ app.post(
         }catch(error){
             console.log("ADD WALLPAPER ERROR:", error);
             res.status(500).json({ success:false, message:error.message });
-        }
-    }
-);
-
-
-// ======================================
-// Wallpaper Rating — atomic distribution
-// كل ضغطة على نجمة تضيف تقييمًا جديدًا.
-// 200 تقييم من نفس الدرجة = امتلاء شريط تلك الدرجة.
-// ======================================
-app.post(
-    "/api/wallpapers/:id/rate",
-    async (req, res) => {
-        try {
-            const wallpaperId = Number(req.params.id);
-            const ratingValue = Number(req.body?.rating);
-
-            if (
-                !Number.isInteger(wallpaperId) ||
-                wallpaperId <= 0 ||
-                !Number.isInteger(ratingValue) ||
-                ratingValue < 1 ||
-                ratingValue > 5
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid rating"
-                });
-            }
-
-            // يتم تنفيذ الزيادة داخل PostgreSQL function حتى لا تضيع
-            // التقييمات عند وصول ضغطتين في نفس الوقت.
-            const { data, error } = await supabase.rpc(
-                "rate_wallpaper",
-                {
-                    p_wallpaper_id: wallpaperId,
-                    p_rating: ratingValue
-                }
-            );
-
-            if (error) throw error;
-
-            const row = Array.isArray(data) ? data[0] : data;
-
-            if (!row) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Wallpaper not found"
-                });
-            }
-
-            const ratingDistribution = {
-                1: Number(row.rating_1_count ?? 0),
-                2: Number(row.rating_2_count ?? 0),
-                3: Number(row.rating_3_count ?? 0),
-                4: Number(row.rating_4_count ?? 0),
-                5: Number(row.rating_5_count ?? 0)
-            };
-
-            return res.json({
-                success: true,
-                rating: Number(row.rating ?? 0),
-                ratingCount: Number(row.rating_count ?? 0),
-                ratingSum: Number(row.rating_sum ?? 0),
-                ratingDistribution
-            });
-        } catch (error) {
-            console.log("RATE WALLPAPER ERROR:", error);
-
-            return res.status(500).json({
-                success: false,
-                message: error?.message || "Failed to save rating"
-            });
         }
     }
 );

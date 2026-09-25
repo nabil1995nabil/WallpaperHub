@@ -79,7 +79,7 @@ const colorPalette =
 document.getElementById("colorPalette");
 const similarContainer =
 document.getElementById("similarWallpapers");
-const oldRatingStars =
+const ratingStars =
 document.querySelectorAll(".star");
 const ratingCount =
 document.getElementById("ratingCount");
@@ -2285,7 +2285,7 @@ async function submitRating(star){
     }
 }
 
-ratingStars.forEach(star=>{
+ratingStars.forEachratingStars.forEach(star=>{
     star.addEventListener("click",()=>submitRating(star));
 
     star.addEventListener("keydown",event=>{
