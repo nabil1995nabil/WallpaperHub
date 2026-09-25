@@ -79,8 +79,6 @@ const colorPalette =
 document.getElementById("colorPalette");
 const similarContainer =
 document.getElementById("similarWallpapers");
-const ratingStars =
-document.querySelectorAll(".star");
 const ratingCount =
 document.getElementById("ratingCount");
 const moreOptionsBtn =
@@ -1314,11 +1312,13 @@ checkLikeStatus();
     syncUserActionToSupabase("views", currentWallpaper.id);
 
 
-    // ✅ حفظ المشاهدة في الإحصائيات
-    window.syncUserStats(
-        "views",
-        currentWallpaper.id
-    );
+    // حفظ المشاهدة في الإحصائيات إذا كانت الدالة متوفرة.
+    if (typeof window.syncUserStats === "function") {
+        window.syncUserStats(
+            "views",
+            currentWallpaper.id
+        );
+    }
 
 
     sendView(
@@ -1830,8 +1830,10 @@ if (downloadBtn) {
         // تحميل الملف الأصلي بدون تصغير أو إعادة ضغط
         downloadWithWatermark(url, currentWallpaper.title);
 
-        // ✅ حفظ التحميل في الإحصائيات
-        window.syncUserStats("downloads", currentWallpaper.id);
+        // حفظ التحميل في الإحصائيات إذا كانت الدالة متوفرة.
+        if (typeof window.syncUserStats === "function") {
+            window.syncUserStats("downloads", currentWallpaper.id);
+        }
 
         // حفظ التحميل
         saveUserAction("downloads", currentWallpaper.id);
@@ -2285,7 +2287,7 @@ async function submitRating(star){
     }
 }
 
-ratingStars.forEachratingStars.forEach(star=>{
+ratingStars.forEach(star=>{
     star.addEventListener("click",()=>submitRating(star));
 
     star.addEventListener("keydown",event=>{
