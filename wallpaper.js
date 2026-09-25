@@ -96,6 +96,18 @@ document.getElementById("captureTime");
 const imageSource =
 document.getElementById("imageSource");
 
+const wallImageLink =
+document.getElementById("wallImageLink");
+
+const wallDirectImageLink =
+document.getElementById("wallDirectImageLink");
+
+const copyWallpaperPageLinkBtn =
+document.getElementById("copyWallpaperPageLinkBtn");
+
+const copyWallpaperDirectLinkBtn =
+document.getElementById("copyWallpaperDirectLinkBtn");
+
 const wallLikes = document.getElementById("wallLikes");
 const wallViews = document.getElementById("wallViews");
 const wallQuickRating = document.getElementById("wallQuickRating");
@@ -766,6 +778,79 @@ function applyPublisherProfile(user, publisherUID, wallpaperId = null) {
 }
 
 // ===============================
+// Wallpaper Links
+// ===============================
+
+function getWallpaperPageLink(id){
+    const url = new URL("wallpaper.html", window.location.href);
+    url.searchParams.set("id", String(id));
+    return url.href;
+}
+
+function getWallpaperDirectImageLink(wallpaper){
+    const raw = wallpaper?.image || "";
+    if(!raw) return "";
+    try{
+        return new URL(getImageUrl(raw), window.location.origin).href;
+    }catch{
+        return getImageUrl(raw);
+    }
+}
+
+async function copyWallpaperLink(value, button){
+    if(!value) return;
+
+    try{
+        await navigator.clipboard.writeText(value);
+        if(button){
+            const icon = button.querySelector(".material-icons");
+            if(icon){
+                const oldIcon = icon.textContent;
+                icon.textContent = "check";
+                button.classList.add("copied");
+                setTimeout(() => {
+                    icon.textContent = oldIcon;
+                    button.classList.remove("copied");
+                }, 1200);
+            }
+        }
+    }catch(error){
+        console.error("COPY WALLPAPER LINK ERROR:", error);
+        try{
+            const area = document.createElement("textarea");
+            area.value = value;
+            area.setAttribute("readonly", "");
+            area.style.position = "fixed";
+            area.style.opacity = "0";
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand("copy");
+            area.remove();
+            if(button){
+                button.classList.add("copied");
+                setTimeout(() => button.classList.remove("copied"), 1200);
+            }
+        }catch(fallbackError){
+            console.error("COPY WALLPAPER LINK FALLBACK ERROR:", fallbackError);
+        }
+    }
+}
+
+if(copyWallpaperPageLinkBtn){
+    copyWallpaperPageLinkBtn.addEventListener("click", () => {
+        if(!currentWallpaper) return;
+        copyWallpaperLink(getWallpaperPageLink(currentWallpaper.id), copyWallpaperPageLinkBtn);
+    });
+}
+
+if(copyWallpaperDirectLinkBtn){
+    copyWallpaperDirectLinkBtn.addEventListener("click", () => {
+        if(!currentWallpaper) return;
+        copyWallpaperLink(getWallpaperDirectImageLink(currentWallpaper), copyWallpaperDirectLinkBtn);
+    });
+}
+
+// ===============================
 // Show Wallpaper
 // ===============================
 
@@ -782,6 +867,15 @@ return;
 const media =
 
 currentWallpaper.image || "";
+
+// تحديث روابط الخلفية مع كل خلفية يتم فتحها.
+if(wallImageLink){
+    wallImageLink.textContent = getWallpaperPageLink(currentWallpaper.id);
+}
+
+if(wallDirectImageLink){
+    wallDirectImageLink.textContent = getWallpaperDirectImageLink(currentWallpaper);
+}
 
 
 

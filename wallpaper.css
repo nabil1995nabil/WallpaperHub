@@ -276,35 +276,147 @@ RATING
 }
 
 /* =========================
-IMAGE LINK
+WALLPAPER LINKS
+بطاقات روابط احترافية صغيرة ومتناسقة
 ========================= */
 
-.image-link-item{
-    display:flex;
+.wallpaper-links-section{
+    width:100%;
+    margin:18px 0 6px;
 }
 
-.image-link-box{
-    display:flex;
-    align-items:center;
+.wallpaper-links-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:10px;
 }
 
-#wallImageLink{
-    color:#555;
-    font-size:13px;
+.wallpaper-link-card{
+    position:relative;
+    min-height:92px;
+    padding:14px;
+    border:1px solid rgba(255,255,255,.45);
+    border-radius:20px;
+    overflow:hidden;
+    isolation:isolate;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:10px;
+    color:#fff;
+    box-shadow:0 8px 24px rgba(15,23,42,.10);
+    background-position:center;
+    background-size:cover;
+    background-repeat:no-repeat;
+    transition:transform .18s ease, box-shadow .18s ease;
 }
 
-.copy-link-btn{
-    width:35px;
-    height:35px;
-    border:none;
-    border-radius:50%;
-    color:#333;
-    background:#fff;
+.wallpaper-link-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background:linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.42));
+}
+
+.wallpaper-link-card:active{
+    transform:scale(.97);
+}
+
+.wallpaper-site-link{
+    background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MDAgMjYwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMDczZDJjIi8+PHN0b3Agb2Zmc2V0PSIuNTUiIHN0b3AtY29sb3I9IiMwZDhmNWEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwNTA5MTQiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iciI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNmJlN2E1IiBzdG9wLW9wYWNpdHk9Ii44NSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzZiZTdhNSIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48ZmlsdGVyIGlkPSJibHVyIj48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxOCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjI2MCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjczMCIgY3k9IjY1IiByPSIxMDUiIGZpbGw9InVybCgjcikiIG9wYWNpdHk9Ii43IiBmaWx0ZXI9InVybCgjYmx1cikiLz48Y2lyY2xlIGN4PSIxNTUiIGN5PSIxOTAiIHI9Ijk1IiBmaWxsPSIjNmJlN2E1IiBvcGFjaXR5PSIuMTIiIGZpbHRlcj0idXJsKCNibHVyKSIvPjxwYXRoIGQ9Ik0wIDIyMCBMMTYwIDk1IEwyNjAgMTg1IEwzOTAgNTUgTDU0MCAyMjBaIiBmaWxsPSIjNmJlN2E1IiBvcGFjaXR5PSIuMjMiLz48cGF0aCBkPSJNMjcwIDIyMCBMNDQwIDgwIEw2MjAgMjIwWiIgZmlsbD0iI2RmZjdmZiIgb3BhY2l0eT0iLjE2Ii8+PHBhdGggZD0iTTAgMjQ1IFEyMTAgMTcwIDQzMCAyMjUgVDkwMCAyMDUgVjI2MCBIMFoiIGZpbGw9IiMwMzE1MWMiIG9wYWNpdHk9Ii41OCIvPjwvc3ZnPg==");
+}
+
+.wallpaper-direct-link{
+    background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MDAgMjYwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMDYxNTJlIi8+PHN0b3Agb2Zmc2V0PSIuNTUiIHN0b3AtY29sb3I9IiMxMTc5ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwNTA5MTQiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iciI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNTJiNWZmIiBzdG9wLW9wYWNpdHk9Ii44NSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzUyYjVmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48ZmlsdGVyIGlkPSJibHVyIj48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxOCIvPjwvZmlsdGVyPjwvZGVmcz48cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjI2MCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjczMCIgY3k9IjY1IiByPSIxMDUiIGZpbGw9InVybCgjcikiIG9wYWNpdHk9Ii43IiBmaWx0ZXI9InVybCgjYmx1cikiLz48Y2lyY2xlIGN4PSIxNTUiIGN5PSIxOTAiIHI9Ijk1IiBmaWxsPSIjNTJiNWZmIiBvcGFjaXR5PSIuMTIiIGZpbHRlcj0idXJsKCNibHVyKSIvPjxjaXJjbGUgY3g9IjQ0MCIgY3k9IjEzMCIgcj0iNjIiIGZpbGw9IiMxYjZkY2MiIG9wYWNpdHk9Ii43Ii8+PGVsbGlwc2UgY3g9IjQ0MCIgY3k9IjEzMCIgcng9IjI0MCIgcnk9IjcyIiBmaWxsPSJub25lIiBzdHJva2U9IiM1MmI1ZmYiIHN0cm9rZS13aWR0aD0iMyIgb3BhY2l0eT0iLjciIHRyYW5zZm9ybT0icm90YXRlKC0xNSA0NDAgMTMwKSIvPjxlbGxpcHNlIGN4PSI0NDAiIGN5PSIxMzAiIHJ4PSIxODUiIHJ5PSI1MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGZkY2ZmIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii4zNSIgdHJhbnNmb3JtPSJyb3RhdGUoMTggNDQwIDEzMCkiLz48L3N2Zz4=");
+}
+
+.wallpaper-link-card-content{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
+
+.wallpaper-link-icon{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    border-radius:11px;
     display:flex;
     align-items:center;
     justify-content:center;
+    background:rgba(255,255,255,.17);
+    border:1px solid rgba(255,255,255,.28);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
 }
+
+.wallpaper-link-icon .material-icons{ font-size:18px; }
+
+.wallpaper-link-text{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.wallpaper-link-text strong{
+    color:#fff;
+    font-size:13px;
+    font-weight:800;
+    line-height:1.25;
+}
+
+.wallpaper-link-text span{
+    color:rgba(255,255,255,.82);
+    font-size:10px;
+    font-weight:500;
+    line-height:1.25;
+}
+
+.wallpaper-link-copy{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:11px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    background:rgba(255,255,255,.15);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    cursor:pointer;
+    transition:transform .15s ease, background .15s ease;
+}
+
+.wallpaper-link-copy:active{ transform:scale(.90); }
+.wallpaper-link-copy.copied{ background:rgba(255,255,255,.34); }
+.wallpaper-link-copy .material-icons{ font-size:17px; }
+
+.wallpaper-link-value{
+    position:absolute !important;
+    width:1px !important;
+    height:1px !important;
+    overflow:hidden !important;
+    clip:rect(0 0 0 0) !important;
+    clip-path:inset(50%) !important;
+    white-space:nowrap !important;
+}
+
+@media(max-width:600px){
+    .wallpaper-links-section{ margin:15px 0 4px; }
+    .wallpaper-links-grid{ gap:9px; }
+    .wallpaper-link-card{ min-height:86px; padding:11px; border-radius:18px; }
+    .wallpaper-link-icon,.wallpaper-link-copy{ width:31px; height:31px; flex-basis:31px; border-radius:10px; }
+    .wallpaper-link-icon .material-icons{ font-size:16px; }
+    .wallpaper-link-copy .material-icons{ font-size:15px; }
+    .wallpaper-link-text strong{ font-size:11px; }
+    .wallpaper-link-text span{ font-size:9px; }
+}
+
 /* =========================
 TAGS & COLORS
 ========================= */

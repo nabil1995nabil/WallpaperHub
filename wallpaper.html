@@ -567,45 +567,51 @@ close
 
 </div>
 
-<div class="info-item image-link-item">
+<!-- =========================
+     Wallpaper Links
+========================= -->
+<div class="wallpaper-links-section" aria-label="روابط الخلفية">
 
+    <div class="wallpaper-links-grid">
 
-<span>
-رابط الخلفية
-</span>
+        <div class="wallpaper-link-card wallpaper-site-link">
+            <div class="wallpaper-link-card-content">
+                <div class="wallpaper-link-icon">
+                    <span class="material-icons">open_in_new</span>
+                </div>
+                <div class="wallpaper-link-text">
+                    <strong>رابط الخلفية</strong>
+                    <span>داخل موقعي</span>
+                </div>
+            </div>
 
+            <button id="copyWallpaperPageLinkBtn" class="wallpaper-link-copy" type="button" aria-label="نسخ رابط الخلفية" title="نسخ رابط الخلفية">
+                <span class="material-icons">content_copy</span>
+            </button>
+        </div>
 
+        <div class="wallpaper-link-card wallpaper-direct-link">
+            <div class="wallpaper-link-card-content">
+                <div class="wallpaper-link-icon">
+                    <span class="material-icons">link</span>
+                </div>
+                <div class="wallpaper-link-text">
+                    <strong>الرابط المباشر</strong>
+                    <span>رابط الصورة الأصلي</span>
+                </div>
+            </div>
 
-<div class="image-link-box">
+            <button id="copyWallpaperDirectLinkBtn" class="wallpaper-link-copy" type="button" aria-label="نسخ الرابط المباشر" title="نسخ الرابط المباشر">
+                <span class="material-icons">content_copy</span>
+            </button>
+        </div>
 
+    </div>
 
-<span id="wallImageLink"></span>
-
-
-
-<button
-
-id="copyImageLinkBtn"
-
-class="copy-link-btn"
-
-type="button"
-
->
-
-<span class="material-icons">
-
-content_copy
-
-</span>
-
-
-</button>
-
-
-</div>
-
-
+    <div class="wallpaper-link-value" aria-live="polite">
+        <span id="wallImageLink"></span>
+        <span id="wallDirectImageLink"></span>
+    </div>
 </div>
 
 
