@@ -2519,78 +2519,153 @@ alert(
 //تحليل صورة بي دكاء الاصطناعي 
 //=}===
 
+function updateWallpaperAnalysisUI(){
+    if(!currentWallpaper) return;
+
+    if(wallDescription){
+        wallDescription.textContent =
+            currentWallpaper.aiDescription ||
+            currentWallpaper.description ||
+            "";
+    }
+
+    if(captureLocation){
+        captureLocation.textContent =
+            currentWallpaper.location || "غير معروف";
+    }
+
+    if(captureDate){
+        captureDate.textContent =
+            currentWallpaper.captureDate || "غير معروف";
+    }
+
+    if(captureTime){
+        captureTime.textContent =
+            currentWallpaper.captureTime || "غير معروف";
+    }
+
+    if(imageSource){
+        const source = String(currentWallpaper.source || "unknown").toLowerCase();
+
+        if(source === "ai"){
+            imageSource.textContent = "🤖 مولدة بالذكاء الاصطناعي";
+        }else if(source === "camera"){
+            imageSource.textContent = "📷 تصوير بشري";
+        }else{
+            imageSource.textContent = "غير معروف";
+        }
+    }
+}
+
+
+// ===================================================
+// تحليل الخلفية بالذكاء الاصطناعي + EXIF Metadata
+// ===================================================
 async function autoAnalyzeWallpaper(){
 
+    if(!currentWallpaper || !currentWallpaper.id)
+        return;
 
-if(!currentWallpaper)
+    const analyzedWallpaperId = Number(currentWallpaper.id);
 
-return;
+    try{
 
+        const res = await fetch(
+            `${API}/${encodeURIComponent(analyzedWallpaperId)}/analyze`,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                }
+            }
+        );
 
-// إذا موجود لا نعيد التحليل
+        const data = await res.json().catch(() => ({}));
 
-if(currentWallpaper.aiDescription){
+        // إذا انتقل المستخدم لخلفية أخرى أثناء التحليل، لا نضع
+        // نتيجة الخلفية القديمة فوق الخلفية الجديدة.
+        if(
+            !currentWallpaper ||
+            Number(currentWallpaper.id) !== analyzedWallpaperId
+        ){
+            return;
+        }
 
+        if(!res.ok || !data?.success){
+            throw new Error(
+                data?.message ||
+                data?.error ||
+                "AI ANALYSIS REQUEST FAILED"
+            );
+        }
 
-if(wallDescription)
+        // وصف الذكاء الاصطناعي
+        if(data.description){
+            currentWallpaper.aiDescription =
+                String(data.description).trim();
+        }
 
-wallDescription.textContent =
-currentWallpaper.aiDescription;
+        // بيانات الصورة: EXIF أو نتيجة تحليل Gemini
+        if(data.location !== undefined){
+            currentWallpaper.location =
+                String(data.location || "").trim();
+        }
 
+        if(data.captureDate !== undefined){
+            currentWallpaper.captureDate =
+                String(data.captureDate || "").trim();
+        }
 
-return;
+        if(data.captureTime !== undefined){
+            currentWallpaper.captureTime =
+                String(data.captureTime || "").trim();
+        }
 
-}
+        if(data.source !== undefined){
+            currentWallpaper.source =
+                String(data.source || "unknown").trim().toLowerCase();
+        }
 
+        // معلومات الكاميرا إن كانت متوفرة من EXIF.
+        if(data.exif?.camera !== undefined){
+            currentWallpaper.camera =
+                String(data.exif.camera || "").trim();
+        }
 
+        // تحديث نفس الخلفية داخل القوائم حتى لا تضيع البيانات
+        // عند الانتقال للخلفية التالية ثم العودة.
+        allWallpapers = allWallpapers.map(w =>
+            Number(w.id) === analyzedWallpaperId
+                ? normalizeWallpaperData(w, currentWallpaper)
+                : w
+        );
 
-try{
+        categoryWallpapers = categoryWallpapers.map(w =>
+            Number(w.id) === analyzedWallpaperId
+                ? normalizeWallpaperData(w, currentWallpaper)
+                : w
+        );
 
+        // إعادة أخذ الكائن المحدّث من categoryWallpapers.
+        const updatedCurrent = categoryWallpapers.find(
+            w => Number(w.id) === analyzedWallpaperId
+        );
 
-const res =
-await fetch(
+        if(updatedCurrent){
+            currentWallpaper = updatedCurrent;
+        }
 
-`${API}/${currentWallpaper.id}/analyze`,
+        // عرض النتيجة فوراً بدون إعادة تحميل الصفحة.
+        updateWallpaperAnalysisUI();
 
-{
+    }catch(error){
 
-method:"POST"
+        console.error(
+            "AI / METADATA ANALYSIS ERROR:",
+            error
+        );
 
-}
-
-);
-
-
-
-const data =
-await res.json();
-
-
-
-if(data.success && data.description){
-
-currentWallpaper.aiDescription =
-String(data.description).trim();
-
-if(wallDescription)
-wallDescription.textContent =
-currentWallpaper.aiDescription;
-
-}
-
-
-
-}catch(error){
-
-console.log(
-"AI ANALYSIS ERROR",
-error
-);
-
-
-}
-
-
+    }
 }
 
 const backBtn =

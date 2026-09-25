@@ -798,31 +798,43 @@ async function getImageMetadata(imageUrl){
 
 
 
+        const captureTimestamp =
+            result.tags.DateTimeOriginal ||
+            result.tags.CreateDate ||
+            result.tags.ModifyDate ||
+            null;
+
+        let captureDate = null;
+        let captureTime = null;
+
+        if(captureTimestamp){
+            const captured = new Date(Number(captureTimestamp) * 1000);
+
+            if(!Number.isNaN(captured.getTime())){
+                captureDate = captured.toISOString().split("T")[0];
+                captureTime = captured.toISOString().split("T")[1].slice(0, 8);
+            }
+        }
+
         return {
 
+            // GPS هو المصدر الحقيقي للموقع إذا كان موجودًا في EXIF.
             location:
-            result.tags.GPSLatitude &&
-            result.tags.GPSLongitude
+            result.tags.GPSLatitude !== undefined &&
+            result.tags.GPSLongitude !== undefined
             ?
             `${result.tags.GPSLatitude}, ${result.tags.GPSLongitude}`
             :
             "غير معروف",
 
+            captureDate,
+            captureTime,
 
-            captureDate:
-            result.tags.DateTimeOriginal
-            ?
-            new Date(
-                result.tags.DateTimeOriginal * 1000
-            )
-            .toISOString()
-            .split("T")[0]
-            :
-            null,
+            // وجود موديل كاميرا حقيقي يساعد على إثبات أن الصورة التقطت بكاميرا.
+            camera: result.tags.Model || null,
 
-
-            camera:
-            result.tags.Model || null
+            // قد يحتوي هذا الحقل على اسم البرنامج الذي أنشأ/عدل الصورة.
+            software: result.tags.Software || null
 
         };
 
@@ -958,6 +970,128 @@ const response = await fetch(
 
 
 
+
+// ======================================
+// Full AI Wallpaper Analysis
+// الوصف + الموقع الظاهر + مصدر الصورة.
+// التاريخ والوقت الحقيقيان لا نخمنهما من الصورة؛ يتم أخذهما من EXIF.
+// ======================================
+
+async function analyzeImageWithGemini(imageUrl){
+    try{
+        if(!GEMINI_API_KEY) return {};
+
+        const image = await fetch(imageUrl);
+        if(!image.ok) return {};
+
+        const contentType =
+            String(image.headers.get("content-type") || "image/jpeg")
+                .split(";")[0]
+                .trim()
+                .toLowerCase();
+
+        const allowedMimeTypes = new Set([
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif"
+        ]);
+
+        const mimeType = allowedMimeTypes.has(contentType)
+            ? contentType
+            : "image/jpeg";
+
+        const buffer = await image.arrayBuffer();
+        const base64 = Buffer.from(buffer).toString("base64");
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    contents:[{
+                        parts:[
+                            {
+                                text:
+`حلل هذه الصورة وأعد JSON فقط بدون Markdown أو شرح إضافي.
+
+المطلوب:
+{
+  "description": "وصف عربي احترافي قصير بين 100 و200 حرف يذكر العناصر والألوان والأسلوب",
+  "location": "اسم المكان/المدينة/المعلم الظاهر في الصورة إذا كان يمكن تحديده بثقة، وإلا اكتب غير معروف",
+  "source": "ai أو camera أو unknown"
+}
+
+قواعد مهمة:
+- لا تخترع اسم مكان غير واضح.
+- لا تدّعي معرفة الإحداثيات من الشكل البصري.
+- لا تخترع تاريخ أو وقت التقاط الصورة؛ التاريخ والوقت الحقيقيان يعالجان من EXIF على الخادم.
+- source = camera فقط إذا كانت الصورة تبدو بوضوح كصورة فوتوغرافية ملتقطة بكاميرا.
+- source = ai فقط إذا ظهرت مؤشرات قوية على أنها مولدة بالذكاء الاصطناعي.
+- إذا لم تكن متأكدًا، استخدم unknown.
+- أعد JSON صالحًا فقط.`
+                            },
+                            {
+                                inlineData:{
+                                    mimeType,
+                                    data:base64
+                                }
+                            }
+                        ]
+                    }]
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if(!response.ok){
+            console.log("GEMINI FULL ANALYSIS RESPONSE:", data);
+            return {};
+        }
+
+        const raw = data?.candidates?.[0]?.content?.parts
+            ?.map(part => part?.text || "")
+            .join("")
+            .trim();
+
+        if(!raw) return {};
+
+        let parsed = null;
+
+        try{
+            parsed = JSON.parse(raw);
+        }catch(_error){
+            const jsonMatch = raw.match(/\{[\s\S]*\}/);
+            if(jsonMatch){
+                try{
+                    parsed = JSON.parse(jsonMatch[0]);
+                }catch(_error2){}
+            }
+        }
+
+        if(!parsed || typeof parsed !== "object") return {};
+
+        const source = ["ai","camera","unknown"].includes(
+            String(parsed.source || "").trim().toLowerCase()
+        )
+            ? String(parsed.source).trim().toLowerCase()
+            : "unknown";
+
+        return {
+            description: String(parsed.description || "").trim(),
+            location: String(parsed.location || "").trim() || "غير معروف",
+            source
+        };
+
+    }catch(error){
+        console.log("FULL AI ANALYSIS ERROR:", error?.message || error);
+        return {};
+    }
+}
 
 // ======================================
 // Notifications API
@@ -3132,6 +3266,8 @@ app.post(
 
 // ======================================
 // Analyze Wallpaper
+// يجمع EXIF + Gemini في عملية واحدة ويرجع:
+// description / location / captureDate / captureTime / source
 // ======================================
 
 app.post(
@@ -3139,6 +3275,7 @@ app.post(
     async(req,res)=>{
         try{
             const id = Number(req.params.id);
+
             if(!Number.isFinite(id)){
                 return res.status(400).json({
                     success:false,
@@ -3155,21 +3292,6 @@ app.post(
                 });
             }
 
-            // إذا كان الوصف محفوظًا، لا نستهلك طلب Gemini مرة أخرى.
-            if(wall.ai_description || wall.aiDescription){
-                return res.json({
-                    success:true,
-                    description:String(wall.ai_description || wall.aiDescription)
-                });
-            }
-
-            if(!GEMINI_API_KEY){
-                return res.status(503).json({
-                    success:false,
-                    message:"GEMINI_API_KEY غير مضبوط على Vercel"
-                });
-            }
-
             if(!wall.image){
                 return res.status(400).json({
                     success:false,
@@ -3177,114 +3299,153 @@ app.post(
                 });
             }
 
-            const image = await fetch(wall.image);
-            if(!image.ok){
-                return res.status(400).json({
-                    success:false,
-                    message:"تعذر تحميل صورة الخلفية"
-                });
-            }
+            // EXIF لا يحتاج Gemini، ويعمل حتى لو كان الوصف محفوظًا مسبقًا.
+            const metadata = await getImageMetadata(wall.image);
 
-            const contentType =
-                String(image.headers.get("content-type") || "image/jpeg")
-                    .split(";")[0]
-                    .trim()
-                    .toLowerCase();
+            // لا نعيد استخدام الوصف وحده ونخرج؛ لأن معلومات المكان/التاريخ/المصدر
+            // قد تكون ناقصة حتى عندما يكون ai_description محفوظًا.
+            let ai = {};
 
-            // Gemini يحتاج MIME حقيقي للصورة بدل فرض image/jpeg على كل الملفات.
-            const allowedMimeTypes = new Set([
-                "image/jpeg",
-                "image/png",
-                "image/webp",
-                "image/gif"
-            ]);
-
-            const mimeType = allowedMimeTypes.has(contentType)
-                ? contentType
-                : "image/jpeg";
-
-            const buffer = await image.arrayBuffer();
-            const base64 = Buffer.from(buffer).toString("base64");
-
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-                {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
-                    body:JSON.stringify({
-                        contents:[{
-                            parts:[
-                                {
-                                    text:
-`حلل هذه الخلفية واكتب وصفًا احترافيًا قصيرًا بين 100 و200 حرف.
-اذكر الألوان والعناصر والأسلوب.
-أعد الوصف فقط بدون عنوان أو نقاط أو شرح إضافي.`
-                                },
-                                {
-                                    inlineData:{
-                                        mimeType,
-                                        data:base64
-                                    }
-                                }
-                            ]
-                        }]
-                    })
-                }
-            );
-
-            const data = await response.json();
-
-            if(!response.ok){
-                console.log("GEMINI ANALYZE RESPONSE:", data);
-                return res.status(response.status || 500).json({
-                    success:false,
-                    message:data?.error?.message || "Gemini analysis failed"
-                });
+            if(GEMINI_API_KEY){
+                ai = await analyzeImageWithGemini(wall.image);
             }
 
             const description =
-                data?.candidates?.[0]?.content?.parts
-                    ?.map(part => part?.text || "")
-                    .join("")
-                    .trim();
+                String(
+                    wall.aiDescription ||
+                    wall.ai_description ||
+                    ai.description ||
+                    ""
+                ).trim();
 
-            if(!description){
-                return res.status(500).json({
-                    success:false,
-                    message:"No AI description returned"
-                });
-            }
+            const hasExifLocation =
+                metadata.location &&
+                metadata.location !== "غير معروف";
 
-            // نحاول حفظ الوصف في Supabase حتى لا يعاد تحليل الخلفية.
-            // إذا كانت قاعدة البيانات القديمة لا تحتوي العمود بعد، لا نفشل التحليل.
-            try{
-                const { error: saveError } = await supabase
-                    .from("wallpapers")
-                    .update({ ai_description: description })
-                    .eq("id", id);
+            const location =
+                hasExifLocation
+                    ? metadata.location
+                    : (ai.location || "غير معروف");
 
-                if(saveError){
+            const captureDate =
+                metadata.captureDate ||
+                null;
+
+            const captureTime =
+                metadata.captureTime ||
+                null;
+
+            // إذا كان EXIF يحتوي موديل كاميرا حقيقي، نعطيه أولوية على التخمين البصري.
+            const source =
+                metadata.camera
+                    ? "camera"
+                    : (ai.source || wall.source || "unknown");
+
+            // حفظ الوصف فقط لأن ai_description معروف أنه موجود في جدول wallpapers.
+            if(
+                description &&
+                !String(wall.aiDescription || wall.ai_description || "").trim()
+            ){
+                try{
+                    const { error: saveError } = await supabase
+                        .from("wallpapers")
+                        .update({ ai_description: description })
+                        .eq("id", id);
+
+                    if(saveError){
+                        console.warn(
+                            "AI DESCRIPTION SAVE WARNING:",
+                            saveError.message
+                        );
+                    }
+                }catch(saveError){
                     console.warn(
-                        "AI DESCRIPTION SAVE WARNING:",
-                        saveError.message
+                        "AI DESCRIPTION SAVE ERROR:",
+                        saveError?.message || saveError
                     );
                 }
-            }catch(saveError){
+            }
+
+            // source موجود أصلًا في جدول wallpapers، لذلك نحاول تحديثه.
+            // إذا كان الجدول القديم يرفض أي تحديث، لا نفشل التحليل.
+            if(source && source !== "unknown"){
+                try{
+                    const { error: sourceSaveError } = await supabase
+                        .from("wallpapers")
+                        .update({ source })
+                        .eq("id", id);
+
+                    if(sourceSaveError){
+                        console.warn(
+                            "IMAGE SOURCE SAVE WARNING:",
+                            sourceSaveError.message
+                        );
+                    }
+                }catch(sourceSaveError){
+                    console.warn(
+                        "IMAGE SOURCE SAVE ERROR:",
+                        sourceSaveError?.message || sourceSaveError
+                    );
+                }
+            }
+
+            // location/capture_date/capture_time ليست مضمونة في schema الحالي.
+            // نحاول حفظها إذا كانت الأعمدة موجودة، لكن عدم وجودها لا يكسر التحليل.
+            try{
+                const metadataPayload = {};
+
+                if(location && location !== "غير معروف"){
+                    metadataPayload.location = location;
+                }
+
+                if(captureDate){
+                    metadataPayload.capture_date = captureDate;
+                }
+
+                if(captureTime){
+                    metadataPayload.capture_time = captureTime;
+                }
+
+                if(Object.keys(metadataPayload).length){
+                    const { error: metadataSaveError } = await supabase
+                        .from("wallpapers")
+                        .update(metadataPayload)
+                        .eq("id", id);
+
+                    if(metadataSaveError){
+                        console.warn(
+                            "WALLPAPER METADATA SAVE WARNING:",
+                            metadataSaveError.message
+                        );
+                    }
+                }
+            }catch(metadataSaveError){
                 console.warn(
-                    "AI DESCRIPTION SAVE ERROR:",
-                    saveError?.message || saveError
+                    "WALLPAPER METADATA SAVE ERROR:",
+                    metadataSaveError?.message || metadataSaveError
                 );
             }
 
             return res.json({
                 success:true,
-                description
+                description: description || "",
+                location: location || "غير معروف",
+                captureDate: captureDate || "غير معروف",
+                captureTime: captureTime || "غير معروف",
+                source: source || "unknown",
+                exif:{
+                    camera: metadata.camera || null,
+                    software: metadata.software || null,
+                    hasGps:Boolean(
+                        metadata.location &&
+                        metadata.location !== "غير معروف"
+                    )
+                }
             });
 
         }catch(error){
             console.log("ANALYZE ERROR:", error);
+
             return res.status(500).json({
                 success:false,
                 message:error?.message || "Internal server error"
