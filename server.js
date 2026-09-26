@@ -3051,7 +3051,7 @@ async function publishAiWallpaper({
     colors = []
 }){
     const metadata = await getImageMetadata(imageUrl);
-    const id = Date.now();
+    const id = Date.now() * 1000 + crypto.randomInt(0, 1000);
 
     const wallpaper = {
         id,
@@ -3083,6 +3083,10 @@ async function publishAiWallpaper({
         source:"ai"
     };
 
+    if(!/^https?:\/\//i.test(String(imageUrl || "").trim())){
+        throw new Error("AI wallpaper image URL is invalid");
+    }
+
     const payload = wallpaperToDb(wallpaper);
 
     // AI publisher does not use the normal /api/wallpapers route.
@@ -3092,7 +3096,22 @@ async function publishAiWallpaper({
         .select("*")
         .single();
 
-    if(error) throw error;
+    if(error){
+        console.error("AI WALLPAPER INSERT ERROR:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+        });
+
+        throw new Error(
+            `AI wallpaper database insert failed: ${error.message || "Unknown Supabase error"}`
+        );
+    }
+
+    if(!data){
+        throw new Error("AI wallpaper database insert returned no row");
+    }
 
     return {
         wallpaper:wallpaperFromDb(data),
@@ -3134,11 +3153,10 @@ app.post(
                 wallpaper:null
             };
 
-            // Publishing is ON by default. The browser does not need to know
-            // AI_PUBLISH_SECRET because this is the endpoint already used by
-            // the AI generator UI. The secret-protected endpoint remains
-            // available separately for server/automation callers.
-            if(req.body?.publish !== false){
+            // AI wallpapers are always published from this endpoint.
+            // The browser cannot disable publishing with publish:false.
+            // Preview + database publishing are kept in the same request.
+            {
                 const cloudinary = await uploadBase64ToCloudinary(
                     generated.base64,
                     generated.mimeType,
