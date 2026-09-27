@@ -3042,6 +3042,132 @@ async function uploadBase64ToCloudinary(base64, mimeType = "image/jpeg", folder 
     return data;
 }
 
+
+function normalizeAiTag(value){
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9:_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function aiPromptHash(prompt){
+    return sha1(String(prompt || "").trim().toLowerCase());
+}
+
+async function aiPromptAlreadyPublished(prompt){
+    const hashTag = `ai-prompt-hash:${aiPromptHash(prompt)}`;
+
+    const { data, error } = await supabase
+        .from("wallpapers")
+        .select("id")
+        .eq("source", "ai")
+        .contains("tags", [hashTag])
+        .limit(1);
+
+    if(error){
+        console.log("AI DUPLICATE CHECK ERROR:", error.message);
+        return false;
+    }
+
+    return Array.isArray(data) && data.length > 0;
+}
+
+async function generateAiTitle(prompt){
+    if(!GEMINI_API_KEY) return "AI Wallpaper";
+
+    try{
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({
+                    contents:[{
+                        parts:[{
+                            text:
+`Create one short, attractive English title for this AI wallpaper.
+Return title only, no quotes, no Markdown, maximum 60 characters.
+
+Image prompt:
+${String(prompt || "").trim()}`
+                        }]
+                    }],
+                    generationConfig:{
+                        temperature:0.9,
+                        maxOutputTokens:30
+                    }
+                })
+            }
+        );
+
+        const data = await response.json();
+        if(!response.ok) return "AI Wallpaper";
+
+        const title = String(
+            data?.candidates?.[0]?.content?.parts?.[0]?.text || ""
+        )
+        .replace(/[\r\n]+/g, " ")
+        .replace(/^["'`]+|["'`]+$/g, "")
+        .trim()
+        .slice(0, 60);
+
+        return title || "AI Wallpaper";
+    }catch(error){
+        console.log("AI TITLE ERROR:", error?.message || error);
+        return "AI Wallpaper";
+    }
+}
+
+async function generateUniqueAiPrompt(seed = 0){
+    if(!GEMINI_API_KEY){
+        return `Create a unique premium smartphone wallpaper, subject ${Date.now()}-${seed}, cinematic lighting, highly detailed, clean composition, no text, no watermark.`;
+    }
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                contents:[{
+                    parts:[{
+                        text:
+`Create one completely new visual concept for a premium wallpaper.
+Any subject is allowed: nature, cities, architecture, fantasy, animals,
+space, technology, abstract art, vehicles, characters, or other creative
+subjects. Vary the subject and visual style from previous concepts.
+Return ONLY the image-generation prompt in English.
+No text, logos, signatures, or watermarks inside the image.
+Seed: ${Date.now()}-${seed}`
+                    }]
+                }],
+                generationConfig:{
+                    temperature:1.2,
+                    maxOutputTokens:180
+                }
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    if(!response.ok){
+        throw new Error(
+            data?.error?.message ||
+            `Gemini prompt generation failed (${response.status})`
+        );
+    }
+
+    const prompt = String(
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || ""
+    ).trim();
+
+    if(!prompt) throw new Error("Gemini لم يرجع Prompt");
+
+    return prompt;
+}
+
 async function publishAiWallpaper({
     imageUrl,
     title,
@@ -3071,7 +3197,10 @@ async function publishAiWallpaper({
         userId:null,
         date:new Date().toLocaleString("ar-MA"),
         colors:Array.isArray(colors) ? colors : [],
-        tags:Array.isArray(tags) ? tags : [],
+        tags:[
+            ...(Array.isArray(tags) ? tags : []),
+            `ai-prompt-hash:${aiPromptHash(prompt)}`
+        ].filter(Boolean),
         featured:false,
         todayWallpaper:false,
         popular:false,
@@ -3118,6 +3247,123 @@ async function publishAiWallpaper({
         prompt:String(prompt || "")
     };
 }
+
+
+// ======================================
+// AI Studio - Admin-only generator
+// Gemini -> Cloudinary -> Supabase(category=ai, source=ai)
+// ======================================
+
+app.get("/api/admin/ai/generated", async (req, res) => {
+    try{
+        const admin = await requireAdmin(req, res);
+        if(!admin) return;
+
+        const limit = Math.min(
+            Math.max(Number.parseInt(req.query.limit, 10) || 100, 1),
+            200
+        );
+
+        const { data, error } = await supabase
+            .from("wallpapers")
+            .select("*")
+            .eq("source", "ai")
+            .order("id", { ascending:false })
+            .limit(limit);
+
+        if(error) throw error;
+
+        return res.json({
+            success:true,
+            wallpapers:(data || []).map(wallpaperFromDb)
+        });
+    }catch(error){
+        console.log("AI STUDIO LOAD ERROR:", error);
+        return res.status(500).json({
+            success:false,
+            wallpapers:[],
+            message:error?.message || "تعذر تحميل صور AI"
+        });
+    }
+});
+
+app.post("/api/admin/ai/generate", async (req, res) => {
+    try{
+        const admin = await requireAdmin(req, res);
+        if(!admin) return;
+
+        const requestedCount = Number.parseInt(req.body?.count, 10) || 1;
+        const count = Math.min(Math.max(requestedCount, 1), 20);
+
+        const results = [];
+        const errors = [];
+
+        for(let i = 0; i < count; i++){
+            try{
+                let prompt = String(
+                    Array.isArray(req.body?.prompts)
+                        ? (req.body.prompts[i] || "")
+                        : ""
+                ).trim();
+
+                if(!prompt){
+                    prompt = await generateUniqueAiPrompt(i);
+                }
+
+                if(await aiPromptAlreadyPublished(prompt)){
+                    prompt = await generateUniqueAiPrompt(i + 1000);
+                }
+
+                const generated = await generateGeminiImage(prompt, {
+                    aspectRatio:String(req.body?.aspectRatio || "9:16"),
+                    imageSize:String(req.body?.imageSize || "1K")
+                });
+
+                const cloudinary = await uploadBase64ToCloudinary(
+                    generated.base64,
+                    generated.mimeType,
+                    "wallpaperhub/ai"
+                );
+
+                const title = await generateAiTitle(prompt);
+
+                const published = await publishAiWallpaper({
+                    imageUrl:cloudinary.secure_url,
+                    title,
+                    prompt,
+                    resolution:String(req.body?.resolution || "1K"),
+                    tags:["ai-generated"],
+                    colors:[]
+                });
+
+                results.push({
+                    ...published.wallpaper,
+                    prompt
+                });
+            }catch(error){
+                console.log("AI STUDIO ITEM ERROR:", error?.message || error);
+                errors.push({
+                    index:i,
+                    message:error?.message || "فشل توليد الصورة"
+                });
+            }
+        }
+
+        return res.json({
+            success:results.length > 0,
+            requested:count,
+            generated:results.length,
+            errors,
+            wallpapers:results
+        });
+    }catch(error){
+        console.log("AI STUDIO GENERATE ERROR:", error);
+        return res.status(500).json({
+            success:false,
+            message:error?.message || "فشل توليد صور AI"
+        });
+    }
+});
 
 // Generate image + publish automatically.
 // The existing AI UI already calls /api/generate-image, so this route now
