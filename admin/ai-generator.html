@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AI Studio | WallpaperHub</title>
+
+  <link rel="stylesheet" href="ai-generator.css">
+</head>
+
+<body>
+
+  <main class="ai-page">
+
+    <!-- Header -->
+    <header class="ai-header">
+      <div>
+        <div class="brand">
+          <span class="brand-icon">🤖</span>
+          <div>
+            <h1>AI Studio</h1>
+            <p>صور الذكاء الاصطناعي المولدة</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="system-status">
+        <span class="status-dot"></span>
+        <span>النظام يعمل</span>
+      </div>
+    </header>
+
+
+    <!-- Statistics -->
+    <section class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-icon">🖼️</div>
+        <div>
+          <span>هذه الدورة</span>
+          <strong>20</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div>
+          <span>بانتظار المراجعة</span>
+          <strong>8</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✓</div>
+        <div>
+          <span>تم اعتمادها</span>
+          <strong>12</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div>
+          <span>الدورة القادمة</span>
+          <strong>10:00</strong>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- Toolbar -->
+    <section class="toolbar">
+
+      <div>
+        <h2>الصور المولدة</h2>
+        <p>راجع الصور التي أنشأها الذكاء الاصطناعي قبل نقلها للمكان المناسب.</p>
+      </div>
+
+      <button class="generate-btn" id="generateBtn">
+        <span>✨</span>
+        توليد الصور
+      </button>
+
+    </section>
+
+
+    <!-- Filters -->
+    <nav class="filters">
+
+      <button class="filter active" data-filter="all">
+        الكل
+      </button>
+
+      <button class="filter" data-filter="pending">
+        بانتظار المراجعة
+      </button>
+
+      <button class="filter" data-filter="approved">
+        معتمدة
+      </button>
+
+      <button class="filter" data-filter="published">
+        منشورة
+      </button>
+
+      <button class="filter" data-filter="rejected">
+        مرفوضة
+      </button>
+
+    </nav>
+
+
+    <!-- Images -->
+    <section class="images-section">
+
+      <div class="images-grid" id="imagesGrid">
+
+        <!-- Demo Card -->
+
+        <article class="image-card" data-status="pending">
+
+          <div class="image-wrapper">
+
+            <img
+              src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+              alt="AI Generated Wallpaper"
+            >
+
+            <span class="image-status pending">
+              بانتظار المراجعة
+            </span>
+
+            <button class="preview-btn" title="عرض الصورة">
+              ⛶
+            </button>
+
+          </div>
+
+          <div class="image-content">
+
+            <h3>Mountain Dream</h3>
+
+            <div class="image-meta">
+              <span>🤖 Gemini</span>
+              <span>منذ 12 دقيقة</span>
+            </div>
+
+            <div class="image-actions">
+
+              <button class="action-btn review-btn">
+                مراجعة
+              </button>
+
+              <button class="action-btn delete-btn">
+                حذف
+              </button>
+
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article class="image-card" data-status="approved">
+
+          <div class="image-wrapper">
+
+            <img
+              src="https://images.unsplash.com/photo-1519608487953-e999c86e7455"
+              alt="AI Generated Wallpaper"
+            >
+
+            <span class="image-status approved">
+              معتمدة
+            </span>
+
+            <button class="preview-btn" title="عرض الصورة">
+              ⛶
+            </button>
+
+          </div>
+
+          <div class="image-content">
+
+            <h3>Night Lights</h3>
+
+            <div class="image-meta">
+              <span>🤖 Gemini</span>
+              <span>منذ 25 دقيقة</span>
+            </div>
+
+            <div class="image-actions">
+
+              <button class="action-btn move-btn">
+                نقل للمكان
+              </button>
+
+              <button class="action-btn delete-btn">
+                حذف
+              </button>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- Preview Modal -->
+
+  <div class="modal" id="previewModal">
+
+    <div class="modal-overlay"></div>
+
+    <div class="modal-box">
+
+      <button class="modal-close" id="closeModal">
+        ×
+      </button>
+
+      <img id="modalImage" src="" alt="Preview">
+
+      <div class="modal-info">
+
+        <span class="modal-label">AI GENERATED</span>
+
+        <h2 id="modalTitle">عنوان الصورة</h2>
+
+        <p id="modalDate">تاريخ التوليد</p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script src="ai-generator.js"></script>
+
+</body>
+</html>

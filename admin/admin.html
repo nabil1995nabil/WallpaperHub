@@ -40,6 +40,11 @@
 🖼️ الخلفيات
 </li>
 
+<li class="ai-generated-menu" onclick="openAIGeneratedWallpapers()">
+خلفيات gemini
+</li>
+
+
 <li onclick="openWallpaperOrganizer()">
 🧩 منظم الخلفيات
 </li>
@@ -585,6 +590,12 @@ type="submit"
 
 
 <link rel="stylesheet" href="/admin/admin.css">
+
+<script>
+function openAIGeneratedWallpapers(){
+    location.href = "ai-generator.html";
+}
+</script>
 
 <script type="module" src="/admin/admin.js"></script>
 
