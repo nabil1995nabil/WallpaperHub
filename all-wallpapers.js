@@ -446,7 +446,14 @@ const categoryGroups = [
         items:[
             ["mobile","خلفيات الهاتف","smartphone"], ["pc","خلفيات PC","desktop_windows"],
             ["tablet","خلفيات Tablet","tablet"], ["sports_cars","سيارات رياضية","sports_motorsports"],
-            ["gaming","Gaming","videogame_asset"], ["4k","4K","4k"]
+            ["gaming","Gaming","videogame_asset"]
+        ]
+    },
+    {
+        title:"📐 الجودة والمصادر",
+        icon:"tune",
+        items:[
+            ["4k","4K","4k"], ["unsplash","Unsplash","photo_camera"]
         ]
     }
 ];
@@ -497,6 +504,7 @@ function openCategoriesPanel(){
     renderCategoriesPanel();
     categoriesPanel.classList.add("is-open");
     categoriesPanel.setAttribute("aria-hidden","false");
+    allCategoriesBtn?.setAttribute("aria-expanded","true");
     document.body.classList.add("categories-open");
 }
 
@@ -504,6 +512,7 @@ function closeCategoriesPanel(){
     if(!categoriesPanel) return;
     categoriesPanel.classList.remove("is-open");
     categoriesPanel.setAttribute("aria-hidden","true");
+    allCategoriesBtn?.setAttribute("aria-expanded","false");
     document.body.classList.remove("categories-open");
 }
 
@@ -747,7 +756,8 @@ searchBtn.addEventListener("click",() => {
 });
 
 advancedFilterBtn?.addEventListener("click",() => {
-    document.getElementById("filters")?.scrollIntoView({behavior:"smooth",block:"center"});
+    if(categoriesPanel) openCategoriesPanel();
+    else document.getElementById("filters")?.scrollIntoView({behavior:"smooth",block:"center"});
 });
 
 filterButtons.forEach(button => {
@@ -790,11 +800,17 @@ scrollTopBtn.addEventListener("click",() => {
 document.querySelectorAll(".page-bottom-nav button").forEach(button => {
     button.addEventListener("click",() => {
         const target = button.dataset.nav;
-        if(target === "explore"){
+        if(target === "home"){
+            location.href = "index.html";
+        }else if(target === "explore"){
             searchInput.focus();
             searchBox.scrollIntoView({behavior:"smooth",block:"center"});
         }else if(target === "wallpapers"){
             window.scrollTo({top:0,behavior:"smooth"});
+        }else if(target === "favorites"){
+            location.href = "favorites.html";
+        }else if(target === "account"){
+            location.href = "profile.html"; 
         }
     });
 });
