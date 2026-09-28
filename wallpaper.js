@@ -96,12 +96,6 @@ document.getElementById("captureTime");
 const imageSource =
 document.getElementById("imageSource");
 
-const aiAnalyzeBtn = document.getElementById("aiAnalyzeBtn");
-const aiAnalysisStatus = document.getElementById("aiAnalysisStatus");
-const aiColorsCount = document.getElementById("aiColorsCount");
-const aiTagsCount = document.getElementById("aiTagsCount");
-const aiAnalysisState = document.getElementById("aiAnalysisState");
-
 const wallImageLink =
 document.getElementById("wallImageLink");
 
@@ -1220,10 +1214,107 @@ quality;
 
 
 // ===============================
-// AI Tags + Colors
+// Tags
 // ===============================
-renderWallpaperAiMetadata();
 
+
+if(tagsContainer){
+
+
+tagsContainer.innerHTML = "";
+
+
+
+(currentWallpaper.tags || [])
+
+.forEach(tag=>{
+
+
+const span =
+
+document.createElement("span");
+
+
+
+span.className = "tag";
+
+
+
+span.textContent = "#" + tag;
+
+
+
+tagsContainer.appendChild(span);
+
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// Colors
+// ===============================
+
+if(colorPalette){
+
+    colorPalette.innerHTML = "";
+
+    const colors = Array.isArray(currentWallpaper.colors)
+        ? currentWallpaper.colors
+        : [];
+
+    colors.forEach((color) => {
+
+        const hex = typeof color === "string"
+            ? color.trim()
+            : "";
+
+        if(!hex) return;
+
+        const item = document.createElement("div");
+        item.className = "color-item";
+
+        const swatch = document.createElement("span");
+        swatch.className = "color-swatch";
+        swatch.style.backgroundColor = hex;
+
+        const value = document.createElement("span");
+        value.className = "color-hex";
+        value.textContent = hex.toUpperCase();
+
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "color-copy-btn";
+        copyBtn.type = "button";
+        copyBtn.textContent = "نسخ";
+
+        copyBtn.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(hex);
+                copyBtn.textContent = "✓";
+                setTimeout(() => {
+                    copyBtn.textContent = "نسخ";
+                }, 1200);
+            } catch(error) {
+                console.error("Copy color failed:", error);
+            }
+        });
+
+        item.appendChild(swatch);
+        item.appendChild(value);
+        item.appendChild(copyBtn);
+        colorPalette.appendChild(item);
+    });
+}
+
+}
 
 // ===============================
 // Change Wallpaper
@@ -2380,66 +2471,6 @@ alert(
 //تحليل صورة بي دكاء الاصطناعي 
 //=}===
 
-function renderWallpaperAiMetadata(){
-    if(!currentWallpaper) return;
-
-    const tags = Array.isArray(currentWallpaper.tags) ? currentWallpaper.tags : [];
-    const colors = Array.isArray(currentWallpaper.colors) ? currentWallpaper.colors : [];
-
-    if(tagsContainer){
-        tagsContainer.innerHTML = "";
-        if(!tags.length){
-            const empty = document.createElement("span");
-            empty.className = "tags-empty";
-            empty.textContent = "لم يتم إنشاء وسوم بعد";
-            tagsContainer.appendChild(empty);
-        }else{
-            tags.forEach(tag=>{
-                const span = document.createElement("span");
-                span.className = "tag";
-                span.textContent = "#" + String(tag).replace(/^#/, "");
-                tagsContainer.appendChild(span);
-            });
-        }
-    }
-
-    if(colorPalette){
-        colorPalette.innerHTML = "";
-        if(!colors.length){
-            const empty = document.createElement("span");
-            empty.className = "tags-empty";
-            empty.textContent = "لم يتم استخراج الألوان بعد";
-            colorPalette.appendChild(empty);
-        }else{
-            colors.forEach(color=>{
-                const hex = typeof color === "string" ? color.trim() : "";
-                if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
-                const item = document.createElement("div");
-                item.className = "color-item";
-                const swatch = document.createElement("span");
-                swatch.className = "color-swatch";
-                swatch.style.backgroundColor = hex;
-                const value = document.createElement("span");
-                value.className = "color-hex";
-                value.textContent = hex.toUpperCase();
-                const copyBtn = document.createElement("button");
-                copyBtn.className = "color-copy-btn";
-                copyBtn.type = "button";
-                copyBtn.textContent = "نسخ";
-                copyBtn.addEventListener("click", async()=>{
-                    try{ await navigator.clipboard.writeText(hex); copyBtn.textContent="✓"; setTimeout(()=>copyBtn.textContent="نسخ",1200); }
-                    catch(error){ console.error("Copy color failed:",error); }
-                });
-                item.append(swatch,value,copyBtn);
-                colorPalette.appendChild(item);
-            });
-        }
-    }
-
-    if(aiColorsCount) aiColorsCount.textContent = colors.length;
-    if(aiTagsCount) aiTagsCount.textContent = tags.length;
-}
-
 function updateWallpaperAnalysisUI(){
     if(!currentWallpaper) return;
 
@@ -2465,13 +2496,6 @@ function updateWallpaperAnalysisUI(){
             currentWallpaper.captureTime || "غير معروف";
     }
 
-    renderWallpaperAiMetadata();
-
-    if(aiAnalysisStatus){
-        aiAnalysisStatus.textContent = currentWallpaper.aiDescription ? "تم تحليل الصورة بالذكاء الاصطناعي" : "بانتظار التحليل";
-    }
-    if(aiAnalysisState) aiAnalysisState.textContent = currentWallpaper.aiDescription ? "مكتمل" : "جاهز";
-
     if(imageSource){
         const source = String(currentWallpaper.source || "unknown").toLowerCase();
 
@@ -2489,7 +2513,7 @@ function updateWallpaperAnalysisUI(){
 // ===================================================
 // تحليل الخلفية بالذكاء الاصطناعي + EXIF Metadata
 // ===================================================
-async function autoAnalyzeWallpaper(force = false){
+async function autoAnalyzeWallpaper(){
 
     if(!currentWallpaper || !currentWallpaper.id)
         return;
@@ -2497,19 +2521,11 @@ async function autoAnalyzeWallpaper(force = false){
     const analyzedWallpaperId = Number(currentWallpaper.id);
 
     // لا نعيد استدعاء AI إذا كانت بيانات التحليل موجودة بالفعل.
-    const hasAiMetadata =
-        Boolean(currentWallpaper.aiDescription) &&
-        Array.isArray(currentWallpaper.tags) && currentWallpaper.tags.length > 0 &&
-        Array.isArray(currentWallpaper.colors) && currentWallpaper.colors.length > 0;
-
-    if(!force && hasAiMetadata){
+    if(currentWallpaper.aiDescription &&
+       (currentWallpaper.source || currentWallpaper.location || currentWallpaper.captureDate)) {
         updateWallpaperAnalysisUI();
         return;
     }
-
-    if(aiAnalysisStatus) aiAnalysisStatus.textContent = "جاري تحليل الصورة...";
-    if(aiAnalysisState) aiAnalysisState.textContent = "يحلل...";
-    if(aiAnalyzeBtn) aiAnalyzeBtn.disabled = true;
 
     try{
 
@@ -2546,14 +2562,6 @@ async function autoAnalyzeWallpaper(force = false){
         if(data.description){
             currentWallpaper.aiDescription =
                 String(data.description).trim();
-        }
-
-        if(Array.isArray(data.tags)){
-            currentWallpaper.tags = data.tags.map(tag => String(tag).trim().replace(/^#/, "")).filter(Boolean).slice(0, 15);
-        }
-
-        if(Array.isArray(data.colors)){
-            currentWallpaper.colors = data.colors.map(color => String(color).trim().toUpperCase()).filter(color => /^#[0-9A-F]{6}$/.test(color)).slice(0, 8);
         }
 
         // بيانات الصورة: EXIF أو نتيجة تحليل Gemini
@@ -2608,8 +2616,6 @@ async function autoAnalyzeWallpaper(force = false){
 
         // عرض النتيجة فوراً بدون إعادة تحميل الصفحة.
         updateWallpaperAnalysisUI();
-        if(aiAnalysisStatus) aiAnalysisStatus.textContent = "تم استخراج الوصف والوسوم والألوان";
-        if(aiAnalysisState) aiAnalysisState.textContent = "مكتمل";
 
     }catch(error){
 
@@ -2617,16 +2623,8 @@ async function autoAnalyzeWallpaper(force = false){
             "AI / METADATA ANALYSIS ERROR:",
             error
         );
-        if(aiAnalysisStatus) aiAnalysisStatus.textContent = "تعذر إكمال التحليل";
-        if(aiAnalysisState) aiAnalysisState.textContent = "فشل";
 
-    } finally {
-        if(aiAnalyzeBtn) aiAnalyzeBtn.disabled = false;
     }
-}
-
-if(aiAnalyzeBtn){
-    aiAnalyzeBtn.addEventListener("click", ()=>autoAnalyzeWallpaper(true));
 }
 
 const backBtn =
