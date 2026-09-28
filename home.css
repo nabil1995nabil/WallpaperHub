@@ -762,3 +762,195 @@ section,
     .header-tools > #aiButton > *, .header-tools > #notificationButton > * { max-width:32px; max-height:32px; }
     .header-switch-icon { font-size:22px !important; line-height:22px; width:22px; height:22px; }
 }
+
+
+/* =========================================================
+   PHOTO EDITOR FEATURE — بطاقة تعديل الصور
+   تظهر داخل "باقي الأقسام" وتفتح photo-editor.html
+========================================================= */
+
+.photo-editor-feature {
+    width: 100%;
+    margin: 0 0 18px;
+}
+
+.photo-editor-card {
+    position: relative;
+    isolation: isolate;
+    display: block;
+    width: 100%;
+    min-height: 142px;
+    overflow: hidden;
+    border-radius: 26px;
+    text-decoration: none;
+    color: #fff;
+    background: #11162c;
+    border: 1px solid rgba(116, 96, 255, .24);
+    box-shadow:
+        0 14px 35px rgba(54, 44, 145, .13),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.photo-editor-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(124, 92, 255, .55);
+    box-shadow:
+        0 20px 45px rgba(65, 49, 180, .2),
+        0 0 0 1px rgba(124, 92, 255, .08) inset;
+}
+
+.photo-editor-card:active {
+    transform: scale(.985);
+}
+
+.photo-editor-card-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-color: #11162c;
+    background-image:
+        linear-gradient(135deg, rgba(9, 12, 30, .16), rgba(13, 18, 49, .72)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='220' viewBox='0 0 520 220'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff' stop-opacity='.34'/%3E%3Cstop offset='.5' stop-color='%2300c6ff' stop-opacity='.14'/%3E%3Cstop offset='1' stop-color='%23ff4fd8' stop-opacity='.24'/%3E%3C/linearGradient%3E%3Cpattern id='p' width='42' height='42' patternUnits='userSpaceOnUse' patternTransform='rotate(15)'%3E%3Cpath d='M0 21h42M21 0v42' stroke='%23fff' stroke-opacity='.045'/%3E%3Ccircle cx='21' cy='21' r='1.5' fill='%23fff' fill-opacity='.1'/%3E%3C/pattern%3E%3Cfilter id='b'%3E%3CfeGaussianBlur stdDeviation='22'/%3E%3C/filter%3E%3Cfilter id='s'%3E%3CfeGaussianBlur stdDeviation='5'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='520' height='220' fill='url(%23g)'/%3E%3Ccircle cx='90' cy='185' r='80' fill='%237c5cff' fill-opacity='.32' filter='url(%23b)'/%3E%3Ccircle cx='425' cy='30' r='95' fill='%2300c6ff' fill-opacity='.16' filter='url(%23b)'/%3E%3Cpath d='M-20 175C80 95 145 220 245 130S395 35 540 115' fill='none' stroke='%23fff' stroke-opacity='.08' stroke-width='2' filter='url(%23s)'/%3E%3Crect width='520' height='220' fill='url(%23p)'/%3E%3C/svg%3E");
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.03);
+    transition: transform .5s ease;
+}
+
+.photo-editor-card:hover .photo-editor-card-bg {
+    transform: scale(1.07);
+}
+
+.photo-editor-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(6, 8, 22, .82) 0%, rgba(8, 12, 35, .5) 54%, rgba(8, 12, 35, .2) 100%);
+}
+
+.photo-editor-card-content {
+    min-height: 142px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 19px 20px;
+}
+
+.photo-editor-icon {
+    flex: 0 0 68px;
+    width: 68px;
+    height: 68px;
+    display: grid;
+    place-items: center;
+    border-radius: 21px;
+    color: #fff;
+    background: linear-gradient(135deg, #7655ff, #a855f7);
+    border: 1px solid rgba(255,255,255,.2);
+    box-shadow:
+        0 12px 28px rgba(101, 70, 255, .35),
+        inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.photo-editor-icon svg {
+    width: 36px;
+    height: 36px;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,.2));
+}
+
+.photo-editor-card-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.photo-editor-card-text span {
+    display: block;
+    margin-bottom: 5px;
+    color: #b8b1ff;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    direction: ltr;
+}
+
+.photo-editor-card-text strong {
+    display: block;
+    font-size: 20px;
+    line-height: 1.35;
+    font-weight: 900;
+}
+
+.photo-editor-card-text small {
+    display: block;
+    margin-top: 5px;
+    color: rgba(255,255,255,.7);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.photo-editor-arrow {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background: rgba(255,255,255,.09);
+    border: 1px solid rgba(255,255,255,.12);
+    font-size: 20px;
+    transition: transform .25s ease, background .25s ease;
+}
+
+.photo-editor-card:hover .photo-editor-arrow {
+    transform: translateX(-4px);
+    background: rgba(255,255,255,.15);
+}
+
+@media (max-width: 600px) {
+    .photo-editor-feature {
+        margin-bottom: 15px;
+    }
+
+    .photo-editor-card {
+        min-height: 126px;
+        border-radius: 22px;
+    }
+
+    .photo-editor-card-content {
+        min-height: 126px;
+        padding: 15px 14px;
+        gap: 12px;
+    }
+
+    .photo-editor-icon {
+        flex-basis: 56px;
+        width: 56px;
+        height: 56px;
+        border-radius: 17px;
+    }
+
+    .photo-editor-icon svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .photo-editor-card-text strong {
+        font-size: 17px;
+    }
+
+    .photo-editor-card-text small {
+        font-size: 9px;
+    }
+
+    .photo-editor-arrow {
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+    }
+}
