@@ -268,27 +268,67 @@
     </div>
 
     <div class="photo-editor-feature" aria-label="تعديل الصور">
-        <a href="photo-editor.html" class="photo-editor-card">
-            <div class="photo-editor-card-bg" aria-hidden="true"></div>
-            <div class="photo-editor-card-content">
-                <div class="photo-editor-icon" aria-hidden="true">
-                    <svg viewBox="0 0 64 64" role="img">
-                        <path d="M10 45.5V54h8.5L47.8 32.7l-8.5-8.5L10 45.5Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-                        <path d="m35.7 20.8 8.5 8.5 4.1-4.1a4 4 0 0 0 0-5.7l-2.8-2.8a4 4 0 0 0-5.7 0l-4.1 4.1Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-                        <path d="M17 54h34" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="photo-editor-card-text">
-                    <span>PHOTO EDITOR</span>
-                    <strong>عدّل صورتك الآن</strong>
-                    <small>قص • فلاتر • نص • ألوان • تأثيرات</small>
-                </div>
-                <span class="photo-editor-arrow" aria-hidden="true">←</span>
-            </div>
-        </a>
-    </div>
+    <a href="photo-editor.html" class="photo-editor-card">
+        <svg class="photo-editor-bg-svg" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+                <linearGradient id="editorBg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#0b1533"/>
+                    <stop offset="52%" stop-color="#17245a"/>
+                    <stop offset="100%" stop-color="#29105b"/>
+                </linearGradient>
+                <radialGradient id="editorGlowA"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".55"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+                <radialGradient id="editorGlowB"><stop offset="0%" stop-color="#06b6d4" stop-opacity=".30"/><stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/></radialGradient>
+                <filter id="editorBlur"><feGaussianBlur stdDeviation="24"/></filter>
+                <filter id="editorShadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".28"/></filter>
+            </defs>
+            <rect width="700" height="300" fill="url(#editorBg)"/>
+            <circle cx="115" cy="275" r="145" fill="url(#editorGlowA)" filter="url(#editorBlur)"/>
+            <circle cx="610" cy="35" r="150" fill="url(#editorGlowB)" filter="url(#editorBlur)"/>
+            <path d="M-20 230 C120 115 180 275 320 155 S535 55 730 145" fill="none" stroke="#fff" stroke-opacity=".09" stroke-width="2"/>
+            <path d="M-40 265 C110 145 190 300 340 180 S560 85 740 170" fill="none" stroke="#8b7cff" stroke-opacity=".16" stroke-width="2"/>
+            <g transform="translate(365 48)" filter="url(#editorShadow)">
+                <rect width="245" height="165" rx="18" fill="#071126" fill-opacity=".58" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+                <rect x="18" y="18" width="209" height="129" rx="12" fill="#172e54"/>
+                <circle cx="177" cy="52" r="18" fill="#ffd36a"/>
+                <path d="M18 119 L75 67 L113 101 L151 70 L227 125 V147 H18Z" fill="#284d78"/>
+                <path d="M18 129 L66 92 L98 119 L139 91 L227 133 V147 H18Z" fill="#102747"/>
+                <path d="M18 134 C78 117 131 123 227 103 V147 H18Z" fill="#0a1b32"/>
+                <path d="M38 42V31H49 M196 31H207V42 M38 123V134H49 M196 134H207V123" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(85 62)">
+                <rect width="180" height="135" rx="24" fill="#fff" fill-opacity=".065" stroke="#fff" stroke-opacity=".13"/>
+                <path d="M25 42H112 M25 68H132 M25 94H101" stroke="#d9d4ff" stroke-opacity=".72" stroke-width="5" stroke-linecap="round"/>
+                <circle cx="73" cy="42" r="7" fill="#a78bfa"/>
+                <circle cx="110" cy="68" r="7" fill="#22d3ee"/>
+                <circle cx="62" cy="94" r="7" fill="#f472b6"/>
+                <path d="M124 98 L151 71 L165 85 L138 112 L119 116 Z" fill="#a78bfa"/>
+                <path d="M151 71 L158 64 L172 78 L165 85 Z" fill="#f0abfc"/>
+                <path d="M119 116 L123 102 L138 112 Z" fill="#fff" fill-opacity=".85"/>
+                <path d="M143 27 L147 39 L159 43 L147 47 L143 59 L139 47 L127 43 L139 39 Z" fill="#fff" fill-opacity=".9"/>
+            </g>
+        </svg>
 
-    <div id="categoriesContainer" class="categories-grid"></div>
+        <div class="photo-editor-card-overlay" aria-hidden="true"></div>
+
+        <div class="photo-editor-card-content">
+            <div class="photo-editor-icon" aria-hidden="true">
+                <svg viewBox="0 0 64 64" role="img">
+                    <path d="M10 45.5V54h8.5L47.8 32.7l-8.5-8.5L10 45.5Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="m35.7 20.8 8.5 8.5 4.1-4.1a4 4 0 0 0 0-5.7l-2.8-2.8a4 4 0 0 0-5.7 0l-4.1 4.1Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M17 54h34" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="photo-editor-card-text">
+                <span>PHOTO EDITOR</span>
+                <strong>عدّل صورتك الآن</strong>
+                <small>قص • فلاتر • نص • ألوان • تأثيرات</small>
+            </div>
+            <span class="photo-editor-arrow" aria-hidden="true">←</span>
+        </div>
+    </a>
+</div>
+
+<div id="categoriesContainer" class="categories-grid"></div>
 </section>
 
 <!-- Dynamic Categories -->
