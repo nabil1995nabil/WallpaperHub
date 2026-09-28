@@ -517,8 +517,13 @@ function wallpaperFromDb(row){
         type: row.type ?? "image",
         animated: Boolean(row.animated),
         source: row.source ?? "",
-        // وصف Gemini المحفوظ مع الخلفية.
+        // بيانات تحليل Gemini/EXIF المحفوظة مع الخلفية.
         aiDescription: row.ai_description ?? row.aiDescription ?? "",
+        location: row.location ?? "",
+        captureDate: row.capture_date ?? row.captureDate ?? "",
+        captureTime: row.capture_time ?? row.captureTime ?? "",
+        camera: row.camera ?? "",
+        software: row.software ?? "",
         // صاحب الخلفية الحقيقي محفوظ في wallpapers.user_id
         // ونستخدم ownerUID كاسم توافق مع الكود القديم.
         ownerUID: row.user_id ?? "",
@@ -3314,24 +3319,76 @@ app.post(
                 });
             }
 
-            // EXIF لا يحتاج Gemini، ويعمل حتى لو كان الوصف محفوظًا مسبقًا.
+            // =========================================================
+            // CACHE FIRST
+            // إذا كان تحليل Gemini محفوظًا بالفعل في Supabase، نعيده
+            // مباشرة ولا نرسل الصورة إلى Gemini مرة ثانية.
+            // =========================================================
+            const cachedDescription =
+                String(wall.aiDescription || "").trim();
+
+            const cachedTags =
+                Array.isArray(wall.tags)
+                    ? [...new Set(wall.tags.map(v => String(v || "").trim()).filter(Boolean))].slice(0, 15)
+                    : [];
+
+            const cachedColors =
+                Array.isArray(wall.colors)
+                    ? [...new Set(wall.colors.map(v => String(v || "").trim()).filter(Boolean))].slice(0, 12)
+                    : [];
+
+            const cachedSource =
+                String(wall.source || "").trim().toLowerCase();
+
+            const cachedLocation =
+                String(wall.location || "").trim();
+
+            const cachedCaptureDate =
+                String(wall.captureDate || "").trim();
+
+            const cachedCaptureTime =
+                String(wall.captureTime || "").trim();
+
+            // الوصف + الألوان + الوسوم هي البيانات الأساسية التي ينشئها Gemini.
+            // وجودها يعني أن التحليل محفوظ ويمكن إعادة استخدامه.
+            const hasCachedGeminiAnalysis =
+                Boolean(cachedDescription) &&
+                cachedColors.length > 0 &&
+                cachedTags.length > 0;
+
+            if(hasCachedGeminiAnalysis){
+                return res.json({
+                    success:true,
+                    cached:true,
+                    description:cachedDescription,
+                    location:cachedLocation || "غير معروف",
+                    captureDate:cachedCaptureDate || "غير معروف",
+                    captureTime:cachedCaptureTime || "غير معروف",
+                    source:cachedSource || "unknown",
+                    colors:cachedColors,
+                    tags:cachedTags,
+                    exif:{
+                        camera:String(wall.camera || "").trim() || null,
+                        software:String(wall.software || "").trim() || null,
+                        hasGps:Boolean(cachedLocation && cachedLocation !== "غير معروف")
+                    }
+                });
+            }
+
+            // =========================================================
+            // التحليل مطلوب فقط إذا كانت بيانات Gemini ناقصة.
+            // EXIF يتم قراءته محليًا/من الصورة لأنه ليس استدعاء Gemini.
+            // =========================================================
             const metadata = await getImageMetadata(wall.image);
 
-            // لا نعيد استخدام الوصف وحده ونخرج؛ لأن معلومات المكان/التاريخ/المصدر
-            // قد تكون ناقصة حتى عندما يكون ai_description محفوظًا.
             let ai = {};
-
             if(GEMINI_API_KEY){
                 ai = await analyzeImageWithGemini(wall.image);
             }
 
             const description =
-                String(
-                    wall.aiDescription ||
-                    wall.ai_description ||
-                    ai.description ||
-                    ""
-                ).trim();
+                cachedDescription ||
+                String(ai.description || "").trim();
 
             const hasExifLocation =
                 metadata.location &&
@@ -3340,100 +3397,77 @@ app.post(
             const location =
                 hasExifLocation
                     ? metadata.location
-                    : (ai.location || "غير معروف");
+                    : (cachedLocation || ai.location || "غير معروف");
 
             const captureDate =
                 metadata.captureDate ||
+                cachedCaptureDate ||
                 null;
 
             const captureTime =
                 metadata.captureTime ||
+                cachedCaptureTime ||
                 null;
 
-            // إذا كان EXIF يحتوي موديل كاميرا حقيقي، نعطيه أولوية على التخمين البصري.
             const source =
                 metadata.camera
                     ? "camera"
-                    : (ai.source || wall.source || "unknown");
+                    : (cachedSource && cachedSource !== "unknown"
+                        ? cachedSource
+                        : (ai.source || "unknown"));
 
-            // حفظ الوصف فقط لأن ai_description معروف أنه موجود في جدول wallpapers.
-            if(
-                description &&
-                !String(wall.aiDescription || wall.ai_description || "").trim()
-            ){
-                try{
-                    const { error: saveError } = await supabase
-                        .from("wallpapers")
-                        .update({ ai_description: description })
-                        .eq("id", id);
+            const colors =
+                cachedColors.length
+                    ? cachedColors
+                    : (Array.isArray(ai.colors)
+                        ? [...new Set(ai.colors)].slice(0, 12)
+                        : []);
 
-                    if(saveError){
-                        console.warn(
-                            "AI DESCRIPTION SAVE WARNING:",
-                            saveError.message
-                        );
-                    }
-                }catch(saveError){
+            const tags =
+                cachedTags.length
+                    ? cachedTags
+                    : (Array.isArray(ai.tags)
+                        ? [...new Set(ai.tags)].slice(0, 15)
+                        : []);
+
+            // =========================================================
+            // حفظ نتائج Gemini الأساسية في Supabase.
+            // كل حقل مستقل حتى لا يؤدي فشل عمود اختياري إلى ضياع
+            // الوصف/الألوان/الوسوم.
+            // =========================================================
+            const corePayload = {};
+
+            if(description && !cachedDescription){
+                corePayload.ai_description = description;
+            }
+
+            if(colors.length && cachedColors.length === 0){
+                corePayload.colors = colors;
+            }
+
+            if(tags.length && cachedTags.length === 0){
+                corePayload.tags = tags;
+            }
+
+            if(source && source !== "unknown" && cachedSource !== source){
+                corePayload.source = source;
+            }
+
+            if(Object.keys(corePayload).length){
+                const { error: coreSaveError } = await supabase
+                    .from("wallpapers")
+                    .update(corePayload)
+                    .eq("id", id);
+
+                if(coreSaveError){
                     console.warn(
-                        "AI DESCRIPTION SAVE ERROR:",
-                        saveError?.message || saveError
+                        "AI ANALYSIS CORE SAVE WARNING:",
+                        coreSaveError.message
                     );
                 }
             }
 
-            // Gemini visual analysis: save colors and tags in the existing fields.
-            const aiColors = Array.isArray(ai.colors)
-                ? [...new Set(ai.colors)].slice(0, 12)
-                : [];
-
-            const aiTags = Array.isArray(ai.tags)
-                ? [...new Set(ai.tags)].slice(0, 15)
-                : [];
-
-            if(aiColors.length || aiTags.length){
-                try{
-                    const visualPayload = {};
-                    if(aiColors.length) visualPayload.colors = aiColors;
-                    if(aiTags.length) visualPayload.tags = aiTags;
-
-                    const { error: visualSaveError } = await supabase
-                        .from("wallpapers")
-                        .update(visualPayload)
-                        .eq("id", id);
-
-                    if(visualSaveError){
-                        console.warn("AI COLORS/TAGS SAVE WARNING:", visualSaveError.message);
-                    }
-                }catch(visualSaveError){
-                    console.warn("AI COLORS/TAGS SAVE ERROR:", visualSaveError?.message || visualSaveError);
-                }
-            }
-
-            // source موجود أصلًا في جدول wallpapers، لذلك نحاول تحديثه.
-            // إذا كان الجدول القديم يرفض أي تحديث، لا نفشل التحليل.
-            if(source && source !== "unknown"){
-                try{
-                    const { error: sourceSaveError } = await supabase
-                        .from("wallpapers")
-                        .update({ source })
-                        .eq("id", id);
-
-                    if(sourceSaveError){
-                        console.warn(
-                            "IMAGE SOURCE SAVE WARNING:",
-                            sourceSaveError.message
-                        );
-                    }
-                }catch(sourceSaveError){
-                    console.warn(
-                        "IMAGE SOURCE SAVE ERROR:",
-                        sourceSaveError?.message || sourceSaveError
-                    );
-                }
-            }
-
-            // location/capture_date/capture_time ليست مضمونة في schema الحالي.
-            // نحاول حفظها إذا كانت الأعمدة موجودة، لكن عدم وجودها لا يكسر التحليل.
+            // metadata optional: لا نجعل فشل أعمدة EXIF يفسد تحليل Gemini.
             try{
                 const metadataPayload = {};
 
@@ -3471,16 +3505,17 @@ app.post(
 
             return res.json({
                 success:true,
-                description: description || "",
-                location: location || "غير معروف",
-                captureDate: captureDate || "غير معروف",
-                captureTime: captureTime || "غير معروف",
-                source: source || "unknown",
-                colors: aiColors.length ? aiColors : (Array.isArray(wall.colors) ? wall.colors : []),
-                tags: aiTags.length ? aiTags : (Array.isArray(wall.tags) ? wall.tags : []),
+                cached:false,
+                description:description || "",
+                location:location || "غير معروف",
+                captureDate:captureDate || "غير معروف",
+                captureTime:captureTime || "غير معروف",
+                source:source || "unknown",
+                colors,
+                tags,
                 exif:{
-                    camera: metadata.camera || null,
-                    software: metadata.software || null,
+                    camera:metadata.camera || String(wall.camera || "").trim() || null,
+                    software:metadata.software || String(wall.software || "").trim() || null,
                     hasGps:Boolean(
                         metadata.location &&
                         metadata.location !== "غير معروف"
@@ -3498,7 +3533,6 @@ app.post(
         }
     }
 );
-
 
 // ======================================
 // Developer Protected Wall API
