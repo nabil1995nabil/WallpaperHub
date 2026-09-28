@@ -977,6 +977,11 @@ const response = await fetch(
 // التاريخ والوقت الحقيقيان لا نخمنهما من الصورة؛ يتم أخذهما من EXIF.
 // ======================================
 
+
+// ======================================
+// Full AI Wallpaper Analysis
+// Gemini: description + visible location + source + colors + tags.
+// ======================================
 async function analyzeImageWithGemini(imageUrl){
     try{
         if(!GEMINI_API_KEY) return {};
@@ -984,115 +989,125 @@ async function analyzeImageWithGemini(imageUrl){
         const image = await fetch(imageUrl);
         if(!image.ok) return {};
 
-        const contentType =
-            String(image.headers.get("content-type") || "image/jpeg")
-                .split(";")[0]
-                .trim()
-                .toLowerCase();
+        const contentType = String(image.headers.get("content-type") || "image/jpeg")
+            .split(";")[0].trim().toLowerCase();
 
         const allowedMimeTypes = new Set([
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif"
+            "image/jpeg","image/png","image/webp","image/gif"
         ]);
 
-        const mimeType = allowedMimeTypes.has(contentType)
-            ? contentType
-            : "image/jpeg";
-
+        const mimeType = allowedMimeTypes.has(contentType) ? contentType : "image/jpeg";
         const buffer = await image.arrayBuffer();
         const base64 = Buffer.from(buffer).toString("base64");
 
+        const prompt = `
+Analyze this wallpaper image and return ONLY valid JSON.
+Do not use Markdown fences or any text outside JSON.
+
+{
+  "description": "short Arabic description",
+  "location": "visible/likely location, otherwise غير معروف",
+  "source": "ai or camera or unknown",
+  "colors": ["#RRGGBB", "#RRGGBB"],
+  "tags": ["tag1", "tag2"]
+}
+
+Rules:
+- colors: 5 to 8 dominant visually important colors.
+- Every color must be a valid six-digit HEX beginning with #.
+- tags: 6 to 12 concise Arabic search tags describing actual visible content.
+- Include subjects, environment, style and useful search concepts.
+- Do not invent a precise location when unsupported; use "غير معروف".
+- source must be exactly "ai", "camera", or "unknown".
+- Keep colors and tags unique.
+`;
+
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            + GEMINI_MODEL
+            + ":generateContent?key="
+            + GEMINI_API_KEY,
             {
                 method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
+                headers:{"Content-Type":"application/json"},
                 body:JSON.stringify({
                     contents:[{
                         parts:[
-                            {
-                                text:
-`حلل هذه الصورة وأعد JSON فقط بدون Markdown أو شرح إضافي.
-
-المطلوب:
-{
-  "description": "وصف عربي احترافي قصير بين 100 و200 حرف يذكر العناصر والألوان والأسلوب",
-  "location": "اسم المكان/المدينة/المعلم الظاهر في الصورة إذا كان يمكن تحديده بثقة، وإلا اكتب غير معروف",
-  "source": "ai أو camera أو unknown"
-}
-
-قواعد مهمة:
-- لا تخترع اسم مكان غير واضح.
-- لا تدّعي معرفة الإحداثيات من الشكل البصري.
-- لا تخترع تاريخ أو وقت التقاط الصورة؛ التاريخ والوقت الحقيقيان يعالجان من EXIF على الخادم.
-- source = camera فقط إذا كانت الصورة تبدو بوضوح كصورة فوتوغرافية ملتقطة بكاميرا.
-- source = ai فقط إذا ظهرت مؤشرات قوية على أنها مولدة بالذكاء الاصطناعي.
-- إذا لم تكن متأكدًا، استخدم unknown.
-- أعد JSON صالحًا فقط.`
-                            },
-                            {
-                                inlineData:{
-                                    mimeType,
-                                    data:base64
-                                }
-                            }
+                            {text:prompt},
+                            {inlineData:{mimeType,data:base64}}
                         ]
-                    }]
+                    }],
+                    generationConfig:{
+                        temperature:0.2,
+                        responseMimeType:"application/json"
+                    }
                 })
             }
         );
 
         const data = await response.json();
-
         if(!response.ok){
-            console.log("GEMINI FULL ANALYSIS RESPONSE:", data);
+            console.log("GEMINI ANALYSIS HTTP ERROR:", data);
             return {};
         }
 
-        const raw = data?.candidates?.[0]?.content?.parts
-            ?.map(part => part?.text || "")
-            .join("")
-            .trim();
-
-        if(!raw) return {};
+        const rawText = data?.candidates?.[0]?.content?.parts
+            ?.map(part => part?.text || "").join("").trim() || "";
+        if(!rawText) return {};
 
         let parsed = null;
-
         try{
-            parsed = JSON.parse(raw);
+            parsed = JSON.parse(rawText);
         }catch(_error){
-            const jsonMatch = raw.match(/\{[\s\S]*\}/);
-            if(jsonMatch){
-                try{
-                    parsed = JSON.parse(jsonMatch[0]);
-                }catch(_error2){}
+            const cleaned = rawText
+                .replace(/^```json\s*/i,"")
+                .replace(/^```\s*/i,"")
+                .replace(/\s*```$/i,"").trim();
+            try{
+                parsed = JSON.parse(cleaned);
+            }catch(_error2){
+                const start = cleaned.indexOf("{");
+                const end = cleaned.lastIndexOf("}");
+                if(start !== -1 && end > start){
+                    try{ parsed = JSON.parse(cleaned.slice(start,end+1)); }
+                    catch(_error3){ parsed = null; }
+                }
             }
         }
 
         if(!parsed || typeof parsed !== "object") return {};
 
-        const source = ["ai","camera","unknown"].includes(
-            String(parsed.source || "").trim().toLowerCase()
-        )
-            ? String(parsed.source).trim().toLowerCase()
-            : "unknown";
-
-        return {
-            description: String(parsed.description || "").trim(),
-            location: String(parsed.location || "").trim() || "غير معروف",
-            source
+        const cleanHex = value => {
+            const match = String(value || "").trim().match(/^#?([0-9a-fA-F]{6})$/);
+            return match ? `#${match[1].toUpperCase()}` : null;
         };
 
+        const colors = Array.isArray(parsed.colors)
+            ? [...new Set(parsed.colors.map(cleanHex).filter(Boolean))].slice(0,12)
+            : [];
+
+        const tags = Array.isArray(parsed.tags)
+            ? [...new Set(parsed.tags.map(v => String(v || "").trim()).filter(Boolean))].slice(0,15)
+            : [];
+
+        const source = String(parsed.source || "").trim().toLowerCase();
+
+        return {
+            description:String(parsed.description || "").trim(),
+            location:String(parsed.location || "غير معروف").trim() || "غير معروف",
+            source:["ai","camera","unknown"].includes(source) ? source : "unknown",
+            colors,
+            tags
+        };
     }catch(error){
-        console.log("FULL AI ANALYSIS ERROR:", error?.message || error);
+        console.log("GEMINI IMAGE ANALYSIS ERROR:", error?.message || error);
         return {};
     }
 }
 
+// ======================================
+// END Full AI Wallpaper Analysis
+// ======================================
 // ======================================
 // Notifications API
 // ======================================
@@ -3366,6 +3381,34 @@ app.post(
                 }
             }
 
+            // Gemini visual analysis: save colors and tags in the existing fields.
+            const aiColors = Array.isArray(ai.colors)
+                ? [...new Set(ai.colors)].slice(0, 12)
+                : [];
+
+            const aiTags = Array.isArray(ai.tags)
+                ? [...new Set(ai.tags)].slice(0, 15)
+                : [];
+
+            if(aiColors.length || aiTags.length){
+                try{
+                    const visualPayload = {};
+                    if(aiColors.length) visualPayload.colors = aiColors;
+                    if(aiTags.length) visualPayload.tags = aiTags;
+
+                    const { error: visualSaveError } = await supabase
+                        .from("wallpapers")
+                        .update(visualPayload)
+                        .eq("id", id);
+
+                    if(visualSaveError){
+                        console.warn("AI COLORS/TAGS SAVE WARNING:", visualSaveError.message);
+                    }
+                }catch(visualSaveError){
+                    console.warn("AI COLORS/TAGS SAVE ERROR:", visualSaveError?.message || visualSaveError);
+                }
+            }
+
             // source موجود أصلًا في جدول wallpapers، لذلك نحاول تحديثه.
             // إذا كان الجدول القديم يرفض أي تحديث، لا نفشل التحليل.
             if(source && source !== "unknown"){
@@ -3433,6 +3476,8 @@ app.post(
                 captureDate: captureDate || "غير معروف",
                 captureTime: captureTime || "غير معروف",
                 source: source || "unknown",
+                colors: aiColors.length ? aiColors : (Array.isArray(wall.colors) ? wall.colors : []),
+                tags: aiTags.length ? aiTags : (Array.isArray(wall.tags) ? wall.tags : []),
                 exif:{
                     camera: metadata.camera || null,
                     software: metadata.software || null,

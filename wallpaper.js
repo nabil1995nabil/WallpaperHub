@@ -2521,8 +2521,15 @@ async function autoAnalyzeWallpaper(){
     const analyzedWallpaperId = Number(currentWallpaper.id);
 
     // لا نعيد استدعاء AI إذا كانت بيانات التحليل موجودة بالفعل.
+    const hasAiVisualData =
+        Array.isArray(currentWallpaper.colors) &&
+        currentWallpaper.colors.length > 0 &&
+        Array.isArray(currentWallpaper.tags) &&
+        currentWallpaper.tags.length > 0;
+
     if(currentWallpaper.aiDescription &&
-       (currentWallpaper.source || currentWallpaper.location || currentWallpaper.captureDate)) {
+       (currentWallpaper.source || currentWallpaper.location || currentWallpaper.captureDate) &&
+       hasAiVisualData) {
         updateWallpaperAnalysisUI();
         return;
     }
@@ -2583,6 +2590,15 @@ async function autoAnalyzeWallpaper(){
         if(data.source !== undefined){
             currentWallpaper.source =
                 String(data.source || "unknown").trim().toLowerCase();
+        }
+
+        // نتائج Gemini البصرية: الألوان والوسوم.
+        if(Array.isArray(data.colors) && data.colors.length){
+            currentWallpaper.colors = data.colors;
+        }
+
+        if(Array.isArray(data.tags) && data.tags.length){
+            currentWallpaper.tags = data.tags;
         }
 
         // معلومات الكاميرا إن كانت متوفرة من EXIF.
