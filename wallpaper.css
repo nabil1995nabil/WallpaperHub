@@ -418,6 +418,29 @@ WALLPAPER LINKS
 }
 
 /* =========================
+AI ANALYSIS
+========================= */
+.ai-analysis-card{
+    margin:8px 0 8px;
+    padding:15px;
+    border:1px solid #e8e8e8;
+    border-radius:20px;
+    background:linear-gradient(135deg,#fbfaff,#f7f9ff);
+    box-shadow:0 8px 24px rgba(30,30,60,.06);
+}
+.ai-analysis-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ai-analysis-head>div{display:flex;align-items:center;gap:10px;min-width:0}
+.ai-analysis-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#7658ff,#b45cff);font-size:20px;flex:0 0 40px}
+.ai-analysis-head strong{display:block;font-size:14px;color:#151515}
+.ai-analysis-head small{display:block;margin-top:3px;color:#8a8a8a;font-size:10px}
+#aiAnalyzeBtn{border:0;border-radius:10px;padding:9px 12px;background:#111;color:#fff;font-size:10px;font-weight:700;white-space:nowrap;cursor:pointer}
+#aiAnalyzeBtn:disabled{opacity:.5;cursor:default}
+.ai-analysis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.ai-analysis-grid>div{padding:9px;border-radius:12px;background:#fff;border:1px solid #ececf2;text-align:center}
+.ai-analysis-grid span{display:block;color:#777;font-size:9px;margin-bottom:3px}
+.ai-analysis-grid b{font-size:11px;color:#222}
+
+/* =========================
 TAGS & COLORS
 ========================= */
 

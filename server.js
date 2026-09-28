@@ -1022,7 +1022,9 @@ async function analyzeImageWithGemini(imageUrl){
 {
   "description": "وصف عربي احترافي قصير بين 100 و200 حرف يذكر العناصر والألوان والأسلوب",
   "location": "اسم المكان/المدينة/المعلم الظاهر في الصورة إذا كان يمكن تحديده بثقة، وإلا اكتب غير معروف",
-  "source": "ai أو camera أو unknown"
+  "source": "ai أو camera أو unknown",
+  "tags": ["5 إلى 15 وسمًا عربيًا قصيرًا تصف موضوع الصورة والمشهد والأسلوب"],
+  "colors": ["5 إلى 8 ألوان رئيسية بصيغة HEX مثل #1A2B3C"]
 }
 
 قواعد مهمة:
@@ -1032,6 +1034,9 @@ async function analyzeImageWithGemini(imageUrl){
 - source = camera فقط إذا كانت الصورة تبدو بوضوح كصورة فوتوغرافية ملتقطة بكاميرا.
 - source = ai فقط إذا ظهرت مؤشرات قوية على أنها مولدة بالذكاء الاصطناعي.
 - إذا لم تكن متأكدًا، استخدم unknown.
+- tags يجب أن تكون مصفوفة نصوص فقط، بدون تكرار، وبحد أقصى 15 وسمًا.
+- colors يجب أن تكون مصفوفة HEX صحيحة فقط، وبحد أقصى 8 ألوان رئيسية ظاهرة في الصورة.
+- لا تخترع ألوانًا غير ظاهرة بوضوح.
 - أعد JSON صالحًا فقط.`
                             },
                             {
@@ -1081,10 +1086,28 @@ async function analyzeImageWithGemini(imageUrl){
             ? String(parsed.source).trim().toLowerCase()
             : "unknown";
 
+        const tags = Array.isArray(parsed.tags)
+            ? [...new Set(
+                parsed.tags
+                    .map(tag => String(tag || "").trim())
+                    .filter(Boolean)
+              )].slice(0, 15)
+            : [];
+
+        const colors = Array.isArray(parsed.colors)
+            ? [...new Set(
+                parsed.colors
+                    .map(color => String(color || "").trim().toUpperCase())
+                    .filter(color => /^#[0-9A-F]{6}$/i.test(color))
+              )].slice(0, 8)
+            : [];
+
         return {
             description: String(parsed.description || "").trim(),
             location: String(parsed.location || "").trim() || "غير معروف",
-            source
+            source,
+            tags,
+            colors
         };
 
     }catch(error){
@@ -3605,6 +3628,18 @@ app.post(
                     ? "camera"
                     : (ai.source || wall.source || "unknown");
 
+            // الوسوم والألوان موجودة أصلًا في جدول wallpapers.
+            // إذا لم يرجع Gemini نتيجة صالحة، نحافظ على القيم المحفوظة سابقًا.
+            const tags =
+                Array.isArray(ai.tags) && ai.tags.length
+                    ? ai.tags
+                    : (Array.isArray(wall.tags) ? wall.tags : []);
+
+            const colors =
+                Array.isArray(ai.colors) && ai.colors.length
+                    ? ai.colors
+                    : (Array.isArray(wall.colors) ? wall.colors : []);
+
             // حفظ الوصف فقط لأن ai_description معروف أنه موجود في جدول wallpapers.
             if(
                 description &&
@@ -3628,6 +3663,30 @@ app.post(
                         saveError?.message || saveError
                     );
                 }
+            }
+
+            // حفظ الوسوم والألوان التي استخرجها Gemini في نفس سجل الخلفية.
+            // إذا كان الجدول لا يسمح بالتحديث، لا نفشل عملية التحليل.
+            try{
+                const { error: visualDataSaveError } = await supabase
+                    .from("wallpapers")
+                    .update({
+                        tags,
+                        colors
+                    })
+                    .eq("id", id);
+
+                if(visualDataSaveError){
+                    console.warn(
+                        "AI TAGS/COLORS SAVE WARNING:",
+                        visualDataSaveError.message
+                    );
+                }
+            }catch(visualDataSaveError){
+                console.warn(
+                    "AI TAGS/COLORS SAVE ERROR:",
+                    visualDataSaveError?.message || visualDataSaveError
+                );
             }
 
             // source موجود أصلًا في جدول wallpapers، لذلك نحاول تحديثه.
@@ -3697,6 +3756,8 @@ app.post(
                 captureDate: captureDate || "غير معروف",
                 captureTime: captureTime || "غير معروف",
                 source: source || "unknown",
+                tags,
+                colors,
                 exif:{
                     camera: metadata.camera || null,
                     software: metadata.software || null,
