@@ -884,54 +884,74 @@ section,
 }
 
 @media (max-width:600px) {
+    /* حجم صغير مطابق تقريبًا للمربع الأحمر في الصورة */
     .photo-editor-feature {
-        width: 52%;
-        min-width: 325px;
-        max-width: 345px;
+        width: 43%;
+        min-width: 0;
+        max-width: 300px;
+        height: 168px;
         margin: 0 0 15px auto;
     }
 
     .photo-editor-card {
-        min-height: 226px;
-        height: 226px;
-        border-radius: 24px;
+        min-height: 168px;
+        height: 168px;
+        border-radius: 22px;
     }
 
     .photo-editor-card-content {
-        min-height: 226px;
-        padding: 16px 14px;
-        gap: 10px;
+        min-height: 168px;
+        padding: 12px 10px;
+        gap: 7px;
     }
 
     .photo-editor-icon {
-        flex-basis: 58px;
-        width: 58px;
-        height: 58px;
-        border-radius: 17px;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
     }
 
-    .photo-editor-icon svg { width: 30px; height: 30px; }
-    .photo-editor-card-text strong { font-size: 17px; }
-    .photo-editor-card-text small { font-size: 9px; }
+    .photo-editor-icon svg {
+        width: 25px;
+        height: 25px;
+    }
+
+    .photo-editor-card-text span {
+        font-size: 7px;
+        margin-bottom: 3px;
+    }
+
+    .photo-editor-card-text strong {
+        font-size: 14px;
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+
+    .photo-editor-card-text small {
+        font-size: 7px;
+        margin-top: 3px;
+        white-space: nowrap;
+    }
 
     .photo-editor-arrow {
-        flex-basis: 34px;
-        width: 34px;
-        height: 34px;
-        font-size: 18px;
+        flex: 0 0 29px;
+        width: 29px;
+        height: 29px;
+        font-size: 15px;
     }
 }
 
 @media (max-width:360px) {
     .photo-editor-feature {
-        width: calc(100% - 8px);
-        min-width: 0;
-        max-width: none;
+        width: 43%;
+        max-width: 285px;
+        height: 158px;
     }
 
     .photo-editor-card,
     .photo-editor-card-content {
-        min-height: 205px;
-        height: 205px;
+        min-height: 158px;
+        height: 158px;
     }
 }
