@@ -164,7 +164,7 @@ async function generateAITags(file){
         const image=await fileToAIImage(file);
         const category=document.getElementById("wallCategory")?.value || "";
         const title=document.getElementById("wallTitle")?.value || "";
-        const prompt=`أنت نظام تصنيف صور لموقع WallpaperHub. حلل الصورة المرفقة وأنشئ وسوماً إنجليزية قصيرة ومناسبة للبحث. أرجع JSON فقط بدون Markdown أو شرح: {"tags":["tag1","tag2","tag3"]}. الشروط: من 8 إلى 15 وسمًا، lowercase، كلمات بحث شائعة، صف الأشياء والمشهد والألوان والأسلوب والمكان إذا كان واضحًا، لا تكرر الوسوم، لا تخترع أشياء غير واضحة. القسم: ${category||"unknown"}. العنوان: ${title||"unknown"}.`;
+        const prompt=`أنت نظام تصنيف بصري لموقع WallpaperHub. حلل الصورة المرفقة وأنشئ وسوماً إنجليزية قصيرة ومناسبة للبحث والتوصيات الذكية. أرجع JSON فقط بدون Markdown أو شرح: {"tags":["tag1","tag2","tag3"]}. الشروط: من 10 إلى 15 وسمًا، lowercase، كلمات بحث شائعة، صف الموضوع الرئيسي والأشياء والمشهد والبيئة والأسلوب والإضاءة والألوان الظاهرة والمكان إذا كان واضحًا، اجعل الوسوم مفيدة للعثور على صور مشابهة بصريًا ومضمونيًا، لا تكرر الوسوم، لا تخترع أشياء غير واضحة. القسم: ${category||"unknown"}. العنوان: ${title||"unknown"}.`;
         const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt,imageData:image.data,mimeType:image.mimeType,locale:"en"})});
         if(!response.ok) throw new Error("AI API ERROR");
         const result=await response.json();
