@@ -1,1 +1,190 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090b10"><title>محرر الصور | WallpaperHub</title><link rel="stylesheet" href="photo-editor.css"></head><body><div class="app"><header><a class="logo" href="index.html"><b>W</b>Wallpaper<span>Hub</span></a><div class="head"><button id="undo" disabled>↶</button><button id="redo" disabled>↷</button><button id="reset">إعادة ضبط</button><button class="download" id="download">⬇ تحميل الصورة</button></div></header><main><section class="work"><div class="bar"><button id="minus">−</button><strong id="zoom">100%</strong><button id="plus">+</button><button id="fit">ملاءمة</button><button id="full">⛶</button></div><div class="stage" id="stage"><div class="empty" id="empty"><div>🖼️</div><h1>ابدأ بتعديل صورتك</h1><p>ارفع صورة ثم عدّلها بالطريقة التي تريدها.</p><button class="primary" id="pick">＋ اختيار صورة</button><small>JPG · PNG · WEBP</small></div><canvas id="canvas" hidden></canvas></div><footer><span id="info">لم يتم اختيار صورة</span><span>جاهز</span></footer></section><aside id="side"><div class="mobile-head"><b>أدوات التعديل</b><button id="close">×</button></div><input id="file" type="file" accept="image/*" hidden><button class="upload" id="upload">＋ رفع صورة جديدة</button><nav><button class="tab active" data-p="adjust">☀️<small>ضبط</small></button><button class="tab" data-p="filter">🎨<small>فلاتر</small></button><button class="tab" data-p="transform">✂️<small>تحويل</small></button><button class="tab" data-p="draw">✏️<small>رسم</small></button><button class="tab" data-p="text">T<small>نص</small></button><button class="tab" data-p="effects">✨<small>تأثيرات</small></button></nav><div class="panels"><section class="panel active" id="p-adjust"><h2>الضبط الأساسي</h2><div id="adjusts"></div></section><section class="panel" id="p-filter"><h2>فلاتر جاهزة</h2><div class="filters" id="filters"></div></section><section class="panel" id="p-transform"><h2>القص والتحويل</h2><div class="grid4"><button data-act="rl">↺<small>يسار</small></button><button data-act="rr">↻<small>يمين</small></button><button data-act="fh">↔<small>قلب أفقي</small></button><button data-act="fv">↕<small>قلب عمودي</small></button></div><h3>نسبة القص</h3><div class="ratios" id="ratios"></div><button class="wide" id="crop">✂️ تطبيق القص</button><h3>تغيير الحجم</h3><div class="size"><input id="width" type="number" placeholder="العرض"><b>×</b><input id="height" type="number" placeholder="الارتفاع"></div><button class="wide secondary" id="resize">تغيير الحجم</button></section><section class="panel" id="p-draw"><h2>الرسم على الصورة</h2><div class="drawm"><button class="active" data-draw="brush">🖌️ فرشاة</button><button data-draw="eraser">⌫ ممحاة</button></div><label>اللون <input id="drawColor" type="color" value="#ffffff"></label><label>حجم الفرشاة <b id="brushV">12</b><input id="brush" type="range" min="1" max="100" value="12"></label><label>الشفافية <b id="brushOpacityV">100</b><input id="brushOpacity" type="range" min="10" max="100" value="100"></label></section><section class="panel" id="p-text"><h2>إضافة نص</h2><textarea id="text" placeholder="اكتب النص هنا..."></textarea><div class="two"><select id="font"><option>Arial</option><option>Tahoma</option><option>Georgia</option><option>Courier New</option></select><input id="fontSize" type="number" value="56" min="8" max="400"></div><div class="texttools"><input id="textColor" type="color" value="#ffffff"><button id="bold">B</button><button id="italic">I</button></div><button class="wide" id="addText">＋ إضافة النص</button></section><section class="panel" id="p-effects"><h2>تأثيرات إضافية</h2><div id="effects"></div><div class="effectbuttons"><button data-effect="poster">Posterize</button><button data-effect="duo">Duotone</button><button data-effect="soft">Soft</button></div></section></div></aside></main><button class="mobile-tools" id="open">⚙️ أدوات التعديل</button><div id="toast"></div></div><script src="photo-editor.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090d">
+<title>محرر الصور | WallpaperHub</title>
+<link rel="stylesheet" href="photo-editor.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <a class="logo" href="index.html"><b>W</b><span>Wallpaper</span><em>Hub</em></a>
+    <div class="top-actions">
+      <button id="undo" class="icon-btn" disabled title="تراجع">↶</button>
+      <button id="redo" class="icon-btn" disabled title="إعادة">↷</button>
+      <button id="reset" class="ghost-btn">إعادة ضبط</button>
+      <button id="download" class="download">⬇ تحميل</button>
+    </div>
+  </header>
+
+  <main class="editor">
+    <section class="workspace">
+      <div class="canvasbar">
+        <div class="canvas-info"><span class="live-dot"></span><span id="info">لم يتم اختيار صورة</span></div>
+        <div class="zoom-tools">
+          <button id="minus">−</button><strong id="zoom">100%</strong><button id="plus">+</button>
+          <button id="fit">ملاءمة</button><button id="full" title="ملء الشاشة">⛶</button>
+        </div>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="empty" id="empty">
+          <div class="empty-icon">✦</div>
+          <span class="eyebrow">WALLPAPERHUB STUDIO</span>
+          <h1>حوّل صورتك إلى تصميم احترافي</h1>
+          <p>ابدأ بصورة واحدة، ثم أضف النصوص والملصقات والفلاتر والتأثيرات والتحويلات كما في أدوات التحرير الحديثة.</p>
+          <button class="primary" id="pick">＋ اختيار صورة</button>
+          <small>JPG · PNG · WEBP</small>
+        </div>
+        <canvas id="canvas" hidden></canvas>
+      </div>
+
+      <div class="quick-status">
+        <span id="statusText">جاهز للتحرير</span>
+        <span id="sizeInfo">—</span>
+      </div>
+    </section>
+
+    <input id="file" type="file" accept="image/*" hidden>
+
+    <div class="sheet-backdrop" id="backdrop"></div>
+    <section class="tool-sheet" id="toolSheet" aria-hidden="true">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <div>
+          <span class="sheet-kicker">TOOLKIT</span>
+          <h2 id="sheetTitle">الضبط</h2>
+        </div>
+        <button id="closeSheet" class="sheet-close">×</button>
+      </div>
+      <div class="panels">
+
+        <section class="panel" id="p-adjust">
+          <div class="panel-intro"><b>ضبط احترافي</b><span>تحكم دقيق في مظهر الصورة</span></div>
+          <div id="adjusts" class="control-grid"></div>
+          <div class="mini-actions"><button data-preset="clean">نظيف</button><button data-preset="cinema">سينمائي</button><button data-preset="bright">مشرق</button><button data-preset="moody">مودي</button></div>
+        </section>
+
+        <section class="panel" id="p-filters">
+          <div class="panel-intro"><b>فلاتر جاهزة</b><span>اضغط لتطبيق المظهر فورًا</span></div>
+          <div class="filter-grid" id="filters"></div>
+        </section>
+
+        <section class="panel" id="p-transform">
+          <div class="panel-intro"><b>تحويل وقص</b><span>تدوير، قلب، نسبة، تغيير حجم</span></div>
+          <div class="action-grid">
+            <button data-act="rl"><strong>↺</strong><small>يسار</small></button>
+            <button data-act="rr"><strong>↻</strong><small>يمين</small></button>
+            <button data-act="fh"><strong>↔</strong><small>قلب أفقي</small></button>
+            <button data-act="fv"><strong>↕</strong><small>قلب عمودي</small></button>
+          </div>
+          <div class="section-label">نسبة القص</div>
+          <div id="ratios" class="chip-row"></div>
+          <button id="crop" class="wide primary">✂️ تطبيق القص من المنتصف</button>
+          <div class="resize-box">
+            <div class="section-label">حجم مخصص</div>
+            <div class="size-fields"><input id="width" type="number" placeholder="العرض"><span>×</span><input id="height" type="number" placeholder="الارتفاع"></div>
+            <label class="checkline"><input id="lockRatio" type="checkbox" checked> الحفاظ على التناسب</label>
+            <button id="resize" class="wide">تغيير الحجم</button>
+          </div>
+        </section>
+
+        <section class="panel" id="p-text">
+          <div class="panel-intro"><b>النصوص والعناوين</b><span>قوالب جاهزة + نص حر</span></div>
+          <div class="template-grid" id="textTemplates"></div>
+          <textarea id="text" placeholder="اكتب النص هنا..."></textarea>
+          <div class="two"><select id="font"><option>Arial</option><option>Tahoma</option><option>Georgia</option><option>Courier New</option><option>Impact</option><option>Trebuchet MS</option></select><input id="fontSize" type="number" value="56" min="8" max="500"></div>
+          <div class="text-controls">
+            <input id="textColor" type="color" value="#ffffff" title="لون النص">
+            <button id="bold">B</button><button id="italic">I</button>
+            <button id="textShadow">◈</button><button id="textStroke">▣</button>
+          </div>
+          <div class="text-effects-row"><label>حد النص <input id="strokeWidth" type="range" min="0" max="20" value="0"></label><label>ظل <input id="shadowBlur" type="range" min="0" max="30" value="8"></label></div>
+          <button id="addText" class="wide primary">＋ إضافة النص</button>
+          <div class="section-label">النصوص الجاهزة</div>
+          <div class="template-grid compact" id="textTemplates2"></div>
+        </section>
+
+        <section class="panel" id="p-stickers">
+          <div class="panel-intro"><b>ملصقات وإيموجي</b><span>عناصر جاهزة للصور والمنشورات</span></div>
+          <div class="sticker-tabs"><button class="active" data-sticker-tab="emoji">إيموجي</button><button data-sticker-tab="shapes">أشكال</button><button data-sticker-tab="badges">شارات</button></div>
+          <div id="stickers" class="sticker-grid"></div>
+          <div class="sticker-note">اضغط على العنصر لإضافته في منتصف الصورة، ثم حرّكه بالسحب.</div>
+        </section>
+
+        <section class="panel" id="p-draw">
+          <div class="panel-intro"><b>الرسم والفرشاة</b><span>رسم حر، ممحاة، هايلايتر</span></div>
+          <div class="draw-tools"><button class="active" data-draw="brush">🖌️ فرشاة</button><button data-draw="eraser">⌫ ممحاة</button><button data-draw="marker">🖍️ هايلايتر</button></div>
+          <div class="color-line"><span>اللون</span><input id="drawColor" type="color" value="#ffffff"></div>
+          <label class="range-row">الحجم <b id="brushV">12</b><input id="brush" type="range" min="1" max="160" value="12"></label>
+          <label class="range-row">الشفافية <b id="brushOpacityV">100</b><input id="brushOpacity" type="range" min="5" max="100" value="100"></label>
+          <div class="swatches" id="swatches"></div>
+        </section>
+
+        <section class="panel" id="p-effects">
+          <div class="panel-intro"><b>تأثيرات سينمائية</b><span>أضف شخصية وعمقًا للصورة</span></div>
+          <div id="effects" class="control-grid effects-grid"></div>
+          <div class="effect-presets"><button data-effect="soft">Soft</button><button data-effect="duo">Duotone</button><button data-effect="noir">Noir</button><button data-effect="poster">Poster</button><button data-effect="film">Film</button><button data-effect="dream">Dream</button></div>
+        </section>
+
+        <section class="panel" id="p-light">
+          <div class="panel-intro"><b>الإضاءة واللون</b><span>أدوات إضافية للـ Color Grade</span></div>
+          <div id="lightControls" class="control-grid"></div>
+          <div class="mini-actions"><button data-preset="gold">ذهبي</button><button data-preset="ice">ثلجي</button><button data-preset="neon">نيون</button></div>
+        </section>
+
+        <section class="panel" id="p-blur">
+          <div class="panel-intro"><b>التركيز والتمويه</b><span>عزل الخلفية ولمسات ناعمة</span></div>
+          <label class="range-row">تمويه <b id="blurV">0</b><input id="blur" type="range" min="0" max="24" value="0"></label>
+          <label class="range-row">توهج الحواف <b id="edgeV">0</b><input id="edge" type="range" min="0" max="100" value="0"></label>
+          <div class="blur-cards"><button data-blur="soft">Soft</button><button data-blur="focus">Focus</button><button data-blur="dream">Dream</button></div>
+        </section>
+
+        <section class="panel" id="p-frame">
+          <div class="panel-intro"><b>إطار وحدود</b><span>اجعل التصميم جاهزًا للنشر</span></div>
+          <div class="frame-grid"><button data-frame="none">بدون</button><button data-frame="white">أبيض</button><button data-frame="black">أسود</button><button data-frame="neon">نيون</button><button data-frame="gradient">Gradient</button><button data-frame="polaroid">Polaroid</button></div>
+          <label class="range-row">سُمك الإطار <b id="frameV">0</b><input id="frame" type="range" min="0" max="100" value="0"></label>
+        </section>
+
+        <section class="panel" id="p-background">
+          <div class="panel-intro"><b>خلفية وتأثيرات خلفية</b><span>لون، تدرج، نقشات</span></div>
+          <div class="background-grid"><button data-bg="none">الصورة</button><button data-bg="black">أسود</button><button data-bg="white">أبيض</button><button data-bg="gradient">تدرج</button><button data-bg="grid">شبكة</button><button data-bg="dots">نقاط</button></div>
+        </section>
+
+        <section class="panel" id="p-resize">
+          <div class="panel-intro"><b>المقاس والتصدير</b><span>مقاسات جاهزة للمنشورات والهواتف</span></div>
+          <div class="preset-sizes">
+            <button data-size="1080x1920"><b>9:16</b><small>Story / Wallpaper</small></button>
+            <button data-size="1080x1350"><b>4:5</b><small>Portrait Post</small></button>
+            <button data-size="1080x1080"><b>1:1</b><small>Square</small></button>
+            <button data-size="1920x1080"><b>16:9</b><small>Landscape</small></button>
+            <button data-size="1280x720"><b>HD</b><small>Video Frame</small></button>
+            <button data-size="1440x2560"><b>QHD</b><small>Mobile</small></button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <nav class="bottom-tools" id="bottomTools">
+      <button class="tool" data-tool="adjust"><i>☀️</i><span>ضبط</span></button>
+      <button class="tool" data-tool="filters"><i>🎨</i><span>فلاتر</span></button>
+      <button class="tool" data-tool="transform"><i>✂️</i><span>قص</span></button>
+      <button class="tool" data-tool="text"><i>T</i><span>نص</span></button>
+      <button class="tool" data-tool="stickers"><i>😊</i><span>ملصقات</span></button>
+      <button class="tool" data-tool="draw"><i>✏️</i><span>رسم</span></button>
+      <button class="tool" data-tool="effects"><i>✨</i><span>تأثيرات</span></button>
+      <button class="tool" data-tool="light"><i>◐</i><span>ألوان</span></button>
+      <button class="tool" data-tool="blur"><i>◌</i><span>تمويه</span></button>
+      <button class="tool" data-tool="frame"><i>▣</i><span>إطار</span></button>
+      <button class="tool" data-tool="background"><i>◈</i><span>خلفية</span></button>
+      <button class="tool" data-tool="resize"><i>↔</i><span>مقاس</span></button>
+      <button class="tool upload-tool" id="upload"><i>＋</i><span>صورة</span></button>
+    </nav>
+  </main>
+  <div id="toast"></div>
+</div>
+<script src="photo-editor.js"></script>
+</body>
+</html>
