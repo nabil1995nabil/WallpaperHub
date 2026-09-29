@@ -66,6 +66,99 @@ function isGifMedia(wallpaper){
 
 
 let wallpapers = [];
+let personalizedRecommendations = [];
+let recommendationsLoaded = false;
+
+function getSupabaseAccessTokenFromBrowser(){
+    try{
+        // Supabase JS يخزن جلسة المصادقة في localStorage بمفتاح يبدأ بـ sb-.
+        for(let i=0; i<localStorage.length; i++){
+            const key = localStorage.key(i) || "";
+            if(!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
+
+            const raw = localStorage.getItem(key);
+            if(!raw) continue;
+
+            const session = JSON.parse(raw);
+            const token = String(
+                session?.access_token ||
+                session?.currentSession?.access_token ||
+                ""
+            ).trim();
+
+            if(token) return token;
+        }
+    }catch(error){
+        console.warn("AUTH TOKEN READ ERROR:", error);
+    }
+    return "";
+}
+
+function getLocalFavoriteIdsForRecommendations(){
+    try{
+        const favorites = JSON.parse(
+            localStorage.getItem("favorites") || "[]"
+        );
+        if(!Array.isArray(favorites)) return [];
+        return favorites
+            .map(id => String(id))
+            .filter(Boolean)
+            .slice(0,200);
+    }catch(_error){
+        return [];
+    }
+}
+
+async function loadPersonalizedRecommendations(){
+    recommendationsLoaded = false;
+
+    if(!recommendedContainer) return;
+
+    const token = getSupabaseAccessTokenFromBrowser();
+
+    // الزائر غير المسجل: يبقى السلوك القديم كاحتياط.
+    if(!token){
+        personalizedRecommendations = [];
+        recommendationsLoaded = true;
+        renderRecommended();
+        return;
+    }
+
+    try{
+        const favorites = getLocalFavoriteIdsForRecommendations();
+        const params = new URLSearchParams();
+        params.set("limit","8");
+        if(favorites.length){
+            params.set("favorites",favorites.join(","));
+        }
+
+        const response = await fetch(
+            "/api/recommendations?" + params.toString(),
+            {
+                headers:{
+                    "Authorization":"Bearer " + token
+                },
+                cache:"no-store"
+            }
+        );
+
+        if(!response.ok) throw new Error("Recommendations API " + response.status);
+
+        const data = await response.json();
+        personalizedRecommendations =
+            Array.isArray(data?.recommendations)
+                ? data.recommendations
+                : [];
+
+        recommendationsLoaded = true;
+        renderRecommended();
+    }catch(error){
+        console.warn("PERSONALIZED RECOMMENDATIONS ERROR:", error);
+        personalizedRecommendations = [];
+        recommendationsLoaded = true;
+        renderRecommended();
+    }
+}
 
 const latestContainer =
 document.getElementById("latestWallpapers");
@@ -113,6 +206,8 @@ async function loadWallpapers() {
         renderLatest();
         renderRecommended();
         createDynamicSections();
+        // تحميل التوصيات الشخصية من الخادم بعد تحميل الخلفيات الأساسية.
+        await loadPersonalizedRecommendations();
 
     } catch(err) {
 
@@ -249,18 +344,17 @@ function renderRecommended() {
 
     recommendedContainer.innerHTML = "";
 
-    wallpapers
+    const source =
+        personalizedRecommendations.length
+            ? personalizedRecommendations
+            : wallpapers.filter(w => w.featured).slice(0,8);
 
-    .filter(w => w.featured)
-
-    .slice(0,8)
-
-    .forEach(wall => {
-
-        recommendedContainer.innerHTML +=
-        createWallpaperCard(wall);
-
-    });
+    source
+        .slice(0,8)
+        .forEach(wall => {
+            recommendedContainer.innerHTML +=
+                createWallpaperCard(wall);
+        });
 
 }
 

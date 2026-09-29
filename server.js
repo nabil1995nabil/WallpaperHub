@@ -1707,6 +1707,285 @@ app.get(
 );
 
 // ======================================
+// Personalized Wallpaper Recommendations
+// يجمع بين: ما نشره المستخدم + المفضلة + التحميلات + الإعجابات.
+// يستخدم tags/categories/colors الحالية، لذلك لا يحتاج جدول embeddings جديد.
+// ======================================
+
+function normalizeRecommendationId(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? String(Math.trunc(n)) : "";
+}
+
+function addProfileSignal(profile, wall, weight){
+    if(!wall) return;
+
+    const category = String(wall.category || "").trim().toLowerCase();
+    if(category){
+        profile.categories.set(
+            category,
+            (profile.categories.get(category) || 0) + weight
+        );
+    }
+
+    const tags = Array.isArray(wall.tags) ? wall.tags : [];
+    for(const rawTag of tags){
+        const tag = String(rawTag || "").trim().toLowerCase();
+        if(!tag) continue;
+        profile.tags.set(tag, (profile.tags.get(tag) || 0) + weight);
+    }
+
+    const colors = Array.isArray(wall.colors) ? wall.colors : [];
+    for(const rawColor of colors){
+        const color = String(rawColor || "").trim().toUpperCase();
+        if(!/^#[0-9A-F]{6}$/.test(color)) continue;
+        profile.colors.set(color, (profile.colors.get(color) || 0) + weight);
+    }
+}
+
+function hexToRgbForRecommendation(hex){
+    const value = String(hex || "").replace("#","");
+    if(!/^[0-9a-fA-F]{6}$/.test(value)) return null;
+    return {
+        r:parseInt(value.slice(0,2),16),
+        g:parseInt(value.slice(2,4),16),
+        b:parseInt(value.slice(4,6),16)
+    };
+}
+
+function colorSimilarity(a,b){
+    const ca = hexToRgbForRecommendation(a);
+    const cb = hexToRgbForRecommendation(b);
+    if(!ca || !cb) return 0;
+
+    const distance = Math.sqrt(
+        Math.pow(ca.r-cb.r,2) +
+        Math.pow(ca.g-cb.g,2) +
+        Math.pow(ca.b-cb.b,2)
+    );
+
+    return Math.max(0, 1 - distance / 441.673);
+}
+
+function recommendationFeatureScore(profile, wall){
+    const tags = Array.isArray(wall.tags)
+        ? [...new Set(wall.tags.map(v => String(v || "").trim().toLowerCase()).filter(Boolean))]
+        : [];
+
+    const colors = Array.isArray(wall.colors)
+        ? [...new Set(wall.colors.map(v => String(v || "").trim().toUpperCase()).filter(v => /^#[0-9A-F]{6}$/.test(v)))]
+        : [];
+
+    const category = String(wall.category || "").trim().toLowerCase();
+
+    let score = 0;
+
+    // الوسوم هي أقوى إشارة للمحتوى.
+    for(const tag of tags){
+        const weight = profile.tags.get(tag) || 0;
+        if(weight) score += Math.min(weight, 12) * 2.2;
+    }
+
+    // القسم يعطي إشارة عامة مفيدة.
+    const categoryWeight = profile.categories.get(category) || 0;
+    if(categoryWeight) score += Math.min(categoryWeight, 12) * 2.8;
+
+    // التشابه اللوني يدعم التشابه البصري.
+    if(colors.length && profile.colors.size){
+        let bestColor = 0;
+        for(const candidateColor of colors){
+            for(const profileColor of profile.colors.keys()){
+                bestColor = Math.max(
+                    bestColor,
+                    colorSimilarity(candidateColor, profileColor)
+                );
+            }
+        }
+        score += bestColor * 8;
+    }
+
+    // الشعبية تكسر التعادل فقط ولا تتحول إلى أساس الصفحة.
+    score +=
+        Math.log1p(Number(wall.likes || 0)) * 0.35 +
+        Math.log1p(Number(wall.downloads || 0)) * 0.25 +
+        Math.log1p(Number(wall.views || 0)) * 0.10;
+
+    return score;
+}
+
+function buildRecommendationProfile(wallpapers, groups){
+    const profile = {
+        tags:new Map(),
+        categories:new Map(),
+        colors:new Map()
+    };
+
+    const byId = new Map(
+        wallpapers.map(w => [normalizeRecommendationId(w.id), w])
+    );
+
+    for(const item of groups.published){
+        addProfileSignal(profile, byId.get(item), 5.0);
+    }
+
+    for(const item of groups.favorites){
+        addProfileSignal(profile, byId.get(item), 4.0);
+    }
+
+    for(const item of groups.liked){
+        addProfileSignal(profile, byId.get(item), 3.5);
+    }
+
+    for(const item of groups.downloaded){
+        addProfileSignal(profile, byId.get(item), 2.5);
+    }
+
+    return profile;
+}
+
+function mergeRecommendationIds(values){
+    return [...new Set(
+        (Array.isArray(values) ? values : [])
+            .map(normalizeRecommendationId)
+            .filter(Boolean)
+    )];
+}
+
+app.get("/api/recommendations", async (req, res) => {
+    try{
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if(!authenticatedUser){
+            return res.status(401).json({
+                success:false,
+                authenticated:false,
+                recommendations:[]
+            });
+        }
+
+        const userId = String(authenticatedUser.id).trim();
+
+        // المفضلة القديمة في الواجهة قد تكون محفوظة في localStorage.
+        const clientFavoriteIds = String(req.query.favorites || "")
+            .split(",")
+            .map(normalizeRecommendationId)
+            .filter(Boolean)
+            .slice(0, 200);
+
+        const { data: syncRow, error: syncError } = await supabase
+            .from("user_profile_sync")
+            .select("favorite_ids,download_ids,view_ids")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        if(syncError) throw syncError;
+
+        const favoriteIds = mergeRecommendationIds([
+            ...(Array.isArray(syncRow?.favorite_ids) ? syncRow.favorite_ids : []),
+            ...clientFavoriteIds
+        ]);
+
+        const downloadedIds = mergeRecommendationIds(
+            Array.isArray(syncRow?.download_ids) ? syncRow.download_ids : []
+        );
+
+        let likedIds = [];
+        try{
+            const { data: likeRows, error: likesError } = await supabase
+                .from("likes")
+                .select("wallpaper_id")
+                .eq("user_id", userId)
+                .limit(1000);
+
+            if(likesError) throw likesError;
+
+            likedIds = (likeRows || [])
+                .map(row => normalizeRecommendationId(row.wallpaper_id))
+                .filter(Boolean);
+        }catch(likesError){
+            console.log("RECOMMENDATION LIKES ERROR:", likesError.message);
+        }
+
+        const allWallpapers = await getWallpapersFromSupabase();
+
+        const publishedIds = allWallpapers
+            .filter(w => String(w.userId || w.ownerUID || "") === userId)
+            .map(w => normalizeRecommendationId(w.id))
+            .filter(Boolean);
+
+        const groups = {
+            published:mergeRecommendationIds(publishedIds),
+            favorites:mergeRecommendationIds(favoriteIds),
+            liked:mergeRecommendationIds(likedIds),
+            downloaded:mergeRecommendationIds(downloadedIds)
+        };
+
+        const interactedIds = new Set([
+            ...groups.published,
+            ...groups.favorites,
+            ...groups.liked,
+            ...groups.downloaded
+        ]);
+
+        const profile = buildRecommendationProfile(allWallpapers, groups);
+
+        const hasProfile =
+            profile.tags.size > 0 ||
+            profile.categories.size > 0 ||
+            profile.colors.size > 0;
+
+        const candidates = allWallpapers
+            .filter(w => !interactedIds.has(normalizeRecommendationId(w.id)))
+            .map(w => ({
+                wall:w,
+                score:hasProfile
+                    ? recommendationFeatureScore(profile, w)
+                    : (
+                        Math.log1p(Number(w.downloads || 0)) * 0.8 +
+                        Math.log1p(Number(w.likes || 0)) * 0.6 +
+                        Math.log1p(Number(w.views || 0)) * 0.25
+                    )
+            }))
+            .sort((a,b) => b.score - a.score);
+
+        const limit = Math.min(
+            Math.max(Number.parseInt(req.query.limit,10) || 8, 1),
+            24
+        );
+
+        const recommendations = candidates
+            .slice(0, limit)
+            .map(item => ({
+                ...item.wall,
+                recommendationScore:Number(item.score.toFixed(4)),
+                recommendationReason:hasProfile
+                    ? "مشابه لما تفاعلت معه"
+                    : "مقترحات شائعة حتى يبدأ النظام بالتعلم"
+            }));
+
+        return res.json({
+            success:true,
+            authenticated:true,
+            personalized:hasProfile,
+            signals:{
+                published:groups.published.length,
+                favorites:groups.favorites.length,
+                liked:groups.liked.length,
+                downloaded:groups.downloaded.length
+            },
+            recommendations
+        });
+    }catch(error){
+        console.log("RECOMMENDATIONS ERROR:", error);
+        return res.status(500).json({
+            success:false,
+            authenticated:false,
+            recommendations:[],
+            message:error.message || "Failed to build recommendations"
+        });
+    }
+});
+
+// ======================================
 // Public Categories API
 // يرجع عدد الخلفيات الحقيقي لكل قسم من Supabase.
 // لا نرسل Service Role Key إلى المتصفح.
@@ -2077,7 +2356,27 @@ app.post(
 
             const publisherProfile = await getPublisherProfile(publisher);
             const metadata = await getImageMetadata(req.body.image);
-            const source = await detectImageSource(req.body.image);
+
+            // تحليل خادم إضافي حتى تبقى بيانات التوصيات موجودة
+            // حتى لو لم يعتمد النشر على واجهة الأدمن.
+            const aiAnalysis = await analyzeImageWithGemini(req.body.image);
+            const detectedSource = aiAnalysis.source || await detectImageSource(req.body.image);
+
+            const requestTags = Array.isArray(req.body.tags) ? req.body.tags : [];
+            const aiTags = Array.isArray(aiAnalysis.tags) ? aiAnalysis.tags : [];
+            const mergedTags = [...new Set(
+                [...requestTags, ...aiTags]
+                    .map(tag => String(tag || "").trim().toLowerCase())
+                    .filter(Boolean)
+            )].slice(0, 30);
+
+            const requestColors = Array.isArray(req.body.colors) ? req.body.colors : [];
+            const aiColors = Array.isArray(aiAnalysis.colors) ? aiAnalysis.colors : [];
+            const mergedColors = [...new Set(
+                [...requestColors, ...aiColors]
+                    .map(color => String(color || "").trim().toUpperCase())
+                    .filter(color => /^#[0-9A-F]{6}$/.test(color))
+            )].slice(0, 12);
 
             const wallpaper = {
                 id: Date.now(),
@@ -2097,8 +2396,9 @@ app.post(
                 // UID صاحب الخلفية يأتي من Supabase Auth وليس من body.
                 userId: String(publisher.id).trim(),
                 date: req.body.date || new Date().toLocaleString("ar-MA"),
-                colors: Array.isArray(req.body.colors) ? req.body.colors : [],
-                tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+                // بيانات التشابه البصري والمضموني المستخدمة في محرك التوصيات.
+                colors: mergedColors,
+                tags: mergedTags,
                 featured: Boolean(req.body.featured),
                 todayWallpaper: Boolean(req.body.todayWallpaper),
                 popular: Boolean(req.body.popular),
@@ -2109,7 +2409,8 @@ app.post(
                 location: metadata.location || "غير معروف",
                 captureDate: metadata.captureDate || null,
                 camera: metadata.camera || null,
-                source
+                source: detectedSource,
+                aiDescription: aiAnalysis.description || ""
             };
 
             const { data, error } = await supabase
