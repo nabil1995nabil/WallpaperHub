@@ -29,23 +29,26 @@
 <!-- Header -->
 <header class="header">
     <button id="menuBtn" class="menu-btn" aria-label="القائمة">
-        <span></span><span></span><span></span>
+        <span></span>
+        <span></span>
+        <span></span>
     </button>
 
-    <div class="header-tools">
-        <div id="notificationButton"></div>
+    <div class="logo">
+        <span class="material-icons">wallpaper</span>
+        <h2><span class="typing-title">WallpaperHub</span></h2>
+    </div>
 
-        <button id="headerSwitch" class="header-switch" type="button"
-                aria-label="تغيير المظهر" title="تغيير المظهر">
+    <!-- أدوات الشريط العلوي -->
+    <div class="header-tools">
+        <div id="aiButton"></div>
+
+        <!-- زر الوضع — هلال / شمس -->
+        <button id="headerSwitch" class="header-switch" type="button" aria-label="تغيير المظهر" title="تغيير المظهر">
             <span class="material-icons header-switch-icon">dark_mode</span>
         </button>
 
-        <div id="aiButton" class="header-ai-hidden"></div>
-    </div>
-
-    <div class="logo">
-        <span class="logo-w" aria-hidden="true">W</span>
-        <h2><span class="typing-title">WallpaperHub</span></h2>
+        <div id="notificationButton"></div>
     </div>
 </header>
 
