@@ -1,185 +1,139 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>الإشعارات</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#f6f8fc">
+<title>الإشعارات | WallpaperHub</title>
 <link rel="stylesheet" href="notice.css">
-
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-
-
 <body>
-
 
 <div class="notifications-wrapper">
 
-
-
-<!-- HEADER -->
-
 <header class="notif-header">
+  <div class="header-top">
+    <button class="back-btn" type="button" onclick="history.back()" aria-label="رجوع">
+      <span class="material-icons">arrow_forward</span>
+    </button>
 
+    <div class="title-area">
+      <div class="title-line">
+        <span class="title-icon"><span class="material-icons">notifications</span></span>
+        <h1>الإشعارات</h1>
+        <span class="badge-count" id="unread-count">0</span>
+      </div>
+      <p id="header-summary">كل جديد سيظهر هنا فوراً</p>
+    </div>
 
-<div class="header-top">
+    <div class="header-actions">
+      <button class="icon-btn" id="mark-all-btn" title="تحديد الكل كمقروء" aria-label="تحديد الكل كمقروء">
+        <span class="material-icons">done_all</span>
+      </button>
+      <button class="icon-btn" id="settings-btn" title="إعدادات الإشعارات" aria-label="إعدادات الإشعارات">
+        <span class="material-icons">tune</span>
+      </button>
+    </div>
+  </div>
 
+  <div class="status-strip">
+    <span id="live-dot" class="live-dot"></span>
+    <span id="connection-text">مزامنة الإشعارات</span>
+    <span class="status-separator">•</span>
+    <span id="last-updated">الآن</span>
+  </div>
 
-<div class="title-area">
+  <label class="search-box">
+    <span class="material-icons">search</span>
+    <input id="notification-search" type="search" autocomplete="off"
+           placeholder="ابحث في الإشعارات..." aria-label="البحث في الإشعارات">
+    <button id="clear-search" type="button" aria-label="مسح البحث">
+      <span class="material-icons">close</span>
+    </button>
+  </label>
 
-
-<h1>
-
-الإشعارات
-
-<span 
-class="badge-count"
-id="unread-count">
-
-0
-
-</span>
-
-
-</h1>
-
-
-</div>
-
-
-
-<div class="header-actions">
-
-
-<button 
-class="icon-btn"
-id="mark-all-btn" title="تحديد الكل كمقروء" aria-label="تحديد الكل كمقروء">
-
-✓✓
-
-</button>
-
-
-
-<button 
-class="icon-btn">
-
-⚙️
-
-</button>
-
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<!-- FILTERS -->
-
-
-<nav class="notif-tabs">
-
-
-<button 
-class="tab-btn active"
-data-filter="all">
-
-الكل
-
-</button>
-
-
-
-<button 
-class="tab-btn"
-data-filter="mention">
-
-الإشارات (@)
-
-</button>
-
-
-
-<button 
-class="tab-btn"
-data-filter="like">
-
-الإعجابات
-
-</button>
-
-
-
-<button 
-class="tab-btn"
-data-filter="admin">
-
-الإعلانات
-
-</button>
-
-
-
-</nav>
-
-
-
+  <nav class="notif-tabs" aria-label="تصفية الإشعارات">
+    <button class="tab-btn active" data-filter="all"><span class="material-icons">inbox</span>الكل</button>
+    <button class="tab-btn" data-filter="unread"><span class="material-icons">mark_email_unread</span>غير مقروءة <b id="unread-tab-count">0</b></button>
+    <button class="tab-btn" data-filter="mention"><span class="material-icons">alternate_email</span>الإشارات</button>
+    <button class="tab-btn" data-filter="like"><span class="material-icons">favorite</span>الإعجابات</button>
+    <button class="tab-btn" data-filter="comment"><span class="material-icons">chat_bubble</span>التعليقات</button>
+    <button class="tab-btn" data-filter="admin"><span class="material-icons">campaign</span>الإعلانات</button>
+  </nav>
 </header>
 
+<main class="notif-main">
 
+  <section class="smart-tools">
+    <div class="smart-title">
+      <div>
+        <span class="eyebrow">NOTIFICATION CENTER</span>
+        <h2>مركز التنبيهات</h2>
+      </div>
+      <span id="visible-count" class="visible-count">0</span>
+    </div>
 
+    <div class="smart-actions">
+      <button id="sound-btn" type="button">
+        <span class="material-icons">volume_up</span>
+        <span>الصوت</span>
+      </button>
+      <button id="browser-btn" type="button">
+        <span class="material-icons">desktop_windows</span>
+        <span>تنبيهات الجهاز</span>
+      </button>
+      <button id="refresh-btn" type="button">
+        <span class="material-icons">refresh</span>
+        <span>تحديث</span>
+      </button>
+    </div>
+  </section>
 
+  <section id="userNotificationsFeed" class="notif-feed"></section>
+  <section id="announcementsFeed" class="notif-feed announcements-feed"></section>
 
-
-
-<!-- NOTIFICATIONS FROM SERVER -->
-
-<main class="notif-feed">
-
-    <!-- =============================== -->
-    <!-- User Notifications -->
-    <!-- الإعجابات والإشعارات الشخصية -->
-    <!-- =============================== -->
-
-    <section id="userNotificationsFeed">
-
-    </section>
-
-
-    <!-- =============================== -->
-    <!-- Admin Announcements -->
-    <!-- الإعلانات -->
-    <!-- =============================== -->
-
-    <section id="announcementsFeed">
-
-    </section>
-
+  <section id="empty-state" class="notifications-empty" hidden>
+    <div class="empty-icon"><span class="material-icons">notifications_none</span></div>
+    <h3 id="empty-title">لا توجد إشعارات</h3>
+    <p id="empty-text">عندما يصلك شيء جديد، سيظهر هنا.</p>
+    <button id="empty-refresh" type="button"><span class="material-icons">refresh</span> تحديث الآن</button>
+  </section>
 </main>
-
-
-
-
-
 </div>
 
+<div id="settings-panel" class="settings-backdrop" hidden>
+  <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="settings-head">
+      <div><span class="eyebrow">PREFERENCES</span><h3 id="settings-title">إعدادات الإشعارات</h3></div>
+      <button id="close-settings" class="icon-btn" type="button"><span class="material-icons">close</span></button>
+    </div>
 
+    <label class="setting-row">
+      <span><span class="material-icons">volume_up</span><span><b>صوت الإشعار</b><small>تشغيل صوت محلي عند وصول إشعار جديد</small></span></span>
+      <input id="sound-toggle" type="checkbox">
+    </label>
 
+    <label class="setting-row">
+      <span><span class="material-icons">desktop_windows</span><span><b>تنبيهات المتصفح</b><small>إظهار إشعار من نظام التشغيل عند وصول جديد</small></span></span>
+      <input id="browser-toggle" type="checkbox">
+    </label>
 
+    <label class="setting-row">
+      <span><span class="material-icons">autorenew</span><span><b>التحديث التلقائي</b><small>استخدام مزامنة مباشرة مع تحديث احتياطي كل 30 ثانية</small></span></span>
+      <input id="auto-refresh-toggle" type="checkbox">
+    </label>
+
+    <p class="settings-note">ملاحظة: المتصفح قد يمنع الصوت أو تنبيهات الجهاز قبل تفاعل المستخدم مع الصفحة. بعد أول نقرة أو لمسة يتم تهيئة الصوت.</p>
+  </section>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<audio id="notification-audio" preload="auto">
+  <source src="assets/notification.wav" type="audio/wav">
+</audio>
 
 <script type="module" src="notice.js"></script>
-<script src="js/performance-engine.js"></script>
-
-
 </body>
-
 </html>
