@@ -608,6 +608,7 @@ function notificationTitle(type){
     if(type === "wallpaper_comment") return "تعليق جديد على خلفيتك 💬";
     if(type === "wallpaper_mention") return "أشار إليك في تعليق 💙";
     if(type === "comment_like") return "إعجاب بتعليقك ❤️";
+    if(type === "new_wallpaper") return "خلفية جديدة منشورة 🖼️";
     return "إشعار جديد";
 }
 
@@ -737,6 +738,76 @@ async function enrichNotifications(rows){
                 "مستخدم"
         });
     });
+}
+
+async function notifyUsersAboutNewWallpaper({
+    wallpaperId,
+    wallpaperTitle,
+    publisherUID = ""
+}){
+    const targetWallpaperId = String(wallpaperId || "").trim();
+    if(!targetWallpaperId) return { inserted:0 };
+
+    try{
+        const users = [];
+        let page = 1;
+        const perPage = 1000;
+
+        while(true){
+            const { data, error } = await supabase.auth.admin.listUsers({
+                page,
+                perPage
+            });
+
+            if(error) throw error;
+
+            const pageUsers = Array.isArray(data?.users) ? data.users : [];
+            users.push(...pageUsers);
+
+            if(pageUsers.length < perPage) break;
+            page += 1;
+            if(page > 100) break;
+        }
+
+        const publisher = String(publisherUID || "").trim();
+        const recipients = [
+            ...new Set(
+                users
+                    .map(user => String(user?.id || "").trim())
+                    .filter(Boolean)
+                    .filter(id => id !== publisher)
+            )
+        ];
+
+        if(!recipients.length) return { inserted:0 };
+
+        const now = Date.now();
+        const message = `خلفية جديدة منشورة: ${String(wallpaperTitle || "خلفية جديدة").trim()}`;
+
+        const rows = recipients.map((recipientUID, index) => ({
+            id: now + index,
+            user_id: recipientUID,
+            from_user: publisher,
+            type: "new_wallpaper",
+            wallpaper_id: targetWallpaperId,
+            comment_id: null,
+            message,
+            is_read: false
+        }));
+
+        const { error } = await supabase
+            .from("notifications")
+            .insert(rows);
+
+        if(error) throw error;
+
+        return { inserted: rows.length };
+    }catch(error){
+        // Notification delivery must not make a successfully published
+        // wallpaper fail.
+        console.log("NEW WALLPAPER NOTIFICATIONS ERROR:", error?.message || error);
+        return { inserted:0, error:error?.message || String(error) };
+    }
 }
 
 async function createNotification({
@@ -1232,6 +1303,42 @@ app.get(
         }
     }
 );
+
+app.delete(
+    "/api/notifications",
+    async (req, res) => {
+        try {
+            const authenticatedUser = await getAuthenticatedUser(req);
+            const recipientUID = String(authenticatedUser?.id || "").trim();
+
+            if(!recipientUID){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول"
+                });
+            }
+
+            const { error } = await supabase
+                .from("notifications")
+                .delete()
+                .eq("user_id", recipientUID);
+
+            if(error) throw error;
+
+            return res.json({
+                success:true,
+                deleted:true
+            });
+        } catch(error) {
+            console.log("DELETE NOTIFICATIONS ERROR:", error);
+            return res.status(500).json({
+                success:false,
+                message:error?.message || "تعذر مسح الإشعارات"
+            });
+        }
+    }
+);
+
 // ======================================
 // Public User Profile API
 // UID -> profiles / Auth metadata
@@ -2195,7 +2302,15 @@ app.post(
 
             if(error) throw error;
 
-            res.json({ success:true, wallpaper: wallpaperFromDb(data) });
+            const publishedWallpaper = wallpaperFromDb(data);
+
+            await notifyUsersAboutNewWallpaper({
+                wallpaperId: publishedWallpaper.id,
+                wallpaperTitle: publishedWallpaper.title,
+                publisherUID: String(publisher.id).trim()
+            });
+
+            res.json({ success:true, wallpaper: publishedWallpaper });
         }catch(error){
             console.log("ADD WALLPAPER ERROR:", error);
             res.status(500).json({ success:false, message:error.message });
@@ -3189,8 +3304,16 @@ async function publishAiWallpaper({
 
     if(error) throw error;
 
+    const publishedWallpaper = wallpaperFromDb(data);
+
+    await notifyUsersAboutNewWallpaper({
+        wallpaperId: publishedWallpaper.id,
+        wallpaperTitle: publishedWallpaper.title,
+        publisherUID: ""
+    });
+
     return {
-        wallpaper:wallpaperFromDb(data),
+        wallpaper:publishedWallpaper,
         prompt:String(prompt || "")
     };
 }
