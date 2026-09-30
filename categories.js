@@ -1,233 +1,146 @@
-const categories = Array.from(document.querySelectorAll(".category-card"));
+const categories = [...document.querySelectorAll(".category-card")];
 
 const categoryNames = {
-    all: "الكل",
-    nature: "الطبيعة",
-    cars: "السيارات",
-    games: "الألعاب",
-    space: "الفضاء",
-    ai: "الذكاء الاصطناعي",
-    amoled: "AMOLED",
-    animals: "الحيوانات",
-    anime: "الأنمي",
-    city: "المدن",
-    dark: "Dark",
-    "4k": "4K",
-    sports: "الرياضة",
-    minimal: "Minimal"
+ all:"الكل",nature:"الطبيعة",cars:"السيارات",games:"الألعاب",space:"الفضاء",
+ ai:"الذكاء الاصطناعي",amoled:"AMOLED",animals:"الحيوانات",anime:"الأنمي",
+ city:"المدن",dark:"Dark","4k":"4K",sports:"الرياضة",minimal:"Minimal"
 };
 
-const searchInput = document.getElementById("categorySearch");
-const clearSearch = document.getElementById("clearSearch");
-const resultsCount = document.getElementById("resultsCount");
-const noResults = document.getElementById("noResults");
-const favoritesOnlyBtn = document.getElementById("favoritesOnlyBtn");
-const resetFiltersBtn = document.getElementById("resetFiltersBtn");
-const lastVisited = document.getElementById("lastVisited");
-const lastVisitedName = document.getElementById("lastVisitedName");
-const continueLastBtn = document.getElementById("continueLastBtn");
+const searchInput=document.getElementById("categorySearch");
+const clearSearch=document.getElementById("clearSearch");
+const resultsCount=document.getElementById("resultsCount");
+const favoritesOnlyBtn=document.getElementById("favoritesOnlyBtn");
+const resetFiltersBtn=document.getElementById("resetFiltersBtn");
+const noResults=document.getElementById("noResults");
 
-let favorites = JSON.parse(localStorage.getItem("favoriteCategories") || "[]");
-let favoritesOnly = false;
+let favorites=JSON.parse(localStorage.getItem("favoriteCategories")||"[]");
+let favoritesOnly=false;
 
-function normalize(value) {
-    return String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/[أإآ]/g, "ا")
-        .replace(/ة/g, "ه");
+function normalize(v){
+ return String(v||"").trim().toLowerCase()
+   .replace(/[أإآ]/g,"ا").replace(/ة/g,"ه");
 }
 
-function saveFavorites() {
-    localStorage.setItem("favoriteCategories", JSON.stringify(favorites));
+function saveFavorites(){
+ localStorage.setItem("favoriteCategories",JSON.stringify(favorites));
 }
 
-function updateFavoriteUI() {
-    categories.forEach(card => {
-        const category = card.dataset.category;
-        const isFavorite = favorites.includes(category);
-        card.classList.toggle("is-favorite", isFavorite);
-
-        const icon = card.querySelector(".favorite-toggle .material-icons");
-        if (icon) icon.textContent = isFavorite ? "star" : "star_border";
-    });
-
-    favoritesOnlyBtn.classList.toggle("active", favoritesOnly);
-    favoritesOnlyBtn.querySelector(".material-icons").textContent =
-        favoritesOnly ? "star" : "star_border";
+function updateFavoriteUI(){
+ categories.forEach(card=>{
+  const on=favorites.includes(card.dataset.category);
+  card.classList.toggle("is-favorite",on);
+  const icon=card.querySelector(".favorite-toggle .material-icons");
+  if(icon) icon.textContent=on?"star":"star_border";
+ });
+ favoritesOnlyBtn.classList.toggle("active",favoritesOnly);
+ const icon=favoritesOnlyBtn.querySelector(".material-icons");
+ if(icon) icon.textContent=favoritesOnly?"star":"star_border";
 }
 
-function applyCategoryView() {
-    const query = normalize(searchInput.value);
-    let visible = 0;
+function applyView(){
+ const q=normalize(searchInput.value);
+ let visible=0;
 
-    categories.forEach(card => {
-        const haystack = normalize(
-            `${card.dataset.category} ${card.dataset.search} ${categoryNames[card.dataset.category] || ""}`
-        );
+ categories.forEach(card=>{
+  const hay=normalize(`${card.dataset.category} ${card.dataset.search} ${categoryNames[card.dataset.category]||""}`);
+  const show=(!q||hay.includes(q))&&(!favoritesOnly||favorites.includes(card.dataset.category));
+  card.classList.toggle("is-hidden",!show);
+  if(show) visible++;
+ });
 
-        const matchesSearch = !query || haystack.includes(query);
-        const matchesFavorite = !favoritesOnly || favorites.includes(card.dataset.category);
-        const show = matchesSearch && matchesFavorite;
-
-        card.classList.toggle("is-hidden", !show);
-
-        if (show) visible++;
-    });
-
-    resultsCount.textContent = visible;
-    noResults.hidden = visible !== 0;
-
-    clearSearch.classList.toggle("visible", Boolean(searchInput.value));
-    resetFiltersBtn.classList.toggle("hidden", !query && !favoritesOnly);
-
-    updateFavoriteUI();
+ resultsCount.textContent=visible;
+ noResults.hidden=visible!==0;
+ clearSearch.classList.toggle("visible",!!searchInput.value);
+ resetFiltersBtn.classList.toggle("hidden",!q&&!favoritesOnly);
+ updateFavoriteUI();
 }
 
-function openCategory(category) {
-    if (!category) return;
-
-    localStorage.setItem("selectedCategory", category);
-    localStorage.setItem(
-        "selectedCategoryName",
-        categoryNames[category] || category
-    );
-    localStorage.setItem("lastVisitedCategory", category);
-
-    window.location.href =
-        "all-wallpapers.html?category=" + encodeURIComponent(category);
+function openCategory(category){
+ localStorage.setItem("selectedCategory",category);
+ localStorage.setItem("selectedCategoryName",categoryNames[category]||category);
+ localStorage.setItem("lastVisitedCategory",category);
+ window.location.href=category==="all"
+  ?"all-wallpapers.html"
+  :"all-wallpapers.html?category="+encodeURIComponent(category);
 }
 
-function openType(type) {
-    localStorage.setItem("lastWallpaperType", type);
-    window.location.href =
-        "all-wallpapers.html?type=" + encodeURIComponent(type);
+function openRoute(route){
+ localStorage.setItem("lastWallpaperType",route);
+ window.location.href="all-wallpapers.html?type="+encodeURIComponent(route);
 }
 
-function markSelected(category) {
-    categories.forEach(card => {
-        card.classList.toggle("is-selected", card.dataset.category === category);
-    });
-}
+categories.forEach(card=>{
+ card.addEventListener("click",e=>{
+  if(e.target.closest(".favorite-toggle")) return;
+  categories.forEach(x=>x.classList.remove("is-selected"));
+  card.classList.add("is-selected");
+  openCategory(card.dataset.category);
+ });
 
-/* Category cards */
-categories.forEach(card => {
-    card.addEventListener("click", event => {
-        if (event.target.closest(".favorite-toggle")) return;
-
-        const category = card.dataset.category;
-        markSelected(category);
-        openCategory(category);
-    });
-
-    const favoriteButton = card.querySelector(".favorite-toggle");
-
-    if (favoriteButton) {
-        favoriteButton.addEventListener("click", event => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const category = card.dataset.category;
-
-            if (favorites.includes(category)) {
-                favorites = favorites.filter(item => item !== category);
-            } else {
-                favorites.push(category);
-            }
-
-            saveFavorites();
-            applyCategoryView();
-        });
-    }
+ const fav=card.querySelector(".favorite-toggle");
+ if(fav) fav.addEventListener("click",e=>{
+  e.preventDefault();e.stopPropagation();
+  const c=card.dataset.category;
+  favorites=favorites.includes(c)?favorites.filter(x=>x!==c):[...favorites,c];
+  saveFavorites();applyView();
+ });
 });
 
-/* Search */
-searchInput.addEventListener("input", applyCategoryView);
+searchInput.addEventListener("input",applyView);
 
-clearSearch.addEventListener("click", () => {
-    searchInput.value = "";
-    searchInput.focus();
-    applyCategoryView();
+clearSearch.addEventListener("click",()=>{
+ searchInput.value="";searchInput.focus();applyView();
 });
 
-/* Quick filters */
-document.querySelectorAll(".quick-filter").forEach(button => {
-    button.addEventListener("click", () => {
-        const type = button.dataset.route;
-        const category = button.dataset.categoryFilter;
+document.querySelectorAll(".quick-filter").forEach(button=>{
+ button.addEventListener("click",()=>{
+  document.querySelectorAll(".quick-filter").forEach(x=>x.classList.remove("active"));
+  button.classList.add("active");
 
-        document.querySelectorAll(".quick-filter").forEach(item => {
-            item.classList.remove("active");
-        });
-        button.classList.add("active");
+  const route=button.dataset.route;
+  const category=button.dataset.categoryFilter;
 
-        if (type === "all") {
-            favoritesOnly = false;
-            searchInput.value = "";
-            applyCategoryView();
-            return;
-        }
-
-        if (category) {
-            markSelected(category);
-            openCategory(category);
-            return;
-        }
-
-        if (type) openType(type);
-    });
+  if(route==="all"){
+   favoritesOnly=false;searchInput.value="";applyView();return;
+  }
+  if(category){openCategory(category);return;}
+  if(route) openRoute(route);
+ });
 });
 
-/* Favorites filter */
-favoritesOnlyBtn.addEventListener("click", () => {
-    favoritesOnly = !favoritesOnly;
-    applyCategoryView();
+favoritesOnlyBtn.addEventListener("click",()=>{
+ favoritesOnly=!favoritesOnly;applyView();
 });
 
-/* Reset */
-resetFiltersBtn.addEventListener("click", () => {
-    favoritesOnly = false;
-    searchInput.value = "";
-
-    document.querySelectorAll(".quick-filter").forEach(item => {
-        item.classList.toggle("active", item.dataset.route === "all");
-    });
-
-    applyCategoryView();
+resetFiltersBtn.addEventListener("click",()=>{
+ favoritesOnly=false;searchInput.value="";
+ document.querySelectorAll(".quick-filter").forEach(x=>x.classList.toggle("active",x.dataset.route==="all"));
+ applyView();
 });
 
-/* Empty state */
-document.getElementById("showAllBtn").addEventListener("click", () => {
-    favoritesOnly = false;
-    searchInput.value = "";
-    applyCategoryView();
+document.getElementById("showAllBtn").addEventListener("click",()=>{
+ favoritesOnly=false;searchInput.value="";applyView();
 });
 
-/* Random category */
-document.getElementById("randomCategoryBtn").addEventListener("click", () => {
-    const available = categories.filter(card => card.dataset.category !== "all");
-    const selected = available[Math.floor(Math.random() * available.length)];
-    if (selected) openCategory(selected.dataset.category);
+document.getElementById("randomCategoryBtn").addEventListener("click",()=>{
+ const pool=categories.filter(c=>c.dataset.category!=="all");
+ const item=pool[Math.floor(Math.random()*pool.length)];
+ if(item) openCategory(item.dataset.category);
 });
 
-/* Last visited */
-const lastCategory = localStorage.getItem("lastVisitedCategory");
-
-if (lastCategory && categoryNames[lastCategory]) {
-    lastVisited.hidden = false;
-    lastVisitedName.textContent = categoryNames[lastCategory];
-
-    continueLastBtn.addEventListener("click", () => {
-        openCategory(lastCategory);
-    });
+const last=localStorage.getItem("lastVisitedCategory");
+const lastBox=document.getElementById("lastVisited");
+if(last&&categoryNames[last]){
+ lastBox.hidden=false;
+ document.getElementById("lastVisitedName").textContent=categoryNames[last];
+ document.getElementById("continueLastBtn").addEventListener("click",()=>openCategory(last));
 }
 
-/* Support direct links such as categories.html?category=cars */
-const urlCategory = new URLSearchParams(window.location.search).get("category");
-
-if (urlCategory && categoryNames[urlCategory]) {
-    markSelected(urlCategory);
+const urlCategory=new URLSearchParams(location.search).get("category");
+if(urlCategory) {
+ const card=document.querySelector(`.category-card[data-category="${CSS.escape(urlCategory)}"]`);
+ if(card) card.classList.add("is-selected");
 }
 
 updateFavoriteUI();
-applyCategoryView();
+applyView();
