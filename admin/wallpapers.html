@@ -3,9 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="theme-color" content="#080b12">
+  <meta name="theme-color" content="#ffffff">
   <title>الخلفيات - WallpaperHub</title>
   <link rel="stylesheet" href="wallpapers.css">
+
+<style id="wallpaperhub-light-theme">
+:root{
+  color-scheme:light;
+  --bg:#fff;
+  --surface:#fff;
+  --surface-soft:#f8fafc;
+  --surface-hover:#f2f4f7;
+  --text:#101828;
+  --muted:#667085;
+  --border:#e4e7ec;
+  --border-strong:#d0d5dd;
+  --accent:#4f46e5;
+  --accent-soft:#eef2ff;
+  --danger:#b42318;
+  --shadow:0 10px 30px rgba(16,24,40,.07);
+}
+html,body{background:var(--bg)!important;color:var(--text)!important;}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif!important;
+  line-height:1.65;
+}
+.page-header,.manager-panel,.bulk-bar,.stat-card,.admin-wall,.modal-card{
+  background:var(--surface)!important;
+  color:var(--text)!important;
+  border-color:var(--border)!important;
+  box-shadow:var(--shadow);
+}
+.page-header{border-bottom:1px solid var(--border)!important;}
+h1,h2,h3,strong,b{color:var(--text)!important;font-weight:750;}
+p,small,.grid-heading span,.quick-title,.eyebrow{color:var(--muted)!important;}
+input,select{
+  background:#fff!important;color:var(--text)!important;
+  border:1px solid var(--border-strong)!important;
+}
+input::placeholder{color:#98a2b3!important;}
+input:focus,select:focus{
+  outline:none;border-color:var(--accent)!important;
+  box-shadow:0 0 0 3px rgba(79,70,229,.12)!important;
+}
+.quick-categories button,.ghost-btn{
+  background:#fff!important;color:#344054!important;
+  border:1px solid var(--border)!important;
+}
+.quick-categories button:hover,.ghost-btn:hover{
+  background:var(--surface-hover)!important;color:var(--text)!important;
+  border-color:#c7d2fe!important;
+}
+.result-badge,.category-pill{
+  background:var(--accent-soft)!important;
+  color:#3730a3!important;border:1px solid #c7d2fe!important;
+}
+.media-type,.wall-id{
+  background:rgba(16,24,40,.82)!important;color:#fff!important;
+}
+.safe-note{
+  background:var(--surface-soft)!important;color:#475467!important;
+  border:1px solid var(--border)!important;
+}
+.modal{background:rgba(16,24,40,.38)!important;backdrop-filter:blur(5px);}
+.danger-btn{color:var(--danger)!important;}
+.header-refresh,.move-btn,.primary-btn{
+  box-shadow:0 4px 12px rgba(16,24,40,.08);
+}
+</style>
+
 </head>
 
 <body>
@@ -43,6 +109,10 @@
           <div><small>الطبيعة</small><strong id="statNature">0</strong></div>
         </div>
         <div class="stat-card">
+          <span>📷</span>
+          <div><small>Unsplash</small><strong id="statUnsplash">0</strong></div>
+        </div>
+        <div class="stat-card">
           <span>📦</span>
           <div><small>أخرى</small><strong id="statOther">0</strong></div>
         </div>
@@ -76,6 +146,7 @@
             <option value="architecture">🏛️ عمارة</option>
             <option value="deep-space">🌠 فضاء عميق</option>
             <option value="wallhaven">🧱 Wallhaven</option>
+            <option value="unsplash">📷 Unsplash</option>
             <option value="other">📦 أخرى</option>
           </select>
         </label>
@@ -111,6 +182,8 @@
         <button data-category="cars">🚗 سيارات</button>
         <button data-category="space">🌌 فضاء</button>
         <button data-category="animals">🐾 حيوانات</button>
+        <button data-category="wallhaven">🧱 Wallhaven</button>
+        <button data-category="unsplash">📷 Unsplash</button>
         <button data-category="other">📦 أخرى</button>
       </div>
     </section>

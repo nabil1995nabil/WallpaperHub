@@ -28,6 +28,7 @@ const CATEGORIES = [
   ["architecture", "🏛️ عمارة"],
   ["deep-space", "🌠 فضاء عميق"],
   ["wallhaven", "🧱 Wallhaven"],
+  ["unsplash", "📷 Unsplash"],
   ["other", "📦 أخرى"]
 ];
 
@@ -186,11 +187,13 @@ function renderStats() {
   const statTotal = document.getElementById("statTotal");
   const statSelected = document.getElementById("statSelected");
   const statNature = document.getElementById("statNature");
+  const statUnsplash = document.getElementById("statUnsplash");
   const statOther = document.getElementById("statOther");
 
   if (statTotal) statTotal.textContent = total;
   if (statSelected) statSelected.textContent = selected;
   if (statNature) statNature.textContent = counts.nature || 0;
+  if (statUnsplash) statUnsplash.textContent = counts.unsplash || 0;
   if (statOther) statOther.textContent = counts.other || 0;
 
   const resultCount = document.getElementById("resultCount");
