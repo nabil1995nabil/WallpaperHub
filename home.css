@@ -1422,3 +1422,284 @@ section,
     }
 }
 
+
+/* =========================================================
+   FINAL HEADER FIX
+   Clean logo — no overlap, no duplicate W, no animation.
+========================================================= */
+
+.header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    width: 100% !important;
+    height: 86px !important;
+    min-height: 86px !important;
+    padding: 0 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    background: #fff !important;
+    border-bottom: 1px solid #edf0f5 !important;
+    box-shadow: 0 2px 12px rgba(20,25,45,.035) !important;
+    backdrop-filter: none !important;
+    direction: ltr !important;
+}
+
+/* Real clean logo */
+.header .logo {
+    position: static !important;
+    order: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    height: 52px !important;
+    flex: 0 0 auto !important;
+    direction: ltr !important;
+    text-decoration: none !important;
+    transform: none !important;
+}
+
+.header .logo-mark {
+    display: flex !important;
+    width: 58px !important;
+    height: 48px !important;
+    flex: 0 0 58px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    text-shadow: none !important;
+    font-size: 0 !important;
+    letter-spacing: 0 !important;
+}
+
+.header .logo-mark svg {
+    display: block !important;
+    width: 58px !important;
+    height: 48px !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+.header .logo h2 {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #172033 !important;
+    font-size: 29px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+    letter-spacing: -1.2px !important;
+    white-space: nowrap !important;
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
+}
+
+.header .logo h2 span {
+    color: #6740f5 !important;
+    background: none !important;
+    -webkit-text-fill-color: #6740f5 !important;
+}
+
+/* Center tools */
+.header .header-tools {
+    position: static !important;
+    order: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 18px !important;
+    margin-left: auto !important;
+    margin-right: 28px !important;
+    padding: 0 !important;
+    flex: 0 0 auto !important;
+    direction: ltr !important;
+    transform: none !important;
+}
+
+.header .header-tools > #aiButton,
+.header .header-tools > #notificationButton {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    flex: 0 0 40px !important;
+}
+
+.header .header-switch {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    flex: 0 0 40px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #161b29 !important;
+    box-shadow: none !important;
+}
+
+.header .header-switch-icon {
+    font-size: 29px !important;
+    width: 29px !important;
+    height: 29px !important;
+    line-height: 29px !important;
+    color: #161b29 !important;
+}
+
+/* Menu far right */
+.header #menuBtn {
+    position: static !important;
+    order: 3 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 46px !important;
+    height: 46px !important;
+    flex: 0 0 46px !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.header #menuBtn span {
+    display: block !important;
+    width: 34px !important;
+    height: 4px !important;
+    margin: 0 !important;
+    border-radius: 4px !important;
+    background: #172033 !important;
+}
+
+/* Disable visual effects on the header */
+.header,
+.header *,
+.header .logo,
+.header .logo-mark,
+.header .logo-mark svg,
+.header #menuBtn {
+    animation: none !important;
+    transition: none !important;
+}
+
+@media (max-width: 700px) {
+    .header {
+        height: 72px !important;
+        min-height: 72px !important;
+        padding: 0 16px !important;
+    }
+
+    .header .logo {
+        gap: 6px !important;
+        height: 42px !important;
+    }
+
+    .header .logo-mark,
+    .header .logo-mark svg {
+        width: 43px !important;
+        height: 39px !important;
+        flex-basis: 43px !important;
+    }
+
+    .header .logo h2 {
+        font-size: 21px !important;
+        letter-spacing: -.8px !important;
+    }
+
+    .header .header-tools {
+        gap: 6px !important;
+        margin-right: 9px !important;
+    }
+
+    .header .header-tools > #aiButton,
+    .header .header-tools > #notificationButton,
+    .header .header-switch {
+        width: 31px !important;
+        height: 31px !important;
+        min-width: 31px !important;
+        min-height: 31px !important;
+        flex-basis: 31px !important;
+    }
+
+    .header .header-switch-icon {
+        font-size: 23px !important;
+        width: 23px !important;
+        height: 23px !important;
+        line-height: 23px !important;
+    }
+
+    .header #menuBtn {
+        width: 38px !important;
+        height: 40px !important;
+        flex-basis: 38px !important;
+        gap: 5px !important;
+    }
+
+    .header #menuBtn span {
+        width: 28px !important;
+        height: 3px !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .header {
+        padding: 0 11px !important;
+    }
+
+    .header .logo-mark,
+    .header .logo-mark svg {
+        width: 37px !important;
+        height: 34px !important;
+        flex-basis: 37px !important;
+    }
+
+    .header .logo h2 {
+        font-size: 18px !important;
+    }
+
+    .header .header-tools {
+        gap: 3px !important;
+        margin-right: 5px !important;
+    }
+
+    .header .header-tools > #aiButton,
+    .header .header-tools > #notificationButton,
+    .header .header-switch {
+        width: 27px !important;
+        height: 27px !important;
+        min-width: 27px !important;
+        min-height: 27px !important;
+        flex-basis: 27px !important;
+    }
+
+    .header .header-switch-icon {
+        font-size: 21px !important;
+        width: 21px !important;
+        height: 21px !important;
+        line-height: 21px !important;
+    }
+
+    .header #menuBtn {
+        width: 33px !important;
+        flex-basis: 33px !important;
+    }
+
+    .header #menuBtn span {
+        width: 24px !important;
+    }
+}
+
