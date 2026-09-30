@@ -100,11 +100,28 @@ settings
 <section class="profile-cover">
 
 
-<img
-id="coverImage"
-class="cover-image"
-src="assets/images/default-cover.jpg"
-alt="Cover">
+<div class="cover-stage">
+    <img
+    id="coverImage"
+    class="cover-image"
+    src="assets/images/default-cover.jpg"
+    alt="Cover">
+
+    <button id="coverPrevBtn" class="cover-nav-btn cover-nav-prev" type="button" aria-label="الغلاف السابق" title="الغلاف السابق">
+        <span class="material-icons">chevron_right</span>
+    </button>
+
+    <button id="coverNextBtn" class="cover-nav-btn cover-nav-next" type="button" aria-label="الغلاف التالي" title="الغلاف التالي">
+        <span class="material-icons">chevron_left</span>
+    </button>
+
+    <div class="cover-history-overlay">
+        <span id="coverHistoryLabel">غلاف الحساب</span>
+        <span id="coverHistoryCount">0</span>
+    </div>
+
+    <div id="coverHistoryDots" class="cover-history-dots" aria-label="أغلفة الحساب"></div>
+</div>
 
 <button
     id="changeCoverBtn"

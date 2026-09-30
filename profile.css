@@ -2183,3 +2183,245 @@ body.dark .profile-tab.active::after{
         max-width:none;
     }
 }
+
+/* =========================================================
+   Pro Cover History / Carousel
+   ========================================================= */
+.cover-stage{
+    position:relative;
+    width:100%;
+    height:245px;
+    overflow:hidden;
+    background:#e9edf5;
+}
+
+.cover-stage::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,.18),transparent 34%,rgba(0,0,0,.28));
+}
+
+.cover-stage .cover-image{
+    height:245px;
+    transition:opacity .22s ease, transform .35s ease;
+    touch-action:pan-y;
+}
+
+.cover-nav-btn{
+    position:absolute;
+    top:50%;
+    z-index:24;
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform:translateY(-50%);
+    border:1px solid rgba(255,255,255,.38);
+    border-radius:50%;
+    background:rgba(12,17,29,.42);
+    color:#fff;
+    box-shadow:0 8px 22px rgba(0,0,0,.16);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    cursor:pointer;
+    transition:transform .18s ease, background .18s ease, opacity .18s ease;
+}
+
+.cover-nav-btn:hover{
+    transform:translateY(-50%) scale(1.06);
+    background:rgba(12,17,29,.62);
+}
+
+.cover-nav-btn:active{
+    transform:translateY(-50%) scale(.94);
+}
+
+.cover-nav-btn:disabled{
+    opacity:.28;
+    cursor:default;
+}
+
+.cover-nav-prev{ right:14px; }
+.cover-nav-next{ left:14px; }
+
+.cover-nav-btn .material-icons{
+    font-size:27px;
+}
+
+.cover-history-overlay{
+    position:absolute;
+    z-index:25;
+    left:14px;
+    bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 10px;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:12px;
+    background:rgba(12,17,29,.42);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    backdrop-filter:blur(9px);
+    -webkit-backdrop-filter:blur(9px);
+}
+
+.cover-history-overlay span:last-child{
+    min-width:42px;
+    text-align:center;
+    direction:ltr;
+    opacity:.82;
+}
+
+.cover-history-dots{
+    position:absolute;
+    z-index:25;
+    right:50%;
+    bottom:15px;
+    transform:translateX(50%);
+    max-width:45%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+}
+
+.cover-history-dot{
+    width:7px;
+    height:7px;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:rgba(255,255,255,.52);
+    cursor:pointer;
+    transition:width .2s ease, transform .2s ease, background .2s ease;
+}
+
+.cover-history-dot.active{
+    width:22px;
+    border-radius:7px;
+    background:#fff;
+}
+
+.cover-history-dot:hover{
+    transform:scale(1.2);
+}
+
+body.dark .cover-stage{
+    background:#141925;
+}
+
+@media(max-width:700px){
+    .cover-stage,
+    .cover-stage .cover-image{
+        height:245px;
+    }
+
+    .cover-nav-btn{
+        width:38px;
+        height:38px;
+    }
+
+    .cover-nav-prev{ right:10px; }
+    .cover-nav-next{ left:10px; }
+
+    .cover-history-overlay{
+        left:10px;
+        bottom:10px;
+        padding:6px 8px;
+        font-size:9px;
+    }
+
+    .cover-history-dots{
+        bottom:12px;
+        max-width:42%;
+    }
+}
+
+/* =========================================================
+   Pro Profile Information + Wallpaper Layout
+   ========================================================= */
+.profile-tab-content{
+    padding-top:4px;
+}
+
+.user-info{
+    gap:10px;
+    padding-top:18px;
+}
+
+.info-card{
+    min-height:72px;
+    padding:10px 14px;
+    border:1px solid #e8ebf3;
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 5px 16px rgba(35,45,80,.04);
+}
+
+.info-card:not(:last-child)::after{
+    display:none;
+}
+
+.info-card > .material-icons{
+    width:42px;
+    height:42px;
+}
+
+.profile-content{
+    padding-top:12px;
+}
+
+.profile-grid{
+    gap:12px;
+}
+
+.profile-wall-card{
+    border:1px solid #e6eaf2;
+    box-shadow:0 5px 16px rgba(35,45,80,.04);
+    transition:transform .2s ease, box-shadow .2s ease;
+}
+
+.profile-wall-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(35,45,80,.10);
+}
+
+body.dark .info-card{
+    background:#141925;
+    border-color:#252c3c;
+    box-shadow:none;
+}
+
+body.dark .profile-wall-card{
+    border-color:#252c3c;
+    box-shadow:none;
+}
+
+@media(max-width:700px){
+    .user-info{
+        padding:12px 12px 22px;
+    }
+
+    .info-card{
+        min-height:68px;
+        border-radius:14px;
+    }
+
+    .profile-content{
+        padding:10px 12px 22px;
+    }
+
+    .profile-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:9px;
+    }
+
+    .profile-wall-card img{
+        height:230px;
+    }
+}

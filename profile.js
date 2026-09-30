@@ -49,6 +49,189 @@ let currentUser = null;
    =================================================== */
 const USER_SYNC_TABLE = "user_profile_sync";
 const DEFAULT_PROFILE_COVER = "assets/images/default-cover.jpg";
+const COVER_HISTORY_LOCAL_KEY = "userCoverHistory";
+const MAX_COVER_HISTORY = 12;
+let coverHistory = [];
+let activeCoverIndex = 0;
+
+function normalizeCoverHistory(value){
+    if(!Array.isArray(value)) return [];
+    const seen = new Set();
+    return value.map(item => {
+        if(item && typeof item === "object"){
+            return {
+                src: String(item.src || item.url || "").trim(),
+                created_at: String(item.created_at || item.createdAt || "").trim()
+            };
+        }
+        return { src:String(item || "").trim(), created_at:"" };
+    }).filter(item => {
+        if(!item.src || seen.has(item.src)) return false;
+        seen.add(item.src);
+        return true;
+    }).slice(0, MAX_COVER_HISTORY);
+}
+
+function getLocalCoverHistory(){
+    try{
+        return normalizeCoverHistory(
+            JSON.parse(localStorage.getItem(COVER_HISTORY_LOCAL_KEY) || "[]")
+        );
+    }catch{
+        return [];
+    }
+}
+
+function setLocalCoverHistory(history){
+    coverHistory = normalizeCoverHistory(history);
+    try{
+        localStorage.setItem(COVER_HISTORY_LOCAL_KEY, JSON.stringify(coverHistory));
+    }catch(error){
+        console.warn("COVER HISTORY LOCAL SAVE:", error);
+    }
+}
+
+function renderCoverHistory(){
+    if(!coverImage) return;
+
+    coverHistory = normalizeCoverHistory(coverHistory);
+
+    if(!coverHistory.length){
+        activeCoverIndex = 0;
+        coverImage.src = DEFAULT_PROFILE_COVER;
+    }else{
+        activeCoverIndex = Math.max(0, Math.min(activeCoverIndex, coverHistory.length - 1));
+        coverImage.src = coverHistory[activeCoverIndex].src || DEFAULT_PROFILE_COVER;
+    }
+
+    const prev = document.getElementById("coverPrevBtn");
+    const next = document.getElementById("coverNextBtn");
+    const dots = document.getElementById("coverHistoryDots");
+    const count = document.getElementById("coverHistoryCount");
+    const label = document.getElementById("coverHistoryLabel");
+
+    const hasMultiple = coverHistory.length > 1;
+    if(prev) prev.disabled = !hasMultiple;
+    if(next) next.disabled = !hasMultiple;
+
+    if(count) count.textContent = coverHistory.length
+        ? `${activeCoverIndex + 1} / ${coverHistory.length}` : "0";
+
+    if(label) label.textContent = coverHistory.length > 1
+        ? `أغلفة الحساب · ${activeCoverIndex + 1} من ${coverHistory.length}`
+        : "غلاف الحساب";
+
+    if(dots){
+        dots.innerHTML = "";
+        coverHistory.forEach((cover, index) => {
+            const dot = document.createElement("button");
+            dot.type = "button";
+            dot.className = `cover-history-dot${index === activeCoverIndex ? " active" : ""}`;
+            dot.setAttribute("aria-label", `اختيار الغلاف ${index + 1}`);
+            dot.onclick = () => selectCover(index, true);
+            dots.appendChild(dot);
+        });
+    }
+}
+
+async function persistCoverHistory(){
+    if(!currentUser?.id || !isOwnProfile()) return;
+
+    try{
+        const { error } = await supabase
+            .from(USER_SYNC_TABLE)
+            .upsert({
+                user_id: currentUser.id,
+                cover_history: normalizeCoverHistory(coverHistory)
+            }, { onConflict:"user_id" });
+
+        if(error) throw error;
+    }catch(error){
+        // لا نعطل البروفايل إذا كان العمود الجديد لم يُضف بعد.
+        console.warn("COVER HISTORY CLOUD SAVE:", error.message);
+    }
+}
+
+async function loadCoverHistory(user){
+    if(!user?.id || !isOwnProfile()) return;
+
+    const localHistory = getLocalCoverHistory();
+    let cloudHistory = [];
+
+    try{
+        const { data, error } = await supabase
+            .from(USER_SYNC_TABLE)
+            .select("cover_history")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        if(!error && data?.cover_history){
+            cloudHistory = normalizeCoverHistory(data.cover_history);
+        }
+    }catch(error){
+        console.warn("COVER HISTORY CLOUD LOAD:", error.message);
+    }
+
+    coverHistory = normalizeCoverHistory([...cloudHistory, ...localHistory]);
+
+    const currentCover = String(localStorage.getItem("userCover") || "").trim();
+    if(currentCover && !coverHistory.some(item => item.src === currentCover)){
+        coverHistory.unshift({
+            src: currentCover,
+            created_at: new Date().toISOString()
+        });
+    }
+
+    setLocalCoverHistory(coverHistory);
+
+    const currentIndex = currentCover
+        ? coverHistory.findIndex(item => item.src === currentCover)
+        : 0;
+
+    activeCoverIndex = currentIndex >= 0 ? currentIndex : 0;
+    renderCoverHistory();
+}
+
+async function selectCover(index, persist = true){
+    if(!coverHistory.length) return;
+
+    activeCoverIndex = Math.max(
+        0,
+        Math.min(Number(index) || 0, coverHistory.length - 1)
+    );
+
+    const selected = coverHistory[activeCoverIndex];
+    if(!selected?.src) return;
+
+    coverImage.src = selected.src;
+    localStorage.setItem("userCover", selected.src);
+    renderCoverHistory();
+
+    if(persist && currentUser && isOwnProfile()){
+        const cloudData = getLocalSyncData();
+        cloudData.cover_url = selected.src;
+        await saveCloudUserData(currentUser, cloudData);
+    }
+
+    window.dispatchEvent(new CustomEvent("profileCoverChanged", {
+        detail:{ src:selected.src, index:activeCoverIndex }
+    }));
+}
+
+function addCoverToHistory(src){
+    const clean = String(src || "").trim();
+    if(!clean) return;
+
+    coverHistory = normalizeCoverHistory([
+        { src:clean, created_at:new Date().toISOString() },
+        ...coverHistory
+    ]).slice(0, MAX_COVER_HISTORY);
+
+    activeCoverIndex = 0;
+    setLocalCoverHistory(coverHistory);
+    renderCoverHistory();
+}
+
 
 function normalizeActionList(value){
     if(!Array.isArray(value)) return [];
@@ -155,6 +338,7 @@ async function loadCloudUserData(user, options = {}){
         if(user.email) localStorage.setItem("userEmail", user.email);
         if(merged.cover_url && coverImage) coverImage.src = merged.cover_url;
         if(merged.bio && heroBio) heroBio.textContent = merged.bio;
+        await loadCoverHistory(user);
 
         updateHeroIdentity(
             user,
@@ -766,6 +950,7 @@ if (loginBtn) {
                     "userEmail",
                     "userAvatar",
                     "userCover",
+                    COVER_HISTORY_LOCAL_KEY,
                     "userData"
                 ];
 
@@ -2191,24 +2376,19 @@ file,
 async (src)=>{
 
 
-coverImage.src =
-src;
+addCoverToHistory(src);
 
-
-
-localStorage.setItem(
-"userCover",
-src
-);
+localStorage.setItem("userCover", src);
 
         if(currentUser){
             const cloudData = getLocalSyncData();
             cloudData.cover_url = src;
             await saveCloudUserData(currentUser, cloudData);
+            await persistCoverHistory();
         }
 
 window.dispatchEvent(new CustomEvent("profileCoverChanged", {
-    detail:{ src }
+    detail:{ src, index:activeCoverIndex }
 }));
 
 
@@ -2239,9 +2419,13 @@ window.addEventListener("wallpaperStatsChanged", () => {
 });
 
 window.addEventListener("storage", event => {
-    if(["favorites", "downloads", "views", "userCover"].includes(event.key)){
+    if(["favorites", "downloads", "views", "userCover", COVER_HISTORY_LOCAL_KEY].includes(event.key)){
         if(event.key === "userCover" && coverImage){
             coverImage.src = event.newValue || DEFAULT_PROFILE_COVER;
+        }
+        if(event.key === COVER_HISTORY_LOCAL_KEY){
+            coverHistory = getLocalCoverHistory();
+            renderCoverHistory();
         }
         renderProfile();
         updateUserStats();
