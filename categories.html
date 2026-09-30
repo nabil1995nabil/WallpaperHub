@@ -19,179 +19,319 @@
 
 <header class="header">
     <button class="back-btn" type="button" onclick="history.back()" aria-label="رجوع">
-        <span class="material-icons">arrow_back</span>
+        <span class="material-icons">arrow_forward</span>
     </button>
 
     <div class="header-content">
-        <h1>الأقسام</h1>
-        <p>اكتشف أقسام الخلفيات المفضلة لديك</p>
+        <span class="eyebrow"><span class="material-icons">collections</span> WallpaperHub</span>
+        <h1>استكشف الأقسام</h1>
+        <p>اعثر بسرعة على نوع الخلفية الذي يناسب ذوقك</p>
     </div>
 
-    <div class="header-badge" aria-hidden="true">
-        <span class="material-icons">layers</span>
-        <span>
-            <strong>خلفيات مميزة</strong>
-            <small>جميع الأقسام</small>
-        </span>
-    </div>
+    <button class="header-action" id="randomCategoryBtn" type="button" aria-label="استكشاف عشوائي">
+        <span class="material-icons">shuffle</span>
+    </button>
 </header>
 
 <main class="categories-page">
 
-    <button class="category-card" type="button" data-category="all" data-image="all.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">public</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الكل</strong>
-            <small>عرض جميع الخلفيات</small>
-        </span>
-    </button>
+    <section class="explore-panel" aria-label="أدوات الاستكشاف">
+        <div class="search-row">
+            <label class="search-box" for="categorySearch">
+                <span class="material-icons">search</span>
+                <input id="categorySearch" type="search" autocomplete="off"
+                       placeholder="ابحث عن قسم مثل: سيارات، أنمي، فضاء..." />
+                <button id="clearSearch" class="clear-search" type="button" aria-label="مسح البحث">
+                    <span class="material-icons">close</span>
+                </button>
+            </label>
+        </div>
 
-    <button class="category-card" type="button" data-category="nature" data-image="nature.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">eco</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الطبيعة</strong>
-            <small>جبال وغابات وأنهار</small>
-        </span>
-    </button>
+        <div class="quick-filters" role="tablist" aria-label="استكشف بسرعة">
+            <button class="quick-filter active" type="button" data-route="all">
+                <span class="material-icons">apps</span> كل الأقسام
+            </button>
+            <button class="quick-filter" type="button" data-route="latest">
+                <span class="material-icons">schedule</span> الأحدث
+            </button>
+            <button class="quick-filter" type="button" data-route="popular">
+                <span class="material-icons">local_fire_department</span> الأكثر شعبية
+            </button>
+            <button class="quick-filter" type="button" data-route="downloaded">
+                <span class="material-icons">download</span> الأكثر تحميلاً
+            </button>
+            <button class="quick-filter" type="button" data-route="liked">
+                <span class="material-icons">favorite</span> الأكثر إعجاباً
+            </button>
+            <button class="quick-filter" type="button" data-route="recommended">
+                <span class="material-icons">auto_awesome</span> موصى بها
+            </button>
+            <button class="quick-filter" type="category" data-category-filter="4k">
+                <span class="material-icons">diamond</span> 4K
+            </button>
+            <button class="quick-filter" type="button" data-category-filter="amoled">
+                <span class="material-icons">dark_mode</span> AMOLED
+            </button>
+        </div>
 
-    <button class="category-card" type="button" data-category="cars" data-image="cars.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">directions_car</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>السيارات</strong>
-            <small>سيارات رياضية وفاخرة</small>
-        </span>
-    </button>
+        <div class="explore-meta">
+            <div>
+                <strong id="resultsCount">14</strong>
+                <span>قسماً متاحاً</span>
+            </div>
+            <button id="favoritesOnlyBtn" class="mini-tool" type="button">
+                <span class="material-icons">star_border</span>
+                المفضلة
+            </button>
+            <button id="resetFiltersBtn" class="mini-tool hidden" type="button">
+                <span class="material-icons">restart_alt</span>
+                إعادة الضبط
+            </button>
+        </div>
+    </section>
 
-    <button class="category-card" type="button" data-category="games" data-image="games.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">sports_esports</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الألعاب</strong>
-            <small>أفضل خلفيات الألعاب</small>
-        </span>
-    </button>
+    <section class="last-visited" id="lastVisited" hidden>
+        <div class="last-visited-icon"><span class="material-icons">history</span></div>
+        <div>
+            <small>آخر قسم زرته</small>
+            <strong id="lastVisitedName">—</strong>
+        </div>
+        <button id="continueLastBtn" type="button">
+            متابعة
+            <span class="material-icons">chevron_left</span>
+        </button>
+    </section>
 
-    <button class="category-card" type="button" data-category="space" data-image="space.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">public</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الفضاء</strong>
-            <small>نجوم ومجرات وكواكب</small>
-        </span>
-    </button>
+    <section class="categories-section" aria-label="أقسام الخلفيات">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">CATALOG</span>
+                <h2>كل الأقسام</h2>
+            </div>
+            <span class="section-line"></span>
+        </div>
 
-    <button class="category-card" type="button" data-category="ai" data-image="ai.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">smart_toy</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الذكاء الاصطناعي</strong>
-            <small>خلفيات AI</small>
-        </span>
-    </button>
+        <div class="categories-page-grid" id="categoriesGrid">
 
-    <button class="category-card" type="button" data-category="amoled" data-image="amoled.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">smartphone</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>AMOLED</strong>
-            <small>خلفيات سوداء</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="all"
+                    data-image="all.svg" data-search="الكل جميع الخلفيات">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">public</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">ALL</span>
+                </span>
+                <span class="category-content">
+                    <strong>الكل</strong>
+                    <small>عرض جميع الخلفيات</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="animals" data-image="animals.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">pets</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الحيوانات</strong>
-            <small>قطط وطيور وحيوانات</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="nature"
+                    data-image="nature.svg" data-search="الطبيعة جبال غابات أنهار">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">eco</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">NATURE</span>
+                </span>
+                <span class="category-content">
+                    <strong>الطبيعة</strong>
+                    <small>جبال وغابات وأنهار</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="anime" data-image="anime.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">face</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الأنمي</strong>
-            <small>شخصيات الأنمي</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="cars"
+                    data-image="cars.svg" data-search="السيارات سيارات رياضية فاخرة">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">directions_car</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">CARS</span>
+                </span>
+                <span class="category-content">
+                    <strong>السيارات</strong>
+                    <small>سيارات رياضية وفاخرة</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="city" data-image="city.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">location_city</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>المدن</strong>
-            <small>مدن ومناظر حضرية</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="games"
+                    data-image="games.svg" data-search="الألعاب ألعاب gaming">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">sports_esports</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">GAMES</span>
+                </span>
+                <span class="category-content">
+                    <strong>الألعاب</strong>
+                    <small>أفضل خلفيات الألعاب</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="dark" data-image="dark.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">dark_mode</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>Dark</strong>
-            <small>خلفيات داكنة AMOLED</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="space"
+                    data-image="space.svg" data-search="الفضاء نجوم مجرات كواكب">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">public</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">SPACE</span>
+                </span>
+                <span class="category-content">
+                    <strong>الفضاء</strong>
+                    <small>نجوم ومجرات وكواكب</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="4k" data-image="4k.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">diamond</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>4K</strong>
-            <small>جودة عالية جداً</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="ai"
+                    data-image="ai.svg" data-search="الذكاء الاصطناعي ai artificial intelligence">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">smart_toy</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">AI</span>
+                </span>
+                <span class="category-content">
+                    <strong>الذكاء الاصطناعي</strong>
+                    <small>خلفيات AI</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="sports" data-image="sports.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">sports_soccer</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>الرياضة</strong>
-            <small>كرة القدم والرياضات</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="amoled"
+                    data-image="amoled.svg" data-search="amoled أسود black oled">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">smartphone</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">AMOLED</span>
+                </span>
+                <span class="category-content">
+                    <strong>AMOLED</strong>
+                    <small>خلفيات سوداء عميقة</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
-    <button class="category-card" type="button" data-category="minimal" data-image="minimal.svg">
-        <span class="category-media"><span class="category-image" aria-hidden="true"></span>
-            <span class="category-icon"><span class="material-icons">auto_awesome</span></span>
-            <span class="category-arrow material-icons">chevron_left</span>
-        </span>
-        <span class="category-content">
-            <strong>Minimal</strong>
-            <small>تصاميم بسيطة وأنيقة</small>
-        </span>
-    </button>
+            <button class="category-card" type="button" data-category="animals"
+                    data-image="animals.svg" data-search="الحيوانات قطط طيور">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">pets</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">ANIMALS</span>
+                </span>
+                <span class="category-content">
+                    <strong>الحيوانات</strong>
+                    <small>قطط وطيور وحيوانات</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
 
+            <button class="category-card" type="button" data-category="anime"
+                    data-image="anime.svg" data-search="الأنمي anime شخصيات">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">face</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">ANIME</span>
+                </span>
+                <span class="category-content">
+                    <strong>الأنمي</strong>
+                    <small>شخصيات وعوالم الأنمي</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
+
+            <button class="category-card" type="button" data-category="city"
+                    data-image="city.svg" data-search="المدن مدينة city urban">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">location_city</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">CITY</span>
+                </span>
+                <span class="category-content">
+                    <strong>المدن</strong>
+                    <small>مدن ومناظر حضرية</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
+
+            <button class="category-card" type="button" data-category="dark"
+                    data-image="dark.svg" data-search="dark داكن مظلم أسود">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">dark_mode</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">DARK</span>
+                </span>
+                <span class="category-content">
+                    <strong>Dark</strong>
+                    <small>خلفيات داكنة وهادئة</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
+
+            <button class="category-card" type="button" data-category="4k"
+                    data-image="4k.svg" data-search="4k ultra hd جودة عالية">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">diamond</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">4K</span>
+                </span>
+                <span class="category-content">
+                    <strong>4K</strong>
+                    <small>جودة عالية جداً</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
+
+            <button class="category-card" type="button" data-category="sports"
+                    data-image="sports.svg" data-search="الرياضة كرة القدم sports">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">sports_soccer</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">SPORTS</span>
+                </span>
+                <span class="category-content">
+                    <strong>الرياضة</strong>
+                    <small>كرة القدم والرياضات</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
+
+            <button class="category-card" type="button" data-category="minimal"
+                    data-image="minimal.svg" data-search="minimal بسيط هادئ">
+                <span class="category-media">
+                    <span class="category-image" aria-hidden="true"></span>
+                    <span class="category-icon"><span class="material-icons">auto_awesome</span></span>
+                    <span class="category-arrow material-icons">chevron_left</span>
+                    <span class="category-overlay-label">MINIMAL</span>
+                </span>
+                <span class="category-content">
+                    <strong>Minimal</strong>
+                    <small>تصاميم بسيطة وأنيقة</small>
+                    <span class="favorite-toggle" aria-label="إضافة للمفضلة"><span class="material-icons">star_border</span></span>
+                </span>
+            </button>
+
+        </div>
+
+        <div class="no-results" id="noResults" hidden>
+            <span class="material-icons">search_off</span>
+            <strong>لم نجد هذا القسم</strong>
+            <p>جرّب كلمة أخرى مثل «طبيعة» أو «أنمي» أو «4K».</p>
+            <button id="showAllBtn" type="button">عرض كل الأقسام</button>
+        </div>
+    </section>
 </main>
 
 <script src="js/components.js"></script>
