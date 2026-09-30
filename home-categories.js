@@ -116,7 +116,6 @@ function createCategoryCard(item) {
     card.innerHTML = `
         <div class="home-category-media">
             <div class="home-category-fallback" aria-hidden="true"></div>
-            ${item.preview ? `<img src="${escapeHtml(item.preview)}" alt="" loading="lazy" decoding="async">` : ""}
             <div class="home-category-overlay" aria-hidden="true"></div>
             <span class="home-category-icon" aria-hidden="true"></span>
         </div>
@@ -126,8 +125,6 @@ function createCategoryCard(item) {
         </div>
     `;
 
-    const image = card.querySelector("img");
-    if (image) image.addEventListener("error", () => image.remove(), { once: true });
 
     const openCategory = () => {
         window.location.href = item.key === "all"
