@@ -1059,3 +1059,102 @@ opacity:.15;
         padding-right: 82px;
     }
 }
+
+
+/* =========================================================
+   WALLPAPERHUB AI ORB — SIRI-STYLE ORIGINAL MOTION
+   نفس #aiFab، بدون زر إضافي
+========================================================= */
+.ai-card > .ai-fab{
+    position:absolute !important;
+    left:22px !important;
+    right:auto !important;
+    top:50% !important;
+    bottom:auto !important;
+    width:82px !important;
+    height:82px !important;
+    min-width:82px !important;
+    min-height:82px !important;
+    transform:translateY(-50%) !important;
+    border-radius:50% !important;
+    overflow:visible !important;
+    z-index:30 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    cursor:pointer !important;
+    background:
+        radial-gradient(circle at 35% 30%,
+            rgba(255,255,255,.24) 0 5%,
+            rgba(92,235,255,.18) 18%,
+            rgba(64,24,120,.42) 48%,
+            rgba(10,8,28,.92) 78%) !important;
+    border:1px solid rgba(255,255,255,.20) !important;
+    box-shadow:
+        0 0 14px rgba(0,210,255,.30),
+        0 0 32px rgba(126,70,255,.38),
+        inset 0 0 18px rgba(255,255,255,.08) !important;
+    transition:transform .22s ease, box-shadow .35s ease !important;
+}
+.ai-card > .ai-fab:hover{
+    transform:translateY(-50%) scale(1.07) !important;
+}
+.ai-card > .ai-fab:active{
+    transform:translateY(-50%) scale(.91) !important;
+}
+.ai-card > .ai-fab::before{
+    content:"" !important;
+    position:absolute !important;
+    inset:-7px !important;
+    border-radius:50% !important;
+    background:
+        conic-gradient(from 0deg,
+            rgba(0,229,255,0),
+            rgba(0,229,255,.65),
+            rgba(166,82,255,.72),
+            rgba(255,72,170,.42),
+            rgba(0,229,255,0)) !important;
+    filter:blur(5px) !important;
+    opacity:.72 !important;
+    animation:aiOrbHalo 2.8s linear infinite !important;
+    pointer-events:none !important;
+}
+.ai-card > .ai-fab::after{
+    content:"" !important;
+    position:absolute !important;
+    inset:-13px !important;
+    border-radius:50% !important;
+    border:1px solid rgba(111,225,255,.18) !important;
+    box-shadow:0 0 22px rgba(90,95,255,.20) !important;
+    animation:aiOrbBreath 2.6s ease-in-out infinite !important;
+    pointer-events:none !important;
+}
+.ai-card > .ai-fab #aiCanvas{
+    width:92px !important;
+    height:92px !important;
+    display:block !important;
+    pointer-events:none !important;
+    filter:
+        drop-shadow(0 0 7px rgba(0,229,255,.85))
+        drop-shadow(0 0 17px rgba(140,65,255,.72)) !important;
+}
+@keyframes aiOrbHalo{
+    to{transform:rotate(360deg);}
+}
+@keyframes aiOrbBreath{
+    0%,100%{transform:scale(.92);opacity:.35;}
+    50%{transform:scale(1.10);opacity:.85;}
+}
+@media(max-width:768px){
+    .ai-card > .ai-fab{
+        left:20px !important;
+        width:78px !important;
+        height:78px !important;
+        min-width:78px !important;
+        min-height:78px !important;
+    }
+    .ai-card > .ai-fab #aiCanvas{
+        width:88px !important;
+        height:88px !important;
+    }
+}
