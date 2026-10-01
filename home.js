@@ -829,3 +829,108 @@ document.addEventListener(
 }
 
 );
+
+
+/* COMMUNITY LIVE BACKGROUND — animated luminous ribbons */
+(function(){
+    function boot(){
+        const section=document.querySelector(".community-section");
+        const canvas=document.getElementById("communityMotionCanvas");
+        if(!section||!canvas)return;
+        const ctx=canvas.getContext("2d",{alpha:true});
+        if(!ctx)return;
+        let w=0,h=0,dpr=1,t=0,raf=0;
+        const ribbons=[
+            {speed:.34,phase:0,amp:.12,y:.38,hue:205,width:2.8},
+            {speed:.27,phase:2.1,amp:.16,y:.49,hue:224,width:2.4},
+            {speed:.22,phase:4.2,amp:.13,y:.61,hue:267,width:2.6},
+            {speed:.18,phase:1.1,amp:.10,y:.72,hue:286,width:1.8}
+        ];
+        const particles=Array.from({length:34},(_,i)=>({
+            ribbon:i%ribbons.length,
+            p:Math.random(),
+            speed:.0008+Math.random()*.0012,
+            size:1+Math.random()*2.1,
+            phase:Math.random()*Math.PI*2
+        }));
+        function resize(){
+            const r=section.getBoundingClientRect();
+            dpr=Math.min(devicePixelRatio||1,1.8);
+            w=Math.max(1,r.width); h=Math.max(1,r.height);
+            canvas.width=Math.round(w*dpr);
+            canvas.height=Math.round(h*dpr);
+            canvas.style.width=w+"px";
+            canvas.style.height=h+"px";
+            ctx.setTransform(dpr,0,0,dpr,0,0);
+        }
+        function point(r,x,time){
+            const n=x/w;
+            return {
+                x:x,
+                y:h*r.y+h*r.amp*(
+                    Math.sin(n*7+time*r.speed+r.phase)*.48+
+                    Math.sin(n*12.5-time*r.speed*1.35+r.phase*1.7)*.22+
+                    Math.sin(n*3.2+time*.45+r.phase)*.30
+                )
+            };
+        }
+        function path(r){
+            ctx.beginPath();
+            for(let i=0;i<=90;i++){
+                const q=point(r,w*i/90,t);
+                i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+            }
+        }
+        function drawRibbon(r){
+            const g=ctx.createLinearGradient(0,0,w,h);
+            g.addColorStop(0,`hsla(${r.hue},100%,70%,0)`);
+            g.addColorStop(.16,`hsla(${r.hue},100%,70%,.72)`);
+            g.addColorStop(.48,`hsla(${r.hue+22},100%,74%,.95)`);
+            g.addColorStop(.72,`hsla(${r.hue+48},100%,76%,.72)`);
+            g.addColorStop(1,`hsla(${r.hue+70},100%,70%,0)`);
+            path(r);
+            ctx.strokeStyle=g;
+            ctx.lineWidth=r.width+7;
+            ctx.globalAlpha=.18;
+            ctx.shadowBlur=22;
+            ctx.shadowColor=`hsla(${r.hue+25},100%,70%,.9)`;
+            ctx.stroke();
+            path(r);
+            ctx.strokeStyle=g;
+            ctx.lineWidth=r.width;
+            ctx.globalAlpha=.88;
+            ctx.shadowBlur=9;
+            ctx.stroke();
+            ctx.shadowBlur=0;
+        }
+        function drawParticle(p){
+            const r=ribbons[p.ribbon];
+            p.p=(p.p+p.speed)%1;
+            const q=point(r,w*p.p,t);
+            const pulse=.65+.35*Math.sin(t*3+p.phase);
+            ctx.globalAlpha=.7*pulse;
+            ctx.fillStyle=`hsl(${r.hue+35},100%,78%)`;
+            ctx.shadowBlur=12;
+            ctx.shadowColor=`hsl(${r.hue+35},100%,68%)`;
+            ctx.beginPath();
+            ctx.arc(q.x,q.y,p.size*pulse,0,Math.PI*2);
+            ctx.fill();
+        }
+        function animate(){
+            t+=.022;
+            ctx.clearRect(0,0,w,h);
+            ctx.globalCompositeOperation="lighter";
+            ribbons.forEach(drawRibbon);
+            particles.forEach(drawParticle);
+            ctx.globalCompositeOperation="source-over";
+            ctx.globalAlpha=1;
+            raf=requestAnimationFrame(animate);
+        }
+        new ResizeObserver(resize).observe(section);
+        resize();
+        animate();
+        addEventListener("beforeunload",()=>cancelAnimationFrame(raf),{once:true});
+    }
+    if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot,{once:true});
+    else boot();
+})();
