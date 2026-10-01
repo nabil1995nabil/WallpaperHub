@@ -51,3 +51,95 @@ body{overflow:hidden;overflow-x:hidden}button,input,textarea,select{font:inherit
   .tool{min-width:60px;flex:0 0 60px}
   .tool span{font-size:8px}
 }
+
+/* =========================================================
+   WALLPAPERHUB VIDEO STUDIO — CAPCUT INSPIRED LAYER
+========================================================= */
+.video-deck{
+    position:absolute;
+    left:12px;
+    right:12px;
+    bottom:91px;
+    z-index:34;
+    background:rgba(12,14,20,.96);
+    border:1px solid #323744;
+    border-radius:22px;
+    box-shadow:0 24px 90px rgba(0,0,0,.72), inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter:blur(24px);
+    -webkit-backdrop-filter:blur(24px);
+    padding:10px 12px 12px;
+    transform:translateY(18px);
+    opacity:0;
+    pointer-events:none;
+    transition:.22s ease;
+}
+.video-deck.open{opacity:1;transform:none;pointer-events:auto}
+.video-deck-head,.video-transport,.video-project,.video-head-actions,.video-quick-tools,.video-trim-values{
+    display:flex;align-items:center;
+}
+.video-deck-head{justify-content:space-between;padding:0 2px 8px}
+.video-project{gap:8px}
+.video-project b{font-size:11px;letter-spacing:1px}
+.video-project small{color:#777f90;font-size:9px}
+.video-live{width:7px;height:7px;border-radius:50%;background:#ff3b6b;box-shadow:0 0 12px #ff3b6b}
+.video-head-actions{gap:6px}
+.video-head-actions button,.video-transport button,.video-quick-tools button{
+    height:32px;padding:0 10px;border-radius:9px;background:#191c24;border:1px solid #2c313d;font-size:10px;
+}
+.video-head-actions #videoAddClip{background:#28213f;border-color:#5e4cb4}
+.video-head-actions #videoClose{font-size:18px;padding:0;width:32px}
+.video-transport{gap:9px;padding:8px 4px}
+.video-transport>span{font-variant-numeric:tabular-nums;color:#aeb4c0;font-size:9px;min-width:34px;text-align:center}
+.video-play{width:38px!important;height:38px!important;border-radius:50%!important;background:linear-gradient(135deg,#7c5cff,#a855f7)!important;border:0!important;font-size:13px!important;box-shadow:0 8px 25px #7658ff35}
+.video-scrub{height:5px;flex:1;position:relative;background:#272c37;border-radius:99px;cursor:pointer}
+.video-scrub-fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,#7c5cff,#22d3ee);border-radius:inherit}
+.video-playhead{position:absolute;left:0;top:50%;width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px #7c5cff66,0 0 14px #fff;transform:translate(-50%,-50%)}
+#videoMute{width:35px;padding:0}
+.video-timeline-wrap{padding:2px 2px 7px}
+.video-ruler{height:17px;display:flex;justify-content:space-between;color:#666e7e;font-size:8px;padding:0 4px}
+.video-timeline{height:74px;position:relative;border:1px solid #303541;background:#0a0c11;border-radius:12px;overflow:hidden}
+.video-clips{height:100%;display:flex;gap:3px;padding:6px;direction:ltr}
+.video-clip{
+    min-width:90px;flex:1;position:relative;border-radius:8px;overflow:hidden;border:1px solid #353a47;
+    background:linear-gradient(135deg,#252936,#11131a);cursor:pointer;
+}
+.video-clip.active{border-color:#9b83ff;box-shadow:inset 0 0 0 1px #9b83ff55,0 0 18px #7658ff25}
+.video-clip-label{position:absolute;left:7px;right:7px;bottom:6px;color:#fff;font-size:9px;font-weight:800;text-shadow:0 2px 8px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.video-clip-index{position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;background:#0008;color:#fff;font-size:8px}
+.trim-window{position:absolute;top:2px;bottom:2px;left:0;width:100%;border:2px solid #bdaeff;border-radius:9px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.20),0 0 18px #7658ff35}
+.trim-handle{position:absolute;top:-2px;bottom:-2px;width:13px;background:#fff;border:0;pointer-events:auto;padding:0;cursor:ew-resize;box-shadow:0 0 10px #000}
+.trim-left{left:-2px;border-radius:7px 2px 2px 7px}
+.trim-right{right:-2px;border-radius:2px 7px 7px 2px}
+.video-controls-grid{display:grid;grid-template-columns:1.2fr 1.6fr .8fr;gap:8px;margin-top:7px}
+.video-control-card{background:#151820;border:1px solid #292e39;border-radius:11px;padding:8px 10px;min-width:0}
+.video-control-card>span{display:block;color:#8d95a5;font-size:8px;margin-bottom:6px}
+.video-chips{display:flex;gap:4px;overflow:auto;scrollbar-width:none}
+.video-chips::-webkit-scrollbar{display:none}
+.video-chips button{border:1px solid #2c313d;background:#1b1e26;color:#aeb4c0;border-radius:7px;padding:6px 7px;font-size:8px;white-space:nowrap}
+.video-chips button.active{background:#33285b;color:#fff;border-color:#826cff}
+.video-trim-values{justify-content:space-between;color:#bcaeff;font-size:9px}
+.dual-range{position:relative;height:20px}
+.dual-range input{position:absolute;left:0;right:0;top:1px;width:100%;pointer-events:none;accent-color:#8b74ff}
+.dual-range input::-webkit-slider-thumb{pointer-events:auto}
+.video-control-card>input[type=range]{width:100%;accent-color:#7c5cff}
+.video-control-card>small{display:block;color:#8f96a5;font-size:8px;text-align:center}
+.video-quick-tools{gap:6px;overflow-x:auto;padding-top:8px;scrollbar-width:none}
+.video-quick-tools::-webkit-scrollbar{display:none}
+.video-quick-tools button{white-space:nowrap}
+.video-quick-tools .video-export{margin-right:auto;background:linear-gradient(135deg,#7c5cff,#a855f7);border:0;color:#fff;font-weight:800}
+.video-mode .bottom-tools{display:flex}
+.video-mode .canvasbar .live-dot{background:#ff3b6b;box-shadow:0 0 12px #ff3b6b}
+@media(max-width:900px){
+    .video-deck{left:5px;right:5px;bottom:76px;border-radius:18px;padding:8px}
+    .video-controls-grid{grid-template-columns:1fr 1fr}
+    .video-control-card:last-child{grid-column:1/-1}
+    .video-timeline{height:68px}
+}
+@media(max-width:560px){
+    .video-deck{bottom:76px;max-height:54vh;overflow:auto}
+    .video-project small{display:none}
+    .video-controls-grid{grid-template-columns:1fr}
+    .video-control-card:last-child{grid-column:auto}
+    .video-head-actions #videoAddClip{font-size:8px;padding:0 7px}
+    .video-quick-tools button{font-size:8px}
+}
