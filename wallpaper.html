@@ -135,16 +135,22 @@ more_vert
 </button>
 
 
-<div id="optionsMenu" class="options-menu">
+<div id="optionsMenu" class="options-menu" aria-label="خيارات الخلفية">
 
-<button id="setWallpaperBtn" type="button">
+<button id="phonePreviewBtn" class="option-menu-btn" type="button">
+    <span class="material-icons">smartphone</span>
+    <span class="option-menu-label">
+        <strong>معاينة الهاتف</strong>
+        <small>شاهد كيف ستظهر الخلفية</small>
+    </span>
+</button>
 
-<span class="material-icons">
-wallpaper
-</span>
-
-تعيين كخلفية
-
+<button id="setWallpaperBtn" class="option-menu-btn" type="button">
+    <span class="material-icons">wallpaper</span>
+    <span class="option-menu-label">
+        <strong>تعيين كخلفية</strong>
+        <small>استخدمها على هاتفك</small>
+    </span>
 </button>
 
 </div>
@@ -184,6 +190,69 @@ download
 
 
 </section>
+
+<!-- =========================
+     Phone Preview — معاينة حقيقية للهاتف
+========================= -->
+<div id="phonePreviewModal" class="phone-preview-modal" aria-hidden="true">
+    <div class="phone-preview-backdrop" data-close-phone-preview></div>
+
+    <section class="phone-preview-dialog" role="dialog"
+             aria-modal="true" aria-labelledby="phonePreviewTitle">
+
+        <div class="phone-preview-head">
+            <div>
+                <span class="phone-preview-kicker">معاينة قبل التنزيل</span>
+                <h3 id="phonePreviewTitle">كيف ستظهر في هاتفك</h3>
+            </div>
+
+            <button id="closePhonePreviewBtn" class="phone-preview-close"
+                    type="button" aria-label="إغلاق المعاينة">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <div class="phone-stage">
+            <div class="phone-device" id="phoneDevice">
+
+                <div class="phone-screen">
+                    <div class="phone-status-bar">
+                        <span id="phonePreviewTime">12:00</span>
+                        <div class="phone-status-icons">
+                            <span class="material-icons">signal_cellular_alt</span>
+                            <span class="material-icons">wifi</span>
+                            <span class="material-icons">battery_full</span>
+                        </div>
+                    </div>
+
+                    <img id="phonePreviewImage" alt="معاينة الخلفية على الهاتف">
+                    <video id="phonePreviewVideo" muted loop playsinline></video>
+
+                    <div class="phone-home-indicator"></div>
+                </div>
+
+                <div class="phone-side-button phone-side-top"></div>
+                <div class="phone-side-button phone-side-bottom"></div>
+            </div>
+        </div>
+
+        <div class="phone-preview-actions">
+            <button id="phonePreviewDownloadBtn" class="phone-preview-secondary" type="button">
+                <span class="material-icons">download</span>
+                تحميل
+            </button>
+
+            <button id="phonePreviewSetBtn" class="phone-preview-primary" type="button">
+                <span class="material-icons">wallpaper</span>
+                تعيين كخلفية
+            </button>
+        </div>
+
+        <p class="phone-preview-note">
+            هذه معاينة تقريبية لشكل الخلفية على شاشة هاتف عمودية.
+        </p>
+    </section>
+</div>
 
 <!-- =========================
      Fullscreen Viewer

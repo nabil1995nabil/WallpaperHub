@@ -3488,3 +3488,364 @@ body.dark .show-all-comments-btn{
     border-color:#3b3b3b;
     color:#ddd;
 }
+
+
+/* =========================================================
+   WallpaperHub — Clean Options + Realistic Phone Preview
+========================================================= */
+
+body.phone-preview-open{
+    overflow:hidden;
+}
+
+.options-menu{
+    min-width:230px !important;
+    max-width:calc(100vw - 32px) !important;
+    padding:7px !important;
+    border:1px solid rgba(0,0,0,.08) !important;
+    border-radius:18px !important;
+    background:rgba(255,255,255,.97) !important;
+    box-shadow:0 16px 40px rgba(15,23,42,.18) !important;
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    transform-origin:top right;
+    animation:wallOptionsIn .16s ease both;
+}
+
+.option-menu-btn{
+    width:100%;
+    min-height:54px;
+    border:0;
+    border-radius:13px;
+    background:transparent;
+    color:#171717;
+    padding:9px 10px;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:10px;
+    text-align:right;
+    cursor:pointer;
+    transition:background .16s ease, transform .12s ease;
+}
+
+.option-menu-btn:hover{
+    background:#f5f5f7;
+}
+
+.option-menu-btn:active{
+    transform:scale(.98);
+}
+
+.option-menu-btn > .material-icons{
+    width:35px;
+    height:35px;
+    flex:0 0 35px;
+    border-radius:11px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f1f2f4;
+    color:#222;
+    font-size:19px;
+}
+
+.option-menu-label{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    line-height:1.2;
+}
+
+.option-menu-label strong{
+    font-size:12px;
+    font-weight:800;
+    color:#171717;
+}
+
+.option-menu-label small{
+    font-size:9px;
+    color:#8a8a8f;
+    font-weight:500;
+}
+
+@keyframes wallOptionsIn{
+    from{opacity:0;transform:translateY(-5px) scale(.97);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+}
+
+/* ---------- Phone Preview Overlay ---------- */
+
+.phone-preview-modal{
+    position:fixed;
+    inset:0;
+    z-index:100000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+}
+
+.phone-preview-modal.active{
+    display:flex;
+}
+
+.phone-preview-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(10,10,14,.56);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    opacity:0;
+    transition:opacity .18s ease;
+}
+
+.phone-preview-modal.show .phone-preview-backdrop{
+    opacity:1;
+}
+
+.phone-preview-dialog{
+    position:relative;
+    z-index:2;
+    width:min(360px, calc(100vw - 28px));
+    max-height:calc(100dvh - 28px);
+    overflow:auto;
+    border-radius:28px;
+    padding:16px;
+    background:rgba(255,255,255,.98);
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 24px 70px rgba(0,0,0,.30);
+    transform:translateY(12px) scale(.97);
+    opacity:0;
+    transition:transform .20s ease, opacity .20s ease;
+}
+
+.phone-preview-modal.show .phone-preview-dialog{
+    transform:translateY(0) scale(1);
+    opacity:1;
+}
+
+.phone-preview-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    direction:rtl;
+}
+
+.phone-preview-kicker{
+    display:block;
+    color:#8b8b91;
+    font-size:9px;
+    font-weight:700;
+    margin-bottom:2px;
+}
+
+.phone-preview-head h3{
+    margin:0;
+    color:#171717;
+    font-size:15px;
+    font-weight:900;
+}
+
+.phone-preview-close{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    border:0;
+    border-radius:50%;
+    background:#f2f2f4;
+    color:#333;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+
+.phone-preview-close .material-icons{
+    font-size:18px;
+}
+
+.phone-stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:14px 0 10px;
+}
+
+.phone-device{
+    position:relative;
+    width:154px;
+    height:300px;
+    padding:6px;
+    border-radius:29px;
+    background:linear-gradient(145deg,#34343a,#101014 55%,#4a4a50);
+    box-shadow:
+        0 18px 34px rgba(0,0,0,.25),
+        inset 0 1px 0 rgba(255,255,255,.30);
+}
+
+.phone-screen{
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    border-radius:23px;
+    background:#111;
+    isolation:isolate;
+}
+
+.phone-screen::before{
+    content:"";
+    position:absolute;
+    z-index:5;
+    top:6px;
+    left:50%;
+    width:48px;
+    height:13px;
+    transform:translateX(-50%);
+    border-radius:0 0 10px 10px;
+    background:#050505;
+    box-shadow:0 1px 2px rgba(255,255,255,.08) inset;
+}
+
+.phone-status-bar{
+    position:absolute;
+    z-index:7;
+    top:0;
+    left:0;
+    right:0;
+    height:27px;
+    padding:5px 9px 0;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    color:#fff;
+    font-size:7px;
+    font-weight:800;
+    direction:ltr;
+    text-shadow:0 1px 4px rgba(0,0,0,.65);
+}
+
+.phone-status-icons{
+    display:flex;
+    align-items:center;
+    gap:2px;
+}
+
+.phone-status-icons .material-icons{
+    font-size:9px;
+    line-height:1;
+}
+
+#phonePreviewImage,
+#phonePreviewVideo{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+    background:#111;
+}
+
+#phonePreviewVideo{
+    display:none;
+}
+
+.phone-home-indicator{
+    position:absolute;
+    z-index:8;
+    left:50%;
+    bottom:6px;
+    width:48px;
+    height:3px;
+    transform:translateX(-50%);
+    border-radius:99px;
+    background:rgba(255,255,255,.92);
+    box-shadow:0 1px 4px rgba(0,0,0,.4);
+}
+
+.phone-side-button{
+    position:absolute;
+    right:-3px;
+    width:3px;
+    border-radius:0 2px 2px 0;
+    background:#555;
+}
+
+.phone-side-top{
+    top:72px;
+    height:32px;
+}
+
+.phone-side-bottom{
+    top:116px;
+    height:46px;
+}
+
+.phone-preview-actions{
+    display:grid;
+    grid-template-columns:1fr 1.25fr;
+    gap:8px;
+    direction:ltr;
+}
+
+.phone-preview-actions button{
+    min-height:38px;
+    border-radius:13px;
+    border:1px solid #e7e7ea;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.phone-preview-actions .material-icons{
+    font-size:17px;
+}
+
+.phone-preview-secondary{
+    background:#f5f5f7;
+    color:#222;
+}
+
+.phone-preview-primary{
+    background:#111;
+    color:#fff;
+    border-color:#111 !important;
+}
+
+.phone-preview-note{
+    margin:9px 2px 0;
+    color:#999;
+    text-align:center;
+    font-size:8.5px;
+    line-height:1.5;
+}
+
+@media(max-width:380px){
+    .phone-preview-dialog{
+        padding:13px;
+        border-radius:24px;
+    }
+
+    .phone-device{
+        width:140px;
+        height:274px;
+    }
+
+    .phone-preview-head h3{
+        font-size:14px;
+    }
+
+    .phone-preview-actions button{
+        min-height:36px;
+        font-size:10.5px;
+    }
+}

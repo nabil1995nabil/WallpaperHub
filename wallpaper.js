@@ -1765,6 +1765,144 @@ fullscreenVideo.pause();
 
 }
 
+
+// ===============================
+// Phone Preview — معاينة الخلفية داخل هاتف حقيقي الشكل
+// ===============================
+
+const phonePreviewBtn = document.getElementById("phonePreviewBtn");
+const phonePreviewModal = document.getElementById("phonePreviewModal");
+const closePhonePreviewBtn = document.getElementById("closePhonePreviewBtn");
+const phonePreviewImage = document.getElementById("phonePreviewImage");
+const phonePreviewVideo = document.getElementById("phonePreviewVideo");
+const phonePreviewTime = document.getElementById("phonePreviewTime");
+const phonePreviewDownloadBtn = document.getElementById("phonePreviewDownloadBtn");
+const phonePreviewSetBtn = document.getElementById("phonePreviewSetBtn");
+
+function updatePhonePreviewTime(){
+    if(!phonePreviewTime) return;
+    const now = new Date();
+    phonePreviewTime.textContent = now.toLocaleTimeString("ar-MA", {
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+    });
+}
+
+function openPhonePreview(){
+    if(!currentWallpaper || !phonePreviewModal) return;
+
+    const url = getImageUrl(currentWallpaper.image);
+
+    if(isVideoMedia(currentWallpaper)){
+        if(phonePreviewImage) phonePreviewImage.style.display = "none";
+        if(phonePreviewVideo){
+            phonePreviewVideo.style.display = "block";
+            phonePreviewVideo.src = url;
+            phonePreviewVideo.currentTime = 0;
+            phonePreviewVideo.play().catch(() => {});
+        }
+    }else{
+        if(phonePreviewVideo){
+            phonePreviewVideo.pause();
+            phonePreviewVideo.removeAttribute("src");
+            phonePreviewVideo.load();
+            phonePreviewVideo.style.display = "none";
+        }
+
+        if(phonePreviewImage){
+            phonePreviewImage.style.display = "block";
+            phonePreviewImage.removeAttribute("srcset");
+            phonePreviewImage.removeAttribute("sizes");
+            phonePreviewImage.src = url;
+        }
+    }
+
+    updatePhonePreviewTime();
+    phonePreviewModal.classList.add("active");
+    phonePreviewModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("phone-preview-open");
+
+    requestAnimationFrame(() => {
+        phonePreviewModal.classList.add("show");
+    });
+}
+
+function closePhonePreview(){
+    if(!phonePreviewModal) return;
+
+    phonePreviewModal.classList.remove("show");
+
+    setTimeout(() => {
+        phonePreviewModal.classList.remove("active");
+        phonePreviewModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("phone-preview-open");
+
+        if(phonePreviewVideo){
+            phonePreviewVideo.pause();
+            phonePreviewVideo.removeAttribute("src");
+            phonePreviewVideo.load();
+        }
+    }, 180);
+}
+
+if(phonePreviewBtn){
+    phonePreviewBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // إغلاق قائمة الثلاث نقاط قبل فتح المعاينة.
+        if(optionsMenu) optionsMenu.classList.remove("active");
+
+        openPhonePreview();
+    });
+}
+
+if(closePhonePreviewBtn){
+    closePhonePreviewBtn.addEventListener("click", closePhonePreview);
+}
+
+if(phonePreviewModal){
+    phonePreviewModal.addEventListener("click", (event) => {
+        if(event.target.matches("[data-close-phone-preview]")){
+            closePhonePreview();
+        }
+    });
+}
+
+if(phonePreviewDownloadBtn){
+    phonePreviewDownloadBtn.addEventListener("click", () => {
+        if(!currentWallpaper) return;
+
+        if(typeof downloadWithWatermark === "function"){
+            downloadWithWatermark(
+                getImageUrl(currentWallpaper.image),
+                currentWallpaper.title
+            );
+        }else if(downloadBtn){
+            downloadBtn.click();
+        }
+    });
+}
+
+if(phonePreviewSetBtn){
+    phonePreviewSetBtn.addEventListener("click", () => {
+        if(setWallpaperBtn){
+            setWallpaperBtn.click();
+        }
+    });
+}
+
+document.addEventListener("keydown", (event) => {
+    if(event.key === "Escape" &&
+       phonePreviewModal &&
+       phonePreviewModal.classList.contains("active")){
+        closePhonePreview();
+    }
+});
+
+setInterval(updatePhonePreviewTime, 30000);
+
 // ===============================
 // Download Wallpaper + Watermark
 // ===============================
