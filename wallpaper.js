@@ -1905,10 +1905,16 @@ async function checkLikeStatus(){
 
         const wallpaperCheckId = currentWallpaper.id;
 
-const userId = getCurrentUserId() || "guest";
+const { data: sessionData } = await supabase.auth.getSession();
+const accessToken = sessionData?.session?.access_token || "";
 
 const res = await fetch(
-    `/api/wallpapers/${wallpaperCheckId}/like-status?userId=${userId}`
+    `/api/wallpapers/${wallpaperCheckId}/like-status`,
+    {
+        headers: accessToken
+            ? { Authorization:`Bearer ${accessToken}` }
+            : {}
+    }
 );
 
 
@@ -2535,13 +2541,30 @@ async function autoAnalyzeWallpaper(){
     }
 
     try{
+        const { data: sessionData } = await supabase.auth.getSession();
+        const sessionUser = sessionData?.session?.user || null;
+        const requesterUID = String(sessionUser?.id || "").trim();
+        const ownerUID = String(
+            currentWallpaper?.ownerUID ||
+            currentWallpaper?.userId ||
+            currentWallpaper?.user_id ||
+            ""
+        ).trim();
 
+        // التحليل يكتب في قاعدة البيانات ويستهلك Gemini.
+        // لذلك لا يُشغّل تلقائيًا لزائر أو لحساب ليس مالك الخلفية.
+        if(!requesterUID || !ownerUID || requesterUID !== ownerUID){
+            return;
+        }
+
+        const accessToken = sessionData?.session?.access_token || "";
         const res = await fetch(
             `${API}/${encodeURIComponent(analyzedWallpaperId)}/analyze`,
             {
                 method:"POST",
                 headers:{
-                    "Content-Type":"application/json"
+                    "Content-Type":"application/json",
+                    ...(accessToken ? { Authorization:`Bearer ${accessToken}` } : {})
                 }
             }
         );

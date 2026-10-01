@@ -2098,63 +2098,32 @@ app.post(
 app.get(
 "/api/wallpapers/:id/like-status",
 async(req,res)=>{
-
 try{
+    const wallpaperId = Number(req.params.id);
+    if(!Number.isInteger(wallpaperId) || wallpaperId <= 0){
+        return res.status(400).json({liked:false,message:"Invalid wallpaper ID"});
+    }
 
-const wallpaperId =
-Number(req.params.id);
+    const authenticatedUser = await getAuthenticatedUser(req);
+    if(!authenticatedUser){
+        return res.status(401).json({liked:false,message:"يجب تسجيل الدخول"});
+    }
 
-const userId =
-req.query.userId || "guest";
+    const userId = String(authenticatedUser.id).trim();
 
+    const {data,error} = await supabase
+        .from("likes")
+        .select("id")
+        .eq("wallpaper_id", wallpaperId)
+        .eq("user_id", userId)
+        .maybeSingle();
 
-const {data,error} =
-await supabase
-
-.from("likes")
-
-.select("id")
-
-.eq(
-"wallpaper_id",
-wallpaperId
-)
-
-.eq(
-"user_id",
-userId
-)
-
-.maybeSingle();
-
-
-if(error)
-throw error;
-
-
-res.json({
-
-liked:
-!!data
-
-});
-
-
+    if(error) throw error;
+    return res.json({liked:!!data});
 }catch(error){
-
-console.log(
-"LIKE STATUS ERROR:",
-error
-);
-
-res.status(500).json({
-
-liked:false
-
-});
-
+    console.log("LIKE STATUS ERROR:", error);
+    return res.status(500).json({liked:false});
 }
-
 });
 
 // ======================================
@@ -2182,7 +2151,41 @@ app.post(
                 });
             }
 
-            // RPC ذري لضمان عدم ضياع الضغطات إذا قيّم أكثر من مستخدم في نفس الوقت.
+            const authenticatedUser = await getAuthenticatedUser(req);
+            if(!authenticatedUser){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول قبل التقييم"
+                });
+            }
+
+            const userId = String(authenticatedUser.id).trim();
+
+            const { error: ratingInsertError } = await supabase
+                .from("wallpaper_ratings")
+                .insert([{
+                    wallpaper_id: wallpaperId,
+                    user_id: userId,
+                    rating: ratingValue
+                }]);
+
+            if(ratingInsertError){
+                if(ratingInsertError.code === "23505"){
+                    return res.status(409).json({
+                        success:false,
+                        message:"لقد قيّمت هذه الخلفية مسبقًا"
+                    });
+                }
+                if(ratingInsertError.code === "23503"){
+                    return res.status(404).json({
+                        success:false,
+                        message:"Wallpaper not found"
+                    });
+                }
+                throw ratingInsertError;
+            }
+
+            // بعد تثبيت هوية المستخدم وتسجيل تقييمه، حدّث العداد ذريًا.
             const { data, error } = await supabase.rpc("rate_wallpaper", {
                 p_wallpaper_id: wallpaperId,
                 p_rating: ratingValue
@@ -2381,25 +2384,47 @@ app.put(
                 return res.status(400).json({ success:false, message:"Invalid wallpaper ID" });
             }
 
-            const body = req.body || {};
             const authenticatedUser = await getAuthenticatedUser(req);
-            const admin = isAdminUser(authenticatedUser);
+            if(!authenticatedUser){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول لتعديل الخلفية"
+                });
+            }
 
+            const existing = await getWallpaperFromSupabase(id);
+            if(!existing){
+                return res.status(404).json({success:false,message:"Wallpaper not found"});
+            }
+
+            const admin = isAdminUser(authenticatedUser);
+            const userUID = String(authenticatedUser.id || "").trim();
+            const ownerUID = String(existing.ownerUID || existing.userId || "").trim();
+
+            if(!admin && (!ownerUID || ownerUID !== userUID)){
+                return res.status(403).json({
+                    success:false,
+                    message:"غير مصرح: لا يمكنك تعديل خلفية مستخدم آخر"
+                });
+            }
+
+            const body = req.body || {};
             const map = {
                 title:"title", thumbnail:"thumbnail", image:"image",
                 resolution:"resolution", size:"size",
-                rating:"rating", ratingCount:"rating_count", ratingSum:"rating_sum",
-                author:"author", date:"date", colors:"colors", tags:"tags", featured:"featured",
-                todayWallpaper:"today_wallpaper", popular:"popular", type:"type", animated:"animated"
+                author:"author", date:"date", colors:"colors", tags:"tags",
+                featured:"featured", todayWallpaper:"today_wallpaper",
+                popular:"popular", type:"type", animated:"animated"
             };
 
-            // هذه الحقول لا تُقبل من PUT العام للعملاء العاديين.
-            // category لها endpoint أدمن مستقل، والإحصائيات لها endpoints مستقلة.
             if(admin){
                 map.category = "category";
                 map.downloads = "downloads";
                 map.likes = "likes";
                 map.views = "views";
+                map.rating = "rating";
+                map.ratingCount = "rating_count";
+                map.ratingSum = "rating_sum";
             }
 
             const updates = {};
@@ -2416,12 +2441,7 @@ app.put(
             if(updates.tags !== undefined && !Array.isArray(updates.tags)) delete updates.tags;
 
             if(Object.keys(updates).length === 0){
-                return res.status(400).json({
-                    success:false,
-                    message: admin
-                        ? "No valid fields"
-                        : "No editable fields. Category and statistics use dedicated endpoints."
-                });
+                return res.status(400).json({success:false,message:"No editable fields"});
             }
 
             const { data, error } = await supabase
@@ -2432,15 +2452,16 @@ app.put(
                 .maybeSingle();
 
             if(error) throw error;
-            if(!data) return res.status(404).json({ success:false });
+            if(!data) return res.status(404).json({success:false,message:"Wallpaper not found"});
 
-            res.json({ success:true, wallpaper:wallpaperFromDb(data) });
+            return res.json({success:true,wallpaper:wallpaperFromDb(data)});
         }catch(error){
             console.log("UPDATE WALLPAPER ERROR:", error);
-            res.status(500).json({ success:false, message:error.message });
+            return res.status(500).json({success:false,message:"Internal server error"});
         }
     }
 );
+
 
 // ======================================
 // Admin-only Wallpaper Delete
@@ -3510,6 +3531,23 @@ app.post(
                 });
             }
 
+            const authenticatedUser = await getAuthenticatedUser(req);
+            if(!authenticatedUser){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول لتحليل الخلفية"
+                });
+            }
+
+            const requesterUID = String(authenticatedUser.id || "").trim();
+            const ownerUID = String(wall.ownerUID || wall.userId || "").trim();
+            if(!isAdminUser(authenticatedUser) && (!ownerUID || ownerUID !== requesterUID)){
+                return res.status(403).json({
+                    success:false,
+                    message:"غير مصرح: تحليل هذه الخلفية متاح لصاحبها أو الأدمن فقط"
+                });
+            }
+
             if(!wall.image){
                 return res.status(400).json({
                     success:false,
@@ -4328,7 +4366,8 @@ app.post(
 async (req,res)=>{
 
 try{
-
+            const admin = await requireAdmin(req, res);
+            if(!admin) return;
 
 const newAnnouncement = {
 
@@ -4425,7 +4464,8 @@ async (req,res)=>{
 
 
 try{
-
+            const admin = await requireAdmin(req, res);
+            if(!admin) return;
 
 const { data, error } =
 await supabase
@@ -4482,7 +4522,8 @@ async (req,res)=>{
 
 
 try{
-
+            const admin = await requireAdmin(req, res);
+            if(!admin) return;
 
 const id =
 Number(req.params.id);
@@ -4588,7 +4629,8 @@ app.put(
     "/api/admin/notifications/:id",
     async(req,res)=>{
         try{
-            const id = Number(req.params.id);
+            const admin = await requireAdmin(req, res);
+            if(!admin) return;            const id = Number(req.params.id);
             const updates = {};
             if(req.body.title !== undefined) updates.title = req.body.title;
             if(req.body.content !== undefined) updates.content = req.body.content;
@@ -4626,6 +4668,29 @@ app.patch(
     async (req, res) => {
         try {
             const wallpaperId = Number(req.params.id);
+
+            const authenticatedUser = await getAuthenticatedUser(req);
+            if(!authenticatedUser){
+                return res.status(401).json({
+                    success:false,
+                    message:"يجب تسجيل الدخول لتعديل ألوان الخلفية"
+                });
+            }
+
+            const existingWallpaper = await getWallpaperFromSupabase(wallpaperId);
+            if(!existingWallpaper){
+                return res.status(404).json({success:false,message:"Wallpaper not found"});
+            }
+
+            const requesterUID = String(authenticatedUser.id || "").trim();
+            const ownerUID = String(existingWallpaper.ownerUID || existingWallpaper.userId || "").trim();
+            if(!isAdminUser(authenticatedUser) && (!ownerUID || ownerUID !== requesterUID)){
+                return res.status(403).json({
+                    success:false,
+                    message:"غير مصرح: لا يمكنك تعديل ألوان خلفية مستخدم آخر"
+                });
+            }
+
             const colors = Array.isArray(req.body.colors)
                 ? req.body.colors
                     .filter(color => typeof color === "string")
