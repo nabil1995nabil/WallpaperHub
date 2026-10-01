@@ -162,6 +162,48 @@ async function loadTodayWallpaper() {
 }
 
 
+
+/* =========================================================
+   AI FAB — منقول حرفياً من ai-fab.js ومفعّل بعد حقن today.html
+========================================================= */
+function initTodayAiFab() {
+    const aiFab = document.getElementById("aiFab");
+
+    if (!aiFab || aiFab.dataset.bound === "true") return;
+
+    const currentPage =
+        window.location.pathname.split("/").pop().toLowerCase();
+
+    const hiddenFabPages = [
+        "login.html",
+        "register.html"
+    ];
+
+    if (hiddenFabPages.includes(currentPage)) {
+        aiFab.style.display = "none";
+        return;
+    }
+
+    const openAI = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        window.location.href = "ai.html";
+    };
+
+    aiFab.addEventListener("click", openAI);
+
+    aiFab.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            openAI(e);
+        }
+    });
+
+    aiFab.dataset.bound = "true";
+}
+
+
 /* =========================================================
    التشغيل التلقائي عند اكتمال تحميل الصفحة
 ========================================================= */
@@ -172,6 +214,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!loaded) {
         return;
     }
+
+    // ربط نفس AI FAB الأصلي بعد إدخال today.html في الصفحة
+    initTodayAiFab();
 
     await loadTodayWallpaper();
 });
