@@ -328,11 +328,9 @@ function normalizeWallpaperData(base = {}, row = {}) {
         row.date, row.created_at, row.createdAt, base.date
     ) ?? "";
 
-    merged.colors = normalizeAiColors(
-        Array.isArray(row.colors)
-            ? row.colors
-            : (Array.isArray(base.colors) ? base.colors : [])
-    );
+    merged.colors = Array.isArray(row.colors)
+        ? row.colors
+        : (Array.isArray(base.colors) ? base.colors : []);
 
     merged.tags = Array.isArray(row.tags)
         ? row.tags
@@ -2479,27 +2477,6 @@ alert(
 //تحليل صورة بي دكاء الاصطناعي 
 //=}===
 
-
-function normalizeHexColor(value){
-    if(typeof value !== "string") return "";
-    const raw = value.trim();
-    const match = raw.match(/^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/);
-    if(!match) return "";
-    const hex = match[1];
-    return "#" + (hex.length === 3
-        ? hex.split("").map(ch => ch + ch).join("")
-        : hex).toUpperCase();
-}
-
-function normalizeAiColors(value){
-    if(!Array.isArray(value)) return [];
-    return [...new Set(value.map(item => normalizeHexColor(
-        typeof item === "string"
-            ? item
-            : (item?.hex || item?.color || item?.value || "")
-    )).filter(Boolean))].slice(0, 8);
-}
-
 function updateWallpaperAnalysisUI(){
     if(!currentWallpaper) return;
 
@@ -2556,9 +2533,11 @@ async function autoAnalyzeWallpaper(){
         Array.isArray(currentWallpaper.tags) &&
         currentWallpaper.tags.length > 0;
 
-    if(hasAiVisualData || currentWallpaper.aiDescription){
+    if(currentWallpaper.aiDescription &&
+       (currentWallpaper.source || currentWallpaper.location || currentWallpaper.captureDate) &&
+       hasAiVisualData) {
         updateWallpaperAnalysisUI();
-        if(hasAiVisualData) return;
+        return;
     }
 
     try{
@@ -2637,16 +2616,12 @@ async function autoAnalyzeWallpaper(){
         }
 
         // نتائج Gemini البصرية: الألوان والوسوم.
-        const aiColors = normalizeAiColors(data.colors);
-        if(aiColors.length){
-            currentWallpaper.colors = aiColors;
+        if(Array.isArray(data.colors) && data.colors.length){
+            currentWallpaper.colors = data.colors;
         }
 
         if(Array.isArray(data.tags) && data.tags.length){
-            currentWallpaper.tags = data.tags
-                .map(tag => String(tag || "").trim())
-                .filter(Boolean)
-                .slice(0, 20);
+            currentWallpaper.tags = data.tags;
         }
 
         // معلومات الكاميرا إن كانت متوفرة من EXIF.
@@ -2996,96 +2971,326 @@ function insertOwnerMention(){
 }
 
 // ===============================
-// LOAD COMMENTS
+// COMMENTS SYSTEM - THREADS / REPLIES PRO
 // ===============================
+
 let allComments = [];
 let showAllComments = false;
+const expandedReplyThreads = new Set();
+let replyingToComment = null;
+
+function ensureReplyBar(){
+    if(!commentInput) return null;
+
+    let bar = document.getElementById("replyingToBar");
+
+    if(!bar){
+        bar = document.createElement("div");
+        bar.id = "replyingToBar";
+        bar.className = "replying-to-bar";
+        bar.hidden = true;
+
+        const inputBox =
+            commentInput.closest(".add-comment-box") ||
+            commentInput.parentElement;
+
+        if(inputBox){
+            inputBox.insertBefore(bar, inputBox.firstChild);
+        }
+    }
+
+    return bar;
+}
+
+function clearReplyTarget(){
+    replyingToComment = null;
+
+    const bar = document.getElementById("replyingToBar");
+
+    if(bar){
+        bar.hidden = true;
+        bar.innerHTML = "";
+    }
+
+    if(commentInput){
+        commentInput.focus();
+    }
+}
+
+function setReplyTarget(comment){
+    if(!comment) return;
+
+    // الردود ترتبط بالتعليق الرئيسي، وليس برد داخل رد.
+    const rootId = Number(comment.parentId || comment.id);
+
+    const rootComment =
+        allComments.find(item => Number(item.id) === rootId) ||
+        comment;
+
+    replyingToComment = {
+        id: rootId,
+        user: rootComment.user || comment.user || "مستخدم"
+    };
+
+    const bar = ensureReplyBar();
+
+    if(bar){
+        bar.innerHTML = `
+            <span class="material-icons">reply</span>
+            <span>الرد على <strong>${escapeHtml(replyingToComment.user)}</strong></span>
+            <button type="button" class="cancel-reply-btn" aria-label="إلغاء الرد">
+                <span class="material-icons">close</span>
+            </button>
+        `;
+
+        bar.hidden = false;
+
+        const cancel = bar.querySelector(".cancel-reply-btn");
+        if(cancel){
+            cancel.onclick = clearReplyTarget;
+        }
+    }
+
+    if(commentInput){
+        commentInput.focus();
+    }
+}
+
+function getReplyList(parentId){
+    const id = Number(parentId);
+
+    return allComments.filter(comment =>
+        Number(comment.parentId || 0) === id
+    );
+}
+
+function createCommentCard(comment, isReply = false){
+    const box = document.createElement("div");
+
+    box.className =
+        isReply
+        ? "comment-card comment-reply-card"
+        : "comment-card";
+
+    const avatarHtml = comment.avatar
+        ? `<img src="${escapeHtml(comment.avatar)}" alt="">`
+        : `<span class="material-icons">account_circle</span>`;
+
+    const authorLink = comment.userId
+        ? `<a href="profile.html?uid=${encodeURIComponent(comment.userId)}" class="comment-author-link">${escapeHtml(comment.user || "مستخدم")}</a>`
+        : escapeHtml(comment.user || "مستخدم");
+
+    const replies = isReply ? [] : getReplyList(comment.id);
+
+    box.innerHTML = `
+        <div class="user-avatar">${avatarHtml}</div>
+
+        <div class="comment-content">
+
+            <div class="comment-header">
+                <div>
+                    <div class="comment-author">
+                        ${authorLink}
+                    </div>
+
+                    <span class="comment-email">
+                        ${escapeHtml(comment.email || "غير مسجل")}
+                    </span>
+                </div>
+
+                ${isReply ? `<span class="reply-label">رد</span>` : ""}
+            </div>
+
+            <div class="comment-text">
+                ${formatCommentText(
+                    comment.text || "",
+                    comment.mentionedUserId,
+                    comment.mentionedName
+                )}
+            </div>
+
+            <div class="comment-footer">
+
+                <div class="comment-date">
+                    ⏱ ${escapeHtml(comment.date || "")}
+                    ${escapeHtml(comment.time || "")}
+                </div>
+
+                <div class="comment-actions">
+
+                    <button
+                        class="comment-action-btn reply-comment-btn"
+                        type="button">
+                        <span class="material-icons">reply</span>
+                        رد
+                    </button>
+
+                    <button
+                        class="comment-like"
+                        type="button">
+                        ❤️ ${Number(comment.likes || 0)}
+                    </button>
+
+                    <button
+                        class="comment-action-btn copy-comment-btn"
+                        type="button"
+                        title="نسخ التعليق">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+
+                </div>
+            </div>
+
+            ${
+                !isReply && replies.length
+                ? `
+                    <button
+                        type="button"
+                        class="toggle-replies-btn"
+                        data-comment-id="${Number(comment.id)}">
+                        <span class="material-icons">forum</span>
+                        <span class="toggle-replies-text">
+                            ${expandedReplyThreads.has(Number(comment.id))
+                                ? "إخفاء الردود"
+                                : `عرض ${replies.length} ${replies.length === 1 ? "رد" : "ردود"}`
+                            }
+                        </span>
+                        <span class="material-icons toggle-replies-icon">
+                            ${expandedReplyThreads.has(Number(comment.id))
+                                ? "expand_less"
+                                : "expand_more"
+                            }
+                        </span>
+                    </button>
+                `
+                : ""
+            }
+
+            ${
+                !isReply && replies.length && expandedReplyThreads.has(Number(comment.id))
+                ? `<div class="comment-replies"></div>`
+                : ""
+            }
+
+        </div>
+    `;
+
+    const replyBtn = box.querySelector(".reply-comment-btn");
+    if(replyBtn){
+        replyBtn.onclick = () => setReplyTarget(comment);
+    }
+
+    const likeBtn = box.querySelector(".comment-like");
+    if(likeBtn){
+        likeBtn.onclick = () => likeComment(Number(comment.id));
+    }
+
+    const copyBtn = box.querySelector(".copy-comment-btn");
+    if(copyBtn){
+        copyBtn.onclick = async () => {
+            try{
+                await navigator.clipboard.writeText(String(comment.text || ""));
+                copyBtn.innerHTML =
+                    '<span class="material-icons">check</span>';
+                setTimeout(() => {
+                    copyBtn.innerHTML =
+                        '<span class="material-icons">content_copy</span>';
+                }, 1200);
+            }catch(error){
+                console.log("COPY COMMENT ERROR", error);
+            }
+        };
+    }
+
+    const toggleBtn = box.querySelector(".toggle-replies-btn");
+    if(toggleBtn){
+        toggleBtn.onclick = () => {
+            const id = Number(comment.id);
+
+            if(expandedReplyThreads.has(id)){
+                expandedReplyThreads.delete(id);
+            }else{
+                expandedReplyThreads.add(id);
+            }
+
+            loadComments();
+        };
+    }
+
+    if(!isReply && replies.length && expandedReplyThreads.has(Number(comment.id))){
+        const replyContainer = box.querySelector(".comment-replies");
+
+        if(replyContainer){
+            replies.forEach(reply => {
+                replyContainer.appendChild(createCommentCard(reply, true));
+            });
+        }
+    }
+
+    return box;
+}
 
 async function loadComments(){
     if(!currentWallpaper || !commentsContainer) return;
 
     try{
-        const res = await fetch(`${API}/${currentWallpaper.id}/comments`);
+        const res =
+            await fetch(`${API}/${currentWallpaper.id}/comments`, {
+                cache:"no-store"
+            });
+
         const comments = await res.json();
 
-        allComments = comments.slice().reverse();
+        allComments = Array.isArray(comments)
+            ? comments.slice()
+            : [];
+
         commentsContainer.innerHTML = "";
 
         if(commentsCountBadge){
-            commentsCountBadge.textContent = `${comments.length} تعليق`;
+            commentsCountBadge.textContent =
+                `${allComments.length} تعليق`;
         }
 
         if(allComments.length === 0){
             commentsContainer.innerHTML = `
-                <p class="no-comments">لا توجد تعليقات بعد، كن أول من يعلق!</p>
+                <p class="no-comments">
+                    لا توجد تعليقات بعد، كن أول من يعلق!
+                </p>
             `;
             return;
         }
 
+        const rootComments = allComments
+            .filter(comment => !comment.parentId)
+            .sort((a,b) => Number(b.id || 0) - Number(a.id || 0));
+
         const displayComments = showAllComments
-            ? allComments
-            : allComments.slice(0,2);
+            ? rootComments
+            : rootComments.slice(0,2);
 
-        displayComments.forEach(comment=>{
-            const box = document.createElement("div");
-            box.className = "comment-card";
-
-            const avatarHtml = comment.avatar
-                ? `<img src="${escapeHtml(comment.avatar)}" alt="">`
-                : `<span class="material-icons">account_circle</span>`;
-
-            // اسم الكاتب برابط بروفايل حقيقي إن توفر الـ UID
-            const authorLink = comment.userId 
-                ? `<a href="profile.html?uid=${encodeURIComponent(comment.userId)}" style="text-decoration:none; color:inherit; font-weight:bold;" class="comment-author-link">${escapeHtml(comment.user || "مستخدم")}</a>`
-                : escapeHtml(comment.user || "مستخدم");
-
-            box.innerHTML = `
-                <div class="user-avatar">${avatarHtml}</div>
-
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <div>
-                            <div class="comment-author">
-                                ${authorLink}
-                            </div>
-                            <span class="comment-email">
-                                ${escapeHtml(comment.email || "غير مسجل")}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="comment-text">
-                        ${formatCommentText(comment.text || "", comment.mentionedUserId, comment.mentionedName)}
-                    </div>
-
-                    <div class="comment-footer">
-                        <div class="comment-date">
-                            ⏱ ${escapeHtml(comment.date || "")}
-                            ${escapeHtml(comment.time || "")}
-                        </div>
-
-                        <button
-                            class="comment-like"
-                            onclick="likeComment(${Number(comment.id)})">
-                            ❤️ ${Number(comment.likes || 0)}
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            commentsContainer.appendChild(box);
+        displayComments.forEach(comment => {
+            commentsContainer.appendChild(
+                createCommentCard(comment, false)
+            );
         });
 
-        if(allComments.length > 2 && !showAllComments){
+        if(rootComments.length > 2 && !showAllComments){
             const btn = document.createElement("button");
             btn.className = "show-all-comments-btn";
-            btn.innerHTML = "⋯";
-            btn.onclick = ()=>{
+            btn.innerHTML = `
+                <span class="material-icons">expand_more</span>
+                عرض جميع التعليقات (${rootComments.length})
+            `;
+
+            btn.onclick = () => {
                 showAllComments = true;
                 loadComments();
             };
+
             commentsContainer.appendChild(btn);
         }
+
     }catch(error){
         console.log("LOAD COMMENTS ERROR", error);
     }
@@ -3127,6 +3332,7 @@ async function sendComment(){
                     userId,
                     likes:0,
                     likedBy:[],
+                    parentId: replyingToComment?.id || null,
                     mentionedUserId: mention?.userId || "",
                     mentionedName: mention?.name || "",
                     date:now.toLocaleDateString("ar-MA"),
@@ -3143,6 +3349,12 @@ async function sendComment(){
         if(data.success){
             commentInput.innerHTML = "";
             hideMentionSuggestions();
+            clearReplyTarget();
+
+            if(data.comment?.parentId){
+                expandedReplyThreads.add(Number(data.comment.parentId));
+            }
+
             loadComments();
         }else{
             console.error("SEND COMMENT FAILED:", data);

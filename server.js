@@ -599,7 +599,8 @@ function commentFromDb(row, mention = null){
         time: row.time ?? "",
         userId: row.userId ?? "",
         mentionedUserId: mention?.mentioned_user_id ?? row.mentionedUserId ?? "",
-        mentionedName: mention?.mentioned_name ?? row.mentionedName ?? ""
+        mentionedName: mention?.mentioned_name ?? row.mentionedName ?? "",
+        parentId: row.parentId ?? row.parent_id ?? null
     };
 }
 
@@ -608,6 +609,7 @@ function notificationTitle(type){
     if(type === "wallpaper_comment") return "تعليق جديد على خلفيتك 💬";
     if(type === "wallpaper_mention") return "أشار إليك في تعليق 💙";
     if(type === "comment_like") return "إعجاب بتعليقك ❤️";
+    if(type === "comment_reply") return "رد على تعليقك 💬";
     if(type === "new_wallpaper") return "خلفية جديدة منشورة 🖼️";
     return "إشعار جديد";
 }
@@ -4066,6 +4068,54 @@ app.post(
             }
 
             // ======================================
+            // الرد على تعليق
+            // parentId اختياري، والردود تبقى على مستوى واحد
+            // حتى تبقى واجهة الهاتف مرتبة وسهلة القراءة.
+            // ======================================
+            let parentId = req.body.parentId || null;
+
+            if(parentId !== null && parentId !== ""){
+                parentId = Number(parentId);
+
+                if(!Number.isFinite(parentId) || parentId <= 0){
+                    return res.status(400).json({
+                        success:false,
+                        message:"Invalid parent comment"
+                    });
+                }
+
+                const { data: parentComment, error: parentError } =
+                    await supabase
+                        .from("comments")
+                        .select("id, wallpaperId, parentId, userId, user")
+                        .eq("id", parentId)
+                        .maybeSingle();
+
+                if(parentError) throw parentError;
+
+                if(!parentComment){
+                    return res.status(404).json({
+                        success:false,
+                        message:"التعليق الأصلي غير موجود"
+                    });
+                }
+
+                if(String(parentComment.wallpaperId) !== String(wallpaperId)){
+                    return res.status(400).json({
+                        success:false,
+                        message:"لا يمكن الرد على تعليق من خلفية أخرى"
+                    });
+                }
+
+                // إذا حاول الرد على رد، نربطه بالتعليق الأصلي.
+                if(parentComment.parentId){
+                    parentId = Number(parentComment.parentId);
+                }
+            }else{
+                parentId = null;
+            }
+
+            // ======================================
             // هوية صاحب التعليق الحقيقية
             // لا نثق في UID/الاسم المرسل من المتصفح.
             // ======================================
@@ -4146,6 +4196,7 @@ app.post(
                 email: commenterEmail,
                 avatar: commenterAvatar,
                 userId: commenterUID,
+                parentId,
                 text,
                 likes: 0,
                 likedBy: [],
@@ -4169,6 +4220,42 @@ app.post(
 
             if (error) {
                 throw error;
+            }
+
+            // ======================================
+            // إشعار الرد على تعليق
+            // ======================================
+            if(
+                parentId &&
+                commenterUID
+            ){
+                const { data: parentForNotify, error: parentNotifyError } =
+                    await supabase
+                        .from("comments")
+                        .select("id, userId, user")
+                        .eq("id", parentId)
+                        .maybeSingle();
+
+                if(parentNotifyError){
+                    console.log("GET PARENT COMMENT ERROR:", parentNotifyError.message);
+                }
+
+                const parentOwnerUID =
+                    String(parentForNotify?.userId || "").trim();
+
+                if(
+                    parentOwnerUID &&
+                    parentOwnerUID !== commenterUID
+                ){
+                    await createNotification({
+                        recipientUID: parentOwnerUID,
+                        fromUser: commenterUID,
+                        type: "comment_reply",
+                        wallpaperId,
+                        commentId: data.id,
+                        message: `${commenterName} رد على تعليقك`
+                    });
+                }
             }
 
             const isValidMention =
@@ -5934,46 +6021,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-
-
-// =======================================
-// WallpaperHub - Automatic App Version
-// =======================================
-app.get("/api/version", (req, res) => {
-    try{
-        const deploymentId =
-            process.env.VERCEL_DEPLOYMENT_ID ||
-            process.env.VERCEL_GIT_COMMIT_SHA ||
-            "";
-
-        const deployedAt =
-            process.env.VERCEL_DEPLOYMENT_CREATED_AT ||
-            new Date().toISOString();
-
-        // إصدار زمني: يتغير تلقائيًا مع كل يوم نشر جديد،
-        // مع رقم بناء قصير من Deployment/Commit عند توفره.
-        const date = new Date(deployedAt);
-        const validDate = !Number.isNaN(date.getTime());
-
-        const baseVersion = validDate
-            ? `v${date.getUTCFullYear()}.${String(date.getUTCMonth()+1).padStart(2,"0")}.${String(date.getUTCDate()).padStart(2,"0")}`
-            : "v1.0.0";
-
-        const build = String(deploymentId || "").replace(/[^a-zA-Z0-9]/g,"").slice(-6);
-
-        res.set("Cache-Control","no-store, max-age=0");
-        return res.json({
-            success:true,
-            version: build ? `${baseVersion}+${build}` : baseVersion,
-            deployedAt: validDate ? date.toISOString() : null,
-            build: build || null
-        });
-    }catch(error){
-        console.error("VERSION API ERROR:", error);
-        return res.status(500).json({
-            success:false,
-            version:"v1.0.0"
-        });
-    }
-});
-
