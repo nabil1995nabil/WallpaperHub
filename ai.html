@@ -3,81 +3,161 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WallpaperHub AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#07100d">
+    <title>المساعد الذكي - WallpaperHub</title>
 
     <link rel="stylesheet" href="ai.css">
     <link rel="stylesheet" href="css/theme.css">
+
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
-    <div class="ai-bg"></div>
+<div class="ai-bg"></div>
+<div class="ambient-orb orb-one"></div>
+<div class="ambient-orb orb-two"></div>
 
-    <div class="ai-page">
+<div class="ai-page">
 
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <button id="closeSidebar">✕</button>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                <span class="material-icons">history</span>
                 <h3>المحادثات</h3>
             </div>
-            <button class="new-chat" id="newChat">+ محادثة جديدة</button>
-            <div id="chatHistory"></div>
+            <button id="closeSidebar" class="icon-btn" aria-label="إغلاق">
+                <span class="material-icons">close</span>
+            </button>
         </div>
 
-        <!-- Main -->
-        <div class="chat-main">
+        <button class="new-chat" id="newChat">
+            <span class="material-icons">add</span>
+            محادثة جديدة
+        </button>
 
-<!-- Header موحد ونظيف -->
-<header class="top-bar">
+        <div class="history-label">سجل المحادثات</div>
+        <div id="chatHistory" class="chat-history"></div>
 
-    <button class="menu-btn" id="menuBtn">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <div class="model-selector">
-        <button id="modelBtn">Gemini 🧠</button>
-        <div class="model-menu" id="modelMenu">
-            <div data-model="gemini">🧠 Gemini</div>
-            <div data-model="pollinations">🎨 Pollinations (مجاني)</div>
+        <div class="sidebar-footer">
+            <span class="status-dot"></span>
+            المساعد متاح الآن
         </div>
-    </div>
+    </aside>
 
-</header>
+    <!-- Main -->
+    <main class="chat-main">
 
-<!-- منطقة المحادثة -->
-<div class="chat-container" id="chatContainer">
-    <div class="welcome-screen">
-        <h1 id="welcomeText">كيف يمكنني مساعدتك</h1>
-    </div>
-</div>
-
-
-            <!-- صندوق الكتابة السفلي -->
-            <div class="chat-input">
-                <button id="imageBtn" class="input-btn">
-                    <span class="material-icons">image</span>
-                </button>
-                <input type="file" id="imageInput" accept="image/*" hidden>
-
-                <input type="text" id="userInput" placeholder="بماذا تفكر..." autocomplete="off">
-
-                <button id="sendBtn" class="send-btn">
-                    <span class="material-icons">send</span>
-                </button>
+        <header class="top-bar">
+            <div class="brand-area">
+                <div class="brand-mark">
+                    <span class="material-icons">auto_awesome</span>
+                </div>
+                <div class="brand-copy">
+                    <strong>المساعد الذكي</strong>
+                    <span>يفهمك ويساعدك في لحظتك</span>
+                </div>
             </div>
 
-        </div> <!-- إغلاق chat-main -->
+            <div class="top-actions">
+                <button class="header-action" id="menuBtn" aria-label="المحادثات">
+                    <span class="material-icons">menu</span>
+                </button>
+            </div>
+        </header>
 
-    </div> <!-- إغلاق ai-page -->
+        <section class="chat-container" id="chatContainer">
 
-    <script src="ai-fab.js"></script>
-    <script src="ai.js"></script>
-    <script src="js/performance-engine.js"></script>
-    <script src="theme.js"></script>
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-orbit">
+                    <div class="welcome-core">
+                        <span class="material-icons">auto_awesome</span>
+                    </div>
+                    <span class="orbit-dot dot-a"></span>
+                    <span class="orbit-dot dot-b"></span>
+                    <span class="orbit-dot dot-c"></span>
+                </div>
+
+                <div class="welcome-badge">
+                    <span class="status-dot"></span>
+                    جاهز للمساعدة
+                </div>
+
+                <h1 id="welcomeText">صباح الخير</h1>
+
+                <p class="welcome-subtitle">
+                    اسأل، ارفع صورة، أو اطلب فكرة جديدة.
+                    <br>
+                    سأساعدك على تحويل فكرتك إلى نتيجة واضحة.
+                </p>
+
+                <div class="suggestions">
+                    <button class="chip" type="button">
+                        <span class="material-icons">wallpaper</span>
+                        اقترح لي خلفية
+                    </button>
+                    <button class="chip" type="button">
+                        <span class="material-icons">palette</span>
+                        اختر ألوانًا جميلة
+                    </button>
+                    <button class="chip" type="button">
+                        <span class="material-icons">lightbulb</span>
+                        أعطني فكرة
+                    </button>
+                    <button class="chip" type="button">
+                        <span class="material-icons">image_search</span>
+                        حلل صورة
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Composer -->
+        <div class="composer-wrap">
+            <div class="composer" id="chatInputBox">
+
+                <div class="composer-tools">
+                    <button id="imageBtn" class="input-btn" type="button" aria-label="إرفاق صورة">
+                        <span class="material-icons">add_photo_alternate</span>
+                    </button>
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                </div>
+
+                <div class="composer-field">
+                    <input
+                        type="text"
+                        id="userInput"
+                        placeholder="اكتب رسالتك هنا..."
+                        autocomplete="off"
+                        enterkeyhint="send"
+                        aria-label="رسالتك"
+                    >
+                    <span class="composer-hint">Enter للإرسال</span>
+                </div>
+
+                <button id="sendBtn" class="send-btn" type="button" aria-label="إرسال">
+                    <span class="material-icons">arrow_upward</span>
+                </button>
+
+            </div>
+
+            <div class="composer-note">
+                <span class="material-icons">lock</span>
+                محادثتك محفوظة على جهازك ويمكنك حذفها من سجل المحادثات
+            </div>
+        </div>
+
+    </main>
+
+</div>
+
+<script src="ai-fab.js"></script>
+<script src="ai.js"></script>
+<script src="js/performance-engine.js"></script>
+<script src="theme.js"></script>
 
 </body>
 </html>

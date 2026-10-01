@@ -83,56 +83,13 @@ document.addEventListener("click", (e) => {
 
 
 // ===============================
-// Model Selector
+// AI Engine
+// ===============================
+// The visible UI intentionally has no provider/model branding.
+// Text conversations continue through the existing /api/chat endpoint.
 // ===============================
 
-const modelBtn = document.getElementById("modelBtn");
-const modelMenu = document.getElementById("modelMenu");
-
-let currentModel = localStorage.getItem("selectedModel") || "gemini";
-
-function updateModelBtn() {
-    if (!modelBtn) return;
-    if (currentModel === "pollinations") {
-        modelBtn.textContent = "Pollinations 🎨";
-    } else {
-        modelBtn.textContent = "Gemini 🧠";
-    }
-}
-
-if (modelBtn && modelMenu) {
-
-    updateModelBtn();
-
-    // بناء خيارات القائمة
-    modelMenu.innerHTML = `
-        <div data-model="gemini">🧠 Gemini</div>
-        <div data-model="pollinations">🎨 Pollinations (مجاني)</div>
-    `;
-
-    // فتح/إغلاق القائمة
-    modelBtn.onclick = (e) => {
-        e.stopPropagation();
-        modelMenu.classList.toggle("active");
-    };
-
-    // إغلاق عند الضغط خارجاً
-    document.addEventListener("click", () => {
-        modelMenu.classList.remove("active");
-    });
-
-    // اختيار نموذج
-    modelMenu.querySelectorAll("div").forEach(option => {
-        option.onclick = (e) => {
-            e.stopPropagation();
-            currentModel = option.dataset.model;
-            localStorage.setItem("selectedModel", currentModel);
-            updateModelBtn();
-            modelMenu.classList.remove("active");
-        };
-    });
-}
-
+const currentModel = "gemini";
 
 // ===============================
 // Save Chats
@@ -575,179 +532,83 @@ save=true
 
 function formatMessage(text){
 
+    const imageRegex = /(https?:\/\/[^\s<>"']+)/i;
+    const match = String(text || "").match(imageRegex);
 
+    if(match){
 
+        const imageUrl = match[0].replace(/[),.]+$/,"");
+        const cleanText = String(text || "").replace(match[0],"").trim();
 
+        const safeUrl = encodeURI(imageUrl);
 
-// ===============================
-// Image Detection
-// ===============================
+        return `
+            ${cleanText ? `<div class="ai-text">${escapeHtml(cleanText)}</div>` : ""}
 
+            <div class="ai-image-card" data-image-url="${escapeHtml(safeUrl)}">
 
-const imageRegex =
-/(https?:\/\/[^\s]+)/i;
+                <div class="ai-image-media">
+                    <img
+                        src="${safeUrl}"
+                        loading="lazy"
+                        decoding="async"
+                        alt="صورة مولدة"
+                        onclick="openImage(this.src)"
+                        onerror="this.closest('.ai-image-card').classList.add('image-error')"
+                    >
 
+                    <div class="ai-image-overlay">
+                        <button
+                            class="image-action"
+                            type="button"
+                            title="فتح الصورة"
+                            onclick="event.stopPropagation();openImage(this.closest('.ai-image-card').dataset.imageUrl)">
+                            <span class="material-icons">fullscreen</span>
+                        </button>
 
+                        <button
+                            class="image-action"
+                            type="button"
+                            title="تحميل"
+                            onclick="event.stopPropagation();downloadImage(this.closest('.ai-image-card').dataset.imageUrl)">
+                            <span class="material-icons">download</span>
+                        </button>
 
+                        <button
+                            class="image-action"
+                            type="button"
+                            title="مشاركة"
+                            onclick="event.stopPropagation();shareImage(this.closest('.ai-image-card').dataset.imageUrl)">
+                            <span class="material-icons">share</span>
+                        </button>
+                    </div>
+                </div>
 
-if(imageRegex.test(text)){
+                <div class="ai-image-caption">
+                    صورة جاهزة — اضغط عليها لعرضها بالحجم الكامل
+                </div>
 
+            </div>
+        `;
+    }
 
+    return String(text || "").replace(
+        /```(\w+)?\n([\s\S]*?)```/g,
+        (_,lang="",code)=>{
+            const id = "code" + Math.random().toString(36).slice(2);
 
-    const imageUrl =
-    text.match(imageRegex)[0];
-
-
-
-    const cleanText =
-    text.replace(
-        imageUrl,
-        ""
-    );
-
-
-
-    return `
-
-
-    <div class="ai-text">
-
-        ${cleanText}
-
-    </div>
-
-
-
-    <div class="ai-image-card">
-
-
-        <img
-
-        src="${imageUrl}"
-
-        loading="lazy"
-
-        onclick="openImage(this.src)"
-
-        >
-
-
-
-    </div>
-
-
-
-    `;
-
-
+            return `
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>${escapeHtml(lang || "Code")}</span>
+                        <button class="copy-btn" onclick="copyCode('${id}')">نسخ</button>
+                    </div>
+                    <pre><code id="${id}">${escapeHtml(code)}</code></pre>
+                </div>
+            `;
+        }
+    ).replace(/\n/g,"<br>");
 }
-
-
-
-
-
-
-
-
-// ===============================
-// Code Block
-// ===============================
-
-
-return text.replace(
-
-
-/```(\w+)?\n([\s\S]*?)```/g,
-
-
-(_,lang="",code)=>{
-
-
-
-const id =
-"code"+Math.random()
-.toString(36)
-.slice(2);
-
-
-
-
-
-return `
-
-
-<div class="code-block">
-
-
-
-<div class="code-header">
-
-
-<span>
-
-${lang || "Code"}
-
-</span>
-
-
-
-
-<button class="copy-btn"
-
-onclick="copyCode('${id}')">
-
-
-نسخ
-
-
-</button>
-
-
-
-</div>
-
-
-
-
-
-<pre>
-
-
-<code id="${id}">
-
-
-${escapeHtml(code)}
-
-
-</code>
-
-
-</pre>
-
-
-
-</div>
-
-
-`;
-
-
-
-}
-
-
-
-);
-
-
-
-}
-
-
-
-
-
-
 
 
 
@@ -947,60 +808,86 @@ code.innerText
 
 
 // ===============================
-// Image Viewer
+// Image Viewer - Pro
 // ===============================
 
+window.openImage = function(src){
 
-window.openImage=function(src){
+    if(!src) return;
 
+    const viewer = document.createElement("div");
+    viewer.className = "image-viewer";
 
+    viewer.innerHTML = `
+        <button class="viewer-close" type="button" aria-label="إغلاق">
+            <span class="material-icons">close</span>
+        </button>
 
-const viewer =
-document.createElement(
-"div"
-);
+        <button class="viewer-download" type="button" aria-label="تحميل">
+            <span class="material-icons">download</span>
+        </button>
 
+        <img src="${escapeHtml(src)}" alt="عرض الصورة">
 
+    `;
 
+    const close = () => viewer.remove();
 
-viewer.className =
-"image-viewer";
+    viewer.querySelector(".viewer-close").onclick = (e) => {
+        e.stopPropagation();
+        close();
+    };
 
+    viewer.querySelector(".viewer-download").onclick = (e) => {
+        e.stopPropagation();
+        downloadImage(src);
+    };
 
+    viewer.querySelector("img").onclick = (e) => e.stopPropagation();
 
+    viewer.onclick = close;
 
-
-viewer.innerHTML = `
-
-
-<img src="${src}">
-
-
-`;
-
-
-
-
-
-viewer.onclick=()=>{
-
-
-viewer.remove();
-
-
-
+    document.body.appendChild(viewer);
 };
 
+window.downloadImage = async function(src){
 
+    try{
+        const response = await fetch(src);
+        const blob = await response.blob();
 
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
 
+        a.href = url;
+        a.download = "WallpaperHub-image.jpg";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
 
-document.body.appendChild(
-viewer
-);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
 
+    }catch(error){
+        window.open(src,"_blank","noopener,noreferrer");
+    }
+};
 
+window.shareImage = async function(src){
 
+    try{
+        if(navigator.share){
+            await navigator.share({
+                title:"WallpaperHub",
+                text:"صورة من WallpaperHub",
+                url:src
+            });
+        }else if(navigator.clipboard){
+            await navigator.clipboard.writeText(src);
+            alert("تم نسخ رابط الصورة");
+        }
+    }catch(error){
+        console.log("Share cancelled");
+    }
 };
 
 // ===============================
@@ -1245,15 +1132,8 @@ if(isImageRequest){
 
         removeTyping(typing);
 
-        if(currentModel === "gemini"){
-            addMessage(
-                "💡 Gemini للمحادثة — استخدمت Pollinations لتوليد الصورة",
-                "ai"
-            );
-        }
-
         addMessage(
-            "🖼️ تم إنشاء صورتك بنجاح",
+            "🖼️ تم إنشاء الصورة بنجاح",
             "ai"
         );
 
