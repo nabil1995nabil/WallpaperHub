@@ -1,587 +1,235 @@
-// =================================
-// WallpaperHub Settings JS
-// =================================
-
-
-const defaultSettings = {
-
+// WallpaperHub Settings — Pro
+const DEFAULT_SETTINGS = {
     darkMode:false,
-
     animations:true,
-
-    appColor:true,
-
-    glassCards:false,
-
-
     videos:true,
-
     highQuality:true,
-
     fullscreen:true,
-
     autoUpdate:true,
-
     wifiOnly:false,
-
-
     notifications:true,
-
     ratingsNotify:true,
-
     updatesNotify:true,
-
-
-    previewSave:true,
-
-    watermark:false,
-
-
-    ai:true,
-
-    smartAI:true,
-
-
+    notificationSound:true,
+    browserNotifications:false,
+    localActivity:true,
     systemUpdate:true
-
 };
 
+const STORAGE_KEY = "wallpaperSettings";
+const CARD_STYLE_KEY = "cardStyle";
 
-
-// تحميل الإعدادات
-
-let settings = JSON.parse(
-
-localStorage.getItem(
-"wallpaperSettings"
-)
-
-) || defaultSettings;
-
-
-
-
-// جميع المفاتيح
-
-const settingIds = Object.keys(
-defaultSettings
-);
-
-
-
-
-
-// ================================
-// ربط الأزرار
-// ================================
-
-
-settingIds.forEach(id=>{
-
-
-const input =
-
-document.getElementById(id);
-
-
-
-if(input){
-
-
-input.checked =
-
-settings[id];
-
-
-
-input.addEventListener(
-"change",
-
-()=>{
-
-
-settings[id] =
-
-input.checked;
-
-
-
-saveSettings();
-
-
-
-applySetting(id);
-
-
-
+function loadSettings(){
+    try{
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        return {...DEFAULT_SETTINGS, ...saved};
+    }catch{
+        return {...DEFAULT_SETTINGS};
+    }
 }
 
-);
+let settings = loadSettings();
 
-
-}
-
-
-});
-
-
-
-
-
-
-
-// ================================
-// حفظ
-// ================================
-
+const $ = id => document.getElementById(id);
 
 function saveSettings(){
-
-
-localStorage.setItem(
-
-"wallpaperSettings",
-
-JSON.stringify(settings)
-
-);
-
-
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    showSaved();
 }
 
-
-
-
-
-
-
-// ================================
-// تطبيق الإعدادات
-// ================================
-
-
-function applySetting(type){
-
-
-
-switch(type){
-
-
-
-case "darkMode":
-
-
-if(settings.darkMode){
-
-document.body.classList.add(
-"dark"
-);
-
-
-}else{
-
-
-document.body.classList.remove(
-"dark"
-);
-
-
+function showSaved(){
+    const el = $("saveIndicator");
+    if(!el) return;
+    el.innerHTML = `<span class="material-icons">cloud_done</span> محفوظ`;
+    el.classList.add("saved");
+    clearTimeout(showSaved.timer);
+    showSaved.timer = setTimeout(() => {
+        el.innerHTML = `<span class="material-icons">check</span> تم الحفظ`;
+    }, 900);
 }
 
-break;
-
-
-
-
-
-
-case "animations":
-
-
-
-if(settings.animations){
-
-
-document.body.classList.remove(
-"no-animation"
-);
-
-
-}else{
-
-
-document.body.classList.add(
-"no-animation"
-);
-
-
+function applySetting(key){
+    if(key === "darkMode"){
+        document.body.classList.toggle("dark", !!settings.darkMode);
+        localStorage.setItem("darkMode", String(!!settings.darkMode));
+    }
+    if(key === "animations"){
+        document.body.classList.toggle("no-animation", !settings.animations);
+    }
 }
 
-
-break;
-
-
-
-
-
-
-case "glassCards":
-
-
-
-document.body.classList.toggle(
-
-"glass-mode",
-
-settings.glassCards
-
-);
-
-
-break;
-
-
-
-
-
-
-case "appColor":
-
-
-console.log(
-"لون التطبيق:",
-settings.appColor
-);
-
-
-break;
-
-
-
-
-
-
-case "videos":
-
-
-console.log(
-"الخلفيات المتحركة:",
-settings.videos
-);
-
-
-break;
-
-
-
-
-
-
-case "highQuality":
-
-
-console.log(
-"الجودة:",
-settings.highQuality
-);
-
-
-break;
-
-
-
-
-
-
-case "notifications":
-
-
-console.log(
-"الإشعارات:",
-settings.notifications
-);
-
-
-break;
-
-
-
-
-
-
-case "ai":
-
-
-console.log(
-"AI:",
-settings.ai
-);
-
-
-break;
-
-
-
-
-
-default:
-
-
-console.log(
-
-type,
-
-settings[type]
-
-);
-
-
+function bindSettings(){
+    Object.keys(DEFAULT_SETTINGS).forEach(key => {
+        const input = $(key);
+        if(!input) return;
+
+        input.checked = !!settings[key];
+
+        input.addEventListener("change", async () => {
+            settings[key] = input.checked;
+            applySetting(key);
+            saveSettings();
+
+            if(key === "browserNotifications" && input.checked){
+                if(!("Notification" in window)){
+                    input.checked = false;
+                    settings.browserNotifications = false;
+                    saveSettings();
+                    alert("هذا المتصفح لا يدعم إشعارات النظام.");
+                    return;
+                }
+                const permission = await Notification.requestPermission();
+                if(permission !== "granted"){
+                    input.checked = false;
+                    settings.browserNotifications = false;
+                    saveSettings();
+                    alert("لم يتم السماح بإشعارات المتصفح.");
+                }
+            }
+        });
+    });
+
+    Object.keys(settings).forEach(applySetting);
 }
 
+function setupCardStyles(){
+    const btn = $("cardStyleBtn");
+    const menu = $("cardStyleMenu");
+    const value = $("cardStyleValue");
+    if(!btn || !menu) return;
 
+    let current = localStorage.getItem(CARD_STYLE_KEY) || "classic";
+    const names = {classic:"كلاسيكي",glass:"زجاجي",premium:"مميز"};
 
+    function render(){
+        value.textContent = names[current] || names.classic;
+        document.querySelectorAll(".style-option").forEach(option => {
+            option.classList.toggle("active", option.dataset.style === current);
+        });
+    }
 
+    btn.onclick = () => menu.classList.toggle("show");
+
+    document.querySelectorAll(".style-option").forEach(option => {
+        option.onclick = () => {
+            current = option.dataset.style;
+            localStorage.setItem(CARD_STYLE_KEY, current);
+            render();
+            menu.classList.remove("show");
+            showSaved();
+        };
+    });
+
+    render();
 }
 
+function setupSearch(){
+    const input = $("settingsSearch");
+    const clear = $("clearSettingsSearch");
+    const empty = $("settingsEmpty");
+    const sections = [...document.querySelectorAll(".settings-section")];
 
+    function filter(){
+        const q = input.value.trim().toLowerCase();
+        let visible = 0;
 
+        sections.forEach(section => {
+            const match = !q || section.dataset.sectionName.toLowerCase().includes(q) || section.textContent.toLowerCase().includes(q);
+            section.style.display = match ? "" : "none";
+            if(match) visible++;
+        });
 
+        clear.style.display = q ? "flex" : "none";
+        empty.hidden = visible !== 0;
+    }
 
-
-
-
-// ================================
-// تشغيل عند فتح الصفحة
-// ================================
-
-
-Object.keys(settings).forEach(
-
-key=>{
-
-
-applySetting(key);
-
-
-const input =
-
-document.getElementById(key);
-
-
-
-if(input){
-
-input.checked =
-
-settings[key];
-
+    input.addEventListener("input", filter);
+    clear.onclick = () => { input.value = ""; filter(); input.focus(); };
 }
 
+function setupTabs(){
+    document.querySelectorAll(".settings-tab").forEach(tab => {
+        tab.onclick = () => {
+            const target = $(tab.dataset.target);
+            if(!target) return;
 
+            document.querySelectorAll(".settings-tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            target.scrollIntoView({behavior:"smooth", block:"start"});
+        };
+    });
+
+    const sections = document.querySelectorAll(".settings-section");
+    const tabs = document.querySelectorAll(".settings-tab");
+
+    const observer = new IntersectionObserver(entries => {
+        const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if(!visible) return;
+        tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.target === visible.target.id));
+    }, {rootMargin:"-120px 0px -60% 0px", threshold:[0,.2,.5]});
+
+    sections.forEach(section => observer.observe(section));
 }
 
-);
-
-
-
-
-
-
-
-
-// ================================
-// أدوات الخصوصية
-// ================================
-
-
-// مسح البحث
-
-const clearSearchBtn =
-
-document.querySelector(
-".action-btn"
-);
-
-
-
-if(clearSearchBtn){
-
-
-clearSearchBtn.onclick=()=>{
-
-
-localStorage.removeItem(
-"searchHistory"
-);
-
-
-alert(
-"تم مسح سجل البحث"
-);
-
-
-};
-
-
+function downloadJSON(filename, data){
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 500);
 }
 
+function setupDataTools(){
+    $("exportSettings").onclick = () => {
+        downloadJSON("wallpaperhub-settings.json", {
+            exported_at:new Date().toISOString(),
+            settings,
+            cardStyle:localStorage.getItem(CARD_STYLE_KEY) || "classic"
+        });
+        showSaved();
+    };
 
+    $("exportActivity").onclick = () => {
+        const read = key => {
+            try{return JSON.parse(localStorage.getItem(key) || "[]");}
+            catch{return [];}
+        };
+        downloadJSON("wallpaperhub-activity-backup.json", {
+            exported_at:new Date().toISOString(),
+            favorites:read("favorites"),
+            downloads:read("downloads"),
+            views:read("views"),
+            likes:read("likes")
+        });
+    };
 
+    $("clearSearch").onclick = () => {
+        if(!confirm("هل تريد مسح سجل البحث من هذا الجهاز؟")) return;
+        localStorage.removeItem("searchHistory");
+        alert("تم مسح سجل البحث.");
+    };
 
+    $("clearFavorites").onclick = () => {
+        if(!confirm("سيتم حذف المفضلة المحلية من هذا المتصفح. هل تريد المتابعة؟")) return;
+        localStorage.removeItem("favorites");
+        alert("تم مسح المفضلة المحلية.");
+    };
 
-
-// مسح المفضلة
-
-
-const buttons =
-
-document.querySelectorAll(
-".action-btn"
-);
-
-
-
-if(buttons[1]){
-
-
-buttons[1].onclick=()=>{
-
-
-localStorage.removeItem(
-"favorites"
-);
-
-
-alert(
-"تم مسح المفضلة"
-);
-
-
-};
-
-
+    $("resetSettings").onclick = () => {
+        if(!confirm("سيتم إرجاع إعدادات WallpaperHub الافتراضية. هل تريد المتابعة؟")) return;
+        settings = {...DEFAULT_SETTINGS};
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+        localStorage.setItem(CARD_STYLE_KEY, "classic");
+        location.reload();
+    };
 }
 
-
-
-
-
-
-
-// إعادة ضبط
-
-
-if(buttons[2]){
-
-
-buttons[2].onclick=()=>{
-
-
-localStorage.removeItem(
-"wallpaperSettings"
-);
-
-
-
-location.reload();
-
-
-
-};
-
-
-}
-
-const cardStyleBtn =
-document.getElementById("cardStyleBtn");
-
-const cardStyleMenu =
-document.getElementById("cardStyleMenu");
-
-
-cardStyleBtn.onclick = ()=>{
-
-cardStyleMenu.classList.toggle("show");
-
-};
-
-
-
-let savedStyle =
-localStorage.getItem("cardStyle") || "classic";
-
-
-document.querySelectorAll(".style-option")
-.forEach(option=>{
-
-
-if(option.dataset.style === savedStyle){
-
-option.classList.add("active");
-
-option.querySelector("span").textContent="☑️";
-
-}
-
-
-option.onclick=()=>{
-
-
-document.querySelectorAll(".style-option")
-.forEach(o=>{
-
-o.classList.remove("active");
-
-o.querySelector("span").textContent="☐";
-
-});
-
-
-option.classList.add("active");
-
-option.querySelector("span").textContent="☑️";
-
-
-localStorage.setItem(
-"cardStyle",
-option.dataset.style
-);
-
-
-};
-
-
-});
-
-const savedDark =
-localStorage.getItem("darkMode");
-
-
-if(savedDark==="true"){
-    document.body.classList.add("dark");
-}
-
-
-const dark =
-document.getElementById("darkMode");
-
-
-if(dark){
-
-dark.onchange=()=>{
-
-document.body.classList.toggle(
-"dark",
-dark.checked
-);
-
-
-localStorage.setItem(
-"darkMode",
-dark.checked
-);
-
-
-};
-
-}
+bindSettings();
+setupCardStyles();
+setupSearch();
+setupTabs();
+setupDataTools();

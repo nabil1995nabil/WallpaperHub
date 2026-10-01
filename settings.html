@@ -1,482 +1,258 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>الإعدادات - WallpaperHub</title>
-
+<meta name="theme-color" content="#f6f8ff">
+<title>الإعدادات | WallpaperHub</title>
 <link rel="stylesheet" href="settings.css">
-
 <link rel="stylesheet" href="css/theme.css">
-
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-
 
 <body>
 
+<main class="settings-page">
 
-<div class="settings-page">
+    <header class="settings-header">
+        <div class="header-top">
+            <a class="back-btn" href="profile.html" aria-label="العودة">
+                <span class="material-icons">arrow_forward</span>
+            </a>
+            <div class="header-title">
+                <span class="header-icon material-icons">tune</span>
+                <div>
+                    <h1>الإعدادات</h1>
+                    <p>تحكم في تجربة WallpaperHub كما تحب</p>
+                </div>
+            </div>
+            <button id="saveIndicator" class="save-indicator" type="button">
+                <span class="material-icons">cloud_done</span>
+                محفوظ
+            </button>
+        </div>
 
+        <div class="settings-search-wrap">
+            <span class="material-icons">search</span>
+            <input id="settingsSearch" type="search" placeholder="ابحث داخل الإعدادات..." autocomplete="off">
+            <button id="clearSettingsSearch" type="button" aria-label="مسح البحث">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
 
+        <nav class="settings-tabs" aria-label="أقسام الإعدادات">
+            <button class="settings-tab active" data-target="appearance" type="button">
+                <span class="material-icons">palette</span> المظهر
+            </button>
+            <button class="settings-tab" data-target="wallpapers" type="button">
+                <span class="material-icons">wallpaper</span> الخلفيات
+            </button>
+            <button class="settings-tab" data-target="notifications" type="button">
+                <span class="material-icons">notifications</span> الإشعارات
+            </button>
+            <button class="settings-tab" data-target="privacy" type="button">
+                <span class="material-icons">security</span> الحساب
+            </button>
+            <button class="settings-tab" data-target="data" type="button">
+                <span class="material-icons">storage</span> البيانات
+            </button>
+        </nav>
+    </header>
 
-<header class="settings-header">
-
-<h1>⚙️ الإعدادات</h1>
-
-<p>تخصيص تجربة WallpaperHub</p>
-
-</header>
-
-
-
-
-
-<!-- ================= المظهر ================= -->
-
-<section class="settings-card">
-
-<h2>🎨 المظهر</h2>
-
-
-<div class="setting-item">
-<div>
-<h3>🌙 الوضع الليلي</h3>
-<p>تفعيل المظهر الداكن</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="darkMode">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-<div>
-<h3>✨ الحركات والتأثيرات</h3>
-<p>تشغيل الأنيميشن</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="animations">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-<div>
-<h3>🌈 لون التطبيق</h3>
-<p>تغيير اللون الأساسي</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="appColor">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item card-style-setting">
-
-    <div class="setting-info">
-        <h3>🪟 نمط البطاقات</h3>
-        <p>اختيار تصميم بطاقات الخلفيات</p>
+    <div id="settingsEmpty" class="settings-empty" hidden>
+        <span class="material-icons">search_off</span>
+        <h2>لم نجد إعدادًا بهذا الاسم</h2>
+        <p>جرّب كلمة أخرى مثل: الوضع الليلي، الإشعارات، الجودة.</p>
     </div>
 
-    <button class="arrow-btn" id="cardStyleBtn">
-        ﹀
-    </button>
+    <div id="settingsSections">
 
-</div>
+        <section class="settings-section" id="appearance" data-section-name="المظهر الشكل الوضع الليلي الحركة الألوان البطاقات">
+            <div class="section-heading">
+                <div class="section-heading-icon"><span class="material-icons">palette</span></div>
+                <div><h2>المظهر والتجربة</h2><p>اجعل واجهة WallpaperHub تناسب ذوقك.</p></div>
+            </div>
 
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-leading">
+                        <span class="item-icon blue material-icons">dark_mode</span>
+                        <div><h3>الوضع الليلي</h3><p>واجهة داكنة مريحة في الإضاءة المنخفضة.</p></div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="darkMode"><span class="slider-toggle"></span></label>
+                </div>
 
-<div class="card-style-menu" id="cardStyleMenu">
+                <div class="setting-item">
+                    <div class="setting-leading">
+                        <span class="item-icon purple material-icons">animation</span>
+                        <div><h3>الحركات والتأثيرات</h3><p>الانتقالات والحركات البصرية داخل الموقع.</p></div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="animations"><span class="slider-toggle"></span></label>
+                </div>
 
-    <div class="style-option active" data-style="classic">
-        <span>☑️</span>
-        كلاسيكي
+                <div class="setting-item">
+                    <div class="setting-leading">
+                        <span class="item-icon green material-icons">layers</span>
+                        <div><h3>نمط البطاقات</h3><p>اختر أسلوب عرض بطاقات الخلفيات.</p></div>
+                    </div>
+                    <button class="select-setting" id="cardStyleBtn" type="button">
+                        <span id="cardStyleValue">كلاسيكي</span><span class="material-icons">expand_more</span>
+                    </button>
+                </div>
+
+                <div id="cardStyleMenu" class="inline-menu">
+                    <button class="style-option" data-style="classic" type="button"><span class="material-icons">check_circle</span><b>كلاسيكي</b><small>نظيف وخفيف</small></button>
+                    <button class="style-option" data-style="glass" type="button"><span class="material-icons">blur_on</span><b>زجاجي</b><small>شفافية ولمسة حديثة</small></button>
+                    <button class="style-option" data-style="premium" type="button"><span class="material-icons">auto_awesome</span><b>مميز</b><small>إبراز بصري أقوى</small></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section" id="wallpapers" data-section-name="الخلفيات جودة فيديو تحميل ملء الشاشة تحديث wifi">
+            <div class="section-heading">
+                <div class="section-heading-icon"><span class="material-icons">wallpaper</span></div>
+                <div><h2>الخلفيات والتحميل</h2><p>اضبط طريقة تصفح وتنزيل الخلفيات.</p></div>
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon pink material-icons">movie</span><div><h3>الخلفيات المتحركة</h3><p>السماح بتجربة الخلفيات المتحركة عند توفرها.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="videos"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon blue material-icons">high_quality</span><div><h3>الجودة العالية</h3><p>استخدام أعلى جودة متاحة للصور.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="highQuality"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon orange material-icons">fullscreen</span><div><h3>عرض ملء الشاشة</h3><p>توسيع معاينة الخلفية عندما يكون ذلك ممكنًا.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="fullscreen"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon green material-icons">sync</span><div><h3>تحديث المحتوى تلقائيًا</h3><p>البحث عن محتوى جديد عند فتح الصفحات.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="autoUpdate"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon cyan material-icons">wifi</span><div><h3>Wi-Fi فقط للتحميلات الثقيلة</h3><p>تجنب استهلاك بيانات الهاتف عند تنزيل الملفات الكبيرة.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="wifiOnly"><span class="slider-toggle"></span></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section" id="notifications" data-section-name="الإشعارات تنبيهات صوت متصفح خلفيات إعجاب تعليق">
+            <div class="section-heading">
+                <div class="section-heading-icon"><span class="material-icons">notifications_active</span></div>
+                <div><h2>الإشعارات</h2><p>اختر ما تريد أن يصلك من WallpaperHub.</p></div>
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon blue material-icons">notifications</span><div><h3>الإشعارات العامة</h3><p>تفعيل مركز الإشعارات داخل الموقع.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="notifications"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon pink material-icons">favorite</span><div><h3>الإعجابات والتفاعلات</h3><p>تنبيهات الإعجاب والتفاعل على محتواك.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="ratingsNotify"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon purple material-icons">campaign</span><div><h3>إعلانات WallpaperHub</h3><p>أخبار وتحديثات مهمة عن الموقع.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="updatesNotify"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon orange material-icons">volume_up</span><div><h3>صوت الإشعارات</h3><p>تشغيل صوت عند وصول إشعار جديد.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="notificationSound"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon green material-icons">desktop_windows</span><div><h3>إشعارات المتصفح</h3><p>السماح بإشعارات النظام عندما يدعمها المتصفح.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="browserNotifications"><span class="slider-toggle"></span></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section" id="privacy" data-section-name="الحساب الخصوصية uid البريد البيانات">
+            <div class="section-heading">
+                <div class="section-heading-icon"><span class="material-icons">security</span></div>
+                <div><h2>الحساب والخصوصية</h2><p>إدارة بياناتك وما يظهر في تجربتك.</p></div>
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-item account-row">
+                    <div class="setting-leading"><span class="item-icon blue material-icons">person</span><div><h3>الملف الشخصي</h3><p>تعديل الاسم والنبذة والصورة والغلاف.</p></div></div>
+                    <a class="outline-action" href="profile.html">فتح البروفايل</a>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon purple material-icons">visibility</span><div><h3>إظهار UID</h3><p>إعدادات عرض UID تتم من صفحة البروفايل.</p></div></div>
+                    <a class="outline-action" href="profile.html">إدارة</a>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon green material-icons">auto_delete</span><div><h3>الاحتفاظ بالنشاط محليًا</h3><p>الاحتفاظ بالمفضلة والمشاهدات على هذا الجهاز.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="localActivity"><span class="slider-toggle"></span></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section" id="data" data-section-name="البيانات التخزين النسخ الاحتياطي تصدير استيراد مسح">
+            <div class="section-heading">
+                <div class="section-heading-icon"><span class="material-icons">storage</span></div>
+                <div><h2>البيانات والتخزين</h2><p>أدوات مفيدة لإدارة بيانات تجربتك.</p></div>
+            </div>
+
+            <div class="settings-card action-card">
+                <button class="data-action" id="exportSettings" type="button"><span class="material-icons">download</span><div><b>تصدير إعداداتي</b><small>حفظ نسخة JSON من إعداداتك الحالية.</small></div><span class="material-icons arrow">chevron_left</span></button>
+                <button class="data-action" id="exportActivity" type="button"><span class="material-icons">backup</span><div><b>نسخ نشاطي احتياطيًا</b><small>تصدير المفضلة والمشاهدات والتنزيلات.</small></div><span class="material-icons arrow">chevron_left</span></button>
+                <button class="data-action" id="clearSearch" type="button"><span class="material-icons">manage_search</span><div><b>مسح سجل البحث</b><small>حذف كلمات البحث المحفوظة على هذا الجهاز.</small></div><span class="material-icons arrow">chevron_left</span></button>
+                <button class="data-action danger-action" id="clearFavorites" type="button"><span class="material-icons">delete_sweep</span><div><b>مسح المفضلة المحلية</b><small>إزالة المفضلة المخزنة في هذا المتصفح.</small></div><span class="material-icons arrow">chevron_left</span></button>
+            </div>
+        </section>
+
+        <section class="settings-section" id="system" data-section-name="النظام اللغة التحديث الأداء معلومات">
+            <div class="section-heading">
+                <div class="section-heading-icon"><span class="material-icons">settings_suggest</span></div>
+                <div><h2>النظام</h2><p>إعدادات عامة ومعلومات عن التطبيق.</p></div>
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon cyan material-icons">language</span><div><h3>اللغة</h3><p>العربية — RTL</p></div></div>
+                    <span class="value-chip">العربية</span>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon green material-icons">system_update</span><div><h3>تحديثات النظام</h3><p>تفعيل الفحص التلقائي للتحديثات.</p></div></div>
+                    <label class="switch"><input type="checkbox" id="systemUpdate"><span class="slider-toggle"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-leading"><span class="item-icon blue material-icons">speed</span><div><h3>الأداء</h3><p>استخدام تحسينات الأداء الموجودة في الموقع.</p></div></div>
+                    <span class="value-chip success">مفعّل</span>
+                </div>
+                <div class="about-row">
+                    <span>WallpaperHub</span>
+                    <span>الإصدار 1.0</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-card reset-card">
+            <div>
+                <h2>إعادة ضبط الإعدادات</h2>
+                <p>إرجاع تفضيلات هذه الصفحة إلى القيم الافتراضية فقط.</p>
+            </div>
+            <button id="resetSettings" class="danger-btn" type="button">
+                <span class="material-icons">restart_alt</span>
+                إعادة الضبط
+            </button>
+        </section>
     </div>
 
-
-    <div class="style-option" data-style="glass">
-        <span>☐</span>
-        زجاجي
-    </div>
-
-
-    <div class="style-option" data-style="premium">
-        <span>☐</span>
-        مميز ⭐
-    </div>
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-<!-- ================= الخلفيات ================= -->
-
-
-<section class="settings-card">
-
-<h2>🖼️ الخلفيات</h2>
-
-
-<div class="setting-item">
-
-<div>
-<h3>🎬 الخلفيات المتحركة</h3>
-<p>تشغيل فيديوهات الخلفيات</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="videos">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>💎 الجودة العالية</h3>
-<p>تحميل أفضل جودة</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="highQuality">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>📱 ملء الشاشة</h3>
-<p>عرض الخلفية كاملة</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="fullscreen">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>🔄 تحديث تلقائي</h3>
-<p>البحث عن خلفيات جديدة</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="autoUpdate">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>📶 Wi-Fi فقط</h3>
-<p>توفير بيانات الإنترنت</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="wifiOnly">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= الاشعارات ================= -->
-
-
-<section class="settings-card">
-
-<h2>🔔 الإشعارات</h2>
-
-
-<div class="setting-item">
-
-<div>
-<h3>🆕 خلفيات جديدة</h3>
-<p>إشعار عند إضافة خلفيات</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="notifications">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>⭐ التقييمات</h3>
-<p>تنبيهات التفاعل</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="ratingsNotify">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>🎁 التحديثات</h3>
-<p>أخبار التطبيق</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="updatesNotify">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= التحميل ================= -->
-
-
-<section class="settings-card">
-
-<h2>📥 التحميلات</h2>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>💾 حفظ المعاينة</h3>
-<p>حفظ صورة قبل التحميل</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="previewSave">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>🏷️ شعار WallpaperHub</h3>
-<p>إضافة العلامة على الخلفية</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="watermark">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= AI ================= -->
-
-
-<section class="settings-card">
-
-<h2>🤖 الذكاء الاصطناعي</h2>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>🤖 مساعد Dual Orbit</h3>
-<p>إظهار المساعد الذكي</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="ai">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-<div class="setting-item">
-
-<div>
-<h3>🧠 اقتراحات ذكية</h3>
-<p>اقتراح خلفيات مناسبة</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="smartAI">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= الخصوصية ================= -->
-
-
-<section class="settings-card">
-
-
-<h2>🔐 الخصوصية</h2>
-
-
-<button class="action-btn">
-🗑️ مسح سجل البحث
-</button>
-
-
-<button class="action-btn">
-❤️ مسح المفضلة
-</button>
-
-
-<button class="action-btn danger">
-🔄 إعادة ضبط الإعدادات
-</button>
-
-
-
-</section>
-
-
-
-
-
-
-<!-- ================= النظام ================= -->
-
-
-<section class="settings-card">
-
-
-<h2>⚙️ النظام</h2>
-
-
-<div class="setting-item">
-
-<div>
-<h3>🔄 تحديث تلقائي</h3>
-<p>تحديث التطبيق</p>
-</div>
-
-<label class="switch">
-<input type="checkbox" id="systemUpdate">
-<span class="slider-toggle"></span>
-</label>
-
-</div>
-
-
-<div class="setting-item">
-
-<div>
-<h3>🌐 اللغة</h3>
-<p>العربية</p>
-</div>
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-<footer>
-
-© 2026 WallpaperHub
-
-</footer>
-
-
-</div>
-
-
+    <footer>
+        <strong>WallpaperHub</strong>
+        <span>•</span>
+        <span>Premium Wallpapers</span>
+        <span>•</span>
+        <span>© 2026</span>
+    </footer>
+
+</main>
 
 <script src="settings.js"></script>
 <script src="theme.js"></script>
-
-
 </body>
-
 </html>
