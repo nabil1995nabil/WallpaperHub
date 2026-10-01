@@ -1027,3 +1027,270 @@ body.dark{
     background:var(--bg);
     color:var(--text);
 }
+
+
+/* =========================================================
+   WALLPAPERHUB AI — WHITE CHAT PRO OVERRIDES
+   The AI page intentionally owns its colors so global theme
+   styles cannot make text unreadable.
+========================================================= */
+
+html,
+body,
+.ai-page,
+.chat-main{
+    background:#ffffff !important;
+    color:#17211b !important;
+}
+
+.ai-bg{
+    background:
+        radial-gradient(circle at 88% 0%, rgba(54,245,138,.10), transparent 28%),
+        radial-gradient(circle at 8% 92%, rgba(82,229,255,.06), transparent 28%),
+        #ffffff !important;
+    opacity:1;
+}
+
+.ai-bg::before{
+    opacity:.22;
+    background-image:
+        linear-gradient(rgba(20,40,28,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(20,40,28,.025) 1px,transparent 1px);
+}
+
+.ai-bg::after{
+    background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.3)) !important;
+}
+
+.ambient-orb{
+    opacity:.08;
+}
+
+.top-bar{
+    background:rgba(255,255,255,.94) !important;
+    border-bottom:1px solid #e9eee9 !important;
+    box-shadow:0 4px 22px rgba(20,35,25,.05);
+}
+
+.brand-copy strong{
+    color:#17211b !important;
+}
+
+.brand-copy span{
+    color:#7a867f !important;
+}
+
+.brand-mark{
+    background:#f0fbf4 !important;
+    border-color:#c9efd7 !important;
+    color:#16b968 !important;
+    box-shadow:none !important;
+}
+
+.header-action,
+.icon-btn{
+    background:#f7faf8 !important;
+    border-color:#e2e9e4 !important;
+    color:#435149 !important;
+}
+
+.header-action:hover,
+.icon-btn:hover{
+    background:#effaf3 !important;
+    border-color:#b9e8c9 !important;
+    color:#0aa85a !important;
+}
+
+.chat-container{
+    background:#ffffff !important;
+}
+
+#welcomeText{
+    color:#17211b !important;
+    text-shadow:none !important;
+}
+
+.welcome-subtitle{
+    color:#65736b !important;
+}
+
+.welcome-badge{
+    background:#f1fbf5 !important;
+    border-color:#d7f1df !important;
+    color:#587064 !important;
+}
+
+.suggestions .chip{
+    background:#f8faf9 !important;
+    border-color:#e2e9e4 !important;
+    color:#435149 !important;
+    box-shadow:0 5px 18px rgba(20,35,25,.035);
+}
+
+.suggestions .chip:hover{
+    background:#effaf3 !important;
+    border-color:#bde8cc !important;
+    color:#173b27 !important;
+}
+
+.message.ai .bubble{
+    background:#f6f8f7 !important;
+    color:#26342c !important;
+    border-color:#e4eae6 !important;
+    box-shadow:0 7px 25px rgba(25,40,30,.06) !important;
+}
+
+.message.user .bubble{
+    background:#eafaf0 !important;
+    color:#173022 !important;
+    border-color:#c8edd5 !important;
+    box-shadow:0 7px 25px rgba(25,90,50,.08) !important;
+}
+
+.bubble strong{
+    color:#079650 !important;
+}
+
+.ai-text{
+    color:#26342c !important;
+}
+
+.code-block{
+    background:#101612 !important;
+    border-color:#dce7df !important;
+}
+
+.code-header{
+    background:#18221c !important;
+    color:#b8c7be !important;
+}
+
+.code-block code{
+    color:#bfe8cb !important;
+}
+
+.composer-wrap{
+    background:linear-gradient(to top,#fff 48%,rgba(255,255,255,.94),transparent) !important;
+}
+
+.composer{
+    background:#ffffff !important;
+    border-color:#dfe7e2 !important;
+    box-shadow:0 14px 45px rgba(20,40,28,.12),0 0 0 1px rgba(54,245,138,.03) !important;
+}
+
+.composer:focus-within{
+    border-color:#a9dfbd !important;
+    box-shadow:0 14px 45px rgba(20,40,28,.13),0 0 0 3px rgba(54,245,138,.07) !important;
+}
+
+.composer-field input{
+    color:#17211b !important;
+}
+
+.composer-field input::placeholder{
+    color:#9aa59f !important;
+}
+
+.composer-hint{
+    color:#a2aca6 !important;
+}
+
+.input-btn{
+    background:#f5f8f6 !important;
+    border-color:#e0e8e3 !important;
+    color:#526159 !important;
+}
+
+.input-btn:hover{
+    background:#effaf3 !important;
+    color:#079650 !important;
+}
+
+.send-btn{
+    background:#20d978 !important;
+    color:#062012 !important;
+    border-color:#20d978 !important;
+}
+
+.composer-note{
+    color:#8b9790 !important;
+}
+
+.ai-image-card{
+    background:#ffffff !important;
+    border-color:#e2e9e4 !important;
+    box-shadow:0 15px 40px rgba(20,35,25,.10) !important;
+}
+
+.ai-image-caption{
+    color:#7b8780 !important;
+}
+
+.sidebar{
+    background:rgba(255,255,255,.98) !important;
+    border-right-color:#e3eae5 !important;
+    box-shadow:18px 0 60px rgba(20,35,25,.13) !important;
+}
+
+.sidebar-header{
+    border-bottom-color:#e7ece8 !important;
+}
+
+.sidebar-title h3{
+    color:#17211b !important;
+}
+
+.history-label{
+    color:#89958e !important;
+}
+
+.history-item{
+    background:#f7f9f8 !important;
+    color:#536159 !important;
+}
+
+.history-item:hover{
+    background:#effaf3 !important;
+    border-color:#c8ead4 !important;
+    color:#173b27 !important;
+}
+
+.sidebar-footer{
+    color:#7e8a83 !important;
+    border-top-color:#e7ece8 !important;
+}
+
+.welcome-core{
+    background:linear-gradient(145deg,#f0fff5,#ffffff) !important;
+    border-color:#bde8cc !important;
+    color:#12bb67 !important;
+    box-shadow:0 10px 35px rgba(54,245,138,.12) !important;
+}
+
+.welcome-orbit::before{
+    border-color:#d7f3e1 !important;
+}
+
+.welcome-orbit::after{
+    border-color:#dff6fa !important;
+}
+
+.dot-a,
+.dot-c{
+    background:#29d97c !important;
+}
+
+.dot-b{
+    background:#4dd9ee !important;
+}
+
+@media(max-width:650px){
+    .chat-container{
+        background:#fff !important;
+    }
+
+    .composer-note{
+        color:#8c9791 !important;
+    }
+}
