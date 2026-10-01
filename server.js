@@ -5934,3 +5934,46 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+
+// =======================================
+// WallpaperHub - Automatic App Version
+// =======================================
+app.get("/api/version", (req, res) => {
+    try{
+        const deploymentId =
+            process.env.VERCEL_DEPLOYMENT_ID ||
+            process.env.VERCEL_GIT_COMMIT_SHA ||
+            "";
+
+        const deployedAt =
+            process.env.VERCEL_DEPLOYMENT_CREATED_AT ||
+            new Date().toISOString();
+
+        // إصدار زمني: يتغير تلقائيًا مع كل يوم نشر جديد،
+        // مع رقم بناء قصير من Deployment/Commit عند توفره.
+        const date = new Date(deployedAt);
+        const validDate = !Number.isNaN(date.getTime());
+
+        const baseVersion = validDate
+            ? `v${date.getUTCFullYear()}.${String(date.getUTCMonth()+1).padStart(2,"0")}.${String(date.getUTCDate()).padStart(2,"0")}`
+            : "v1.0.0";
+
+        const build = String(deploymentId || "").replace(/[^a-zA-Z0-9]/g,"").slice(-6);
+
+        res.set("Cache-Control","no-store, max-age=0");
+        return res.json({
+            success:true,
+            version: build ? `${baseVersion}+${build}` : baseVersion,
+            deployedAt: validDate ? date.toISOString() : null,
+            build: build || null
+        });
+    }catch(error){
+        console.error("VERSION API ERROR:", error);
+        return res.status(500).json({
+            success:false,
+            version:"v1.0.0"
+        });
+    }
+});
+
