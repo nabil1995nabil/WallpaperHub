@@ -739,3 +739,123 @@ body.dark .update-list span{
         padding:14px;
     }
 }
+
+.updates-loading{
+    grid-column:1/-1;
+    min-height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    color:#777;
+    background:#f7f8ff;
+    border-radius:17px;
+    font-size:13px;
+}
+
+.update-item{
+    position:relative;
+    display:grid;
+    grid-template-columns:42px 1fr auto;
+    gap:10px;
+    align-items:center;
+    background:#f7f8ff;
+    border-radius:17px;
+    padding:13px;
+    animation:updateIn .35s ease both;
+}
+
+.update-item-icon{
+    width:40px;
+    height:40px;
+    border-radius:13px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.update-item-content{
+    min-width:0;
+}
+
+.update-item-content b{
+    display:block;
+    color:#333;
+    font-size:13px;
+}
+
+.update-item-content small{
+    display:block;
+    color:#777;
+    font-size:10px;
+    line-height:1.55;
+    margin-top:4px;
+}
+
+.update-item-meta{
+    align-self:start;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:5px;
+}
+
+.update-version{
+    direction:ltr;
+    font-size:10px;
+    font-weight:700;
+    color:#5b5df5;
+    background:#eef0ff;
+    padding:4px 7px;
+    border-radius:10px;
+}
+
+.update-date{
+    color:#999;
+    font-size:9px;
+    white-space:nowrap;
+}
+
+.updates-note{
+    margin:12px 0 0;
+    color:#888;
+    font-size:11px;
+    text-align:center;
+}
+
+body.dark .updates-loading,
+body.dark .update-item{
+    background:#292929;
+}
+
+body.dark .update-item-icon{
+    background:#1e1e1e;
+}
+
+body.dark .update-item-content b{
+    color:white;
+}
+
+@keyframes updateIn{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:560px){
+    .update-list{
+        grid-template-columns:1fr;
+    }
+
+    .update-item{
+        grid-template-columns:42px 1fr;
+    }
+
+    .update-item-meta{
+        grid-column:2;
+        flex-direction:row;
+        align-items:center;
+        justify-content:flex-start;
+    }
+}

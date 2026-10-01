@@ -180,6 +180,87 @@ async function loadAboutStats(){
     }
 }
 
+
+async function loadUpdates(){
+    const list = document.getElementById("updateList");
+    if(!list) return;
+
+    try{
+        const response = await fetch("/updates.json?ts=" + Date.now(), {
+            cache:"no-store"
+        });
+
+        if(!response.ok){
+            throw new Error("UPDATES_HTTP_" + response.status);
+        }
+
+        const data = await response.json();
+        const updates = Array.isArray(data) ? data : (data.updates || []);
+
+        if(!updates.length){
+            list.innerHTML = `
+                <div class="updates-loading">
+                    <span class="material-icons">info</span>
+                    لا توجد تحديثات مسجلة بعد
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = "";
+
+        updates
+            .sort((a,b) => {
+                const da = new Date(a.date || 0).getTime();
+                const db = new Date(b.date || 0).getTime();
+                return db - da;
+            })
+            .forEach((item, index) => {
+                const card = document.createElement("div");
+                card.className = "update-item";
+                card.style.animationDelay = `${Math.min(index * 60, 300)}ms`;
+
+                const icon = document.createElement("div");
+                icon.className = "update-item-icon";
+                icon.textContent = item.icon || "✨";
+
+                const content = document.createElement("div");
+                content.className = "update-item-content";
+
+                const title = document.createElement("b");
+                title.textContent = item.title || "تحديث جديد";
+
+                const desc = document.createElement("small");
+                desc.textContent = item.description || "";
+
+                content.append(title, desc);
+
+                const meta = document.createElement("div");
+                meta.className = "update-item-meta";
+
+                const version = document.createElement("span");
+                version.className = "update-version";
+                version.textContent = item.version || "Update";
+
+                const date = document.createElement("span");
+                date.className = "update-date";
+                date.textContent = formatDate(item.date);
+
+                meta.append(version, date);
+                card.append(icon, content, meta);
+                list.appendChild(card);
+            });
+
+    }catch(error){
+        console.error("Updates Error:", error);
+
+        list.innerHTML = `
+            <div class="updates-loading">
+                <span class="material-icons">cloud_off</span>
+                تعذر تحميل سجل التحديثات
+            </div>`;
+    }
+}
+
 async function refreshAbout(){
     if(checkUpdate){
         checkUpdate.disabled = true;
@@ -189,7 +270,8 @@ async function refreshAbout(){
 
     await Promise.all([
         loadVersion(),
-        loadAboutStats()
+        loadAboutStats(),
+        loadUpdates()
     ]);
 
     if(checkUpdate){
