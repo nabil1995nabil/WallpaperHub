@@ -1671,3 +1671,14 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
 .community-stat strong{font-size:13px!important}
 .community-stat small{font-size:6.5px!important}
 }
+
+/* MOBILE SCROLL PERFORMANCE — preserve the look, reduce compositing cost */
+.community-section{contain:layout paint;transform:translateZ(0);-webkit-transform:translateZ(0)}
+.community-motion-canvas{transform:translateZ(0);-webkit-transform:translateZ(0)}
+.community-section::before,.community-glow{filter:none}
+.community-section::before{background:rgba(107,54,255,.24)}
+.glow-one{background:rgba(124,92,255,.32)}
+.glow-two{background:rgba(0,175,255,.22)}
+.community-stat{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,.075)}
+@media(max-width:600px){.community-motion-canvas{opacity:.62!important}}
+@media(prefers-reduced-motion:reduce){.community-motion-canvas{display:none!important}}
