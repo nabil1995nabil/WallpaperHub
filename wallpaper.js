@@ -328,9 +328,11 @@ function normalizeWallpaperData(base = {}, row = {}) {
         row.date, row.created_at, row.createdAt, base.date
     ) ?? "";
 
-    merged.colors = Array.isArray(row.colors)
-        ? row.colors
-        : (Array.isArray(base.colors) ? base.colors : []);
+    merged.colors = normalizeAiColors(
+        Array.isArray(row.colors)
+            ? row.colors
+            : (Array.isArray(base.colors) ? base.colors : [])
+    );
 
     merged.tags = Array.isArray(row.tags)
         ? row.tags
@@ -2477,6 +2479,27 @@ alert(
 //تحليل صورة بي دكاء الاصطناعي 
 //=}===
 
+
+function normalizeHexColor(value){
+    if(typeof value !== "string") return "";
+    const raw = value.trim();
+    const match = raw.match(/^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/);
+    if(!match) return "";
+    const hex = match[1];
+    return "#" + (hex.length === 3
+        ? hex.split("").map(ch => ch + ch).join("")
+        : hex).toUpperCase();
+}
+
+function normalizeAiColors(value){
+    if(!Array.isArray(value)) return [];
+    return [...new Set(value.map(item => normalizeHexColor(
+        typeof item === "string"
+            ? item
+            : (item?.hex || item?.color || item?.value || "")
+    )).filter(Boolean))].slice(0, 8);
+}
+
 function updateWallpaperAnalysisUI(){
     if(!currentWallpaper) return;
 
@@ -2533,11 +2556,9 @@ async function autoAnalyzeWallpaper(){
         Array.isArray(currentWallpaper.tags) &&
         currentWallpaper.tags.length > 0;
 
-    if(currentWallpaper.aiDescription &&
-       (currentWallpaper.source || currentWallpaper.location || currentWallpaper.captureDate) &&
-       hasAiVisualData) {
+    if(hasAiVisualData || currentWallpaper.aiDescription){
         updateWallpaperAnalysisUI();
-        return;
+        if(hasAiVisualData) return;
     }
 
     try{
@@ -2616,12 +2637,16 @@ async function autoAnalyzeWallpaper(){
         }
 
         // نتائج Gemini البصرية: الألوان والوسوم.
-        if(Array.isArray(data.colors) && data.colors.length){
-            currentWallpaper.colors = data.colors;
+        const aiColors = normalizeAiColors(data.colors);
+        if(aiColors.length){
+            currentWallpaper.colors = aiColors;
         }
 
         if(Array.isArray(data.tags) && data.tags.length){
-            currentWallpaper.tags = data.tags;
+            currentWallpaper.tags = data.tags
+                .map(tag => String(tag || "").trim())
+                .filter(Boolean)
+                .slice(0, 20);
         }
 
         // معلومات الكاميرا إن كانت متوفرة من EXIF.
