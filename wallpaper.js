@@ -547,8 +547,10 @@ function setupVideo(src){
     "block";
 
 
+    // الفيديو يبقى قابلاً لاستقبال اللمس،
+    // بينما يتم التقاط السحب من حاوية المعاينة نفسها.
     wallVideo.style.pointerEvents =
-    "none";
+    "auto";
 
 
 
@@ -1404,103 +1406,193 @@ checkLikeStatus();
 }
 
 // ===============================
-// Swipe
+// Interactive Swipe Wallpaper
+// انتقال تفاعلي سلس للصورة والفيديو أثناء السحب
 // ===============================
 
-
 let touchStartX = 0;
+let touchStartY = 0;
+let touchCurrentX = 0;
+let swipeTracking = false;
+let swipeLockedVertical = false;
 
+const wallpaperSwipeArea =
+document.querySelector(".wallpaper-preview-wrapper");
 
-
-if(wallImage){
-
-
-wallImage.addEventListener(
-
-"touchstart",
-
-(e)=>{
-
-
-touchStartX =
-
-e.touches[0].clientX;
-
-
-},
-
-{passive:true}
-
-);
-
-
-
-
-
-wallImage.addEventListener(
-
-"touchend",
-
-(e)=>{
-
-
-const diff =
-
-e.changedTouches[0].clientX -
-
-touchStartX;
-
-
-
-
-if(Math.abs(diff)<60)
-
-return;
-
-
-
-
-if(diff < 0){
-
-
-changeWallpaper(
-
-currentWallpaperIndex + 1
-
-);
-
-
-
-}else{
-
-
-changeWallpaper(
-
-currentWallpaperIndex - 1
-
-);
-
-
-
+function getSwipeMediaElements(){
+    return [
+        wallImage,
+        wallVideo
+    ].filter(Boolean);
 }
 
+function resetSwipeTransform(){
+    getSwipeMediaElements().forEach(media => {
+        media.style.transform = "";
+        media.style.transition = "";
+    });
 
-
-},
-
-{passive:true}
-
-);
-
-
-
+    if(wallpaperSwipeArea){
+        wallpaperSwipeArea.classList.remove("is-swiping");
+    }
 }
 
+function applySwipeTransform(deltaX){
+    getSwipeMediaElements().forEach(media => {
+        if(media.style.display === "none") return;
 
+        // حركة مقاومة خفيفة تجعل السحب طبيعيًا.
+        const resistance = 0.72;
+        const translateX = deltaX * resistance;
+        const rotate = Math.max(-1.2, Math.min(1.2, deltaX / 180));
 
+        media.style.transition = "none";
+        media.style.transform =
+            `translate3d(${translateX}px,0,0) rotate(${rotate}deg)`;
+    });
+}
 
+if(wallpaperSwipeArea){
 
+    wallpaperSwipeArea.addEventListener(
+        "touchstart",
+        (e)=>{
+            if(!e.touches || !e.touches.length)
+                return;
 
+            const touch = e.touches[0];
+
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchCurrentX = touch.clientX;
+
+            swipeTracking = true;
+            swipeLockedVertical = false;
+
+            getSwipeMediaElements().forEach(media => {
+                media.style.transition = "none";
+            });
+        },
+        {passive:true}
+    );
+
+    wallpaperSwipeArea.addEventListener(
+        "touchmove",
+        (e)=>{
+            if(!swipeTracking || !e.touches || !e.touches.length)
+                return;
+
+            const touch = e.touches[0];
+
+            touchCurrentX = touch.clientX;
+
+            const diffX = touchCurrentX - touchStartX;
+            const diffY = touch.clientY - touchStartY;
+
+            // بعد بداية الحركة نحدد اتجاه اللمسة.
+            if(Math.abs(diffX) < 8 && Math.abs(diffY) < 8)
+                return;
+
+            if(Math.abs(diffY) > Math.abs(diffX)){
+                swipeLockedVertical = true;
+                return;
+            }
+
+            if(swipeLockedVertical)
+                return;
+
+            if(Math.abs(diffX) >= 8){
+                wallpaperSwipeArea.classList.add("is-swiping");
+                applySwipeTransform(diffX);
+            }
+        },
+        {passive:true}
+    );
+
+    wallpaperSwipeArea.addEventListener(
+        "touchend",
+        ()=>{
+            if(!swipeTracking)
+                return;
+
+            const diffX = touchCurrentX - touchStartX;
+            const distance = Math.abs(diffX);
+
+            swipeTracking = false;
+
+            // السحب العمودي لا يغير الخلفية.
+            if(swipeLockedVertical){
+                resetSwipeTransform();
+                return;
+            }
+
+            // حركة قصيرة = رجوع سلس للوضع الطبيعي.
+            if(distance < 60){
+                getSwipeMediaElements().forEach(media => {
+                    media.style.transition =
+                        "transform .25s cubic-bezier(.22,.61,.36,1)";
+                    media.style.transform =
+                        "translate3d(0,0,0) rotate(0deg)";
+                });
+
+                setTimeout(resetSwipeTransform, 260);
+                return;
+            }
+
+            // اتجاه السحب.
+            const direction = diffX < 0 ? 1 : -1;
+
+            // ننهي حركة العنصر خارج الشاشة أولاً.
+            const exitDistance =
+                direction === 1
+                    ? -window.innerWidth
+                    : window.innerWidth;
+
+            getSwipeMediaElements().forEach(media => {
+                if(media.style.display === "none") return;
+
+                media.style.transition =
+                    "transform .22s cubic-bezier(.4,0,1,1)";
+                media.style.transform =
+                    `translate3d(${exitDistance}px,0,0) rotate(${direction * -3}deg)`;
+            });
+
+            // ننتقل للخلفية التالية/السابقة بعد انتهاء خروج العنصر.
+            setTimeout(()=>{
+                resetSwipeTransform();
+
+                if(direction === 1){
+                    changeWallpaper(
+                        currentWallpaperIndex + 1
+                    );
+                }else{
+                    changeWallpaper(
+                        currentWallpaperIndex - 1
+                    );
+                }
+            }, 220);
+        },
+        {passive:true}
+    );
+
+    wallpaperSwipeArea.addEventListener(
+        "touchcancel",
+        ()=>{
+            swipeTracking = false;
+            swipeLockedVertical = false;
+
+            getSwipeMediaElements().forEach(media => {
+                media.style.transition =
+                    "transform .25s cubic-bezier(.22,.61,.36,1)";
+                media.style.transform =
+                    "translate3d(0,0,0) rotate(0deg)";
+            });
+
+            setTimeout(resetSwipeTransform, 260);
+        },
+        {passive:true}
+    );
+}
 
 // ===============================
 // Similar Wallpapers
