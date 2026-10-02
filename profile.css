@@ -329,6 +329,26 @@ button{
    خانة المستخدم المميز — مستقلة بالكامل
    ========================================================= */
 
+/* رابط صفحة المستخدم المميز */
+.premium-card{
+    appearance:none;
+    -webkit-appearance:none;
+    font:inherit;
+    text-align:right;
+    cursor:pointer;
+}
+.premium-card:hover{
+    filter:brightness(1.04);
+    box-shadow:0 10px 26px rgba(91,67,55,.18);
+}
+.premium-card:active{
+    transform:translateY(-75px) scale(.98);
+}
+.premium-card:focus-visible{
+    outline:2px solid #f4c44f;
+    outline-offset:3px;
+}
+
 .premium-card{
     order:2;
     width: 40%;            /* تقليل العرض من 50% إلى 42% */

@@ -695,6 +695,17 @@ document.getElementById(
 "settingsBtn"
 );
 
+/* ==========================
+   Premium User Page
+========================== */
+const premiumUserBtn = document.getElementById("premiumUserBtn");
+
+if(premiumUserBtn){
+    premiumUserBtn.addEventListener("click", () => {
+        window.location.href = "premium-user.html";
+    });
+}
+
 const profileMenuBtn =
 document.getElementById(
 "profileMenuBtn"
