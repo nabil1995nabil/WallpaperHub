@@ -429,6 +429,25 @@ async function loadWallpaperDetails(id, fallbackWallpaper) {
     return normalizeWallpaperData(fallbackWallpaper);
 }
 
+
+// ===============================
+// Media Error Guard
+// ===============================
+
+if(wallImage){
+    wallImage.addEventListener("error", () => {
+        console.error("WALLPAPER IMAGE LOAD ERROR:", wallImage.currentSrc || wallImage.src);
+        wallImage.style.display = "none";
+    });
+}
+
+if(wallVideo){
+    wallVideo.addEventListener("error", () => {
+        console.error("WALLPAPER VIDEO LOAD ERROR:", wallVideo.currentSrc || wallVideo.src);
+    });
+}
+
+
 // ===============================
 // Load Wallpaper
 // ===============================
@@ -3047,54 +3066,6 @@ fullscreenVideo.pause();
 {passive:true}
 
 );
-
-
-}
-
-// ===============================
-// Set Wallpaper
-// ===============================
-
-const setWallpaperBtn =
-document.getElementById("setWallpaperBtn");
-
-
-if(setWallpaperBtn){
-
-setWallpaperBtn.onclick = ()=>{
-
-
-if(!currentWallpaper)
-return;
-
-
-const image =
-getImageUrl(
-currentWallpaper.image
-);
-
-
-// Android App Bridge
-
-if(window.Android && Android.setWallpaper){
-
-
-Android.setWallpaper(image);
-
-
-}else{
-
-
-alert(
-"هذه الميزة تعمل بعد تثبيت WallpaperHub كتطبيق Android"
-);
-
-
-}
-
-
-
-};
 
 
 }
