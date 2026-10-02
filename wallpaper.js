@@ -1407,7 +1407,8 @@ checkLikeStatus();
 
 // ===============================
 // Interactive Swipe Wallpaper
-// انتقال تفاعلي سلس للصورة والفيديو أثناء السحب
+// تظهر الخلفية التالية/السابقة أثناء السحب نفسه
+// يعمل مع الصورة والفيديو
 // ===============================
 
 let touchStartX = 0;
@@ -1415,15 +1416,108 @@ let touchStartY = 0;
 let touchCurrentX = 0;
 let swipeTracking = false;
 let swipeLockedVertical = false;
+let swipeDirection = 0;
+let swipeTargetIndex = -1;
+let swipePreviewElement = null;
 
 const wallpaperSwipeArea =
 document.querySelector(".wallpaper-preview-wrapper");
 
 function getSwipeMediaElements(){
-    return [
-        wallImage,
-        wallVideo
-    ].filter(Boolean);
+    return [wallImage, wallVideo].filter(Boolean);
+}
+
+function getWrappedWallpaperIndex(index){
+    if(!categoryWallpapers.length) return -1;
+
+    if(index >= categoryWallpapers.length)
+        return 0;
+
+    if(index < 0)
+        return categoryWallpapers.length - 1;
+
+    return index;
+}
+
+function createSwipePreview(index, direction){
+    if(!wallpaperSwipeArea || !categoryWallpapers.length)
+        return null;
+
+    const target = categoryWallpapers[index];
+    if(!target) return null;
+
+    // إزالة أي معاينة قديمة.
+    if(swipePreviewElement){
+        swipePreviewElement.remove();
+        swipePreviewElement = null;
+    }
+
+    let media;
+
+    if(isVideoMedia(target)){
+        media = document.createElement("video");
+        media.src = getImageUrl(target.image);
+        media.muted = true;
+        media.loop = true;
+        media.playsInline = true;
+        media.autoplay = true;
+        media.preload = "auto";
+        media.setAttribute("playsinline", "");
+        media.setAttribute("aria-hidden", "true");
+        media.play().catch(()=>{});
+    }else{
+        media = document.createElement("img");
+        media.src = getImageUrl(
+            isGifMedia(target)
+                ? target.image
+                : (target.image || target.thumbnail)
+        );
+        media.alt = "";
+        media.decoding = "async";
+        media.setAttribute("aria-hidden", "true");
+    }
+
+    media.className =
+        isVideoMedia(target)
+            ? "wall-swipe-preview wall-swipe-preview-video"
+            : "wall-swipe-preview wall-swipe-preview-image";
+
+    media.style.position = "absolute";
+    media.style.inset = "0";
+    media.style.width = "100%";
+    media.style.height = "100%";
+    media.style.objectFit = "cover";
+    media.style.borderRadius = "30px";
+    media.style.display = "block";
+    media.style.zIndex = "2";
+    media.style.pointerEvents = "none";
+    media.style.willChange = "transform";
+    media.style.transition = "none";
+
+    // سحب اليسار = التالي، والمعاينة تأتي من اليمين.
+    // سحب اليمين = السابق، والمعاينة تأتي من اليسار.
+    media.style.transform =
+        direction > 0
+            ? "translate3d(100%,0,0)"
+            : "translate3d(-100%,0,0)";
+
+    wallpaperSwipeArea.appendChild(media);
+    swipePreviewElement = media;
+
+    return media;
+}
+
+function removeSwipePreview(){
+    if(swipePreviewElement){
+        if(swipePreviewElement.tagName === "VIDEO"){
+            swipePreviewElement.pause();
+            swipePreviewElement.removeAttribute("src");
+            swipePreviewElement.load();
+        }
+
+        swipePreviewElement.remove();
+        swipePreviewElement = null;
+    }
 }
 
 function resetSwipeTransform(){
@@ -1432,24 +1526,66 @@ function resetSwipeTransform(){
         media.style.transition = "";
     });
 
+    removeSwipePreview();
+
     if(wallpaperSwipeArea){
         wallpaperSwipeArea.classList.remove("is-swiping");
     }
+
+    swipeDirection = 0;
+    swipeTargetIndex = -1;
+}
+
+function prepareSwipePreview(diffX){
+    if(!categoryWallpapers.length)
+        return;
+
+    const direction = diffX < 0 ? 1 : -1;
+
+    if(direction === swipeDirection && swipePreviewElement)
+        return;
+
+    swipeDirection = direction;
+
+    swipeTargetIndex = getWrappedWallpaperIndex(
+        currentWallpaperIndex + direction
+    );
+
+    createSwipePreview(
+        swipeTargetIndex,
+        swipeDirection
+    );
 }
 
 function applySwipeTransform(deltaX){
+    const width =
+        wallpaperSwipeArea?.clientWidth ||
+        window.innerWidth ||
+        1;
+
+    // مقاومة بسيطة، مع إبقاء الحركة مرتبطة بالإصبع.
+    const movement =
+        deltaX * 0.88;
+
     getSwipeMediaElements().forEach(media => {
         if(media.style.display === "none") return;
 
-        // حركة مقاومة خفيفة تجعل السحب طبيعيًا.
-        const resistance = 0.72;
-        const translateX = deltaX * resistance;
-        const rotate = Math.max(-1.2, Math.min(1.2, deltaX / 180));
-
         media.style.transition = "none";
         media.style.transform =
-            `translate3d(${translateX}px,0,0) rotate(${rotate}deg)`;
+            `translate3d(${movement}px,0,0)`;
     });
+
+    if(swipePreviewElement){
+        // المعاينة تبدأ خارج الشاشة وتدخل مع حركة الإصبع.
+        const previewOffset =
+            swipeDirection > 0
+                ? width + movement
+                : -width + movement;
+
+        swipePreviewElement.style.transition = "none";
+        swipePreviewElement.style.transform =
+            `translate3d(${previewOffset}px,0,0)`;
+    }
 }
 
 if(wallpaperSwipeArea){
@@ -1468,6 +1604,10 @@ if(wallpaperSwipeArea){
 
             swipeTracking = true;
             swipeLockedVertical = false;
+            swipeDirection = 0;
+            swipeTargetIndex = -1;
+
+            removeSwipePreview();
 
             getSwipeMediaElements().forEach(media => {
                 media.style.transition = "none";
@@ -1486,15 +1626,19 @@ if(wallpaperSwipeArea){
 
             touchCurrentX = touch.clientX;
 
-            const diffX = touchCurrentX - touchStartX;
-            const diffY = touch.clientY - touchStartY;
+            const diffX =
+                touchCurrentX - touchStartX;
 
-            // بعد بداية الحركة نحدد اتجاه اللمسة.
+            const diffY =
+                touch.clientY - touchStartY;
+
             if(Math.abs(diffX) < 8 && Math.abs(diffY) < 8)
                 return;
 
+            // إذا أصبحت الحركة عمودية، نترك المتصفح يتعامل معها كتمرير صفحة.
             if(Math.abs(diffY) > Math.abs(diffX)){
                 swipeLockedVertical = true;
+                removeSwipePreview();
                 return;
             }
 
@@ -1503,6 +1647,8 @@ if(wallpaperSwipeArea){
 
             if(Math.abs(diffX) >= 8){
                 wallpaperSwipeArea.classList.add("is-swiping");
+
+                prepareSwipePreview(diffX);
                 applySwipeTransform(diffX);
             }
         },
@@ -1515,62 +1661,86 @@ if(wallpaperSwipeArea){
             if(!swipeTracking)
                 return;
 
-            const diffX = touchCurrentX - touchStartX;
-            const distance = Math.abs(diffX);
+            const diffX =
+                touchCurrentX - touchStartX;
+
+            const distance =
+                Math.abs(diffX);
 
             swipeTracking = false;
 
-            // السحب العمودي لا يغير الخلفية.
             if(swipeLockedVertical){
                 resetSwipeTransform();
                 return;
             }
 
-            // حركة قصيرة = رجوع سلس للوضع الطبيعي.
-            if(distance < 60){
-                getSwipeMediaElements().forEach(media => {
+            // السحب القصير: رجوع للصورة الحالية.
+            if(distance < 60 || !swipePreviewElement){
+                const currentMedia =
+                    getSwipeMediaElements();
+
+                currentMedia.forEach(media => {
                     media.style.transition =
                         "transform .25s cubic-bezier(.22,.61,.36,1)";
                     media.style.transform =
-                        "translate3d(0,0,0) rotate(0deg)";
+                        "translate3d(0,0,0)";
                 });
+
+                if(swipePreviewElement){
+                    const width =
+                        wallpaperSwipeArea.clientWidth ||
+                        window.innerWidth;
+
+                    swipePreviewElement.style.transition =
+                        "transform .25s cubic-bezier(.22,.61,.36,1)";
+
+                    swipePreviewElement.style.transform =
+                        swipeDirection > 0
+                            ? `translate3d(${width}px,0,0)`
+                            : `translate3d(-${width}px,0,0)`;
+                }
 
                 setTimeout(resetSwipeTransform, 260);
                 return;
             }
 
-            // اتجاه السحب.
-            const direction = diffX < 0 ? 1 : -1;
+            const direction =
+                diffX < 0 ? 1 : -1;
 
-            // ننهي حركة العنصر خارج الشاشة أولاً.
-            const exitDistance =
-                direction === 1
-                    ? -window.innerWidth
-                    : window.innerWidth;
+            const width =
+                wallpaperSwipeArea.clientWidth ||
+                window.innerWidth;
 
+            // أكمل انتقال الخلفيتين معًا.
             getSwipeMediaElements().forEach(media => {
                 if(media.style.display === "none") return;
 
                 media.style.transition =
                     "transform .22s cubic-bezier(.4,0,1,1)";
+
                 media.style.transform =
-                    `translate3d(${exitDistance}px,0,0) rotate(${direction * -3}deg)`;
+                    direction > 0
+                        ? `translate3d(-${width}px,0,0)`
+                        : `translate3d(${width}px,0,0)`;
             });
 
-            // ننتقل للخلفية التالية/السابقة بعد انتهاء خروج العنصر.
+            if(swipePreviewElement){
+                swipePreviewElement.style.transition =
+                    "transform .22s cubic-bezier(.4,0,1,1)";
+
+                swipePreviewElement.style.transform =
+                    "translate3d(0,0,0)";
+            }
+
+            const targetIndex = swipeTargetIndex;
+
             setTimeout(()=>{
                 resetSwipeTransform();
 
-                if(direction === 1){
-                    changeWallpaper(
-                        currentWallpaperIndex + 1
-                    );
-                }else{
-                    changeWallpaper(
-                        currentWallpaperIndex - 1
-                    );
+                if(targetIndex >= 0){
+                    changeWallpaper(targetIndex);
                 }
-            }, 220);
+            }, 225);
         },
         {passive:true}
     );
@@ -1585,8 +1755,22 @@ if(wallpaperSwipeArea){
                 media.style.transition =
                     "transform .25s cubic-bezier(.22,.61,.36,1)";
                 media.style.transform =
-                    "translate3d(0,0,0) rotate(0deg)";
+                    "translate3d(0,0,0)";
             });
+
+            if(swipePreviewElement){
+                const width =
+                    wallpaperSwipeArea.clientWidth ||
+                    window.innerWidth;
+
+                swipePreviewElement.style.transition =
+                    "transform .25s cubic-bezier(.22,.61,.36,1)";
+
+                swipePreviewElement.style.transform =
+                    swipeDirection > 0
+                        ? `translate3d(${width}px,0,0)`
+                        : `translate3d(-${width}px,0,0)`;
+            }
 
             setTimeout(resetSwipeTransform, 260);
         },
