@@ -2534,12 +2534,50 @@ if (downloadBtn) {
 
 // ===============================
 // Like System (Wallpaper)
+// مرتبط بحساب Supabase الحالي فقط
 // ===============================
 
 const likeBtn = document.getElementById("likeBtn");
 
+// يقرأ UID من جلسة Supabase فقط.
+// لا نستخدم localStorage ولا guest للإعجاب.
+async function getAuthenticatedLikeUser(){
+    try{
+        const { data, error } = await supabase.auth.getSession();
 
-// فحص هل المستخدم ضغط إعجاب سابقاً
+        if(error){
+            console.error("LIKE AUTH SESSION ERROR:", error);
+            return null;
+        }
+
+        return data?.session?.user || null;
+
+    }catch(error){
+        console.error("LIKE AUTH ERROR:", error);
+        return null;
+    }
+}
+
+function setLikeButtonState(liked){
+    if(!likeBtn) return;
+
+    likeBtn.innerHTML = liked
+        ? `
+            <span class="material-icons">
+                favorite
+            </span>
+          `
+        : `
+            <span class="material-icons">
+                favorite_border
+            </span>
+          `;
+
+    likeBtn.classList.toggle("liked", Boolean(liked));
+}
+
+// فحص حالة الإعجاب للمستخدم المسجل حالياً.
+// الزائر دائماً يرى القلب غير مضغوط.
 async function checkLikeStatus(){
 
     try{
@@ -2547,55 +2585,44 @@ async function checkLikeStatus(){
         if(!currentWallpaper || !likeBtn)
             return;
 
-
         const wallpaperCheckId = currentWallpaper.id;
 
-const { data: sessionData } = await supabase.auth.getSession();
-const accessToken = sessionData?.session?.access_token || "";
+        const user = await getAuthenticatedLikeUser();
 
-const res = await fetch(
-    `/api/wallpapers/${wallpaperCheckId}/like-status`,
-    {
-        headers: accessToken
-            ? { Authorization:`Bearer ${accessToken}` }
-            : {}
-    }
-);
+        // لا يوجد حساب = لا توجد حالة إعجاب شخصية.
+        if(!user?.id){
+            setLikeButtonState(false);
+            return;
+        }
 
+        const accessToken =
+            (await supabase.auth.getSession())
+                ?.data?.session?.access_token || "";
+
+        const res = await fetch(
+            `/api/wallpapers/${encodeURIComponent(wallpaperCheckId)}/like-status`,
+            {
+                headers: accessToken
+                    ? { Authorization:`Bearer ${accessToken}` }
+                    : {}
+            }
+        );
+
+        if(!res.ok){
+            throw new Error(`LIKE STATUS HTTP ${res.status}`);
+        }
 
         const data = await res.json();
 
-if(
-    !currentWallpaper ||
-    currentWallpaper.id !== wallpaperCheckId
-){
-    return;
-}
-
-        if(data.liked){
-
-            likeBtn.innerHTML = `
-            <span class="material-icons">
-            favorite
-            </span>
-            `;
-
-            likeBtn.classList.add("liked");
-            // حالة الإعجاب تخص جدول likes فقط، ولا تُضاف إلى المحفوظات.
-            saveUserAction("likedWallpapers", currentWallpaper.id);
-
-        }else{
-
-            likeBtn.innerHTML = `
-            <span class="material-icons">
-            favorite_border
-            </span>
-            `;
-
-            likeBtn.classList.remove("liked");
-
+        // لا نطبق نتيجة طلب قديم على خلفية أخرى.
+        if(
+            !currentWallpaper ||
+            Number(currentWallpaper.id) !== Number(wallpaperCheckId)
+        ){
+            return;
         }
 
+        setLikeButtonState(Boolean(data?.liked));
 
     }catch(error){
 
@@ -2604,14 +2631,13 @@ if(
             error
         );
 
+        // عند فشل التحقق لا نعرض إعجاباً قديماً من localStorage.
+        setLikeButtonState(false);
     }
-
 }
 
-// ===============================
-// Like Wallpaper
-// ===============================
-
+// إعجاب الخلفية.
+// يجب أن يكون هناك حساب Supabase حقيقي؛ لا يوجد guest.
 async function likeWallpaper(){
 
     try{
@@ -2619,57 +2645,80 @@ async function likeWallpaper(){
         if(!currentWallpaper || !likeBtn)
             return;
 
+        const user = await getAuthenticatedLikeUser();
 
-        const userId = getCurrentUserId() || "guest";
+        // منع أي إعجاب مجهول أو مرتبط ببقايا localStorage.
+        if(!user?.id){
+            setLikeButtonState(false);
 
+            if(typeof window.showToast === "function"){
+                window.showToast("سجل الدخول أولاً لإضافة إعجاب.");
+            }else{
+                console.log("LIKE BLOCKED: user is not authenticated");
+            }
 
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token || "";
+            return;
+        }
+
+        const wallpaperLikeId = currentWallpaper.id;
+
+        const { data: sessionData } =
+            await supabase.auth.getSession();
+
+        const accessToken =
+            sessionData?.session?.access_token || "";
+
+        if(!accessToken){
+            setLikeButtonState(false);
+            return;
+        }
 
         const response = await fetch(
-            `/api/wallpapers/${currentWallpaper.id}/like`,
+            `/api/wallpapers/${encodeURIComponent(wallpaperLikeId)}/like`,
             {
                 method: "POST",
 
                 headers: {
                     "Content-Type": "application/json",
-                    ...(accessToken ? { Authorization:`Bearer ${accessToken}` } : {})
+                    Authorization:`Bearer ${accessToken}`
                 },
 
                 body: JSON.stringify({
+                    // نرسل UID الحقيقي من جلسة Supabase.
+                    userId: user.id,
 
-    userId: userId,
-
-    userName:
-        localStorage.getItem("userName")
-        || "مستخدم"
-
-})
+                    userName:
+                        localStorage.getItem("userName")
+                        || user.user_metadata?.full_name
+                        || user.email
+                        || "مستخدم"
+                })
             }
         );
 
-
         const data = await response.json();
-
 
         console.log("LIKE RESPONSE:", data);
 
+        // لا نغير الزر إذا كان المستخدم انتقل لخلفية أخرى
+        // أثناء انتظار الطلب.
+        if(
+            !currentWallpaper ||
+            Number(currentWallpaper.id) !== Number(wallpaperLikeId)
+        ){
+            return;
+        }
 
-        if(data.success){
+        if(data?.success){
 
-            // إظهار القلب مباشرة
-            likeBtn.innerHTML = `
-                <span class="material-icons">
-                    favorite
-                </span>
-            `;
+            setLikeButtonState(
+                data.liked !== undefined
+                    ? Boolean(data.liked)
+                    : true
+            );
 
-            likeBtn.classList.add("liked");
-
-            // الإعجاب بالخلفية نظام مستقل عن المحفوظات.
-            saveUserAction("likedWallpapers", currentWallpaper.id);
             if (typeof window.syncUserStats === "function") {
-                window.syncUserStats("likes", currentWallpaper.id);
+                window.syncUserStats("likes", wallpaperLikeId);
             }
 
         }else{
@@ -2679,8 +2728,9 @@ async function likeWallpaper(){
                 data
             );
 
+            // إعادة قراءة الحالة الحقيقية من الخادم.
+            await checkLikeStatus();
         }
-
 
     }catch(error){
 
@@ -2689,8 +2739,8 @@ async function likeWallpaper(){
             error
         );
 
+        await checkLikeStatus();
     }
-
 }
 
 if(likeBtn){
@@ -2701,6 +2751,31 @@ if(likeBtn){
     );
 
 }
+
+// عند تسجيل الخروج:
+// - إزالة الحالة الشخصية من زر القلب فوراً.
+// عند تسجيل الدخول:
+// - قراءة حالة الحساب الجديد من الخادم.
+// لا يتم حذف إجمالي likes العام للخلفية.
+supabase.auth.onAuthStateChange((event, session) => {
+
+    if(event === "SIGNED_OUT"){
+        setLikeButtonState(false);
+        return;
+    }
+
+    if(
+        event === "SIGNED_IN" ||
+        event === "INITIAL_SESSION" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "USER_UPDATED"
+    ){
+        // تأخير صغير حتى تستقر جلسة Supabase قبل طلب API.
+        setTimeout(() => {
+            checkLikeStatus();
+        }, 0);
+    }
+});
 
 // ===============================
 // Share
