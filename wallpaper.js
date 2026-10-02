@@ -2179,6 +2179,218 @@ document.addEventListener("keydown", (event) => {
 
 setInterval(updatePhonePreviewTime, 30000);
 
+
+// ===============================
+// Set Wallpaper from Website
+// ===============================
+
+const setWallpaperBtn = document.getElementById("setWallpaperBtn");
+const fullscreenSetWallpaperBtn =
+    document.getElementById("fullscreenSetWallpaperBtn");
+
+function showWallpaperActionToast(message){
+    const toast = document.getElementById("wallpaperActionToast");
+    if(!toast) return;
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(showWallpaperActionToast.timer);
+    showWallpaperActionToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+    }, 4200);
+}
+
+function getWallpaperFileName(wallpaper, mime){
+    const rawTitle = String(
+        wallpaper?.title || "WallpaperHub-wallpaper"
+    )
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .slice(0, 90);
+
+    const extensionMap = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif",
+        "video/mp4": ".mp4",
+        "video/webm": ".webm",
+        "video/quicktime": ".mov"
+    };
+
+    const extension =
+        extensionMap[String(mime || "").toLowerCase()] ||
+        (isVideoMedia(wallpaper) ? ".mp4" : ".jpg");
+
+    return rawTitle + extension;
+}
+
+async function fetchWallpaperFile(wallpaper){
+    if(!wallpaper?.image){
+        throw new Error("WALLPAPER_URL_MISSING");
+    }
+
+    const url = getImageUrl(wallpaper.image);
+
+    const response = await fetch(url, {
+        mode:"cors",
+        credentials:"omit",
+        cache:"no-store"
+    });
+
+    if(!response.ok){
+        throw new Error(`WALLPAPER_FETCH_${response.status}`);
+    }
+
+    const blob = await response.blob();
+
+    if(!blob || !blob.size){
+        throw new Error("EMPTY_WALLPAPER_FILE");
+    }
+
+    const mime =
+        blob.type ||
+        (isVideoMedia(wallpaper) ? "video/mp4" : "image/jpeg");
+
+    return new File(
+        [blob],
+        getWallpaperFileName(wallpaper, mime),
+        { type:mime }
+    );
+}
+
+async function shareWallpaperFile(file, isVideo){
+    if(!navigator.share){
+        return false;
+    }
+
+    const shareData = {
+        title: currentWallpaper?.title || "WallpaperHub",
+        text: isVideo
+            ? "اختر تطبيق الخلفيات المتحركة من قائمة المشاركة لتعيين الفيديو كخلفية."
+            : "اختر تطبيق الخلفيات أو تعيين كخلفية من قائمة المشاركة."
+    };
+
+    if(file && navigator.canShare){
+        try{
+            if(navigator.canShare({ files:[file] })){
+                await navigator.share({
+                    ...shareData,
+                    files:[file]
+                });
+                return true;
+            }
+        }catch(error){
+            if(error?.name === "AbortError"){
+                return true;
+            }
+            console.warn("WALLPAPER FILE SHARE ERROR:", error);
+        }
+    }
+
+    return false;
+}
+
+async function downloadWallpaperForManualSet(file){
+    const objectUrl = URL.createObjectURL(file);
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = file.name;
+    link.rel = "noopener";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+}
+
+async function setWallpaperFromWebsite(){
+    if(!currentWallpaper){
+        showWallpaperActionToast("لم يتم تحميل الخلفية بعد.");
+        return;
+    }
+
+    const isVideo = isVideoMedia(currentWallpaper);
+
+    try{
+        showWallpaperActionToast(
+            isVideo
+                ? "جاري تجهيز الفيديو للخلفية..."
+                : "جاري تجهيز الصورة..."
+        );
+
+        const file = await fetchWallpaperFile(currentWallpaper);
+
+        // أفضل مسار على Android/Chrome:
+        // افتح قائمة مشاركة النظام، ومنها يمكن اختيار تطبيق الخلفيات
+        // أو خيار تعيين كخلفية إذا كان النظام/التطبيق يدعمه.
+        const shared = await shareWallpaperFile(file, isVideo);
+
+        if(shared){
+            showWallpaperActionToast(
+                isVideo
+                    ? "اختر تطبيق الخلفيات المتحركة من قائمة المشاركة."
+                    : "اختر «تعيين كخلفية» أو تطبيق الخلفيات من قائمة المشاركة."
+            );
+            return;
+        }
+
+        // fallback: تنزيل الملف ثم ترك النظام/المستخدم يختار الخلفية.
+        await downloadWallpaperForManualSet(file);
+
+        showWallpaperActionToast(
+            isVideo
+                ? "تم تنزيل الفيديو. افتحه واختر «استخدام كخلفية» إذا كان هاتفك يدعم الخلفيات المتحركة."
+                : "تم تنزيل الصورة. افتحها من المعرض واختر «تعيين كخلفية»."
+        );
+
+    }catch(error){
+        console.error("SET WALLPAPER ERROR:", error);
+
+        // إذا فشل CORS/fetch، افتح المصدر مباشرة كخطة أخيرة.
+        try{
+            const url = getImageUrl(currentWallpaper.image);
+            window.open(url, "_blank", "noopener,noreferrer");
+
+            showWallpaperActionToast(
+                isVideo
+                    ? "تعذر تجهيز الفيديو تلقائيًا. تم فتحه لتتمكن من تنزيله وتعيينه كخلفية."
+                    : "تعذر تجهيز الصورة تلقائيًا. تم فتحها لتتمكن من حفظها وتعيينها كخلفية."
+            );
+        }catch(fallbackError){
+            console.error("SET WALLPAPER FALLBACK ERROR:", fallbackError);
+            showWallpaperActionToast(
+                "تعذر تجهيز الخلفية من المتصفح."
+            );
+        }
+    }
+}
+
+if(setWallpaperBtn){
+    setWallpaperBtn.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if(optionsMenu){
+            optionsMenu.classList.remove("active");
+        }
+
+        await setWallpaperFromWebsite();
+    });
+}
+
+if(fullscreenSetWallpaperBtn){
+    fullscreenSetWallpaperBtn.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        await setWallpaperFromWebsite();
+    });
+}
+
 // ===============================
 // Download Wallpaper + Watermark
 // ===============================

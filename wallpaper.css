@@ -3884,3 +3884,36 @@ body.phone-preview-open{
         font-size:10.5px;
     }
 }
+
+
+/* =========================
+   SET WALLPAPER STATUS
+========================= */
+
+.wallpaper-action-toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translate(-50%,20px);
+    width:min(92vw,430px);
+    padding:13px 16px;
+    border-radius:16px;
+    background:rgba(17,17,17,.94);
+    color:#fff;
+    font-family:Cairo,sans-serif;
+    font-size:13px;
+    line-height:1.6;
+    text-align:center;
+    box-shadow:0 12px 35px rgba(0,0,0,.22);
+    z-index:100000;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease, visibility .22s ease;
+}
+
+.wallpaper-action-toast.show{
+    opacity:1;
+    visibility:visible;
+    transform:translate(-50%,0);
+}
