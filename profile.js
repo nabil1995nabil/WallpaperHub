@@ -599,10 +599,18 @@ async function loadPublicProfile(uid){
             })
             : [];
 
-        wallpapers = ownerWalls;
+        // نحتفظ بكل الخلفيات لأن الإعجاب قد يكون بخلفية نشرها مستخدم آخر.
+        wallpapers = Array.isArray(list) ? list : [];
         updateWallpaperCount(ownerWalls.length);
 
-        const containers = [ownWallpapersContainer, downloadedContainer, likedContainer, viewedContainer];
+        const containers = [
+            ownWallpapersContainer,
+            downloadedContainer,
+            likedContainer,
+            viewedContainer,
+            document.getElementById("favoriteWallpapers")
+        ];
+
         containers.forEach(container => {
             if(!container) return;
             container.innerHTML = "";
@@ -617,8 +625,48 @@ async function loadPublicProfile(uid){
             renderWalls(ownWallpapersContainer, ownerWalls.map(w => w.id));
         }
 
-        document.querySelectorAll('.profile-tab[data-profile-tab="favorites"], .profile-tab[data-profile-tab="downloads"], .profile-tab[data-profile-tab="views"]').forEach(tab => {
+        // الإعجابات عامة في البروفايل، أما المفضلة والتحميلات والمشاهدات فخاصة.
+        let publicLikeIds = [];
+        try{
+            const { data: likeRows, error: likeError } = await supabase
+                .from("likes")
+                .select("wallpaper_id")
+                .eq("user_id", targetUID);
+
+            if(likeError) throw likeError;
+
+            publicLikeIds = normalizeActionList(
+                (likeRows || []).map(row => row?.wallpaper_id)
+            );
+        }catch(likeError){
+            console.warn("PUBLIC PROFILE LIKES LOAD ERROR:", likeError.message);
+        }
+
+        renderWalls(likedContainer, publicLikeIds);
+
+        document.querySelectorAll(
+            '.profile-tab[data-profile-tab="info"], ' +
+            '.profile-tab[data-profile-tab="favorites"], ' +
+            '.profile-tab[data-profile-tab="downloads"], ' +
+            '.profile-tab[data-profile-tab="views"]'
+        ).forEach(tab => {
             tab.style.display = "none";
+        });
+
+        const likesTab = document.querySelector('.profile-tab[data-profile-tab="likes"]');
+        if(likesTab) likesTab.style.display = "";
+
+        const likesPanel = document.querySelector('.profile-panel[data-profile-panel="likes"]');
+        if(likesPanel) likesPanel.classList.add("active");
+
+        document.querySelectorAll(".profile-panel").forEach(panel => {
+            if(panel !== likesPanel && panel.dataset.profilePanel !== "wallpapers"){
+                panel.classList.remove("active");
+            }
+        });
+
+        document.querySelectorAll(".profile-tab").forEach(tab => {
+            tab.classList.toggle("active", tab.dataset.profileTab === "likes");
         });
 
         publicProfileLoaded = targetUID;
@@ -913,6 +961,8 @@ function resetGuestProfile() {
         "profileBio",
         "downloads", 
         "favorites", 
+        "likes",
+        "likedWallpapers",
         "views",
         "userData"
     ];
@@ -944,6 +994,8 @@ if (loginBtn) {
                     "profileBio",
                     "downloads",
                     "favorites",
+                    "likes",
+                    "likedWallpapers",
                     "views",
                     "userName",
                     "username",
@@ -1834,14 +1886,11 @@ async function renderProfile() {
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
 
-    // لا نخلط المحفوظات مع الإعجابات: favorites مخصص للمحفوظات فقط.
+    // المفضلة والإعجابات قسمان مستقلان.
     const savedContainer =
         document.getElementById("favoriteWallpapers") ||
-        document.getElementById("favoritesWallpapers") ||
-        document.getElementById("likedWallpapers");
+        document.getElementById("favoritesWallpapers");
 
-    // إذا كان likedWallpapers هو اسم الحاوية القديم للمفضلة،
-    // نعرض المحفوظات فيه كما كانت الواجهة القديمة تتوقع.
     if(savedContainer) {
         renderWalls(savedContainer, saved);
     }
@@ -2419,7 +2468,7 @@ window.addEventListener("wallpaperStatsChanged", () => {
 });
 
 window.addEventListener("storage", event => {
-    if(["favorites", "downloads", "views", "userCover", COVER_HISTORY_LOCAL_KEY].includes(event.key)){
+    if(["favorites", "likes", "likedWallpapers", "downloads", "views", "userCover", COVER_HISTORY_LOCAL_KEY].includes(event.key)){
         if(event.key === "userCover" && coverImage){
             coverImage.src = event.newValue || DEFAULT_PROFILE_COVER;
         }
