@@ -491,12 +491,29 @@ button{
     justify-content:center;
     flex:0 0 24px;
     border-radius:50%;
-    background:#168bf0;
-    color:#fff;
-    font-size:17px;
+    background:transparent;
+    color:transparent;
+    font-size:0;
     line-height:1;
     box-shadow:none;
     text-shadow:none;
+    vertical-align:middle;
+}
+
+.verified-badge svg{
+    width:24px;
+    height:24px;
+    display:block;
+    overflow:visible;
+}
+
+.verified-badge svg path:first-child{
+    fill:#168bf0;
+}
+
+.verified-badge svg path:last-child{
+    fill:none;
+    stroke:#fff;
 }
 .verified-badge::before,
 .verified-badge::after{
@@ -2509,4 +2526,29 @@ body.dark .profile-wall-card{
     .profile-wall-card img{
         height:230px;
     }
+}
+
+/* Verification badge: keep only the blue badge */
+.verified-badge,
+.verified-badge::before,
+.verified-badge::after{
+    border:0 !important;
+    outline:0 !important;
+    box-shadow:none !important;
+}
+.verified-badge::before,
+.verified-badge::after{
+    content:none !important;
+    display:none !important;
+}
+
+
+/* Definitive verification badge cleanup: one blue badge only. */
+.verified-badge::before,
+.verified-badge::after{
+    content:none !important;
+    display:none !important;
+    border:0 !important;
+    box-shadow:none !important;
+    background:none !important;
 }

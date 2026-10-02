@@ -191,7 +191,20 @@ photo_camera
     <div class="identity-main">
         <div class="identity-name-row">
             <h1 id="heroDisplayName">Nabil Rahali</h1>
-            <span id="verifiedBadge" class="verified-badge material-icons" aria-label="موثق" style="display:none">verified</span>
+            <span id="verifiedBadge"
+      class="verified-badge"
+      aria-label="موثق"
+      style="display:none">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2.5l2.2 1.2 2.5-.1 1.1 2.2 2.1 1.4-.5 2.5.8 2.4-1.7 1.9-.1 2.5-2.4.8-1.7 1.8-2.3-.8-2.4.8-1.7-1.8-2.4-.8-.1-2.5-1.7-1.9.8-2.4-.5-2.5 2.1-1.4 1.1-2.2 2.5.1L12 2.5z"/>
+        <path d="M8.3 12.2l2.2 2.2 5.2-5.2"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </svg>
+</span>
         </div>
         <p class="identity-username" id="heroUsername">@nabilrahali</p>
         <p class="identity-bio" id="heroBio">مصمم خلفيات ومحب للتصميم ✨</p>
@@ -202,19 +215,14 @@ photo_camera
         </button>
     </div>
 
-    <button
-        id="premiumUserBtn"
-        class="identity-side-card premium-card"
-        type="button"
-        aria-label="فتح صفحة المستخدم المميز"
-        title="فتح صفحة المستخدم المميز">
+    <div class="identity-side-card premium-card">
         <span class="premium-crown">♛</span>
         <div class="identity-side-content">
             <strong>مستخدم مميز</strong>
             <small>WallpaperHub</small>
         </div>
         <span class="material-icons premium-arrow">chevron_left</span>
-    </button>
+    </div>
 
 </section>
 
