@@ -9,25 +9,26 @@
 </head>
 <body>
 <div class="app">
-  <header class="topbar">
-    <a class="logo" href="index.html"><b>W</b><span>Wallpaper</span><em>Hub</em></a>
-    <div class="top-actions">
-      <button id="undo" class="icon-btn" disabled title="تراجع">↶</button>
-      <button id="redo" class="icon-btn" disabled title="إعادة">↷</button>
-      <button id="reset" class="ghost-btn">إعادة ضبط</button>
-      <button id="download" class="download">حفظ</button>
-    </div>
+  <header class="topbar editor-topbar">
+    <button id="download" class="download">حفظ</button>
+    <button class="quality-btn" type="button">الجودة <span>⌄</span></button>
+    <button id="cancelEdit" class="cancel-btn" type="button">إلغاء</button>
   </header>
 
   <main class="editor">
     <section class="workspace">
-      <div class="canvasbar">
-        <button class="editor-back" type="button" onclick="history.back()" aria-label="رجوع">‹</button>
-        <div class="canvas-title"><b>تعديل الصورة</b><span id="info">لم يتم اختيار صورة</span></div>
+      <div class="canvasbar editor-canvasbar">
         <div class="zoom-tools">
-          <button id="minus">−</button><strong id="zoom">100%</strong><button id="plus">+</button>
-          <button id="fit">ملاءمة</button><button id="full" title="ملء الشاشة">⛶</button>
+          <button id="fit">ملاءمة</button>
+          <button id="plus">+</button>
+          <strong id="zoom">100%</strong>
+          <button id="minus">−</button>
         </div>
+        <div class="canvas-title">
+          <b>تعديل الصورة</b>
+          <span id="info">لم يتم اختيار صورة</span>
+        </div>
+      </div>
       </div>
 
       <div class="stage" id="stage">
@@ -36,7 +37,7 @@
           <span class="eyebrow">WALLPAPERHUB EDITOR</span>
           <h1>حرّر صورتك بسهولة</h1>
           <p>قص، حسّن الألوان، أضف النصوص والملصقات والفلاتر، ثم احفظ النتيجة بجودة عالية.</p>
-          <button class="primary" id="pick">＋ اختيار صورة</button>
+          <button class="primary empty-add" id="pick" aria-label="إضافة صورة">＋</button>
           <small>JPG · PNG · WEBP</small>
         </div>
         <canvas id="canvas" hidden></canvas>
@@ -246,21 +247,31 @@
       </div>
     </section>
 
-    <nav class="bottom-tools" id="bottomTools">
-      <button class="tool" data-tool="adjust"><i>☀️</i><span>ضبط</span></button>
-      <button class="tool" data-tool="filters"><i>🎨</i><span>فلاتر</span></button>
-      <button class="tool" data-tool="transform"><i>✂️</i><span>قص</span></button>
-      <button class="tool" data-tool="text"><i>T</i><span>نص</span></button>
-      <button class="tool" data-tool="stickers"><i>😊</i><span>ملصقات</span></button>
-      <button class="tool" data-tool="draw"><i>✏️</i><span>رسم</span></button>
-      <button class="tool" data-tool="effects"><i>✨</i><span>تأثيرات</span></button>
-      <button class="tool" data-tool="light"><i>◐</i><span>ألوان</span></button>
-      <button class="tool" data-tool="blur"><i>◌</i><span>تمويه</span></button>
-      <button class="tool" data-tool="frame"><i>▣</i><span>إطار</span></button>
-      <button class="tool" data-tool="background"><i>◈</i><span>خلفية</span></button>
-      <button class="tool" data-tool="resize"><i>↔</i><span>مقاس</span></button>
-      <button class="tool upload-tool" id="upload"><i>＋</i><span>صورة</span></button>
-    </nav>
+    <div class="editor-bottom">
+      <div class="history-row">
+        <button id="undo" class="history-btn" disabled aria-label="تراجع">↶</button>
+        <button id="redo" class="history-btn" disabled aria-label="إعادة">↷</button>
+      </div>
+
+      <nav class="bottom-tools" id="bottomTools">
+        <button class="tool" data-tool="adjust"><i>☷</i><span>تعديل</span></button>
+        <button class="tool" data-tool="filters"><i>◉</i><span>فلاتر</span></button>
+        <button class="tool" data-tool="transform"><i>⌗</i><span>قص</span></button>
+        <button class="tool" data-tool="draw"><i>⌑</i><span>رسم</span></button>
+        <button class="tool" data-tool="text"><i>T</i><span>نص</span></button>
+
+        <button class="tool create-only" data-tool="stickers"><i>◉</i><span>ملصق</span></button>
+        <button class="tool create-only" data-tool="frame"><i>▣</i><span>إطار</span></button>
+        <button class="tool create-only" data-tool="blur"><i>◌</i><span>محو</span></button>
+
+        <button class="tool upload-tool" id="upload" aria-label="إضافة صورة"><i>＋</i><span>إضافة</span></button>
+      </nav>
+
+      <div class="mode-tabs" role="tablist">
+        <button class="mode-tab active" data-mode="basic" role="tab">أساسية</button>
+        <button class="mode-tab" data-mode="create" role="tab">إنشاء</button>
+      </div>
+    </div>
   </main>
   <div id="toast"></div>
 </div>

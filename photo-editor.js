@@ -462,3 +462,22 @@ $("#download").onclick=()=>{
 window.WallpaperHubVideoStudio={state:videoState,addFiles:videoAddFiles,open:()=>videoOpenDeck(true)};
 
 })();
+
+/* Compact mobile editor modes */
+document.addEventListener("DOMContentLoaded",()=>{
+  const tabs=[...document.querySelectorAll(".mode-tab")];
+  const tools=[...document.querySelectorAll(".bottom-tools .tool")];
+  const setMode=(mode)=>{
+    tabs.forEach(t=>t.classList.toggle("active",t.dataset.mode===mode));
+    tools.forEach(t=>{
+      if(t.classList.contains("create-only")) t.style.display=mode==="create"?"flex":"none";
+    });
+  };
+  tabs.forEach(t=>t.addEventListener("click",()=>setMode(t.dataset.mode)));
+  setMode("basic");
+
+  const cancel=document.getElementById("cancelEdit");
+  if(cancel) cancel.addEventListener("click",()=>{
+    if(typeof closeTool==="function") closeTool();
+  });
+});

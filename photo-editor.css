@@ -216,3 +216,325 @@ textarea,.two select,.two input,.size-fields input{background:#f8f9fa!important;
  .template-grid{grid-template-columns:repeat(2,1fr)!important}.sticker-grid{grid-template-columns:repeat(6,1fr)!important}
  .effects-grid{grid-template-columns:1fr!important}.preset-sizes{grid-template-columns:repeat(2,1fr)!important}
 }
+
+
+/* =========================================================
+   FINAL MOBILE EDITOR — reference-inspired layout
+   Black canvas, minimal chrome, floating bottom controls,
+   Basic/Create modes, plus-only image add control.
+========================================================= */
+:root{
+  --editor-black:#000;
+  --editor-surface:#18191c;
+  --editor-surface-2:#242529;
+  --editor-text:#f7f7f8;
+  --editor-muted:#8d8f94;
+  --editor-accent:#f0c62e;
+}
+html,body{background:#000!important;color:var(--editor-text)!important}
+body{overflow:hidden!important}
+.app{background:#000!important}
+.editor{background:#000!important;height:calc(100dvh - 0px)!important}
+.workspace{padding-bottom:148px!important;background:#000!important}
+
+/* Top row exactly follows the visual hierarchy of the reference. */
+.editor-topbar{
+  position:relative!important;
+  height:72px!important;
+  padding:0 22px!important;
+  background:#000!important;
+  border:0!important;
+  box-shadow:none!important;
+  direction:rtl!important;
+}
+.editor-topbar .cancel-btn,
+.editor-topbar .quality-btn,
+.editor-topbar .download{
+  position:absolute!important;
+  top:18px!important;
+  height:42px!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.editor-topbar .cancel-btn{
+  right:22px!important;
+  background:transparent!important;
+  color:#fff!important;
+  font-size:16px!important;
+  font-weight:500!important;
+  padding:0!important;
+}
+.editor-topbar .quality-btn{
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  background:#2b2c2f!important;
+  color:#e8e8e9!important;
+  border-radius:24px!important;
+  min-width:122px!important;
+  padding:0 18px!important;
+  font-size:14px!important;
+}
+.editor-topbar .quality-btn span{font-size:14px;margin-right:5px;color:#bfc0c3}
+.editor-topbar .download{
+  left:22px!important;
+  background:transparent!important;
+  color:#fff!important;
+  padding:0!important;
+  min-width:auto!important;
+  font-size:16px!important;
+  font-weight:500!important;
+}
+
+/* The old canvas info bar is reduced to a very small unobtrusive row. */
+.editor-canvasbar{
+  height:42px!important;
+  padding:0 18px!important;
+  background:#000!important;
+  border:0!important;
+  color:#aaa!important;
+  justify-content:center!important;
+}
+.editor-canvasbar .canvas-title{display:none!important}
+.editor-canvasbar .zoom-tools{display:none!important}
+
+/* Large black viewing area, image centered just like the reference. */
+.stage{
+  background:#000!important;
+  padding:0!important;
+  position:relative!important;
+  flex:1!important;
+  min-height:0!important;
+}
+.stage:after{display:none!important}
+.stage canvas{
+  max-width:100%!important;
+  max-height:100%!important;
+  background:transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.quick-status{
+  position:absolute!important;
+  left:18px!important;
+  right:18px!important;
+  bottom:145px!important;
+  height:20px!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  color:#73757a!important;
+  z-index:5!important;
+}
+
+/* Empty state: no large card and no right-side narrow block. */
+.empty{
+  width:min(280px,80vw)!important;
+  max-width:280px!important;
+  margin:auto!important;
+  text-align:center!important;
+  color:#8d8f94!important;
+}
+.empty-icon{
+  width:66px!important;height:66px!important;margin:0 auto 18px!important;
+  border-radius:22px!important;background:#1b1c20!important;
+  color:#fff!important;box-shadow:none!important;font-size:27px!important
+}
+.eyebrow{font-size:9px!important;letter-spacing:2.5px!important;color:#888b91!important}
+.empty h1{font-size:21px!important;line-height:1.45!important;color:#fff!important;margin:8px 0!important}
+.empty p{
+  font-size:11px!important;line-height:1.7!important;color:#777a80!important;
+  max-width:250px!important;margin:0 auto 18px!important
+}
+.empty-add{
+  width:62px!important;height:62px!important;
+  padding:0!important;margin:3px auto 0!important;
+  display:grid!important;place-items:center!important;
+  border-radius:20px!important;
+  background:#25262a!important;color:#fff!important;
+  box-shadow:none!important;font-size:30px!important;font-weight:300!important
+}
+.empty-add:hover{background:#2d2e33!important}
+.empty small{font-size:9px!important;color:#66686d!important;margin-top:12px!important}
+
+/* Bottom area mirrors the supplied editor: history above tools, tabs below. */
+.editor-bottom{
+  position:absolute!important;
+  left:0!important;right:0!important;bottom:0!important;
+  height:164px!important;
+  z-index:35!important;
+  background:#000!important;
+  padding:0 0 14px!important;
+}
+.history-row{
+  height:50px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  padding:0 48px!important;
+}
+.history-btn{
+  width:42px!important;height:42px!important;border-radius:50%!important;
+  background:transparent!important;color:#5f6165!important;
+  font-size:31px!important;line-height:1!important;
+}
+.history-btn:not(:disabled){color:#777a7f!important}
+.history-btn:disabled{opacity:.5!important}
+
+.bottom-tools{
+  position:static!important;
+  transform:none!important;
+  width:100%!important;
+  max-width:none!important;
+  height:72px!important;
+  padding:0 8px!important;
+  display:flex!important;
+  gap:2px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  background:#000!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+.tool{
+  min-width:72px!important;
+  flex:1 0 72px!important;
+  height:72px!important;
+  background:transparent!important;
+  border-radius:18px!important;
+  color:#b8b9bc!important;
+  gap:7px!important;
+}
+.tool i{
+  width:40px!important;height:40px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:50%!important;
+  background:#202124!important;
+  color:#f1f1f2!important;
+  font-size:22px!important;
+}
+.tool span{
+  color:#b8b9bc!important;
+  font-size:10px!important;
+  font-weight:500!important;
+}
+.tool.active{background:transparent!important;color:#fff!important;box-shadow:none!important}
+.tool.active i{background:#292a2e!important;color:#fff!important}
+.tool.active span{color:#fff!important}
+.upload-tool{display:none!important}
+
+/* Basic/Create tabs: no giant pill, just the yellow active word. */
+.mode-tabs{
+  height:42px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:82px!important;
+  direction:rtl!important;
+}
+.mode-tab{
+  position:relative!important;
+  background:transparent!important;
+  color:#d0d1d3!important;
+  font-size:13px!important;
+  padding:4px 0!important;
+}
+.mode-tab.active{
+  color:var(--editor-accent)!important;
+  font-weight:700!important;
+}
+.mode-tab.active:after{
+  content:""!important;
+  position:absolute!important;
+  left:50%!important;
+  bottom:-6px!important;
+  width:28px!important;height:2px!important;
+  transform:translateX(-50%)!important;
+  border-radius:2px!important;
+  background:var(--editor-accent)!important;
+}
+
+/* Tool sheet now opens from the bottom and uses the same dark editor language. */
+.sheet-backdrop{
+  inset:0!important;background:#000b!important;z-index:39!important
+}
+.tool-sheet{
+  left:0!important;right:0!important;bottom:0!important;
+  width:100%!important;max-width:none!important;
+  max-height:70vh!important;
+  transform:translateY(20px)!important;
+  background:#17181b!important;
+  border:0!important;
+  border-radius:24px 24px 0 0!important;
+  box-shadow:0 -18px 70px #000c!important;
+}
+.tool-sheet.open{transform:translateY(0)!important}
+.sheet-grip{
+  display:block!important;width:40px!important;height:4px!important;
+  margin:9px auto 2px!important;background:#505156!important;border-radius:4px!important
+}
+.sheet-head{
+  height:58px!important;background:#17181b!important;border-bottom:1px solid #2b2c30!important;
+  padding:0 18px!important
+}
+.sheet-kicker{color:#85878c!important}.sheet-head h2{color:#fff!important}
+.sheet-close{background:#25262a!important;color:#bbb!important}
+.panels{max-height:calc(70vh - 58px)!important;background:#17181b!important}
+.panel-intro b{color:#fff!important}.panel-intro span{color:#898b90!important}
+.range-row,.panel label,.filter-grid button,.action-grid button,.template-grid button,
+.sticker-grid button,.preset-sizes button,.mini-actions button,.effect-presets button,
+.draw-tools button,.blur-cards button,.frame-grid button,.background-grid button,
+.sticker-tabs button,.chip-row button,.wide,.text-controls button{
+  background:#202125!important;border-color:#303136!important;color:#d0d1d3!important
+}
+.range-row b,.panel label b,.chip-row button.active{color:#f0c62e!important}
+.filter-grid button.active,.chip-row button.active,.sticker-tabs button.active,.draw-tools button.active,
+.text-controls button.active{
+  background:#322f1c!important;border-color:#756622!important;color:#f0c62e!important
+}
+textarea,.two select,.two input,.size-fields input{
+  background:#202125!important;border-color:#303136!important;color:#fff!important
+}
+#toast{
+  background:#25262a!important;color:#fff!important;border-color:#38393d!important;
+  box-shadow:0 10px 30px #000b!important
+}
+
+/* Never show the upload control as a labeled button. If used, it is a plus-only icon. */
+#upload{display:none!important}
+
+/* Video deck is also dark, matching the reference instead of the previous light panel. */
+.video-deck{
+  left:10px!important;right:10px!important;bottom:164px!important;
+  background:#17181b!important;border-color:#303136!important;
+  box-shadow:0 20px 70px #000c!important
+}
+.video-control-card,.video-timeline{
+  background:#202125!important;border-color:#303136!important
+}
+.video-scrub{background:#37383c!important}
+.video-scrub-fill,.video-play{background:#5b68df!important}
+.video-head-actions button,.video-transport button,.video-quick-tools button{
+  background:#202125!important;border-color:#303136!important;color:#ddd!important
+}
+.video-head-actions #videoAddClip,.video-export{
+  background:#5b68df!important;color:#fff!important;border-color:#5b68df!important
+}
+
+@media(max-width:560px){
+  .editor-topbar{height:64px!important;padding:0 18px!important}
+  .editor-topbar .cancel-btn{right:18px!important;top:14px!important}
+  .editor-topbar .download{left:18px!important;top:14px!important}
+  .editor-topbar .quality-btn{top:12px!important;height:40px!important}
+  .editor-canvasbar{height:24px!important}
+  .workspace{padding-bottom:164px!important}
+  .editor-bottom{height:164px!important}
+  .history-row{height:47px!important;padding:0 48px!important}
+  .bottom-tools{height:73px!important}
+  .tool{min-width:70px!important;flex-basis:70px!important;height:73px!important}
+  .tool i{width:39px!important;height:39px!important;font-size:21px!important}
+  .mode-tabs{height:39px!important;gap:76px!important}
+  .quick-status{bottom:164px!important}
+  .empty{width:260px!important}
+}
