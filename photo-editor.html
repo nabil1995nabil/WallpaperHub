@@ -15,14 +15,15 @@
       <button id="undo" class="icon-btn" disabled title="تراجع">↶</button>
       <button id="redo" class="icon-btn" disabled title="إعادة">↷</button>
       <button id="reset" class="ghost-btn">إعادة ضبط</button>
-      <button id="download" class="download">⬇ تحميل</button>
+      <button id="download" class="download">حفظ</button>
     </div>
   </header>
 
   <main class="editor">
     <section class="workspace">
       <div class="canvasbar">
-        <div class="canvas-info"><span class="live-dot"></span><span id="info">لم يتم اختيار صورة</span></div>
+        <button class="editor-back" type="button" onclick="history.back()" aria-label="رجوع">‹</button>
+        <div class="canvas-title"><b>تعديل الصورة</b><span id="info">لم يتم اختيار صورة</span></div>
         <div class="zoom-tools">
           <button id="minus">−</button><strong id="zoom">100%</strong><button id="plus">+</button>
           <button id="fit">ملاءمة</button><button id="full" title="ملء الشاشة">⛶</button>
@@ -32,11 +33,11 @@
       <div class="stage" id="stage">
         <div class="empty" id="empty">
           <div class="empty-icon">✦</div>
-          <span class="eyebrow">WALLPAPERHUB STUDIO</span>
-          <h1>استوديو WallpaperHub — صورة وفيديو</h1>
-          <p>حرّر الصور والفيديو، ادمج المقاطع، قصّها، غيّر السرعة، أضف النصوص والملصقات والفلاتر، ثم صدّر مشروعك مباشرة من المتصفح.</p>
-          <button class="primary" id="pick">＋ اختيار صورة أو فيديو</button>
-          <small>JPG · PNG · WEBP · MP4 · MOV · WEBM</small>
+          <span class="eyebrow">WALLPAPERHUB EDITOR</span>
+          <h1>حرّر صورتك بسهولة</h1>
+          <p>قص، حسّن الألوان، أضف النصوص والملصقات والفلاتر، ثم احفظ النتيجة بجودة عالية.</p>
+          <button class="primary" id="pick">＋ اختيار صورة</button>
+          <small>JPG · PNG · WEBP</small>
         </div>
         <canvas id="canvas" hidden></canvas>
       </div>
@@ -132,8 +133,8 @@
       <div class="sheet-grip"></div>
       <div class="sheet-head">
         <div>
-          <span class="sheet-kicker">TOOLKIT</span>
-          <h2 id="sheetTitle">الضبط</h2>
+          <span class="sheet-kicker">WALLPAPERHUB</span>
+          <h2 id="sheetTitle">تعديل الصورة</h2>
         </div>
         <button id="closeSheet" class="sheet-close">×</button>
       </div>
