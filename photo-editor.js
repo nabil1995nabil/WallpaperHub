@@ -29,9 +29,89 @@ function load(f){if(!f?.type?.startsWith("image/"))return note("اختر صور�
 $("#pick").onclick=$("#upload").onclick=()=>file.click();file.onchange=e=>load(e.target.files[0]);
 
 const toolNames={adjust:"الضبط",filters:"الفلاتر",transform:"القص والتحويل",text:"النصوص والعناوين",stickers:"الملصقات والإيموجي",draw:"الرسم",effects:"التأثيرات",light:"الإضاءة واللون",blur:"التمويه والتركيز",frame:"الإطار",background:"الخلفية",resize:"المقاس والتصدير"};
-function openTool(name){const sheet=$("#toolSheet"),current=sheet.dataset.tool;if(current===name&&sheet.classList.contains("open"))return closeTool();sheet.dataset.tool=name;$("#sheetTitle").textContent=toolNames[name]||"أدوات";$$(".panel").forEach(p=>p.classList.remove("active"));$("#p-"+name)?.classList.add("active");$$(".tool").forEach(b=>b.classList.toggle("active",b.dataset.tool===name));sheet.classList.add("open");$("#backdrop").classList.add("open");sheet.setAttribute("aria-hidden","false");if(name==="stickers")renderStickers(activeStickerTab)}
-function closeTool(){$("#toolSheet").classList.remove("open");$("#backdrop").classList.remove("open");$("#toolSheet").setAttribute("aria-hidden","true");$$(".tool").forEach(b=>b.classList.remove("active"));drawMode=null;$$("[data-draw]").forEach(b=>b.classList.remove("active"))}
-$$(".tool").forEach(b=>b.onclick=()=>openTool(b.dataset.tool));$("#closeSheet").onclick=closeTool;$("#backdrop").onclick=closeTool;
+const inlineState={tool:"adjust",key:"brightness"};
+
+const inlineLabels={
+ brightness:["☀","السطوع",-100,100],contrast:["◐","التباين",-100,100],
+ saturation:["◉","التشبع",-100,100],temperature:["🌡","الحرارة",-100,100],
+ tint:["●","الصبغة",-100,100],fade:["◌","الباهت",-100,100],
+ sharpness:["⌁","الحدة",-100,100],opacity:["◒","العتامة",10,100]
+};
+function inlineValue(k){return state[k]??0}
+function inlineButton(label,value,active=false,icon=""){
+ return `<button type="button" class="inline-option${active?" active":""}" data-inline-value="${value}">${icon?`<i>${icon}</i>`:""}${label}</button>`;
+}
+function setInlineToolActive(name){$$(".tool").forEach(b=>b.classList.toggle("active",b.dataset.tool===name))}
+function inlineRender(name){
+ const root=$("#inlineControls"),options=$("#inlineOptions"),actions=$("#inlineActions"),
+ slider=$("#inlineSlider"),title=$("#inlineTitle"),kicker=$("#inlineKicker"),value=$("#inlineValue");
+ if(!root)return;
+ root.classList.remove("is-simple");options.innerHTML="";actions.innerHTML="";
+ const setSlider=(key,label,min,max)=>{
+   inlineState.key=key;title.textContent=label;slider.min=min;slider.max=max;slider.value=inlineValue(key);value.textContent=slider.value;
+   slider.oninput=()=>{if(!hasImage())return;state[key]=+slider.value;value.textContent=slider.value;render()};
+   slider.onchange=save;
+ };
+ if(name==="adjust"){
+   kicker.textContent="تعديل الصورة";
+   options.innerHTML=Object.keys(inlineLabels).map(k=>{let a=inlineLabels[k];return inlineButton(a[1],k,k===inlineState.key,a[0])}).join("");
+   options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{
+     inlineState.key=b.dataset.inlineValue;options.querySelectorAll(".inline-option").forEach(x=>x.classList.toggle("active",x===b));
+     let a=inlineLabels[inlineState.key];setSlider(inlineState.key,a[1],a[2],a[3]);
+   });
+   let a=inlineLabels[inlineState.key];setSlider(inlineState.key,a[1],a[2],a[3]);return;
+ }
+ if(name==="filters"){
+   kicker.textContent="الفلاتر";title.textContent="اختَر مظهرًا";value.textContent="";root.classList.add("is-simple");
+   options.innerHTML=filterList.map(a=>inlineButton(a[1],a[0],state.filter===a[0])).join("");
+   options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{
+     if(!hasImage())return;state.filter=b.dataset.inlineValue;options.querySelectorAll(".inline-option").forEach(x=>x.classList.toggle("active",x===b));
+     render();save();note("تم تطبيق الفلتر");
+   });return;
+ }
+ if(name==="transform"){
+   kicker.textContent="القص والتحويل";title.textContent="تحويل سريع";value.textContent="";root.classList.add("is-simple");
+   options.innerHTML=[["↺","يسار","rl"],["↻","يمين","rr"],["↔","قلب أفقي","fh"],["↕","قلب عمودي","fv"]].map(a=>inlineButton(a[1],a[2],false,a[0])).join("");
+   actions.innerHTML=ratios.map(r=>`<button type="button" class="inline-action" data-inline-ratio="${r}">${r==="free"?"حر":r}</button>`).join("")+`<button type="button" class="inline-action primary" id="inlineCrop">تطبيق القص</button>`;
+   options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{if(!hasImage())return;let a=b.dataset.inlineValue;if(a==="rl")state.rot-=90;if(a==="rr")state.rot+=90;if(a==="fh")state.fh*=-1;if(a==="fv")state.fv*=-1;render();save();fit()});
+   actions.querySelectorAll("[data-inline-ratio]").forEach(b=>b.onclick=()=>{ratio=b.dataset.inlineRatio;actions.querySelectorAll("[data-inline-ratio]").forEach(x=>x.classList.remove("primary"));b.classList.add("primary")});
+   $("#inlineCrop").onclick=()=>$("#crop").click();return;
+ }
+ if(name==="draw"){
+   kicker.textContent="الرسم";title.textContent="حجم الفرشاة";
+   options.innerHTML=[["brush","🖌","فرشاة"],["eraser","⌫","ممحاة"],["marker","▰","هايلايتر"]].map(a=>inlineButton(a[2],a[0],drawMode===a[0],a[1])).join("");
+   options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{drawMode=drawMode===b.dataset.inlineValue?null:b.dataset.inlineValue;options.querySelectorAll(".inline-option").forEach(x=>x.classList.toggle("active",x.dataset.inlineValue===drawMode));title.textContent=drawMode==="eraser"?"حجم الممحاة":drawMode==="marker"?"حجم الهايلايتر":"حجم الفرشاة"});
+   slider.min=1;slider.max=160;slider.value=$("#brush").value;value.textContent=slider.value;slider.oninput=()=>{$("#brush").value=slider.value;$("#brushV").textContent=slider.value;value.textContent=slider.value};slider.onchange=save;
+   actions.innerHTML=`<button type="button" class="inline-action" id="inlineDrawColor">لون الفرشاة</button>`;$("#inlineDrawColor").onclick=()=>$("#drawColor").click();return;
+ }
+ if(name==="blur"){
+   kicker.textContent="محو / تمويه";title.textContent="التمويه";
+   options.innerHTML=[["blur","تمويه","◌"],["edge","توهج الحواف","✦"]].map(a=>inlineButton(a[1],a[0],a[0]==="blur",a[2])).join("");
+   const apply=()=>{let k=inlineState.key==="edge"?"edge":"blur";inlineState.key=k;title.textContent=k==="edge"?"توهج الحواف":"التمويه";slider.min=0;slider.max=k==="edge"?100:24;slider.value=state[k]??0;value.textContent=slider.value;slider.oninput=()=>{state[k]=+slider.value;value.textContent=slider.value;render()};slider.onchange=save};
+   inlineState.key="blur";options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{inlineState.key=b.dataset.inlineValue;options.querySelectorAll(".inline-option").forEach(x=>x.classList.toggle("active",x===b));apply()});apply();return;
+ }
+ if(name==="frame"){
+   kicker.textContent="الإطار";title.textContent="سُمك الإطار";
+   options.innerHTML=[["none","بدون"],["white","أبيض"],["black","أسود"],["neon","نيون"],["gradient","تدرج"],["polaroid","بولارويد"]].map(a=>inlineButton(a[1],a[0],state.frame===a[0])).join("");
+   options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{state.frame=b.dataset.inlineValue;options.querySelectorAll(".inline-option").forEach(x=>x.classList.toggle("active",x===b));render();save()});
+   slider.min=0;slider.max=100;slider.value=state.frameSize;value.textContent=slider.value;slider.oninput=()=>{state.frameSize=+slider.value;value.textContent=slider.value;render()};slider.onchange=save;return;
+ }
+ if(name==="stickers"){
+   kicker.textContent="الملصقات";title.textContent="أضف عنصرًا";value.textContent="";root.classList.add("is-simple");
+   options.innerHTML=emoji.slice(0,42).map(v=>inlineButton("",v,false,v)).join("");options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>addSticker(b.dataset.inlineValue));return;
+ }
+ if(name==="text"){
+   kicker.textContent="النص";title.textContent="حجم النص";
+   actions.innerHTML=`<input id="inlineText" type="text" placeholder="اكتب النص هنا..." style="flex:1;min-width:140px;height:36px;border:1px solid #e0e2e7;border-radius:10px;padding:0 10px;outline:0"><button type="button" class="inline-action primary" id="inlineAddText">إضافة</button>`;
+   slider.min=8;slider.max=200;slider.value=$("#fontSize").value||56;value.textContent=slider.value;slider.oninput=()=>{$("#fontSize").value=slider.value;value.textContent=slider.value};slider.onchange=save;
+   $("#inlineAddText").onclick=()=>{$("#text").value=$("#inlineText").value;addText()};return;
+ }
+ kicker.textContent=toolNames[name]||"أدوات";title.textContent="أدوات";value.textContent="";root.classList.add("is-simple");
+}
+function openTool(name){setInlineToolActive(name);inlineRender(name)}
+function closeTool(){$$(".tool").forEach(b=>b.classList.remove("active"));drawMode=null;$$("[data-draw]").forEach(b=>b.classList.remove("active"))}
+$$(".tool").forEach(b=>b.onclick=()=>openTool(b.dataset.tool));
+$("#closeSheet")?.addEventListener("click",closeTool);$("#backdrop")?.addEventListener("click",closeTool);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeTool()});
 
 function makeRange(target,arr){target.innerHTML=arr.map(([k,label,min,max])=>`<label class="range-row">${label}<b id="${k}V">${state[k]??0}</b><input id="${k}" type="range" min="${min}" max="${max}" value="${state[k]??0}"></label>`).join("")}
@@ -475,6 +555,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   };
   tabs.forEach(t=>t.addEventListener("click",()=>setMode(t.dataset.mode)));
   setMode("basic");
+  inlineRender("adjust");
 
   const cancel=document.getElementById("cancelEdit");
   if(cancel) cancel.addEventListener("click",()=>{

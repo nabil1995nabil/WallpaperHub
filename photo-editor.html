@@ -43,6 +43,18 @@
         <canvas id="canvas" hidden></canvas>
       </div>
 
+      <section class="inline-editor-controls" id="inlineControls" aria-label="أدوات تعديل الصورة">
+        <div class="inline-head">
+          <div><span id="inlineKicker">تعديل الصورة</span><strong id="inlineTitle">السطوع</strong></div>
+          <span id="inlineValue">0</span>
+        </div>
+        <div class="inline-options" id="inlineOptions"></div>
+        <div class="inline-slider-wrap" id="inlineSliderWrap">
+          <input id="inlineSlider" type="range" min="-100" max="100" value="0" aria-label="قيمة التعديل">
+        </div>
+        <div class="inline-actions" id="inlineActions"></div>
+      </section>
+
       <div class="quick-status">
         <span id="statusText">جاهز للتحرير</span>
         <span id="sizeInfo">—</span>

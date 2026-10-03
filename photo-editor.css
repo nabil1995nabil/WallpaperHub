@@ -538,3 +538,30 @@ textarea,.two select,.two input,.size-fields input{
   .quick-status{bottom:164px!important}
   .empty{width:260px!important}
 }
+
+/* INLINE EDITOR: controls remain below the image, never over it. */
+.inline-editor-controls{
+  flex:0 0 auto;width:100%;padding:10px 12px 12px;
+  background:#fff;color:#15161a;border-top:1px solid #e7e8ec;
+  border-bottom:1px solid #e7e8ec;box-shadow:0 8px 28px rgba(25,30,45,.07);z-index:12;
+}
+.inline-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:30px;direction:rtl}
+.inline-head>div{display:flex;align-items:center;gap:8px;min-width:0}
+.inline-head span{color:#8a8f99;font-size:10px}
+.inline-head strong{font-size:14px;font-weight:800;white-space:nowrap}
+#inlineValue{min-width:34px;text-align:center;color:#5b68df;font-size:11px;font-weight:800}
+.inline-options{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:7px 0 8px;direction:rtl}
+.inline-options::-webkit-scrollbar{display:none}
+.inline-option{flex:0 0 auto;min-width:58px;height:42px;padding:0 12px;border:1px solid #e1e3e8;border-radius:12px;background:#f7f8fa;color:#5d626b;font-size:10px;font-weight:700}
+.inline-option i{display:block;font-style:normal;font-size:16px;line-height:17px;margin-bottom:2px}
+.inline-option.active{background:#eef0ff;border-color:#6471e3;color:#4f5ed1;box-shadow:0 0 0 2px rgba(91,104,223,.08)}
+.inline-slider-wrap{padding:2px 3px 4px}
+.inline-slider-wrap input{display:block;width:100%;height:4px;margin:0;accent-color:#5b68df;cursor:pointer}
+.inline-actions{display:flex;align-items:center;gap:7px;overflow-x:auto;scrollbar-width:none;padding-top:4px}
+.inline-actions::-webkit-scrollbar{display:none}
+.inline-action{flex:0 0 auto;height:36px;padding:0 12px;border:1px solid #e0e2e7;border-radius:10px;background:#fff;color:#444951;font-size:10px;font-weight:700}
+.inline-action.primary{background:#5b68df;border-color:#5b68df;color:#fff}
+.inline-editor-controls.is-simple .inline-slider-wrap{display:none}
+.tool-sheet,.sheet-backdrop{display:none!important}
+@media(max-width:900px){.inline-editor-controls{padding:8px 10px 10px}.inline-option{min-width:56px;height:40px}}
+@media(max-width:560px){.inline-editor-controls{padding:7px 9px 9px}.inline-head strong{font-size:12px}.inline-option{min-width:54px;height:39px;padding:0 10px;font-size:9px}.inline-action{height:34px;padding:0 10px;font-size:9px}}
