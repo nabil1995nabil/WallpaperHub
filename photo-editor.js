@@ -26,7 +26,9 @@ function sync(){
 function fit(){if(!img)return;const r=stage.getBoundingClientRect();zoom=Math.min((r.width-40)/c.width,(r.height-40)/c.height,1);applyZoom()}
 function applyZoom(){c.style.width=Math.max(1,c.width*zoom)+"px";c.style.height=Math.max(1,c.height*zoom)+"px";$("#zoom").textContent=Math.round(zoom*100)+"%"}
 function load(f){if(!f?.type?.startsWith("image/"))return note("اختر صورة صالحة");const u=URL.createObjectURL(f),q=new Image();q.onload=()=>{img=q;c.width=q.naturalWidth;c.height=q.naturalHeight;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;empty.hidden=true;c.hidden=false;$("#info").textContent=`${q.naturalWidth} × ${q.naturalHeight}px`;$("#sizeInfo").textContent=`${q.naturalWidth} × ${q.naturalHeight}px`;history=[];hi=-1;x.clearRect(0,0,c.width,c.height);render();save();fit();sync();note("تم تحميل الصورة");URL.revokeObjectURL(u)};q.src=u}
-$("#pick").onclick=$("#upload").onclick=()=>file.click();file.onchange=e=>load(e.target.files[0]);
+$("#pick").onclick=$("#upload").onclick=()=>file.click();
+$("#pickTop").onclick=()=>file.click();
+file.onchange=e=>load(e.target.files[0]);
 
 const toolNames={adjust:"الضبط",filters:"الفلاتر",transform:"القص والتحويل",text:"النصوص والعناوين",stickers:"الملصقات والإيموجي",draw:"الرسم",effects:"التأثيرات",light:"الإضاءة واللون",blur:"التمويه والتركيز",frame:"الإطار",background:"الخلفية",resize:"المقاس والتصدير"};
 const inlineState={tool:"adjust",key:"brightness"};
@@ -184,9 +186,9 @@ $$("[data-bg]").forEach(b=>b.onclick=()=>{state.background=b.dataset.bg;render()
 $$("[data-preset]").forEach(b=>b.onclick=()=>{const p=b.dataset.preset;const sets={clean:{brightness:4,contrast:3,saturation:4,fade:2},cinema:{contrast:24,saturation:10,temperature:8,vignette:22},bright:{brightness:18,contrast:4,saturation:10},moody:{brightness:-12,contrast:22,saturation:-8,vignette:30},gold:{temperature:28,tint:-4,saturation:12},ice:{temperature:-28,tint:18,saturation:-4},neon:{contrast:18,saturation:45,glow:18}};Object.assign(state,sets[p]||{});sync();render();save();note("تم تطبيق الإعداد الجاهز")});
 
 $("#undo").onclick=()=>{if(hi>0){hi--;restore(history[hi]);buttons()}};$("#redo").onclick=()=>{if(hi<history.length-1){hi++;restore(history[hi]);buttons()}};
-$("#reset").onclick=()=>{if(!hasImage())return;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;render();save();sync();note("تمت إعادة ضبط الصورة")};
+if($("#reset"))$("#reset").onclick=()=>{if(!hasImage())return;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;render();save();sync();note("تمت إعادة ضبط الصورة")};
 $("#minus").onclick=()=>{zoom=Math.max(.15,zoom-.1);applyZoom()};$("#plus").onclick=()=>{zoom=Math.min(3,zoom+.1);applyZoom()};$("#fit").onclick=fit;
-$("#full").onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}};
+if($("#full"))$("#full").onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}};
 $("#download").onclick=()=>{if(!hasImage())return;render();c.toBlob(blob=>{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="wallpaperhub-edited.png";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}, "image/png");note("جاري تنزيل الصورة")};
 
 renderStickers("emoji");buttons();

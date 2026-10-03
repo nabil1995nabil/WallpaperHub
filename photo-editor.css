@@ -207,6 +207,7 @@ textarea,.two select,.two input,.size-fields input{background:#f8f9fa!important;
  .panels{max-height:calc(62vh - 58px)!important}
 }
 @media(max-width:560px){
+ .editor-topbar .top-add-btn{left:78px!important;top:18px!important;width:40px!important;height:40px!important;font-size:24px!important}
  .top-actions .icon-btn,.top-actions .ghost-btn{display:none!important}.logo span{display:none!important}
  .canvasbar{padding:0 9px!important}.canvas-title b{font-size:14px!important}.canvas-title span{max-width:120px!important}
  .stage{padding:7px!important}.empty h1{font-size:21px!important}.empty p{font-size:11px!important}
@@ -247,6 +248,25 @@ body{overflow:hidden!important}
   box-shadow:none!important;
   direction:rtl!important;
 }
+.editor-topbar .top-add-btn{
+  position:absolute!important;
+  left:92px!important;
+  top:18px!important;
+  width:42px!important;
+  height:42px!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:#242528!important;
+  color:#fff!important;
+  font-size:25px!important;
+  line-height:1!important;
+  font-weight:400!important;
+  box-shadow:none!important;
+}
+.editor-topbar .top-add-btn:active{transform:scale(.94)!important}
 .editor-topbar .cancel-btn,
 .editor-topbar .quality-btn,
 .editor-topbar .download{
