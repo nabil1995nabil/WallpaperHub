@@ -879,9 +879,16 @@ const panorama360={
     buffer:null,
     pos:null,
     u:null,
+
+    // الحالة المرئية والحالة المستهدفة منفصلتان حتى يكون الدوران
+    // ثقيلاً وسلساً بدلاً من القفز مع كل حركة لمس.
     yaw:0,
     pitch:0,
     fov:75,
+    targetYaw:0,
+    targetPitch:0,
+    targetFov:75,
+
     pointers:new Map(),
     pinch:0,
     raf:0,
@@ -892,11 +899,13 @@ function p360Shader(gl,type,source){
     const shader=gl.createShader(type);
     gl.shaderSource(shader,source);
     gl.compileShader(shader);
+
     if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
         console.error("360 SHADER ERROR:",gl.getShaderInfoLog(shader));
         gl.deleteShader(shader);
         return null;
     }
+
     return shader;
 }
 
@@ -907,8 +916,10 @@ function p360Init(){
     const gl=panoramaCanvas.getContext("webgl",{
         alpha:false,
         antialias:true,
-        premultipliedAlpha:false
+        premultipliedAlpha:false,
+        preserveDrawingBuffer:false
     });
+
     if(!gl){
         console.error("360 WEBGL IS NOT AVAILABLE");
         return false;
@@ -917,6 +928,7 @@ function p360Init(){
     const vs=p360Shader(gl,gl.VERTEX_SHADER,`
         attribute vec2 p;
         varying vec2 uv;
+
         void main(){
             uv=p*.5+.5;
             gl_Position=vec4(p,0.0,1.0);
@@ -925,27 +937,40 @@ function p360Init(){
 
     const fs=p360Shader(gl,gl.FRAGMENT_SHADER,`
         precision highp float;
+
         varying vec2 uv;
+
         uniform sampler2D tex;
         uniform float yaw;
         uniform float pitch;
         uniform float fov;
         uniform float aspect;
+
         const float PI=3.141592653589793;
 
         mat3 rotX(float a){
-            float s=sin(a),c=cos(a);
-            return mat3(1.0,0.0,0.0,0.0,c,-s,0.0,s,c);
+            float s=sin(a), c=cos(a);
+            return mat3(
+                1.0,0.0,0.0,
+                0.0,c,-s,
+                0.0,s,c
+            );
         }
 
         mat3 rotY(float a){
-            float s=sin(a),c=cos(a);
-            return mat3(c,0.0,s,0.0,1.0,0.0,-s,0.0,c);
+            float s=sin(a), c=cos(a);
+            return mat3(
+                c,0.0,s,
+                0.0,1.0,0.0,
+                -s,0.0,c
+            );
         }
 
         void main(){
             vec2 q=uv*2.0-1.0;
+
             float tanHalf=tan(radians(fov)*.5);
+
             vec3 ray=normalize(vec3(
                 q.x*tanHalf*aspect,
                 q.y*tanHalf,
@@ -969,6 +994,7 @@ function p360Init(){
     if(!vs||!fs) return false;
 
     const program=gl.createProgram();
+
     gl.attachShader(program,vs);
     gl.attachShader(program,fs);
     gl.linkProgram(program);
@@ -979,12 +1005,14 @@ function p360Init(){
     }
 
     const buffer=gl.createBuffer();
+
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+
     gl.bufferData(
         gl.ARRAY_BUFFER,
         new Float32Array([
-            -1,-1,1,-1,-1,1,
-            -1,1,1,-1,1,1
+            -1,-1, 1,-1, -1,1,
+            -1,1,  1,-1,  1,1
         ]),
         gl.STATIC_DRAW
     );
@@ -993,6 +1021,7 @@ function p360Init(){
     panorama360.program=program;
     panorama360.buffer=buffer;
     panorama360.pos=gl.getAttribLocation(program,"p");
+
     panorama360.u={
         tex:gl.getUniformLocation(program,"tex"),
         yaw:gl.getUniformLocation(program,"yaw"),
@@ -1004,18 +1033,51 @@ function p360Init(){
     return true;
 }
 
+function p360Clamp(value,min,max){
+    return Math.max(min,Math.min(max,value));
+}
+
 function p360Render(){
     panorama360.raf=0;
-    if(!panorama360.active||!panorama360.texture||!panorama360.gl) return;
+
+    if(
+        !panorama360.active||
+        !panorama360.texture||
+        !panorama360.gl
+    ){
+        return;
+    }
+
+    // انتقال تدريجي نحو الهدف = دوران ثقيل وسلس.
+    const smoothing=.12;
+
+    panorama360.yaw +=
+        (panorama360.targetYaw-panorama360.yaw)*smoothing;
+
+    panorama360.pitch +=
+        (panorama360.targetPitch-panorama360.pitch)*smoothing;
+
+    panorama360.fov +=
+        (panorama360.targetFov-panorama360.fov)*smoothing;
 
     const gl=panorama360.gl;
     const dpr=Math.min(window.devicePixelRatio||1,2);
 
-    // أبعاد الرسم الداخلية فقط؛ حجم العارض المرئي تحدده CSS.
-    const width=Math.max(1,Math.round(panoramaCanvas.clientWidth*dpr));
-    const height=Math.max(1,Math.round(panoramaCanvas.clientHeight*dpr));
+    // هذه أبعاد الرسم الداخلية فقط، ولا تغيّر حجم العارض المرئي.
+    const width=Math.max(
+        1,
+        Math.round(panoramaCanvas.clientWidth*dpr)
+    );
 
-    if(panoramaCanvas.width!==width||panoramaCanvas.height!==height){
+    const height=Math.max(
+        1,
+        Math.round(panoramaCanvas.clientHeight*dpr)
+    );
+
+    if(
+        panoramaCanvas.width!==width||
+        panoramaCanvas.height!==height
+    ){
         panoramaCanvas.width=width;
         panoramaCanvas.height=height;
     }
@@ -1025,25 +1087,77 @@ function p360Render(){
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(panorama360.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER,panorama360.buffer);
-    gl.enableVertexAttribArray(panorama360.pos);
-    gl.vertexAttribPointer(panorama360.pos,2,gl.FLOAT,false,0,0);
+
+    gl.bindBuffer(
+        gl.ARRAY_BUFFER,
+        panorama360.buffer
+    );
+
+    gl.enableVertexAttribArray(
+        panorama360.pos
+    );
+
+    gl.vertexAttribPointer(
+        panorama360.pos,
+        2,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D,panorama360.texture);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        panorama360.texture
+    );
 
-    gl.uniform1i(panorama360.u.tex,0);
-    gl.uniform1f(panorama360.u.yaw,panorama360.yaw);
-    gl.uniform1f(panorama360.u.pitch,panorama360.pitch);
-    gl.uniform1f(panorama360.u.fov,panorama360.fov);
-    gl.uniform1f(panorama360.u.aspect,width/Math.max(1,height));
+    gl.uniform1i(
+        panorama360.u.tex,
+        0
+    );
 
-    gl.drawArrays(gl.TRIANGLES,0,6);
+    gl.uniform1f(
+        panorama360.u.yaw,
+        panorama360.yaw
+    );
+
+    gl.uniform1f(
+        panorama360.u.pitch,
+        panorama360.pitch
+    );
+
+    gl.uniform1f(
+        panorama360.u.fov,
+        panorama360.fov
+    );
+
+    gl.uniform1f(
+        panorama360.u.aspect,
+        width/Math.max(1,height)
+    );
+
+    gl.drawArrays(
+        gl.TRIANGLES,
+        0,
+        6
+    );
+
+    // نستمر في الرسم أثناء تفعيل 360 حتى تكتمل حركة
+    // التنعيم حتى بعد توقف الإصبع.
+    if(panorama360.active){
+        panorama360.raf=requestAnimationFrame(p360Render);
+    }
 }
 
 function p360Soon(){
-    if(!panorama360.raf){
-        panorama360.raf=requestAnimationFrame(p360Render);
+    if(
+        panorama360.active &&
+        !panorama360.raf
+    ){
+        panorama360.raf=requestAnimationFrame(
+            p360Render
+        );
     }
 }
 
@@ -1058,117 +1172,215 @@ function p360Texture(image){
     }
 
     const texture=gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D,texture);
 
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        texture
+    );
 
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.pixelStorei(
+        gl.UNPACK_FLIP_Y_WEBGL,
+        false
+    );
 
-    // مهم: REPEAT يكسر صور NPOT في WebGL ويؤدي إلى Canvas أسود.
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(
+        gl.TEXTURE_2D,
+        gl.TEXTURE_MIN_FILTER,
+        gl.LINEAR
+    );
+
+    gl.texParameteri(
+        gl.TEXTURE_2D,
+        gl.TEXTURE_MAG_FILTER,
+        gl.LINEAR
+    );
+
+    // ضروري لصور 360 ذات الأبعاد غير Power-of-Two.
+    gl.texParameteri(
+        gl.TEXTURE_2D,
+        gl.TEXTURE_WRAP_S,
+        gl.CLAMP_TO_EDGE
+    );
+
+    gl.texParameteri(
+        gl.TEXTURE_2D,
+        gl.TEXTURE_WRAP_T,
+        gl.CLAMP_TO_EDGE
+    );
 
     try{
         gl.texImage2D(
-            gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            image
         );
     }catch(error){
-        console.error("360 TEXTURE UPLOAD ERROR:",error);
+        console.error(
+            "360 TEXTURE UPLOAD ERROR:",
+            error
+        );
+
         gl.deleteTexture(texture);
         return false;
     }
 
     if(gl.getError()!==gl.NO_ERROR){
-        console.error("360 WEBGL TEXTURE ERROR");
+        console.error(
+            "360 WEBGL TEXTURE ERROR"
+        );
+
         gl.deleteTexture(texture);
         return false;
     }
 
     panorama360.texture=texture;
+
     return true;
 }
 
 function p360Active(active){
     const on=Boolean(active);
+
     panorama360.active=on;
 
     if(!panoramaCanvas) return;
 
-    const wrapper=panoramaCanvas.closest(".wallpaper-preview-wrapper");
+    const wrapper=
+        panoramaCanvas.closest(
+            ".wallpaper-preview-wrapper"
+        );
+
     if(!wrapper) return;
 
-    wrapper.classList.toggle("is-panorama",on);
+    wrapper.classList.toggle(
+        "is-panorama",
+        on
+    );
 
+    // لا نغير أبعاد العارض ولا نضيف عارضاً آخر.
+    // الصورة الأصلية تبقى هي التي تحفظ ارتفاع الـwrapper.
     if(wallImage){
-        wallImage.style.visibility=on?"hidden":"visible";
+        wallImage.style.visibility=
+            on ? "hidden" : "visible";
     }
 
     if(wallVideo){
-        wallVideo.style.visibility=on?"hidden":"visible";
+        wallVideo.style.visibility=
+            on ? "hidden" : "visible";
     }
 
-    if(prevWallpaperBtn) prevWallpaperBtn.hidden=!on;
-    if(nextWallpaperBtn) nextWallpaperBtn.hidden=!on;
+    if(prevWallpaperBtn){
+        prevWallpaperBtn.hidden=!on;
+    }
+
+    if(nextWallpaperBtn){
+        nextWallpaperBtn.hidden=!on;
+    }
 
     if(on){
-        requestAnimationFrame(p360Soon);
+        p360Soon();
     }
 }
 
 function p360Stop(){
     panorama360.token++;
+
     panorama360.active=false;
+
     panorama360.pointers.clear();
+
     panorama360.pinch=0;
 
-    if(panoramaCanvas){
-        panoramaCanvas.classList.remove("is-dragging");
-        panoramaCanvas.closest(".wallpaper-preview-wrapper")
-            ?.classList.remove("is-panorama");
+    if(panorama360.raf){
+        cancelAnimationFrame(
+            panorama360.raf
+        );
+        panorama360.raf=0;
     }
 
-    if(prevWallpaperBtn) prevWallpaperBtn.hidden=true;
-    if(nextWallpaperBtn) nextWallpaperBtn.hidden=true;
+    if(panoramaCanvas){
+        panoramaCanvas.classList.remove(
+            "is-dragging"
+        );
 
-    if(wallImage) wallImage.style.visibility="visible";
-    if(wallVideo) wallVideo.style.visibility="visible";
+        panoramaCanvas
+            .closest(
+                ".wallpaper-preview-wrapper"
+            )
+            ?.classList.remove(
+                "is-panorama"
+            );
+    }
+
+    if(prevWallpaperBtn){
+        prevWallpaperBtn.hidden=true;
+    }
+
+    if(nextWallpaperBtn){
+        nextWallpaperBtn.hidden=true;
+    }
+
+    if(wallImage){
+        wallImage.style.visibility="visible";
+    }
+
+    if(wallVideo){
+        wallVideo.style.visibility="visible";
+    }
 }
 
 function p360Load(wall){
     const token=++panorama360.token;
 
     p360Stop();
-    // p360Stop increments token; keep this load's token current.
+
+    // p360Stop يزيد token؛ نعيد تثبيت token الخاص بهذه العملية.
     panorama360.token=token;
 
     if(
-        !panoramaCanvas ||
-        !wall ||
-        isVideoMedia(wall) ||
-        !wall.is360 ||
+        !panoramaCanvas||
+        !wall||
+        isVideoMedia(wall)||
+        !wall.is360||
         !wall.image
     ){
         return;
     }
 
     const image=new Image();
+
     image.crossOrigin="anonymous";
     image.decoding="async";
 
     image.onload=()=>{
-        if(token!==panorama360.token) return;
-        if(!currentWallpaper||Number(currentWallpaper.id)!==Number(wall.id)) return;
-        if(!wall.is360) return;
+        if(
+            token!==panorama360.token||
+            !currentWallpaper||
+            Number(currentWallpaper.id)!==Number(wall.id)||
+            !wall.is360
+        ){
+            return;
+        }
 
         if(!p360Texture(image)){
-            console.error("360: texture failed. Check image CORS.");
+            console.error(
+                "360: texture failed. Check image CORS."
+            );
+            p360Stop();
             return;
         }
 
         panorama360.yaw=0;
         panorama360.pitch=0;
         panorama360.fov=75;
+
+        panorama360.targetYaw=0;
+        panorama360.targetPitch=0;
+        panorama360.targetFov=75;
+
         panorama360.pointers.clear();
         panorama360.pinch=0;
 
@@ -1177,7 +1389,12 @@ function p360Load(wall){
 
     image.onerror=()=>{
         if(token!==panorama360.token) return;
-        console.error("360 IMAGE LOAD ERROR:",getImageUrl(wall.image));
+
+        console.error(
+            "360 IMAGE LOAD ERROR:",
+            getImageUrl(wall.image)
+        );
+
         p360Stop();
     };
 
@@ -1185,8 +1402,12 @@ function p360Load(wall){
 }
 
 function p360Distance(){
-    const points=[...panorama360.pointers.values()];
+    const points=[
+        ...panorama360.pointers.values()
+    ];
+
     if(points.length<2) return 0;
+
     return Math.hypot(
         points[0].x-points[1].x,
         points[0].y-points[1].y
@@ -1194,98 +1415,186 @@ function p360Distance(){
 }
 
 if(panoramaCanvas){
-    panoramaCanvas.addEventListener("pointerdown",event=>{
-        if(!panorama360.active) return;
+    panoramaCanvas.addEventListener(
+        "pointerdown",
+        event=>{
+            if(!panorama360.active) return;
 
-        panorama360.pointers.set(event.pointerId,{
-            x:event.clientX,
-            y:event.clientY
-        });
+            panorama360.pointers.set(
+                event.pointerId,
+                {
+                    x:event.clientX,
+                    y:event.clientY
+                }
+            );
 
-        if(panorama360.pointers.size===2){
-            panorama360.pinch=p360Distance();
+            if(panorama360.pointers.size===2){
+                panorama360.pinch=
+                    p360Distance();
+            }
+
+            panoramaCanvas.classList.add(
+                "is-dragging"
+            );
+
+            try{
+                panoramaCanvas.setPointerCapture(
+                    event.pointerId
+                );
+            }catch{}
         }
+    );
 
-        panoramaCanvas.classList.add("is-dragging");
+    panoramaCanvas.addEventListener(
+        "pointermove",
+        event=>{
+            if(
+                !panorama360.active||
+                !panorama360.pointers.has(
+                    event.pointerId
+                )
+            ){
+                return;
+            }
 
-        try{panoramaCanvas.setPointerCapture(event.pointerId)}catch{}
-    });
-
-    panoramaCanvas.addEventListener("pointermove",event=>{
-        if(
-            !panorama360.active||
-            !panorama360.pointers.has(event.pointerId)
-        ) return;
-
-        const old=panorama360.pointers.get(event.pointerId);
-        const dx=event.clientX-old.x;
-        const dy=event.clientY-old.y;
-
-        panorama360.pointers.set(event.pointerId,{
-            x:event.clientX,
-            y:event.clientY
-        });
-
-        if(panorama360.pointers.size>=2){
-            const distance=p360Distance();
-
-            if(panorama360.pinch>0&&distance>0){
-                panorama360.fov-=(
-                    distance-panorama360.pinch
-                )*.08;
-
-                panorama360.fov=Math.max(
-                    35,Math.min(105,panorama360.fov)
+            const old=
+                panorama360.pointers.get(
+                    event.pointerId
                 );
 
-                panorama360.pinch=distance;
-                p360Soon();
+            // نحصر القفزة إذا أرسل المتصفح حركة كبيرة
+            // بين حدثين، حتى لا تدور الخلفية فجأة.
+            const dx=p360Clamp(
+                event.clientX-old.x,
+                -30,
+                30
+            );
+
+            const dy=p360Clamp(
+                event.clientY-old.y,
+                -30,
+                30
+            );
+
+            panorama360.pointers.set(
+                event.pointerId,
+                {
+                    x:event.clientX,
+                    y:event.clientY
+                }
+            );
+
+            if(
+                panorama360.pointers.size>=2
+            ){
+                const distance=
+                    p360Distance();
+
+                if(
+                    panorama360.pinch>0&&
+                    distance>0
+                ){
+                    // Zoom هادئ أيضاً.
+                    panorama360.targetFov-=
+                        (distance-panorama360.pinch)*.025;
+
+                    panorama360.targetFov=
+                        p360Clamp(
+                            panorama360.targetFov,
+                            40,
+                            95
+                        );
+
+                    panorama360.pinch=
+                        distance;
+
+                    p360Soon();
+                }
+
+                event.preventDefault();
+                return;
             }
+
+            // حساسية منخفضة = دوران ثقيل وواقعي.
+            const rotationSensitivity=.0022;
+
+            panorama360.targetYaw-=
+                dx*rotationSensitivity;
+
+            panorama360.targetPitch+=
+                dy*rotationSensitivity;
+
+            panorama360.targetPitch=
+                p360Clamp(
+                    panorama360.targetPitch,
+                    -Math.PI*.46,
+                    Math.PI*.46
+                );
 
             event.preventDefault();
-            return;
+
+            p360Soon();
+        },
+        {passive:false}
+    );
+
+    ["pointerup","pointercancel","pointerleave"].forEach(
+        type=>{
+            panoramaCanvas.addEventListener(
+                type,
+                event=>{
+                    panorama360.pointers.delete(
+                        event.pointerId
+                    );
+
+                    if(
+                        panorama360.pointers.size<2
+                    ){
+                        panorama360.pinch=0;
+                    }
+
+                    if(
+                        panorama360.pointers.size===0
+                    ){
+                        panoramaCanvas.classList.remove(
+                            "is-dragging"
+                        );
+                    }
+                }
+            );
         }
+    );
 
-        panorama360.yaw-=dx*.005;
-        panorama360.pitch+=dy*.005;
-        panorama360.pitch=Math.max(
-            -Math.PI*.48,
-            Math.min(Math.PI*.48,panorama360.pitch)
-        );
+    panoramaCanvas.addEventListener(
+        "wheel",
+        event=>{
+            if(!panorama360.active) return;
 
-        event.preventDefault();
-        p360Soon();
-    },{passive:false});
+            event.preventDefault();
 
-    ["pointerup","pointercancel","pointerleave"].forEach(type=>{
-        panoramaCanvas.addEventListener(type,event=>{
-            panorama360.pointers.delete(event.pointerId);
+            panorama360.targetFov+=
+                event.deltaY*.025;
 
-            if(panorama360.pointers.size<2){
-                panorama360.pinch=0;
+            panorama360.targetFov=
+                p360Clamp(
+                    panorama360.targetFov,
+                    40,
+                    95
+                );
+
+            p360Soon();
+        },
+        {passive:false}
+    );
+
+    window.addEventListener(
+        "resize",
+        ()=>{
+            if(panorama360.active){
+                p360Soon();
             }
-
-            if(panorama360.pointers.size===0){
-                panoramaCanvas.classList.remove("is-dragging");
-            }
-        });
-    });
-
-    panoramaCanvas.addEventListener("wheel",event=>{
-        if(!panorama360.active) return;
-        event.preventDefault();
-
-        panorama360.fov+=event.deltaY*.04;
-        panorama360.fov=Math.max(
-            35,Math.min(105,panorama360.fov)
-        );
-
-        p360Soon();
-    },{passive:false});
-
-    window.addEventListener("resize",()=>{
-        if(panorama360.active) p360Soon();
-    });
+        }
+    );
 }
 
 function showWallpaper(){

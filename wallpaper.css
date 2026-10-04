@@ -68,33 +68,34 @@ MAIN PREVIEW
 }
 
 .wallpaper-preview-wrapper{
-    /* السحب الأفقي للخلفيات يعمل للصورة والفيديو معاً،
-       مع السماح للصفحة بالسحب العمودي بشكل طبيعي. */
-    touch-action:pan-y;
+    /* هذا هو العارض الأصلي نفسه؛ جميع أنواع الوسائط تلتزم بنفس الأبعاد. */
     position:relative;
     isolation:isolate;
-    will-change:transform;
     width:100%;
+    height:65vh;
     border-radius:30px;
     overflow:hidden;
     background:#f5f5f5;
+    touch-action:pan-y;
 }
 
 .preview img,
 .preview video{
     touch-action:pan-y;
     width:100%;
-    height:65vh;
+    height:100%;
     display:block;
     object-fit:cover;
-    border-radius:30px;
+    border-radius:inherit;
     background:#eee;
 }
 
 #wallVideo{
     display:none;
 }
-".panorama-canvas{
+
+/* 360 يملأ نفس العارض تماماً، ولا يغيّر حجمه. */
+.panorama-canvas{
     position:absolute;
     inset:0;
     width:100%;
@@ -112,23 +113,33 @@ MAIN PREVIEW
     -webkit-user-select:none;
     -webkit-touch-callout:none;
 }
+
 .wallpaper-preview-wrapper.is-panorama .panorama-canvas{
     display:block;
 }
+
 .wallpaper-preview-wrapper.is-panorama #wallImage,
 .wallpaper-preview-wrapper.is-panorama #wallVideo{
     visibility:hidden !important;
 }
-.panorama-canvas.is-dragging{cursor:grabbing}
+
+.panorama-canvas.is-dragging{
+    cursor:grabbing;
+}
+
 .wallpaper-preview-wrapper.is-panorama{
     touch-action:none;
 }
+
 @media(max-width:600px){
+    .wallpaper-preview-wrapper{
+        height:58vh;
+    }
+
     .panorama-canvas{
         height:100%;
     }
 }
-
 
 /* =========================
    INTERACTIVE SWIPE
@@ -170,7 +181,7 @@ QUALITY BADGE
     left:15px;
     padding:8px 14px;
     color:#ffffff;
-    background:transparent
+    background:transparent;
     border-radius:20px;
     font-size:13px;
     font-weight:700;
