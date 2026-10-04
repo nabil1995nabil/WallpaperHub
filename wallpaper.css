@@ -202,6 +202,86 @@ IMAGE ACTION BUTTONS
 }
 
 /* =========================
+   360° INDICATOR + NAVIGATION
+========================= */
+
+.panorama-image-btn{
+    left:70px;
+    width:48px;
+    height:48px;
+}
+
+.panorama-image-btn[hidden],
+.wallpaper-nav-btn[hidden]{
+    display:none !important;
+}
+
+.panorama-360-icon{
+    width:25px;
+    height:25px;
+    display:block;
+    color:currentColor;
+}
+
+.wallpaper-nav-btn{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:46px;
+    height:46px;
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    background:rgba(0,0,0,.28);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    box-shadow:0 4px 18px rgba(0,0,0,.18);
+    z-index:30;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+}
+
+.wallpaper-nav-btn:active{
+    transform:translateY(-50%) scale(.92);
+}
+
+.wallpaper-nav-btn .material-icons{
+    font-size:30px;
+}
+
+.wallpaper-nav-prev{ right:14px; }
+.wallpaper-nav-next{ left:14px; }
+
+.wallpaper-preview-wrapper.is-panorama .wallpaper-nav-btn{
+    display:flex;
+}
+
+@media(max-width:600px){
+    .panorama-image-btn{
+        left:61px;
+        width:44px;
+        height:44px;
+    }
+    .panorama-360-icon{
+        width:23px;
+        height:23px;
+    }
+    .wallpaper-nav-btn{
+        width:42px;
+        height:42px;
+    }
+    .wallpaper-nav-btn .material-icons{
+        font-size:28px;
+    }
+    .wallpaper-nav-prev{ right:10px; }
+    .wallpaper-nav-next{ left:10px; }
+}
+
+/* =========================
 OPTIONS
 ========================= */
 

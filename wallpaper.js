@@ -62,6 +62,8 @@ document.getElementById("wallVideo");
 const panoramaCanvas = document.getElementById("panoramaCanvas");
 const panoramaHint = document.getElementById("panoramaHint");
 const panoramaBtn = document.getElementById("panoramaBtn");
+const prevWallpaperBtn = document.getElementById("prevWallpaperBtn");
+const nextWallpaperBtn = document.getElementById("nextWallpaperBtn");
 
 const wallResolution =
 document.getElementById("wallResolution");
@@ -929,14 +931,22 @@ function p360Texture(img){
  panorama360.texture=t;return true;
 }
 function p360Active(v){
+ const active=Boolean(v);
  if(panoramaBtn){
-  panoramaBtn.hidden=!Boolean(v);
+  // الأيقونة تعتمد على وسم الخلفية 360 من قاعدة البيانات،
+  // وليس على نجاح WebGL فقط.
+  panoramaBtn.hidden=!Boolean(currentWallpaper?.is360);
  }
+ if(prevWallpaperBtn) prevWallpaperBtn.hidden=!active;
+ if(nextWallpaperBtn) nextWallpaperBtn.hidden=!active;
 
- if(!panoramaCanvas)return;const w=panoramaCanvas.closest(".wallpaper-preview-wrapper");if(!w)return;
- panorama360.active=!!v;w.classList.toggle("is-panorama",!!v);
- if(panoramaHint){panoramaHint.hidden=!v;panoramaHint.style.opacity="1"}
- if(v)p360Soon();
+ if(!panoramaCanvas)return;
+ const w=panoramaCanvas.closest(".wallpaper-preview-wrapper");
+ if(!w)return;
+ panorama360.active=active;
+ w.classList.toggle("is-panorama",active);
+ if(panoramaHint){panoramaHint.hidden=!active;panoramaHint.style.opacity="1"}
+ if(active)p360Soon();
 }
 function p360Load(wall){
  if(!panoramaCanvas||!wall||isVideoMedia(wall)){p360Active(false);return}
@@ -1008,6 +1018,11 @@ if(wallDirectImageLink){
 
 
 p360Active(false);
+if(panoramaBtn){
+    panoramaBtn.hidden = !Boolean(currentWallpaper.is360);
+}
+if(prevWallpaperBtn) prevWallpaperBtn.hidden = true;
+if(nextWallpaperBtn) nextWallpaperBtn.hidden = true;
 
 if(isVideoMedia(currentWallpaper)){
 
@@ -1738,6 +1753,7 @@ if(wallpaperSwipeArea){
     wallpaperSwipeArea.addEventListener(
         "touchstart",
         (e)=>{
+            if(panorama360.active) return;
             if(!e.touches || !e.touches.length)
                 return;
 
@@ -1764,6 +1780,7 @@ if(wallpaperSwipeArea){
     wallpaperSwipeArea.addEventListener(
         "touchmove",
         (e)=>{
+            if(panorama360.active) return;
             if(!swipeTracking || !e.touches || !e.touches.length)
                 return;
 
@@ -1803,6 +1820,10 @@ if(wallpaperSwipeArea){
     wallpaperSwipeArea.addEventListener(
         "touchend",
         ()=>{
+            if(panorama360.active){
+                swipeTracking=false;
+                return;
+            }
             if(!swipeTracking)
                 return;
 
@@ -1893,6 +1914,11 @@ if(wallpaperSwipeArea){
     wallpaperSwipeArea.addEventListener(
         "touchcancel",
         ()=>{
+            if(panorama360.active){
+                swipeTracking=false;
+                swipeLockedVertical=false;
+                return;
+            }
             swipeTracking = false;
             swipeLockedVertical = false;
 
@@ -4269,6 +4295,26 @@ document.addEventListener(
 if(panoramaBtn){
  panoramaBtn.addEventListener("click",()=>{
   if(currentWallpaper?.is360) p360Load(currentWallpaper);
+ });
+}
+
+if(prevWallpaperBtn){
+ prevWallpaperBtn.addEventListener("click",(event)=>{
+  event.preventDefault();
+  event.stopPropagation();
+  if(currentWallpaper?.is360){
+    changeWallpaper(currentWallpaperIndex - 1);
+  }
+ });
+}
+
+if(nextWallpaperBtn){
+ nextWallpaperBtn.addEventListener("click",(event)=>{
+  event.preventDefault();
+  event.stopPropagation();
+  if(currentWallpaper?.is360){
+    changeWallpaper(currentWallpaperIndex + 1);
+  }
  });
 }
 
