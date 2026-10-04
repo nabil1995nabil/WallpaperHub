@@ -516,6 +516,7 @@ function wallpaperFromDb(row){
         popular: Boolean(row.popular),
         type: row.type ?? "image",
         animated: Boolean(row.animated),
+        is360: Boolean(row.is_360),
         source: row.source ?? "",
         // بيانات تحليل Gemini/EXIF المحفوظة مع الخلفية.
         aiDescription: row.ai_description ?? row.aiDescription ?? "",
@@ -558,6 +559,7 @@ function wallpaperToDb(w){
         popular: Boolean(w.popular),
         type: w.type ?? "image",
         animated: Boolean(w.animated),
+        is_360: Boolean(w.is360),
         source: w.source ?? null,
         user_id: w.userId ?? w.user_id ?? null
     };
@@ -2290,6 +2292,7 @@ app.post(
                 popular: Boolean(req.body.popular),
                 type: req.body.type || "image",
                 animated: Boolean(req.body.animated || ["video","gif"].includes(String(req.body.type || "").toLowerCase())),
+                is360: String(req.body.type || "image").toLowerCase() === "image" && Boolean(req.body.is360),
                 // These metadata values are calculated for compatibility, but the current
                 // wallpapers table has no columns for them.
                 location: metadata.location || "غير معروف",
@@ -2416,7 +2419,7 @@ app.put(
                 resolution:"resolution", size:"size",
                 author:"author", date:"date", colors:"colors", tags:"tags",
                 featured:"featured", todayWallpaper:"today_wallpaper",
-                popular:"popular", type:"type", animated:"animated"
+                popular:"popular", type:"type", animated:"animated", is360:"is_360"
             };
 
             if(admin){
@@ -2439,6 +2442,7 @@ app.put(
             if(updates.category != null){
                 updates.category = String(updates.category).trim().toLowerCase();
             }
+            if(updates.is_360 !== undefined) updates.is_360 = Boolean(updates.is_360);
             if(updates.colors !== undefined && !Array.isArray(updates.colors)) delete updates.colors;
             if(updates.tags !== undefined && !Array.isArray(updates.tags)) delete updates.tags;
 
