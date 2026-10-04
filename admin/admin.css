@@ -1247,3 +1247,155 @@ font-size:12px;
     z-index:3;
     backdrop-filter:blur(8px);
 }
+
+
+/* ===========================
+   Resumable Upload Controls
+=========================== */
+
+.upload-progress-box{
+    position:relative;
+    overflow:hidden;
+}
+
+.upload-progress-title{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.upload-progress-status-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin:0 0 11px;
+    color:#64748b;
+    font-size:12px;
+    font-weight:600;
+}
+
+.upload-network-status{
+    white-space:nowrap;
+}
+
+.upload-network-status.is-online{
+    color:#16a34a;
+}
+
+.upload-network-status.is-offline{
+    color:#dc2626;
+}
+
+.upload-network-status.is-paused{
+    color:#d97706;
+}
+
+#uploadCurrentFile{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    direction:rtl;
+}
+
+.upload-progress-actions{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:12px;
+    flex-wrap:wrap;
+}
+
+.upload-control-btn{
+    min-height:42px;
+    padding:0 15px;
+    border:1px solid #dbe3ee;
+    border-radius:11px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    background:#fff;
+    color:#334155;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+
+.upload-control-btn:hover:not(:disabled){
+    transform:translateY(-1px);
+    box-shadow:0 5px 15px rgba(15,23,42,.08);
+}
+
+.upload-control-btn:active:not(:disabled){
+    transform:scale(.97);
+}
+
+.upload-control-btn:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+}
+
+.upload-pause-btn{
+    border-color:#bfdbfe;
+    color:#1d4ed8;
+    background:#eff6ff;
+}
+
+.upload-resume-btn{
+    border-color:#bbf7d0;
+    color:#15803d;
+    background:#f0fdf4;
+}
+
+.upload-retry-info{
+    color:#64748b;
+    font-size:12px;
+    font-weight:600;
+    margin-right:auto;
+}
+
+.upload-offline-notice{
+    margin-top:11px;
+    padding:10px 12px;
+    border-radius:11px;
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    color:#9a3412;
+    font-size:12px;
+    font-weight:700;
+    line-height:1.7;
+}
+
+.upload-offline-notice[hidden]{
+    display:none;
+}
+
+@media(max-width:600px){
+    .upload-progress-status-row{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:5px;
+    }
+
+    .upload-progress-actions{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+    }
+
+    .upload-control-btn{
+        width:100%;
+        padding:0 8px;
+        font-size:12px;
+    }
+
+    .upload-retry-info{
+        grid-column:1/-1;
+        width:100%;
+        margin:0;
+        text-align:center;
+    }
+}

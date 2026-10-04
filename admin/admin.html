@@ -498,11 +498,11 @@ class="images-preview">
 
 <!-- Upload Progress -->
 
-<div class="upload-progress-box full">
+<div class="upload-progress-box full" id="uploadProgressBox">
 
 <div class="upload-progress-info">
 
-<span>
+<span class="upload-progress-title">
 📤 تقدم النشر
 </span>
 
@@ -512,14 +512,38 @@ class="images-preview">
 
 </div>
 
+<div class="upload-progress-status-row">
+    <span id="uploadNetworkStatus" class="upload-network-status is-online">
+        ● متصل — الرفع جاهز
+    </span>
+    <span id="uploadCurrentFile">لا يوجد رفع حالي</span>
+</div>
 
 <div class="upload-progress">
 
-<div 
+<div
 id="uploadProgressBar"
 class="upload-progress-bar">
 </div>
 
+</div>
+
+<div class="upload-progress-actions">
+    <button id="pauseUploadBtn" type="button" class="upload-control-btn upload-pause-btn" disabled>
+        <span>⏸</span>
+        <span>إيقاف الرفع</span>
+    </button>
+
+    <button id="resumeUploadBtn" type="button" class="upload-control-btn upload-resume-btn" disabled>
+        <span>▶</span>
+        <span>متابعة الرفع</span>
+    </button>
+
+    <span id="uploadRetryInfo" class="upload-retry-info"></span>
+</div>
+
+<div id="uploadOfflineNotice" class="upload-offline-notice" hidden>
+    انقطع الاتصال. تم حفظ موضع الرفع الحالي، وسيستأنف تلقائيًا عند عودة الإنترنت.
 </div>
 
 </div>

@@ -74,6 +74,24 @@ document.getElementById("uploadProgressBar");
 const saveWallpaper =
 document.getElementById("saveWallpaper");
 
+const pauseUploadBtn =
+document.getElementById("pauseUploadBtn");
+
+const resumeUploadBtn =
+document.getElementById("resumeUploadBtn");
+
+const uploadNetworkStatus =
+document.getElementById("uploadNetworkStatus");
+
+const uploadCurrentFile =
+document.getElementById("uploadCurrentFile");
+
+const uploadRetryInfo =
+document.getElementById("uploadRetryInfo");
+
+const uploadOfflineNotice =
+document.getElementById("uploadOfflineNotice");
+
 const is360Input =
 document.getElementById("is360");
 
@@ -104,6 +122,113 @@ let wallpaperType = "image";
 let videoThumbnail = "";
 
 let selectedWallpapers = new Set();
+
+/*
+ * Resumable upload state.
+ * Cloudinary receives the file in chunks so a lost connection only
+ * retries the current chunk instead of restarting the whole file.
+ */
+const UPLOAD_CHUNK_SIZE = 6 * 1024 * 1024;
+const UPLOAD_RETRY_LIMIT = 8;
+let activeUploadXHR = null;
+let uploadPausedByUser = false;
+let uploadWaitingForNetwork = false;
+let uploadCurrentState = null;
+let uploadAbortReason = "";
+
+function setUploadNetworkStatus(text, state="is-online"){
+    if(!uploadNetworkStatus) return;
+    uploadNetworkStatus.textContent = text;
+    uploadNetworkStatus.className = `upload-network-status ${state}`;
+}
+
+function setUploadControls(){
+    const active = Boolean(uploadCurrentState);
+    const canPause = active && !uploadPausedByUser && !uploadWaitingForNetwork;
+    const canResume = active && (uploadPausedByUser || uploadWaitingForNetwork) && navigator.onLine !== false;
+
+    if(pauseUploadBtn) pauseUploadBtn.disabled = !canPause;
+    if(resumeUploadBtn) resumeUploadBtn.disabled = !canResume;
+}
+
+function setUploadCurrentFile(text="لا يوجد رفع حالي"){
+    if(uploadCurrentFile) uploadCurrentFile.textContent = text;
+}
+
+function setUploadRetryInfo(text=""){
+    if(uploadRetryInfo) uploadRetryInfo.textContent = text;
+}
+
+function sleep(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createUploadId(){
+    if(globalThis.crypto?.randomUUID) return crypto.randomUUID();
+    return `wh-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function abortActiveUpload(reason=""){
+    uploadAbortReason = reason;
+    if(activeUploadXHR){
+        try{ activeUploadXHR.abort(); }catch{}
+        activeUploadXHR = null;
+    }
+}
+
+function pauseCurrentUpload(){
+    if(!uploadCurrentState) return;
+    uploadPausedByUser = true;
+    uploadWaitingForNetwork = false;
+    abortActiveUpload("user");
+    setUploadNetworkStatus("⏸ متوقف مؤقتًا", "is-paused");
+    setUploadRetryInfo("تم حفظ موضع الرفع الحالي داخل هذه الجلسة.");
+    setUploadControls();
+}
+
+function resumeCurrentUpload(){
+    if(!uploadCurrentState || navigator.onLine === false) return;
+    uploadPausedByUser = false;
+    uploadWaitingForNetwork = false;
+    setUploadNetworkStatus("● متصل — جاري المتابعة", "is-online");
+    setUploadRetryInfo("");
+    setUploadControls();
+}
+
+function handleOffline(){
+    if(!uploadCurrentState) return;
+    uploadWaitingForNetwork = true;
+    uploadPausedByUser = false;
+    abortActiveUpload("offline");
+    setUploadNetworkStatus("● لا يوجد اتصال", "is-offline");
+    if(uploadOfflineNotice) uploadOfflineNotice.hidden = false;
+    setUploadRetryInfo("بانتظار عودة الإنترنت...");
+    setUploadControls();
+}
+
+function handleOnline(){
+    if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
+    if(!uploadCurrentState) {
+        setUploadNetworkStatus("● متصل — الرفع جاهز", "is-online");
+        return;
+    }
+    uploadWaitingForNetwork = false;
+    uploadPausedByUser = false;
+    setUploadNetworkStatus("● عاد الاتصال — استئناف الرفع", "is-online");
+    setUploadRetryInfo("");
+    setUploadControls();
+}
+
+window.addEventListener("offline", handleOffline);
+window.addEventListener("online", handleOnline);
+
+if(pauseUploadBtn){
+    pauseUploadBtn.addEventListener("click", pauseCurrentUpload);
+}
+
+if(resumeUploadBtn){
+    resumeUploadBtn.addEventListener("click", resumeCurrentUpload);
+}
 
 // ==========================================
 // AI Auto Tags
@@ -994,183 +1119,256 @@ renderSelectedFiles();
 
 
 // ==========================================
-// رفع Cloudinary مع نسبة حقيقية
+// رفع Cloudinary قابل للإيقاف والاستكمال
 // ==========================================
 
+function uploadToCloudinaryResumable(file, onProgress){
+    return new Promise((resolve, reject)=>{
+        const resourceType = file.type.startsWith("video/") ? "video" : "image";
+        const total = file.size;
+        const uploadId = createUploadId();
 
-async function uploadToCloudinary(file,onProgress){
+        uploadCurrentState = {
+            file,
+            uploadId,
+            resourceType,
+            offset: 0,
+            total,
+            secureUrl: "",
+            done: false
+        };
 
+        uploadPausedByUser = false;
+        uploadWaitingForNetwork = navigator.onLine === false;
 
-return new Promise(
-(resolve,reject)=>{
+        if(uploadOfflineNotice) uploadOfflineNotice.hidden = !uploadWaitingForNetwork;
 
+        const fail = error => {
+            if(uploadCurrentState?.uploadId === uploadId){
+                uploadCurrentState = null;
+            }
+            activeUploadXHR = null;
+            setUploadControls();
+            reject(error);
+        };
 
-const formData =
-new FormData();
+        const complete = url => {
+            if(uploadCurrentState?.uploadId === uploadId){
+                uploadCurrentState.done = true;
+                uploadCurrentState.secureUrl = url;
+            }
+            activeUploadXHR = null;
+            uploadCurrentState = null;
+            setUploadControls();
+            setUploadRetryInfo("");
+            if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
+            setUploadNetworkStatus("● اكتمل رفع الملف", "is-online");
+            resolve(url);
+        };
 
+        const updateProgress = offset => {
+            const percent = total > 0
+                ? Math.min(100, Math.round((offset / total) * 100))
+                : 100;
+            if(onProgress) onProgress(percent, offset, total);
+        };
 
+        const waitUntilReady = async()=>{
+            while(uploadPausedByUser || uploadWaitingForNetwork || navigator.onLine === false){
+                if(uploadWaitingForNetwork || navigator.onLine === false){
+                    uploadWaitingForNetwork = true;
+                    setUploadNetworkStatus("● لا يوجد اتصال", "is-offline");
+                    if(uploadOfflineNotice) uploadOfflineNotice.hidden = false;
+                }else{
+                    setUploadNetworkStatus("⏸ متوقف مؤقتًا", "is-paused");
+                }
+                setUploadControls();
+                await sleep(400);
+            }
+            setUploadNetworkStatus("● متصل — جاري الرفع", "is-online");
+            setUploadControls();
+        };
 
-formData.append(
-"file",
-file
-);
+        const uploadChunk = async()=>{
+            if(!uploadCurrentState || uploadCurrentState.uploadId !== uploadId) return;
 
+            await waitUntilReady();
 
+            let retries = 0;
 
-formData.append(
-"upload_preset",
-CLOUDINARY_UPLOAD_PRESET
-);
+            while(uploadCurrentState && uploadCurrentState.uploadId === uploadId){
+                if(uploadPausedByUser || uploadWaitingForNetwork || navigator.onLine === false){
+                    await waitUntilReady();
+                    retries = 0;
+                }
 
+                const startOffset = uploadCurrentState.offset;
+                if(startOffset >= total){
+                    fail(new Error("Cloudinary لم يعُد رابط الملف النهائي."));
+                    return;
+                }
 
+                const endOffset = Math.min(startOffset + UPLOAD_CHUNK_SIZE, total);
+                const chunk = file.slice(startOffset, endOffset);
 
-let resourceType =
-"image";
+                try{
+                    setUploadRetryInfo(
+                        retries > 0
+                            ? `إعادة المحاولة ${retries}/${UPLOAD_RETRY_LIMIT} — نفس الجزء محفوظ`
+                            : `رفع الجزء ${Math.ceil(endOffset / UPLOAD_CHUNK_SIZE)}`
+                    );
 
+                    const result = await new Promise((resolveChunk, rejectChunk)=>{
+                        const xhr = new XMLHttpRequest();
+                        activeUploadXHR = xhr;
 
+                        const url =
+                            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
 
-if(
-file.type.startsWith("video/")
-){
+                        xhr.open("POST", url, true);
+                        xhr.timeout = 0;
+                        xhr.setRequestHeader(
+                            "X-Unique-Upload-Id",
+                            uploadId
+                        );
+                        xhr.setRequestHeader(
+                            "Content-Range",
+                            `bytes ${startOffset}-${endOffset - 1}/${total}`
+                        );
 
-resourceType =
-"video";
+                        xhr.upload.onprogress = event=>{
+                            if(event.lengthComputable){
+                                const current = startOffset + event.loaded;
+                                updateProgress(current);
+                            }
+                        };
 
+                        xhr.onload = ()=>{
+                            activeUploadXHR = null;
+
+                            let data = {};
+                            try{
+                                data = JSON.parse(xhr.responseText || "{}");
+                            }catch{}
+
+                            if(xhr.status >= 200 && xhr.status < 300){
+                                resolveChunk(data);
+                            }else{
+                                rejectChunk(
+                                    new Error(
+                                        data?.error?.message ||
+                                        `Cloudinary HTTP ${xhr.status}`
+                                    )
+                                );
+                            }
+                        };
+
+                        xhr.onerror = ()=>{
+                            activeUploadXHR = null;
+                            rejectChunk(new Error("انقطع الاتصال أثناء رفع الجزء"));
+                        };
+
+                        xhr.ontimeout = ()=>{
+                            activeUploadXHR = null;
+                            rejectChunk(new Error("انتهت مهلة رفع الجزء"));
+                        };
+
+                        xhr.onabort = ()=>{
+                            activeUploadXHR = null;
+                            if(uploadAbortReason === "user"){
+                                rejectChunk(Object.assign(
+                                    new Error("UPLOAD_PAUSED"),
+                                    {code:"UPLOAD_PAUSED"}
+                                ));
+                            }else if(uploadAbortReason === "offline"){
+                                rejectChunk(Object.assign(
+                                    new Error("UPLOAD_OFFLINE"),
+                                    {code:"UPLOAD_OFFLINE"}
+                                ));
+                            }else{
+                                rejectChunk(Object.assign(
+                                    new Error("UPLOAD_ABORTED"),
+                                    {code:"UPLOAD_ABORTED"}
+                                ));
+                            }
+                            uploadAbortReason = "";
+                        };
+
+                        const formData = new FormData();
+                        formData.append("file", chunk, file.name);
+                        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+                        xhr.send(formData);
+                    });
+
+                    const secureUrl = result?.secure_url || result?.url || "";
+                    const nextOffset = endOffset;
+
+                    uploadCurrentState.offset = nextOffset;
+                    updateProgress(nextOffset);
+
+                    if(secureUrl){
+                        complete(secureUrl);
+                        return;
+                    }
+
+                    if(nextOffset >= total){
+                        fail(new Error("اكتمل الرفع لكن Cloudinary لم يرجع الرابط."));
+                        return;
+                    }
+
+                    retries = 0;
+                    setUploadRetryInfo("");
+                    await sleep(30);
+                    break;
+
+                }catch(error){
+                    if(error?.code === "UPLOAD_PAUSED"){
+                        setUploadNetworkStatus("⏸ متوقف مؤقتًا", "is-paused");
+                        setUploadRetryInfo("اضغط «متابعة الرفع» للاستكمال من نفس الموضع.");
+                        setUploadControls();
+                        return;
+                    }
+
+                    if(error?.code === "UPLOAD_OFFLINE" || navigator.onLine === false){
+                        uploadWaitingForNetwork = true;
+                        setUploadNetworkStatus("● لا يوجد اتصال", "is-offline");
+                        if(uploadOfflineNotice) uploadOfflineNotice.hidden = false;
+                        setUploadRetryInfo("تم الاحتفاظ بموضع الجزء الحالي. سيُستأنف تلقائيًا.");
+                        setUploadControls();
+
+                        // لا نعيد الملف من البداية؛ نبقى داخل نفس دورة الرفع
+                        // وننتظر عودة الاتصال ثم نعيد نفس الـ chunk.
+                        await waitUntilReady();
+                        retries = 0;
+                        continue;
+                    }
+
+                    retries++;
+
+                    if(retries > UPLOAD_RETRY_LIMIT){
+                        fail(error);
+                        return;
+                    }
+
+                    const delay = Math.min(12000, 800 * (2 ** (retries - 1)));
+                    setUploadRetryInfo(
+                        `فشل الجزء مؤقتًا — إعادة المحاولة ${retries}/${UPLOAD_RETRY_LIMIT} بعد ${Math.ceil(delay/1000)} ث`
+                    );
+                    await sleep(delay);
+                }
+            }
+
+            if(uploadCurrentState?.uploadId === uploadId){
+                uploadChunk();
+            }
+        };
+
+        setUploadControls();
+        updateProgress(0);
+        uploadChunk();
+    });
 }
-
-
-
-
-const xhr =
-new XMLHttpRequest();
-
-
-
-
-xhr.open(
-
-"POST",
-
-`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`
-
-);
-
-
-
-
-
-
-xhr.upload.onprogress =
-(event)=>{
-
-
-if(
-event.lengthComputable &&
-onProgress
-){
-
-
-const percent =
-Math.round(
-
-(event.loaded / event.total) * 100
-
-);
-
-
-
-onProgress(percent);
-
-
-
-}
-
-
-
-};
-
-
-
-
-
-
-xhr.onload = ()=>{
-
-
-const result =
-JSON.parse(
-xhr.responseText
-);
-
-
-
-if(
-xhr.status >= 200 &&
-xhr.status < 300
-){
-
-
-resolve(
-result.secure_url
-);
-
-
-
-}else{
-
-
-reject(
-new Error(
-result.error?.message ||
-"فشل رفع الملف"
-)
-);
-
-
-
-}
-
-
-
-};
-
-
-
-
-
-
-xhr.onerror = ()=>{
-
-
-reject(
-new Error(
-"خطأ في الاتصال"
-)
-);
-
-
-
-};
-
-
-
-
-
-xhr.send(
-formData
-);
-
-
-
-});
-
-
-}
-
-
-
-
-
 
 // ==========================================
 // معلومات الملف
@@ -1563,11 +1761,18 @@ uploadProgressBar.style.width =
 
 
 if(uploadProgressText){
-
-uploadProgressText.textContent =
-`جاهز لرفع ${total} ملفات`;
-
+    uploadProgressText.textContent =
+        `جاهز لرفع ${total} ملفات`;
 }
+
+if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
+setUploadNetworkStatus(
+    navigator.onLine === false ? "● لا يوجد اتصال" : "● متصل — الرفع جاهز",
+    navigator.onLine === false ? "is-offline" : "is-online"
+);
+setUploadCurrentFile("يتم تجهيز الملفات...");
+setUploadRetryInfo("");
+setUploadControls();
 
 
 
@@ -1601,38 +1806,24 @@ await getFileInfo(file);
 
 // رفع Cloudinary
 
-const url =
+setUploadCurrentFile(
+    `الملف ${i+1} من ${total}: ${file.name}`
+);
 
-await uploadToCloudinary(
+const url = await uploadToCloudinaryResumable(
+    file,
+    (percent, loaded, bytesTotal)=>{
+        if(uploadProgressBar){
+            uploadProgressBar.style.width = percent + "%";
+        }
 
-file,
-
-(percent)=>{
-
-
-
-if(uploadProgressBar){
-
-uploadProgressBar.style.width =
-percent + "%";
-
-}
-
-
-
-
-if(uploadProgressText){
-
-uploadProgressText.textContent =
-
-`رفع الملف ${i+1}/${total} : ${percent}%`;
-
-}
-
-
-
-}
-
+        if(uploadProgressText){
+            const loadedMB = (loaded / 1024 / 1024).toFixed(1);
+            const totalMB = (bytesTotal / 1024 / 1024).toFixed(1);
+            uploadProgressText.textContent =
+                `رفع الملف ${i+1}/${total} : ${percent}% · ${loadedMB}/${totalMB} MB`;
+        }
+    }
 );
 
 
@@ -1765,6 +1956,14 @@ uploadProgressText.textContent =
 
 saveWallpaper.disabled = false;
 
+uploadCurrentState = null;
+uploadPausedByUser = false;
+uploadWaitingForNetwork = false;
+abortActiveUpload("complete");
+setUploadControls();
+setUploadCurrentFile("لا يوجد رفع حالي");
+setUploadRetryInfo("");
+if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
 
 saveWallpaper.textContent =
 "🚀 نشر الخلفيات";
