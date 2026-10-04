@@ -94,13 +94,17 @@ MAIN PREVIEW
 #wallVideo{
     display:none;
 }
-.panorama-canvas{
-    position:relative;
+".panorama-canvas{
+    position:absolute;
+    inset:0;
     width:100%;
-    height:65vh;
+    height:100%;
     display:none;
-    z-index:1;
-    border-radius:30px;
+    z-index:2;
+    margin:0;
+    padding:0;
+    border:0;
+    border-radius:inherit;
     background:#000;
     cursor:grab;
     touch-action:none;
@@ -113,16 +117,16 @@ MAIN PREVIEW
 }
 .wallpaper-preview-wrapper.is-panorama #wallImage,
 .wallpaper-preview-wrapper.is-panorama #wallVideo{
-    display:none !important;
+    visibility:hidden !important;
 }
 .panorama-canvas.is-dragging{cursor:grabbing}
-.panorama-hint{
-    display:none !important;
+.wallpaper-preview-wrapper.is-panorama{
+    touch-action:none;
 }
-.panorama-hint[hidden]{display:none}
-.wallpaper-preview-wrapper.is-panorama{touch-action:none}
 @media(max-width:600px){
-    .panorama-canvas{height:58vh}
+    .panorama-canvas{
+        height:100%;
+    }
 }
 
 
@@ -209,23 +213,12 @@ IMAGE ACTION BUTTONS
    360° INDICATOR + NAVIGATION
 ========================= */
 
-.panorama-image-btn{
-    left:70px;
-    width:48px;
-    height:48px;
-}
 
 .panorama-image-btn[hidden],
 .wallpaper-nav-btn[hidden]{
     display:none !important;
 }
 
-.panorama-360-icon{
-    width:25px;
-    height:25px;
-    display:block;
-    color:currentColor;
-}
 
 .wallpaper-nav-btn{
     position:absolute;
