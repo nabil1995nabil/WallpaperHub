@@ -74,6 +74,12 @@ document.getElementById("uploadProgressBar");
 const saveWallpaper =
 document.getElementById("saveWallpaper");
 
+const is360Input =
+document.getElementById("is360");
+
+const is360Option =
+document.getElementById("is360Option");
+
 
 
 
@@ -499,6 +505,8 @@ loading="lazy"
 
 </span>
 
+${wall.is360 ? `<span class="panorama-admin-badge">🌐 360°</span>` : ""}
+
 
 `;
 
@@ -619,6 +627,12 @@ wallpaperContainer.appendChild(card);
 // ==========================================
 
 
+function sync360Option(){
+    const isImage = typeInput?.value === "image";
+    if(is360Option) is360Option.style.display = isImage ? "flex" : "none";
+    if(!isImage && is360Input) is360Input.checked = false;
+}
+
 if(typeInput){
 
 
@@ -630,8 +644,12 @@ typeInput.addEventListener(
 wallpaperType =
 typeInput.value;
 
+sync360Option();
+
 
 });
+
+sync360Option();
 
 
 
@@ -1372,6 +1390,11 @@ file.type.startsWith("video/")
 "image",
 
 
+is360:
+file.type.startsWith("image/") &&
+Boolean(document.getElementById("is360")?.checked),
+
+
 
 image:
 
@@ -1762,6 +1785,9 @@ alert(
 
 form.reset();
 
+if(is360Input) is360Input.checked = false;
+sync360Option();
+
 
 selectedFiles = [];
 
@@ -1832,6 +1858,11 @@ document.getElementById(
 ).value =
 
 (wall.tags || []).join(",");
+
+if(is360Input){
+    is360Input.checked = Boolean(wall.is360);
+}
+sync360Option();
 
 
 

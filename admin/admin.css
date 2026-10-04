@@ -1220,3 +1220,30 @@ font-size:12px;
 .menu .ai-generated-menu:hover{
     background:linear-gradient(135deg,#6d28d9,#1d4ed8);
 }
+
+
+/* ===========================
+   360 Panorama Support
+=========================== */
+
+#is360Option{
+    user-select:none;
+}
+
+#is360{
+    accent-color:#2563eb;
+}
+
+.panorama-admin-badge{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:rgba(17,24,39,.82);
+    color:#fff;
+    padding:5px 11px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:700;
+    z-index:3;
+    backdrop-filter:blur(8px);
+}
