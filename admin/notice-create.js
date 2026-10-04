@@ -131,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetEditor() {
         editingAnnouncementId = null;
         form.reset();
+        draftInput.checked = false;
         uploadedImageBase64 = "";
         fileNamePreview.textContent = "";
         editorState.textContent = "جديد";
@@ -176,7 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
             startInput.value = draft.start || "";
             endInput.value = draft.end || "";
             uploadedImageBase64 = draft.imageBase64 || "";
-            draftInput.checked = true;
+            // استرجاع المسودة يملأ الحقول فقط؛ لا يمنع زر النشر.
+            draftInput.checked = false;
 
             if (uploadedImageBase64) {
                 fileNamePreview.textContent = "تم استرجاع صورة المسودة";
@@ -395,14 +397,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // الجدولة والمسودة واجهة محلية حاليًا؛ لا نرسل حقولًا غير مدعومة للسيرفر.
-        if (draftInput.checked && !editingAnnouncementId) {
-            saveLocalDraft();
-            return;
-        }
-
+        // النشر الفعلي لا يعتمد على مفتاح المسودة.
+        // مفتاح "مسودة" مخصص للحفظ المحلي فقط عبر زر "حفظ مسودة".
         const url = editingAnnouncementId
-            ? `/api/admin/announcements/${editingAnnouncementId}`
+            ? `/api/admin/notifications/${editingAnnouncementId}`
             : "/api/admin/announcements";
 
         const method = editingAnnouncementId ? "PUT" : "POST";
@@ -414,20 +412,42 @@ document.addEventListener("DOMContentLoaded", () => {
             image
         };
 
-        // تمرير الرابط فقط إذا كان السيرفر الحالي يدعمه دون كسر الحقول الأساسية.
-        if (/^https?:\/\//i.test(linkInput.value.trim())) {
-            body.link = linkInput.value.trim();
-        }
-
+        // السيرفر الحالي يدعم هذه الحقول الأساسية فقط.
+        // الرابط يبقى للمعاينة في الواجهة إلى أن نضيف له عمودًا/دعمًا في السيرفر.
         fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body)
         })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) throw new Error("SAVE FAILED");
+            .then(async res => {
+                const raw = await res.text();
+                let data = null;
 
+                try {
+                    data = raw ? JSON.parse(raw) : null;
+                } catch {
+                    data = null;
+                }
+
+                if (!res.ok) {
+                    throw new Error(
+                        data?.error ||
+                        data?.message ||
+                        `HTTP ${res.status}`
+                    );
+                }
+
+                if (!data?.success) {
+                    throw new Error(
+                        data?.error ||
+                        data?.message ||
+                        "SAVE FAILED"
+                    );
+                }
+
+                return data;
+            })
+            .then(() => {
                 alert(editingAnnouncementId ? "تم تعديل الإعلان" : "تم نشر الإعلان");
 
                 localStorage.removeItem("wallpaperhub_notice_draft");
@@ -436,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(error => {
                 console.error("SAVE ANNOUNCEMENT ERROR:", error);
-                alert("حدث خطأ أثناء حفظ الإعلان");
+                alert(`تعذر حفظ الإعلان: ${error.message || "خطأ غير معروف"}`);
             });
     });
 
