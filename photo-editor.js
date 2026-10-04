@@ -1,6 +1,6 @@
 (()=>{
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const c=$("#canvas"), x=c.getContext("2d",{willReadFrequently:true}), file=$("#file"), stage=$("#stage"), empty=$("#empty"), toast=$("#toast");
+const c=$("#canvas"), x=c.getContext("2d",{willReadFrequently:true}), file=$("#file"), stage=$("#stage"), toast=$("#toast");
 let img=null, zoom=1, ratio="free", drawMode=null, history=[], hi=-1, draggingText=null, pointerDown=false, activeStickerTab="emoji";
 let state={brightness:0,contrast:0,saturation:0,temperature:0,tint:0,fade:0,sharpness:0,opacity:100,vignette:0,glow:0,grain:0,blur:0,edge:0,filter:"none",rot:0,fh:1,fv:1,draw:[],texts:[],stickers:[],frame:"none",frameSize:0,background:"none"};
 
@@ -25,9 +25,10 @@ function sync(){
 }
 function fit(){if(!img)return;const r=stage.getBoundingClientRect();zoom=Math.min((r.width-40)/c.width,(r.height-40)/c.height,1);applyZoom()}
 function applyZoom(){c.style.width=Math.max(1,c.width*zoom)+"px";c.style.height=Math.max(1,c.height*zoom)+"px";$("#zoom").textContent=Math.round(zoom*100)+"%"}
-function load(f){if(!f?.type?.startsWith("image/"))return note("اختر صورة صالحة");const u=URL.createObjectURL(f),q=new Image();q.onload=()=>{img=q;c.width=q.naturalWidth;c.height=q.naturalHeight;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;empty.hidden=true;c.hidden=false;$("#info").textContent=`${q.naturalWidth} × ${q.naturalHeight}px`;$("#sizeInfo").textContent=`${q.naturalWidth} × ${q.naturalHeight}px`;history=[];hi=-1;x.clearRect(0,0,c.width,c.height);render();save();fit();sync();note("تم تحميل الصورة");URL.revokeObjectURL(u)};q.src=u}
-$("#pick").onclick=$("#upload").onclick=()=>file.click();
-$("#pickTop").onclick=()=>file.click();
+function load(f){if(!f?.type?.startsWith("image/"))return note("اختر صورة صالحة");const u=URL.createObjectURL(f),q=new Image();q.onload=()=>{img=q;c.width=q.naturalWidth;c.height=q.naturalHeight;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;c.hidden=false;$("#inlineControls")?.classList.add("has-image");$("#emptyStage")?.classList.add("hidden");$("#emptyStage")?.classList.add("hidden");$("#emptyStage")?.classList.add("hidden");$("#info").textContent=`${q.naturalWidth} × ${q.naturalHeight}px`;$("#sizeInfo").textContent=`${q.naturalWidth} × ${q.naturalHeight}px`;history=[];hi=-1;x.clearRect(0,0,c.width,c.height);render();save();fit();sync();note("تم تحميل الصورة");URL.revokeObjectURL(u)};q.src=u}
+$("#upload")?.addEventListener("click",()=>file.click());
+$("#pickTop")?.addEventListener("click",()=>file.click());
+$("#pickEmpty")?.addEventListener("click",()=>file.click());
 file.onchange=e=>load(e.target.files[0]);
 
 const toolNames={adjust:"الضبط",filters:"الفلاتر",transform:"القص والتحويل",text:"النصوص والعناوين",stickers:"الملصقات والإيموجي",draw:"الرسم",effects:"التأثيرات",light:"الإضاءة واللون",blur:"التمويه والتركيز",frame:"الإطار",background:"الخلفية",resize:"المقاس والتصدير"};
@@ -113,10 +114,10 @@ function inlineRender(name){
 function openTool(name){setInlineToolActive(name);inlineRender(name)}
 function closeTool(){$$(".tool").forEach(b=>b.classList.remove("active"));drawMode=null;$$("[data-draw]").forEach(b=>b.classList.remove("active"))}
 $$(".tool").forEach(b=>b.onclick=()=>openTool(b.dataset.tool));
-$("#closeSheet")?.addEventListener("click",closeTool);$("#backdrop")?.addEventListener("click",closeTool);
+
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeTool()});
 
-function makeRange(target,arr){target.innerHTML=arr.map(([k,label,min,max])=>`<label class="range-row">${label}<b id="${k}V">${state[k]??0}</b><input id="${k}" type="range" min="${min}" max="${max}" value="${state[k]??0}"></label>`).join("")}
+function makeRange(target,arr){if(!target)return;target.innerHTML=arr.map(([k,label,min,max])=>`<label class="range-row">${label}<b id="${k}V">${state[k]??0}</b><input id="${k}" type="range" min="${min}" max="${max}" value="${state[k]??0}"></label>`).join("")}
 makeRange($("#adjusts"),lightDefs);makeRange($("#effects"),effectDefs);makeRange($("#lightControls"),extraLight);
 [...defs,...effects,...extraLight.map(a=>a[0])].forEach(k=>{const e=$("#"+k);if(!e)return;e.oninput=()=>{state[k]=+e.value;$("#"+k+"V").textContent=e.value;render()};e.onchange=save});
 

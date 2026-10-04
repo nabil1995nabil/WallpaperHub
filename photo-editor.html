@@ -3,64 +3,116 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090a0f">
-<title>محرر الصور | WallpaperHub</title>
+<meta name="theme-color" content="#ffffff">
+<title>محرر الصور والفيديو | WallpaperHub</title>
 <link rel="stylesheet" href="photo-editor.css">
 </head>
 <body>
-<div class="app">
-  <header class="topbar editor-topbar">
-    <button id="download" class="download">حفظ</button>
-    <button id="pickTop" class="top-add-btn" type="button" aria-label="اختيار صورة">＋</button>
-    <button class="quality-btn" type="button">الجودة <span>⌄</span></button>
-    <button id="cancelEdit" class="cancel-btn" type="button">إلغاء</button>
+<div class="editor-app">
+  <header class="editor-header">
+    <button id="cancelEdit" class="header-btn cancel-btn" type="button">إلغاء</button>
+    <div class="header-center">
+      <strong>تحرير</strong>
+      <span id="info">لم يتم اختيار ملف</span>
+    </div>
+    <div class="header-actions">
+      <button id="download" class="header-btn save-btn" type="button">حفظ</button>
+      <button id="pickTop" class="header-plus" type="button" aria-label="اختيار صورة أو فيديو">+</button>
+      <button id="qualityBtn" class="quality-btn" type="button">الجودة <span>⌄</span></button>
+    </div>
   </header>
 
-  <main class="editor">
-    <section class="workspace">
-      <div class="canvasbar editor-canvasbar">
-        <div class="zoom-tools">
-          <button id="fit">ملاءمة</button>
-          <button id="plus">+</button>
-          <strong id="zoom">100%</strong>
-          <button id="minus">−</button>
-        </div>
-        <div class="canvas-title">
-          <b>تعديل الصورة</b>
-          <span id="info">لم يتم اختيار صورة</span>
-        </div>
-      </div>
-
+  <main class="editor-main">
+    <section class="media-area">
       <div class="stage" id="stage">
-        <div class="empty" id="empty">
-          <div class="empty-icon">✦</div>
-          <span class="eyebrow">WALLPAPERHUB EDITOR</span>
-          <h1>حرّر صورتك بسهولة</h1>
-          <p>قص، حسّن الألوان، أضف النصوص والملصقات والفلاتر، ثم احفظ النتيجة بجودة عالية.</p>
-          <button class="primary empty-add" id="pick" aria-label="إضافة صورة">＋</button>
-          <small>JPG · PNG · WEBP</small>
-        </div>
         <canvas id="canvas" hidden></canvas>
+        <div class="empty-stage" id="emptyStage">
+          <button id="pickEmpty" class="empty-plus" type="button" aria-label="اختيار صورة أو فيديو">+</button>
+          <span>اختر صورة أو فيديو للبدء</span>
+        </div>
       </div>
 
-      <section class="inline-editor-controls" id="inlineControls" aria-label="أدوات تعديل الصورة">
-        <div class="inline-head">
-          <div><span id="inlineKicker">تعديل الصورة</span><strong id="inlineTitle">السطوع</strong></div>
-          <span id="inlineValue">0</span>
+      <div class="media-tools">
+        <div class="zoom-tools">
+          <button id="fit" type="button">ملاءمة</button>
+          <button id="minus" type="button">−</button>
+          <strong id="zoom">100%</strong>
+          <button id="plus" type="button">+</button>
         </div>
-        <div class="inline-options" id="inlineOptions"></div>
-        <div class="inline-slider-wrap" id="inlineSliderWrap">
-          <input id="inlineSlider" type="range" min="-100" max="100" value="0" aria-label="قيمة التعديل">
+        <div class="history-row">
+          <button id="undo" class="history-btn" disabled aria-label="تراجع">↶</button>
+          <button id="redo" class="history-btn" disabled aria-label="إعادة">↷</button>
         </div>
-        <div class="inline-actions" id="inlineActions"></div>
-      </section>
-
-      <div class="quick-status">
-        <span id="statusText">جاهز للتحرير</span>
-        <span id="sizeInfo">—</span>
       </div>
-      <!-- CAPCUT-STYLE VIDEO CONTROL DECK -->
-      <section class="video-deck" id="videoDeck" aria-hidden="true">
+    </section>
+
+    <section class="control-panel" id="inlineControls" aria-label="أدوات التحرير">
+      <div class="control-header">
+        <div>
+          <span id="inlineKicker">تعديل</span>
+          <strong id="inlineTitle">السطوع</strong>
+        </div>
+        <output id="inlineValue">0</output>
+      </div>
+      <div class="inline-options" id="inlineOptions"></div>
+      <div class="slider-row" id="inlineSliderWrap">
+        <input id="inlineSlider" type="range" min="-100" max="100" value="0" aria-label="قيمة التعديل">
+      </div>
+      <div class="inline-actions" id="inlineActions"></div>
+    </section>
+
+    <div class="status-row">
+      <span id="statusText">جاهز للتحرير</span>
+      <span id="sizeInfo">—</span>
+    </div>
+
+    <nav class="editor-toolbar" id="bottomTools" aria-label="أدوات التحرير">
+      <button class="tool active" data-tool="adjust"><i>☷</i><span>تعديل</span></button>
+      <button class="tool" data-tool="filters"><i>◉</i><span>فلاتر</span></button>
+      <button class="tool" data-tool="transform"><i>⌗</i><span>قص</span></button>
+      <button class="tool" data-tool="draw"><i>⌑</i><span>رسم</span></button>
+      <button class="tool" data-tool="text"><i>T</i><span>نص</span></button>
+      <button class="tool" data-tool="stickers"><i>✦</i><span>ملصق</span></button>
+      <button class="tool" data-tool="frame"><i>▣</i><span>إطار</span></button>
+      <button class="tool" data-tool="blur"><i>◌</i><span>تمويه</span></button>
+    </nav>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active">أساسية</button>
+      <button class="mode-tab">إنشاء</button>
+    </div>
+
+    <input id="file" type="file" accept="image/*,video/*" hidden>
+    <input id="videoFiles" type="file" accept="video/*" multiple hidden>
+    <video id="videoSource" playsinline preload="metadata" hidden></video>
+    
+    <!-- Hidden engine controls: functional inputs only, no legacy editor UI. -->
+    <div id="engineControls" hidden aria-hidden="true">
+      <div id="adjusts"></div>
+      <div id="filters"></div><div id="ratios"></div>
+      <div id="textTemplates"></div><div id="textTemplates2"></div>
+      <div id="swatches"></div>
+      <input id="blur" type="range" min="0" max="24" value="0"><b id="blurV">0</b>
+      <input id="edge" type="range" min="0" max="100" value="0"><b id="edgeV">0</b>
+      <input id="frame" type="range" min="0" max="100" value="0"><b id="frameV">0</b>
+      <input id="brush" type="range" min="1" max="160" value="12"><b id="brushV">12</b>
+      <input id="brushOpacity" type="range" min="5" max="100" value="100"><b id="brushOpacityV">100</b>
+      <input id="drawColor" type="color" value="#ffffff">
+      <input id="text" type="text"><input id="fontSize" type="number" value="56">
+      <select id="font"><option>Arial</option><option>Tahoma</option><option>Georgia</option></select>
+      <input id="textColor" type="color" value="#ffffff">
+      <button id="bold"></button><button id="italic"></button><button id="textShadow"></button><button id="textStroke"></button>
+      <input id="shadowBlur" type="range" min="0" max="30" value="8">
+      <input id="strokeWidth" type="range" min="0" max="20" value="0">
+      <button id="addText"></button><button id="crop"></button>
+      <input id="width" type="number"><input id="height" type="number"><button id="resize"></button>
+      <button id="reset"></button><button id="full"></button>
+      <div id="effects"></div>
+      <div id="lightControls"></div>
+      <div id="stickers"></div>
+    </div>
+
+          <section class="video-deck" id="videoDeck" aria-hidden="true">
         <div class="video-deck-head">
           <div class="video-project">
             <span class="video-live"></span>
@@ -135,157 +187,8 @@
         </div>
       </section>
 
-    </section>
-
-    <input id="file" type="file" accept="image/*,video/*" hidden>
-    <input id="videoFiles" type="file" accept="video/*" multiple hidden>
-    <video id="videoSource" playsinline preload="metadata" hidden></video>
-
-    <div class="sheet-backdrop" id="backdrop"></div>
-    <section class="tool-sheet" id="toolSheet" aria-hidden="true">
-      <div class="sheet-grip"></div>
-      <div class="sheet-head">
-        <div>
-          <span class="sheet-kicker">WALLPAPERHUB</span>
-          <h2 id="sheetTitle">تعديل الصورة</h2>
-        </div>
-        <button id="closeSheet" class="sheet-close">×</button>
-      </div>
-      <div class="panels">
-
-        <section class="panel" id="p-adjust">
-          <div class="panel-intro"><b>ضبط احترافي</b><span>تحكم دقيق في مظهر الصورة</span></div>
-          <div id="adjusts" class="control-grid"></div>
-          <div class="mini-actions"><button data-preset="clean">نظيف</button><button data-preset="cinema">سينمائي</button><button data-preset="bright">مشرق</button><button data-preset="moody">مودي</button></div>
-        </section>
-
-        <section class="panel" id="p-filters">
-          <div class="panel-intro"><b>فلاتر جاهزة</b><span>اضغط لتطبيق المظهر فورًا</span></div>
-          <div class="filter-grid" id="filters"></div>
-        </section>
-
-        <section class="panel" id="p-transform">
-          <div class="panel-intro"><b>تحويل وقص</b><span>تدوير، قلب، نسبة، تغيير حجم</span></div>
-          <div class="action-grid">
-            <button data-act="rl"><strong>↺</strong><small>يسار</small></button>
-            <button data-act="rr"><strong>↻</strong><small>يمين</small></button>
-            <button data-act="fh"><strong>↔</strong><small>قلب أفقي</small></button>
-            <button data-act="fv"><strong>↕</strong><small>قلب عمودي</small></button>
-          </div>
-          <div class="section-label">نسبة القص</div>
-          <div id="ratios" class="chip-row"></div>
-          <button id="crop" class="wide primary">✂️ تطبيق القص من المنتصف</button>
-          <div class="resize-box">
-            <div class="section-label">حجم مخصص</div>
-            <div class="size-fields"><input id="width" type="number" placeholder="العرض"><span>×</span><input id="height" type="number" placeholder="الارتفاع"></div>
-            <label class="checkline"><input id="lockRatio" type="checkbox" checked> الحفاظ على التناسب</label>
-            <button id="resize" class="wide">تغيير الحجم</button>
-          </div>
-        </section>
-
-        <section class="panel" id="p-text">
-          <div class="panel-intro"><b>النصوص والعناوين</b><span>قوالب جاهزة + نص حر</span></div>
-          <div class="template-grid" id="textTemplates"></div>
-          <textarea id="text" placeholder="اكتب النص هنا..."></textarea>
-          <div class="two"><select id="font"><option>Arial</option><option>Tahoma</option><option>Georgia</option><option>Courier New</option><option>Impact</option><option>Trebuchet MS</option></select><input id="fontSize" type="number" value="56" min="8" max="500"></div>
-          <div class="text-controls">
-            <input id="textColor" type="color" value="#ffffff" title="لون النص">
-            <button id="bold">B</button><button id="italic">I</button>
-            <button id="textShadow">◈</button><button id="textStroke">▣</button>
-          </div>
-          <div class="text-effects-row"><label>حد النص <input id="strokeWidth" type="range" min="0" max="20" value="0"></label><label>ظل <input id="shadowBlur" type="range" min="0" max="30" value="8"></label></div>
-          <button id="addText" class="wide primary">＋ إضافة النص</button>
-          <div class="section-label">النصوص الجاهزة</div>
-          <div class="template-grid compact" id="textTemplates2"></div>
-        </section>
-
-        <section class="panel" id="p-stickers">
-          <div class="panel-intro"><b>ملصقات وإيموجي</b><span>عناصر جاهزة للصور والمنشورات</span></div>
-          <div class="sticker-tabs"><button class="active" data-sticker-tab="emoji">إيموجي</button><button data-sticker-tab="shapes">أشكال</button><button data-sticker-tab="badges">شارات</button></div>
-          <div id="stickers" class="sticker-grid"></div>
-          <div class="sticker-note">اضغط على العنصر لإضافته في منتصف الصورة، ثم حرّكه بالسحب.</div>
-        </section>
-
-        <section class="panel" id="p-draw">
-          <div class="panel-intro"><b>الرسم والفرشاة</b><span>رسم حر، ممحاة، هايلايتر</span></div>
-          <div class="draw-tools"><button class="active" data-draw="brush">🖌️ فرشاة</button><button data-draw="eraser">⌫ ممحاة</button><button data-draw="marker">🖍️ هايلايتر</button></div>
-          <div class="color-line"><span>اللون</span><input id="drawColor" type="color" value="#ffffff"></div>
-          <label class="range-row">الحجم <b id="brushV">12</b><input id="brush" type="range" min="1" max="160" value="12"></label>
-          <label class="range-row">الشفافية <b id="brushOpacityV">100</b><input id="brushOpacity" type="range" min="5" max="100" value="100"></label>
-          <div class="swatches" id="swatches"></div>
-        </section>
-
-        <section class="panel" id="p-effects">
-          <div class="panel-intro"><b>تأثيرات سينمائية</b><span>أضف شخصية وعمقًا للصورة</span></div>
-          <div id="effects" class="control-grid effects-grid"></div>
-          <div class="effect-presets"><button data-effect="soft">Soft</button><button data-effect="duo">Duotone</button><button data-effect="noir">Noir</button><button data-effect="poster">Poster</button><button data-effect="film">Film</button><button data-effect="dream">Dream</button></div>
-        </section>
-
-        <section class="panel" id="p-light">
-          <div class="panel-intro"><b>الإضاءة واللون</b><span>أدوات إضافية للـ Color Grade</span></div>
-          <div id="lightControls" class="control-grid"></div>
-          <div class="mini-actions"><button data-preset="gold">ذهبي</button><button data-preset="ice">ثلجي</button><button data-preset="neon">نيون</button></div>
-        </section>
-
-        <section class="panel" id="p-blur">
-          <div class="panel-intro"><b>التركيز والتمويه</b><span>عزل الخلفية ولمسات ناعمة</span></div>
-          <label class="range-row">تمويه <b id="blurV">0</b><input id="blur" type="range" min="0" max="24" value="0"></label>
-          <label class="range-row">توهج الحواف <b id="edgeV">0</b><input id="edge" type="range" min="0" max="100" value="0"></label>
-          <div class="blur-cards"><button data-blur="soft">Soft</button><button data-blur="focus">Focus</button><button data-blur="dream">Dream</button></div>
-        </section>
-
-        <section class="panel" id="p-frame">
-          <div class="panel-intro"><b>إطار وحدود</b><span>اجعل التصميم جاهزًا للنشر</span></div>
-          <div class="frame-grid"><button data-frame="none">بدون</button><button data-frame="white">أبيض</button><button data-frame="black">أسود</button><button data-frame="neon">نيون</button><button data-frame="gradient">Gradient</button><button data-frame="polaroid">Polaroid</button></div>
-          <label class="range-row">سُمك الإطار <b id="frameV">0</b><input id="frame" type="range" min="0" max="100" value="0"></label>
-        </section>
-
-        <section class="panel" id="p-background">
-          <div class="panel-intro"><b>خلفية وتأثيرات خلفية</b><span>لون، تدرج، نقشات</span></div>
-          <div class="background-grid"><button data-bg="none">الصورة</button><button data-bg="black">أسود</button><button data-bg="white">أبيض</button><button data-bg="gradient">تدرج</button><button data-bg="grid">شبكة</button><button data-bg="dots">نقاط</button></div>
-        </section>
-
-        <section class="panel" id="p-resize">
-          <div class="panel-intro"><b>المقاس والتصدير</b><span>مقاسات جاهزة للمنشورات والهواتف</span></div>
-          <div class="preset-sizes">
-            <button data-size="1080x1920"><b>9:16</b><small>Story / Wallpaper</small></button>
-            <button data-size="1080x1350"><b>4:5</b><small>Portrait Post</small></button>
-            <button data-size="1080x1080"><b>1:1</b><small>Square</small></button>
-            <button data-size="1920x1080"><b>16:9</b><small>Landscape</small></button>
-            <button data-size="1280x720"><b>HD</b><small>Video Frame</small></button>
-            <button data-size="1440x2560"><b>QHD</b><small>Mobile</small></button>
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <div class="editor-bottom">
-      <div class="history-row">
-        <button id="undo" class="history-btn" disabled aria-label="تراجع">↶</button>
-        <button id="redo" class="history-btn" disabled aria-label="إعادة">↷</button>
-      </div>
-
-      <nav class="bottom-tools" id="bottomTools">
-        <button class="tool" data-tool="adjust"><i>☷</i><span>تعديل</span></button>
-        <button class="tool" data-tool="filters"><i>◉</i><span>فلاتر</span></button>
-        <button class="tool" data-tool="transform"><i>⌗</i><span>قص</span></button>
-        <button class="tool" data-tool="draw"><i>⌑</i><span>رسم</span></button>
-        <button class="tool" data-tool="text"><i>T</i><span>نص</span></button>
-
-        <button class="tool create-only" data-tool="stickers"><i>◉</i><span>ملصق</span></button>
-        <button class="tool create-only" data-tool="frame"><i>▣</i><span>إطار</span></button>
-        <button class="tool create-only" data-tool="blur"><i>◌</i><span>محو</span></button>
-
-        <button class="tool upload-tool" id="upload" aria-label="إضافة صورة"><i>＋</i><span>إضافة</span></button>
-      </nav>
-
-      <div class="mode-tabs" role="tablist">
-        <button class="mode-tab active" data-mode="basic" role="tab">أساسية</button>
-        <button class="mode-tab" data-mode="create" role="tab">إنشاء</button>
-      </div>
-    </div>
   </main>
-  <div id="toast"></div>
+  <div id="toast" role="status"></div>
 </div>
 <script src="photo-editor.js"></script>
 </body>
