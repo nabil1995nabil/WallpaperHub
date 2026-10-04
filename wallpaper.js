@@ -933,8 +933,6 @@ function p360Texture(img){
 function p360Active(v){
  const active=Boolean(v);
  if(panoramaBtn){
-  // الأيقونة تعتمد على وسم الخلفية 360 من قاعدة البيانات،
-  // وليس على نجاح WebGL فقط.
   panoramaBtn.hidden=!Boolean(currentWallpaper?.is360);
  }
  if(prevWallpaperBtn) prevWallpaperBtn.hidden=!active;
@@ -943,14 +941,34 @@ function p360Active(v){
  if(!panoramaCanvas)return;
  const w=panoramaCanvas.closest(".wallpaper-preview-wrapper");
  if(!w)return;
+
  panorama360.active=active;
  w.classList.toggle("is-panorama",active);
- if(panoramaHint){panoramaHint.hidden=!active;panoramaHint.style.opacity="1"}
+
+ // 360 هو نفس مساحة عارض الخلفية الأصلية:
+ // عند التفعيل نستبدل الصورة بالـcanvas، وعند الإيقاف نعيد الصورة.
+ if(wallImage){
+  wallImage.style.display=active ? "none" : "block";
+ }
+ if(wallVideo){
+  wallVideo.style.display=active ? "none" : "none";
+ }
+
+ if(panoramaHint){
+  panoramaHint.hidden=true;
+ }
+
  if(active)p360Soon();
 }
 function p360Load(wall){
- if(!panoramaCanvas||!wall||isVideoMedia(wall)){p360Active(false);return}
- const im=new Image();im.crossOrigin="anonymous";im.decoding="async";
+ if(!panoramaCanvas||!wall||isVideoMedia(wall)||!wall.is360){
+  p360Active(false);
+  return;
+ }
+ p360Active(false);
+ const im=new Image();
+ im.crossOrigin="anonymous";
+ im.decoding="async";
  im.onload=()=>{
   if(!currentWallpaper||Number(currentWallpaper.id)!==Number(wall.id))return;
   if(!wall.is360){p360Active(false);return}
