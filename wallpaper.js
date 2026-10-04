@@ -61,6 +61,7 @@ const wallVideo =
 document.getElementById("wallVideo");
 const panoramaCanvas = document.getElementById("panoramaCanvas");
 const panoramaHint = document.getElementById("panoramaHint");
+const panoramaBtn = document.getElementById("panoramaBtn");
 
 const wallResolution =
 document.getElementById("wallResolution");
@@ -928,6 +929,10 @@ function p360Texture(img){
  panorama360.texture=t;return true;
 }
 function p360Active(v){
+ if(panoramaBtn){
+  panoramaBtn.hidden=!Boolean(v);
+ }
+
  if(!panoramaCanvas)return;const w=panoramaCanvas.closest(".wallpaper-preview-wrapper");if(!w)return;
  panorama360.active=!!v;w.classList.toggle("is-panorama",!!v);
  if(panoramaHint){panoramaHint.hidden=!v;panoramaHint.style.opacity="1"}
@@ -938,8 +943,7 @@ function p360Load(wall){
  const im=new Image();im.crossOrigin="anonymous";im.decoding="async";
  im.onload=()=>{
   if(!currentWallpaper||Number(currentWallpaper.id)!==Number(wall.id))return;
-  const ratio=im.naturalWidth/im.naturalHeight;
-  if(!wall.is360&&(ratio<1.85||ratio>2.15)){p360Active(false);return}
+  if(!wall.is360){p360Active(false);return}
   if(!p360Texture(im)){p360Active(false);return}
   panorama360.yaw=0;panorama360.pitch=0;panorama360.fov=75;panorama360.pointers.clear();
   p360Active(true);
@@ -4261,6 +4265,12 @@ document.addEventListener(
 
 ()=>{
 
+
+if(panoramaBtn){
+ panoramaBtn.addEventListener("click",()=>{
+  if(currentWallpaper?.is360) p360Load(currentWallpaper);
+ });
+}
 
 loadWallpaper();
 

@@ -3944,3 +3944,32 @@ body.phone-preview-open{
     visibility:visible;
     transform:translate(-50%,0);
 }
+
+/* =========================
+   360 ACTION BUTTON
+========================= */
+.panorama-image-btn{
+    left:70px;
+    width:48px;
+    height:48px;
+}
+.panorama-image-btn[hidden]{
+    display:none !important;
+}
+.panorama-360-icon{
+    width:25px;
+    height:25px;
+    display:block;
+    color:currentColor;
+}
+@media(max-width:600px){
+    .panorama-image-btn{
+        left:61px;
+        width:44px;
+        height:44px;
+    }
+    .panorama-360-icon{
+        width:23px;
+        height:23px;
+    }
+}
