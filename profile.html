@@ -151,6 +151,10 @@ class="profile-avatar"
 src="assets/images/user.png"
 alt="Avatar">
 
+<span class="premium-avatar-medal" aria-label="مستخدم مميز" title="مستخدم مميز">
+    <span>♛</span>
+</span>
+
 
 
 <button
@@ -215,13 +219,69 @@ photo_camera
         </button>
     </div>
 
-    <div class="identity-side-card premium-card">
-        <span class="premium-crown">♛</span>
-        <div class="identity-side-content">
-            <strong>مستخدم مميز</strong>
-            <small>WallpaperHub</small>
+    <div class="premium-side-stack">
+        <div
+            id="premiumUserBtn"
+            class="identity-side-card premium-card"
+            role="button"
+            tabindex="0"
+            aria-label="فتح صفحة المستخدم المميز"
+            title="فتح صفحة المستخدم المميز">
+            <span class="premium-crown">♛</span>
+            <div class="identity-side-content">
+                <strong>مستخدم مميز</strong>
+                <small>WallpaperHub</small>
+            </div>
+            <span class="material-icons premium-arrow">chevron_left</span>
         </div>
-        <span class="material-icons premium-arrow">chevron_left</span>
+
+        <button id="premiumMedalsToggle" class="premium-medals-toggle" type="button"
+                aria-expanded="false" aria-controls="premiumMedalsPanel">
+            <span class="premium-medal-mini">♛</span>
+            <span>ميداليات مميزة</span>
+            <span class="material-icons">expand_more</span>
+        </button>
+
+        <div id="premiumMedalsPanel" class="premium-medals-panel" hidden>
+            <div class="premium-medals-head">
+                <div>
+                    <span>ACHIEVEMENTS</span>
+                    <strong>ميداليات الحساب</strong>
+                </div>
+                <span class="premium-medals-count">3 / 4</span>
+            </div>
+
+            <div class="premium-medals-grid">
+                <article class="profile-medal unlocked">
+                    <div class="profile-medal-icon">♛</div>
+                    <div>
+                        <strong>المؤسس</strong><small>مستخدم مميز</small>
+                        <em>تاريخ الحصول: غير محدد</em>
+                    </div>
+                </article>
+                <article class="profile-medal unlocked">
+                    <div class="profile-medal-icon">◆</div>
+                    <div>
+                        <strong>الذهبي</strong><small>مستوى العضوية</small>
+                        <em>تاريخ الحصول: غير محدد</em>
+                    </div>
+                </article>
+                <article class="profile-medal unlocked">
+                    <div class="profile-medal-icon">⚡</div>
+                    <div>
+                        <strong>النشط</strong><small>نشاط مستمر</small>
+                        <em>تاريخ الحصول: غير محدد</em>
+                    </div>
+                </article>
+                <article class="profile-medal locked">
+                    <div class="profile-medal-icon">★</div>
+                    <div>
+                        <strong>الداعم</strong><small>قريباً</small>
+                        <em>لم يتم الحصول عليها بعد</em>
+                    </div>
+                </article>
+            </div>
+        </div>
     </div>
 
 </section>
@@ -352,6 +412,41 @@ photo_camera
                 <div>
                     <h4>آخر دخول</h4>
                     <p id="lastLogin">-</p>
+                </div>
+            </div>
+
+            <div class="info-card medals-info-card">
+                <span class="material-icons">workspace_premium</span>
+                <div class="medals-info-content">
+                    <div class="medals-info-title-row">
+                        <div>
+                            <h4>الميداليات والإنجازات</h4>
+                            <p class="medals-info-subtitle">كل ميدالية مع تاريخ الحصول عليها</p>
+                        </div>
+                        <span class="medals-info-total">3 مكتسبة</span>
+                    </div>
+                    <div class="info-medals-list">
+                        <div class="info-medal-row unlocked">
+                            <span class="info-medal-icon">♛</span>
+                            <div><strong>المؤسس</strong><small>مستخدم مميز</small></div>
+                            <time>التاريخ: غير محدد</time>
+                        </div>
+                        <div class="info-medal-row unlocked">
+                            <span class="info-medal-icon">◆</span>
+                            <div><strong>الذهبي</strong><small>مستوى العضوية</small></div>
+                            <time>التاريخ: غير محدد</time>
+                        </div>
+                        <div class="info-medal-row unlocked">
+                            <span class="info-medal-icon">⚡</span>
+                            <div><strong>النشط</strong><small>نشاط مستمر</small></div>
+                            <time>التاريخ: غير محدد</time>
+                        </div>
+                        <div class="info-medal-row locked">
+                            <span class="info-medal-icon">★</span>
+                            <div><strong>الداعم</strong><small>قريباً</small></div>
+                            <time>لم تُكتسب بعد</time>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

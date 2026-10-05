@@ -330,6 +330,15 @@ button{
    ========================================================= */
 
 /* رابط صفحة المستخدم المميز */
+.premium-side-stack{
+    order:2;
+    width:40%;
+    max-width:140px;
+    position:relative;
+    z-index:45;
+    transform:translateY(-75px);
+}
+
 .premium-card{
     appearance:none;
     -webkit-appearance:none;
@@ -350,15 +359,13 @@ button{
 }
 
 .premium-card{
-    order:2;
-    width: 40%;            /* تقليل العرض من 50% إلى 42% */
-    max-width: 140px;      /* تحديد حد أقصى للحجم */
+    width:100%;
     color:#fff;
     border:1px solid transparent;
     background:linear-gradient(145deg,#795b50,#a9887a);
-    transform: translateY(-75px);
-    position: relative;
-    z-index: 20;
+    transform:none;
+    position:relative;
+    z-index:20;
 }
 
 
@@ -572,6 +579,111 @@ button{
     color:#536075;
     font-size:18px;
 }
+/* =========================================================
+   Premium Medal Badge + Expandable Medal Card
+   ========================================================= */
+
+.premium-avatar-medal{
+    position:absolute;
+    left:50%;
+    bottom:-9px;
+    z-index:36;
+    width:31px;
+    height:31px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform:translateX(-50%);
+    border:3px solid #fff;
+    border-radius:50%;
+    background:linear-gradient(145deg,#f8d76b,#b98318);
+    color:#fff4c7;
+    box-shadow:0 5px 12px rgba(125,84,16,.28);
+}
+.premium-avatar-medal span{font-size:13px;line-height:1;}
+
+.premium-medals-toggle{
+    width:100%;
+    min-height:31px;
+    margin-top:6px;
+    padding:5px 7px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    border:1px solid rgba(188,151,74,.20);
+    border-radius:11px;
+    background:#fffaf0;
+    color:#765a25;
+    font-size:9px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(91,67,55,.06);
+}
+.premium-medals-toggle .material-icons{font-size:16px;transition:transform .2s ease;}
+.premium-medals-toggle[aria-expanded="true"] .material-icons{transform:rotate(180deg);}
+.premium-medal-mini{
+    width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:50%;background:#f3d16d;color:#76551b;font-size:10px;
+}
+.premium-medals-panel{
+    position:absolute;
+    top:calc(100% + 8px);
+    right:50%;
+    z-index:120;
+    width:min(360px,calc(100vw - 24px));
+    padding:12px;
+    transform:translateX(50%);
+    border:1px solid rgba(198,170,105,.22);
+    border-radius:18px;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 16px 38px rgba(40,31,20,.16);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+}
+.premium-medals-panel[hidden]{display:none;}
+.premium-medals-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;
+}
+.premium-medals-head div{display:flex;flex-direction:column;gap:2px;}
+.premium-medals-head span:first-child{color:#9b7a35;font-size:8px;letter-spacing:.12em;font-weight:800;}
+.premium-medals-head strong{color:#25202a;font-size:13px;}
+.premium-medals-count{padding:4px 7px;border-radius:9px;background:#fff5d9;color:#8b6b2b;font-size:9px;font-weight:800;}
+.premium-medals-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.profile-medal{
+    min-width:0;padding:8px;display:flex;align-items:center;gap:7px;
+    border:1px solid #eee7d9;border-radius:13px;background:#fffdf8;
+}
+.profile-medal.locked{opacity:.52;filter:grayscale(.35);}
+.profile-medal-icon{
+    width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;background:linear-gradient(145deg,#f6d873,#c58b20);color:#fff7d0;font-size:14px;
+}
+.profile-medal div:last-child{min-width:0;display:flex;flex-direction:column;gap:1px;}
+.profile-medal strong{overflow:hidden;color:#292330;font-size:10px;text-overflow:ellipsis;white-space:nowrap;}
+.profile-medal small{overflow:hidden;color:#817a88;font-size:8px;text-overflow:ellipsis;white-space:nowrap;}
+.profile-medal em{overflow:hidden;color:#a38b58;font-size:7px;font-style:normal;text-overflow:ellipsis;white-space:nowrap;}
+
+.medals-info-card{align-items:flex-start;padding-top:14px;padding-bottom:14px;}
+.medals-info-content{flex:1;min-width:0;}
+.medals-info-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;}
+.medals-info-subtitle{margin-top:2px;color:#9299aa !important;font-size:10px !important;font-weight:400 !important;}
+.medals-info-total{flex:0 0 auto;padding:5px 8px;border-radius:10px;background:#fff5d9;color:#8b6b2b;font-size:9px;font-weight:800;}
+.info-medals-list{display:flex;flex-direction:column;gap:6px;}
+.info-medal-row{
+    min-width:0;padding:8px 9px;display:flex;align-items:center;gap:8px;
+    border:1px solid #edf0f5;border-radius:12px;background:#fafbfe;
+}
+.info-medal-row.locked{opacity:.48;}
+.info-medal-icon{
+    width:31px;height:31px;flex:0 0 31px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;background:linear-gradient(145deg,#f6d873,#c58b20);color:#fff7d0;font-size:13px;
+}
+.info-medal-row > div{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px;}
+.info-medal-row strong{color:#272331;font-size:11px;}
+.info-medal-row small{color:#888fa0;font-size:9px;}
+.info-medal-row time{flex:0 0 auto;color:#9b8555;font-size:8px;white-space:nowrap;}
+
 /* =========================================================
    Profile Statistics
    الإحصائيات — قسم مستقل
@@ -1512,9 +1624,15 @@ body.dark #closeEditBtn{
        Mobile Premium
        ===================================================== */
 
+    .premium-side-stack{
+        order:2;
+        width:38%;
+        max-width:none;
+        transform:translateY(-65px);
+    }
+
 .premium-card{
-        order: 2;
-        width: 38%;             /* تصغير العرض في الهاتف */
+        width:100%;             /* تصغير العرض في الهاتف */
         min-height: 54px;       /* تصغير الارتفاع */
         height: 54px;
         padding: 4px 6px;       /* تقليل الحشوة الداخلية */
@@ -2551,4 +2669,16 @@ body.dark .profile-wall-card{
     border:0 !important;
     box-shadow:none !important;
     background:none !important;
+}
+
+@media(max-width:700px){
+    .premium-medals-toggle{min-height:29px;padding:4px 5px;font-size:8px;}
+    .premium-medal-mini{width:18px;height:18px;font-size:9px;}
+    .premium-medals-panel{width:min(350px,calc(100vw - 20px));padding:10px;}
+    .premium-medals-grid{grid-template-columns:1fr;}
+    .profile-medal{padding:7px;}
+    .medals-info-title-row{align-items:flex-start;}
+    .info-medal-row{flex-wrap:wrap;}
+    .info-medal-row time{width:100%;padding-right:39px;white-space:normal;}
+    .premium-avatar-medal{width:29px;height:29px;bottom:-8px;}
 }

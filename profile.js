@@ -1049,6 +1049,28 @@ if (profileMenuBtn) {
     };
 }
 
+/* ==========================
+   Premium User Page
+   ========================== */
+
+const premiumUserBtn = document.getElementById("premiumUserBtn");
+
+function openPremiumUserPage(){
+    window.location.href = "premium-user.html";
+}
+
+if(premiumUserBtn){
+    premiumUserBtn.addEventListener("click", openPremiumUserPage);
+
+    premiumUserBtn.addEventListener("keydown", event => {
+        if(event.key === "Enter" || event.key === " "){
+            event.preventDefault();
+            openPremiumUserPage();
+        }
+    });
+}
+
+
 
 /* ===================================================
    User Profile Data
@@ -2533,3 +2555,31 @@ document.addEventListener(
     loadWallpapers();
 
 });
+
+/* ==========================
+   Premium Medals — Expand / Collapse
+   ========================== */
+const premiumMedalsToggle = document.getElementById("premiumMedalsToggle");
+const premiumMedalsPanel = document.getElementById("premiumMedalsPanel");
+
+if(premiumMedalsToggle && premiumMedalsPanel){
+    premiumMedalsToggle.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const willOpen = premiumMedalsPanel.hidden;
+        premiumMedalsPanel.hidden = !willOpen;
+        premiumMedalsToggle.setAttribute("aria-expanded", String(willOpen));
+    });
+    document.addEventListener("click", event => {
+        if(!premiumMedalsPanel.hidden && !premiumMedalsPanel.contains(event.target) && !premiumMedalsToggle.contains(event.target)){
+            premiumMedalsPanel.hidden = true;
+            premiumMedalsToggle.setAttribute("aria-expanded", "false");
+        }
+    });
+    document.addEventListener("keydown", event => {
+        if(event.key === "Escape" && !premiumMedalsPanel.hidden){
+            premiumMedalsPanel.hidden = true;
+            premiumMedalsToggle.setAttribute("aria-expanded", "false");
+        }
+    });
+}

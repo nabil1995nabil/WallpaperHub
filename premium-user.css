@@ -4,7 +4,14 @@
   --text:#f6f8fb;--muted:#96a2b4;--gold:#f7b934;--gold2:#ffe29a;--blue:#4b8dff;
   --shadow:0 18px 55px rgba(0,0,0,.32)
 }
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Cairo",sans-serif}
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Cairo",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility
+}
 body{min-height:100vh}
 button{font:inherit;color:inherit;border:0;cursor:pointer}
 .app-shell{width:min(100%,760px);margin:auto;min-height:100vh;background:
@@ -75,3 +82,177 @@ main{padding:16px}
 .toast{position:fixed;z-index:50;bottom:88px;left:50%;transform:translate(-50%,20px);background:#111d2d;border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-size:12px;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--shadow)}.toast.show{opacity:1;transform:translate(-50%,0)}
 @media(min-width:700px){main{padding:22px}.hero-card{min-height:300px}.cover{height:170px}}
 @media(max-width:430px){.hero-content{width:88%}.hero-card h1{font-size:25px}.benefits-grid{gap:8px}.benefit-card{padding:14px}.badges{gap:6px}.wallpaper{height:160px}.stats strong{font-size:17px}}
+
+/* ==========================================
+   Premium User — Typography & Visual Polish
+   يحافظ على التصميم الحالي ويطور الخطوط والكتابة فقط
+========================================== */
+
+:root{
+  --heading-font:"Tajawal","Cairo",sans-serif;
+  --ui-font:"Cairo",sans-serif;
+  --latin-font:"Space Grotesk","Cairo",sans-serif;
+}
+
+body{
+  font-family:var(--ui-font);
+  letter-spacing:0;
+}
+
+.topbar .page-title,
+.hero-card h1,
+.profile-info h2,
+.section h2,
+.membership-card h2,
+.contact-card h2,
+.benefit-card h3{
+  font-family:var(--heading-font);
+}
+
+.topbar .page-title{
+  font-weight:800;
+  letter-spacing:-.35px;
+}
+
+.hero-card h1{
+  font-weight:900;
+  letter-spacing:-1px;
+  background:linear-gradient(135deg,#fff 20%,#ffe3a0 72%,#f7b934);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 8px 30px rgba(247,185,52,.08);
+}
+
+.hero-card p{
+  max-width:560px;
+  font-weight:500;
+  letter-spacing:.05px;
+}
+
+.premium-pill,
+.member-tag,
+.status{
+  font-family:var(--heading-font);
+  font-weight:800;
+  letter-spacing:-.1px;
+}
+
+.gold-btn,
+.ghost-btn,
+.text-btn,
+.icon-btn,
+.bottom-nav button{
+  font-family:var(--ui-font);
+}
+
+.gold-btn{
+  font-weight:800;
+  letter-spacing:-.15px;
+}
+
+.ghost-btn{
+  font-weight:700;
+}
+
+.profile-info h2{
+  font-weight:900;
+  letter-spacing:-.55px;
+}
+
+.profile-info > p:not(.bio){
+  font-family:var(--latin-font),"Cairo",sans-serif;
+  direction:ltr;
+  unicode-bidi:plaintext;
+  font-size:12px;
+  letter-spacing:.2px;
+}
+
+.bio{
+  font-weight:500;
+  letter-spacing:.05px;
+}
+
+.stats strong{
+  font-family:var(--latin-font),"Cairo",sans-serif;
+  font-weight:700;
+  letter-spacing:-.4px;
+}
+
+.stats span,
+.benefit-card p,
+.membership-row,
+.progress-label,
+.contact-card p{
+  font-weight:500;
+}
+
+.eyebrow{
+  font-family:var(--latin-font),sans-serif;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:2.4px;
+}
+
+.section h2,
+.membership-card h2,
+.contact-card h2{
+  font-weight:900;
+  letter-spacing:-.45px;
+}
+
+.benefit-card h3{
+  font-weight:800;
+  letter-spacing:-.2px;
+}
+
+.benefit-card p{
+  font-size:11.5px;
+  line-height:1.85;
+}
+
+.membership-row strong{
+  font-family:var(--heading-font);
+  font-weight:800;
+}
+
+.progress-label b{
+  font-family:var(--latin-font),sans-serif;
+  font-weight:700;
+}
+
+.badge-item b{
+  font-family:var(--heading-font);
+  font-weight:800;
+}
+
+.badge-item small{
+  font-weight:500;
+}
+
+.wallpaper-meta{
+  font-family:var(--latin-font),"Cairo",sans-serif;
+  font-weight:600;
+}
+
+.contact-card h2{
+  line-height:1.35;
+}
+
+.contact-card p{
+  max-width:520px;
+}
+
+@media(max-width:430px){
+  .hero-card h1{
+    letter-spacing:-.7px;
+  }
+  .section h2,
+  .membership-card h2,
+  .contact-card h2{
+    font-size:18px;
+  }
+  .profile-info h2{
+    font-size:22px;
+  }
+}
