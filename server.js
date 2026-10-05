@@ -299,6 +299,15 @@ function adminUserSummary(user, profile, control){
     };
 }
 
+// ======================================
+// Express
+// ======================================
+
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+
 app.get("/api/admin/users", async (req,res)=>{
     try{
         const admin = await requireAdmin(req,res);
@@ -469,6 +478,15 @@ app.get("/api/admin/users/:uid", async (req,res)=>{
 
         const medalResult = await getUserMedals(uid);
 
+        const { data:warningRows, error:warningError } = await supabase
+            .from("user_admin_warnings")
+            .select("id,user_id,admin_user_id,level,reason,message,acknowledged,acknowledged_at,created_at")
+            .eq("user_id", uid)
+            .order("created_at", {ascending:false})
+            .limit(50);
+
+        if(warningError) throw warningError;
+
         return res.json({
             success:true,
             user:summary,
@@ -478,7 +496,8 @@ app.get("/api/admin/users/:uid", async (req,res)=>{
             wallpapers:wallpapers.slice(0,50),
             medals:medalResult.catalog,
             owned_medals:medalResult.owned,
-            audit_logs:auditRows || []
+            audit_logs:auditRows || [],
+            warnings:warningRows || []
         });
     }catch(error){
         console.log("ADMIN USER DETAIL ERROR:",error);
@@ -697,37 +716,117 @@ app.post("/api/admin/users/:uid/warning", async(req,res)=>{
         if(!admin) return;
 
         const uid = String(req.params.uid || "").trim();
-        const level = Number(req.body?.level);
-        const note = String(req.body?.note || "").trim();
+        const requestedLevel = Number(req.body?.level);
+        const reason = String(req.body?.reason || req.body?.note || "").trim();
+        const message = String(req.body?.message || "").trim();
 
-        if(!uid || !Number.isInteger(level) || level < 1 || level > 3){
-            return res.status(400).json({success:false,message:"بيانات التحذير غير صالحة"});
+        if(!uid){
+            return res.status(400).json({success:false,message:"UID غير صالح"});
+        }
+
+        if(!reason){
+            return res.status(400).json({success:false,message:"سبب التحذير مطلوب"});
+        }
+
+        if(!message){
+            return res.status(400).json({success:false,message:"رسالة التحذير مطلوبة"});
+        }
+
+        const target = await supabase.auth.admin.getUserById(uid);
+        if(target?.error || !target?.data?.user){
+            return res.status(404).json({success:false,message:"المستخدم غير موجود"});
+        }
+
+        if(uid === String(admin.id)){
+            return res.status(400).json({success:false,message:"لا يمكن إرسال تحذير إلى حساب الأدمن الحالي"});
         }
 
         const current = await getUserAdminControl(uid);
-        const {data:control,error} = await supabase
+        const currentLevel = Number(current.warning_level || 0);
+        const expectedLevel = currentLevel + 1;
+
+        if(expectedLevel > 3){
+            return res.status(409).json({
+                success:false,
+                message:"المستخدم وصل بالفعل إلى التحذير الثالث"
+            });
+        }
+
+        if(!Number.isInteger(requestedLevel) || requestedLevel !== expectedLevel){
+            return res.status(400).json({
+                success:false,
+                message:`التحذير التالي يجب أن يكون رقم ${expectedLevel}`
+            });
+        }
+
+        const { data:warning, error:warningError } = await supabase
+            .from("user_admin_warnings")
+            .insert([{
+                user_id:uid,
+                admin_user_id:String(admin.id),
+                level:requestedLevel,
+                reason,
+                message,
+                acknowledged:false
+            }])
+            .select("id,user_id,admin_user_id,level,reason,message,acknowledged,acknowledged_at,created_at")
+            .single();
+
+        if(warningError) throw warningError;
+
+        const { data:control, error:controlError } = await supabase
             .from("user_admin_controls")
             .upsert({
                 ...current,
                 user_id:uid,
-                warning_level:level
+                warning_level:requestedLevel
             },{onConflict:"user_id"})
             .select("*")
             .single();
 
-        if(error) throw error;
+        if(controlError) throw controlError;
+
+        const notificationMessage =
+            `لديك تحذير إداري رقم ${requestedLevel} من إدارة WallpaperHub.\n\n` +
+            `السبب: ${reason}\n\n${message}`;
+
+        let notification = null;
+        try{
+            notification = await createNotification({
+                recipientUID:uid,
+                fromUser:admin.id,
+                type:"admin_warning",
+                message:notificationMessage
+            });
+        }catch(notificationError){
+            console.log("ADMIN WARNING NOTIFICATION ERROR:", notificationError);
+        }
 
         await writeAdminAuditLog({
             adminUserId:admin.id,
             targetUserId:uid,
-            action:`warning_${level}`,
-            details:{level,note}
+            action:`warning_${requestedLevel}`,
+            details:{
+                warning_id:warning.id,
+                level:requestedLevel,
+                reason,
+                message,
+                notification_created:Boolean(notification)
+            }
         });
 
-        return res.json({success:true,control});
+        return res.json({
+            success:true,
+            warning,
+            control,
+            notification_created:Boolean(notification)
+        });
     }catch(error){
         console.log("ADMIN WARNING ERROR:",error);
-        return res.status(500).json({success:false,message:error?.message || "تعذر إضافة التحذير"});
+        return res.status(500).json({
+            success:false,
+            message:error?.message || "تعذر إضافة التحذير"
+        });
     }
 });
 
@@ -750,6 +849,33 @@ app.get("/api/admin/users/:uid/audit", async(req,res)=>{
     }catch(error){
         console.log("ADMIN AUDIT ERROR:",error);
         return res.status(500).json({success:false,message:error?.message || "تعذر تحميل سجل الإدارة"});
+    }
+});
+
+
+app.get("/api/admin/users/:uid/warnings", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const {data,error} = await supabase
+            .from("user_admin_warnings")
+            .select("id,user_id,admin_user_id,level,reason,message,acknowledged,acknowledged_at,created_at")
+            .eq("user_id",uid)
+            .order("created_at",{ascending:false})
+            .limit(100);
+
+        if(error) throw error;
+
+        return res.json({success:true,warnings:data || []});
+    }catch(error){
+        console.log("ADMIN WARNINGS ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:error?.message || "تعذر تحميل سجل التحذيرات",
+            warnings:[]
+        });
     }
 });
 
@@ -1017,14 +1143,6 @@ async function waitForArtguruTask(taskId){
 
     throw new Error("انتهت مهلة انتظار Artguru. حاول مرة أخرى.");
 }
-// ======================================
-// Express
-// ======================================
-
-const app = express();
-
-const PORT = process.env.PORT || 3000;
-
 app.get("/api/admin/me", async (req, res) => {
     try{
         const user = await getAuthenticatedUser(req);
@@ -1367,6 +1485,7 @@ function commentFromDb(row, mention = null){
 }
 
 function notificationTitle(type){
+    if(type === "admin_warning") return "تحذير من إدارة WallpaperHub ⚠️";
     if(type === "wallpaper_like") return "إعجاب بخلفيتك ❤️";
     if(type === "wallpaper_comment") return "تعليق جديد على خلفيتك 💬";
     if(type === "wallpaper_mention") return "أشار إليك في تعليق 💙";
