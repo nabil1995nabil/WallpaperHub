@@ -198,70 +198,9 @@ button{
 
 
 /* =========================================================
-   Avatar Edit Button
-   ========================================================= */
-
-.avatar-edit{
-    position:absolute;
-    right:0;
-    bottom:3px;
-    width:35px;
-    height:35px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border:2px solid #fff;
-    border-radius:50%;
-    background:#5060ef;
-    color:#fff;
-    cursor:pointer;
-    box-shadow:0 5px 12px rgba(40,50,100,.18);
-}
-
-.avatar-edit .material-icons{
-    font-size:20px;
-}
-/* تم نقل تغيير الصورة الشخصية إلى منطقة الملف الشخصي ونافذة التعديل. */
-.profile-avatar-box .avatar-edit{
-    display:none !important;
-}
-
-/* =========================================================
    Profile Identity Container
    الحاوية العامة فقط
    ========================================================= */
-
-.profile-identity{
-    position:relative;
-    z-index:30;
-    width:100%;
-    max-width:1000px;
-    margin:0 auto;
-    padding:10px 28px 14px;
-    display:flex;
-    flex-wrap:wrap;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:10px 18px;
-    direction:ltr;
-    background:transparent;
-}
-
-
-/* =========================================================
-   Join Date Card
-   خانة تاريخ الانضمام — مستقلة بالكامل
-   ========================================================= */
-
-.join-date-card{
-    order:1;
-    width: 40%;            /* تقليل العرض من 50% إلى 42% لتترك مساحة للصورة */
-    max-width: 140px;      /* تحديد حد أقصى للحجم */
-    transform: translateY(-75px);
-    position: relative;
-    z-index: 20;           /* لضمان بقائها خلف صورة الحساب إذا تقاطعت */
-}
-
 
 /* =========================================================
    Join Date Card — Icon
@@ -334,43 +273,16 @@ button{
    خانة المستخدم المميز — مستقلة بالكامل
    ========================================================= */
 
-/* رابط صفحة المستخدم المميز */
-.premium-side-stack{
+.premium-card{
     order:2;
-    width:40%;
-    max-width:140px;
-    position:relative;
-    z-index:45;
-    transform:translateY(-75px);
-}
-
-.premium-card{
-    appearance:none;
-    -webkit-appearance:none;
-    font:inherit;
-    text-align:right;
-    cursor:pointer;
-}
-.premium-card:hover{
-    filter:brightness(1.04);
-    box-shadow:0 10px 26px rgba(91,67,55,.18);
-}
-.premium-card:active{
-    transform:translateY(-75px) scale(.98);
-}
-.premium-card:focus-visible{
-    outline:2px solid #f4c44f;
-    outline-offset:3px;
-}
-
-.premium-card{
-    width:100%;
+    width: 40%;            /* تقليل العرض من 50% إلى 42% */
+    max-width: 140px;      /* تحديد حد أقصى للحجم */
     color:#fff;
     border:1px solid transparent;
     background:linear-gradient(145deg,#795b50,#a9887a);
     transform:none;
-    position:relative;
-    z-index:20;
+    position: relative;
+    z-index: 20;
 }
 
 
@@ -458,30 +370,9 @@ button{
    الاسم والمعلومات الرئيسية — مستقل
    ========================================================= */
 
-.identity-main{
-    order:3;
-    width:100%;
-    min-width:0;
-    padding:2px 4px 3px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    text-align:center;
-    direction:rtl;
-}
-
-
 /* =========================================================
    Name Row
    ========================================================= */
-
-.identity-name-row{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    direction:ltr;
-}
 
 .identity-name-row h1{
     color:#101522;
@@ -503,29 +394,12 @@ button{
     justify-content:center;
     flex:0 0 24px;
     border-radius:50%;
-    background:transparent;
-    color:transparent;
-    font-size:0;
+    background:#168bf0;
+    color:#fff;
+    font-size:17px;
     line-height:1;
     box-shadow:none;
     text-shadow:none;
-    vertical-align:middle;
-}
-
-.verified-badge svg{
-    width:24px;
-    height:24px;
-    display:block;
-    overflow:visible;
-}
-
-.verified-badge svg path:first-child{
-    fill:#168bf0;
-}
-
-.verified-badge svg path:last-child{
-    fill:none;
-    stroke:#fff;
 }
 .verified-badge::before,
 .verified-badge::after{
@@ -584,112 +458,6 @@ button{
     color:#536075;
     font-size:18px;
 }
-
-/* =========================================================
-   Premium Medal Badge + Expandable Medal Card
-   ========================================================= */
-
-.premium-avatar-medal{
-    position:absolute;
-    left:50%;
-    bottom:-9px;
-    z-index:36;
-    width:31px;
-    height:31px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transform:translateX(-50%);
-    border:3px solid #fff;
-    border-radius:50%;
-    background:linear-gradient(145deg,#f8d76b,#b98318);
-    color:#fff4c7;
-    box-shadow:0 5px 12px rgba(125,84,16,.28);
-}
-.premium-avatar-medal span{font-size:13px;line-height:1;}
-
-.premium-medals-toggle{
-    width:100%;
-    min-height:31px;
-    margin-top:6px;
-    padding:5px 7px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    border:1px solid rgba(188,151,74,.20);
-    border-radius:11px;
-    background:#fffaf0;
-    color:#765a25;
-    font-size:9px;
-    font-weight:800;
-    cursor:pointer;
-    box-shadow:0 4px 12px rgba(91,67,55,.06);
-}
-.premium-medals-toggle .material-icons{font-size:16px;transition:transform .2s ease;}
-.premium-medals-toggle[aria-expanded="true"] .material-icons{transform:rotate(180deg);}
-.premium-medal-mini{
-    width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;
-    border-radius:50%;background:#f3d16d;color:#76551b;font-size:10px;
-}
-.premium-medals-panel{
-    position:absolute;
-    top:calc(100% + 8px);
-    right:50%;
-    z-index:120;
-    width:min(360px,calc(100vw - 24px));
-    padding:12px;
-    transform:translateX(50%);
-    border:1px solid rgba(198,170,105,.22);
-    border-radius:18px;
-    background:rgba(255,255,255,.98);
-    box-shadow:0 16px 38px rgba(40,31,20,.16);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-}
-.premium-medals-panel[hidden]{display:none;}
-.premium-medals-head{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;
-}
-.premium-medals-head div{display:flex;flex-direction:column;gap:2px;}
-.premium-medals-head span:first-child{color:#9b7a35;font-size:8px;letter-spacing:.12em;font-weight:800;}
-.premium-medals-head strong{color:#25202a;font-size:13px;}
-.premium-medals-count{padding:4px 7px;border-radius:9px;background:#fff5d9;color:#8b6b2b;font-size:9px;font-weight:800;}
-.premium-medals-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.profile-medal{
-    min-width:0;padding:8px;display:flex;align-items:center;gap:7px;
-    border:1px solid #eee7d9;border-radius:13px;background:#fffdf8;
-}
-.profile-medal.locked{opacity:.52;filter:grayscale(.35);}
-.profile-medal-icon{
-    width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
-    border-radius:50%;background:linear-gradient(145deg,#f6d873,#c58b20);color:#fff7d0;font-size:14px;
-}
-.profile-medal div:last-child{min-width:0;display:flex;flex-direction:column;gap:1px;}
-.profile-medal strong{overflow:hidden;color:#292330;font-size:10px;text-overflow:ellipsis;white-space:nowrap;}
-.profile-medal small{overflow:hidden;color:#817a88;font-size:8px;text-overflow:ellipsis;white-space:nowrap;}
-.profile-medal em{overflow:hidden;color:#a38b58;font-size:7px;font-style:normal;text-overflow:ellipsis;white-space:nowrap;}
-
-.medals-info-card{align-items:flex-start;padding-top:14px;padding-bottom:14px;}
-.medals-info-content{flex:1;min-width:0;}
-.medals-info-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;}
-.medals-info-subtitle{margin-top:2px;color:#9299aa !important;font-size:10px !important;font-weight:400 !important;}
-.medals-info-total{flex:0 0 auto;padding:5px 8px;border-radius:10px;background:#fff5d9;color:#8b6b2b;font-size:9px;font-weight:800;}
-.info-medals-list{display:flex;flex-direction:column;gap:6px;}
-.info-medal-row{
-    min-width:0;padding:8px 9px;display:flex;align-items:center;gap:8px;
-    border:1px solid #edf0f5;border-radius:12px;background:#fafbfe;
-}
-.info-medal-row.locked{opacity:.48;}
-.info-medal-icon{
-    width:31px;height:31px;flex:0 0 31px;display:flex;align-items:center;justify-content:center;
-    border-radius:50%;background:linear-gradient(145deg,#f6d873,#c58b20);color:#fff7d0;font-size:13px;
-}
-.info-medal-row > div{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px;}
-.info-medal-row strong{color:#272331;font-size:11px;}
-.info-medal-row small{color:#888fa0;font-size:9px;}
-.info-medal-row time{flex:0 0 auto;color:#9b8555;font-size:8px;white-space:nowrap;}
-
 /* =========================================================
    Profile Statistics
    الإحصائيات — قسم مستقل
@@ -1194,6 +962,66 @@ button{
     font-weight:700;
 }
 
+/* =========================================================
+   Avatar inside Edit Profile
+   ========================================================= */
+
+.edit-avatar-section{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    margin:0 0 20px;
+    padding:4px 0 2px;
+}
+
+.edit-avatar-preview-wrap{
+    width:82px;
+    height:82px;
+    padding:3px;
+    border:2px solid #eef1f7;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 6px 18px rgba(35,45,80,.10);
+}
+
+.edit-avatar-preview{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+    border-radius:50%;
+}
+
+.edit-avatar-change{
+    height:38px;
+    padding:0 15px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border:1px solid #e3e7f0;
+    border-radius:19px;
+    background:#f7f8fc;
+    color:#5364ee;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background .16s ease, transform .16s ease;
+}
+
+.edit-avatar-change:hover{
+    background:#eef1ff;
+}
+
+.edit-avatar-change:active{
+    transform:scale(.97);
+}
+
+.edit-avatar-change .material-icons{
+    font-size:18px;
+}
+
 
 /* =========================================================
    Edit Input
@@ -1250,88 +1078,6 @@ button{
     line-height:1.4;
 }
 
-
-/* =========================================================
-   Edit Avatar Section
-   ========================================================= */
-
-.edit-avatar-section{
-    min-height:74px;
-    margin:4px 0 4px;
-    padding:10px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    border:1px solid #edf0f5;
-    border-radius:15px;
-    background:#f8f9fc;
-}
-
-.edit-avatar-preview{
-    width:52px;
-    height:52px;
-    flex:0 0 52px;
-    overflow:hidden;
-    border:2px solid #fff;
-    border-radius:50%;
-    background:#eef1f7;
-    box-shadow:0 4px 12px rgba(35,45,80,.10);
-}
-
-.edit-avatar-preview img{
-    width:100%;
-    height:100%;
-    display:block;
-    object-fit:cover;
-}
-
-.edit-avatar-copy{
-    min-width:0;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:2px;
-}
-
-.edit-avatar-copy strong{
-    color:#252b3b;
-    font-size:12px;
-    font-weight:800;
-}
-
-.edit-avatar-copy small{
-    color:#858da0;
-    font-size:9px;
-}
-
-.modal-change-avatar{
-    height:30px;
-    margin-top:4px;
-    padding:0 10px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:5px;
-    border-radius:10px;
-    background:#eef1ff;
-    color:#5364ee;
-    cursor:pointer;
-    font-size:10px;
-    font-weight:800;
-}
-
-.modal-change-avatar .material-icons{
-    font-size:15px;
-}
-
-.profile-file-input{
-    position:absolute;
-    width:1px;
-    height:1px;
-    opacity:0;
-    pointer-events:none;
-}
 
 /* =========================================================
    Modal Buttons
@@ -1453,30 +1199,6 @@ body.dark .edit-box{
     border-color:#252c3c;
 }
 
-
-.body-dark-placeholder{}body.dark .hero-change-avatar{
-    background:#141925;
-    border-color:#252c3c;
-    color:#9da7ff;
-}
-
-body.dark .edit-avatar-section{
-    background:#101521;
-    border-color:#252c3c;
-}
-
-body.dark .edit-avatar-copy strong{
-    color:#fff;
-}
-
-body.dark .edit-avatar-copy small{
-    color:#9da6ba;
-}
-
-body.dark .modal-change-avatar{
-    background:#1b2130;
-    color:#9da7ff;
-}
 
 /* =========================================================
    Dark Main Text
@@ -1620,23 +1342,6 @@ body.dark #closeEditBtn{
 
 @media(max-width:700px){
 
-    .hero-change-avatar{
-        min-width:210px;
-        height:36px;
-        margin-bottom:7px;
-        font-size:12px;
-    }
-
-    .hero-edit-profile{
-        min-width:210px;
-    }
-
-    .edit-avatar-section{
-        padding:9px;
-    }
-
-
-
     body{
         padding-bottom:95px;
     }
@@ -1736,54 +1441,7 @@ body.dark #closeEditBtn{
     /* =====================================================
        Mobile Join Date
        ===================================================== */
-
-.join-date-card{
-        order: 1;
-        width: 38%;             /* تصغير العرض في الهاتف */
-        min-height: 54px;       /* تصغير الارتفاع */
-        height: 54px;
-        padding: 4px 6px;       /* تقليل الحشوة الداخلية */
-        gap: 4px;
-        border-radius: 12px;
-        transform: translateY(-65px);
-    }
-
-
-    /* =====================================================
-       Mobile Premium
-       ===================================================== */
-
-    .premium-side-stack{
-        order:2;
-        width:38%;
-        max-width:none;
-        transform:translateY(-65px);
-    }
-
-.premium-card{
-        width:100%;             /* تصغير العرض في الهاتف */
-        min-height: 54px;       /* تصغير الارتفاع */
-        height: 54px;
-        padding: 4px 6px;       /* تقليل الحشوة الداخلية */
-        gap: 4px;
-        border-radius: 12px;
-        transform: translateY(-65px);
-    }
-
-
-    /* =====================================================
-       Mobile Identity Main
-       ===================================================== */
-
-    .identity-main{
-    order:3;
-        width:100%;
-        padding:1px 0 3px;
-        margin-top: -55px;
-    }
-
-
-    /* =====================================================
+/* =====================================================
        Mobile Join Date Card
        ===================================================== */
 
@@ -2107,18 +1765,7 @@ body.dark #closeEditBtn{
        Join Date
        ===================================================== */
 
-.join-date-card{
-        width:calc(50% - 3px);
-        height:60px;
-        min-height:60px;
-        padding:5px 7px;
-        gap:5px;
-        border-radius:12px;
-        /* إزاحة الشاشات الصغيرة جداً */
-        transform: translateY(-60px);
-    }
-
-    .join-date-card > .material-icons{
+.join-date-card > .material-icons{
         width:26px;
         height:26px;
         flex-basis:26px;
@@ -2151,7 +1798,7 @@ body.dark #closeEditBtn{
         gap:5px;
         border-radius:12px;
         /* إزاحة الشاشات الصغيرة جداً */
-        transform: translateY(-60px);
+        transform:none;
     }
     .premium-card .premium-crown{
         width:26px;
@@ -2215,7 +1862,7 @@ body.dark #closeEditBtn{
     padding: 4px 6px;
     gap: 4px;
     border-radius: 12px;
-    transform: translateY(-65px);
+    transform:none;
     position: relative;
     z-index: 20;
 
@@ -2399,71 +2046,6 @@ body.dark #closeEditBtn{
     display:block;
 }
 
-
-
-/* =========================================================
-   Likes Tab — أعجبتني
-   ========================================================= */
-
-.profile-tab[data-profile-tab="likes"] .material-icons{
-    color:#ff3b5c;
-}
-
-.profile-tab[data-profile-tab="likes"]:hover{
-    color:#ff3b5c;
-    background:#fff2f5;
-}
-
-.profile-tab[data-profile-tab="likes"].active{
-    color:#ff3b5c;
-    background:#fff0f4;
-}
-
-.profile-tab[data-profile-tab="likes"].active::after{
-    background:#ff3b5c;
-}
-
-body.dark .profile-tab[data-profile-tab="likes"]:hover{
-    color:#ff6b83;
-    background:#2a1b23;
-}
-
-body.dark .profile-tab[data-profile-tab="likes"].active{
-    color:#ff6b83;
-    background:#2a1b23;
-}
-
-body.dark .profile-tab[data-profile-tab="likes"].active::after{
-    background:#ff6b83;
-}
-
-.profile-panel[data-profile-panel="likes"] .profile-wall-card{
-    position:relative;
-}
-
-.profile-panel[data-profile-panel="likes"] .profile-wall-card::after{
-    content:"favorite";
-    position:absolute;
-    top:10px;
-    right:10px;
-    width:30px;
-    height:30px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    background:rgba(255,255,255,.88);
-    color:#ff3b5c;
-    font-family:"Material Icons";
-    font-size:17px;
-    box-shadow:0 5px 14px rgba(0,0,0,.12);
-    pointer-events:none;
-}
-
-body.dark .profile-panel[data-profile-panel="likes"] .profile-wall-card::after{
-    background:rgba(20,25,37,.9);
-    color:#ff6b83;
-}
 
 /* =========================================================
    Profile Tabs — Dark Theme
@@ -2775,196 +2357,746 @@ body.dark .profile-wall-card{
     }
 }
 
-/* Verification badge: keep only the blue badge */
-.verified-badge,
-.verified-badge::before,
-.verified-badge::after{
-    border:0 !important;
-    outline:0 !important;
-    box-shadow:none !important;
-}
-.verified-badge::before,
-.verified-badge::after{
-    content:none !important;
-    display:none !important;
-}
-
-
-/* Definitive verification badge cleanup: one blue badge only. */
-.verified-badge::before,
-.verified-badge::after{
-    content:none !important;
-    display:none !important;
-    border:0 !important;
-    box-shadow:none !important;
-    background:none !important;
-}
-
-@media(max-width:700px){
-    .premium-medals-toggle{min-height:29px;padding:4px 5px;font-size:8px;}
-    .premium-medal-mini{width:18px;height:18px;font-size:9px;}
-    .premium-medals-panel{width:min(350px,calc(100vw - 20px));padding:10px;}
-    .premium-medals-grid{grid-template-columns:1fr;}
-    .profile-medal{padding:7px;}
-    .medals-info-title-row{align-items:flex-start;}
-    .info-medal-row{flex-wrap:wrap;}
-    .info-medal-row time{width:100%;padding-right:39px;white-space:normal;}
-    .premium-avatar-medal{width:29px;height:29px;bottom:-8px;}
-}
-
 
 /* =========================================================
-   Final Profile Mobile Layout
-   معلومات الحساب يسار + الميداليات يمين
+   Profile Identity — directly below cover
+   Arabic info on the right, premium card on the left
    ========================================================= */
+
+.profile-identity{
+    position:relative;
+    z-index:30;
+    width:100%;
+    max-width:760px;
+    margin:0 auto;
+    padding:12px 18px 10px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 160px;
+    gap:14px;
+    align-items:start;
+    direction:rtl;
+    background:#fff;
+}
+
+.identity-main{
+    grid-column:1;
+    width:100%;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    text-align:right;
+    direction:rtl;
+}
+
+.identity-name-row{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:6px;
+    direction:rtl;
+}
+
+.identity-name-row h1{
+    margin:0;
+    font-size:29px;
+    line-height:1.2;
+}
+
+.identity-username{
+    margin:3px 0 0;
+    font-size:14px;
+}
+
+.identity-bio{
+    margin:6px 0 9px;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.hero-edit-profile{
+    width:180px;
+    min-width:180px;
+    max-width:180px;
+    height:38px;
+    padding:0 13px;
+    border-radius:19px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    font-size:13px;
+}
+
+.identity-side-card.premium-card{
+    grid-column:2;
+    width:160px;
+    min-width:160px;
+    height:64px;
+    min-height:64px;
+    margin:0;
+    transform:none;
+    align-self:start;
+}
+
 @media(max-width:700px){
-
     .profile-identity{
-        display:grid;
-        grid-template-columns:minmax(0,1.55fr) minmax(118px,.9fr);
-        align-items:start;
-        column-gap:10px;
-        row-gap:7px;
-        padding:10px 12px 10px;
-        direction:ltr;
-    }
-
-    .join-date-card{
-        grid-column:1;
-        grid-row:1;
-        width:100%;
         max-width:none;
-        order:1;
-        transform:translateY(-65px);
-    }
-
-    /* منطقة الاسم والنبذة وتعديل الحساب إلى اليسار */
-    .identity-main{
-        grid-column:1;
-        grid-row:2;
-        width:100%;
-        order:2;
-        min-width:0;
-        margin-top:-55px;
-        padding:0 2px 4px;
-        align-items:flex-start;
-        text-align:left;
-        direction:rtl;
-    }
-
-    .identity-name-row{
-        width:100%;
-        justify-content:flex-start;
-        direction:ltr;
+        padding:10px 12px 9px;
+        grid-template-columns:minmax(0,1fr) 150px;
+        gap:9px;
     }
 
     .identity-name-row h1{
         font-size:25px;
-        text-align:left;
     }
 
-    .identity-username,
+    .identity-username{
+        font-size:12px;
+    }
+
     .identity-bio{
-        width:100%;
-        text-align:left;
+        margin:4px 0 7px;
+        font-size:11px;
     }
 
-    .hero-change-avatar,
     .hero-edit-profile{
-        width:100%;
-        min-width:0;
-        max-width:230px;
+        width:175px;
+        min-width:175px;
+        max-width:175px;
+        height:35px;
+        border-radius:18px;
+        font-size:12px;
     }
 
-    /* البريميوم والميداليات إلى اليمين */
-    .premium-side-stack{
-        grid-column:2;
-        grid-row:1 / span 2;
-        width:100%;
-        max-width:none;
-        order:3;
-        transform:translateY(-65px);
-        align-self:start;
-    }
-
-    .premium-card{
-        width:100%;
-        transform:none;
-    }
-
-    .premium-medals-toggle{
-        width:100%;
-    }
-
-    /* نافذة الميداليات: شارات فقط، 2 في كل سطر */
-    .premium-medals-panel{
+    .identity-side-card.premium-card{
         width:150px;
-        max-width:150px;
-        padding:10px;
-        right:0;
-        transform:none;
-        border-radius:16px;
-    }
-
-    .premium-medals-grid{
-        width:100%;
-        display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:9px;
-    }
-
-    .profile-medal{
-        width:100%;
+        min-width:150px;
         height:58px;
-        padding:0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        border-radius:15px;
-    }
-
-    .profile-medal-icon{
-        width:40px;
-        height:40px;
-        flex:0 0 40px;
-        font-size:18px;
-    }
-
-    .profile-medal > div:not(.profile-medal-icon){
-        display:none !important;
+        min-height:58px;
+        border-radius:14px;
     }
 }
 
 @media(max-width:380px){
     .profile-identity{
-        grid-template-columns:minmax(0,1.48fr) minmax(108px,.9fr);
-        column-gap:7px;
+        grid-template-columns:minmax(0,1fr) 140px;
+        gap:7px;
         padding-left:10px;
         padding-right:10px;
+    }
+
+    .identity-side-card.premium-card{
+        width:140px;
+        min-width:140px;
     }
 
     .identity-name-row h1{
         font-size:23px;
     }
 
-    .premium-medals-panel{
-        width:142px;
-        max-width:142px;
-        padding:8px;
+    .hero-edit-profile{
+        width:165px;
+        min-width:165px;
+        max-width:165px;
+    }
+}
+
+
+/* =========================================================
+   Profile Identity — final spacing/layout
+   ========================================================= */
+
+.profile-identity{
+    position:relative !important;
+    z-index:30;
+    width:100%;
+    max-width:760px;
+    margin:-48px auto 0 !important;
+    padding:0 14px 10px !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 150px !important;
+    gap:10px !important;
+    align-items:start !important;
+    direction:rtl;
+    background:#fff;
+}
+
+.identity-main{
+    grid-column:1 !important;
+    width:100%;
+    min-width:0;
+    margin:0 !important;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    text-align:right;
+    direction:rtl;
+}
+
+.identity-name-row{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:5px;
+    direction:rtl;
+}
+
+.identity-name-row h1{
+    margin:0 !important;
+    font-size:25px;
+    line-height:1.2;
+}
+
+.identity-username{
+    margin:2px 0 0 !important;
+    font-size:12px;
+}
+
+.identity-bio{
+    margin:4px 0 7px !important;
+    font-size:11px;
+    line-height:1.5;
+}
+
+.hero-edit-profile{
+    width:175px !important;
+    min-width:175px !important;
+    max-width:175px !important;
+    height:35px;
+    margin:0 !important;
+    padding:0 12px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    font-size:12px;
+}
+
+.identity-side-card.premium-card{
+    grid-column:2 !important;
+    width:150px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    height:58px !important;
+    min-height:58px !important;
+    margin:0 !important;
+    padding:6px 8px;
+    transform:none !important;
+    align-self:start !important;
+    position:relative;
+    z-index:20;
+}
+
+@media(max-width:380px){
+    .profile-identity{
+        margin-top:-44px !important;
+        grid-template-columns:minmax(0,1fr) 140px !important;
+        gap:7px !important;
+        padding-left:10px !important;
+        padding-right:10px !important;
     }
 
-    .premium-medals-grid{
+    .identity-side-card.premium-card{
+        width:140px !important;
+        min-width:140px !important;
+        max-width:140px !important;
+    }
+
+    .identity-name-row h1{
+        font-size:23px;
+    }
+
+    .hero-edit-profile{
+        width:165px !important;
+        min-width:165px !important;
+        max-width:165px !important;
+    }
+}
+
+
+/* =========================================================
+   Premium + Medals — fixed two-column identity layout
+   ========================================================= */
+
+.profile-identity{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 150px !important;
+    grid-template-rows:auto auto !important;
+    column-gap:10px !important;
+    row-gap:6px !important;
+    align-items:start !important;
+}
+
+.identity-main{
+    grid-column:1 !important;
+    grid-row:1 / span 2 !important;
+    align-self:start !important;
+}
+
+.identity-side-card.premium-card{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    align-self:start !important;
+    position:relative !important;
+    top:0 !important;
+    bottom:auto !important;
+    margin:0 !important;
+    transform:none !important;
+}
+
+.profile-medals-trigger{
+    grid-column:2 !important;
+    grid-row:2 !important;
+    align-self:start !important;
+    position:relative !important;
+    top:0 !important;
+    bottom:auto !important;
+    margin:0 !important;
+}
+
+@media(max-width:700px){
+    .profile-identity{
+        grid-template-columns:minmax(0,1fr) 150px !important;
+        grid-template-rows:auto auto !important;
+        column-gap:9px !important;
+        row-gap:5px !important;
+    }
+}
+
+@media(max-width:380px){
+    .profile-identity{
+        grid-template-columns:minmax(0,1fr) 140px !important;
+    }
+    .profile-medals-trigger{
+        width:140px !important;
+        min-width:140px !important;
+    }
+}
+
+/* =========================================================
+   Profile Medals — compact inline expandable panel
+   ========================================================= */
+
+.profile-medals-trigger{
+    grid-column:2 !important;
+    grid-row:2 !important;
+    width:150px;
+    min-width:150px;
+    height:34px;
+    margin:0;
+    padding:0 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    border:1px solid #ead7a1;
+    border-radius:17px;
+    background:linear-gradient(180deg,#fffaf0,#fff7df);
+    color:#8b6b19;
+    font-size:10px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 3px 10px rgba(176,139,42,.08);
+    direction:rtl;
+    transition:width .22s ease, border-radius .22s ease, background .18s ease;
+}
+
+.profile-medals-trigger .material-icons{
+    font-size:15px;
+}
+
+.medal-trigger-icon{
+    width:20px;
+    height:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#f4ce5e;
+    color:#6d5110;
+    font-size:10px;
+    flex:0 0 20px;
+}
+
+.profile-medals-inline-panel{
+    grid-column:2 !important;
+    grid-row:3 !important;
+    width:150px;
+    min-width:150px;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    margin:0;
+    padding:0;
+    border:1px solid transparent;
+    border-radius:15px;
+    background:#fffdf8;
+    box-shadow:0 4px 14px rgba(176,139,42,.08);
+    direction:rtl;
+    transition:max-height .24s ease, opacity .18s ease, margin-top .24s ease, padding .24s ease, border-color .24s ease;
+}
+
+.profile-medals-inline-panel.open{
+    max-height:190px;
+    opacity:1;
+    margin-top:3px;
+    padding:7px;
+    border-color:#eee2c3;
+}
+
+.profile-medals-inline-head{
+    height:20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:#8b6b19;
+    font-size:9px;
+    font-weight:700;
+    margin-bottom:4px;
+}
+
+.profile-medals-inline-head .material-icons{
+    font-size:15px;
+}
+
+.profile-medals-viewport{
+    width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+    touch-action:pan-x;
+    overscroll-behavior-x:contain;
+}
+
+.profile-medals-viewport::-webkit-scrollbar{
+    display:none;
+}
+
+.profile-medals-track{
+    display:flex;
+    width:max-content;
+}
+
+.profile-medals-page{
+    width:136px;
+    flex:0 0 136px;
+    min-height:74px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    grid-template-rows:repeat(2,1fr);
+    gap:5px;
+    scroll-snap-align:start;
+    direction:rtl;
+}
+
+.profile-medal{
+    height:34px;
+    min-width:0;
+    border:1px solid #f0e6ce;
+    border-radius:9px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.profile-medal-badge{
+    width:17px;
+    height:17px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(145deg,#f7d86d,#c9981c);
+    border:1px solid #fff5cf;
+    box-shadow:0 2px 5px rgba(176,139,42,.15);
+    color:#6f510e;
+}
+
+.profile-medal-badge .material-icons{
+    font-size:10px;
+}
+
+.profile-medals-dots{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:3px;
+    height:5px;
+    margin-top:4px;
+    direction:ltr;
+}
+
+.profile-medal-dot{
+    width:3px;
+    height:3px;
+    border:0;
+    padding:0;
+    border-radius:50%;
+    background:#d8cfb8;
+}
+
+.profile-medal-dot.active{
+    width:9px;
+    border-radius:3px;
+    background:#c79d35;
+}
+
+@media(max-width:700px){
+    .profile-medals-trigger{
+        width:150px;
+        min-width:150px;
+        height:33px;
+        font-size:9.5px;
+    }
+
+    .profile-medals-inline-panel{
+        width:150px;
+        min-width:150px;
+    }
+
+    .profile-medals-page{
+        width:136px;
+        flex-basis:136px;
+    }
+}
+
+@media(max-width:380px){
+    .profile-medals-trigger{
+        width:140px;
+        min-width:140px;
+    }
+
+    .profile-medals-inline-panel{
+        width:140px;
+        min-width:140px;
+    }
+
+    .profile-medals-page{
+        width:126px;
+        flex-basis:126px;
+    }
+}
+
+/* Final placement: the medals expansion belongs to the identity grid.
+   It must never escape the profile identity section. */
+.profile-identity{
+    position:relative !important;
+    grid-template-rows:auto auto auto !important;
+}
+
+.profile-identity > .profile-medals-inline-panel{
+    grid-column:2 !important;
+    grid-row:3 !important;
+    justify-self:stretch !important;
+    align-self:start !important;
+    position:static !important;
+    inset:auto !important;
+    float:none !important;
+    transform:none !important;
+}
+
+.profile-identity > .profile-medals-trigger{
+    grid-column:2 !important;
+    grid-row:2 !important;
+    position:static !important;
+    inset:auto !important;
+    transform:none !important;
+}
+
+/* =========================================================
+   Medal history — inside Information tab
+   ========================================================= */
+
+.profile-medal-history{
+    margin-top:12px;
+    padding:14px;
+    border:1px solid #ececf1;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:0 5px 18px rgba(30,38,60,.045);
+    direction:rtl;
+}
+
+.profile-medal-history-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+.profile-medal-history-head h3{
+    margin:2px 0 0;
+    font-size:15px;
+    font-weight:800;
+    color:#252936;
+}
+
+.profile-medal-history-kicker{
+    display:block;
+    direction:ltr;
+    font-size:8px;
+    letter-spacing:1.8px;
+    color:#b18a2d;
+    font-weight:800;
+}
+
+.profile-medal-history-head > .material-icons{
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#fff7df;
+    color:#b18a2d;
+    font-size:16px;
+}
+
+.profile-medal-history-list{
+    display:grid;
+    gap:7px;
+}
+
+.profile-medal-history-item{
+    min-height:52px;
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr) auto;
+    align-items:center;
+    gap:9px;
+    padding:7px 8px;
+    border:1px solid #f0eef0;
+    border-radius:13px;
+    background:#fcfcfd;
+}
+
+.profile-medal-history-badge{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(145deg,#f8dc79,#c99a1f);
+    color:#70520b;
+    box-shadow:0 2px 6px rgba(190,150,40,.14);
+}
+
+.profile-medal-history-badge .material-icons{
+    font-size:15px;
+}
+
+.profile-medal-history-name{
+    font-size:11px;
+    font-weight:800;
+    color:#353946;
+}
+
+.profile-medal-history-desc{
+    margin-top:2px;
+    font-size:8px;
+    color:#989ca6;
+}
+
+.profile-medal-history-date{
+    text-align:left;
+    white-space:nowrap;
+    color:#8f6e1e;
+    font-size:9px;
+    font-weight:700;
+}
+
+.profile-medal-history-date small{
+    display:block;
+    margin-bottom:2px;
+    color:#a4a7af;
+    font-size:7px;
+    font-weight:500;
+}
+
+@media(max-width:380px){
+    .profile-medal-history{
+        padding:12px;
+    }
+    .profile-medal-history-item{
+        grid-template-columns:31px minmax(0,1fr) auto;
         gap:7px;
+        padding:6px;
     }
+    .profile-medal-history-badge{
+        width:28px;
+        height:28px;
+    }
+}
 
-    .profile-medal{
-        height:54px;
-    }
+/* =========================================================
+   Premium crown on avatar — replaces the old camera spot
+   ========================================================= */
 
-    .profile-medal-icon{
-        width:37px;
-        height:37px;
-        flex-basis:37px;
-        font-size:17px;
+.profile-avatar-crown{
+    position:absolute;
+    right:50%;
+    bottom:-13px;
+    transform:translateX(50%);
+    width:38px;
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:linear-gradient(145deg,#f7d96e,#c7951e);
+    border:3px solid #fff;
+    box-shadow:0 4px 12px rgba(155,116,17,.25);
+    color:#fff8d7;
+    z-index:8;
+    pointer-events:none;
+}
+
+.profile-avatar-crown .material-icons{
+    font-size:20px;
+    line-height:1;
+}
+
+@media(max-width:380px){
+    .profile-avatar-crown{
+        width:35px;
+        height:35px;
+        bottom:-12px;
+        border-width:3px;
     }
+    .profile-avatar-crown .material-icons{
+        font-size:18px;
+    }
+}
+
+/* Crown badge on the main profile avatar */
+.profile-avatar-box{position:relative;overflow:visible}
+.profile-avatar-crown{
+  position:absolute;left:50%;bottom:-15px;transform:translateX(-50%);
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;background:linear-gradient(145deg,#f8dc78,#c99520);
+  border:3px solid #fff;box-shadow:0 3px 10px rgba(125,91,10,.28);
+  color:#fff9d8;z-index:20;pointer-events:none;
+}
+.profile-avatar-crown .material-icons{font-size:19px;line-height:1}
+@media(max-width:380px){
+  .profile-avatar-crown{width:34px;height:34px;bottom:-14px}
+  .profile-avatar-crown .material-icons{font-size:18px}
+}
+
+
+/* Stable avatar presentation: the image always keeps its footprint. */
+.profile-avatar-box{
+    width:95px;
+    height:95px;
+    overflow:visible;
+}
+.profile-avatar{
+    background:#eef2f8;
 }

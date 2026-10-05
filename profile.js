@@ -440,7 +440,6 @@ function isOwnProfile(){
 function hideOwnerEditControls(){
     const ids = [
         "editProfileBtn",
-        "heroChangeAvatarBtn",
         "modalChangeAvatarBtn",
         "changeCoverBtn",
         "avatarInput",
@@ -455,7 +454,7 @@ function hideOwnerEditControls(){
 
 function showOwnerEditControls(){
     const editBtn = document.getElementById("editProfileBtn");
-    const avatarBtn = document.getElementById("heroChangeAvatarBtn");
+    const avatarBtn = document.getElementById("modalChangeAvatarBtn");
 
     if(editBtn) editBtn.style.display = "";
     if(avatarBtn) avatarBtn.style.display = "";
@@ -600,18 +599,10 @@ async function loadPublicProfile(uid){
             })
             : [];
 
-        // نحتفظ بكل الخلفيات لأن الإعجاب قد يكون بخلفية نشرها مستخدم آخر.
-        wallpapers = Array.isArray(list) ? list : [];
+        wallpapers = ownerWalls;
         updateWallpaperCount(ownerWalls.length);
 
-        const containers = [
-            ownWallpapersContainer,
-            downloadedContainer,
-            likedContainer,
-            viewedContainer,
-            document.getElementById("favoriteWallpapers")
-        ];
-
+        const containers = [ownWallpapersContainer, downloadedContainer, likedContainer, viewedContainer];
         containers.forEach(container => {
             if(!container) return;
             container.innerHTML = "";
@@ -626,48 +617,8 @@ async function loadPublicProfile(uid){
             renderWalls(ownWallpapersContainer, ownerWalls.map(w => w.id));
         }
 
-        // الإعجابات عامة في البروفايل، أما المفضلة والتحميلات والمشاهدات فخاصة.
-        let publicLikeIds = [];
-        try{
-            const { data: likeRows, error: likeError } = await supabase
-                .from("likes")
-                .select("wallpaper_id")
-                .eq("user_id", targetUID);
-
-            if(likeError) throw likeError;
-
-            publicLikeIds = normalizeActionList(
-                (likeRows || []).map(row => row?.wallpaper_id)
-            );
-        }catch(likeError){
-            console.warn("PUBLIC PROFILE LIKES LOAD ERROR:", likeError.message);
-        }
-
-        renderWalls(likedContainer, publicLikeIds);
-
-        document.querySelectorAll(
-            '.profile-tab[data-profile-tab="info"], ' +
-            '.profile-tab[data-profile-tab="favorites"], ' +
-            '.profile-tab[data-profile-tab="downloads"], ' +
-            '.profile-tab[data-profile-tab="views"]'
-        ).forEach(tab => {
+        document.querySelectorAll('.profile-tab[data-profile-tab="favorites"], .profile-tab[data-profile-tab="downloads"], .profile-tab[data-profile-tab="views"]').forEach(tab => {
             tab.style.display = "none";
-        });
-
-        const likesTab = document.querySelector('.profile-tab[data-profile-tab="likes"]');
-        if(likesTab) likesTab.style.display = "";
-
-        const likesPanel = document.querySelector('.profile-panel[data-profile-panel="likes"]');
-        if(likesPanel) likesPanel.classList.add("active");
-
-        document.querySelectorAll(".profile-panel").forEach(panel => {
-            if(panel !== likesPanel && panel.dataset.profilePanel !== "wallpapers"){
-                panel.classList.remove("active");
-            }
-        });
-
-        document.querySelectorAll(".profile-tab").forEach(tab => {
-            tab.classList.toggle("active", tab.dataset.profileTab === "likes");
         });
 
         publicProfileLoaded = targetUID;
@@ -717,10 +668,44 @@ document.getElementById(
 
 
 
+
 const userAvatar =
 document.getElementById(
 "userAvatar"
 );
+
+/* Avatar fallback: keep the avatar element visible even when the
+   previous stored image URL is missing/expired. */
+const DEFAULT_AVATAR_DATA =
+"data:image/svg+xml;charset=UTF-8," +
+encodeURIComponent(
+`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2f8"/>
+      <stop offset="1" stop-color="#d7dce6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="128" fill="url(#g)"/>
+  <circle cx="128" cy="101" r="42" fill="#7f8796"/>
+  <path d="M53 218c9-47 39-72 75-72s66 25 75 72" fill="#7f8796"/>
+</svg>`
+);
+
+function setAvatarSource(src){
+    if(!userAvatar) return;
+    const value = String(src || "").trim();
+    userAvatar.dataset.fallbackApplied = "0";
+    userAvatar.onerror = () => {
+        if(userAvatar.dataset.fallbackApplied === "1") return;
+        userAvatar.dataset.fallbackApplied = "1";
+        userAvatar.src = DEFAULT_AVATAR_DATA;
+    };
+    userAvatar.src = value || DEFAULT_AVATAR_DATA;
+}
+
+setAvatarSource(userAvatar?.getAttribute("src"));
+
 
 const coverImage =
 document.getElementById(
@@ -857,7 +842,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
         }
 
         const avatarEl = document.getElementById("userAvatar");
-        if (avatarEl && photoURL) avatarEl.src = photoURL;
+        if (avatarEl) setAvatarSource(photoURL);
 
         const downloads = await getActualDownloadIds();
         const views = getList("views");
@@ -962,8 +947,6 @@ function resetGuestProfile() {
         "profileBio",
         "downloads", 
         "favorites", 
-        "likes",
-        "likedWallpapers",
         "views",
         "userData"
     ];
@@ -995,8 +978,6 @@ if (loginBtn) {
                     "profileBio",
                     "downloads",
                     "favorites",
-                    "likes",
-                    "likedWallpapers",
                     "views",
                     "userName",
                     "username",
@@ -1049,28 +1030,6 @@ if (profileMenuBtn) {
         console.log("⋮ Profile menu clicked");
     };
 }
-
-/* ==========================
-   Premium User Page
-   ========================== */
-
-const premiumUserBtn = document.getElementById("premiumUserBtn");
-
-function openPremiumUserPage(){
-    window.location.href = "premium-user.html";
-}
-
-if(premiumUserBtn){
-    premiumUserBtn.addEventListener("click", openPremiumUserPage);
-
-    premiumUserBtn.addEventListener("keydown", event => {
-        if(event.key === "Enter" || event.key === " "){
-            event.preventDefault();
-            openPremiumUserPage();
-        }
-    });
-}
-
 
 
 /* ===================================================
@@ -1462,9 +1421,7 @@ email;
 
 if(userAvatar)
 
-userAvatar.src =
-avatar ||
-"assets/images/user.png";
+setAvatarSource(avatar);
 
 if(coverImage && cover)
 
@@ -1909,11 +1866,14 @@ async function renderProfile() {
     renderWalls(downloadedContainer, downloads);
     renderWalls(likedContainer, likes);
 
-    // المفضلة والإعجابات قسمان مستقلان.
+    // لا نخلط المحفوظات مع الإعجابات: favorites مخصص للمحفوظات فقط.
     const savedContainer =
         document.getElementById("favoriteWallpapers") ||
-        document.getElementById("favoritesWallpapers");
+        document.getElementById("favoritesWallpapers") ||
+        document.getElementById("likedWallpapers");
 
+    // إذا كان likedWallpapers هو اسم الحاوية القديم للمفضلة،
+    // نعرض المحفوظات فيه كما كانت الواجهة القديمة تتوقع.
     if(savedContainer) {
         renderWalls(savedContainer, saved);
     }
@@ -2128,14 +2088,15 @@ if(changeCoverBtn && coverInput){
 }
 
 
-const heroChangeAvatarBtn =
-document.getElementById("heroChangeAvatarBtn");
-
 const modalChangeAvatarBtn =
-document.getElementById("modalChangeAvatarBtn");
+document.getElementById(
+"modalChangeAvatarBtn"
+);
 
 const editAvatarPreview =
-document.getElementById("editAvatarPreview");
+document.getElementById(
+"editAvatarPreview"
+);
 
 
 
@@ -2365,17 +2326,13 @@ file
 ========================== */
 
 
-const openAvatarPicker = ()=>{
-    if(!isOwnProfile() || !avatarInput) return;
-    avatarInput.click();
-};
+if(modalChangeAvatarBtn && avatarInput){
 
-if(heroChangeAvatarBtn){
-    heroChangeAvatarBtn.onclick = openAvatarPicker;
-}
+    modalChangeAvatarBtn.onclick = ()=>{
+        if(!isOwnProfile()) return;
+        avatarInput.click();
+    };
 
-if(modalChangeAvatarBtn){
-    modalChangeAvatarBtn.onclick = openAvatarPicker;
 }
 
 
@@ -2398,8 +2355,7 @@ file,
 async (src)=>{
 
 
-userAvatar.src =
-src;
+setAvatarSource(src);
 
 if(editAvatarPreview){
     editAvatarPreview.src = src;
@@ -2499,7 +2455,7 @@ window.addEventListener("wallpaperStatsChanged", () => {
 });
 
 window.addEventListener("storage", event => {
-    if(["favorites", "likes", "likedWallpapers", "downloads", "views", "userCover", COVER_HISTORY_LOCAL_KEY].includes(event.key)){
+    if(["favorites", "downloads", "views", "userCover", COVER_HISTORY_LOCAL_KEY].includes(event.key)){
         if(event.key === "userCover" && coverImage){
             coverImage.src = event.newValue || DEFAULT_PROFILE_COVER;
         }
@@ -2563,32 +2519,124 @@ document.addEventListener(
     loadUserData();
     loadWallpapers();
 
-});
+});/* =========================================================
+   Profile Medals — inline expansion
+   ========================================================= */
 
-/* ==========================
-   Premium Medals — Expand / Collapse
-   ========================== */
-const premiumMedalsToggle = document.getElementById("premiumMedalsToggle");
-const premiumMedalsPanel = document.getElementById("premiumMedalsPanel");
+const profileMedals = [
+    {icon:"workspace_premium",title:"المؤسس"},
+    {icon:"diamond",title:"الذهبي"},
+    {icon:"bolt",title:"النشط"},
+    {icon:"star",title:"الداعم"}
+];
 
-if(premiumMedalsToggle && premiumMedalsPanel){
-    premiumMedalsToggle.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-        const willOpen = premiumMedalsPanel.hidden;
-        premiumMedalsPanel.hidden = !willOpen;
-        premiumMedalsToggle.setAttribute("aria-expanded", String(willOpen));
+const profileMedalsBtn=document.getElementById("profileMedalsBtn");
+const profileMedalsPanel=document.getElementById("profileMedalsPanel");
+const profileMedalsViewport=document.getElementById("profileMedalsViewport");
+const profileMedalsTrack=document.getElementById("profileMedalsTrack");
+const profileMedalsDots=document.getElementById("profileMedalsDots");
+
+function renderProfileMedals(){
+    if(!profileMedalsTrack)return;
+
+    const pages=[];
+    for(let i=0;i<profileMedals.length;i+=4){
+        pages.push(profileMedals.slice(i,i+4));
+    }
+
+    profileMedalsTrack.innerHTML=pages.map(page=>`
+        <div class="profile-medals-page">
+            ${page.map(m=>`
+                <div class="profile-medal" title="${m.title}" aria-label="${m.title}">
+                    <span class="profile-medal-badge">
+                        <span class="material-icons">${m.icon}</span>
+                    </span>
+                </div>
+            `).join("")}
+        </div>
+    `).join("");
+
+    if(profileMedalsDots){
+        profileMedalsDots.innerHTML=pages.length>1
+            ? pages.map((_,i)=>`<span class="profile-medal-dot${i===0?" active":""}"></span>`).join("")
+            : "";
+    }
+}
+
+function toggleProfileMedals(){
+    if(!profileMedalsPanel || !profileMedalsBtn)return;
+
+    const open=profileMedalsPanel.classList.toggle("open");
+    profileMedalsPanel.setAttribute("aria-hidden",String(!open));
+    profileMedalsBtn.setAttribute("aria-expanded",String(open));
+
+    if(open && profileMedalsViewport){
+        profileMedalsViewport.scrollLeft=0;
+    }
+}
+
+profileMedalsBtn?.addEventListener("click",toggleProfileMedals);
+
+profileMedalsViewport?.addEventListener("scroll",()=>{
+    const pageWidth=profileMedalsViewport.clientWidth||1;
+    const index=Math.round(Math.abs(profileMedalsViewport.scrollLeft)/pageWidth);
+
+    [...(profileMedalsDots?.children||[])].forEach((dot,i)=>{
+        dot.classList.toggle("active",i===index);
     });
-    document.addEventListener("click", event => {
-        if(!premiumMedalsPanel.hidden && !premiumMedalsPanel.contains(event.target) && !premiumMedalsToggle.contains(event.target)){
-            premiumMedalsPanel.hidden = true;
-            premiumMedalsToggle.setAttribute("aria-expanded", "false");
-        }
-    });
-    document.addEventListener("keydown", event => {
-        if(event.key === "Escape" && !premiumMedalsPanel.hidden){
-            premiumMedalsPanel.hidden = true;
-            premiumMedalsToggle.setAttribute("aria-expanded", "false");
-        }
-    });
+},{passive:true});
+
+renderProfileMedals();
+
+/* =========================================================
+   Medal history — Information tab
+   ========================================================= */
+
+function renderProfileMedalHistory(){
+    const list=document.getElementById("profileMedalHistoryList");
+    if(!list)return;
+
+    const medals=[
+        {icon:"workspace_premium",name:"المؤسس",desc:"مستخدم مميز",key:"founder"},
+        {icon:"diamond",name:"الذهبي",desc:"مستوى العضوية",key:"gold"},
+        {icon:"bolt",name:"النشط",desc:"نشاط مستمر",key:"active"},
+        {icon:"star",name:"الداعم",desc:"دعم المجتمع",key:"supporter"}
+    ];
+
+    const user=window.currentUser || window.userData || window.user || {};
+    const medalDates=user.medalDates || user.medal_dates || user.achievements || {};
+
+    const formatDate=(value)=>{
+        if(!value)return "غير محدد";
+        const d=new Date(value);
+        if(Number.isNaN(d.getTime()))return "غير محدد";
+        return new Intl.DateTimeFormat("ar-EG",{
+            year:"numeric",month:"short",day:"numeric"
+        }).format(d);
+    };
+
+    list.innerHTML=medals.map(m=>{
+        const value=medalDates[m.key] || medalDates[m.name];
+        return `
+            <div class="profile-medal-history-item">
+                <span class="profile-medal-history-badge">
+                    <span class="material-icons">${m.icon}</span>
+                </span>
+                <div>
+                    <div class="profile-medal-history-name">${m.name}</div>
+                    <div class="profile-medal-history-desc">${m.desc}</div>
+                </div>
+                <div class="profile-medal-history-date">
+                    <small>تاريخ الحصول</small>
+                    ${formatDate(value)}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",renderProfileMedalHistory,{once:true});
+}else{
+    renderProfileMedalHistory();
 }

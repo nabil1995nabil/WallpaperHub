@@ -144,22 +144,15 @@ settings
 
 <div class="profile-avatar-box">
 
-
 <img
 id="userAvatar"
 class="profile-avatar"
 src="assets/images/user.png"
 alt="Avatar">
 
-<span class="premium-avatar-medal" aria-label="مستخدم مميز" title="مستخدم مميز">
-    <span>♛</span>
-</span>
-
-
-
-
-
-
+<span class="profile-avatar-crown" aria-label="مستخدم مميز">
+    <span class="material-icons">workspace_premium</span>
+  </span>
 </div>
 </section>
 
@@ -173,81 +166,60 @@ alt="Avatar">
      ========================== -->
 <section class="profile-identity" aria-label="معلومات الحساب">
 
-    <div class="identity-side-card join-date-card">
-        <span class="material-icons">calendar_month</span>
-        <div class="identity-side-content">
-            <span class="identity-side-label">منذ</span>
-            <strong id="heroJoinDate">2024</strong>
-            <small>تاريخ الانضمام</small>
-        </div>
-    </div>
-
     <div class="identity-main">
         <div class="identity-name-row">
             <h1 id="heroDisplayName">Nabil Rahali</h1>
-            <span id="verifiedBadge"
-      class="verified-badge"
-      aria-label="موثق"
-      style="display:none">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 2.5l2.2 1.2 2.5-.1 1.1 2.2 2.1 1.4-.5 2.5.8 2.4-1.7 1.9-.1 2.5-2.4.8-1.7 1.8-2.3-.8-2.4.8-1.7-1.8-2.4-.8-.1-2.5-1.7-1.9.8-2.4-.5-2.5 2.1-1.4 1.1-2.2 2.5.1L12 2.5z"/>
-        <path d="M8.3 12.2l2.2 2.2 5.2-5.2"
-              fill="none"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
-    </svg>
-</span>
+            <span id="verifiedBadge" class="verified-badge material-icons" aria-label="موثق" style="display:none">verified</span>
         </div>
+
         <p class="identity-username" id="heroUsername">@nabilrahali</p>
         <p class="identity-bio" id="heroBio">مصمم خلفيات ومحب للتصميم ✨</p>
-<button id="heroEditProfileBtn" class="hero-edit-profile" type="button">
+
+        <button id="heroEditProfileBtn" class="hero-edit-profile" type="button">
             <span>تعديل الملف الشخصي</span>
             <span class="material-icons">edit</span>
         </button>
     </div>
 
-    <div class="premium-side-stack">
-        <div
-            id="premiumUserBtn"
-            class="identity-side-card premium-card"
-            role="button"
-            tabindex="0"
-            aria-label="فتح صفحة المستخدم المميز"
-            title="فتح صفحة المستخدم المميز">
-            <span class="premium-crown">♛</span>
-            <div class="identity-side-content">
-                <strong>مستخدم مميز</strong>
-                <small>WallpaperHub</small>
-            </div>
-            <span class="material-icons premium-arrow">chevron_left</span>
+    <div class="identity-side-card premium-card">
+        <span class="premium-crown">♛</span>
+        <div class="identity-side-content">
+            <strong>مستخدم مميز</strong>
+            <small>WallpaperHub</small>
         </div>
-
-        <button id="premiumMedalsToggle" class="premium-medals-toggle" type="button"
-                aria-expanded="false" aria-controls="premiumMedalsPanel">
-            <span class="premium-medal-mini">♛</span>
-            <span>ميداليات مميزة</span>
-            <span class="material-icons">expand_more</span>
-        </button>
-
-        <div id="premiumMedalsPanel" class="premium-medals-panel" hidden>
-            <div class="premium-medals-grid" aria-label="شارات الحساب">
-                <article class="profile-medal unlocked" aria-label="ميدالية المؤسس" title="ميدالية المؤسس">
-                    <div class="profile-medal-icon">♛</div>
-                </article>
-                <article class="profile-medal unlocked" aria-label="الميدالية الذهبية" title="الميدالية الذهبية">
-                    <div class="profile-medal-icon">◆</div>
-                </article>
-                <article class="profile-medal unlocked" aria-label="ميدالية النشاط" title="ميدالية النشاط">
-                    <div class="profile-medal-icon">⚡</div>
-                </article>
-                <article class="profile-medal locked" aria-label="ميدالية الداعم" title="ميدالية الداعم">
-                    <div class="profile-medal-icon">★</div>
-                </article>
-            </div>
-        </div>
+        <span class="material-icons premium-arrow">chevron_left</span>
     </div>
+
+    <button
+        id="profileMedalsBtn"
+        class="profile-medals-trigger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="profileMedalsPanel">
+        <span class="medal-trigger-icon">♛</span>
+        <span>ميداليات مميزة</span>
+        <span class="material-icons">expand_more</span>
+    </button>
+
+<div
+    id="profileMedalsPanel"
+    class="profile-medals-inline-panel"
+    aria-hidden="true">
+
+    <div class="profile-medals-inline-head">
+        <span>ميداليات الحساب</span>
+        <span class="material-icons">workspace_premium</span>
+    </div>
+
+    <div
+        id="profileMedalsViewport"
+        class="profile-medals-viewport"
+        aria-label="ميداليات الحساب">
+        <div id="profileMedalsTrack" class="profile-medals-track"></div>
+    </div>
+
+    <div id="profileMedalsDots" class="profile-medals-dots" aria-hidden="true"></div>
+</div>
 
 </section>
 
@@ -309,11 +281,6 @@ alt="Avatar">
     <button class="profile-tab" type="button" data-profile-tab="favorites">
         <span class="material-icons">bookmark</span>
         <span>مفضلة</span>
-    </button>
-
-    <button class="profile-tab" type="button" data-profile-tab="likes">
-        <span class="material-icons">favorite</span>
-        <span>أعجبتني</span>
     </button>
 
     <button class="profile-tab" type="button" data-profile-tab="downloads">
@@ -379,41 +346,17 @@ alt="Avatar">
                     <p id="lastLogin">-</p>
                 </div>
             </div>
+        </section>
 
-            <div class="info-card medals-info-card">
-                <span class="material-icons">workspace_premium</span>
-                <div class="medals-info-content">
-                    <div class="medals-info-title-row">
-                        <div>
-                            <h4>الميداليات والإنجازات</h4>
-                            <p class="medals-info-subtitle">كل ميدالية مع تاريخ الحصول عليها</p>
-                        </div>
-                        <span class="medals-info-total">3 مكتسبة</span>
-                    </div>
-                    <div class="info-medals-list">
-                        <div class="info-medal-row unlocked">
-                            <span class="info-medal-icon">♛</span>
-                            <div><strong>المؤسس</strong><small>مستخدم مميز</small></div>
-                            <time>التاريخ: غير محدد</time>
-                        </div>
-                        <div class="info-medal-row unlocked">
-                            <span class="info-medal-icon">◆</span>
-                            <div><strong>الذهبي</strong><small>مستوى العضوية</small></div>
-                            <time>التاريخ: غير محدد</time>
-                        </div>
-                        <div class="info-medal-row unlocked">
-                            <span class="info-medal-icon">⚡</span>
-                            <div><strong>النشط</strong><small>نشاط مستمر</small></div>
-                            <time>التاريخ: غير محدد</time>
-                        </div>
-                        <div class="info-medal-row locked">
-                            <span class="info-medal-icon">★</span>
-                            <div><strong>الداعم</strong><small>قريباً</small></div>
-                            <time>لم تُكتسب بعد</time>
-                        </div>
-                    </div>
+        <section class="profile-medal-history" aria-label="سجل الميداليات">
+            <div class="profile-medal-history-head">
+                <div>
+                    <span class="profile-medal-history-kicker">ACHIEVEMENTS</span>
+                    <h3>سجل الميداليات</h3>
                 </div>
+                <span class="material-icons">workspace_premium</span>
             </div>
+            <div id="profileMedalHistoryList" class="profile-medal-history-list"></div>
         </section>
     </div>
 
@@ -426,12 +369,6 @@ alt="Avatar">
     <div class="profile-panel" data-profile-panel="favorites">
         <div class="profile-content">
             <div id="favoriteWallpapers" class="profile-grid"></div>
-        </div>
-    </div>
-
-    <div class="profile-panel" data-profile-panel="likes">
-        <div class="profile-content">
-            <div id="likedWallpapers" class="profile-grid"></div>
         </div>
     </div>
 
@@ -450,6 +387,12 @@ alt="Avatar">
 </section>
 
 <!-- ==========================
+ Profile Medals Modal
+========================== -->
+
+
+
+<!-- ==========================
  Edit Profile Modal
 ========================== -->
 
@@ -466,6 +409,16 @@ class="edit-modal">
 <h2>
 تعديل الحساب
 </h2>
+
+<div class="edit-avatar-section">
+    <div class="edit-avatar-preview-wrap">
+        <img
+            id="editAvatarPreview"
+            class="edit-avatar-preview"
+            src="assets/images/user.png"
+            alt="الصورة الشخصية">
+    </div>
+</div>
 
 
 
@@ -509,27 +462,6 @@ autocomplete="off"
 <small class="edit-input-hint">40 حرف كحد أقصى</small>
 
 </div>
-
-<div class="edit-avatar-section">
-    <div class="edit-avatar-preview">
-        <img id="editAvatarPreview" src="assets/images/user.png" alt="الصورة الشخصية">
-    </div>
-    <div class="edit-avatar-copy">
-        <strong>الصورة الشخصية</strong>
-        <small>اختر صورة جديدة لحسابك</small>
-        <button id="modalChangeAvatarBtn" class="modal-change-avatar" type="button">
-            <span class="material-icons">photo_camera</span>
-            <span>تغيير صورة شخصية</span>
-        </button>
-    </div>
-</div>
-
-<input
-id="avatarInput"
-class="profile-file-input"
-type="file"
-accept="image/*"
-aria-hidden="true">
 
 
 
