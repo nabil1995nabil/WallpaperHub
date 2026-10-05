@@ -84,7 +84,7 @@
         <select id="roleSelect"><option value="user">User</option><option value="moderator">Moderator</option><option value="admin">Admin</option></select>
         <button id="saveRole" class="primary-btn">حفظ الدور</button>
       </div>
-      <p class="muted">سيتم لاحقًا تطبيق صلاحيات دقيقة لكل إجراء ومنع أي أدمن من تنفيذ إجراءات أعلى من مستوى صلاحياته.</p>
+      <p class="muted">تُطبّق التغييرات عبر الخادم مع التحقق من صلاحيات الأدمن.</p>
     </section>
 
     <section class="detail-section">
@@ -94,7 +94,7 @@
 
     <section class="detail-section">
       <div class="section-title"><span class="material-icons-round">workspace_premium</span><h3>الميداليات</h3></div>
-      <div id="medalsList" class="medals-list"><div class="placeholder">سيظهر هنا سجل الميداليات عند ربط مصدر البيانات.</div></div>
+      <div id="medalsList" class="medals-list"><div class="placeholder">يتم تحميل الميداليات مباشرة من Supabase.</div></div>
       <div class="action-row"><button class="secondary-btn" id="addMedal"><span class="material-icons-round">add</span> إضافة ميدالية</button><button class="secondary-btn" id="resetMedals"><span class="material-icons-round">restart_alt</span> إعادة ضبط</button></div>
     </section>
 
@@ -105,7 +105,7 @@
         <div><b id="metricDownloads">0</b><span>تحميلات</span></div><div><b id="metricLikes">0</b><span>إعجابات</span></div>
         <div><b id="metricFavorites">0</b><span>مفضلة</span></div><div><b id="metricTop">—</b><span>الأكثر مشاهدة</span></div>
       </div>
-      <div class="activity-note">نشاط آخر 7 / 30 يومًا سيكون متاحًا عند ربط بيانات النشاط.</div>
+      <div class="activity-note">إحصائيات النشر والمشاهدات والتحميلات والإعجابات والمفضلة تُحسب من بيانات الحساب الحالية.</div>
     </section>
 
     <section class="detail-section danger-section">
@@ -130,7 +130,7 @@
 
     <section class="detail-section">
       <div class="section-title"><span class="material-icons-round">history</span><h3>سجل إجراءات الإدارة</h3></div>
-      <div id="auditLog" class="audit-log"><div class="placeholder">لا توجد إجراءات مسجلة حاليًا.</div></div>
+      <div id="auditLog" class="audit-log"><div class="placeholder">يتم تحميل سجل الإجراءات من Supabase.</div></div>
     </section>
   </div>
 </aside>

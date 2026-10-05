@@ -1,97 +1,574 @@
-const $=s=>document.querySelector(s);
-const $$=s=>[...document.querySelectorAll(s)];
-let users=[], selected=null, activeFilter="all";
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
 
-const fallbackUsers=[
- {id:"demo-001",name:"مستخدم تجريبي",username:"demo",email:"demo@example.com",avatar_url:"",role:"user",status:"active",is_verified:false,email_confirmed:true,last_sign_in_at:null,last_activity_at:null,created_at:new Date().toISOString(),stats:{wallpapers:0,views:0,downloads:0,likes:0,favorites:0}}
-];
+let users = [];
+let selected = null;
+let activeFilter = "all";
 
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function fmt(v){if(!v)return"—";try{return new Intl.DateTimeFormat("ar",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return String(v)}}
-function isNew(u){return u.created_at && Date.now()-new Date(u.created_at).getTime()<7*864e5}
-function isBanned(u){return ["banned","blocked"].includes(String(u.status||"").toLowerCase())}
-function isActive(u){return !isBanned(u)&&String(u.status||"active").toLowerCase()==="active"}
-function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove("show"),2200)}
-function avatar(u){return u.avatar_url||u.avatar||"https://ui-avatars.com/api/?name="+encodeURIComponent(u.name||u.username||"U")+"&background=eaf3ff&color=168bf0"}
-
-function renderStats(){
- const today=new Date().toDateString();
- $("#statTotal").textContent=users.length;
- $("#statNew").textContent=users.filter(u=>u.created_at&&new Date(u.created_at).toDateString()===today).length;
- $("#statVerified").textContent=users.filter(u=>u.is_verified).length;
- $("#statBanned").textContent=users.filter(isBanned).length;
- $("#statActive").textContent=users.filter(isActive).length;
+function esc(v){
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
 }
+
+function fmt(v){
+  if(!v) return "—";
+  try{
+    return new Intl.DateTimeFormat("ar", {
+      dateStyle:"medium",
+      timeStyle:"short"
+    }).format(new Date(v));
+  }catch{
+    return String(v);
+  }
+}
+
+function avatar(u){
+  return u.avatar_url || u.avatar ||
+    "https://ui-avatars.com/api/?name=" +
+    encodeURIComponent(u.name || u.username || "U") +
+    "&background=eaf3ff&color=168bf0";
+}
+
+function isNew(u){
+  return u.created_at &&
+    Date.now() - new Date(u.created_at).getTime() < 7 * 864e5;
+}
+
+function isBanned(u){
+  return ["banned","blocked"].includes(
+    String(u.status || "").toLowerCase()
+  );
+}
+
+function isActive(u){
+  return !isBanned(u) &&
+    String(u.status || "active").toLowerCase() === "active";
+}
+
+function showToast(msg){
+  const t = $("#toast");
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+async function getToken(){
+  try{
+    const mod = await import("/js/supabase.js");
+    const { data } = await mod.supabase.auth.getSession();
+    return data?.session?.access_token || "";
+  }catch(error){
+    console.warn("تعذر قراءة جلسة Supabase:", error);
+    return "";
+  }
+}
+
+async function api(url, options = {}){
+  const token = await getToken();
+  const headers = {
+    "Content-Type":"application/json",
+    ...(options.headers || {})
+  };
+
+  if(token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  let data = {};
+  try{ data = await response.json(); }catch{}
+
+  if(!response.ok){
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+
+  return data;
+}
+
+function renderStats(stats){
+  const fallback = {
+    total_users:users.length,
+    new_today:users.filter(u => {
+      if(!u.created_at) return false;
+      return new Date(u.created_at).toDateString() === new Date().toDateString();
+    }).length,
+    verified:users.filter(u => u.is_verified).length,
+    banned:users.filter(isBanned).length,
+    active_now:users.filter(u => {
+      if(!u.last_sign_in_at) return false;
+      return Date.now() - new Date(u.last_sign_in_at).getTime() <= 15 * 60 * 1000;
+    }).length
+  };
+
+  const s = stats || fallback;
+  $("#statTotal").textContent = s.total_users ?? fallback.total_users;
+  $("#statNew").textContent = s.new_today ?? fallback.new_today;
+  $("#statVerified").textContent = s.verified ?? fallback.verified;
+  $("#statBanned").textContent = s.banned ?? fallback.banned;
+  $("#statActive").textContent = s.active_now ?? fallback.active_now;
+}
+
 function matches(u){
- const q=$("#userSearch").value.trim().toLowerCase();
- if(q&&!`${u.name||""} ${u.username||""} ${u.id||""} ${u.email||""}`.toLowerCase().includes(q))return false;
- if(activeFilter==="active"&&!isActive(u))return false;
- if(activeFilter==="verified"&&!u.is_verified)return false;
- if(activeFilter==="unverified"&&u.is_verified)return false;
- if(activeFilter==="banned"&&!isBanned(u))return false;
- if(activeFilter==="admin"&&u.role!=="admin")return false;
- if(activeFilter==="new"&&!isNew(u))return false;
- return true;
-}
-function renderUsers(){
- const list=$("#usersList"), rows=users.filter(matches);
- $("#resultCount").textContent=`${rows.length} مستخدم`;
- list.innerHTML=rows.map(u=>`<article class="user-row" data-id="${esc(u.id)}">
- <img class="user-avatar" src="${esc(avatar(u))}" alt="">
- <div class="user-main"><strong>${esc(u.name||u.username||"مستخدم")}</strong><small>@${esc(u.username||"—")} · ${esc(u.id)}</small></div>
- <div class="row-status">${u.is_verified?'<span class="badge verified">موثق</span>':""}${u.role==="admin"?'<span class="badge admin">Admin</span>':""}${isBanned(u)?'<span class="badge banned">محظور</span>':""}</div>
- <span class="row-last">${fmt(u.last_activity_at||u.last_sign_in_at)}</span></article>`).join("");
- $("#emptyState").hidden=rows.length>0;
- $$(".user-row").forEach(r=>r.addEventListener("click",()=>openDrawer(r.dataset.id)));
-}
-function fillDetail(u){
- selected=u;
- $("#detailAvatar").src=avatar(u);$("#detailName").textContent=u.name||u.username||"مستخدم";$("#detailUsername").textContent=u.username?`@${u.username}`:"—";
- $("#detailStatus").textContent=isBanned(u)?"محظور":isActive(u)?"نشط":"معطل";$("#detailRole").textContent=(u.role||"user").toUpperCase();
- $("#detailActivity").textContent=fmt(u.last_activity_at);$("#detailLogin").textContent=fmt(u.last_sign_in_at);$("#detailEmail").textContent=u.email||"—";
- $("#detailEmailVerified").textContent=u.email_confirmed?"مؤكد":"غير مؤكد";$("#detailUid").textContent=u.id||"—";$("#detailAvatarStatus").textContent=u.avatar_url?"لديه صورة":"بدون صورة";
- $("#roleSelect").value=["user","moderator","admin"].includes(u.role)?u.role:"user";
- $("#verifyState").textContent=u.is_verified?"موثق ✓":"غير موثق";$("#verifyMeta").textContent=u.verified_at?`تم التوثيق: ${fmt(u.verified_at)}${u.verified_by?` · بواسطة ${u.verified_by}`:""}`:"لم يتم التوثيق بعد.";
- $("#toggleVerify").textContent=u.is_verified?"إلغاء التوثيق":"توثيق الحساب";
- const s=u.stats||{};$("#metricWallpapers").textContent=s.wallpapers??0;$("#metricViews").textContent=s.views??0;$("#metricDownloads").textContent=s.downloads??0;$("#metricLikes").textContent=s.likes??0;$("#metricFavorites").textContent=s.favorites??0;
- $("#detailProfileLink").href=u.profile_url||`/profile.html?uid=${encodeURIComponent(u.id||"")}`;$("#adminNotes").value=u.admin_notes||"";
-}
-function openDrawer(id){const u=users.find(x=>String(x.id)===String(id));if(!u)return;fillDetail(u);$("#userDrawer").classList.add("open");$("#drawerBackdrop").classList.add("open");$("#userDrawer").setAttribute("aria-hidden","false")}
-function closeDrawer(){$("#userDrawer").classList.remove("open");$("#drawerBackdrop").classList.remove("open");$("#userDrawer").setAttribute("aria-hidden","true");selected=null}
-async function getToken(){try{const mod=await import("/js/supabase.js");const {data}=await mod.supabase.auth.getSession();return data?.session?.access_token||""}catch{return""}}
-async function api(url,options={}){
- const token=await getToken();const headers={"Content-Type":"application/json",...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;
- const r=await fetch(url,{...options,headers});let data={};try{data=await r.json()}catch{}if(!r.ok)throw new Error(data.message||`HTTP ${r.status}`);return data;
-}
-async function loadUsers(){
- $("#loadState").textContent="جاري التحميل…";
- try{
-   const data=await api("/api/admin/users");
-   users=Array.isArray(data.users)?data.users:[];
-   $("#loadState").textContent="متصل بـ Supabase";
- }catch(e){
-   users=fallbackUsers;
-   $("#loadState").textContent="وضع المعاينة";
-   console.warn("ADMIN USERS:",e);
- }
- renderStats();renderUsers();
-}
-async function action(endpoint,body,msg){
- try{await api(endpoint,{method:"POST",body:JSON.stringify(body)});showToast(msg);await loadUsers();if(selected){const u=users.find(x=>String(x.id)===String(selected.id));if(u)fillDetail(u)}}catch(e){showToast(e.message||"تعذر تنفيذ الإجراء")}
+  const q = $("#userSearch").value.trim().toLowerCase();
+
+  if(q && !`${u.name || ""} ${u.username || ""} ${u.uid || u.id || ""} ${u.email || ""}`
+    .toLowerCase().includes(q)){
+    return false;
+  }
+
+  if(activeFilter === "active" && !isActive(u)) return false;
+  if(activeFilter === "verified" && !u.is_verified) return false;
+  if(activeFilter === "unverified" && u.is_verified) return false;
+  if(activeFilter === "banned" && !isBanned(u)) return false;
+  if(activeFilter === "admin" && u.role !== "admin") return false;
+  if(activeFilter === "new" && !isNew(u)) return false;
+
+  return true;
 }
 
-$("#refreshUsers").onclick=loadUsers;$("#closeDrawer").onclick=closeDrawer;$("#drawerBackdrop").onclick=closeDrawer;
-$("#userSearch").oninput=renderUsers;
-$("#filters").addEventListener("click",e=>{const b=e.target.closest(".filter");if(!b)return;activeFilter=b.dataset.filter;$$(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderUsers()});
-$("#copyUid").onclick=async()=>{if(!selected)return;await navigator.clipboard.writeText(selected.id);showToast("تم نسخ UID")};
-$("#toggleVerify").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/verification`,{verified:!selected.is_verified},"تم تحديث حالة التوثيق");
-$("#saveRole").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/role`,{role:$("#roleSelect").value},"تم تحديث الدور");
-$("#saveNotes").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/notes`,{notes:$("#adminNotes").value},"تم حفظ الملاحظات");
-$("#temporaryBan").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/ban`,{type:"temporary",reason:$("#actionReason").value,duration:$("#banDuration").value},"تم إرسال طلب الحظر المؤقت");
-$("#permanentBan").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/ban`,{type:"permanent",reason:$("#actionReason").value},"تم إرسال طلب الحظر الدائم");
-$("#unbanUser").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/unban`,{},"تم إرسال طلب إلغاء الحظر");
-$("#warnUser").onclick=()=>selected&&action(`/api/admin/users/${encodeURIComponent(selected.id)}/warning`,{reason:$("#actionReason").value},"تم تسجيل التحذير");
-$("#addMedal").onclick=()=>showToast("واجهة إضافة الميدالية جاهزة للربط بجدول الميداليات");
-$("#resetMedals").onclick=()=>showToast("إعادة ضبط الميداليات جاهزة للربط بسجل الميداليات");
+function renderUsers(){
+  const list = $("#usersList");
+  const rows = users.filter(matches);
+
+  $("#resultCount").textContent = `${rows.length} مستخدم`;
+
+  list.innerHTML = rows.map(u => `
+    <article class="user-row" data-id="${esc(u.id)}">
+      <img class="user-avatar" src="${esc(avatar(u))}" alt="">
+      <div class="user-main">
+        <strong>${esc(u.name || u.username || "مستخدم")}</strong>
+        <small>@${esc(u.username || "—")} · ${esc(u.uid || u.id)}</small>
+      </div>
+      <div class="row-status">
+        ${u.is_verified ? '<span class="badge verified">موثق</span>' : ""}
+        ${u.role === "admin" ? '<span class="badge admin">Admin</span>' : ""}
+        ${u.role === "moderator" ? '<span class="badge">Moderator</span>' : ""}
+        ${isBanned(u) ? '<span class="badge banned">محظور</span>' : ""}
+      </div>
+      <span class="row-last">${fmt(u.last_activity_at || u.last_sign_in_at)}</span>
+    </article>
+  `).join("");
+
+  $("#emptyState").hidden = rows.length > 0;
+
+  $$(".user-row").forEach(row => {
+    row.addEventListener("click", () => openDrawer(row.dataset.id));
+  });
+}
+
+function renderMedals(detail){
+  const list = $("#medalsList");
+  const catalog = Array.isArray(detail.medals) ? detail.medals : [];
+  const owned = Array.isArray(detail.owned_medals) ? detail.owned_medals : [];
+  const ownedKeys = new Set(owned.map(m => String(m.medal_key)));
+
+  if(!catalog.length){
+    list.innerHTML = '<div class="placeholder">لا توجد ميداليات معرفة حاليًا.</div>';
+    return;
+  }
+
+  list.innerHTML = catalog.map(medal => {
+    const key = String(medal.key || medal.medal_key || "");
+    const has = ownedKeys.has(key);
+    const ownedRow = owned.find(m => String(m.medal_key) === key);
+
+    return `
+      <div class="medal-admin-row" style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #edf0f4;border-radius:12px;background:#fafbfc">
+        <div style="font-size:22px;min-width:28px">${esc(medal.icon || "🏅")}</div>
+        <div style="flex:1;min-width:0">
+          <strong>${esc(medal.title || key)}</strong>
+          <small style="display:block;color:#8791a2">${esc(medal.description || "")}</small>
+          ${has ? `<small style="display:block;color:#168bf0">مكتسبة: ${esc(fmt(ownedRow?.awarded_at))}</small>` : '<small style="display:block;color:#9aa3b2">غير مكتسبة</small>'}
+        </div>
+        ${has
+          ? `<button class="small-btn medal-remove" data-medal="${esc(key)}">إزالة</button>`
+          : `<button class="small-btn medal-add" data-medal="${esc(key)}">إضافة</button>`
+        }
+      </div>
+    `;
+  }).join("");
+
+  $$(".medal-add").forEach(btn => btn.addEventListener("click", async () => {
+    if(!selected) return;
+    await medalAction("POST", `/api/admin/users/${encodeURIComponent(selected.id)}/medals`, {medal_key:btn.dataset.medal});
+  }));
+
+  $$(".medal-remove").forEach(btn => btn.addEventListener("click", async () => {
+    if(!selected) return;
+    if(!confirm("هل تريد إزالة هذه الميدالية من المستخدم؟")) return;
+    await medalAction("DELETE", `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(btn.dataset.medal)}`);
+  }));
+}
+
+function renderAudit(logs){
+  const box = $("#auditLog");
+  if(!Array.isArray(logs) || !logs.length){
+    box.innerHTML = '<div class="placeholder">لا توجد إجراءات مسجلة حاليًا.</div>';
+    return;
+  }
+
+  box.innerHTML = logs.map(log => `
+    <div style="padding:10px 0;border-bottom:1px solid #edf0f4">
+      <strong style="display:block">${esc(log.action || "إجراء إداري")}</strong>
+      <small style="display:block;color:#7f899b">${esc(fmt(log.created_at))}</small>
+      <small style="display:block;color:#8a94a6;word-break:break-word">${esc(JSON.stringify(log.details || {}))}</small>
+    </div>
+  `).join("");
+}
+
+function fillDetail(detail){
+  const u = detail.user || detail;
+  const control = detail.control || {};
+  const stats = detail.stats || {};
+
+  selected = u;
+
+  $("#detailAvatar").src = avatar(u);
+  $("#detailName").textContent = u.name || u.username || "مستخدم";
+  $("#detailUsername").textContent = u.username ? `@${u.username}` : "—";
+
+  $("#detailBadges").innerHTML = `
+    ${u.is_verified ? '<span class="badge verified">موثق ✓</span>' : '<span class="badge">غير موثق</span>'}
+    <span class="badge">${esc(String(control.role || u.role || "user").toUpperCase())}</span>
+    <span class="badge ${isBanned(u) ? "banned" : ""}">${esc(u.status === "disabled" ? "معطل" : isBanned(u) ? "محظور" : "نشط")}</span>
+  `;
+
+  $("#detailStatus").textContent =
+    u.status === "disabled" ? "معطل" :
+    isBanned(u) ? "محظور" : "نشط";
+
+  $("#detailRole").textContent =
+    String(control.role || u.role || "user").toUpperCase();
+
+  $("#detailActivity").textContent = fmt(u.last_activity_at);
+  $("#detailLogin").textContent = fmt(u.last_sign_in_at);
+  $("#detailEmail").textContent = u.email || "—";
+  $("#detailEmailVerified").textContent = u.email_confirmed ? "مؤكد" : "غير مؤكد";
+  $("#detailUid").textContent = u.uid || u.id || "—";
+  $("#detailAvatarStatus").textContent = u.has_avatar || u.avatar_url ? "لديه صورة" : "بدون صورة";
+
+  $("#roleSelect").value =
+    ["user","moderator","admin"].includes(control.role || u.role)
+      ? (control.role || u.role)
+      : "user";
+
+  $("#verifyState").textContent = u.is_verified ? "موثق ✓" : "غير موثق";
+  $("#verifyMeta").textContent = u.verified_at
+    ? `تم التوثيق: ${fmt(u.verified_at)}${u.verified_by ? ` · بواسطة ${u.verified_by}` : ""}`
+    : "لم يتم التوثيق بعد.";
+
+  $("#toggleVerify").textContent =
+    u.is_verified ? "إلغاء التوثيق" : "توثيق الحساب";
+
+  $("#metricWallpapers").textContent = stats.wallpapers_published ?? 0;
+  $("#metricViews").textContent = stats.total_views ?? 0;
+  $("#metricDownloads").textContent = stats.total_downloads ?? 0;
+  $("#metricLikes").textContent = stats.total_likes ?? 0;
+  $("#metricFavorites").textContent = stats.favorites ?? 0;
+
+  const top = Array.isArray(stats.most_viewed) ? stats.most_viewed[0] : null;
+  $("#metricTop").textContent = top
+    ? `${top.title || "خلفية"} · ${top.views ?? 0}`
+    : "—";
+
+  $("#detailProfileLink").href =
+    u.profile_url || `/profile.html?uid=${encodeURIComponent(u.id || "")}`;
+
+  $("#adminNotes").value =
+    control.admin_notes ?? u.admin_notes ?? "";
+
+  $("#actionReason").value =
+    control.ban_reason || u.ban_reason || "";
+
+  $("#banDuration").value =
+    control.ban_until || u.ban_until || "";
+
+  renderMedals(detail);
+  renderAudit(detail.audit_logs || []);
+}
+
+async function loadUserDetail(id){
+  const data = await api(`/api/admin/users/${encodeURIComponent(id)}`);
+  fillDetail(data);
+  return data;
+}
+
+async function openDrawer(id){
+  const u = users.find(x => String(x.id) === String(id));
+  if(!u) return;
+
+  $("#userDrawer").classList.add("open");
+  $("#drawerBackdrop").classList.add("open");
+  $("#userDrawer").setAttribute("aria-hidden","false");
+
+  try{
+    $("#loadState").textContent = "جاري تحميل التفاصيل…";
+    await loadUserDetail(id);
+    $("#loadState").textContent = "متصل بـ Supabase";
+  }catch(error){
+    console.error("ADMIN USER DETAIL:", error);
+    fillDetail({user:u,control:u,stats:u.stats || {},medals:[],owned_medals:[],audit_logs:[]});
+    showToast(error.message || "تعذر تحميل تفاصيل المستخدم");
+  }
+}
+
+function closeDrawer(){
+  $("#userDrawer").classList.remove("open");
+  $("#drawerBackdrop").classList.remove("open");
+  $("#userDrawer").setAttribute("aria-hidden","true");
+  selected = null;
+}
+
+async function loadUsers(){
+  $("#loadState").textContent = "جاري التحميل…";
+
+  try{
+    const data = await api("/api/admin/users");
+    users = Array.isArray(data.users) ? data.users : [];
+    renderStats(data.stats);
+    renderUsers();
+    $("#loadState").textContent = "متصل بـ Supabase";
+  }catch(error){
+    users = [];
+    renderStats({
+      total_users:0,new_today:0,verified:0,banned:0,active_now:0
+    });
+    renderUsers();
+    $("#loadState").textContent = "تعذر الاتصال";
+    showToast(error.message || "تعذر تحميل المستخدمين");
+    console.error("ADMIN USERS:", error);
+  }
+}
+
+async function action(endpoint, body, msg, method = "PATCH"){
+  try{
+    await api(endpoint, {
+      method,
+      body: JSON.stringify(body || {})
+    });
+
+    showToast(msg);
+    await loadUsers();
+
+    if(selected){
+      const refreshed = await loadUserDetail(selected.id);
+      fillDetail(refreshed);
+    }
+  }catch(error){
+    showToast(error.message || "تعذر تنفيذ الإجراء");
+    console.error("ADMIN ACTION:", error);
+  }
+}
+
+async function medalAction(method, endpoint, body = null){
+  try{
+    await api(endpoint, {
+      method,
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    showToast(method === "POST" ? "تمت إضافة الميدالية" : "تمت إزالة الميدالية");
+
+    if(selected){
+      const refreshed = await loadUserDetail(selected.id);
+      fillDetail(refreshed);
+    }
+  }catch(error){
+    showToast(error.message || "تعذر تحديث الميدالية");
+  }
+}
+
+$("#refreshUsers").onclick = loadUsers;
+$("#closeDrawer").onclick = closeDrawer;
+$("#drawerBackdrop").onclick = closeDrawer;
+
+$("#userSearch").oninput = renderUsers;
+
+$("#filters").addEventListener("click", e => {
+  const button = e.target.closest(".filter");
+  if(!button) return;
+
+  activeFilter = button.dataset.filter;
+  $$(".filter").forEach(x => x.classList.remove("active"));
+  button.classList.add("active");
+  renderUsers();
+});
+
+$("#copyUid").onclick = async () => {
+  if(!selected) return;
+  try{
+    await navigator.clipboard.writeText(selected.uid || selected.id);
+    showToast("تم نسخ UID");
+  }catch{
+    showToast("تعذر نسخ UID");
+  }
+};
+
+$("#toggleVerify").onclick = async () => {
+  if(!selected) return;
+
+  const next = !selected.is_verified;
+  const label = next ? "توثيق الحساب" : "إلغاء التوثيق";
+
+  if(!confirm(`هل تريد ${label}؟`)) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/verification`,
+    {verified:next},
+    next ? "تم توثيق الحساب" : "تم إلغاء التوثيق"
+  );
+};
+
+$("#saveRole").onclick = async () => {
+  if(!selected) return;
+
+  const role = $("#roleSelect").value;
+  if(!confirm(`تغيير دور المستخدم إلى ${role.toUpperCase()}؟`)) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/control`,
+    {role},
+    "تم تحديث الدور"
+  );
+};
+
+$("#saveNotes").onclick = async () => {
+  if(!selected) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/control`,
+    {admin_notes:$("#adminNotes").value},
+    "تم حفظ الملاحظات"
+  );
+};
+
+$("#temporaryBan").onclick = async () => {
+  if(!selected) return;
+
+  const untilRaw = $("#banDuration").value.trim();
+  const reason = $("#actionReason").value.trim();
+
+  if(!untilRaw){
+    showToast("حدد تاريخ ووقت انتهاء الحظر");
+    return;
+  }
+
+  const parsed = new Date(untilRaw);
+  if(Number.isNaN(parsed.getTime())){
+    showToast("صيغة تاريخ الحظر غير صالحة");
+    return;
+  }
+
+  if(!confirm("هل تريد تنفيذ الحظر المؤقت؟")) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/control`,
+    {
+      status:"banned",
+      ban_type:"temporary",
+      ban_reason:reason,
+      ban_until:parsed.toISOString()
+    },
+    "تم تنفيذ الحظر المؤقت"
+  );
+};
+
+$("#permanentBan").onclick = async () => {
+  if(!selected) return;
+
+  const reason = $("#actionReason").value.trim();
+  if(!confirm("تحذير: هل تريد تنفيذ الحظر الدائم؟")) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/control`,
+    {
+      status:"banned",
+      ban_type:"permanent",
+      ban_reason:reason,
+      ban_until:null
+    },
+    "تم تنفيذ الحظر الدائم"
+  );
+};
+
+$("#unbanUser").onclick = async () => {
+  if(!selected) return;
+  if(!confirm("هل تريد إلغاء حظر المستخدم؟")) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/control`,
+    {
+      status:"active",
+      ban_type:null,
+      ban_reason:null,
+      ban_until:null
+    },
+    "تم إلغاء الحظر"
+  );
+};
+
+$("#warnUser").onclick = async () => {
+  if(!selected) return;
+
+  const current = Number(
+    selected.warning_level ||
+    $("#userDrawer").dataset.warningLevel ||
+    0
+  );
+
+  const next = Math.min(3, current + 1);
+  if(next > 3){
+    showToast("المستخدم وصل إلى التحذير الثالث");
+    return;
+  }
+
+  if(!confirm(`تسجيل التحذير رقم ${next}؟`)) return;
+
+  await action(
+    `/api/admin/users/${encodeURIComponent(selected.id)}/warning`,
+    {
+      level:next,
+      note:$("#actionReason").value.trim()
+    },
+    `تم تسجيل التحذير ${next}`,
+    "POST"
+  );
+};
+
+$("#addMedal").onclick = () => {
+  if(!selected) return;
+  document.querySelector("#medalsList")?.scrollIntoView({
+    behavior:"smooth",
+    block:"center"
+  });
+  showToast("اختر الميدالية من قائمة الميداليات أعلاه");
+};
+
+$("#resetMedals").onclick = async () => {
+  if(!selected) return;
+
+  if(!confirm("إعادة ضبط جميع ميداليات المستخدم؟")) return;
+
+  const owned = Array.isArray(selected.owned_medals)
+    ? selected.owned_medals
+    : [];
+
+  if(!owned.length){
+    showToast("لا توجد ميداليات لإزالتها");
+    return;
+  }
+
+  for(const medal of owned){
+    await medalAction(
+      "DELETE",
+      `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(medal.medal_key)}`
+    );
+  }
+};
 
 loadUsers();
