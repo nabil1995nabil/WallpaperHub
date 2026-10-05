@@ -1,3 +1,100 @@
+
+/* ==========================================
+   Admin identity — reuse the existing Supabase session
+   ========================================== */
+import { supabase } from "../supabase.js";
+
+async function loadAdminIdentity(){
+  const nameEl = document.getElementById("adminPageUserName");
+  const emailEl = document.getElementById("adminPageUserEmail");
+  const avatarEl = document.getElementById("adminPageUserAvatar");
+
+  try{
+    const { data, error } = await supabase.auth.getSession();
+    if(error || !data?.session){
+      window.location.href = "/admin.html";
+      return;
+    }
+
+    const session = data.session;
+    const user = session.user;
+
+    // Confirm this is still an admin using the same server-side check
+    // already used by the main admin panel.
+    const response = await fetch("/api/admin/me", {
+      method:"GET",
+      headers:{
+        Authorization:`Bearer ${session.access_token}`
+      },
+      cache:"no-store"
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if(!response.ok || !result.isAdmin){
+      window.location.href = "/admin.html";
+      return;
+    }
+
+    const metadata = user?.user_metadata || {};
+    let profile = null;
+
+    try{
+      const { data:profileRow } = await supabase
+        .from("user_profile_sync")
+        .select("full_name,username,avatar_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      profile = profileRow || null;
+    }catch(profileError){
+      console.warn("ADMIN PROFILE LOAD:", profileError);
+    }
+
+    const displayName =
+      profile?.full_name ||
+      metadata.full_name ||
+      metadata.name ||
+      metadata.user_name ||
+      profile?.username ||
+      metadata.username ||
+      user?.email?.split("@")[0] ||
+      "المدير";
+
+    const email = user?.email || "—";
+
+    if(nameEl) nameEl.textContent = displayName;
+    if(emailEl) emailEl.textContent = email;
+
+    const avatarUrl =
+      profile?.avatar_url ||
+      metadata.avatar_url ||
+      metadata.picture ||
+      metadata.avatar ||
+      "";
+
+    if(avatarEl){
+      if(avatarUrl){
+        avatarEl.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = avatarUrl;
+        img.alt = displayName;
+        img.referrerPolicy = "no-referrer";
+        img.onerror = () => {
+          avatarEl.innerHTML = '<span class="material-icons-round">person</span>';
+        };
+        avatarEl.appendChild(img);
+      }else{
+        avatarEl.innerHTML = '<span class="material-icons-round">person</span>';
+      }
+    }
+  }catch(error){
+    console.error("ADMIN IDENTITY ERROR:", error);
+    if(emailEl) emailEl.textContent = "تعذر تحميل بيانات الحساب";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadAdminIdentity);
+
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 
