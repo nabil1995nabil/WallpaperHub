@@ -163,6 +163,684 @@ async function requireAdmin(req, res){
     return user;
 }
 
+
+// ======================================
+// Admin User Management API
+// إدارة المستخدمين - محمية بالكامل من الخادم
+// ======================================
+
+function adminRoleRank(role){
+    const ranks = { user:0, moderator:1, admin:2 };
+    return Object.prototype.hasOwnProperty.call(ranks, role) ? ranks[role] : 0;
+}
+
+async function getUserAdminControl(userId){
+    const { data, error } = await supabase
+        .from("user_admin_controls")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+    if(error) throw error;
+
+    return data || {
+        user_id:userId,
+        role:"user",
+        status:"active",
+        admin_notes:"",
+        ban_type:null,
+        ban_reason:null,
+        ban_until:null,
+        warning_level:0,
+        created_at:null,
+        updated_at:null
+    };
+}
+
+async function getUserSyncProfile(userId){
+    const { data, error } = await supabase
+        .from("user_profile_sync")
+        .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,is_verified,verified_at,verified_by,favorite_ids,download_ids,view_ids")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+    if(error) throw error;
+    return data || null;
+}
+
+async function writeAdminAuditLog({adminUserId,targetUserId,action,details={}}){
+    const { error } = await supabase
+        .from("admin_audit_logs")
+        .insert([{
+            admin_user_id:String(adminUserId),
+            target_user_id:targetUserId ? String(targetUserId) : null,
+            action:String(action),
+            details:details && typeof details === "object" ? details : {}
+        }]);
+
+    if(error) throw error;
+}
+
+async function listAllAuthUsers(){
+    const users = [];
+    let page = 1;
+    const perPage = 1000;
+
+    while(true){
+        const { data, error } = await supabase.auth.admin.listUsers({
+            page,
+            perPage
+        });
+
+        if(error) throw error;
+
+        const pageUsers = Array.isArray(data?.users) ? data.users : [];
+        users.push(...pageUsers);
+
+        if(pageUsers.length < perPage) break;
+        page += 1;
+        if(page > 100) break;
+    }
+
+    return users;
+}
+
+function adminUserSummary(user, profile, control){
+    const metadata = user?.user_metadata || {};
+    const avatar = String(
+        profile?.avatar_url ||
+        metadata.avatar_url ||
+        metadata.picture ||
+        ""
+    ).trim();
+
+    const fullName = String(
+        profile?.full_name ||
+        metadata.full_name ||
+        metadata.name ||
+        metadata.user_name ||
+        user?.email?.split("@")[0] ||
+        "مستخدم"
+    ).trim();
+
+    const username = String(
+        profile?.username ||
+        metadata.username ||
+        metadata.user_name ||
+        ""
+    ).trim();
+
+    const bannedUntil = user?.banned_until || null;
+
+    return {
+        id:String(user.id),
+        uid:String(user.id),
+        name:fullName,
+        username,
+        email:String(user.email || ""),
+        avatar_url:avatar,
+        has_avatar:Boolean(avatar),
+        role:String(control?.role || "user"),
+        status:String(control?.status || "active"),
+        is_verified:Boolean(profile?.is_verified),
+        verified_at:profile?.verified_at || null,
+        verified_by:profile?.verified_by || null,
+        email_confirmed:Boolean(user?.email_confirmed_at),
+        email_confirmed_at:user?.email_confirmed_at || null,
+        created_at:user?.created_at || null,
+        last_sign_in_at:user?.last_sign_in_at || null,
+        last_activity_at:user?.last_sign_in_at || null,
+        banned_until:bannedUntil,
+        warning_level:Number(control?.warning_level || 0),
+        ban_type:control?.ban_type || null,
+        ban_reason:control?.ban_reason || null,
+        ban_until:control?.ban_until || null,
+        admin_notes:control?.admin_notes || ""
+    };
+}
+
+app.get("/api/admin/users", async (req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const users = await listAllAuthUsers();
+        const ids = users.map(user => String(user.id)).filter(Boolean);
+
+        const [profilesResult, controlsResult] = await Promise.all([
+            ids.length
+                ? supabase.from("user_profile_sync")
+                    .select("user_id,full_name,username,avatar_url,is_verified,verified_at,verified_by")
+                    .in("user_id", ids)
+                : Promise.resolve({data:[],error:null}),
+            ids.length
+                ? supabase.from("user_admin_controls")
+                    .select("user_id,role,status,warning_level,ban_type,ban_reason,ban_until,admin_notes")
+                    .in("user_id", ids)
+                : Promise.resolve({data:[],error:null})
+        ]);
+
+        if(profilesResult.error) throw profilesResult.error;
+        if(controlsResult.error) throw controlsResult.error;
+
+        const profileMap = new Map((profilesResult.data || []).map(row=>[String(row.user_id),row]));
+        const controlMap = new Map((controlsResult.data || []).map(row=>[String(row.user_id),row]));
+
+        let result = users.map(user =>
+            adminUserSummary(
+                user,
+                profileMap.get(String(user.id)),
+                controlMap.get(String(user.id))
+            )
+        );
+
+        const search = String(req.query.search || "").trim().toLowerCase();
+        const filter = String(req.query.filter || "all").trim().toLowerCase();
+
+        if(search){
+            result = result.filter(user =>
+                user.name.toLowerCase().includes(search) ||
+                user.username.toLowerCase().includes(search) ||
+                user.email.toLowerCase().includes(search) ||
+                user.uid.toLowerCase().includes(search)
+            );
+        }
+
+        const now = Date.now();
+        const dayStart = new Date();
+        dayStart.setHours(0,0,0,0);
+
+        result = result.filter(user=>{
+            if(filter === "verified") return user.is_verified;
+            if(filter === "unverified") return !user.is_verified;
+            if(filter === "banned") return user.status === "banned";
+            if(filter === "disabled") return user.status === "disabled";
+            if(filter === "active") return user.status === "active";
+            if(filter === "admin") return user.role === "admin";
+            if(filter === "moderator") return user.role === "moderator";
+            if(filter === "new") return new Date(user.created_at || 0).getTime() >= dayStart.getTime();
+            if(filter === "online") return user.last_sign_in_at &&
+                now - new Date(user.last_sign_in_at).getTime() <= 15 * 60 * 1000;
+            return true;
+        });
+
+        const allSummaries = users.map(user =>
+            adminUserSummary(
+                user,
+                profileMap.get(String(user.id)),
+                controlMap.get(String(user.id))
+            )
+        );
+
+        const stats = {
+            total_users:allSummaries.length,
+            new_today:allSummaries.filter(u => new Date(u.created_at || 0).getTime() >= dayStart.getTime()).length,
+            verified:allSummaries.filter(u => u.is_verified).length,
+            unverified:allSummaries.filter(u => !u.is_verified).length,
+            banned:allSummaries.filter(u => u.status === "banned").length,
+            disabled:allSummaries.filter(u => u.status === "disabled").length,
+            active:allSummaries.filter(u => u.status === "active").length,
+            admins:allSummaries.filter(u => u.role === "admin").length,
+            moderators:allSummaries.filter(u => u.role === "moderator").length,
+            active_now:allSummaries.filter(u =>
+                u.last_sign_in_at &&
+                now - new Date(u.last_sign_in_at).getTime() <= 15 * 60 * 1000
+            ).length
+        };
+
+        return res.json({
+            success:true,
+            users:result,
+            stats
+        });
+    }catch(error){
+        console.log("ADMIN USERS LIST ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:error?.message || "تعذر تحميل المستخدمين",
+            users:[]
+        });
+    }
+});
+
+app.get("/api/admin/users/:uid", async (req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
+
+        const { data:authData, error:authError } =
+            await supabase.auth.admin.getUserById(uid);
+
+        if(authError || !authData?.user){
+            return res.status(404).json({
+                success:false,
+                message:"المستخدم غير موجود"
+            });
+        }
+
+        const user = authData.user;
+        const [profile, control] = await Promise.all([
+            getUserSyncProfile(uid),
+            getUserAdminControl(uid)
+        ]);
+
+        const summary = adminUserSummary(user, profile, control);
+
+        let wallpapers = [];
+        const { data:wallRows, error:wallError } = await supabase
+            .from("wallpapers")
+            .select("id,title,thumbnail,image,views,downloads,likes,date,user_id")
+            .eq("user_id", uid)
+            .order("views",{ascending:false})
+            .limit(5000);
+
+        if(wallError) throw wallError;
+        wallpapers = wallRows || [];
+
+        const stats = {
+            wallpapers_published:wallpapers.length,
+            total_views:wallpapers.reduce((sum,row)=>sum + Number(row.views || 0),0),
+            total_downloads:wallpapers.reduce((sum,row)=>sum + Number(row.downloads || 0),0),
+            total_likes:wallpapers.reduce((sum,row)=>sum + Number(row.likes || 0),0),
+            favorites:Array.isArray(profile?.favorite_ids) ? profile.favorite_ids.length : 0,
+            most_viewed:wallpapers.slice(0,10).map(row=>({
+                id:Number(row.id),
+                title:row.title || "",
+                thumbnail:row.thumbnail || row.image || "",
+                views:Number(row.views || 0),
+                downloads:Number(row.downloads || 0),
+                likes:Number(row.likes || 0)
+            })),
+            activity_7_days:null,
+            activity_30_days:null
+        };
+
+        const { data:auditRows, error:auditError } = await supabase
+            .from("admin_audit_logs")
+            .select("id,target_user_id,admin_user_id,action,details,created_at")
+            .eq("target_user_id",uid)
+            .order("created_at",{ascending:false})
+            .limit(100);
+
+        if(auditError) throw auditError;
+
+        const medalResult = await getUserMedals(uid);
+
+        return res.json({
+            success:true,
+            user:summary,
+            profile:profile || null,
+            control,
+            stats,
+            wallpapers:wallpapers.slice(0,50),
+            medals:medalResult.catalog,
+            owned_medals:medalResult.owned,
+            audit_logs:auditRows || []
+        });
+    }catch(error){
+        console.log("ADMIN USER DETAIL ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:error?.message || "تعذر تحميل تفاصيل المستخدم"
+        });
+    }
+});
+
+app.patch("/api/admin/users/:uid/verification", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const verified = Boolean(req.body?.verified);
+
+        if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
+        if(uid === String(admin.id) && !verified){
+            return res.status(400).json({success:false,message:"لا يمكن إزالة توثيق حساب الأدمن الحالي من هذه الواجهة"});
+        }
+
+        const { data:targetData, error:targetError } =
+            await supabase.auth.admin.getUserById(uid);
+
+        if(targetError || !targetData?.user){
+            return res.status(404).json({success:false,message:"المستخدم غير موجود"});
+        }
+
+        const payload = {
+            is_verified:verified,
+            verified_at:verified ? new Date().toISOString() : null,
+            verified_by:verified ? String(admin.id) : null
+        };
+
+        const { data, error } = await supabase
+            .from("user_profile_sync")
+            .upsert({
+                user_id:uid,
+                is_verified:payload.is_verified,
+                verified_at:payload.verified_at,
+                verified_by:payload.verified_by
+            },{onConflict:"user_id"})
+            .select("user_id,is_verified,verified_at,verified_by")
+            .single();
+
+        if(error) throw error;
+
+        await writeAdminAuditLog({
+            adminUserId:admin.id,
+            targetUserId:uid,
+            action:verified ? "verify_user" : "unverify_user",
+            details:{
+                verified,
+                verified_at:data.verified_at,
+                verified_by:data.verified_by
+            }
+        });
+
+        return res.json({success:true,verification:data});
+    }catch(error){
+        console.log("ADMIN USER VERIFICATION ERROR:",error);
+        return res.status(500).json({success:false,message:error?.message || "تعذر تحديث التوثيق"});
+    }
+});
+
+app.patch("/api/admin/users/:uid/control", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
+
+        const requestedRole = req.body?.role == null ? null : String(req.body.role).trim().toLowerCase();
+        const requestedStatus = req.body?.status == null ? null : String(req.body.status).trim().toLowerCase();
+        const warningLevel = req.body?.warning_level == null ? null : Number(req.body.warning_level);
+        const adminNotes = req.body?.admin_notes == null ? null : String(req.body.admin_notes);
+        const banReason = req.body?.ban_reason == null ? null : String(req.body.ban_reason);
+        const banType = req.body?.ban_type == null ? null : String(req.body.ban_type);
+        const banUntil = req.body?.ban_until == null ? null : req.body.ban_until;
+
+        if(requestedRole !== null && !["user","moderator","admin"].includes(requestedRole)){
+            return res.status(400).json({success:false,message:"الدور غير صالح"});
+        }
+
+        if(requestedStatus !== null && !["active","disabled","banned"].includes(requestedStatus)){
+            return res.status(400).json({success:false,message:"حالة الحساب غير صالحة"});
+        }
+
+        if(warningLevel !== null && (!Number.isInteger(warningLevel) || warningLevel < 0 || warningLevel > 3)){
+            return res.status(400).json({success:false,message:"مستوى التحذير يجب أن يكون بين 0 و3"});
+        }
+
+        if(banType !== null && !["temporary","permanent"].includes(banType)){
+            return res.status(400).json({success:false,message:"نوع الحظر غير صالح"});
+        }
+
+        if(uid === String(admin.id) && requestedStatus && requestedStatus !== "active"){
+            return res.status(400).json({success:false,message:"لا يمكن للأدمن تعطيل أو حظر حسابه الحالي"});
+        }
+
+        const current = await getUserAdminControl(uid);
+        const nextRole = requestedRole ?? current.role;
+        const nextStatus = requestedStatus ?? current.status;
+
+        // كل من يصل لهذا المسار هو Admin حاليًا؛ لا نسمح بإسناد صلاحية أعلى
+        // من أعلى رتبة يعرفها النظام. هذا يحافظ على طبقة صلاحيات واضحة للمستقبل.
+        if(adminRoleRank(nextRole) > adminRoleRank("admin")){
+            return res.status(403).json({success:false,message:"لا تملك صلاحية لهذا الدور"});
+        }
+
+        const payload = {
+            user_id:uid,
+            role:nextRole,
+            status:nextStatus,
+            admin_notes:adminNotes ?? current.admin_notes ?? "",
+            warning_level:warningLevel ?? Number(current.warning_level || 0),
+            ban_type:banType ?? current.ban_type ?? null,
+            ban_reason:banReason ?? current.ban_reason ?? null,
+            ban_until:banUntil ?? current.ban_until ?? null
+        };
+
+        if(nextStatus !== "banned"){
+            payload.ban_type = null;
+            payload.ban_reason = null;
+            payload.ban_until = null;
+        }
+
+        if(payload.ban_type === "temporary" && payload.ban_until){
+            const timestamp = new Date(payload.ban_until).getTime();
+            if(!Number.isFinite(timestamp) || timestamp <= Date.now()){
+                return res.status(400).json({success:false,message:"تاريخ انتهاء الحظر غير صالح"});
+            }
+        }
+
+        const { data:control,error:controlError } = await supabase
+            .from("user_admin_controls")
+            .upsert(payload,{onConflict:"user_id"})
+            .select("*")
+            .single();
+
+        if(controlError) throw controlError;
+
+        // role في app_metadata يبقى جهة خادم. user_metadata لا يستخدم للصلاحيات.
+        const target = await supabase.auth.admin.getUserById(uid);
+        if(target?.data?.user){
+            const existingMeta = target.data.user.app_metadata || {};
+            const nextAppMeta = {
+                ...existingMeta,
+                role:nextRole,
+                account_status:nextStatus
+            };
+
+            let banDuration = "none";
+            if(nextStatus === "banned"){
+                if(payload.ban_type === "temporary"){
+                    const hours = Math.max(
+                        1,
+                        Math.ceil((new Date(payload.ban_until).getTime() - Date.now()) / 3600000)
+                    );
+                    banDuration = `${hours}h`;
+                }else{
+                    banDuration = "876000h";
+                }
+            }
+
+            const { error:updateAuthError} =
+                await supabase.auth.admin.updateUserById(uid,{
+                    app_metadata:nextAppMeta,
+                    ban_duration:banDuration
+                });
+
+            if(updateAuthError) throw updateAuthError;
+        }
+
+        const action = requestedRole !== null && requestedRole !== current.role
+            ? "change_user_role"
+            : requestedStatus !== null && requestedStatus !== current.status
+                ? "change_user_status"
+                : warningLevel !== null && warningLevel !== Number(current.warning_level || 0)
+                    ? "change_warning_level"
+                    : "update_user_control";
+
+        await writeAdminAuditLog({
+            adminUserId:admin.id,
+            targetUserId:uid,
+            action,
+            details:{
+                before:{
+                    role:current.role,
+                    status:current.status,
+                    warning_level:Number(current.warning_level || 0)
+                },
+                after:{
+                    role:control.role,
+                    status:control.status,
+                    warning_level:Number(control.warning_level || 0),
+                    ban_type:control.ban_type,
+                    ban_until:control.ban_until
+                }
+            }
+        });
+
+        return res.json({success:true,control});
+    }catch(error){
+        console.log("ADMIN USER CONTROL ERROR:",error);
+        return res.status(500).json({success:false,message:error?.message || "تعذر تحديث حساب المستخدم"});
+    }
+});
+
+app.post("/api/admin/users/:uid/warning", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const level = Number(req.body?.level);
+        const note = String(req.body?.note || "").trim();
+
+        if(!uid || !Number.isInteger(level) || level < 1 || level > 3){
+            return res.status(400).json({success:false,message:"بيانات التحذير غير صالحة"});
+        }
+
+        const current = await getUserAdminControl(uid);
+        const {data:control,error} = await supabase
+            .from("user_admin_controls")
+            .upsert({
+                ...current,
+                user_id:uid,
+                warning_level:level
+            },{onConflict:"user_id"})
+            .select("*")
+            .single();
+
+        if(error) throw error;
+
+        await writeAdminAuditLog({
+            adminUserId:admin.id,
+            targetUserId:uid,
+            action:`warning_${level}`,
+            details:{level,note}
+        });
+
+        return res.json({success:true,control});
+    }catch(error){
+        console.log("ADMIN WARNING ERROR:",error);
+        return res.status(500).json({success:false,message:error?.message || "تعذر إضافة التحذير"});
+    }
+});
+
+app.get("/api/admin/users/:uid/audit", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const {data,error} = await supabase
+            .from("admin_audit_logs")
+            .select("id,target_user_id,admin_user_id,action,details,created_at")
+            .eq("target_user_id",uid)
+            .order("created_at",{ascending:false})
+            .limit(200);
+
+        if(error) throw error;
+
+        return res.json({success:true,logs:data || []});
+    }catch(error){
+        console.log("ADMIN AUDIT ERROR:",error);
+        return res.status(500).json({success:false,message:error?.message || "تعذر تحميل سجل الإدارة"});
+    }
+});
+
+app.post("/api/admin/users/:uid/medals", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const medalKey = String(req.body?.medal_key || "").trim();
+
+        if(!uid || !medalKey){
+            return res.status(400).json({success:false,message:"UID و medal_key مطلوبان"});
+        }
+
+        const {data:medal,error:medalError} = await supabase
+            .from("medal_definitions")
+            .select("key,title,description,icon,sort_order,is_active")
+            .eq("key",medalKey)
+            .maybeSingle();
+
+        if(medalError) throw medalError;
+        if(!medal || medal.is_active === false){
+            return res.status(404).json({success:false,message:"الميدالية غير موجودة"});
+        }
+
+        const {data,error} = await supabase
+            .from("user_medals")
+            .upsert({
+                user_id:uid,
+                medal_key:medalKey,
+                awarded_at:new Date().toISOString(),
+                awarded_by:String(admin.id),
+                metadata:{source:"admin_manual_award"}
+            },{onConflict:"user_id,medal_key"})
+            .select("medal_key,awarded_at,metadata")
+            .single();
+
+        if(error) throw error;
+
+        await writeAdminAuditLog({
+            adminUserId:admin.id,
+            targetUserId:uid,
+            action:"award_medal",
+            details:{medal_key:medalKey}
+        });
+
+        return res.json({success:true,medal:data});
+    }catch(error){
+        console.log("ADMIN AWARD MEDAL ERROR:",error);
+        return res.status(500).json({success:false,message:error?.message || "تعذر إضافة الميدالية"});
+    }
+});
+
+app.delete("/api/admin/users/:uid/medals/:medalKey", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const medalKey = String(req.params.medalKey || "").trim();
+
+        if(!uid || !medalKey){
+            return res.status(400).json({success:false,message:"بيانات الميدالية غير صالحة"});
+        }
+
+        const {data,error} = await supabase
+            .from("user_medals")
+            .delete()
+            .eq("user_id",uid)
+            .eq("medal_key",medalKey)
+            .select("medal_key")
+            .maybeSingle();
+
+        if(error) throw error;
+
+        await writeAdminAuditLog({
+            adminUserId:admin.id,
+            targetUserId:uid,
+            action:"remove_medal",
+            details:{medal_key:medalKey}
+        });
+
+        return res.json({success:true,removed:Boolean(data)});
+    }catch(error){
+        console.log("ADMIN REMOVE MEDAL ERROR:",error);
+        return res.status(500).json({success:false,message:error?.message || "تعذر إزالة الميدالية"});
+    }
+});
+
+
 async function getPublisherProfile(user){
     const metadata = user?.user_metadata || {};
     let fullName = String(
