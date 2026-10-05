@@ -2118,6 +2118,16 @@ window.openWallpapers =
 openWallpapers;
 
 // ==========================================
+// فتح صفحة إدارة المستخدمين
+// ==========================================
+
+function openUserManagement(){
+    location.href = "admin-users.html";
+}
+
+window.openUserManagement = openUserManagement;
+
+// ==========================================
 // فتح صفحة نشر الإعلانات
 // ==========================================
 
