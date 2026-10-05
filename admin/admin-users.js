@@ -290,6 +290,7 @@ function fillDetail(detail){
 
   renderMedals(detail);
   renderAudit(detail.audit_logs || []);
+  renderWarningHistory(detail.warnings || []);
 }
 
 async function loadUserDetail(id){
@@ -512,32 +513,190 @@ $("#unbanUser").onclick = async () => {
   );
 };
 
-$("#warnUser").onclick = async () => {
-  if(!selected) return;
 
-  const current = Number(
-    selected.warning_level ||
-    $("#userDrawer").dataset.warningLevel ||
-    0
-  );
+function warningLevelLabel(level){
+  return `التحذير ${Number(level) || 0}`;
+}
 
-  const next = Math.min(3, current + 1);
+function renderWarningHistory(warnings){
+  const existing = document.querySelector("#warningHistoryAdmin");
+  if(existing) existing.remove();
+
+  const anchor = document.querySelector("#auditLog");
+  if(!anchor) return;
+
+  const box = document.createElement("section");
+  box.id = "warningHistoryAdmin";
+  box.style.cssText = [
+    "margin-top:16px",
+    "padding:14px",
+    "border:1px solid #edf0f4",
+    "border-radius:14px",
+    "background:#fff"
+  ].join(";");
+
+  const rows = Array.isArray(warnings) ? warnings : [];
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <strong>⚠️ سجل التحذيرات</strong>
+      <span style="font-size:12px;color:#8791a2">${rows.length} تحذير</span>
+    </div>
+    ${
+      rows.length
+      ? rows.map(w => `
+        <div style="padding:10px 0;border-bottom:1px solid #f0f2f5">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <strong>${esc(warningLevelLabel(w.level))}</strong>
+            <small style="color:#8791a2">${esc(fmt(w.created_at))}</small>
+          </div>
+          <div style="margin-top:5px;color:#5f6878;font-size:13px">${esc(w.reason || "بدون سبب")}</div>
+          <div style="margin-top:5px;white-space:pre-wrap;color:#7c8595;font-size:13px">${esc(w.message || "")}</div>
+          <small style="display:block;margin-top:6px;color:${w.acknowledged ? "#168bf0" : "#a06a00"}">
+            ${w.acknowledged ? "تمت القراءة" : "بانتظار قراءة المستخدم"}
+          </small>
+        </div>
+      `).join("")
+      : '<div style="color:#8791a2;font-size:13px">لا توجد تحذيرات لهذا المستخدم.</div>'
+    }
+  `;
+
+  anchor.parentNode.insertBefore(box, anchor);
+}
+
+function closeWarningModal(){
+  const modal = document.querySelector("#adminWarningModal");
+  if(modal) modal.remove();
+}
+
+function openWarningModal(user){
+  closeWarningModal();
+
+  const current = Number(user.warning_level || 0);
+  const next = current + 1;
+
   if(next > 3){
-    showToast("المستخدم وصل إلى التحذير الثالث");
+    showToast("المستخدم وصل بالفعل إلى التحذير الثالث");
     return;
   }
 
-  if(!confirm(`تسجيل التحذير رقم ${next}؟`)) return;
+  const modal = document.createElement("div");
+  modal.id = "adminWarningModal";
+  modal.dir = "rtl";
+  modal.style.cssText = [
+    "position:fixed",
+    "inset:0",
+    "z-index:99999",
+    "display:flex",
+    "align-items:center",
+    "justify-content:center",
+    "padding:18px",
+    "background:rgba(8,15,28,.58)",
+    "backdrop-filter:blur(5px)"
+  ].join(";");
 
-  await action(
-    `/api/admin/users/${encodeURIComponent(selected.id)}/warning`,
-    {
-      level:next,
-      note:$("#actionReason").value.trim()
-    },
-    `تم تسجيل التحذير ${next}`,
-    "POST"
-  );
+  modal.innerHTML = `
+    <div style="
+      width:min(560px,100%);
+      max-height:90vh;
+      overflow:auto;
+      background:#fff;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 24px 70px rgba(0,0,0,.22)
+    ">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+        <div>
+          <div style="font-size:22px;font-weight:800">⚠️ إرسال تحذير</div>
+          <div style="margin-top:5px;color:#7d8797;font-size:13px">
+            ${esc(user.name || user.username || "المستخدم")}
+          </div>
+        </div>
+        <button type="button" id="closeWarningModal"
+          style="border:0;background:#f2f4f7;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer">×</button>
+      </div>
+
+      <div style="margin-top:18px;padding:12px 14px;border-radius:14px;background:#fff7e8;color:#8b5d00;font-size:13px">
+        سيتم تسجيل <strong>التحذير رقم ${next}</strong> في سجل الإدارة وإرسال رسالة للمستخدم داخل إشعارات الموقع.
+      </div>
+
+      <label style="display:block;margin-top:16px;font-weight:700;font-size:13px">سبب التحذير</label>
+      <textarea id="warningReasonInput" rows="3"
+        placeholder="اكتب سبب التحذير بوضوح..."
+        style="width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #dfe4eb;border-radius:13px;padding:12px;resize:vertical;font:inherit"></textarea>
+
+      <label style="display:block;margin-top:14px;font-weight:700;font-size:13px">الرسالة التي ستصل للمستخدم</label>
+      <textarea id="warningMessageInput" rows="5"
+        placeholder="اكتب الرسالة التي تريد أن يراها المستخدم..."
+        style="width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #dfe4eb;border-radius:13px;padding:12px;resize:vertical;font:inherit"></textarea>
+
+      <div style="display:flex;gap:10px;justify-content:flex-start;margin-top:18px">
+        <button type="button" id="cancelWarningModal"
+          style="border:0;background:#eef1f5;padding:11px 18px;border-radius:12px;cursor:pointer">إلغاء</button>
+        <button type="button" id="sendWarningModal"
+          style="border:0;background:#d97706;color:#fff;padding:11px 20px;border-radius:12px;cursor:pointer;font-weight:700">
+          إرسال التحذير
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const close = () => closeWarningModal();
+  $("#closeWarningModal").onclick = close;
+  $("#cancelWarningModal").onclick = close;
+
+  $("#sendWarningModal").onclick = async () => {
+    const reason = $("#warningReasonInput").value.trim();
+    const message = $("#warningMessageInput").value.trim();
+
+    if(!reason){
+      showToast("اكتب سبب التحذير");
+      return;
+    }
+
+    if(!message){
+      showToast("اكتب الرسالة التي ستصل للمستخدم");
+      return;
+    }
+
+    const button = $("#sendWarningModal");
+    button.disabled = true;
+    button.textContent = "جاري الإرسال…";
+
+    try{
+      const data = await api(
+        `/api/admin/users/${encodeURIComponent(user.id)}/warning`,
+        {
+          method:"POST",
+          body:JSON.stringify({
+            level:next,
+            reason,
+            message
+          })
+        }
+      );
+
+      closeWarningModal();
+      showToast(`تم إرسال التحذير ${next} للمستخدم`);
+
+      await loadUsers();
+
+      if(selected){
+        const detail = await loadUserDetail(selected.id);
+        fillDetail(detail);
+      }
+    }catch(error){
+      button.disabled = false;
+      button.textContent = "إرسال التحذير";
+      showToast(error.message || "تعذر إرسال التحذير");
+    }
+  };
+}
+
+$("#warnUser").onclick = async () => {
+  if(!selected) return;
+  openWarningModal(selected);
 };
 
 $("#addMedal").onclick = () => {
