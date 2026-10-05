@@ -621,6 +621,8 @@ async function loadPublicProfile(uid){
             tab.style.display = "none";
         });
 
+        await loadProfileMedals(targetUID);
+
         publicProfileLoaded = targetUID;
         console.log("✅ PUBLIC PROFILE LOADED:", targetUID);
     }catch(error){
@@ -782,6 +784,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     if (user) {
         // استعادة الحساب من Supabase قبل الاعتماد على بيانات المتصفح.
         await loadCloudUserData(user);
+        await loadProfileMedals();
         await syncLocalFavoritesToCloud();
 
         const metadata = user.user_metadata || {};
@@ -889,6 +892,7 @@ if(initialViewCount) initialViewCount.textContent = initialViews.length;
 ========================== */
 
 function resetGuestProfile() {
+    resetProfileMedals();
     // 1. تصفير النصوص
     const textElements = {
         "userName": "زائر",
@@ -2523,18 +2527,50 @@ document.addEventListener(
    Profile Medals — inline expansion
    ========================================================= */
 
-const profileMedals = [
-    {icon:"workspace_premium",title:"المؤسس"},
-    {icon:"diamond",title:"الذهبي"},
-    {icon:"bolt",title:"النشط"},
-    {icon:"star",title:"الداعم"}
+const profileMedalsFallback = [
+    {key:"founder", icon:"workspace_premium", title:"المؤسس", description:"مستخدم مميز"},
+    {key:"gold", icon:"diamond", title:"الذهبي", description:"مستوى العضوية"},
+    {key:"active", icon:"bolt", title:"النشط", description:"نشاط مستمر"},
+    {key:"supporter", icon:"star", title:"الداعم", description:"دعم المجتمع"}
 ];
+
+let profileMedals = [...profileMedalsFallback];
+let ownedProfileMedals = new Map();
 
 const profileMedalsBtn=document.getElementById("profileMedalsBtn");
 const profileMedalsPanel=document.getElementById("profileMedalsPanel");
 const profileMedalsViewport=document.getElementById("profileMedalsViewport");
 const profileMedalsTrack=document.getElementById("profileMedalsTrack");
 const profileMedalsDots=document.getElementById("profileMedalsDots");
+const profileMedalHistoryList=document.getElementById("profileMedalHistoryList");
+
+function escapeMedalHtml(value){
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+function formatMedalDate(value){
+    if(!value) return "غير محدد";
+    const d=new Date(value);
+    if(Number.isNaN(d.getTime())) return "غير محدد";
+    return new Intl.DateTimeFormat("ar-EG",{
+        year:"numeric",
+        month:"short",
+        day:"numeric"
+    }).format(d);
+}
+
+function isMedalOwned(key){
+    return ownedProfileMedals.has(String(key));
+}
+
+function getMedalOwnedDate(key){
+    return ownedProfileMedals.get(String(key))?.awarded_at || null;
+}
 
 function renderProfileMedals(){
     if(!profileMedalsTrack)return;
@@ -2546,13 +2582,18 @@ function renderProfileMedals(){
 
     profileMedalsTrack.innerHTML=pages.map(page=>`
         <div class="profile-medals-page">
-            ${page.map(m=>`
-                <div class="profile-medal" title="${m.title}" aria-label="${m.title}">
-                    <span class="profile-medal-badge">
-                        <span class="material-icons">${m.icon}</span>
-                    </span>
-                </div>
-            `).join("")}
+            ${page.map(m=>{
+                const unlocked=isMedalOwned(m.key);
+                return `
+                    <div class="profile-medal ${unlocked ? "unlocked" : "locked"}"
+                         title="${escapeMedalHtml(m.title)}"
+                         aria-label="${escapeMedalHtml(m.title)}">
+                        <span class="profile-medal-badge">
+                            <span class="material-icons">${escapeMedalHtml(m.icon)}</span>
+                        </span>
+                    </div>
+                `;
+            }).join("")}
         </div>
     `).join("");
 
@@ -2561,6 +2602,111 @@ function renderProfileMedals(){
             ? pages.map((_,i)=>`<span class="profile-medal-dot${i===0?" active":""}"></span>`).join("")
             : "";
     }
+}
+
+function renderProfileMedalHistory(){
+    if(!profileMedalHistoryList)return;
+
+    profileMedalHistoryList.innerHTML=profileMedals.map(m=>{
+        const unlocked=isMedalOwned(m.key);
+        const date=getMedalOwnedDate(m.key);
+
+        return `
+            <div class="profile-medal-history-item ${unlocked ? "unlocked" : "locked"}">
+                <span class="profile-medal-history-badge">
+                    <span class="material-icons">${escapeMedalHtml(m.icon)}</span>
+                </span>
+                <div>
+                    <div class="profile-medal-history-name">${escapeMedalHtml(m.title)}</div>
+                    <div class="profile-medal-history-desc">${escapeMedalHtml(m.description || "")}</div>
+                </div>
+                <div class="profile-medal-history-date">
+                    <small>${unlocked ? "تاريخ الحصول" : "الحالة"}</small>
+                    ${unlocked ? formatMedalDate(date) : "لم تُكتسب بعد"}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function updateProfileMedalCount(){
+    const count=profileMedals.filter(m=>isMedalOwned(m.key)).length;
+    document.querySelectorAll(".premium-medals-count").forEach(el=>{
+        el.textContent=`${count} / ${profileMedals.length}`;
+    });
+}
+
+function applyProfileMedalData(payload){
+    const catalog=Array.isArray(payload?.medals) ? payload.medals : [];
+    const owned=Array.isArray(payload?.owned) ? payload.owned : [];
+
+    profileMedals=(catalog.length ? catalog : profileMedalsFallback).map(m=>({
+        key:String(m.key || ""),
+        icon:String(m.icon || "workspace_premium"),
+        title:String(m.title || m.key || "ميدالية"),
+        description:String(m.description || "")
+    })).filter(m=>m.key);
+
+    ownedProfileMedals=new Map(
+        owned
+            .filter(item=>item?.key)
+            .map(item=>[String(item.key),{
+                awarded_at:item.awarded_at || null,
+                metadata:item.metadata || null
+            }])
+    );
+
+    renderProfileMedals();
+    renderProfileMedalHistory();
+    updateProfileMedalCount();
+}
+
+async function loadProfileMedals(uid=null){
+    try{
+        let url="/api/profile/medals";
+        const headers={};
+
+        if(uid && String(uid).trim()){
+            url=`/api/users/${encodeURIComponent(String(uid).trim())}/medals`;
+        }else{
+            const {data}=await supabase.auth.getSession();
+            const token=data?.session?.access_token;
+            if(token) headers.Authorization=`Bearer ${token}`;
+        }
+
+        const response=await fetch(url,{
+            method:"GET",
+            headers,
+            cache:"no-store"
+        });
+
+        if(!response.ok) throw new Error(`MEDALS API ${response.status}`);
+
+        const payload=await response.json();
+        if(payload?.success){
+            applyProfileMedalData(payload);
+            return payload;
+        }
+
+        throw new Error(payload?.message || "تعذر تحميل الميداليات");
+    }catch(error){
+        console.warn("PROFILE MEDALS LOAD:",error.message);
+        // عند فشل السيرفر لا نعتبر الميداليات مفتوحة.
+        // هذا يمنع منح ميداليات للمستخدم الجديد بسبب fallback محلي.
+        ownedProfileMedals=new Map();
+        renderProfileMedals();
+        renderProfileMedalHistory();
+        updateProfileMedalCount();
+        return null;
+    }
+}
+
+function resetProfileMedals(){
+    ownedProfileMedals=new Map();
+    profileMedals=[...profileMedalsFallback];
+    renderProfileMedals();
+    renderProfileMedalHistory();
+    updateProfileMedalCount();
 }
 
 function toggleProfileMedals(){
@@ -2587,56 +2733,4 @@ profileMedalsViewport?.addEventListener("scroll",()=>{
 },{passive:true});
 
 renderProfileMedals();
-
-/* =========================================================
-   Medal history — Information tab
-   ========================================================= */
-
-function renderProfileMedalHistory(){
-    const list=document.getElementById("profileMedalHistoryList");
-    if(!list)return;
-
-    const medals=[
-        {icon:"workspace_premium",name:"المؤسس",desc:"مستخدم مميز",key:"founder"},
-        {icon:"diamond",name:"الذهبي",desc:"مستوى العضوية",key:"gold"},
-        {icon:"bolt",name:"النشط",desc:"نشاط مستمر",key:"active"},
-        {icon:"star",name:"الداعم",desc:"دعم المجتمع",key:"supporter"}
-    ];
-
-    const user=window.currentUser || window.userData || window.user || {};
-    const medalDates=user.medalDates || user.medal_dates || user.achievements || {};
-
-    const formatDate=(value)=>{
-        if(!value)return "غير محدد";
-        const d=new Date(value);
-        if(Number.isNaN(d.getTime()))return "غير محدد";
-        return new Intl.DateTimeFormat("ar-EG",{
-            year:"numeric",month:"short",day:"numeric"
-        }).format(d);
-    };
-
-    list.innerHTML=medals.map(m=>{
-        const value=medalDates[m.key] || medalDates[m.name];
-        return `
-            <div class="profile-medal-history-item">
-                <span class="profile-medal-history-badge">
-                    <span class="material-icons">${m.icon}</span>
-                </span>
-                <div>
-                    <div class="profile-medal-history-name">${m.name}</div>
-                    <div class="profile-medal-history-desc">${m.desc}</div>
-                </div>
-                <div class="profile-medal-history-date">
-                    <small>تاريخ الحصول</small>
-                    ${formatDate(value)}
-                </div>
-            </div>
-        `;
-    }).join("");
-}
-
-if(document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded",renderProfileMedalHistory,{once:true});
-}else{
-    renderProfileMedalHistory();
-}
+renderProfileMedalHistory();

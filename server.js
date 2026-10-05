@@ -23,6 +23,88 @@ SUPABASE_SERVER_KEY
 );
 
 // ======================================
+// Profile Medals
+// المصدر الدائم للميداليات: Supabase
+// المستخدم الجديد يبدأ بدون ميداليات.
+// الحساب القديم/الأدمن تتم له هجرة الميداليات القديمة مرة واحدة.
+// ======================================
+const PROFILE_MEDALS = [
+    { key:"founder", title:"المؤسس", description:"مستخدم مميز", icon:"workspace_premium", sort_order:1 },
+    { key:"gold", title:"الذهبي", description:"مستوى العضوية", icon:"diamond", sort_order:2 },
+    { key:"active", title:"النشط", description:"نشاط مستمر", icon:"bolt", sort_order:3 },
+    { key:"supporter", title:"الداعم", description:"دعم المجتمع", icon:"star", sort_order:4 }
+];
+
+async function ensureMedalCatalog(){
+    try{
+        const { data, error } = await supabase
+            .from("medal_definitions")
+            .select("key,title,description,icon,sort_order,is_active")
+            .eq("is_active", true)
+            .order("sort_order", { ascending:true });
+
+        if(error) throw error;
+        return Array.isArray(data) && data.length ? data : PROFILE_MEDALS;
+    }catch(error){
+        console.log("MEDAL CATALOG LOAD ERROR:", error.message);
+        return PROFILE_MEDALS;
+    }
+}
+
+async function getUserMedals(userId){
+    const catalog = await ensureMedalCatalog();
+
+    const { data, error } = await supabase
+        .from("user_medals")
+        .select("medal_key,awarded_at,metadata")
+        .eq("user_id", userId);
+
+    if(error) throw error;
+
+    return {
+        catalog,
+        owned:(data || []).map(row=>({
+            key:String(row.medal_key),
+            awarded_at:row.awarded_at || null,
+            metadata:row.metadata || null
+        }))
+    };
+}
+
+async function seedLegacyAdminMedals(userId){
+    const { data: existing, error: readError } = await supabase
+        .from("user_medals")
+        .select("medal_key")
+        .eq("user_id", userId)
+        .limit(1);
+
+    if(readError) throw readError;
+    if(existing?.length) return false;
+
+    const { data: adminData, error: adminError } =
+        await supabase.auth.admin.getUserById(userId);
+
+    if(adminError || !adminData?.user || !isAdminUser(adminData.user)) return false;
+
+    const now = new Date().toISOString();
+    const rows = PROFILE_MEDALS.map(m=>({
+        user_id:userId,
+        medal_key:m.key,
+        awarded_at:now,
+        awarded_by:"legacy_migration",
+        metadata:{source:"legacy_profile_medals"}
+    }));
+
+    const { error } = await supabase
+        .from("user_medals")
+        .upsert(rows,{onConflict:"user_id,medal_key"});
+
+    if(error) throw error;
+    return true;
+}
+
+
+// ======================================
 // Authenticated publisher identity
 // لا نثق في userId القادم من المتصفح؛ UID يؤخذ من جلسة Supabase نفسها.
 // ======================================
@@ -1342,6 +1424,72 @@ app.delete(
         }
     }
 );
+
+// ======================================
+// Profile Medals API
+// ======================================
+
+app.get("/api/profile/medals", async (req,res)=>{
+    try{
+        const user=await getAuthenticatedUser(req);
+        if(!user){
+            return res.status(401).json({
+                success:false,
+                message:"يجب تسجيل الدخول"
+            });
+        }
+
+        // ترحيل الحساب القديم مرة واحدة إذا كان الحساب أدمن.
+        // المستخدم الجديد العادي لا يحصل على أي ميدالية تلقائيًا.
+        try{
+            await seedLegacyAdminMedals(String(user.id));
+        }catch(migrationError){
+            console.log("LEGACY MEDAL MIGRATION:",migrationError.message);
+        }
+
+        const result=await getUserMedals(String(user.id));
+
+        return res.json({
+            success:true,
+            userId:String(user.id),
+            medals:result.catalog,
+            owned:result.owned
+        });
+    }catch(error){
+        console.log("PROFILE MEDALS GET ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        });
+    }
+});
+
+app.get("/api/users/:uid/medals", async (req,res)=>{
+    try{
+        const uid=String(req.params.uid || "").trim();
+        if(!uid){
+            return res.status(400).json({
+                success:false,
+                message:"User UID is required"
+            });
+        }
+
+        const result=await getUserMedals(uid);
+
+        return res.json({
+            success:true,
+            userId:uid,
+            medals:result.catalog,
+            owned:result.owned
+        });
+    }catch(error){
+        console.log("PUBLIC USER MEDALS GET ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        });
+    }
+});
 
 // ======================================
 // Public User Profile API

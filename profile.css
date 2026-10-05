@@ -3100,3 +3100,39 @@ body.dark .profile-wall-card{
 .profile-avatar{
     background:#eef2f8;
 }
+
+
+/* =========================================================
+   Supabase Medals — locked / unlocked states
+   ========================================================= */
+.profile-medal.locked{
+    opacity:.42;
+    filter:grayscale(.55);
+    background:#f8f8fa;
+}
+.profile-medal.locked .profile-medal-badge{
+    background:#e5e7ec;
+    border-color:#fff;
+    color:#9298a5;
+    box-shadow:none;
+}
+.profile-medal.unlocked{
+    opacity:1;
+    filter:none;
+}
+.profile-medal-history-item.locked{
+    background:#fafafa;
+    opacity:.68;
+}
+.profile-medal-history-item.locked .profile-medal-history-badge{
+    background:#e5e7ec;
+    color:#9298a5;
+    box-shadow:none;
+}
+.profile-medal-history-item.unlocked .profile-medal-history-badge{
+    box-shadow:0 3px 8px rgba(190,150,40,.18);
+}
+.premium-medals-count{
+    direction:ltr;
+    white-space:nowrap;
+}
