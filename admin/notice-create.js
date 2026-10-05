@@ -1,3 +1,5 @@
+import "./admin-auth.js";
+
 // =================================
 // WallpaperHub Admin Notice Creator
 // Modern dashboard + live preview
@@ -190,23 +192,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function loadAds() {
-        fetch("/api/admin/announcements")
-            .then(res => {
-                if (!res.ok) throw new Error("LOAD ADS HTTP ERROR");
-                return res.json();
-            })
-            .then(data => {
-                announcements = Array.isArray(data) ? data : [];
-                renderAds();
-                updateCounters();
-            })
-            .catch(error => {
-                console.error("LOAD ADS ERROR:", error);
-                announcements = [];
-                renderAds();
-                updateCounters();
-            });
+    async function loadAds() {
+        try {
+            const headers = window.adminAuth ? await window.adminAuth.getHeaders() : {};
+            const res = await fetch("/api/admin/announcements", { headers });
+            if (!res.ok) throw new Error("LOAD ADS HTTP ERROR");
+            const data = await res.json();
+            announcements = Array.isArray(data) ? data : [];
+            renderAds();
+            updateCounters();
+        } catch (error) {
+            console.error("LOAD ADS ERROR:", error);
+            announcements = [];
+            renderAds();
+            updateCounters();
+        }
     }
 
     function renderAds() {
@@ -281,7 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function deleteAdvertisement(id) {
         if (!confirm("هل تريد حذف الإعلان؟")) return;
 
-        fetch(`/api/admin/announcements/${id}`, { method: "DELETE" })
+        fetch(`/api/admin/announcements/${id}`, { method: "DELETE", headers: window.adminAuth ? await window.adminAuth.getHeaders() : {} })
             .then(res => res.json())
             .then(data => {
                 if (!data.success) throw new Error("DELETE FAILED");
@@ -383,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     saveDraftBtn?.addEventListener("click", saveLocalDraft);
 
-    form?.addEventListener("submit", event => {
+    form?.addEventListener("submit", async event => {
         event.preventDefault();
 
         const title = titleInput.value.trim();
@@ -416,7 +416,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // الرابط يبقى للمعاينة في الواجهة إلى أن نضيف له عمودًا/دعمًا في السيرفر.
         fetch(url, {
             method,
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...(window.adminAuth ? await window.adminAuth.getHeaders() : {})
+            },
             body: JSON.stringify(body)
         })
             .then(async res => {

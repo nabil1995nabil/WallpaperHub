@@ -376,7 +376,7 @@ try{
 
 
 const response =
-await fetch("/api/wallpapers");
+await fetch("/api/wallpapers", { headers: window.adminAuth ? await window.adminAuth.getHeaders() : {} });
 
 
 
