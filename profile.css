@@ -221,6 +221,11 @@ button{
 .avatar-edit .material-icons{
     font-size:20px;
 }
+/* تم نقل تغيير الصورة الشخصية إلى منطقة الملف الشخصي ونافذة التعديل. */
+.profile-avatar-box .avatar-edit{
+    display:none !important;
+}
+
 /* =========================================================
    Profile Identity Container
    الحاوية العامة فقط
@@ -579,6 +584,7 @@ button{
     color:#536075;
     font-size:18px;
 }
+
 /* =========================================================
    Premium Medal Badge + Expandable Medal Card
    ========================================================= */
@@ -1246,6 +1252,88 @@ button{
 
 
 /* =========================================================
+   Edit Avatar Section
+   ========================================================= */
+
+.edit-avatar-section{
+    min-height:74px;
+    margin:4px 0 4px;
+    padding:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:1px solid #edf0f5;
+    border-radius:15px;
+    background:#f8f9fc;
+}
+
+.edit-avatar-preview{
+    width:52px;
+    height:52px;
+    flex:0 0 52px;
+    overflow:hidden;
+    border:2px solid #fff;
+    border-radius:50%;
+    background:#eef1f7;
+    box-shadow:0 4px 12px rgba(35,45,80,.10);
+}
+
+.edit-avatar-preview img{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+}
+
+.edit-avatar-copy{
+    min-width:0;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2px;
+}
+
+.edit-avatar-copy strong{
+    color:#252b3b;
+    font-size:12px;
+    font-weight:800;
+}
+
+.edit-avatar-copy small{
+    color:#858da0;
+    font-size:9px;
+}
+
+.modal-change-avatar{
+    height:30px;
+    margin-top:4px;
+    padding:0 10px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    border-radius:10px;
+    background:#eef1ff;
+    color:#5364ee;
+    cursor:pointer;
+    font-size:10px;
+    font-weight:800;
+}
+
+.modal-change-avatar .material-icons{
+    font-size:15px;
+}
+
+.profile-file-input{
+    position:absolute;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
+}
+
+/* =========================================================
    Modal Buttons
    ========================================================= */
 
@@ -1365,6 +1453,30 @@ body.dark .edit-box{
     border-color:#252c3c;
 }
 
+
+.body-dark-placeholder{}body.dark .hero-change-avatar{
+    background:#141925;
+    border-color:#252c3c;
+    color:#9da7ff;
+}
+
+body.dark .edit-avatar-section{
+    background:#101521;
+    border-color:#252c3c;
+}
+
+body.dark .edit-avatar-copy strong{
+    color:#fff;
+}
+
+body.dark .edit-avatar-copy small{
+    color:#9da6ba;
+}
+
+body.dark .modal-change-avatar{
+    background:#1b2130;
+    color:#9da7ff;
+}
 
 /* =========================================================
    Dark Main Text
@@ -1507,6 +1619,23 @@ body.dark #closeEditBtn{
    ========================================================= */
 
 @media(max-width:700px){
+
+    .hero-change-avatar{
+        min-width:210px;
+        height:36px;
+        margin-bottom:7px;
+        font-size:12px;
+    }
+
+    .hero-edit-profile{
+        min-width:210px;
+    }
+
+    .edit-avatar-section{
+        padding:9px;
+    }
+
+
 
     body{
         padding-bottom:95px;
@@ -2681,4 +2810,161 @@ body.dark .profile-wall-card{
     .info-medal-row{flex-wrap:wrap;}
     .info-medal-row time{width:100%;padding-right:39px;white-space:normal;}
     .premium-avatar-medal{width:29px;height:29px;bottom:-8px;}
+}
+
+
+/* =========================================================
+   Final Profile Mobile Layout
+   معلومات الحساب يسار + الميداليات يمين
+   ========================================================= */
+@media(max-width:700px){
+
+    .profile-identity{
+        display:grid;
+        grid-template-columns:minmax(0,1.55fr) minmax(118px,.9fr);
+        align-items:start;
+        column-gap:10px;
+        row-gap:7px;
+        padding:10px 12px 10px;
+        direction:ltr;
+    }
+
+    .join-date-card{
+        grid-column:1;
+        grid-row:1;
+        width:100%;
+        max-width:none;
+        order:1;
+        transform:translateY(-65px);
+    }
+
+    /* منطقة الاسم والنبذة وتعديل الحساب إلى اليسار */
+    .identity-main{
+        grid-column:1;
+        grid-row:2;
+        width:100%;
+        order:2;
+        min-width:0;
+        margin-top:-55px;
+        padding:0 2px 4px;
+        align-items:flex-start;
+        text-align:left;
+        direction:rtl;
+    }
+
+    .identity-name-row{
+        width:100%;
+        justify-content:flex-start;
+        direction:ltr;
+    }
+
+    .identity-name-row h1{
+        font-size:25px;
+        text-align:left;
+    }
+
+    .identity-username,
+    .identity-bio{
+        width:100%;
+        text-align:left;
+    }
+
+    .hero-change-avatar,
+    .hero-edit-profile{
+        width:100%;
+        min-width:0;
+        max-width:230px;
+    }
+
+    /* البريميوم والميداليات إلى اليمين */
+    .premium-side-stack{
+        grid-column:2;
+        grid-row:1 / span 2;
+        width:100%;
+        max-width:none;
+        order:3;
+        transform:translateY(-65px);
+        align-self:start;
+    }
+
+    .premium-card{
+        width:100%;
+        transform:none;
+    }
+
+    .premium-medals-toggle{
+        width:100%;
+    }
+
+    /* نافذة الميداليات: شارات فقط، 2 في كل سطر */
+    .premium-medals-panel{
+        width:150px;
+        max-width:150px;
+        padding:10px;
+        right:0;
+        transform:none;
+        border-radius:16px;
+    }
+
+    .premium-medals-grid{
+        width:100%;
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:9px;
+    }
+
+    .profile-medal{
+        width:100%;
+        height:58px;
+        padding:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:15px;
+    }
+
+    .profile-medal-icon{
+        width:40px;
+        height:40px;
+        flex:0 0 40px;
+        font-size:18px;
+    }
+
+    .profile-medal > div:not(.profile-medal-icon){
+        display:none !important;
+    }
+}
+
+@media(max-width:380px){
+    .profile-identity{
+        grid-template-columns:minmax(0,1.48fr) minmax(108px,.9fr);
+        column-gap:7px;
+        padding-left:10px;
+        padding-right:10px;
+    }
+
+    .identity-name-row h1{
+        font-size:23px;
+    }
+
+    .premium-medals-panel{
+        width:142px;
+        max-width:142px;
+        padding:8px;
+    }
+
+    .premium-medals-grid{
+        gap:7px;
+    }
+
+    .profile-medal{
+        height:54px;
+    }
+
+    .profile-medal-icon{
+        width:37px;
+        height:37px;
+        flex-basis:37px;
+        font-size:17px;
+    }
 }

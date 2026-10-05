@@ -440,7 +440,8 @@ function isOwnProfile(){
 function hideOwnerEditControls(){
     const ids = [
         "editProfileBtn",
-        "changeAvatarBtn",
+        "heroChangeAvatarBtn",
+        "modalChangeAvatarBtn",
         "changeCoverBtn",
         "avatarInput",
         "coverInput"
@@ -454,7 +455,7 @@ function hideOwnerEditControls(){
 
 function showOwnerEditControls(){
     const editBtn = document.getElementById("editProfileBtn");
-    const avatarBtn = document.getElementById("changeAvatarBtn");
+    const avatarBtn = document.getElementById("heroChangeAvatarBtn");
 
     if(editBtn) editBtn.style.display = "";
     if(avatarBtn) avatarBtn.style.display = "";
@@ -2127,10 +2128,14 @@ if(changeCoverBtn && coverInput){
 }
 
 
-const changeAvatarBtn =
-document.getElementById(
-"changeAvatarBtn"
-);
+const heroChangeAvatarBtn =
+document.getElementById("heroChangeAvatarBtn");
+
+const modalChangeAvatarBtn =
+document.getElementById("modalChangeAvatarBtn");
+
+const editAvatarPreview =
+document.getElementById("editAvatarPreview");
 
 
 
@@ -2168,6 +2173,10 @@ if(editBio){
     editBio.value =
         String(localStorage.getItem("profileBio") || "").slice(0, 40);
     editBio.maxLength = 40;
+}
+
+if(editAvatarPreview && userAvatar){
+    editAvatarPreview.src = userAvatar.src || "assets/images/user.png";
 }
 
 
@@ -2356,19 +2365,17 @@ file
 ========================== */
 
 
-if(changeAvatarBtn && avatarInput){
-
-
-changeAvatarBtn.onclick = ()=>{
-
-if(!isOwnProfile()) return;
-
-avatarInput.click();
-
-
+const openAvatarPicker = ()=>{
+    if(!isOwnProfile() || !avatarInput) return;
+    avatarInput.click();
 };
 
+if(heroChangeAvatarBtn){
+    heroChangeAvatarBtn.onclick = openAvatarPicker;
+}
 
+if(modalChangeAvatarBtn){
+    modalChangeAvatarBtn.onclick = openAvatarPicker;
 }
 
 
@@ -2394,7 +2401,9 @@ async (src)=>{
 userAvatar.src =
 src;
 
-
+if(editAvatarPreview){
+    editAvatarPreview.src = src;
+}
 
 localStorage.setItem(
 "userAvatar",
