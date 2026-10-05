@@ -10,6 +10,33 @@ let currentUser = null;
 let currentSession = null;
 
 
+
+async function ensureAdminSession(){
+    try{
+        const {data,error}=await supabase.auth.getSession();
+        if(error || !data?.session){
+            location.href="/profile.html";
+            return null;
+        }
+        const response=await fetch("/api/admin/me",{
+            headers:{Authorization:`Bearer ${data.session.access_token}`},
+            cache:"no-store"
+        });
+        const result=await response.json().catch(()=>({}));
+        if(!response.ok || !result.isAdmin){
+            location.href="/profile.html";
+            return null;
+        }
+        currentSession=data.session;
+        currentUser=data.session.user;
+        return data.session;
+    }catch(error){
+        console.error("ADMIN SESSION ERROR:",error);
+        location.href="/profile.html";
+        return null;
+    }
+}
+
 // ============================
 // العناصر
 // ============================
@@ -376,7 +403,7 @@ try{
 
 
 const response =
-await fetch("/api/wallpapers", { headers: window.adminAuth ? await window.adminAuth.getHeaders() : {} });
+await fetch("/api/wallpapers");
 
 
 
@@ -496,255 +523,56 @@ likes;
 
 function renderWallpapers(){
 
-
-if(!wallpaperContainer)
-return;
-
-
+if(!wallpaperContainer) return;
 
 wallpaperContainer.innerHTML = "";
 
-
-
 if(wallpapers.length === 0){
-
-
-wallpaperContainer.innerHTML = `
-
-<p>
-لا توجد خلفيات حاليا
-</p>
-
-`;
-
-return;
-
-
+    wallpaperContainer.innerHTML = "<p>لا توجد خلفيات حاليا</p>";
+    return;
 }
 
-
-
-
+const fragment=document.createDocumentFragment();
 
 wallpapers.forEach(wall=>{
-
-
-
-const card =
-document.createElement("div");
-
-
-
-card.className =
-"admin-wall";
-
-
-
-
-
-let media = "";
-
-
-
-
-
-if(wall.type === "video"){
-
-
-
-media = `
-
-<video
-
-src="${wall.image}"
-
-autoplay
-
-muted
-
-loop
-
-playsinline
-
-></video>
-
-
-<span class="file-type-badge">
-
-🎞 فيديو
-
-</span>
-
-
-`;
-
-
-
-}
-
-else if(wall.type === "gif"){
-
-
-
-media = `
-
-<img
-
-src="${wall.image}"
-
-loading="lazy"
-
->
-
-
-<span class="file-type-badge">
-
-🌀 GIF
-
-</span>
-
-
-`;
-
-
-
-}
-
-else{
-
-
-media = `
-
-<img
-
-src="${wall.thumbnail || wall.image}"
-
-loading="lazy"
-
->
-
-
-<span class="file-type-badge">
-
-🖼 صورة
-
-</span>
-
-${wall.is360 ? `<span class="panorama-admin-badge">🌐 360°</span>` : ""}
-
-
-`;
-
-
-
-}
-
-
-
-
-
-card.innerHTML = `
-
-<input 
-type="checkbox"
-class="wall-select"
-data-id="${wall.id}"
-onclick="toggleWallpaperSelect('${wall.id}',this)"
->
-
-${media}
-
-
-
-<div class="admin-info">
-
-
-<h3>
-
-${wall.title || "بدون اسم"}
-
-</h3>
-
-
-
-<p>
-
-${wall.category || "عام"}
-
-</p>
-
-
-
-<p>
-
-⬇️ ${wall.downloads || 0}
-
-&nbsp;
-
-❤️ ${wall.likes || 0}
-
-</p>
-
-
-
-
-
-<div class="admin-actions">
-
-
-<button
-
-class="edit-btn"
-
-onclick="editWallpaper('${wall.id}')"
-
->
-
-تعديل
-
-</button>
-
-
-
-
-<button
-
-class="delete-btn"
-
-onclick="deleteWallpaper('${wall.id}')"
-
->
-
-حذف
-
-</button>
-
-
-</div>
-
-
-</div>
-
-
-
-`;
-
-
-
-wallpaperContainer.appendChild(card);
-
-
-
+    const card=document.createElement("div");
+    card.className="admin-wall";
+
+    let media="";
+    if(wall.type==="video"){
+        media=`
+        <video src="${String(wall.image||"").replace(/"/g,"&quot;")}"
+            muted loop playsinline preload="metadata"></video>
+        <span class="file-type-badge">🎞 فيديو</span>`;
+    }else if(wall.type==="gif"){
+        media=`
+        <img src="${String(wall.image||"").replace(/"/g,"&quot;")}" loading="lazy" alt="">
+        <span class="file-type-badge">🌀 GIF</span>`;
+    }else{
+        media=`
+        <img src="${String(wall.thumbnail||wall.image||"").replace(/"/g,"&quot;")}" loading="lazy" alt="">
+        <span class="file-type-badge">🖼 صورة</span>
+        ${wall.is360 ? '<span class="panorama-admin-badge">🌐 360°</span>' : ""}`;
+    }
+
+    card.innerHTML=`
+    <input type="checkbox" class="wall-select" data-id="${String(wall.id).replace(/"/g,"&quot;")}"
+        onclick="toggleWallpaperSelect('${String(wall.id).replace(/'/g,"\\'")}',this)">
+    ${media}
+    <div class="admin-info">
+      <h3>${String(wall.title||"بدون اسم").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}</h3>
+      <p>${String(wall.category||"عام").replace(/[&<>"]/g,"")}</p>
+      <p>⬇️ ${Number(wall.downloads||0)} &nbsp; ❤️ ${Number(wall.likes||0)}</p>
+      <div class="admin-actions">
+        <button class="edit-btn" onclick="editWallpaper('${String(wall.id).replace(/'/g,"\\'")}')">تعديل</button>
+        <button class="delete-btn" onclick="deleteWallpaper('${String(wall.id).replace(/'/g,"\\'")}')">حذف</button>
+      </div>
+    </div>`;
+    fragment.appendChild(card);
 });
 
-
-
+wallpaperContainer.appendChild(fragment);
 }
-
-
-
-
-
 
 
 // ==========================================
@@ -2110,7 +1938,11 @@ await fetch(
 
 {
 
-method:"DELETE"
+method:"DELETE",
+
+headers:{
+"Authorization":`Bearer ${currentSession?.access_token || ""}`
+}
 
 }
 
@@ -2214,7 +2046,11 @@ await fetch(
 
 {
 
-method:"DELETE"
+method:"DELETE",
+
+headers:{
+"Authorization":`Bearer ${currentSession?.access_token || ""}`
+}
 
 }
 

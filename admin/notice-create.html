@@ -1,275 +1,51 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>إدارة الإعلانات - WallpaperHub</title>
-<link rel="stylesheet" href="admin-shell.css">
 <link rel="stylesheet" href="notice-create.css">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-
 <body>
-
 <div class="admin-wrapper">
+<header class="admin-header">
+  <div class="admin-title">
+    <h1>⚙️ مركز إدارة الإعلانات</h1>
+    <p>قم بإنشاء ونشر الإعلانات والإشعارات العامة للمستخدمين</p>
+  </div>
+  <span class="admin-badge">حساب أدمن موثق</span>
+</header>
 
-    <header class="admin-header">
-        <div class="admin-brand">
-            <div class="admin-brand-icon">
-                <span class="material-icons">campaign</span>
-            </div>
-            <div class="admin-title">
-                <div class="admin-title-row">
-                    <h1>مركز الإعلانات</h1>
-                    <span class="admin-status"><i></i> متصل</span>
-                </div>
-                <p>أنشئ وأدر الإعلانات والتنبيهات التي تظهر لمستخدمي WallpaperHub.</p>
-            </div>
-        </div>
-
-        <span class="admin-badge">
-            <span class="material-icons">verified</span>
-            حساب أدمن موثق
-        </span>
-    </header>
-
-    <section class="stats-grid" aria-label="إحصائيات الإعلانات">
-        <article class="stat-card">
-            <div class="stat-icon stat-blue"><span class="material-icons">campaign</span></div>
-            <div class="stat-info">
-                <strong id="stat-total">0</strong>
-                <span>إجمالي الإعلانات</span>
-            </div>
-        </article>
-
-        <article class="stat-card">
-            <div class="stat-icon stat-violet"><span class="material-icons">visibility</span></div>
-            <div class="stat-info">
-                <strong id="stat-views">0</strong>
-                <span>إجمالي المشاهدات</span>
-            </div>
-        </article>
-
-        <article class="stat-card">
-            <div class="stat-icon stat-rose"><span class="material-icons">favorite</span></div>
-            <div class="stat-info">
-                <strong id="stat-interactions">0</strong>
-                <span>التفاعلات</span>
-            </div>
-        </article>
-
-        <article class="stat-card">
-            <div class="stat-icon stat-green"><span class="material-icons">schedule</span></div>
-            <div class="stat-info">
-                <strong id="stat-active">0</strong>
-                <span>الإعلانات النشطة</span>
-            </div>
-        </article>
-    </section>
-
-    <main class="creator-grid">
-
-        <section class="panel-box editor-panel">
-            <div class="panel-heading">
-                <div>
-                    <span class="panel-kicker">إنشاء</span>
-                    <h2><span class="material-icons">edit_note</span> إنشاء إعلان جديد</h2>
-                </div>
-                <span class="editor-state" id="editor-state">جديد</span>
-            </div>
-
-            <form id="create-ad-form" novalidate>
-
-                <div class="form-group">
-                    <label for="ad-title">عنوان الإعلان</label>
-                    <input type="text" id="ad-title" class="form-control"
-                           placeholder="مثال: إطلاق تحديث WallpaperHub الجديد" maxlength="90" required>
-                    <div class="field-meta"><span>اجعل العنوان واضحًا ومباشرًا</span><b id="title-count">0/90</b></div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="ad-category">نوع الإعلان</label>
-                        <select id="ad-category" class="form-control">
-                            <option value="admin">📢 إعلان عام</option>
-                            <option value="update">🚀 تحديث جديد</option>
-                            <option value="event">🎉 فعالية</option>
-                            <option value="warning">⚠️ تنبيه مهم</option>
-                            <option value="maintenance">🛠️ صيانة</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="ad-link">رابط عند الضغط <span class="optional">اختياري</span></label>
-                        <input type="url" id="ad-link" class="form-control"
-                               placeholder="https://">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>صورة الإعلان <span class="optional">اختياري</span></label>
-
-                    <div class="upload-zone" id="upload-zone">
-                        <input type="file" id="ad-file" class="file-input" accept="image/png,image/jpeg,image/webp,image/gif">
-                        <label for="ad-file" class="upload-content">
-                            <span class="upload-icon"><span class="material-icons">cloud_upload</span></span>
-                            <span class="upload-title">اختر صورة للإعلان</span>
-                            <span class="upload-subtitle">PNG, JPG, WEBP أو GIF</span>
-                            <span class="upload-action">اختيار صورة</span>
-                        </label>
-                    </div>
-
-                    <div class="image-url-row">
-                        <span class="material-icons">link</span>
-                        <input type="url" id="ad-image" class="form-control" placeholder="أو استخدم رابط صورة مباشر">
-                    </div>
-                    <div id="file-preview-name" class="file-name-preview"></div>
-                </div>
-
-                <div class="form-group">
-                    <div class="label-with-action">
-                        <label for="ad-content">محتوى الإعلان</label>
-                        <span id="content-count">0/500</span>
-                    </div>
-                    <textarea id="ad-content" class="form-control content-control"
-                              placeholder="اكتب رسالة الإعلان هنا..." maxlength="500" required></textarea>
-                </div>
-
-                <details class="advanced-options">
-                    <summary>
-                        <span><span class="material-icons">tune</span> خيارات متقدمة</span>
-                        <span class="advanced-note">إعدادات إضافية</span>
-                    </summary>
-
-                    <div class="advanced-content">
-                        <div class="option-card">
-                            <div>
-                                <strong>تثبيت الإعلان</strong>
-                                <small>إظهار الإعلان في مقدمة القائمة عند توفر الدعم.</small>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="ad-pinned">
-                                <span></span>
-                            </label>
-                        </div>
-
-                        <div class="option-card">
-                            <div>
-                                <strong>حفظ كمسودة</strong>
-                                <small>يحفظ بيانات المحرر على هذا الجهاز بدل نشرها.</small>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="ad-draft">
-                                <span></span>
-                            </label>
-                        </div>
-
-                        <div class="schedule-box">
-                            <div class="schedule-title">
-                                <span class="material-icons">event</span>
-                                <div>
-                                    <strong>جدولة النشر</strong>
-                                    <small>واجهة جاهزة للربط لاحقًا مع نظام الجدولة.</small>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <input type="datetime-local" id="ad-start" class="form-control" disabled>
-                                <input type="datetime-local" id="ad-end" class="form-control" disabled>
-                            </div>
-                            <label class="schedule-toggle">
-                                <input type="checkbox" id="ad-scheduled">
-                                <span>تفعيل حقول الجدولة</span>
-                            </label>
-                        </div>
-                    </div>
-                </details>
-
-                <div class="form-actions">
-                    <button type="button" id="save-draft-btn" class="btn-secondary">
-                        <span class="material-icons">save</span>
-                        حفظ مسودة
-                    </button>
-                    <button type="submit" class="btn-submit" id="publish-btn">
-                        <span class="material-icons">rocket_launch</span>
-                        نشر الإعلان
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <aside class="preview-column">
-            <section class="panel-box preview-panel">
-                <div class="panel-heading compact">
-                    <div>
-                        <span class="panel-kicker">Live Preview</span>
-                        <h2><span class="material-icons">visibility</span> المعاينة المباشرة</h2>
-                    </div>
-                    <span class="preview-live"><i></i> مباشر</span>
-                </div>
-
-                <div class="preview-stage">
-                    <article class="announcement-preview-card" id="announcement-preview-card">
-                        <div class="preview-image-wrap" id="preview-image-wrap">
-                            <img id="preview-image" alt="معاينة صورة الإعلان">
-                            <div class="preview-image-placeholder" id="preview-image-placeholder">
-                                <span class="material-icons">image</span>
-                                <span>ستظهر الصورة هنا</span>
-                            </div>
-                            <span class="preview-category" id="preview-category">📢 إعلان عام</span>
-                        </div>
-
-                        <div class="preview-content">
-                            <span class="preview-label">WALLPAPERHUB</span>
-                            <h3 id="preview-title">عنوان الإعلان سيظهر هنا</h3>
-                            <p id="preview-content-text">اكتب محتوى الإعلان لترى المعاينة مباشرة.</p>
-                            <a id="preview-link" href="#" hidden>قراءة المزيد <span class="material-icons">arrow_back</span></a>
-                        </div>
-                    </article>
-                </div>
-
-                <div class="preview-note">
-                    <span class="material-icons">info</span>
-                    هذه معاينة تقريبية لما سيشاهده المستخدم.
-                </div>
-            </section>
-        </aside>
-
-    </main>
-
-    <section class="panel-box published-panel">
-        <div class="published-header">
-            <div class="panel-heading compact">
-                <div>
-                    <span class="panel-kicker">Library</span>
-                    <h2><span class="material-icons">campaign</span> الإعلانات المنشورة</h2>
-                </div>
-            </div>
-
-            <div class="list-tools">
-                <div class="search-box">
-                    <span class="material-icons">search</span>
-                    <input id="ads-search" type="search" placeholder="ابحث عن إعلان...">
-                </div>
-                <select id="ads-filter" class="filter-select">
-                    <option value="all">الكل</option>
-                    <option value="active">النشطة</option>
-                    <option value="hidden">المخفية</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="ads-list" id="ads-container"></div>
-
-        <div class="empty-state" id="ads-empty" hidden>
-            <span class="material-icons">campaign</span>
-            <strong>لا توجد إعلانات</strong>
-            <span>ابدأ بإنشاء أول إعلان من النموذج أعلاه.</span>
-        </div>
-    </section>
-
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon">📢</div><div class="stat-info"><h4 id="stat-total">0</h4><span>إجمالي الإعلانات</span></div></div>
+  <div class="stat-card"><div class="stat-icon">👁️</div><div class="stat-info"><h4 id="stat-views">0</h4><span>إجمالي المشاهدات</span></div></div>
+  <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-info"><h4 id="stat-interactions">0</h4><span>التفاعلات</span></div></div>
 </div>
 
+<div class="dashboard-grid">
+<section class="panel-box">
+<h2>✨ نشر إعلان جديد</h2>
+<form id="create-ad-form">
+<div class="form-group"><label>عنوان الإعلان</label><input type="text" id="ad-title" class="form-control" placeholder="أدخل عنوان الإعلان" required></div>
+<div class="form-group"><label>التصنيف</label><select id="ad-category" class="form-control">
+<option value="admin">📢 إعلان عام</option><option value="update">🚀 تحديث جديد</option><option value="event">🎉 فعالية</option>
+</select></div>
+<div class="form-group"><label>رابط الصورة</label><input type="url" id="ad-image" class="form-control" placeholder="https://"></div>
+<div class="form-group"><label>أو اختر صورة</label>
+<input type="file" id="ad-file" accept="image/*" class="file-input">
+<label for="ad-file" class="file-upload-btn">📁 اختيار صورة</label>
+<div id="file-preview-name" class="file-name-preview"></div></div>
+<div class="form-group"><label>محتوى الإعلان</label><textarea id="ad-content" class="form-control" placeholder="اكتب الإعلان هنا..." required></textarea></div>
+<button type="submit" class="btn-submit" id="publish-btn">🚀 نشر الإعلان</button>
+</form>
+</section>
+
+<section class="panel-box">
+<h2>📋 الإعلانات المنشورة</h2>
+<div class="ads-list" id="ads-container"></div>
+</section>
+</div>
+</div>
 <script type="module" src="notice-create.js"></script>
 </body>
 </html>

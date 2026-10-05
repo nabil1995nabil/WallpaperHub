@@ -1,5 +1,25 @@
 import { supabase } from "../supabase.js";
 
+function addAdminPageBar(user){
+  if(document.getElementById("adminPageBar")) return;
+  const m=user?.user_metadata||{};
+  const name=m.full_name||m.name||m.user_name||user?.email?.split("@")[0]||"المدير";
+  const avatar=m.avatar_url||m.picture||m.avatar||"";
+  const bar=document.createElement("div");
+  bar.id="adminPageBar"; bar.className="admin-page-bar";
+  bar.innerHTML=`<a href="admin.html" class="admin-page-home">🏠 لوحة التحكم</a>
+    <div class="admin-page-account"><span class="admin-page-online">● متصل</span>
+    <div class="admin-page-avatar">${avatar?`<img src="${String(avatar).replace(/"/g,"&quot;")}" alt="">`:`<span>${String(name).slice(0,1)}</span>`}</div>
+    <div class="admin-page-user"><strong>${String(name).replace(/[&<>"]/g,"")}</strong><small>${String(user?.email||"").replace(/[&<>"]/g,"")}</small></div>
+    <button id="adminPageLogout" type="button">🚪 خروج</button></div>`;
+  document.body.prepend(bar);
+  document.getElementById("adminPageLogout").onclick=async()=>{await supabase.auth.signOut({scope:"local"});location.href="/profile.html";};
+  const style=document.createElement("style");
+  style.textContent=`.admin-page-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:8px 12px;background:#fff;border:1px solid #e4e7ec;border-radius:14px;box-shadow:0 5px 18px rgba(16,24,40,.05);font-family:Cairo,system-ui,sans-serif}.admin-page-home{color:#2563eb;text-decoration:none;font-weight:700;font-size:12px}.admin-page-account{display:flex;align-items:center;gap:8px}.admin-page-online{font-size:10px;color:#16a34a;font-weight:700}.admin-page-avatar{width:30px;height:30px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:grid;place-items:center;font-weight:800}.admin-page-avatar img{width:100%;height:100%;object-fit:cover}.admin-page-user{display:flex;flex-direction:column;min-width:0}.admin-page-user strong{font-size:11px}.admin-page-user small{font-size:9px;color:#64748b}.admin-page-account button{border:1px solid #e2e8f0;background:#fff;color:#ef4444;border-radius:9px;padding:6px 9px;font-size:10px}@media(max-width:600px){.admin-page-user{display:none}}`;
+  document.head.appendChild(style);
+}
+
+
 // ==========================================
 // WallpaperHub — Admin Wallpapers Manager
 // ==========================================
@@ -640,6 +660,7 @@ window.clearSelection = clearSelection;
       return;
     }
 
+    addAdminPageBar(data.user || (await supabase.auth.getUser()).data?.user);
     loadWallpapers();
   } catch (error) {
     console.error("ADMIN AUTH ERROR:", error);

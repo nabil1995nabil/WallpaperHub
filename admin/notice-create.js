@@ -1,469 +1,172 @@
-import "./admin-auth.js";
+import { supabase } from "../supabase.js";
 
-// =================================
-// WallpaperHub Admin Notice Creator
-// Modern dashboard + live preview
-// =================================
+document.addEventListener("DOMContentLoaded", async () => {
+    const form=document.getElementById("create-ad-form");
+    const adsContainer=document.getElementById("ads-container");
+    const statTotal=document.getElementById("stat-total");
+    const statViews=document.getElementById("stat-views");
+    const statInteractions=document.getElementById("stat-interactions");
+    const fileInput=document.getElementById("ad-file");
+    const fileNamePreview=document.getElementById("file-preview-name");
+    const publishBtn=document.getElementById("publish-btn");
 
-document.addEventListener("DOMContentLoaded", () => {
+    let uploadedImageBase64="";
+    let editingAnnouncementId=null;
+    let announcements=[];
 
-    const form = document.getElementById("create-ad-form");
-    const adsContainer = document.getElementById("ads-container");
-    const adsEmpty = document.getElementById("ads-empty");
-    const statTotal = document.getElementById("stat-total");
-    const statViews = document.getElementById("stat-views");
-    const statInteractions = document.getElementById("stat-interactions");
-    const statActive = document.getElementById("stat-active");
-
-    const fileInput = document.getElementById("ad-file");
-    const fileNamePreview = document.getElementById("file-preview-name");
-    const uploadZone = document.getElementById("upload-zone");
-
-    const titleInput = document.getElementById("ad-title");
-    const categoryInput = document.getElementById("ad-category");
-    const imageInput = document.getElementById("ad-image");
-    const contentInput = document.getElementById("ad-content");
-    const linkInput = document.getElementById("ad-link");
-    const pinnedInput = document.getElementById("ad-pinned");
-    const draftInput = document.getElementById("ad-draft");
-    const scheduledInput = document.getElementById("ad-scheduled");
-    const startInput = document.getElementById("ad-start");
-    const endInput = document.getElementById("ad-end");
-
-    const previewImage = document.getElementById("preview-image");
-    const previewPlaceholder = document.getElementById("preview-image-placeholder");
-    const previewCategory = document.getElementById("preview-category");
-    const previewTitle = document.getElementById("preview-title");
-    const previewContent = document.getElementById("preview-content-text");
-    const previewLink = document.getElementById("preview-link");
-
-    const titleCount = document.getElementById("title-count");
-    const contentCount = document.getElementById("content-count");
-    const editorState = document.getElementById("editor-state");
-    const publishBtn = document.getElementById("publish-btn");
-    const saveDraftBtn = document.getElementById("save-draft-btn");
-    const searchInput = document.getElementById("ads-search");
-    const filterInput = document.getElementById("ads-filter");
-
-    let uploadedImageBase64 = "";
-    let editingAnnouncementId = null;
-    let announcements = [];
-
-    const categoryLabels = {
-        admin: "📢 إعلان عام",
-        update: "🚀 تحديث جديد",
-        event: "🎉 فعالية",
-        warning: "⚠️ تنبيه مهم",
-        maintenance: "🛠️ صيانة"
-    };
-
-    function escapeHTML(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
+    function esc(v){
+        return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
     }
 
-    function imageSourceFromAd(ad) {
-        return ad?.image || "https://picsum.photos/600/300";
-    }
-
-    function updateCounters() {
-        const total = announcements.length;
-        const views = announcements.reduce((sum, ad) => sum + Number(ad.views || ad.view_count || 0), 0);
-        const interactions = announcements.reduce(
-            (sum, ad) => sum + Number(ad.interactions || ad.likes || ad.like_count || 0),
-            0
-        );
-        const active = announcements.filter(ad => ad.active !== false && ad.status !== "hidden").length;
-
-        if (statTotal) statTotal.textContent = total;
-        if (statViews) statViews.textContent = views >= 1000 ? `${(views / 1000).toFixed(1).replace(".0", "")}K` : views;
-        if (statInteractions) statInteractions.textContent = interactions >= 1000 ? `${(interactions / 1000).toFixed(1).replace(".0", "")}K` : interactions;
-        if (statActive) statActive.textContent = active;
-    }
-
-    function updateCounts() {
-        if (titleCount) titleCount.textContent = `${titleInput.value.length}/90`;
-        if (contentCount) contentCount.textContent = `${contentInput.value.length}/500`;
-    }
-
-    function updatePreview() {
-        const title = titleInput.value.trim();
-        const content = contentInput.value.trim();
-        const category = categoryInput.value;
-        const urlImage = imageInput.value.trim();
-        const source = uploadedImageBase64 || urlImage;
-
-        previewTitle.textContent = title || "عنوان الإعلان سيظهر هنا";
-        previewContent.textContent = content || "اكتب محتوى الإعلان لترى المعاينة مباشرة.";
-        previewCategory.textContent = categoryLabels[category] || "📢 إعلان عام";
-
-        if (source) {
-            previewImage.src = source;
-            previewImage.style.display = "block";
-            previewPlaceholder.style.display = "none";
-        } else {
-            previewImage.removeAttribute("src");
-            previewImage.style.display = "none";
-            previewPlaceholder.style.display = "flex";
+    async function getSession(){
+        const {data,error}=await supabase.auth.getSession();
+        if(error || !data?.session){
+            sessionStorage.setItem("wallpaperhub_admin_return",location.pathname);
+            location.href="/profile.html";
+            return null;
         }
-
-        const validLink = /^https?:\/\//i.test(linkInput.value.trim());
-        if (validLink) {
-            previewLink.hidden = false;
-            previewLink.href = linkInput.value.trim();
-        } else {
-            previewLink.hidden = true;
-            previewLink.removeAttribute("href");
+        const s=data.session;
+        const r=await fetch("/api/admin/me",{headers:{Authorization:`Bearer ${s.access_token}`},cache:"no-store"});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok || !d.isAdmin){
+            alert("هذا الحساب لا يملك صلاحية الأدمن.");
+            location.href="/profile.html";
+            return null;
         }
-
-        editorState.textContent = editingAnnouncementId ? "تعديل إعلان" : (draftInput.checked ? "مسودة" : "جديد");
-        updateCounts();
+        return s;
     }
 
-    function setScheduleState() {
-        const enabled = scheduledInput.checked;
-        startInput.disabled = !enabled;
-        endInput.disabled = !enabled;
+    function ensureBar(session){
+        const bar=document.createElement("div");
+        bar.className="admin-page-bar";
+        bar.innerHTML=`
+          <a class="admin-page-home" href="admin.html">🏠 لوحة التحكم</a>
+          <div class="admin-page-account">
+            <span class="admin-page-online">● متصل</span>
+            <div class="admin-page-avatar" id="adminPageAvatar"></div>
+            <div class="admin-page-user"><strong id="adminPageName"></strong><small id="adminPageEmail"></small></div>
+            <button id="adminPageLogout" type="button">🚪 خروج</button>
+          </div>`;
+        document.body.prepend(bar);
+        const u=session.user,m=u.user_metadata||{},name=m.full_name||m.name||m.user_name||u.email?.split("@")[0]||"المدير";
+        const avatar=m.avatar_url||m.picture||m.avatar||"";
+        document.getElementById("adminPageName").textContent=name;
+        document.getElementById("adminPageEmail").textContent=u.email||"";
+        document.getElementById("adminPageAvatar").innerHTML=avatar?`<img src="${esc(avatar)}" alt="">`:`<span>${esc(name[0]||"W")}</span>`;
+        document.getElementById("adminPageLogout").onclick=async()=>{await supabase.auth.signOut({scope:"local"});location.href="/profile.html";};
     }
 
-    function resetEditor() {
-        editingAnnouncementId = null;
-        form.reset();
-        draftInput.checked = false;
-        uploadedImageBase64 = "";
-        fileNamePreview.textContent = "";
-        editorState.textContent = "جديد";
-        publishBtn.innerHTML = '<span class="material-icons">rocket_launch</span> نشر الإعلان';
-        setScheduleState();
-        updatePreview();
+    function updateCounter(){
+        statTotal.textContent=announcements.length;
+        statViews.textContent=announcements.reduce((s,a)=>s+Number(a.views||0),0);
+        statInteractions.textContent=announcements.reduce((s,a)=>s+Number(a.likes||0),0);
     }
 
-    function saveLocalDraft() {
-        const draft = {
-            title: titleInput.value,
-            category: categoryInput.value,
-            image: imageInput.value,
-            content: contentInput.value,
-            link: linkInput.value,
-            pinned: pinnedInput.checked,
-            scheduled: scheduledInput.checked,
-            start: startInput.value,
-            end: endInput.value,
-            imageBase64: uploadedImageBase64
-        };
-
-        localStorage.setItem("wallpaperhub_notice_draft", JSON.stringify(draft));
-        draftInput.checked = true;
-        updatePreview();
-        alert("تم حفظ المسودة على هذا الجهاز.");
-    }
-
-    function loadLocalDraft() {
-        try {
-            const raw = localStorage.getItem("wallpaperhub_notice_draft");
-            if (!raw) return;
-            const draft = JSON.parse(raw);
-            if (!draft || typeof draft !== "object") return;
-
-            titleInput.value = draft.title || "";
-            categoryInput.value = draft.category || "admin";
-            imageInput.value = draft.image || "";
-            contentInput.value = draft.content || "";
-            linkInput.value = draft.link || "";
-            pinnedInput.checked = Boolean(draft.pinned);
-            scheduledInput.checked = Boolean(draft.scheduled);
-            startInput.value = draft.start || "";
-            endInput.value = draft.end || "";
-            uploadedImageBase64 = draft.imageBase64 || "";
-            // استرجاع المسودة يملأ الحقول فقط؛ لا يمنع زر النشر.
-            draftInput.checked = false;
-
-            if (uploadedImageBase64) {
-                fileNamePreview.textContent = "تم استرجاع صورة المسودة";
-            }
-            setScheduleState();
-            updatePreview();
-        } catch (error) {
-            console.warn("LOAD LOCAL DRAFT ERROR:", error);
+    function renderAds(){
+        adsContainer.innerHTML="";
+        if(!announcements.length){
+            adsContainer.innerHTML='<div class="empty-ads">لا توجد إعلانات منشورة حاليا.</div>';
+            updateCounter(); return;
         }
-    }
-
-    async function loadAds() {
-        try {
-            const headers = window.adminAuth ? await window.adminAuth.getHeaders() : {};
-            const res = await fetch("/api/admin/announcements", { headers });
-            if (!res.ok) throw new Error("LOAD ADS HTTP ERROR");
-            const data = await res.json();
-            announcements = Array.isArray(data) ? data : [];
-            renderAds();
-            updateCounters();
-        } catch (error) {
-            console.error("LOAD ADS ERROR:", error);
-            announcements = [];
-            renderAds();
-            updateCounters();
-        }
-    }
-
-    function renderAds() {
-        if (!adsContainer) return;
-
-        const query = (searchInput?.value || "").trim().toLowerCase();
-        const filter = filterInput?.value || "all";
-
-        const filtered = announcements.filter(ad => {
-            const haystack = `${ad.title || ""} ${ad.content || ""} ${ad.type || ad.category || ""}`.toLowerCase();
-            if (query && !haystack.includes(query)) return false;
-
-            if (filter === "active") {
-                return ad.active !== false && ad.status !== "hidden";
-            }
-            if (filter === "hidden") {
-                return ad.active === false || ad.status === "hidden";
-            }
-            return true;
+        const fragment=document.createDocumentFragment();
+        announcements.forEach(ad=>{
+            const item=document.createElement("article");
+            item.className="ad-item";
+            item.innerHTML=`
+              <img class="ad-thumb" loading="lazy" src="${esc(ad.image||"https://picsum.photos/120/120")}" alt="">
+              <div class="ad-details">
+                <h4>${esc(ad.title||"بدون عنوان")}</h4>
+                <p>${esc(ad.content||"")}</p>
+                <span class="ad-date">${esc(ad.date||"الآن")}</span>
+              </div>
+              <div class="ad-actions">
+                <button class="action-btn edit" type="button">✏️</button>
+                <button class="action-btn delete" type="button">🗑️</button>
+              </div>`;
+            item.querySelector(".edit").onclick=()=>editAdvertisement(ad);
+            item.querySelector(".delete").onclick=()=>deleteAdvertisement(ad.id,item);
+            fragment.appendChild(item);
         });
+        adsContainer.appendChild(fragment);
+        updateCounter();
+    }
 
-        adsContainer.innerHTML = "";
-
-        if (!filtered.length) {
-            adsEmpty.hidden = false;
-            return;
+    async function loadAds(session){
+        try{
+            const r=await fetch("/api/admin/announcements",{headers:{Authorization:`Bearer ${session.access_token}`},cache:"no-store"});
+            const raw=await r.text(); const data=raw?JSON.parse(raw):[];
+            if(!r.ok) throw new Error(data?.message||data?.error||`HTTP ${r.status}`);
+            announcements=Array.isArray(data)?data:[];
+            renderAds();
+        }catch(e){
+            console.error(e);
+            adsContainer.innerHTML='<div class="empty-ads">تعذر تحميل الإعلانات. حاول تحديث الصفحة.</div>';
         }
-
-        adsEmpty.hidden = true;
-        filtered.forEach(ad => createAdCard(ad));
     }
 
-    function createAdCard(ad) {
-        const adItem = document.createElement("article");
-        adItem.className = "ad-item";
-
-        const type = ad.type || ad.category || "admin";
-        const active = ad.active !== false && ad.status !== "hidden";
-
-        adItem.innerHTML = `
-            <img src="${escapeHTML(imageSourceFromAd(ad))}" class="ad-thumb" alt="">
-            <div class="ad-details">
-                <div class="ad-title-row">
-                    <h4>${escapeHTML(ad.title || "بدون عنوان")}</h4>
-                    <span class="ad-type">${escapeHTML(categoryLabels[type] || type)}</span>
-                    <span class="ad-status">${active ? "نشط" : "مخفي"}</span>
-                </div>
-                <p>${escapeHTML(ad.content || "")}</p>
-                <div class="ad-meta">
-                    <span class="ad-date">${escapeHTML(ad.date || ad.created_at || "الآن")}</span>
-                    <span class="ad-date">👁 ${Number(ad.views || ad.view_count || 0)}</span>
-                    <span class="ad-date">❤️ ${Number(ad.interactions || ad.likes || ad.like_count || 0)}</span>
-                </div>
-            </div>
-            <div class="ad-actions">
-                <button class="action-btn edit" type="button" aria-label="تعديل الإعلان" title="تعديل">✏️</button>
-                <button class="action-btn delete" type="button" aria-label="حذف الإعلان" title="حذف">🗑️</button>
-            </div>
-        `;
-
-        adItem.querySelector(".edit").onclick = () => editAdvertisement(ad);
-        adItem.querySelector(".delete").onclick = () => deleteAdvertisement(ad.id);
-
-        adsContainer.appendChild(adItem);
-
-        const thumb = adItem.querySelector(".ad-thumb");
-        thumb.addEventListener("error", () => {
-            thumb.src = "https://picsum.photos/600/300";
-        }, { once: true });
-    }
-
-    function deleteAdvertisement(id) {
-        if (!confirm("هل تريد حذف الإعلان؟")) return;
-
-        fetch(`/api/admin/announcements/${id}`, { method: "DELETE", headers: window.adminAuth ? await window.adminAuth.getHeaders() : {} })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) throw new Error("DELETE FAILED");
-                announcements = announcements.filter(ad => String(ad.id) !== String(id));
-                renderAds();
-                updateCounters();
-            })
-            .catch(error => {
-                console.error("DELETE ERROR:", error);
-                alert("فشل حذف الإعلان");
+    async function deleteAdvertisement(id,item){
+        if(!confirm("هل تريد حذف هذا الإعلان؟")) return;
+        try{
+            const r=await fetch(`/api/admin/announcements/${encodeURIComponent(id)}`,{
+                method:"DELETE",headers:{Authorization:`Bearer ${window._adminSession.access_token}`}
             });
+            const d=await r.json().catch(()=>({}));
+            if(!r.ok||!d.success) throw new Error(d.message||d.error||"فشل الحذف");
+            announcements=announcements.filter(a=>String(a.id)!==String(id));
+            renderAds();
+        }catch(e){alert(e.message||"فشل حذف الإعلان");}
     }
 
-    function editAdvertisement(ad) {
-        titleInput.value = ad.title || "";
-        categoryInput.value = ad.type || ad.category || "admin";
-        contentInput.value = ad.content || "";
-        imageInput.value = ad.image || "";
-        linkInput.value = ad.link || "";
-        pinnedInput.checked = Boolean(ad.pinned);
-        draftInput.checked = false;
-        scheduledInput.checked = false;
-        uploadedImageBase64 = "";
-
-        editingAnnouncementId = ad.id;
-        editorState.textContent = "تعديل إعلان";
-        publishBtn.innerHTML = '<span class="material-icons">save</span> حفظ التعديل';
-
-        setScheduleState();
-        updatePreview();
-        document.querySelector(".editor-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    function editAdvertisement(ad){
+        document.getElementById("ad-title").value=ad.title||"";
+        document.getElementById("ad-category").value=ad.type||ad.category||"admin";
+        document.getElementById("ad-content").value=ad.content||"";
+        document.getElementById("ad-image").value=ad.image&&/^https?:\/\//i.test(ad.image)?ad.image:"";
+        uploadedImageBase64="";
+        editingAnnouncementId=ad.id;
+        publishBtn.textContent="💾 حفظ التعديل";
+        form.scrollIntoView({behavior:"smooth",block:"start"});
     }
 
-    if (fileInput) {
-        fileInput.addEventListener("change", event => {
-            const file = event.target.files?.[0];
-
-            if (!file) {
-                uploadedImageBase64 = "";
-                fileNamePreview.textContent = "";
-                updatePreview();
-                return;
-            }
-
-            if (!file.type.startsWith("image/")) {
-                alert("يرجى اختيار ملف صورة.");
-                fileInput.value = "";
-                return;
-            }
-
-            fileNamePreview.textContent = `تم اختيار: ${file.name}`;
-
-            const reader = new FileReader();
-            reader.onload = event => {
-                uploadedImageBase64 = event.target.result;
-                updatePreview();
-            };
+    if(fileInput){
+        fileInput.addEventListener("change",e=>{
+            const file=e.target.files?.[0];
+            if(!file){uploadedImageBase64="";fileNamePreview.textContent="";return;}
+            if(!file.type.startsWith("image/")){alert("يرجى اختيار صورة.");fileInput.value="";return;}
+            fileNamePreview.textContent="تم اختيار: "+file.name;
+            const reader=new FileReader();
+            reader.onload=ev=>uploadedImageBase64=ev.target.result;
             reader.readAsDataURL(file);
         });
     }
 
-    if (uploadZone) {
-        ["dragenter", "dragover"].forEach(type => {
-            uploadZone.addEventListener(type, event => {
-                event.preventDefault();
-                uploadZone.classList.add("dragging");
-            });
-        });
+    const session=await getSession();
+    if(!session) return;
+    window._adminSession=session;
+    ensureBar(session);
+    await loadAds(session);
 
-        ["dragleave", "drop"].forEach(type => {
-            uploadZone.addEventListener(type, event => {
-                event.preventDefault();
-                uploadZone.classList.remove("dragging");
-            });
-        });
-
-        uploadZone.addEventListener("drop", event => {
-            const file = event.dataTransfer.files?.[0];
-            if (!file || !file.type.startsWith("image/")) return;
-
-            const transfer = new DataTransfer();
-            transfer.items.add(file);
-            fileInput.files = transfer.files;
-            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-        });
-    }
-
-    [titleInput, categoryInput, imageInput, contentInput, linkInput, draftInput].forEach(element => {
-        element?.addEventListener("input", updatePreview);
-        element?.addEventListener("change", updatePreview);
+    form?.addEventListener("submit",async e=>{
+        e.preventDefault();
+        const title=document.getElementById("ad-title").value.trim();
+        const category=document.getElementById("ad-category").value;
+        const content=document.getElementById("ad-content").value.trim();
+        const urlImage=document.getElementById("ad-image").value.trim();
+        const image=uploadedImageBase64||urlImage||"https://picsum.photos/600/300";
+        if(!title||!content){alert("أدخل عنوان الإعلان ومحتواه أولًا.");return;}
+        publishBtn.disabled=true;
+        publishBtn.textContent=editingAnnouncementId?"جاري حفظ التعديل...":"جاري النشر...";
+        try{
+            const url=editingAnnouncementId?`/api/admin/notifications/${encodeURIComponent(editingAnnouncementId)}`:"/api/admin/announcements";
+            const method=editingAnnouncementId?"PUT":"POST";
+            const r=await fetch(url,{method,headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({title,category,content,image})});
+            const raw=await r.text(); const d=raw?JSON.parse(raw):{};
+            if(!r.ok||!d.success) throw new Error(d.message||d.error||`HTTP ${r.status}`);
+            alert(editingAnnouncementId?"تم تعديل الإعلان":"تم نشر الإعلان");
+            form.reset(); uploadedImageBase64=""; fileNamePreview.textContent=""; editingAnnouncementId=null;
+            publishBtn.textContent="🚀 نشر الإعلان";
+            await loadAds(session);
+        }catch(e){console.error(e);alert("تعذر حفظ الإعلان: "+(e.message||"خطأ غير معروف"));publishBtn.textContent=editingAnnouncementId?"💾 حفظ التعديل":"🚀 نشر الإعلان";}
+        finally{publishBtn.disabled=false;}
     });
-
-    scheduledInput?.addEventListener("change", () => {
-        setScheduleState();
-    });
-
-    searchInput?.addEventListener("input", renderAds);
-    filterInput?.addEventListener("change", renderAds);
-
-    saveDraftBtn?.addEventListener("click", saveLocalDraft);
-
-    form?.addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const title = titleInput.value.trim();
-        const category = categoryInput.value;
-        const content = contentInput.value.trim();
-        const urlImage = imageInput.value.trim();
-        const image = uploadedImageBase64 || urlImage || "https://picsum.photos/600/300";
-
-        if (!title || !content) {
-            alert("أدخل عنوان الإعلان ومحتواه أولًا.");
-            return;
-        }
-
-        // النشر الفعلي لا يعتمد على مفتاح المسودة.
-        // مفتاح "مسودة" مخصص للحفظ المحلي فقط عبر زر "حفظ مسودة".
-        const url = editingAnnouncementId
-            ? `/api/admin/notifications/${editingAnnouncementId}`
-            : "/api/admin/announcements";
-
-        const method = editingAnnouncementId ? "PUT" : "POST";
-
-        const body = {
-            title,
-            category,
-            content,
-            image
-        };
-
-        // السيرفر الحالي يدعم هذه الحقول الأساسية فقط.
-        // الرابط يبقى للمعاينة في الواجهة إلى أن نضيف له عمودًا/دعمًا في السيرفر.
-        fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-                ...(window.adminAuth ? await window.adminAuth.getHeaders() : {})
-            },
-            body: JSON.stringify(body)
-        })
-            .then(async res => {
-                const raw = await res.text();
-                let data = null;
-
-                try {
-                    data = raw ? JSON.parse(raw) : null;
-                } catch {
-                    data = null;
-                }
-
-                if (!res.ok) {
-                    throw new Error(
-                        data?.error ||
-                        data?.message ||
-                        `HTTP ${res.status}`
-                    );
-                }
-
-                if (!data?.success) {
-                    throw new Error(
-                        data?.error ||
-                        data?.message ||
-                        "SAVE FAILED"
-                    );
-                }
-
-                return data;
-            })
-            .then(() => {
-                alert(editingAnnouncementId ? "تم تعديل الإعلان" : "تم نشر الإعلان");
-
-                localStorage.removeItem("wallpaperhub_notice_draft");
-                resetEditor();
-                loadAds();
-            })
-            .catch(error => {
-                console.error("SAVE ANNOUNCEMENT ERROR:", error);
-                alert(`تعذر حفظ الإعلان: ${error.message || "خطأ غير معروف"}`);
-            });
-    });
-
-    loadLocalDraft();
-    loadAds();
-    updatePreview();
 });
