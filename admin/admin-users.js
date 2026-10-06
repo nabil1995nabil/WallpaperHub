@@ -154,8 +154,13 @@ function showToast(msg){
 
 async function getToken(){
   try{
-    const mod = await import("/js/supabase.js");
-    const { data } = await mod.supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
+
+    if(error){
+      console.warn("تعذر قراءة جلسة Supabase:", error);
+      return "";
+    }
+
     return data?.session?.access_token || "";
   }catch(error){
     console.warn("تعذر قراءة جلسة Supabase:", error);
