@@ -951,11 +951,33 @@ app.post("/api/admin/users/:uid/medals", async(req,res)=>{
         const admin = await requireAdmin(req,res);
         if(!admin) return;
 
-        const uid = String(req.params.uid || "").trim();
+        const routeUid = String(req.params.uid || "").trim();
+        const bodyUid = String(req.body?.uid || "").trim();
+        const uid = routeUid || bodyUid;
         const medalKey = String(req.body?.medal_key || "").trim();
 
+        if(routeUid && bodyUid && routeUid !== bodyUid){
+            return res.status(400).json({
+                success:false,
+                message:"UID المستخدم في الطلب غير متطابق"
+            });
+        }
+
         if(!uid || !medalKey){
-            return res.status(400).json({success:false,message:"UID و medal_key مطلوبان"});
+            return res.status(400).json({
+                success:false,
+                message:"UID و medal_key مطلوبان"
+            });
+        }
+
+        const { data:targetData, error:targetError } =
+            await supabase.auth.admin.getUserById(uid);
+
+        if(targetError || !targetData?.user){
+            return res.status(404).json({
+                success:false,
+                message:"المستخدم غير موجود"
+            });
         }
 
         const {data:medal,error:medalError} = await supabase
