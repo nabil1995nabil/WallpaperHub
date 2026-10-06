@@ -318,7 +318,10 @@ function renderMedals(detail){
     await medalAction(
       "POST",
       `/api/admin/users/${encodeURIComponent(selected.id)}/medals`,
-      {medal_key:btn.dataset.medal}
+      {
+        uid: String(selected.uid || selected.id || "").trim(),
+        medal_key: btn.dataset.medal
+      }
     );
   }));
 
@@ -914,6 +917,12 @@ $("#banDuration")?.addEventListener("change", updateCustomBanVisibility);
 $("#addMedal").onclick = () => {
   if(!selected || !selectedDetail) return;
 
+  const selectedUid = String(selected.uid || selected.id || "").trim();
+  if(!selectedUid){
+    showToast("تعذر تحديد UID المستخدم");
+    return;
+  }
+
   const catalog = Array.isArray(selectedDetail.medals)
     ? selectedDetail.medals
     : [];
@@ -982,7 +991,10 @@ $("#addMedal").onclick = () => {
         await medalAction(
           "POST",
           `/api/admin/users/${encodeURIComponent(selected.id)}/medals`,
-          {medal_key:key}
+          {
+            uid: String(selected.uid || selected.id || "").trim(),
+            medal_key: key
+          }
         );
         close();
       }catch{
