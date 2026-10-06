@@ -308,6 +308,36 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 
+// ======================================
+// Middleware
+// يجب تسجيل parser قبل جميع API routes حتى يصل req.body
+// إلى PATCH/POST الخاصة بإدارة المستخدمين.
+// ======================================
+
+app.use(cors());
+
+app.use(express.json({
+    limit:"20mb"
+}));
+
+app.use(express.urlencoded({
+    extended:true
+}));
+
+// منع كاش API
+app.use(
+    "/api",
+    (req,res,next)=>{
+        res.set(
+            "Cache-Control",
+            "no-store, no-cache, must-revalidate"
+        );
+        next();
+    }
+);
+
+
+
 app.get("/api/admin/users", async (req,res)=>{
     try{
         const admin = await requireAdmin(req,res);
@@ -640,7 +670,10 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
             warning_level:warningLevel ?? Number(current.warning_level || 0),
             ban_type:banType ?? current.ban_type ?? null,
             ban_reason:banReason ?? current.ban_reason ?? null,
-            ban_until:banUntil ?? current.ban_until ?? null
+            ban_until:
+                req.body?.clear_ban_until === true
+                    ? null
+                    : (banUntil ?? current.ban_until ?? null)
         };
 
         if(nextStatus !== "banned"){
@@ -954,7 +987,12 @@ app.post("/api/admin/users/:uid/medals", async(req,res)=>{
         const routeUid = String(req.params.uid || "").trim();
         const bodyUid = String(req.body?.uid || "").trim();
         const uid = routeUid || bodyUid;
-        const medalKey = String(req.body?.medal_key || "").trim();
+        const medalKey = String(
+            req.body?.medal_key ||
+            req.body?.medalKey ||
+            req.body?.key ||
+            ""
+        ).trim();
 
         if(routeUid && bodyUid && routeUid !== bodyUid){
             return res.status(400).json({
@@ -963,10 +1001,17 @@ app.post("/api/admin/users/:uid/medals", async(req,res)=>{
             });
         }
 
-        if(!uid || !medalKey){
+        if(!uid){
             return res.status(400).json({
                 success:false,
-                message:"UID و medal_key مطلوبان"
+                message:"UID المستخدم مطلوب"
+            });
+        }
+
+        if(!medalKey){
+            return res.status(400).json({
+                success:false,
+                message:"medal_key الميدالية مطلوب"
             });
         }
 
@@ -1301,53 +1346,6 @@ app.get("/api/supabase/config", (req, res) => {
 
 
 // ======================================
-// Middleware
-// ======================================
-
-
-app.use(
-    cors()
-);
-
-
-
-app.use(
-    express.json({
-        limit:"20mb"
-    })
-);
-
-
-
-app.use(
-    express.urlencoded({
-        extended:true
-    })
-);
-
-
-
-// ======================================
-// منع كاش API
-// ======================================
-
-app.use(
-    "/api",
-    (req,res,next)=>{
-
-        res.set(
-            "Cache-Control",
-            "no-store, no-cache, must-revalidate"
-        );
-
-        next();
-
-    }
-);
-
-
-
-// ======================================
 // Static Files
 // ======================================
 
@@ -1404,7 +1402,7 @@ app.get(/^\/(.+)$/, async (req, res, next) => {
 
         const contentType = remote.headers.get("content-type");
         if (contentType) res.set("Content-Type", contentType);
-        res.set("Cache-Control", "public, max-age=300");
+        res.set("Cache-Control", "no-store, no-cache, must-revalidate");
 
         const body = await remote.buffer();
         return res.send(body);
