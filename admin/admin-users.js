@@ -315,12 +315,30 @@ function renderMedals(detail){
 
   $$(".medal-add").forEach(btn => btn.addEventListener("click", async () => {
     if(!selected) return;
+
+    const uid = String(selected.uid || selected.id || "").trim();
+    const medalKeyValue = String(
+      btn.dataset.medal ||
+      btn.dataset.medalKey ||
+      ""
+    ).trim();
+
+    if(!uid){
+      showToast("تعذر تحديد UID المستخدم");
+      return;
+    }
+
+    if(!medalKeyValue){
+      showToast("تعذر تحديد مفتاح الميدالية");
+      return;
+    }
+
     await medalAction(
       "POST",
-      `/api/admin/users/${encodeURIComponent(selected.id)}/medals`,
+      `/api/admin/users/${encodeURIComponent(uid)}/medals`,
       {
-        uid: String(selected.uid || selected.id || "").trim(),
-        medal_key: btn.dataset.medal
+        uid,
+        medal_key: medalKeyValue
       }
     );
   }));
@@ -519,6 +537,11 @@ async function action(endpoint, body, msg, method = "PATCH"){
 }
 
 async function medalAction(method, endpoint, body = null){
+  if(!endpoint){
+    showToast("عنوان العملية غير صالح");
+    return;
+  }
+
   try{
     await api(endpoint, {
       method,
@@ -885,7 +908,8 @@ $("#permanentBan").onclick = async () => {
       status:"banned",
       ban_type:"permanent",
       ban_reason:reason,
-      ban_until:null
+      ban_until:null,
+      clear_ban_until:true
     },
     "تم تنفيذ الحظر الدائم"
   );
@@ -988,12 +1012,23 @@ $("#addMedal").onclick = () => {
       btn.disabled = true;
 
       try{
+        const uid = String(selectedUid || selected.uid || selected.id || "").trim();
+        const medalKeyValue = String(key || "").trim();
+
+        if(!uid){
+          throw new Error("تعذر تحديد UID المستخدم");
+        }
+
+        if(!medalKeyValue){
+          throw new Error("تعذر تحديد مفتاح الميدالية");
+        }
+
         await medalAction(
           "POST",
-          `/api/admin/users/${encodeURIComponent(selected.id)}/medals`,
+          `/api/admin/users/${encodeURIComponent(uid)}/medals`,
           {
-            uid: String(selected.uid || selected.id || "").trim(),
-            medal_key: key
+            uid,
+            medal_key: medalKeyValue
           }
         );
         close();
