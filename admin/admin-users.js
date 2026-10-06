@@ -100,6 +100,7 @@ const $$ = (s) => [...document.querySelectorAll(s)];
 
 let users = [];
 let selected = null;
+let selectedDetail = null;
 let activeFilter = "all";
 
 function esc(v){
@@ -170,12 +171,18 @@ async function getToken(){
 
 async function api(url, options = {}){
   const token = await getToken();
+
+  if(!token){
+    const error = new Error("انتهت جلسة الإدارة. أعد فتح لوحة التحكم.");
+    error.code = "AUTH_REQUIRED";
+    throw error;
+  }
+
   const headers = {
     "Content-Type":"application/json",
-    ...(options.headers || {})
+    ...(options.headers || {}),
+    Authorization:`Bearer ${token}`
   };
-
-  if(token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(url, {
     ...options,
@@ -184,6 +191,12 @@ async function api(url, options = {}){
 
   let data = {};
   try{ data = await response.json(); }catch{}
+
+  if(response.status === 401 || response.status === 403){
+    const error = new Error(data.message || "انتهت صلاحية جلسة الإدارة.");
+    error.code = "AUTH_REQUIRED";
+    throw error;
+  }
 
   if(!response.ok){
     throw new Error(data.message || `HTTP ${response.status}`);
@@ -227,7 +240,7 @@ function matches(u){
   if(activeFilter === "verified" && !u.is_verified) return false;
   if(activeFilter === "unverified" && u.is_verified) return false;
   if(activeFilter === "banned" && !isBanned(u)) return false;
-  if(activeFilter === "admin" && u.role !== "admin") return false;
+  if(activeFilter === "admin" && String(u.role || u.control_role || "").toLowerCase() !== "admin") return false;
   if(activeFilter === "new" && !isNew(u)) return false;
 
   return true;
@@ -328,6 +341,7 @@ function fillDetail(detail){
   const control = detail.control || {};
   const stats = detail.stats || {};
 
+  selectedDetail = detail;
   selected = u;
 
   $("#detailAvatar").src = avatar(u);
@@ -397,6 +411,7 @@ function fillDetail(detail){
 
 async function loadUserDetail(id){
   const data = await api(`/api/admin/users/${encodeURIComponent(id)}`);
+  selectedDetail = data;
   fillDetail(data);
   return data;
 }
@@ -425,6 +440,7 @@ function closeDrawer(){
   $("#drawerBackdrop").classList.remove("open");
   $("#userDrawer").setAttribute("aria-hidden","true");
   selected = null;
+  selectedDetail = null;
 }
 
 async function loadUsers(){
@@ -437,6 +453,12 @@ async function loadUsers(){
     renderUsers();
     $("#loadState").textContent = "متصل بـ Supabase";
   }catch(error){
+    if(error?.code === "AUTH_REQUIRED"){
+      showToast("انتهت جلسة الإدارة، سيتم الرجوع إلى لوحة التحكم");
+      setTimeout(() => { window.location.href = "/admin.html"; }, 900);
+      return;
+    }
+
     users = [];
     renderStats({
       total_users:0,new_today:0,verified:0,banned:0,active_now:0
@@ -456,7 +478,21 @@ async function action(endpoint, body, msg, method = "PATCH"){
     });
 
     showToast(msg);
-    await loadUsers();
+    await 
+document.querySelectorAll("[data-drawer-jump]").forEach(button => {
+  button.addEventListener("click", () => {
+    const targetMap = {
+      account:"#detailAccountSection",
+      security:"#detailSecuritySection",
+      medals:"#detailMedalsSection",
+      audit:"#detailAuditSection"
+    };
+    const target = document.querySelector(targetMap[button.dataset.drawerJump]);
+    target?.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+});
+
+loadUsers();
 
     if(selected){
       const refreshed = await loadUserDetail(selected.id);
@@ -796,27 +832,102 @@ function openWarningModal(user){
   };
 }
 
+
+const banDurationEl = $("#banDuration");
+const customBanDateWrap = $("#customBanDateWrap");
+
+banDurationEl?.addEventListener("change", () => {
+  if(customBanDateWrap){
+    customBanDateWrap.hidden = banDurationEl.value !== "custom";
+  }
+});
+
 $("#warnUser").onclick = async () => {
   if(!selected) return;
   openWarningModal(selected);
 };
 
 $("#addMedal").onclick = () => {
-  if(!selected) return;
-  document.querySelector("#medalsList")?.scrollIntoView({
-    behavior:"smooth",
-    block:"center"
+  if(!selected || !selectedDetail) return;
+
+  const catalog = Array.isArray(selectedDetail.medals) ? selectedDetail.medals : [];
+  const owned = Array.isArray(selectedDetail.owned_medals) ? selectedDetail.owned_medals : [];
+  const ownedKeys = new Set(owned.map(m => String(m.medal_key)));
+
+  const available = catalog.filter(m => {
+    const key = String(m.key || m.medal_key || "");
+    return key && !ownedKeys.has(key);
   });
-  showToast("اختر الميدالية من قائمة الميداليات أعلاه");
+
+  if(!available.length){
+    showToast("المستخدم يمتلك جميع الميداليات المتاحة");
+    return;
+  }
+
+  const old = document.querySelector("#adminMedalPicker");
+  old?.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "adminMedalPicker";
+  modal.className = "admin-overlay";
+  modal.innerHTML = `
+    <div class="admin-dialog">
+      <div class="admin-dialog-head">
+        <div>
+          <span class="eyebrow">REWARDS</span>
+          <h3>إضافة ميدالية</h3>
+        </div>
+        <button type="button" class="dialog-close" id="closeMedalPicker">×</button>
+      </div>
+      <div class="medal-picker-list">
+        ${available.map(m => {
+          const key = String(m.key || m.medal_key || "");
+          return `
+            <button type="button" class="medal-picker-item" data-medal-key="${esc(key)}">
+              <span class="medal-picker-icon">${esc(m.icon || "🏅")}</span>
+              <span>
+                <strong>${esc(m.title || key)}</strong>
+                <small>${esc(m.description || "")}</small>
+              </span>
+              <span class="material-icons-round">add</span>
+            </button>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const close = () => modal.remove();
+  $("#closeMedalPicker").onclick = close;
+  modal.addEventListener("click", e => {
+    if(e.target === modal) close();
+  });
+
+  modal.querySelectorAll("[data-medal-key]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const key = btn.dataset.medalKey;
+      btn.disabled = true;
+
+      try{
+        await medalAction(
+          "POST",
+          `/api/admin/users/${encodeURIComponent(selected.id)}/medals`,
+          {medal_key:key}
+        );
+        close();
+      }catch(error){
+        btn.disabled = false;
+      }
+    });
+  });
 };
 
 $("#resetMedals").onclick = async () => {
   if(!selected) return;
 
-  if(!confirm("إعادة ضبط جميع ميداليات المستخدم؟")) return;
-
-  const owned = Array.isArray(selected.owned_medals)
-    ? selected.owned_medals
+  const owned = Array.isArray(selectedDetail?.owned_medals)
+    ? selectedDetail.owned_medals
     : [];
 
   if(!owned.length){
@@ -824,11 +935,22 @@ $("#resetMedals").onclick = async () => {
     return;
   }
 
-  for(const medal of owned){
-    await medalAction(
-      "DELETE",
-      `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(medal.medal_key)}`
-    );
+  if(!confirm(`سيتم إزالة ${owned.length} ميدالية من المستخدم. هل تريد المتابعة؟`)) return;
+
+  try{
+    for(const medal of owned){
+      await api(
+        `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(medal.medal_key)}`,
+        {method:"DELETE"}
+      );
+    }
+
+    showToast("تمت إعادة ضبط الميداليات");
+
+    const detail = await loadUserDetail(selected.id);
+    fillDetail(detail);
+  }catch(error){
+    showToast(error.message || "تعذر إعادة ضبط الميداليات");
   }
 };
 

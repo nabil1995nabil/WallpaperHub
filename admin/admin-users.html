@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div class="admin-user-bar" id="adminUserBar">
+<div class="admin-user-bar" id="adminUserBar" aria-label="حساب الأدمن الحالي">
   <div class="admin-user-avatar" id="adminPageUserAvatar">
     <span class="material-icons-round">person</span>
   </div>
@@ -69,6 +69,12 @@
     <div><span class="eyebrow">USER MANAGEMENT</span><h2 id="drawerTitle">ملف المستخدم</h2></div>
     <button class="icon-btn" id="closeDrawer" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
   </div>
+  <div class="drawer-quick-actions" aria-label="اختصارات الملف">
+    <button type="button" data-drawer-jump="account">الحساب</button>
+    <button type="button" data-drawer-jump="security">الأمان</button>
+    <button type="button" data-drawer-jump="medals">الميداليات</button>
+    <button type="button" data-drawer-jump="audit">السجل</button>
+  </div>
   <div class="drawer-scroll">
     <section class="identity-card">
       <img id="detailAvatar" src="" alt="">
@@ -76,7 +82,7 @@
       <a id="detailProfileLink" class="profile-link" href="#" target="_blank" rel="noopener"><span class="material-icons-round">open_in_new</span></a>
     </section>
 
-    <section class="detail-section">
+    <section class="detail-section" id="detailAccountSection">
       <div class="section-title"><span class="material-icons-round">manage_accounts</span><h3>ملف المستخدم الإداري</h3></div>
       <div class="info-grid">
         <div class="info-item"><small>حالة الحساب</small><strong id="detailStatus">—</strong></div>
@@ -104,7 +110,7 @@
       <div class="verify-box"><div><strong id="verifyState">غير موثق</strong><p id="verifyMeta">لم يتم التوثيق بعد.</p></div><button id="toggleVerify" class="primary-btn">توثيق الحساب</button></div>
     </section>
 
-    <section class="detail-section">
+    <section class="detail-section" id="detailMedalsSection">
       <div class="section-title"><span class="material-icons-round">workspace_premium</span><h3>الميداليات</h3></div>
       <div id="medalsList" class="medals-list"><div class="placeholder">يتم تحميل الميداليات مباشرة من Supabase.</div></div>
       <div class="action-row"><button class="secondary-btn" id="addMedal"><span class="material-icons-round">add</span> إضافة ميدالية</button><button class="secondary-btn" id="resetMedals"><span class="material-icons-round">restart_alt</span> إعادة ضبط</button></div>
@@ -120,7 +126,7 @@
       <div class="activity-note">إحصائيات النشر والمشاهدات والتحميلات والإعجابات والمفضلة تُحسب من بيانات الحساب الحالية.</div>
     </section>
 
-    <section class="detail-section danger-section">
+    <section class="detail-section danger-section" id="detailSecuritySection">
       <div class="section-title"><span class="material-icons-round">security</span><h3>الأمان والإدارة</h3></div>
       <div class="security-grid">
         <button class="secondary-btn" id="warnUser">تحذير أول</button>
@@ -130,7 +136,21 @@
       </div>
       <div class="form-grid">
         <label>سبب الإجراء<input id="actionReason" placeholder="سبب الحظر أو التحذير"></label>
-        <label>مدة الحظر<input id="banDuration" placeholder="مثال: 24 ساعة"></label>
+        <label>مدة الحظر
+      <select id="banDuration">
+        <option value="">اختر المدة</option>
+        <option value="1h">ساعة واحدة</option>
+        <option value="6h">6 ساعات</option>
+        <option value="24h">24 ساعة</option>
+        <option value="3d">3 أيام</option>
+        <option value="7d">7 أيام</option>
+        <option value="30d">30 يومًا</option>
+        <option value="custom">تاريخ مخصص</option>
+      </select>
+    </label>
+    <label id="customBanDateWrap" hidden>تاريخ الانتهاء
+      <input id="customBanDate" type="datetime-local">
+    </label>
       </div>
     </section>
 
@@ -140,7 +160,7 @@
       <button class="primary-btn full-btn" id="saveNotes">حفظ الملاحظات</button>
     </section>
 
-    <section class="detail-section">
+    <section class="detail-section" id="detailAuditSection">
       <div class="section-title"><span class="material-icons-round">history</span><h3>سجل إجراءات الإدارة</h3></div>
       <div id="auditLog" class="audit-log"><div class="placeholder">يتم تحميل سجل الإجراءات من Supabase.</div></div>
     </section>
