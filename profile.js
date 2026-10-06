@@ -498,13 +498,21 @@ async function loadPublicProfile(uid){
         if(!profile){
             try{
                 const { data, error } = await supabase
-                    .from("profiles")
-                    .select("id, full_name, username, avatar_url")
-                    .eq("id", targetUID)
+                    .from("user_profile_sync")
+                    .select("user_id, full_name, username, avatar_url, is_verified, verified_at, verified_by")
+                    .eq("user_id", targetUID)
                     .maybeSingle();
 
                 if(!error && data){
-                    profile = data;
+                    profile = {
+                        id: data.user_id,
+                        full_name: data.full_name || "",
+                        username: data.username || "",
+                        avatar_url: data.avatar_url || "",
+                        is_verified: data.is_verified,
+                        verified_at: data.verified_at || null,
+                        verified_by: data.verified_by || null
+                    };
                 }else if(error){
                     console.warn("PUBLIC PROFILE SUPABASE LOAD:", error.message);
                 }
@@ -523,6 +531,13 @@ async function loadPublicProfile(uid){
             userUID = targetUID;
             return;
         }
+
+        const verified = await loadVerifiedStatus(
+            targetUID,
+            profile.is_verified
+        );
+
+        profile.is_verified = verified;
 
         const name = String(
             profile.full_name ||
@@ -566,7 +581,8 @@ async function loadPublicProfile(uid){
             full_name: name,
             username: profile.username || "",
             bio: profile.bio || "",
-            join_date: profile.join_date || profile.created_at || ""
+            join_date: profile.join_date || profile.created_at || "",
+            is_verified: profile.is_verified === true
         });
 
         if(userAvatar){
@@ -784,6 +800,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     if (user) {
         // استعادة الحساب من Supabase قبل الاعتماد على بيانات المتصفح.
         await loadCloudUserData(user);
+        await loadVerifiedStatus(user.id);
         await loadProfileMedals();
         await syncLocalFavoritesToCloud();
 
@@ -800,7 +817,8 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 
         updateHeroIdentity(user, displayName, {
             full_name: displayName,
-            username: syncedUsername
+            username: syncedUsername,
+            is_verified: currentVerifiedStatus
         });
 
         const photoURL =
@@ -914,8 +932,8 @@ function resetGuestProfile() {
     if(heroBio) heroBio.textContent = "مصمم خلفيات ومحب للتصميم ✨";
     if(heroJoinDate) heroJoinDate.textContent = "-";
 
-    const verifiedBadge = document.getElementById("verifiedBadge");
-    if(verifiedBadge) verifiedBadge.style.display = "none";
+    currentVerifiedStatus = false;
+    renderVerifiedBadge(false);
     
     // 2. تصفير UID
     const uidEl = document.getElementById("userUid");
@@ -1277,6 +1295,57 @@ function getHeroBio(user){
     ).trim();
 }
 
+let currentVerifiedStatus = false;
+
+function normalizeVerified(value){
+    return value === true ||
+        value === 1 ||
+        value === "1" ||
+        String(value || "").trim().toLowerCase() === "true";
+}
+
+async function loadVerifiedStatus(uid, knownValue = undefined){
+    const targetUID = String(uid || "").trim();
+
+    if(knownValue !== undefined && knownValue !== null){
+        currentVerifiedStatus = normalizeVerified(knownValue);
+        return currentVerifiedStatus;
+    }
+
+    if(!targetUID){
+        currentVerifiedStatus = false;
+        return false;
+    }
+
+    try{
+        const { data, error } = await supabase
+            .from("user_profile_sync")
+            .select("is_verified")
+            .eq("user_id", targetUID)
+            .maybeSingle();
+
+        if(error) throw error;
+
+        currentVerifiedStatus = normalizeVerified(data?.is_verified);
+        return currentVerifiedStatus;
+    }catch(error){
+        // إذا لم يكن العمود موجوداً بعد أو كانت RLS تمنع القراءة،
+        // لا نعرض الشارة بشكل افتراضي.
+        currentVerifiedStatus = false;
+        console.warn("PROFILE VERIFICATION LOAD:", error.message);
+        return false;
+    }
+}
+
+function renderVerifiedBadge(value){
+    const verifiedBadge = document.getElementById("verifiedBadge");
+    if(!verifiedBadge) return;
+
+    const visible = normalizeVerified(value);
+    verifiedBadge.hidden = !visible;
+    verifiedBadge.setAttribute("aria-hidden", visible ? "false" : "true");
+}
+
 function updateHeroIdentity(user, name, profileData = null){
     const displayName = String(
         profileData?.full_name ||
@@ -1284,10 +1353,11 @@ function updateHeroIdentity(user, name, profileData = null){
         "زائر"
     ).trim();
 
-    const verifiedBadge = document.getElementById("verifiedBadge");
-    if(verifiedBadge){
-        verifiedBadge.style.display = (user && isOwnProfile()) ? "flex" : "none";
-    }
+    renderVerifiedBadge(
+        profileData?.is_verified !== undefined
+            ? profileData.is_verified
+            : currentVerifiedStatus
+    );
 
     if(heroDisplayName) heroDisplayName.textContent = displayName;
     if(heroUsername) heroUsername.textContent = getHeroUsername(displayName, user, profileData);

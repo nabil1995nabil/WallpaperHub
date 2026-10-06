@@ -558,7 +558,28 @@ app.patch("/api/admin/users/:uid/verification", async(req,res)=>{
             }
         });
 
-        return res.json({success:true,verification:data});
+        // ربط التوثيق بنظام إشعارات المستخدم نفسه.
+        // التوثيق يبقى محفوظًا في user_profile_sync، والإشعار يظهر في notifications.
+        let notificationCreated = false;
+        try{
+            const notification = await createNotification({
+                recipientUID:uid,
+                fromUser:admin.id,
+                type:verified ? "account_verified" : "account_unverified",
+                message:verified
+                    ? "تم توثيق حسابك من إدارة WallpaperHub. ستظهر شارة التوثيق بجانب اسمك."
+                    : "تمت إزالة توثيق حسابك من إدارة WallpaperHub."
+            });
+            notificationCreated = Boolean(notification);
+        }catch(notificationError){
+            console.log("ADMIN VERIFICATION NOTIFICATION ERROR:", notificationError?.message || notificationError);
+        }
+
+        return res.json({
+            success:true,
+            verification:data,
+            notification_created:notificationCreated
+        });
     }catch(error){
         console.log("ADMIN USER VERIFICATION ERROR:",error);
         return res.status(500).json({success:false,message:error?.message || "تعذر تحديث التوثيق"});
@@ -703,7 +724,53 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
             }
         });
 
-        return res.json({success:true,control});
+        // أي تغيير إداري مؤثر على الحساب يصل للمستخدم نفسه داخل الإشعارات.
+        let notificationCreated = false;
+        const statusChanged = nextStatus !== current.status;
+        const roleChanged = nextRole !== current.role;
+
+        if(statusChanged || roleChanged){
+            let notificationType = "role_changed";
+            let notificationMessage = `تم تحديث صلاحيات حسابك إلى: ${nextRole}.`;
+
+            if(nextStatus === "banned"){
+                notificationType = "account_banned";
+                notificationMessage = payload.ban_type === "temporary"
+                    ? `تم حظر حسابك مؤقتًا${payload.ban_until ? ` حتى ${new Date(payload.ban_until).toLocaleString("ar")}` : ""}.`
+                    : "تم حظر حسابك من إدارة WallpaperHub.";
+                if(payload.ban_reason) notificationMessage += ` السبب: ${payload.ban_reason}`;
+            }else if(nextStatus === "disabled"){
+                notificationType = "account_disabled";
+                notificationMessage = "تم تعطيل حسابك من إدارة WallpaperHub.";
+            }else if(current.status === "banned" && nextStatus === "active"){
+                notificationType = "account_unbanned";
+                notificationMessage = "تم إلغاء حظر حسابك وأصبح بإمكانك استخدام الحساب مجددًا.";
+            }else if(current.status === "disabled" && nextStatus === "active"){
+                notificationType = "account_enabled";
+                notificationMessage = "تم تفعيل حسابك وأصبح الحساب نشطًا مجددًا.";
+            }else if(roleChanged){
+                notificationType = "role_changed";
+                notificationMessage = `تم تحديث صلاحيات حسابك إلى: ${nextRole}.`;
+            }
+
+            try{
+                const notification = await createNotification({
+                    recipientUID:uid,
+                    fromUser:admin.id,
+                    type:notificationType,
+                    message:notificationMessage
+                });
+                notificationCreated = Boolean(notification);
+            }catch(notificationError){
+                console.log("ADMIN CONTROL NOTIFICATION ERROR:", notificationError?.message || notificationError);
+            }
+        }
+
+        return res.json({
+            success:true,
+            control,
+            notification_created:notificationCreated
+        });
     }catch(error){
         console.log("ADMIN USER CONTROL ERROR:",error);
         return res.status(500).json({success:false,message:error?.message || "تعذر تحديث حساب المستخدم"});
@@ -923,7 +990,24 @@ app.post("/api/admin/users/:uid/medals", async(req,res)=>{
             details:{medal_key:medalKey}
         });
 
-        return res.json({success:true,medal:data});
+        let notificationCreated = false;
+        try{
+            const notification = await createNotification({
+                recipientUID:uid,
+                fromUser:admin.id,
+                type:"medal_awarded",
+                message:`تم منحك ميدالية «${medal.title || medalKey}» من إدارة WallpaperHub.`
+            });
+            notificationCreated = Boolean(notification);
+        }catch(notificationError){
+            console.log("ADMIN MEDAL AWARD NOTIFICATION ERROR:", notificationError?.message || notificationError);
+        }
+
+        return res.json({
+            success:true,
+            medal:data,
+            notification_created:notificationCreated
+        });
     }catch(error){
         console.log("ADMIN AWARD MEDAL ERROR:",error);
         return res.status(500).json({success:false,message:error?.message || "تعذر إضافة الميدالية"});
@@ -959,7 +1043,24 @@ app.delete("/api/admin/users/:uid/medals/:medalKey", async(req,res)=>{
             details:{medal_key:medalKey}
         });
 
-        return res.json({success:true,removed:Boolean(data)});
+        let notificationCreated = false;
+        try{
+            const notification = await createNotification({
+                recipientUID:uid,
+                fromUser:admin.id,
+                type:"medal_removed",
+                message:`تمت إزالة الميدالية «${medalKey}» من حسابك بواسطة إدارة WallpaperHub.`
+            });
+            notificationCreated = Boolean(notification);
+        }catch(notificationError){
+            console.log("ADMIN MEDAL REMOVE NOTIFICATION ERROR:", notificationError?.message || notificationError);
+        }
+
+        return res.json({
+            success:true,
+            removed:Boolean(data),
+            notification_created:notificationCreated
+        });
     }catch(error){
         console.log("ADMIN REMOVE MEDAL ERROR:",error);
         return res.status(500).json({success:false,message:error?.message || "تعذر إزالة الميدالية"});
@@ -1486,6 +1587,15 @@ function commentFromDb(row, mention = null){
 
 function notificationTitle(type){
     if(type === "admin_warning") return "تحذير من إدارة WallpaperHub ⚠️";
+    if(type === "account_verified") return "تم توثيق حسابك ✅";
+    if(type === "account_unverified") return "تمت إزالة توثيق الحساب";
+    if(type === "account_banned") return "تم حظر حسابك ⛔";
+    if(type === "account_unbanned") return "تم إلغاء حظر حسابك";
+    if(type === "account_disabled") return "تم تعطيل حسابك";
+    if(type === "account_enabled") return "تم تفعيل حسابك";
+    if(type === "role_changed") return "تم تحديث صلاحيات حسابك";
+    if(type === "medal_awarded") return "تم منحك ميدالية 🏅";
+    if(type === "medal_removed") return "تمت إزالة ميدالية من حسابك";
     if(type === "wallpaper_like") return "إعجاب بخلفيتك ❤️";
     if(type === "wallpaper_comment") return "تعليق جديد على خلفيتك 💬";
     if(type === "wallpaper_mention") return "أشار إليك في تعليق 💙";
@@ -2323,7 +2433,7 @@ app.get(
             try{
                 const { data: syncData, error: syncError } = await supabase
                     .from("user_profile_sync")
-                    .select("cover_url,bio,join_date")
+                    .select("cover_url,bio,join_date,is_verified,verified_at,verified_by")
                     .eq("user_id", targetUID)
                     .maybeSingle();
 
@@ -2347,7 +2457,10 @@ app.get(
                         avatar_url:profile.avatar_url || "",
                         cover_url:syncProfile?.cover_url || "",
                         bio:syncProfile?.bio || "",
-                        join_date:syncProfile?.join_date || ""
+                        join_date:syncProfile?.join_date || "",
+                        is_verified:Boolean(syncProfile?.is_verified),
+                        verified_at:syncProfile?.verified_at || null,
+                        verified_by:syncProfile?.verified_by || null
                     }
                 });
             }
@@ -2370,7 +2483,10 @@ app.get(
                             avatar_url:meta.avatar_url || meta.picture || "",
                             cover_url:syncProfile?.cover_url || "",
                             bio:syncProfile?.bio || "",
-                            join_date:syncProfile?.join_date || ""
+                            join_date:syncProfile?.join_date || "",
+                            is_verified:Boolean(syncProfile?.is_verified),
+                            verified_at:syncProfile?.verified_at || null,
+                            verified_by:syncProfile?.verified_by || null
                         }
                     });
                 }
