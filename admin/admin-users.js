@@ -1,7 +1,12 @@
+/* WallpaperHub — Admin Users
+   Fixed version
+   - Fixes temporary-ban duration values (1h/6h/24h/3d/7d/30d)
+   - Uses customBanDate for custom bans
+   - Normalizes owned medal key returned by the backend
+   - Removes misplaced drawer-jump code and duplicate loadUsers()
+   - Keeps verification in user_profile_sync
+*/
 
-/* ==========================================
-   Admin identity — reuse the existing Supabase session
-   ========================================== */
 import { supabase } from "../supabase.js";
 
 async function loadAdminIdentity(){
@@ -19,13 +24,9 @@ async function loadAdminIdentity(){
     const session = data.session;
     const user = session.user;
 
-    // Confirm this is still an admin using the same server-side check
-    // already used by the main admin panel.
     const response = await fetch("/api/admin/me", {
       method:"GET",
-      headers:{
-        Authorization:`Bearer ${session.access_token}`
-      },
+      headers:{ Authorization:`Bearer ${session.access_token}` },
       cache:"no-store"
     });
 
@@ -44,7 +45,6 @@ async function loadAdminIdentity(){
         .select("full_name,username,avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
-
       profile = profileRow || null;
     }catch(profileError){
       console.warn("ADMIN PROFILE LOAD:", profileError);
@@ -60,10 +60,8 @@ async function loadAdminIdentity(){
       user?.email?.split("@")[0] ||
       "المدير";
 
-    const email = user?.email || "—";
-
     if(nameEl) nameEl.textContent = displayName;
-    if(emailEl) emailEl.textContent = email;
+    if(emailEl) emailEl.textContent = user?.email || "—";
 
     const avatarUrl =
       profile?.avatar_url ||
@@ -73,8 +71,8 @@ async function loadAdminIdentity(){
       "";
 
     if(avatarEl){
+      avatarEl.innerHTML = "";
       if(avatarUrl){
-        avatarEl.innerHTML = "";
         const img = document.createElement("img");
         img.src = avatarUrl;
         img.alt = displayName;
@@ -95,8 +93,8 @@ async function loadAdminIdentity(){
 
 document.addEventListener("DOMContentLoaded", loadAdminIdentity);
 
-const $ = (s) => document.querySelector(s);
-const $$ = (s) => [...document.querySelectorAll(s)];
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 
 let users = [];
 let selected = null;
@@ -111,37 +109,37 @@ function esc(v){
 
 function fmt(v){
   if(!v) return "—";
-  try{
-    return new Intl.DateTimeFormat("ar", {
-      dateStyle:"medium",
-      timeStyle:"short"
-    }).format(new Date(v));
-  }catch{
-    return String(v);
-  }
+  const d = new Date(v);
+  if(Number.isNaN(d.getTime())) return String(v);
+  return new Intl.DateTimeFormat("ar", {
+    dateStyle:"medium",
+    timeStyle:"short"
+  }).format(d);
 }
 
 function avatar(u){
-  return u.avatar_url || u.avatar ||
+  return u?.avatar_url || u?.avatar ||
     "https://ui-avatars.com/api/?name=" +
-    encodeURIComponent(u.name || u.username || "U") +
+    encodeURIComponent(u?.name || u?.username || "U") +
     "&background=eaf3ff&color=168bf0";
 }
 
 function isNew(u){
-  return u.created_at &&
-    Date.now() - new Date(u.created_at).getTime() < 7 * 864e5;
+  if(!u?.created_at) return false;
+  const d = new Date(u.created_at);
+  if(Number.isNaN(d.getTime())) return false;
+  return d.toDateString() === new Date().toDateString();
 }
 
 function isBanned(u){
   return ["banned","blocked"].includes(
-    String(u.status || "").toLowerCase()
+    String(u?.status || "").toLowerCase()
   );
 }
 
 function isActive(u){
   return !isBanned(u) &&
-    String(u.status || "active").toLowerCase() === "active";
+    String(u?.status || "active").toLowerCase() === "active";
 }
 
 function showToast(msg){
@@ -156,12 +154,10 @@ function showToast(msg){
 async function getToken(){
   try{
     const { data, error } = await supabase.auth.getSession();
-
     if(error){
       console.warn("تعذر قراءة جلسة Supabase:", error);
       return "";
     }
-
     return data?.session?.access_token || "";
   }catch(error){
     console.warn("تعذر قراءة جلسة Supabase:", error);
@@ -184,10 +180,7 @@ async function api(url, options = {}){
     Authorization:`Bearer ${token}`
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers
-  });
+  const response = await fetch(url, {...options, headers});
 
   let data = {};
   try{ data = await response.json(); }catch{}
@@ -208,15 +201,13 @@ async function api(url, options = {}){
 function renderStats(stats){
   const fallback = {
     total_users:users.length,
-    new_today:users.filter(u => {
-      if(!u.created_at) return false;
-      return new Date(u.created_at).toDateString() === new Date().toDateString();
-    }).length,
+    new_today:users.filter(isNew).length,
     verified:users.filter(u => u.is_verified).length,
     banned:users.filter(isBanned).length,
     active_now:users.filter(u => {
       if(!u.last_sign_in_at) return false;
-      return Date.now() - new Date(u.last_sign_in_at).getTime() <= 15 * 60 * 1000;
+      const t = new Date(u.last_sign_in_at).getTime();
+      return Number.isFinite(t) && Date.now() - t <= 15 * 60 * 1000;
     }).length
   };
 
@@ -240,7 +231,8 @@ function matches(u){
   if(activeFilter === "verified" && !u.is_verified) return false;
   if(activeFilter === "unverified" && u.is_verified) return false;
   if(activeFilter === "banned" && !isBanned(u)) return false;
-  if(activeFilter === "admin" && String(u.role || u.control_role || "").toLowerCase() !== "admin") return false;
+  if(activeFilter === "admin" &&
+     String(u.role || u.control_role || "").toLowerCase() !== "admin") return false;
   if(activeFilter === "new" && !isNew(u)) return false;
 
   return true;
@@ -276,11 +268,19 @@ function renderUsers(){
   });
 }
 
+/* Backend returns owned medals as { key, awarded_at, metadata }.
+   Older frontend code expected medal_key, so normalize both shapes here. */
+function medalKey(row){
+  return String(row?.key ?? row?.medal_key ?? "");
+}
+
 function renderMedals(detail){
   const list = $("#medalsList");
-  const catalog = Array.isArray(detail.medals) ? detail.medals : [];
-  const owned = Array.isArray(detail.owned_medals) ? detail.owned_medals : [];
-  const ownedKeys = new Set(owned.map(m => String(m.medal_key)));
+  if(!list) return;
+
+  const catalog = Array.isArray(detail?.medals) ? detail.medals : [];
+  const owned = Array.isArray(detail?.owned_medals) ? detail.owned_medals : [];
+  const ownedKeys = new Set(owned.map(medalKey).filter(Boolean));
 
   if(!catalog.length){
     list.innerHTML = '<div class="placeholder">لا توجد ميداليات معرفة حاليًا.</div>';
@@ -290,7 +290,7 @@ function renderMedals(detail){
   list.innerHTML = catalog.map(medal => {
     const key = String(medal.key || medal.medal_key || "");
     const has = ownedKeys.has(key);
-    const ownedRow = owned.find(m => String(m.medal_key) === key);
+    const ownedRow = owned.find(m => medalKey(m) === key);
 
     return `
       <div class="medal-admin-row" style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #edf0f4;border-radius:12px;background:#fafbfc">
@@ -298,11 +298,16 @@ function renderMedals(detail){
         <div style="flex:1;min-width:0">
           <strong>${esc(medal.title || key)}</strong>
           <small style="display:block;color:#8791a2">${esc(medal.description || "")}</small>
-          ${has ? `<small style="display:block;color:#168bf0">مكتسبة: ${esc(fmt(ownedRow?.awarded_at))}</small>` : '<small style="display:block;color:#9aa3b2">غير مكتسبة</small>'}
+          ${
+            has
+              ? `<small style="display:block;color:#168bf0">مكتسبة: ${esc(fmt(ownedRow?.awarded_at))}</small>`
+              : '<small style="display:block;color:#9aa3b2">غير مكتسبة</small>'
+          }
         </div>
-        ${has
-          ? `<button class="small-btn medal-remove" data-medal="${esc(key)}">إزالة</button>`
-          : `<button class="small-btn medal-add" data-medal="${esc(key)}">إضافة</button>`
+        ${
+          has
+            ? `<button class="small-btn medal-remove" data-medal="${esc(key)}">إزالة</button>`
+            : `<button class="small-btn medal-add" data-medal="${esc(key)}">إضافة</button>`
         }
       </div>
     `;
@@ -310,18 +315,28 @@ function renderMedals(detail){
 
   $$(".medal-add").forEach(btn => btn.addEventListener("click", async () => {
     if(!selected) return;
-    await medalAction("POST", `/api/admin/users/${encodeURIComponent(selected.id)}/medals`, {medal_key:btn.dataset.medal});
+    await medalAction(
+      "POST",
+      `/api/admin/users/${encodeURIComponent(selected.id)}/medals`,
+      {medal_key:btn.dataset.medal}
+    );
   }));
 
   $$(".medal-remove").forEach(btn => btn.addEventListener("click", async () => {
     if(!selected) return;
     if(!confirm("هل تريد إزالة هذه الميدالية من المستخدم؟")) return;
-    await medalAction("DELETE", `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(btn.dataset.medal)}`);
+
+    await medalAction(
+      "DELETE",
+      `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(btn.dataset.medal)}`
+    );
   }));
 }
 
 function renderAudit(logs){
   const box = $("#auditLog");
+  if(!box) return;
+
   if(!Array.isArray(logs) || !logs.length){
     box.innerHTML = '<div class="placeholder">لا توجد إجراءات مسجلة حاليًا.</div>';
     return;
@@ -337,11 +352,11 @@ function renderAudit(logs){
 }
 
 function fillDetail(detail){
-  const u = detail.user || detail;
-  const control = detail.control || {};
-  const stats = detail.stats || {};
+  const u = detail?.user || detail || {};
+  const control = detail?.control || {};
+  const stats = detail?.stats || {};
 
-  selectedDetail = detail;
+  selectedDetail = detail || {};
   selected = u;
 
   $("#detailAvatar").src = avatar(u);
@@ -351,7 +366,9 @@ function fillDetail(detail){
   $("#detailBadges").innerHTML = `
     ${u.is_verified ? '<span class="badge verified">موثق ✓</span>' : '<span class="badge">غير موثق</span>'}
     <span class="badge">${esc(String(control.role || u.role || "user").toUpperCase())}</span>
-    <span class="badge ${isBanned(u) ? "banned" : ""}">${esc(u.status === "disabled" ? "معطل" : isBanned(u) ? "محظور" : "نشط")}</span>
+    <span class="badge ${isBanned(u) ? "banned" : ""}">
+      ${esc(u.status === "disabled" ? "معطل" : isBanned(u) ? "محظور" : "نشط")}
+    </span>
   `;
 
   $("#detailStatus").textContent =
@@ -366,12 +383,12 @@ function fillDetail(detail){
   $("#detailEmail").textContent = u.email || "—";
   $("#detailEmailVerified").textContent = u.email_confirmed ? "مؤكد" : "غير مؤكد";
   $("#detailUid").textContent = u.uid || u.id || "—";
-  $("#detailAvatarStatus").textContent = u.has_avatar || u.avatar_url ? "لديه صورة" : "بدون صورة";
+  $("#detailAvatarStatus").textContent =
+    u.has_avatar || u.avatar_url ? "لديه صورة" : "بدون صورة";
 
+  const role = control.role || u.role || "user";
   $("#roleSelect").value =
-    ["user","moderator","admin"].includes(control.role || u.role)
-      ? (control.role || u.role)
-      : "user";
+    ["user","moderator","admin"].includes(role) ? role : "user";
 
   $("#verifyState").textContent = u.is_verified ? "موثق ✓" : "غير موثق";
   $("#verifyMeta").textContent = u.verified_at
@@ -399,14 +416,13 @@ function fillDetail(detail){
     control.admin_notes ?? u.admin_notes ?? "";
 
   $("#actionReason").value =
-    control.ban_reason || u.ban_reason || "";
+    control.ban_reason ?? u.ban_reason ?? "";
 
-  $("#banDuration").value =
-    control.ban_until || u.ban_until || "";
+  setBanFields(control.ban_until || u.ban_until || null);
 
   renderMedals(detail);
-  renderAudit(detail.audit_logs || []);
-  renderWarningHistory(detail.warnings || []);
+  renderAudit(detail?.audit_logs || []);
+  renderWarningHistory(detail?.warnings || []);
 }
 
 async function loadUserDetail(id){
@@ -430,7 +446,15 @@ async function openDrawer(id){
     $("#loadState").textContent = "متصل بـ Supabase";
   }catch(error){
     console.error("ADMIN USER DETAIL:", error);
-    fillDetail({user:u,control:u,stats:u.stats || {},medals:[],owned_medals:[],audit_logs:[]});
+    fillDetail({
+      user:u,
+      control:u,
+      stats:u.stats || {},
+      medals:[],
+      owned_medals:[],
+      audit_logs:[],
+      warnings:[]
+    });
     showToast(error.message || "تعذر تحميل تفاصيل المستخدم");
   }
 }
@@ -474,29 +498,16 @@ async function action(endpoint, body, msg, method = "PATCH"){
   try{
     await api(endpoint, {
       method,
-      body: JSON.stringify(body || {})
+      body:JSON.stringify(body || {})
     });
 
     showToast(msg);
-    await 
-document.querySelectorAll("[data-drawer-jump]").forEach(button => {
-  button.addEventListener("click", () => {
-    const targetMap = {
-      account:"#detailAccountSection",
-      security:"#detailSecuritySection",
-      medals:"#detailMedalsSection",
-      audit:"#detailAuditSection"
-    };
-    const target = document.querySelector(targetMap[button.dataset.drawerJump]);
-    target?.scrollIntoView({behavior:"smooth", block:"start"});
-  });
-});
 
-loadUsers();
+    // Refresh the list once, then refresh the open detail once.
+    await loadUsers();
 
     if(selected){
-      const refreshed = await loadUserDetail(selected.id);
-      fillDetail(refreshed);
+      await loadUserDetail(selected.id);
     }
   }catch(error){
     showToast(error.message || "تعذر تنفيذ الإجراء");
@@ -508,19 +519,269 @@ async function medalAction(method, endpoint, body = null){
   try{
     await api(endpoint, {
       method,
-      body: body ? JSON.stringify(body) : undefined
+      body:body ? JSON.stringify(body) : undefined
     });
 
     showToast(method === "POST" ? "تمت إضافة الميدالية" : "تمت إزالة الميدالية");
 
     if(selected){
-      const refreshed = await loadUserDetail(selected.id);
-      fillDetail(refreshed);
+      await loadUserDetail(selected.id);
     }
   }catch(error){
     showToast(error.message || "تعذر تحديث الميدالية");
+    throw error;
   }
 }
+
+function addDrawerJumpHandlers(){
+  const targetMap = {
+    account:"#detailAccountSection",
+    security:"#detailSecuritySection",
+    medals:"#detailMedalsSection",
+    audit:"#detailAuditSection"
+  };
+
+  $$("[data-drawer-jump]").forEach(button => {
+    button.addEventListener("click", () => {
+      const target = document.querySelector(targetMap[button.dataset.drawerJump]);
+      target?.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  });
+}
+
+/* ---------- Ban helpers ---------- */
+
+const BAN_DURATION_TO_MS = {
+  "1h": 1 * 60 * 60 * 1000,
+  "6h": 6 * 60 * 60 * 1000,
+  "24h": 24 * 60 * 60 * 1000,
+  "3d": 3 * 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000
+};
+
+function localDateTimeValue(date){
+  const d = new Date(date);
+  if(Number.isNaN(d.getTime())) return "";
+
+  const pad = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function setBanFields(banUntil){
+  const durationEl = $("#banDuration");
+  const customWrap = $("#customBanDateWrap");
+  const customEl = $("#customBanDate");
+
+  if(!durationEl) return;
+
+  durationEl.value = "";
+  if(customWrap) customWrap.hidden = true;
+  if(customEl) customEl.value = "";
+
+  if(!banUntil) return;
+
+  const d = new Date(banUntil);
+  if(Number.isNaN(d.getTime()) || d.getTime() <= Date.now()) return;
+
+  // The DB stores the real timestamp. The select stores a duration token,
+  // so an existing ban is represented as custom to avoid pretending that
+  // an arbitrary remaining time equals one of the fixed options.
+  durationEl.value = "custom";
+  if(customWrap) customWrap.hidden = false;
+  if(customEl) customEl.value = localDateTimeValue(d);
+}
+
+function getTemporaryBanUntil(){
+  const duration = $("#banDuration")?.value || "";
+  const customValue = $("#customBanDate")?.value || "";
+
+  if(duration === "custom"){
+    if(!customValue){
+      showToast("حدد تاريخ ووقت انتهاء الحظر المخصص");
+      return null;
+    }
+
+    const date = new Date(customValue);
+    if(Number.isNaN(date.getTime())){
+      showToast("تاريخ الحظر المخصص غير صالح");
+      return null;
+    }
+
+    if(date.getTime() <= Date.now()){
+      showToast("يجب أن يكون انتهاء الحظر في المستقبل");
+      return null;
+    }
+
+    return date.toISOString();
+  }
+
+  const ms = BAN_DURATION_TO_MS[duration];
+  if(!ms){
+    showToast("حدد مدة الحظر");
+    return null;
+  }
+
+  return new Date(Date.now() + ms).toISOString();
+}
+
+function updateCustomBanVisibility(){
+  const durationEl = $("#banDuration");
+  const wrap = $("#customBanDateWrap");
+  if(!durationEl || !wrap) return;
+  wrap.hidden = durationEl.value !== "custom";
+}
+
+/* ---------- Warning history ---------- */
+
+function warningLevelLabel(level){
+  return `التحذير ${Number(level) || 0}`;
+}
+
+function renderWarningHistory(warnings){
+  const existing = document.querySelector("#warningHistoryAdmin");
+  existing?.remove();
+
+  const anchor = document.querySelector("#auditLog");
+  if(!anchor) return;
+
+  const box = document.createElement("section");
+  box.id = "warningHistoryAdmin";
+  box.style.cssText = [
+    "margin-top:16px",
+    "padding:14px",
+    "border:1px solid #edf0f4",
+    "border-radius:14px",
+    "background:#fff"
+  ].join(";");
+
+  const rows = Array.isArray(warnings) ? warnings : [];
+
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <strong>⚠️ سجل التحذيرات</strong>
+      <span style="font-size:12px;color:#8791a2">${rows.length} تحذير</span>
+    </div>
+    ${
+      rows.length
+      ? rows.map(w => `
+        <div style="padding:10px 0;border-bottom:1px solid #f0f2f5">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <strong>${esc(warningLevelLabel(w.level))}</strong>
+            <small style="color:#8791a2">${esc(fmt(w.created_at))}</small>
+          </div>
+          <div style="margin-top:5px;color:#5f6878;font-size:13px">${esc(w.reason || "بدون سبب")}</div>
+          <div style="margin-top:5px;white-space:pre-wrap;color:#7c8595;font-size:13px">${esc(w.message || "")}</div>
+          <small style="display:block;margin-top:6px;color:${w.acknowledged ? "#168bf0" : "#a06a00"}">
+            ${w.acknowledged ? "تمت القراءة" : "بانتظار قراءة المستخدم"}
+          </small>
+        </div>
+      `).join("")
+      : '<div style="color:#8791a2;font-size:13px">لا توجد تحذيرات لهذا المستخدم.</div>'
+    }
+  `;
+
+  anchor.parentNode.insertBefore(box, anchor);
+}
+
+function closeWarningModal(){
+  document.querySelector("#adminWarningModal")?.remove();
+}
+
+function openWarningModal(user){
+  closeWarningModal();
+
+  const current = Number(user?.warning_level || 0);
+  const next = current + 1;
+
+  if(next > 3){
+    showToast("المستخدم وصل بالفعل إلى التحذير الثالث");
+    return;
+  }
+
+  const modal = document.createElement("div");
+  modal.id = "adminWarningModal";
+  modal.dir = "rtl";
+  modal.className = "admin-overlay";
+  modal.innerHTML = `
+    <div class="admin-dialog">
+      <div class="admin-dialog-head">
+        <div>
+          <span class="eyebrow">MODERATION</span>
+          <h3>إرسال التحذير ${next}</h3>
+        </div>
+        <button type="button" class="dialog-close" id="closeWarningModal">×</button>
+      </div>
+
+      <label style="display:block;margin-bottom:10px">
+        سبب التحذير
+        <input id="warningReasonInput" style="width:100%;margin-top:5px" placeholder="سبب التحذير">
+      </label>
+
+      <label style="display:block;margin-bottom:10px">
+        الرسالة
+        <textarea id="warningMessageInput" rows="5" style="width:100%;margin-top:5px" placeholder="الرسالة التي ستصل للمستخدم"></textarea>
+      </label>
+
+      <div style="display:flex;gap:8px;justify-content:flex-start">
+        <button type="button" class="primary-btn" id="sendWarningModal">إرسال التحذير</button>
+        <button type="button" class="secondary-btn" id="cancelWarningModal">إلغاء</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const close = () => closeWarningModal();
+  $("#closeWarningModal").onclick = close;
+  $("#cancelWarningModal").onclick = close;
+
+  modal.addEventListener("click", e => {
+    if(e.target === modal) close();
+  });
+
+  $("#sendWarningModal").onclick = async () => {
+    const reason = $("#warningReasonInput").value.trim();
+    const message = $("#warningMessageInput").value.trim();
+
+    if(!reason){
+      showToast("اكتب سبب التحذير");
+      return;
+    }
+
+    if(!message){
+      showToast("اكتب الرسالة التي ستصل للمستخدم");
+      return;
+    }
+
+    const button = $("#sendWarningModal");
+    button.disabled = true;
+    button.textContent = "جاري الإرسال…";
+
+    try{
+      await api(`/api/admin/users/${encodeURIComponent(user.id)}/warning`, {
+        method:"POST",
+        body:JSON.stringify({
+          level:next,
+          reason,
+          message
+        })
+      });
+
+      closeWarningModal();
+      showToast(`تم إرسال التحذير ${next} للمستخدم`);
+
+      await loadUsers();
+      if(selected) await loadUserDetail(selected.id);
+    }catch(error){
+      button.disabled = false;
+      button.textContent = "إرسال التحذير";
+      showToast(error.message || "تعذر إرسال التحذير");
+    }
+  };
+}
+
+/* ---------- UI events ---------- */
 
 $("#refreshUsers").onclick = loadUsers;
 $("#closeDrawer").onclick = closeDrawer;
@@ -540,6 +801,7 @@ $("#filters").addEventListener("click", e => {
 
 $("#copyUid").onclick = async () => {
   if(!selected) return;
+
   try{
     await navigator.clipboard.writeText(selected.uid || selected.id);
     showToast("تم نسخ UID");
@@ -589,19 +851,10 @@ $("#saveNotes").onclick = async () => {
 $("#temporaryBan").onclick = async () => {
   if(!selected) return;
 
-  const untilRaw = $("#banDuration").value.trim();
+  const banUntil = getTemporaryBanUntil();
+  if(!banUntil) return;
+
   const reason = $("#actionReason").value.trim();
-
-  if(!untilRaw){
-    showToast("حدد تاريخ ووقت انتهاء الحظر");
-    return;
-  }
-
-  const parsed = new Date(untilRaw);
-  if(Number.isNaN(parsed.getTime())){
-    showToast("صيغة تاريخ الحظر غير صالحة");
-    return;
-  }
 
   if(!confirm("هل تريد تنفيذ الحظر المؤقت؟")) return;
 
@@ -611,7 +864,7 @@ $("#temporaryBan").onclick = async () => {
       status:"banned",
       ban_type:"temporary",
       ban_reason:reason,
-      ban_until:parsed.toISOString()
+      ban_until:banUntil
     },
     "تم تنفيذ الحظر المؤقت"
   );
@@ -651,208 +904,25 @@ $("#unbanUser").onclick = async () => {
   );
 };
 
-
-function warningLevelLabel(level){
-  return `التحذير ${Number(level) || 0}`;
-}
-
-function renderWarningHistory(warnings){
-  const existing = document.querySelector("#warningHistoryAdmin");
-  if(existing) existing.remove();
-
-  const anchor = document.querySelector("#auditLog");
-  if(!anchor) return;
-
-  const box = document.createElement("section");
-  box.id = "warningHistoryAdmin";
-  box.style.cssText = [
-    "margin-top:16px",
-    "padding:14px",
-    "border:1px solid #edf0f4",
-    "border-radius:14px",
-    "background:#fff"
-  ].join(";");
-
-  const rows = Array.isArray(warnings) ? warnings : [];
-  box.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-      <strong>⚠️ سجل التحذيرات</strong>
-      <span style="font-size:12px;color:#8791a2">${rows.length} تحذير</span>
-    </div>
-    ${
-      rows.length
-      ? rows.map(w => `
-        <div style="padding:10px 0;border-bottom:1px solid #f0f2f5">
-          <div style="display:flex;justify-content:space-between;gap:8px">
-            <strong>${esc(warningLevelLabel(w.level))}</strong>
-            <small style="color:#8791a2">${esc(fmt(w.created_at))}</small>
-          </div>
-          <div style="margin-top:5px;color:#5f6878;font-size:13px">${esc(w.reason || "بدون سبب")}</div>
-          <div style="margin-top:5px;white-space:pre-wrap;color:#7c8595;font-size:13px">${esc(w.message || "")}</div>
-          <small style="display:block;margin-top:6px;color:${w.acknowledged ? "#168bf0" : "#a06a00"}">
-            ${w.acknowledged ? "تمت القراءة" : "بانتظار قراءة المستخدم"}
-          </small>
-        </div>
-      `).join("")
-      : '<div style="color:#8791a2;font-size:13px">لا توجد تحذيرات لهذا المستخدم.</div>'
-    }
-  `;
-
-  anchor.parentNode.insertBefore(box, anchor);
-}
-
-function closeWarningModal(){
-  const modal = document.querySelector("#adminWarningModal");
-  if(modal) modal.remove();
-}
-
-function openWarningModal(user){
-  closeWarningModal();
-
-  const current = Number(user.warning_level || 0);
-  const next = current + 1;
-
-  if(next > 3){
-    showToast("المستخدم وصل بالفعل إلى التحذير الثالث");
-    return;
-  }
-
-  const modal = document.createElement("div");
-  modal.id = "adminWarningModal";
-  modal.dir = "rtl";
-  modal.style.cssText = [
-    "position:fixed",
-    "inset:0",
-    "z-index:99999",
-    "display:flex",
-    "align-items:center",
-    "justify-content:center",
-    "padding:18px",
-    "background:rgba(8,15,28,.58)",
-    "backdrop-filter:blur(5px)"
-  ].join(";");
-
-  modal.innerHTML = `
-    <div style="
-      width:min(560px,100%);
-      max-height:90vh;
-      overflow:auto;
-      background:#fff;
-      border-radius:22px;
-      padding:22px;
-      box-shadow:0 24px 70px rgba(0,0,0,.22)
-    ">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
-        <div>
-          <div style="font-size:22px;font-weight:800">⚠️ إرسال تحذير</div>
-          <div style="margin-top:5px;color:#7d8797;font-size:13px">
-            ${esc(user.name || user.username || "المستخدم")}
-          </div>
-        </div>
-        <button type="button" id="closeWarningModal"
-          style="border:0;background:#f2f4f7;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer">×</button>
-      </div>
-
-      <div style="margin-top:18px;padding:12px 14px;border-radius:14px;background:#fff7e8;color:#8b5d00;font-size:13px">
-        سيتم تسجيل <strong>التحذير رقم ${next}</strong> في سجل الإدارة وإرسال رسالة للمستخدم داخل إشعارات الموقع.
-      </div>
-
-      <label style="display:block;margin-top:16px;font-weight:700;font-size:13px">سبب التحذير</label>
-      <textarea id="warningReasonInput" rows="3"
-        placeholder="اكتب سبب التحذير بوضوح..."
-        style="width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #dfe4eb;border-radius:13px;padding:12px;resize:vertical;font:inherit"></textarea>
-
-      <label style="display:block;margin-top:14px;font-weight:700;font-size:13px">الرسالة التي ستصل للمستخدم</label>
-      <textarea id="warningMessageInput" rows="5"
-        placeholder="اكتب الرسالة التي تريد أن يراها المستخدم..."
-        style="width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #dfe4eb;border-radius:13px;padding:12px;resize:vertical;font:inherit"></textarea>
-
-      <div style="display:flex;gap:10px;justify-content:flex-start;margin-top:18px">
-        <button type="button" id="cancelWarningModal"
-          style="border:0;background:#eef1f5;padding:11px 18px;border-radius:12px;cursor:pointer">إلغاء</button>
-        <button type="button" id="sendWarningModal"
-          style="border:0;background:#d97706;color:#fff;padding:11px 20px;border-radius:12px;cursor:pointer;font-weight:700">
-          إرسال التحذير
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  const close = () => closeWarningModal();
-  $("#closeWarningModal").onclick = close;
-  $("#cancelWarningModal").onclick = close;
-
-  $("#sendWarningModal").onclick = async () => {
-    const reason = $("#warningReasonInput").value.trim();
-    const message = $("#warningMessageInput").value.trim();
-
-    if(!reason){
-      showToast("اكتب سبب التحذير");
-      return;
-    }
-
-    if(!message){
-      showToast("اكتب الرسالة التي ستصل للمستخدم");
-      return;
-    }
-
-    const button = $("#sendWarningModal");
-    button.disabled = true;
-    button.textContent = "جاري الإرسال…";
-
-    try{
-      const data = await api(
-        `/api/admin/users/${encodeURIComponent(user.id)}/warning`,
-        {
-          method:"POST",
-          body:JSON.stringify({
-            level:next,
-            reason,
-            message
-          })
-        }
-      );
-
-      closeWarningModal();
-      showToast(`تم إرسال التحذير ${next} للمستخدم`);
-
-      await loadUsers();
-
-      if(selected){
-        const detail = await loadUserDetail(selected.id);
-        fillDetail(detail);
-      }
-    }catch(error){
-      button.disabled = false;
-      button.textContent = "إرسال التحذير";
-      showToast(error.message || "تعذر إرسال التحذير");
-    }
-  };
-}
-
-
-const banDurationEl = $("#banDuration");
-const customBanDateWrap = $("#customBanDateWrap");
-
-banDurationEl?.addEventListener("change", () => {
-  if(customBanDateWrap){
-    customBanDateWrap.hidden = banDurationEl.value !== "custom";
-  }
-});
-
-$("#warnUser").onclick = async () => {
+$("#warnUser").onclick = () => {
   if(!selected) return;
   openWarningModal(selected);
 };
 
+$("#banDuration")?.addEventListener("change", updateCustomBanVisibility);
+
 $("#addMedal").onclick = () => {
   if(!selected || !selectedDetail) return;
 
-  const catalog = Array.isArray(selectedDetail.medals) ? selectedDetail.medals : [];
-  const owned = Array.isArray(selectedDetail.owned_medals) ? selectedDetail.owned_medals : [];
-  const ownedKeys = new Set(owned.map(m => String(m.medal_key)));
+  const catalog = Array.isArray(selectedDetail.medals)
+    ? selectedDetail.medals
+    : [];
+
+  const owned = Array.isArray(selectedDetail.owned_medals)
+    ? selectedDetail.owned_medals
+    : [];
+
+  const ownedKeys = new Set(owned.map(medalKey).filter(Boolean));
 
   const available = catalog.filter(m => {
     const key = String(m.key || m.medal_key || "");
@@ -864,8 +934,7 @@ $("#addMedal").onclick = () => {
     return;
   }
 
-  const old = document.querySelector("#adminMedalPicker");
-  old?.remove();
+  document.querySelector("#adminMedalPicker")?.remove();
 
   const modal = document.createElement("div");
   modal.id = "adminMedalPicker";
@@ -916,7 +985,7 @@ $("#addMedal").onclick = () => {
           {medal_key:key}
         );
         close();
-      }catch(error){
+      }catch{
         btn.disabled = false;
       }
     });
@@ -930,28 +999,29 @@ $("#resetMedals").onclick = async () => {
     ? selectedDetail.owned_medals
     : [];
 
-  if(!owned.length){
+  const keys = owned.map(medalKey).filter(Boolean);
+
+  if(!keys.length){
     showToast("لا توجد ميداليات لإزالتها");
     return;
   }
 
-  if(!confirm(`سيتم إزالة ${owned.length} ميدالية من المستخدم. هل تريد المتابعة؟`)) return;
+  if(!confirm(`سيتم إزالة ${keys.length} ميدالية من المستخدم. هل تريد المتابعة؟`)) return;
 
   try{
-    for(const medal of owned){
+    for(const key of keys){
       await api(
-        `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(medal.medal_key)}`,
+        `/api/admin/users/${encodeURIComponent(selected.id)}/medals/${encodeURIComponent(key)}`,
         {method:"DELETE"}
       );
     }
 
     showToast("تمت إعادة ضبط الميداليات");
-
-    const detail = await loadUserDetail(selected.id);
-    fillDetail(detail);
+    await loadUserDetail(selected.id);
   }catch(error){
     showToast(error.message || "تعذر إعادة ضبط الميداليات");
   }
 };
 
+addDrawerJumpHandlers();
 loadUsers();
