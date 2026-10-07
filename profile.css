@@ -112,7 +112,36 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     color:#fff;
 }
 
-/* Never let a generic grid/flex rule pull these buttons away. */
+/* =========================================================
+   Header controls — fixed positions for BOTH supported HTML
+   structures:
+   1) .profile-header-side > .menu-btn
+   2) .profile-header > .menu-btn (legacy/current variants)
+   ========================================================= */
+
+.profile-header > .menu-btn{
+    position:absolute;
+    top:12px;
+    right:14px;
+    z-index:3;
+}
+
+.profile-header > .profile-header-side{
+    z-index:3;
+}
+
+.profile-header > .profile-header-side .menu-btn{
+    position:static;
+}
+
+.profile-header > .profile-actions{
+    z-index:3;
+}
+
+.profile-header h2{
+    z-index:2;
+}
+
 .profile-header-side,
 .profile-actions,
 .profile-header-side .menu-btn,
@@ -120,6 +149,8 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 .profile-actions .settings-btn{
     align-self:center;
 }
+/* Header positioning is intentionally structural, not a visual patch. */
+
 /* =========================================================
    Cover
    ========================================================= */
@@ -1065,6 +1096,20 @@ body.dark #closeEditBtn{background:#202738;}
         right:10px;
         width:40px;
         height:40px;
+        z-index:3;
+    }
+
+    /* Also supports the legacy/current HTML where menu-btn is
+       a direct child of .profile-header. */
+    .profile-header > .menu-btn{
+        top:9px;
+        right:10px;
+        width:40px;
+        height:40px;
+        min-width:40px;
+        max-width:40px;
+        flex:0 0 40px;
+        z-index:3;
     }
 
     .profile-actions{
@@ -1072,6 +1117,7 @@ body.dark #closeEditBtn{background:#202738;}
         left:10px;
         height:40px;
         gap:6px;
+        z-index:3;
     }
 
     .menu-btn,
