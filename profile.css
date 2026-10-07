@@ -384,27 +384,58 @@ button{
 
 /* =========================================================
    Verified Badge
+   علامة توثيق واحدة فقط — بدون طبقات إضافية
    ========================================================= */
 
 .verified-badge{
-    width:24px;
-    height:24px;
-    display:none;
+    width:20px;
+    height:20px;
+    padding:0;
+    margin:0;
+    display:inline-flex;
     align-items:center;
     justify-content:center;
-    flex:0 0 24px;
+    flex:0 0 20px;
+    border:0;
+    outline:0;
     border-radius:50%;
-    background:#168bf0;
-    color:#fff;
-    font-size:17px;
-    line-height:1;
+    background:transparent;
     box-shadow:none;
-    text-shadow:none;
+    vertical-align:middle;
+    line-height:0;
 }
+
+.verified-badge[hidden]{
+    display:none !important;
+}
+
+.verified-badge svg{
+    width:20px;
+    height:20px;
+    display:block;
+    overflow:visible;
+}
+
+.verified-badge .verified-shape{
+    fill:#168bf0 !important;
+    stroke:none !important;
+}
+
+.verified-badge .verified-check{
+    fill:none !important;
+    stroke:#fff !important;
+    stroke-width:2.4 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+}
+
 .verified-badge::before,
 .verified-badge::after{
     content:none !important;
     display:none !important;
+    border:0 !important;
+    box-shadow:none !important;
+    background:none !important;
 }
 
 
@@ -1533,10 +1564,14 @@ body.dark #closeEditBtn{
        ===================================================== */
 
     .verified-badge{
-        width:20px;
-        height:20px;
-        flex-basis:20px;
-        font-size:14px;
+        width:18px;
+        height:18px;
+        flex-basis:18px;
+    }
+
+    .verified-badge svg{
+        width:18px;
+        height:18px;
     }
 
 
