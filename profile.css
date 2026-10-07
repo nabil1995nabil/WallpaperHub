@@ -3171,13 +3171,129 @@ body.dark .profile-wall-card{
     white-space:nowrap;
 }
 
+
 /* =========================================================
-   Founder-only crown visibility
-   The existing crown geometry/design above is preserved.
+   Avatar — moved to the red-circle position
+   ========================================================= */
+
+.profile-cover{
+    overflow:visible;
+}
+
+.profile-avatar-box{
+    position:absolute !important;
+    top:342px !important;
+    right:18px !important;
+    left:auto !important;
+    width:95px !important;
+    height:95px !important;
+    z-index:80 !important;
+    transform:none !important;
+    overflow:visible !important;
+}
+
+.profile-avatar{
+    width:95px !important;
+    height:95px !important;
+    display:block !important;
+    object-fit:cover !important;
+    border:4px solid #fff !important;
+    border-radius:50% !important;
+    background:#eef2f8 !important;
+    box-shadow:0 7px 20px rgba(35,45,80,.18) !important;
+}
+
+.profile-avatar-crown{
+    z-index:81 !important;
+}
+
+@media(max-width:700px){
+    .profile-avatar-box{
+        top:342px !important;
+        right:18px !important;
+        left:auto !important;
+    }
+}
+
+@media(max-width:380px){
+    .profile-avatar-box{
+        top:337px !important;
+        right:18px !important;
+    }
+
+    .profile-avatar{
+        width:91px !important;
+        height:91px !important;
+    }
+}
+
+
+/* =========================================================
+   Avatar — final correction to the red-circle position
+   ========================================================= */
+
+.profile-avatar-box{
+    top:165px !important;
+    right:18px !important;
+    left:auto !important;
+}
+
+@media(max-width:700px){
+    .profile-avatar-box{
+        top:165px !important;
+        right:18px !important;
+        left:auto !important;
+    }
+}
+
+@media(max-width:380px){
+    .profile-avatar-box{
+        top:160px !important;
+        right:18px !important;
+    }
+}
+
+
+/* =========================================================
+   Premium crown — icon only, transparent background
    ========================================================= */
 .profile-avatar-crown{
-    display:none !important;
-}
-.profile-avatar-crown.is-founder{
+    left:6px !important;
+    right:auto !important;
+    top:auto !important;
+    bottom:-4px !important;
+    width:36px !important;
+    height:36px !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:none !important;
     display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    color:#c99a1f !important;
+    z-index:30 !important;
+}
+
+.profile-avatar-crown .material-icons{
+    font-size:27px !important;
+    line-height:1 !important;
+    color:#c99a1f !important;
+    background:transparent !important;
+    text-shadow:0 1px 1px rgba(90,65,5,.12);
+}
+
+@media(max-width:380px){
+    .profile-avatar-crown{
+        left:6px !important;
+        bottom:-3px !important;
+        width:34px !important;
+        height:34px !important;
+    }
+    .profile-avatar-crown .material-icons{
+        font-size:25px !important;
+    }
 }
