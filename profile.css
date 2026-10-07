@@ -417,16 +417,15 @@ button{
 }
 
 .verified-badge .verified-shape{
-    fill:#168bf0 !important;
-    stroke:none !important;
+    fill:#168bf0;
 }
 
 .verified-badge .verified-check{
-    fill:none !important;
-    stroke:#fff !important;
-    stroke-width:2.4 !important;
-    stroke-linecap:round !important;
-    stroke-linejoin:round !important;
+    fill:none;
+    stroke:#fff;
+    stroke-width:2.4;
+    stroke-linecap:round;
+    stroke-linejoin:round;
 }
 
 .verified-badge::before,
