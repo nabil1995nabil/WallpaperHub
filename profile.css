@@ -1,6 +1,7 @@
 /* =========================================================
-   WallpaperHub — Profile
-   Root stylesheet
+   WallpaperHub Profile — Clean Root Design
+   Rebuilt from the supplied old mobile design.
+   No layered override patches.
    ========================================================= */
 
 *{
@@ -10,160 +11,165 @@
     font-family:"Cairo",Arial,sans-serif;
 }
 
-html{
-    scroll-behavior:smooth;
-}
+html{scroll-behavior:smooth;}
 
 body{
     width:100%;
     min-height:100vh;
     overflow-x:hidden;
-    padding-bottom:105px;
+    padding-bottom:95px;
     background:#f7f8fc;
     color:#151a2a;
     -webkit-font-smoothing:antialiased;
 }
 
-button,
-input{
-    font:inherit;
-}
-
-button{
-    border:0;
-}
-
+button,input{font:inherit;}
+button{border:0;}
+button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 
 /* =========================================================
-   Profile Header
+   Header
    ========================================================= */
 
 .profile-header{
     position:absolute;
-    inset:0 0 auto;
+    top:0;
+    left:0;
+    right:0;
     z-index:100;
-    height:68px;
-    padding:0 18px;
+    height:74px;
+    padding:0 22px;
     display:grid;
     grid-template-columns:1fr auto 1fr;
     align-items:center;
     background:transparent;
+    direction:ltr;
 }
 
 .profile-header h2{
+    grid-column:2;
     color:#fff;
-    font-size:23px;
-    font-weight:700;
+    font-size:25px;
+    font-weight:800;
     line-height:1;
-    text-shadow:0 2px 8px rgba(0,0,0,.35);
+    text-shadow:0 2px 10px rgba(0,0,0,.35);
+    direction:rtl;
 }
 
-.profile-header-side,
-.profile-actions{
+.profile-menu-btn,
+.menu-btn,
+.login-btn,
+.settings-btn{
+    width:50px;
+    height:50px;
+    min-width:50px;
     display:flex;
     align-items:center;
-    gap:9px;
-}
-
-.profile-actions{
-    justify-content:flex-end;
-}
-
-
-/* =========================================================
-   Profile Header Buttons
-   ========================================================= */
-
-.profile-icon-btn{
-    width:42px !important;
-    min-width:42px !important;
-    max-width:42px !important;
-    height:42px !important;
-    min-height:42px !important;
-    max-height:42px !important;
-    flex:0 0 42px !important;
-    padding:0 !important;
-    margin:0 !important;
-    border-radius:50% !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    appearance:none !important;
-    -webkit-appearance:none !important;
-    background:rgba(255,255,255,.14) !important;
-    color:#fff !important;
-    border:1px solid rgba(255,255,255,.30) !important;
-    box-shadow:0 4px 14px rgba(0,0,0,.08) !important;
+    justify-content:center;
+    border-radius:50%;
+    color:#fff;
+    background:rgba(0,0,0,.30);
+    border:1px solid rgba(255,255,255,.26);
+    box-shadow:0 5px 16px rgba(0,0,0,.18);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
     cursor:pointer;
-    transition:transform .16s ease,background .16s ease;
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
 }
 
-.profile-icon-btn:hover{
-    background:rgba(255,255,255,.22) !important;
+.menu-btn{grid-column:3;justify-self:end;}
+.profile-actions{
+    grid-column:1;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    direction:ltr;
 }
+.profile-actions .login-btn{order:1;}
+.profile-actions .settings-btn{order:2;}
 
-.profile-icon-btn:active{
-    transform:scale(.95);
-}
+.profile-header .material-icons{font-size:27px;color:#fff;}
 
-.profile-icon-btn .material-icons{
-    font-size:22px;
-}
 /* =========================================================
-   Profile Cover
+   Cover
    ========================================================= */
 
 .profile-cover{
     position:relative;
     width:100%;
-    height:320px;
-    overflow:hidden;
+    height:432px;
+    overflow:visible;
     background:#fff;
+}
+
+.cover-stage{
+    position:relative;
+    width:100%;
+    height:432px;
+    overflow:hidden;
+    background:#101116;
+}
+
+.cover-stage::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,.25),transparent 25%,rgba(0,0,0,.20));
 }
 
 .cover-image{
     width:100%;
-    height:245px;
+    height:432px;
     display:block;
     object-fit:cover;
+    object-position:center;
+    touch-action:pan-y;
 }
 
-
-/* =========================================================
-   Cover Change Button
-   ========================================================= */
-
-.cover-change-btn{
+.cover-nav-btn{
     position:absolute;
-    top:112px;
-    right:14px;
-    z-index:20;
-    height:34px;
-    padding:0 12px;
+    top:50%;
+    z-index:25;
+    width:52px;
+    height:52px;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:5px;
-    border-radius:17px;
-    background:rgba(55,43,45,.82);
+    transform:translateY(-50%);
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.25);
+    background:rgba(35,39,49,.70);
     color:#fff;
-    font-size:13px;
-    font-weight:600;
-    line-height:1;
+    box-shadow:0 8px 22px rgba(0,0,0,.18);
+    backdrop-filter:blur(8px);
     cursor:pointer;
-    backdrop-filter:blur(5px);
-    -webkit-backdrop-filter:blur(5px);
 }
 
-.cover-change-btn:active{
-    transform:scale(.97);
+.cover-nav-prev{right:18px;}
+.cover-nav-next{left:18px;}
+.cover-nav-btn .material-icons{font-size:35px;}
+
+.cover-change-btn{
+    position:absolute;
+    top:198px;
+    right:18px;
+    z-index:30;
+    height:48px;
+    padding:0 17px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border-radius:24px;
+    background:rgba(48,45,49,.76);
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    backdrop-filter:blur(8px);
+    cursor:pointer;
 }
 
-.cover-change-btn .material-icons{
-    font-size:17px;
-}
+.cover-change-btn .material-icons{font-size:20px;}
 
 .cover-file-input{
     position:absolute;
@@ -173,253 +179,172 @@ button{
     pointer-events:none;
 }
 
+.cover-history-overlay{
+    position:absolute;
+    z-index:26;
+    left:20px;
+    bottom:18px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 13px;
+    border-radius:15px;
+    background:rgba(25,28,36,.70);
+    border:1px solid rgba(255,255,255,.16);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    backdrop-filter:blur(8px);
+}
+
+.cover-history-overlay span:last-child{
+    direction:ltr;
+    opacity:.85;
+}
+
+.cover-history-dots{
+    position:absolute;
+    z-index:26;
+    right:50%;
+    bottom:20px;
+    transform:translateX(50%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+.cover-history-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:rgba(255,255,255,.55);
+}
+.cover-history-dot.active{
+    width:38px;
+    border-radius:8px;
+    background:#fff;
+}
 
 /* =========================================================
-   Profile Avatar
+   Avatar
    ========================================================= */
 
 .profile-avatar-box{
     position:absolute;
-    top:180px;
-    left:50%;
-    z-index:30;
-    transform:translateX(-50%);
-}
-
-.profile-avatar{
-    width:95px;
-    height:95px;
-    display:block;
-    object-fit:cover;
-    border:4px solid #fff;
-    border-radius:50%;
-    box-shadow:0 7px 20px rgba(35,45,80,.18);
-}
-
-
-/* =========================================================
-   Profile Identity Container
-   الحاوية العامة فقط
-   ========================================================= */
-
-/* =========================================================
-   Join Date Card — Icon
-   ========================================================= */
-
-.join-date-card > .material-icons{
-    width:34px;
-    height:34px;
-    flex:0 0 34px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-    background:#eef2f8;
-    color:#5364ee;
-    font-size:20px;
-}
-
-
-/* =========================================================
-   Join Date Card — Content
-   ========================================================= */
-
-.join-date-card .identity-side-content{
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    gap:1px;
-    text-align:right;
-}
-
-
-/* =========================================================
-   Join Date Card — Label
-   ========================================================= */
-
-.join-date-card .identity-side-label{
-    color:#7a8297;
-    font-size:10px;
-    line-height:1.3;
-}
-
-
-/* =========================================================
-   Join Date Card — Year
-   ========================================================= */
-
-.join-date-card .identity-side-content strong{
-    color:#1c2233;
-    font-size:14px;
-    font-weight:700;
-    line-height:1.35;
-    white-space:nowrap;
-}
-
-
-/* =========================================================
-   Join Date Card — Description
-   ========================================================= */
-
-.join-date-card .identity-side-content small{
-    color:#7a8297;
-    font-size:10px;
-    line-height:1.3;
-}
-
-
-/* =========================================================
-   Premium Card
-   خانة المستخدم المميز — مستقلة بالكامل
-   ========================================================= */
-
-.premium-card{
-    order:2;
-    width: 40%;            /* تقليل العرض من 50% إلى 42% */
-    max-width: 140px;      /* تحديد حد أقصى للحجم */
-    color:#fff;
-    border:1px solid transparent;
-    background:linear-gradient(145deg,#795b50,#a9887a);
-    transform:none;
-    position: relative;
-    z-index: 20;
-}
-
-
-/* =========================================================
-   Premium Card — Crown
-   ========================================================= */
-
-.premium-card .premium-crown{
-    width:24px;
-    height:24px;
-    flex:0 0 24px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-    color:#ffe17a;
-    background:rgba(255,255,255,.10);
-    font-size:12px;
-}
-
-
-/* =========================================================
-   Premium Card — Content
-   ========================================================= */
-
-.premium-card .identity-side-content{
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    gap:1px;
-    text-align:right;
-}
-
-
-/* =========================================================
-   Premium Card — Title
-   ========================================================= */
-
-.premium-card .identity-side-content strong{
-    color:#fff;
-    font-size:10px;
-    font-weight:700;
-    line-height:1.35;
-    white-space:nowrap;
-}
-
-
-/* =========================================================
-   Premium Card — Description
-   ========================================================= */
-
-.premium-card .identity-side-content small{
-    color:#fff;
-    opacity:.8;
-    font-size:7px;
-    line-height:1.3;
-}
-
-
-/* =========================================================
-   Side Card Base
-   الشكل العام للخانات فقط
-   ========================================================= */
-
-.identity-side-card{
-    min-width:0;
-    min-height:76px;
-    height:76px;
-    padding:9px 12px;
-    display:flex;
-    align-items:center;
-    gap:9px;
-    border:1px solid rgba(255,255,255,.82);
-    border-radius:17px;
-    background:rgba(255,255,255,.94);
-    box-shadow:0 8px 22px rgba(35,45,80,.09);
-    direction:rtl;
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-}
-
-
-/* =========================================================
-   Main Identity
-   الاسم والمعلومات الرئيسية — مستقل
-   ========================================================= */
-
-/* =========================================================
-   Name Row
-   ========================================================= */
-
-.identity-name-row h1{
-    color:#101522;
-    font-size:29px;
-    font-weight:700;
-    line-height:1.2;
-}
-
-
-/* =========================================================
-   Verified Badge
-   علامة توثيق واحدة فقط — بدون طبقات إضافية
-   ========================================================= */
-
-.verified-badge{
-    width:20px;
-    height:20px;
-    padding:0;
-    margin:0;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    flex:0 0 20px;
-    border:0;
-    outline:0;
-    border-radius:50%;
-    background:transparent;
-    box-shadow:none;
-    vertical-align:middle;
-    line-height:0;
-}
-
-.verified-badge[hidden]{
-    display:none !important;
-}
-
-.verified-badge svg{
-    width:20px;
-    height:20px;
-    display:block;
+    top:292px;
+    right:64px;
+    left:auto;
+    z-index:50;
+    width:166px;
+    height:166px;
     overflow:visible;
 }
 
-.verified-badge .verified-shape{
-    fill:#168bf0;
+.profile-avatar{
+    width:166px;
+    height:166px;
+    display:block;
+    object-fit:cover;
+    border:6px solid #fff;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 8px 25px rgba(35,45,80,.22);
 }
 
+/* Founder crown: hidden unless founder-crown.js grants .is-founder */
+.profile-avatar-crown{
+    display:none !important;
+    position:absolute;
+    left:7px;
+    bottom:-2px;
+    width:42px;
+    height:42px;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+    color:#d2a52c;
+    pointer-events:none;
+    z-index:60;
+}
+
+.profile-avatar-crown.is-founder{
+    display:flex !important;
+}
+
+.profile-avatar-crown .material-icons{
+    font-size:31px;
+    line-height:1;
+    color:#d2a52c;
+}
+
+/* =========================================================
+   Identity — exact old two-column composition
+   Right: name / username / bio / edit
+   Left: premium / medals
+   ========================================================= */
+
+.profile-identity{
+    position:relative;
+    z-index:35;
+    width:100%;
+    max-width:1000px;
+    min-height:297px;
+    margin:0 auto;
+    padding:47px 24px 24px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 265px;
+    column-gap:30px;
+    align-items:start;
+    direction:rtl;
+    background:#fff;
+}
+
+.identity-main{
+    grid-column:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    text-align:right;
+    direction:rtl;
+}
+
+.identity-name-row{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    direction:rtl;
+}
+
+.identity-name-row h1{
+    color:#121826;
+    font-size:38px;
+    font-weight:800;
+    line-height:1.15;
+    white-space:nowrap;
+}
+
+.verified-badge{
+    width:23px;
+    height:23px;
+    flex:0 0 23px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:0;
+    background:transparent;
+    box-shadow:none;
+    line-height:0;
+}
+
+.verified-badge[hidden]{display:none !important;}
+.verified-badge svg{width:23px;height:23px;display:block;}
+.verified-badge .verified-shape{fill:#168bf0;stroke:none;}
 .verified-badge .verified-check{
     fill:none;
     stroke:#fff;
@@ -428,521 +353,532 @@ button{
     stroke-linejoin:round;
 }
 
-.verified-badge::before,
-.verified-badge::after{
-    content:none !important;
-    display:none !important;
-    border:0 !important;
-    box-shadow:none !important;
-    background:none !important;
-}
-
-
-/* =========================================================
-   Username
-   ========================================================= */
-
 .identity-username{
-    margin-top:4px;
-    color:#697187;
-    font-size:15px;
-    line-height:1.4;
+    margin-top:7px;
+    color:#858b98;
+    font-size:19px;
+    line-height:1.35;
     direction:ltr;
 }
 
-
-/* =========================================================
-   Bio
-   ========================================================= */
-
 .identity-bio{
-    margin:4px 0 9px;
-    color:#596176;
-    font-size:14px;
+    margin-top:8px;
+    color:#7b818e;
+    font-size:17px;
     line-height:1.55;
 }
 
-
-/* =========================================================
-   Edit Profile Button
-   ========================================================= */
-
 .hero-edit-profile{
-    min-width:230px;
-    height:42px;
-    padding:0 19px;
+    width:310px;
+    height:57px;
+    margin-top:14px;
+    padding:0 18px;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:7px;
-    border-radius:21px;
+    gap:9px;
+    border-radius:30px;
     background:#fff;
-    color:#1d2434;
-    box-shadow:0 7px 18px rgba(80,96,255,.09);
+    color:#171c2a;
+    box-shadow:0 8px 25px rgba(67,83,125,.10);
+    font-size:17px;
+    font-weight:800;
     cursor:pointer;
-    font-size:14px;
-    font-weight:700;
 }
 
 .hero-edit-profile .material-icons{
-    color:#536075;
-    font-size:18px;
-}
-/* =========================================================
-   Profile Statistics
-   الإحصائيات — قسم مستقل
-   ========================================================= */
-
-.profile-stats {
-    width: 100%;
-    max-width: 1000px;
-    margin: 14px auto 8px;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 9px;
-    background: #eef3fb;
-    border-radius: 20px;
+    color:#596274;
+    font-size:25px;
 }
 
-
-/* =========================================================
-   Statistic Card
-   ========================================================= */
-
-.stat-card {
-    min-width: 0;
-    height: 80px;
-    padding: 6px 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    border: 1px solid rgba(220, 226, 240, 0.7);
-    border-radius: 16px;
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(35, 45, 80, 0.03);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(35, 45, 80, 0.07);
-}
-
-/* =========================================================
-   Statistic Icon
-   ========================================================= */
-
-.stat-icon {
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-/* =========================================================
-   Statistic Icon Colors
-   ========================================================= */
-
-.download-icon {
-    color: #0088ff;
-}
-
-/* 2. أيقونة الإعجابات - وردي / أحمر */
-.like-icon {
-    color: #ff3b5c;
-}
-
-/* 3. أيقونة المشاهدات - بنفسجي */
-.view-icon {
-    color: #6c5ce7;
-}
-
-/* 4. أيقونة الخلفيات - أخضر */
-.wallpaper-icon {
-    color: #00b894;
-}
-/* =========================================================
-   Statistic Number
-   ========================================================= */
-
-.stat-card strong {
-    color: #121826;
-    font-size: 17px;
-    font-weight: 800;
-    line-height: 1;
-}
-/* =========================================================
-   Statistic Label
-   ========================================================= */
-
-.stat-card > span:last-child {
-    color: #70788b;
-    font-size: 10.5px;
-    font-weight: 600;
-    line-height: 1.2;
-    white-space: nowrap;
-}
-/* =========================================================
-   Profile Wallpapers Content
-   قسم الخلفيات — مستقل بالكامل
-   ========================================================= */
-
-.profile-content{
-    width:100%;
-    max-width:1000px;
-    margin:0 auto;
-    padding:0 28px 25px;
-}
-
-
-/* =========================================================
-   Wallpapers Heading
-   عنوان قسم الخلفيات
-   ========================================================= */
-
-.profile-wallpapers-heading{
-    width:100%;
-    height:46px;
-    margin:2px 0 9px;
-    padding:0 10px;
+.identity-side-stack{
+    grid-column:2;
     display:flex;
-    align-items:center;
-    justify-content:space-between;
-    border:1px solid rgba(80,96,255,.10);
-    border-radius:15px;
-    background:linear-gradient(135deg,#fff,#f5f7fc);
-    box-shadow:0 5px 15px rgba(48,61,105,.06);
+    flex-direction:column;
+    align-items:stretch;
+    gap:21px;
     direction:rtl;
 }
 
-
-/* =========================================================
-   Wallpapers Heading Main
-   ========================================================= */
-
-.wallpapers-heading-main{
+/* Premium */
+.identity-side-card{
+    width:100%;
+    height:104px;
+    min-height:104px;
+    padding:13px 15px;
     display:flex;
     align-items:center;
-    gap:7px;
+    gap:11px;
+    border-radius:22px;
+    background:linear-gradient(145deg,#795b50,#a9887a);
+    color:#fff;
+    box-shadow:0 8px 20px rgba(73,48,39,.12);
+    direction:rtl;
 }
 
-
-/* =========================================================
-   Wallpapers Heading Icon
-   ========================================================= */
-
-.wallpapers-heading-main .material-icons{
-    width:29px;
-    height:29px;
+.premium-crown{
+    width:54px;
+    height:54px;
+    flex:0 0 54px;
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:9px;
-    background:#eef2f7;
-    color:#5364ee;
-    font-size:17px;
+    border-radius:15px;
+    background:rgba(255,255,255,.12);
+    color:#ffe27a;
+    font-size:28px;
 }
 
+.identity-side-content{
+    min-width:0;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    text-align:right;
+}
+
+.identity-side-content strong{
+    color:#fff;
+    font-size:16px;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+.identity-side-content small{
+    color:rgba(255,255,255,.80);
+    font-size:12px;
+}
+
+.premium-arrow{
+    color:#fff;
+    font-size:30px;
+}
+
+/* Medals */
+.profile-medals-trigger{
+    width:100%;
+    height:59px;
+    padding:0 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border:1px solid #ead7a1;
+    border-radius:30px;
+    background:linear-gradient(180deg,#fffdf6,#fff8e4);
+    color:#8b6b19;
+    box-shadow:0 5px 15px rgba(176,139,42,.08);
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.medal-trigger-icon{
+    width:35px;
+    height:35px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 35px;
+    border-radius:50%;
+    background:#f4ce5e;
+    color:#70540c;
+    font-size:18px;
+}
+
+.profile-medals-trigger .material-icons{font-size:21px;}
+
+.profile-medals-inline-panel{
+    width:100%;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    padding:0;
+    border:1px solid transparent;
+    border-radius:18px;
+    background:#fffdf8;
+    transition:max-height .25s ease,opacity .2s ease,padding .25s ease,border-color .25s ease;
+}
+
+.profile-medals-inline-panel.open{
+    max-height:220px;
+    opacity:1;
+    padding:10px;
+    border-color:#eadfbe;
+}
+
+.profile-medals-inline-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:#8b6b19;
+    font-size:11px;
+    font-weight:800;
+    margin-bottom:8px;
+}
+
+.profile-medals-viewport{
+    width:100%;
+    overflow:hidden;
+}
+
+.profile-medals-track{
+    display:flex;
+    width:100%;
+}
+
+.profile-medals-page{
+    width:100%;
+    flex:0 0 100%;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:7px;
+}
+
+.profile-medal{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.profile-medal-badge{
+    width:38px;
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#f4f5f8;
+    color:#a5a9b3;
+}
+
+.profile-medal.unlocked .profile-medal-badge{
+    background:linear-gradient(145deg,#f8dc79,#c99a1f);
+    color:#70520b;
+}
+
+.profile-medal.locked{opacity:.42;}
+.profile-medal-badge .material-icons{font-size:20px;}
+
+.profile-medals-dots{
+    display:flex;
+    justify-content:center;
+    gap:5px;
+    margin-top:8px;
+}
+
+.profile-medal-dot{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#c9cdd7;
+}
+
+.profile-medal-dot.active{
+    width:17px;
+    border-radius:6px;
+    background:#5364ee;
+}
 
 /* =========================================================
-   Wallpapers Heading Title
+   Statistics — old design
    ========================================================= */
 
-.profile-wallpapers-heading h2{
-    color:#171c2a;
-    font-size:15px;
+.profile-stats{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding:14px 15px;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:11px;
+    border-radius:24px;
+    background:#eef3fb;
+}
+
+.stat-card{
+    min-width:0;
+    height:106px;
+    padding:10px 5px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    border:1px solid #e3e7f0;
+    border-radius:20px;
+    background:#fff;
+    box-shadow:0 5px 14px rgba(35,45,80,.04);
+}
+
+.stat-icon{
+    width:32px;
+    height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:29px;
+}
+
+.download-icon{color:#0788e8;}
+.like-icon{color:#f33b61;}
+.view-icon{color:#6b58dd;}
+.wallpaper-icon{color:#00b894;}
+
+.stat-card strong{
+    color:#151a27;
+    font-size:24px;
     font-weight:800;
     line-height:1;
 }
 
+.stat-card > span:last-child{
+    color:#70788b;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+}
 
 /* =========================================================
-   Wallpapers Count
+   Tabs
    ========================================================= */
 
-.wallpapers-heading-count{
-    min-width:27px;
-    height:25px;
-    padding:0 7px;
+.profile-tabs{
+    width:calc(100% - 42px);
+    max-width:1000px;
+    margin:14px auto 0;
+    padding:6px;
+    display:flex;
+    align-items:center;
+    gap:3px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    border:1px solid #e5e8ef;
+    border-radius:21px;
+    background:#fff;
+    box-shadow:0 4px 14px rgba(35,45,80,.04);
+}
+
+.profile-tabs::-webkit-scrollbar{display:none;}
+
+.profile-tab{
+    position:relative;
+    flex:1 0 auto;
+    min-width:0;
+    height:72px;
+    padding:0 13px;
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:9px;
-    background:#eef2f7;
-    color:#5364ee;
-    font-size:10px;
+    gap:7px;
+    border-radius:17px;
+    background:transparent;
+    color:#767e8f;
+    font-size:15px;
     font-weight:700;
+    white-space:nowrap;
+    cursor:pointer;
 }
 
+.profile-tab .material-icons{font-size:23px;}
+
+.profile-tab.active{
+    background:#eef2ff;
+    color:#5364ee;
+}
+
+.profile-tab.active::after{
+    content:"";
+    position:absolute;
+    right:22px;
+    left:22px;
+    bottom:5px;
+    height:4px;
+    border-radius:4px;
+    background:#5364ee;
+}
 
 /* =========================================================
-   Profile Wallpapers Grid
-   شبكة الخلفيات
+   Panels / Information
    ========================================================= */
+
+.profile-tab-content{
+    width:100%;
+    max-width:1000px;
+    margin:0 auto;
+    padding-top:12px;
+}
+
+.profile-panel{display:none;}
+.profile-panel.active{display:block;}
+
+.user-info{
+    width:100%;
+    padding:0 21px 25px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.info-card{
+    min-height:92px;
+    padding:14px 17px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    border:1px solid #e6e9f0;
+    border-radius:19px;
+    background:#fff;
+    box-shadow:0 5px 16px rgba(35,45,80,.04);
+}
+
+.info-card > .material-icons{
+    width:54px;
+    height:54px;
+    flex:0 0 54px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:15px;
+    background:#eef2f8;
+    color:#5364ee;
+    font-size:27px;
+}
+
+.info-card h4{
+    color:#7c8391;
+    font-size:14px;
+    margin-bottom:4px;
+}
+
+.info-card p{
+    color:#171c2a;
+    font-size:19px;
+    font-weight:600;
+}
+
+.uid-box{display:block;}
+.uid-title{margin-bottom:8px;text-align:center;color:#8b92a5;font-size:13px;}
+.uid-content{display:flex;align-items:center;gap:10px;direction:ltr;}
+#userUid{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-family:monospace;font-size:15px;}
+.uid-content button{
+    width:42px;
+    height:42px;
+    flex:0 0 42px;
+    border-radius:12px;
+    background:#eef2f7;
+    color:#5364ee;
+    cursor:pointer;
+}
+
+/* Medal history */
+.profile-medal-history{
+    width:calc(100% - 42px);
+    margin:0 auto 25px;
+    padding:18px;
+    border:1px solid #e6e9f0;
+    border-radius:20px;
+    background:#fff;
+    box-shadow:0 5px 16px rgba(35,45,80,.04);
+}
+
+.profile-medal-history-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+}
+
+.profile-medal-history-kicker{
+    color:#a08a4c;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.12em;
+}
+
+.profile-medal-history-head h3{
+    margin-top:3px;
+    color:#252b3b;
+    font-size:18px;
+}
+
+.profile-medal-history-head > .material-icons{
+    color:#c99a1f;
+    font-size:25px;
+}
+
+.profile-medal-history-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.profile-medal-history-item{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr) auto;
+    align-items:center;
+    gap:10px;
+    padding:8px;
+    border-radius:14px;
+    background:#fafbfe;
+}
+
+.profile-medal-history-badge{
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:linear-gradient(145deg,#f8dc79,#c99a1f);
+    color:#70520b;
+}
+
+.profile-medal-history-name{font-size:12px;font-weight:800;color:#353946;}
+.profile-medal-history-desc{margin-top:2px;font-size:9px;color:#989ca6;}
+.profile-medal-history-date{text-align:left;white-space:nowrap;color:#8f6e1e;font-size:9px;font-weight:700;}
+.profile-medal-history-date small{display:block;margin-bottom:2px;color:#a4a7af;font-size:7px;font-weight:500;}
+
+/* Wallpapers */
+.profile-content{
+    width:100%;
+    padding:0 21px 25px;
+}
 
 .profile-grid{
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:9px;
+    gap:12px;
     width:100%;
 }
-
-
-/* =========================================================
-   Wallpaper Card
-   ========================================================= */
 
 .profile-wall-card{
     min-width:0;
     overflow:hidden;
     padding:4px;
-    border-radius:15px;
+    border:1px solid #e6eaf2;
+    border-radius:17px;
     background:#eef1f6;
+    box-shadow:0 5px 16px rgba(35,45,80,.04);
     cursor:pointer;
 }
-
-
-/* =========================================================
-   Wallpaper Image
-   ========================================================= */
 
 .profile-wall-card img{
     width:100%;
-    height:220px;
+    height:250px;
     display:block;
     object-fit:cover;
-    border-radius:11px;
+    border-radius:13px;
 }
 
+.profile-wall-info{padding:7px 4px 3px;}
+.profile-wall-info h3{overflow:hidden;color:#171c2a;font-size:13px;font-weight:700;text-overflow:ellipsis;white-space:nowrap;}
+.profile-wall-info p{margin-top:2px;color:#747c90;font-size:9px;}
+.empty-profile{grid-column:1/-1;padding:35px 10px;text-align:center;color:#8991a5;}
 
 /* =========================================================
-   Wallpaper Information
-   ========================================================= */
-
-.profile-wall-info{
-    padding:6px 3px 2px;
-}
-
-
-/* =========================================================
-   Wallpaper Title
-   ========================================================= */
-
-.profile-wall-info h3{
-    overflow:hidden;
-    color:#171c2a;
-    font-size:12px;
-    font-weight:600;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-
-/* =========================================================
-   Wallpaper Metadata
-   ========================================================= */
-
-.profile-wall-info p{
-    margin-top:2px;
-    color:#747c90;
-    font-size:9px;
-}
-
-
-/* =========================================================
-   Empty Wallpapers
-   ========================================================= */
-
-.empty-profile{
-    grid-column:1/-1;
-    padding:28px 10px;
-    text-align:center;
-    color:#8991a5;
-}
-
-
-/* =========================================================
-   Secondary Wallpaper Section
-   قسم الخلفيات الإضافي
-   ========================================================= */
-
-.secondary-wallpaper-section{
-    margin-top:22px;
-}
-
-
-/* =========================================================
-   Secondary Section Title
-   ========================================================= */
-
-.section-title{
-    margin:0 0 10px;
-}
-
-
-/* =========================================================
-   Secondary Section Heading
-   ========================================================= */
-
-.section-title h2{
-    color:#252b3b;
-    font-size:16px;
-    font-weight:700;
-}
-/* =========================================================
-   User Information
-   معلومات الحساب — قسم مستقل بالكامل
-   ========================================================= */
-
-.user-info{
-    width:100%;
-    max-width:1000px;
-    margin:0 auto;
-    padding:15px 28px 25px;
-    display:flex;
-    flex-direction:column;
-    gap:0;
-}
-
-
-/* =========================================================
-   Information Card
-   ========================================================= */
-
-.info-card{
-    min-height:64px;
-    padding:9px 0;
-    display:flex;
-    align-items:center;
-    gap:14px;
-    position:relative;
-    background:transparent;
-}
-
-
-/* =========================================================
-   Information Divider
-   ========================================================= */
-
-.info-card:not(:last-child)::after{
-    content:"";
-    position:absolute;
-    right:0;
-    bottom:0;
-    width:100%;
-    height:1px;
-    background:rgba(0,0,0,.06);
-}
-
-
-/* =========================================================
-   Information Icon
-   ========================================================= */
-
-.info-card > .material-icons{
-    width:40px;
-    height:40px;
-    flex:0 0 40px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:12px;
-    background:#eef2f7;
-    color:#5364ee;
-    font-size:21px;
-}
-
-
-/* =========================================================
-   Information Title
-   ========================================================= */
-
-.info-card h4{
-    margin-bottom:3px;
-    color:#7a8295;
-    font-size:12px;
-}
-
-
-/* =========================================================
-   Information Value
-   ========================================================= */
-
-.info-card p{
-    color:#171c2a;
-    font-size:16px;
-    font-weight:500;
-}
-
-
-/* =========================================================
-   UID Box
-   ========================================================= */
-
-.uid-box{
-    display:block;
-}
-
-
-/* =========================================================
-   UID Title
-   ========================================================= */
-
-.uid-title{
-    margin-bottom:7px;
-    color:#8b92a5;
-    font-size:13px;
-    text-align:center;
-}
-
-
-/* =========================================================
-   UID Content
-   ========================================================= */
-
-.uid-content{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    direction:ltr;
-}
-
-
-/* =========================================================
-   User UID
-   ========================================================= */
-
-#userUid{
-    flex:1;
-    min-width:0;
-    overflow:hidden;
-    color:#171c2a;
-    font-family:monospace;
-    font-size:14px;
-    text-overflow:ellipsis;
-}
-
-
-/* =========================================================
-   Copy UID Button
-   ========================================================= */
-
-.uid-content button{
-    width:38px;
-    height:38px;
-    flex:0 0 38px;
-    border-radius:11px;
-    background:#eef2f7;
-    color:#5364ee;
-    cursor:pointer;
-}
-/* =========================================================
-   Edit Profile Modal
-   نافذة تعديل الملف الشخصي — قسم مستقل بالكامل
+   Edit modal
    ========================================================= */
 
 .edit-modal{
@@ -956,63 +892,37 @@ button{
     background:rgba(10,14,25,.42);
 }
 
-
-/* =========================================================
-   Modal Active State
-   ========================================================= */
-
-.edit-modal.show{
-    display:flex;
-}
-
-
-/* =========================================================
-   Edit Box
-   ========================================================= */
+.edit-modal.show{display:flex;}
 
 .edit-box{
     width:100%;
-    max-width:420px;
+    max-width:430px;
     padding:24px;
     border-radius:22px;
     background:#fff;
     box-shadow:0 18px 45px rgba(0,0,0,.18);
 }
 
-
-/* =========================================================
-   Modal Title
-   ========================================================= */
-
 .edit-box h2{
     margin-bottom:22px;
     text-align:center;
     color:#171c2a;
     font-size:22px;
-    font-weight:700;
 }
-
-/* =========================================================
-   Avatar inside Edit Profile
-   ========================================================= */
 
 .edit-avatar-section{
     display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:10px;
-    margin:0 0 20px;
-    padding:4px 0 2px;
+    justify-content:center;
+    margin-bottom:20px;
 }
 
 .edit-avatar-preview-wrap{
-    width:82px;
-    height:82px;
+    width:84px;
+    height:84px;
     padding:3px;
     border:2px solid #eef1f7;
     border-radius:50%;
     background:#fff;
-    box-shadow:0 6px 18px rgba(35,45,80,.10);
 }
 
 .edit-avatar-preview{
@@ -1023,61 +933,8 @@ button{
     border-radius:50%;
 }
 
-.edit-avatar-change{
-    height:38px;
-    padding:0 15px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    border:1px solid #e3e7f0;
-    border-radius:19px;
-    background:#f7f8fc;
-    color:#5364ee;
-    font-size:13px;
-    font-weight:700;
-    cursor:pointer;
-    transition:background .16s ease, transform .16s ease;
-}
-
-.edit-avatar-change:hover{
-    background:#eef1ff;
-}
-
-.edit-avatar-change:active{
-    transform:scale(.97);
-}
-
-.edit-avatar-change .material-icons{
-    font-size:18px;
-}
-
-
-/* =========================================================
-   Edit Input
-   ========================================================= */
-
-.edit-input{
-    margin-bottom:16px;
-}
-
-
-/* =========================================================
-   Input Label
-   ========================================================= */
-
-.edit-input label{
-    display:block;
-    margin-bottom:7px;
-    color:#70788b;
-    font-size:13px;
-}
-
-
-/* =========================================================
-   Input Field
-   ========================================================= */
-
+.edit-input{margin-bottom:16px;}
+.edit-input label{display:block;margin-bottom:7px;color:#70788b;font-size:13px;}
 .edit-input input{
     width:100%;
     height:48px;
@@ -1087,2213 +944,349 @@ button{
     border-radius:13px;
     background:#f6f8fb;
     color:#171c2a;
-    font-size:14px;
 }
-
-
-/* =========================================================
-   Input Focus
-   ========================================================= */
-
 .edit-input input:focus{
     border-color:#5364ee;
     box-shadow:0 0 0 3px rgba(83,100,238,.10);
 }
+.edit-input-hint{display:block;margin-top:5px;color:#8a92a5;font-size:10px;}
 
-.edit-input-hint{
-    display:block;
-    margin-top:5px;
-    color:#8a92a5;
-    font-size:10px;
-    line-height:1.4;
-}
-
+.edit-buttons{display:flex;gap:10px;margin-top:22px;}
+.edit-buttons button{flex:1;height:46px;border-radius:13px;cursor:pointer;font-size:14px;font-weight:700;}
+#saveProfileBtn{background:#5364ee;color:#fff;}
+#closeEditBtn{background:#edf0f5;color:#5364ee;}
 
 /* =========================================================
-   Modal Buttons
+   Dark mode
    ========================================================= */
 
-.edit-buttons{
-    display:flex;
-    gap:10px;
-    margin-top:22px;
-}
-
-
-/* =========================================================
-   Modal Button
-   ========================================================= */
-
-.edit-buttons button{
-    flex:1;
-    height:46px;
-    border-radius:13px;
-    cursor:pointer;
-    font-size:14px;
-    font-weight:700;
-}
-
-
-/* =========================================================
-   Save Button
-   ========================================================= */
-
-#saveProfileBtn{
-    background:#5364ee;
-    color:#fff;
-}
-
+body.dark{background:#0b0e15;color:#fff;}
+body.dark .profile-identity{background:#0b0e15;}
+body.dark .profile-tabs,
+body.dark .info-card,
+body.dark .profile-medal-history,
+body.dark .edit-box{background:#141925;border-color:#252c3c;}
+body.dark .profile-stats{background:#0b0e15;}
+body.dark .stat-card{background:#141925;border-color:#252c3c;}
+body.dark .profile-tab.active{background:#1b2130;}
+body.dark .identity-name-row h1,
+body.dark .info-card p,
+body.dark .profile-medal-history-head h3,
+body.dark .profile-wall-info h3,
+body.dark .edit-box h2{color:#fff;}
+body.dark .identity-username,
+body.dark .identity-bio,
+body.dark .info-card h4,
+body.dark .stat-card > span:last-child,
+body.dark .profile-wall-info p{color:#9da6ba;}
+body.dark .profile-wall-card{background:#161c28;border-color:#252c3c;}
+body.dark .profile-medal-history-item{background:#1b2130;}
+body.dark .uid-content button{background:#1b2130;}
+body.dark .edit-input input{background:#0d111a;border-color:#2a3142;color:#fff;}
+body.dark #closeEditBtn{background:#202738;}
 
 /* =========================================================
-   Close Button
-   ========================================================= */
-
-#closeEditBtn{
-    background:#edf0f5;
-    color:#5364ee;
-}
-/* =========================================================
-   Dark Theme
-   الوضع الداكن — قسم مستقل
-   ========================================================= */
-
-body.dark{
-    background:#0b0e15;
-    color:#fff;
-}
-
-
-/* =========================================================
-   Dark Profile Identity
-   ========================================================= */
-
-body.dark .profile-identity{
-    background:transparent;
-}
-
-
-/* =========================================================
-   Dark Statistics
-   ========================================================= */
-
-body.dark .profile-stats{
-    background:#0b0e15;
-}
-
-
-/* =========================================================
-   Dark Profile Content
-   ========================================================= */
-
-body.dark .profile-content{
-    background:#0b0e15;
-}
-
-
-/* =========================================================
-   Dark Identity Cards
-   ========================================================= */
-
-body.dark .identity-side-card{
-    background:#141925;
-    border-color:#252c3c;
-}
-
-
-/* =========================================================
-   Dark Statistic Card
-   ========================================================= */
-
-body.dark .stat-card{
-    background:#141925;
-    border-color:#252c3c;
-}
-
-
-/* =========================================================
-   Dark Wallpapers Heading
-   ========================================================= */
-
-body.dark .profile-wallpapers-heading{
-    background:#141925;
-    border-color:#252c3c;
-}
-
-
-/* =========================================================
-   Dark Edit Box
-   ========================================================= */
-
-body.dark .edit-box{
-    background:#141925;
-    border-color:#252c3c;
-}
-
-
-/* =========================================================
-   Dark Main Text
-   ========================================================= */
-
-body.dark .identity-side-content strong{
-    color:#fff;
-}
-
-body.dark .identity-name-row h1{
-    color:#fff;
-}
-
-body.dark .identity-bio{
-    color:#fff;
-}
-
-body.dark .profile-wallpapers-heading h2{
-    color:#fff;
-}
-
-body.dark .stat-card strong{
-    color:#fff;
-}
-
-body.dark .info-card p{
-    color:#fff;
-}
-
-body.dark .profile-wall-info h3{
-    color:#fff;
-}
-
-body.dark .edit-box h2{
-    color:#fff;
-}
-
-
-/* =========================================================
-   Dark Secondary Text
-   ========================================================= */
-
-body.dark .identity-side-label{
-    color:#9da6ba;
-}
-
-body.dark .identity-side-content small{
-    color:#9da6ba;
-}
-
-body.dark .identity-username{
-    color:#9da6ba;
-}
-
-body.dark .stat-card > span:last-child{
-    color:#9da6ba;
-}
-
-body.dark .info-card h4{
-    color:#9da6ba;
-}
-
-body.dark .profile-wall-info p{
-    color:#9da6ba;
-}
-
-
-/* =========================================================
-   Dark Icons
-   ========================================================= */
-
-body.dark .join-date-card > .material-icons{
-    background:#1b2130;
-}
-
-body.dark .premium-card .premium-crown{
-    background:#1b2130;
-}
-
-body.dark .wallpapers-heading-main .material-icons{
-    background:#1b2130;
-}
-
-body.dark .wallpapers-heading-count{
-    background:#1b2130;
-}
-
-body.dark .info-card > .material-icons{
-    background:#1b2130;
-}
-
-body.dark .uid-content button{
-    background:#1b2130;
-}
-
-
-/* =========================================================
-   Dark Wallpaper Card
-   ========================================================= */
-
-body.dark .profile-wall-card{
-    background:#161c28;
-}
-
-
-/* =========================================================
-   Dark Information Divider
-   ========================================================= */
-
-body.dark .info-card:not(:last-child)::after{
-    background:rgba(255,255,255,.08);
-}
-
-
-/* =========================================================
-   Dark Edit Input
-   ========================================================= */
-
-body.dark .edit-input input{
-    background:#0d111a;
-    border-color:#2a3142;
-    color:#fff;
-}
-
-body.dark .edit-input-hint{
-    color:#9da6ba;
-}
-
-
-/* =========================================================
-   Dark Close Button
-   ========================================================= */
-
-body.dark #closeEditBtn{
-    background:#202738;
-}
-/* =========================================================
-   Mobile Layout
-   تصميم الهاتف — قسم مستقل
+   Mobile — the supplied old design
    ========================================================= */
 
 @media(max-width:700px){
 
-    body{
-        padding-bottom:95px;
-    }
-
-
-    /* =====================================================
-       Mobile Header
-       ===================================================== */
+    body{padding-bottom:92px;}
 
     .profile-header{
-        height:62px;
-        padding:0 12px;
+        height:72px;
+        padding:0 17px;
     }
 
-    .profile-header h2{
-        font-size:20px;
+    .profile-header h2{font-size:23px;}
+
+    .menu-btn,
+    .login-btn,
+    .settings-btn{
+        width:50px;
+        height:50px;
+        min-width:50px;
     }
 
-    .profile-actions{
-        gap:7px;
-    }
-
-
-    /* =====================================================
-       Mobile Header Buttons
-       ===================================================== */
-
-    .profile-icon-btn{
-        width:40px;
-        min-width:40px;
-        max-width:40px;
-        height:40px;
-        min-height:40px;
-        max-height:40px;
-        flex-basis:40px;
-    }
-
-
-    /* =====================================================
-       Mobile Cover
-       ===================================================== */
+    .profile-actions{gap:9px;}
 
     .profile-cover{
-        height:320px;
+        height:432px;
     }
 
-    .cover-image{
-        height:245px;
-    }
-
-
-    /* =====================================================
-       Mobile Cover Button
-       ===================================================== */
-
-    .cover-change-btn{
-        top:112px;
-        right:12px;
-        height:34px;
-        padding:0 11px;
-        border-radius:17px;
-        font-size:12px;
-    }
-
-
-    /* =====================================================
-       Mobile Avatar
-       ===================================================== */
-
-    .profile-avatar-box{
-        top:180px;
-    }
-
-    .profile-avatar{
-        width:95px;
-        height:95px;
-    }
-
-    .avatar-edit{
-        width:35px;
-        height:35px;
-    }
-
-
-    /* =====================================================
-       Mobile Profile Identity
-       ===================================================== */
-
-    .profile-identity{
-        max-width:none;
-        margin:0 auto;
-        padding:10px 12px 8px;
-        gap:8px;
-    }
-
-
-    /* =====================================================
-       Mobile Join Date
-       ===================================================== */
-/* =====================================================
-       Mobile Join Date Card
-       ===================================================== */
-
-    .join-date-card{
-        min-height:64px;
-        height:64px;
-        padding:6px 8px;
-        display:flex;
-        align-items:center;
-        gap:6px;
-        border-radius:14px;
-    }
-
-    .join-date-card > .material-icons{
-        width:28px;
-        height:28px;
-        flex:0 0 28px;
-        border-radius:8px;
-        font-size:15px;
-    }
-
-    .join-date-card .identity-side-content{
-        gap:1px;
-    }
-
-    .join-date-card .identity-side-label{
-        font-size:8px;
-    }
-
-    .join-date-card .identity-side-content strong{
-        font-size:11px;
-    }
-
-    .join-date-card .identity-side-content small{
-        font-size:8px;
-    }
-
-
-    /* =====================================================
-       Mobile Premium Card
-       ===================================================== */
-
-    .premium-card{
-        min-height:64px;
-        height:64px;
-        padding:6px 8px;
-        display:flex;
-        align-items:center;
-        gap:6px;
-        border-radius:14px;
-    }
-
-    .premium-card .premium-crown{
-        width:28px;
-        height:28px;
-        flex:0 0 28px;
-        border-radius:8px;
-        font-size:15px;
-    }
-
-    .premium-card .identity-side-content{
-        gap:1px;
-    }
-
-    .premium-card .identity-side-content strong{
-        font-size:11px;
-    }
-
-    .premium-card .identity-side-content small{
-        font-size:8px;
-    }
-
-
-    /* =====================================================
-       Mobile Name
-       ===================================================== */
-
-    .identity-name-row{
-        gap:5px;
-    }
-
-    .identity-name-row h1{
-        font-size:22px;
-    }
-
-
-    /* =====================================================
-       Mobile Verified Badge
-       ===================================================== */
-
-    .verified-badge{
-        width:18px;
-        height:18px;
-        flex-basis:18px;
-    }
-
-    .verified-badge svg{
-        width:18px;
-        height:18px;
-    }
-
-
-    /* =====================================================
-       Mobile Username
-       ===================================================== */
-
-    .identity-username{
-        margin-top:1px;
-        font-size:12px;
-    }
-
-
-    /* =====================================================
-       Mobile Bio
-       ===================================================== */
-
-    .identity-bio{
-        margin:2px 0 5px;
-        font-size:11px;
-    }
-
-
-    /* =====================================================
-       Mobile Edit Button
-       ===================================================== */
-
-    .hero-edit-profile{
-        min-width:190px;
-        height:35px;
-        padding:0 14px;
-        border-radius:18px;
-        font-size:12px;
-    }
-
-    .hero-edit-profile .material-icons{
-        font-size:15px;
-    }
-
-
-    /* =====================================================
-       Mobile Statistics
-       ===================================================== */
-
-.profile-stats {
-        max-width: none;
-        padding: 8px;
-        gap: 6px;
-        border-radius: 16px;
-    }
-
-.stat-card {
-        height: 72px;
-        padding: 4px 2px;
-        border-radius: 13px;
-    }
- .stat-icon {
-        width: 19px;
-        height: 19px;
-        font-size: 18px;
-    }
- .stat-card strong {
-        font-size: 15px;
-    }
-.stat-card > span:last-child {
-        font-size: 9px;
-    }
-    /* =====================================================
-       Mobile Wallpapers
-       ===================================================== */
-
-    .profile-content{
-        max-width:none;
-        padding:0 12px 20px;
-    }
-
-    .profile-wallpapers-heading{
-        height:44px;
-        margin:2px 0 8px;
-        padding:0 8px;
-        border-radius:13px;
-    }
-
-    .wallpapers-heading-main{
-        gap:6px;
-    }
-
-    .wallpapers-heading-main .material-icons{
-        width:27px;
-        height:27px;
-        border-radius:8px;
-        font-size:16px;
-    }
-
-    .profile-wallpapers-heading h2{
-        font-size:14px;
-    }
-
-    .wallpapers-heading-count{
-        min-width:25px;
-        height:23px;
-        font-size:9px;
-    }
-
-
-    /* =====================================================
-       Mobile Wallpaper Grid
-       ===================================================== */
-
-    .profile-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:8px;
-    }
-
-
-    /* =====================================================
-       Mobile Wallpaper Card
-       ===================================================== */
-
-    .profile-wall-card{
-        padding:4px;
-        border-radius:14px;
-    }
-
-    .profile-wall-card img{
-        height:185px;
-        border-radius:10px;
-    }
-
-    .profile-wall-info{
-        padding:5px 3px 2px;
-    }
-
-    .profile-wall-info h3{
-        font-size:11px;
-    }
-
-    .profile-wall-info p{
-        font-size:8px;
-    }
-
-
-    /* =====================================================
-       Mobile Secondary Section
-       ===================================================== */
-
-    .secondary-wallpaper-section{
-        margin-top:18px;
-    }
-
-
-    /* =====================================================
-       Mobile User Information
-       ===================================================== */
-
-    .user-info{
-        padding:10px 12px 20px;
-    }
-}
-/* =========================================================
-   Extra Small Screens
-   الشاشات الصغيرة جدًا — قسم مستقل
-   ========================================================= */
-
-@media(max-width:380px){
-
-    /* =====================================================
-       Header
-       ===================================================== */
-
-    .profile-actions{
-        gap:5px;
-    }
-
-    .profile-icon-btn{
-        width:37px;
-        min-width:37px;
-        max-width:37px;
-        height:37px;
-        min-height:37px;
-        max-height:37px;
-        flex-basis:37px;
-    }
-
-
-    /* =====================================================
-       Cover
-       ===================================================== */
-
-    .profile-cover{
-        height:315px;
-    }
-
-    .cover-image{
-        height:240px;
-    }
-
-
-    /* =====================================================
-       Avatar
-       ===================================================== */
-
-    .profile-avatar-box{
-        top:176px;
-    }
-
-    .profile-avatar{
-        width:91px;
-        height:91px;
-    }
-
-
-    /* =====================================================
-       Profile Identity
-       ===================================================== */
-
-    .profile-identity{
-        padding-top:10px;
-        padding-left:10px;
-        padding-right:10px;
-        gap:6px;
-    }
-
-
-    /* =====================================================
-       Join Date
-       ===================================================== */
-
-.join-date-card > .material-icons{
-        width:26px;
-        height:26px;
-        flex-basis:26px;
-        border-radius:8px;
-        font-size:14px;
-    }
-
-    .join-date-card .identity-side-label{
-        font-size:7px;
-    }
-
-    .join-date-card .identity-side-content strong{
-        font-size:10px;
-    }
-
-    .join-date-card .identity-side-content small{
-        font-size:7px;
-    }
-
-
-    /* =====================================================
-       Premium
-       ===================================================== */
-
-.premium-card{
-        width:calc(50% - 3px);
-        height:60px;
-        min-height:60px;
-        padding:5px 7px;
-        gap:5px;
-        border-radius:12px;
-        /* إزاحة الشاشات الصغيرة جداً */
-        transform:none;
-    }
-    .premium-card .premium-crown{
-        width:26px;
-        height:26px;
-        flex-basis:26px;
-        border-radius:8px;
-        font-size:14px;
-    }
-
-    .premium-card .identity-side-content strong{
-        font-size:10px;
-    }
-
-    .premium-card .identity-side-content small{
-        font-size:7px;
-    }
-
-
-    /* =====================================================
-       Statistics
-       ===================================================== */
-
-    .profile-stats{
-        gap:5px;
-        padding-left:10px;
-        padding-right:10px;
-    }
-
-    .stat-card{
-        height:60px;
-        border-radius:12px;
-    }
-
-    .stat-card strong{
-        font-size:16px;
-    }
-
-    .stat-card > span:last-child{
-        font-size:7px;
-    }
-
-
-    /* =====================================================
-       Wallpaper Images
-       ===================================================== */
-
-    .profile-wall-card img{
-        height:165px;
-    }
-}
-/* =========================================================
-   Premium Card Fix
-   إصلاح الخلفية والنص لبطاقة البريميوم
-   ========================================================= */
-
-.premium-card{
-    order: 2;
-    width: 38%;
-    min-height: 54px;
-    height: 54px;
-    padding: 4px 6px;
-    gap: 4px;
-    border-radius: 12px;
-    transform:none;
-    position: relative;
-    z-index: 20;
-
-    /* إجبار لون الخلفية والتدرج ليتغلب على اللون الأبيض */
-    background: linear-gradient(145deg, #795b50, #a9887a) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-/* إجبار ألوان النصوص والتاج على الظهور باللون الأبيض والذهبي */
-.premium-card .identity-side-content strong,
-.premium-card .identity-side-content small {
-    color: #ffffff !important;
-}
-
-.premium-card .premium-crown {
-    color: #ffe17a !important;
-    background: rgba(255, 255, 255, 0.15) !important;
-}
-/* =========================================================
-   تعديل وتجميل الأزرار العلوية والشريط الشفاف
-   ========================================================= */
-
-/* 1. إزالة أي خلفيات بيضاء وتثبيت الهيدر أعلى الغلاف */
-.profile-header {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 100 !important;
-    height: 65px !important;
-    padding: 0 16px !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* 2. تصفية حاويات الأزرار الجانبية */
-.profile-header-side,
-.profile-actions {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* 3. تصميم الأزرار: زجاجي شفاف، دائرية بالكامل، ومؤثرات عند الضغط */
-.profile-icon-btn,
-.profile-header button {
-    width: 42px !important;
-    min-width: 42px !important;
-    max-width: 42px !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    max-height: 42px !important;
-    border-radius: 50% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    
-    /* خلفية شفافة مظللة بدرجة خفيفة مع تأثير الضباب (Glassmorphism) */
-    background: rgba(0, 0, 0, 0.28) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    
-    /* حدود خفيفة باللون الأبيض وتأثير الظل */
-    border: 1px solid rgba(255, 255, 255, 0.22) !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-    
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-/* 4. إعطاء لون وحجم متناسق لأيقونات المواد (Material Icons) و SVG */
-.profile-icon-btn .material-icons,
-.profile-header button .material-icons,
-.profile-icon-btn svg,
-.profile-header button svg {
-    font-size: 21px !important;
-    color: #ffffff !important;
-    fill: #ffffff !important;
-    transition: transform 0.2s ease !important;
-}
-
-/* 5. تفاعل Button Hover عند التمرير بالماوس */
-.profile-icon-btn:hover,
-.profile-header button:hover {
-    background: rgba(0, 0, 0, 0.45) !important;
-    border-color: rgba(255, 255, 255, 0.45) !important;
-    transform: translateY(-2px) scale(1.04) !important;
-}
-
-/* 6. تفاعل Button Active عند الضغط */
-.profile-icon-btn:active,
-.profile-header button:active {
-    transform: translateY(0) scale(0.94) !important;
-    background: rgba(0, 0, 0, 0.6) !important;
-}
-/* =========================================================
-   Profile Tabs
-   إضافة مستقلة — لا تغيّر أي تصميم سابق
-   ========================================================= */
-
-.profile-tabs{
-    width:100%;
-    max-width:1000px;
-    margin:8px auto 0;
-    padding:6px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:4px;
-    overflow-x:auto;
-    scrollbar-width:none;
-    background:#fff;
-    border:1px solid #e8ebf3;
-    border-radius:16px;
-    box-shadow:0 4px 14px rgba(35,45,80,.05);
-}
-
-.profile-tabs::-webkit-scrollbar{
-    display:none;
-}
-
-.profile-tab{
-    position:relative;
-    flex:1 0 auto;
-    min-width:125px;
-    height:46px;
-    padding:0 13px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    border-radius:12px;
-    background:transparent;
-    color:#747c90;
-    font-size:12px;
-    font-weight:700;
-    white-space:nowrap;
-    cursor:pointer;
-}
-
-.profile-tab .material-icons{
-    font-size:19px;
-    line-height:1;
-}
-
-.profile-tab:hover{
-    background:#f5f7fc;
-    color:#5364ee;
-}
-
-.profile-tab.active{
-    background:#eef2ff;
-    color:#5364ee;
-}
-
-.profile-tab.active::after{
-    content:"";
-    position:absolute;
-    right:18px;
-    left:18px;
-    bottom:3px;
-    height:3px;
-    border-radius:3px;
-    background:#5364ee;
-}
-
-.profile-tab-content{
-    width:100%;
-    max-width:1000px;
-    margin:0 auto;
-}
-
-.profile-panel{
-    display:none;
-}
-
-.profile-panel.active{
-    display:block;
-}
-
-
-/* =========================================================
-   Profile Tabs — Dark Theme
-   ========================================================= */
-
-body.dark .profile-tabs{
-    background:#141925;
-    border-color:#252c3c;
-    box-shadow:none;
-}
-
-body.dark .profile-tab{
-    color:#9da6ba;
-}
-
-body.dark .profile-tab:hover{
-    background:#1b2130;
-    color:#7d8cff;
-}
-
-body.dark .profile-tab.active{
-    background:#1b2130;
-    color:#7d8cff;
-}
-
-body.dark .profile-tab.active::after{
-    background:#7d8cff;
-}
-
-
-/* =========================================================
-   Profile Tabs — Mobile
-   ========================================================= */
-
-@media(max-width:700px){
-
-    .profile-tabs{
-        margin:6px 12px 0;
-        width:calc(100% - 24px);
-        max-width:none;
-        padding:5px;
-        justify-content:flex-start;
-        border-radius:14px;
-    }
-
-    .profile-tab{
-        min-width:112px;
-        height:43px;
-        padding:0 10px;
-        gap:5px;
-        border-radius:10px;
-        font-size:11px;
-    }
-
-    .profile-tab .material-icons{
-        font-size:17px;
-    }
-
-    .profile-tab.active::after{
-        right:14px;
-        left:14px;
-        bottom:3px;
-    }
-
-    .profile-tab-content{
-        max-width:none;
-    }
-}
-
-/* =========================================================
-   Pro Cover History / Carousel
-   ========================================================= */
-.cover-stage{
-    position:relative;
-    width:100%;
-    height:245px;
-    overflow:hidden;
-    background:#e9edf5;
-}
-
-.cover-stage::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    pointer-events:none;
-    background:linear-gradient(180deg,rgba(0,0,0,.18),transparent 34%,rgba(0,0,0,.28));
-}
-
-.cover-stage .cover-image{
-    height:245px;
-    transition:opacity .22s ease, transform .35s ease;
-    touch-action:pan-y;
-}
-
-.cover-nav-btn{
-    position:absolute;
-    top:50%;
-    z-index:24;
-    width:42px;
-    height:42px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transform:translateY(-50%);
-    border:1px solid rgba(255,255,255,.38);
-    border-radius:50%;
-    background:rgba(12,17,29,.42);
-    color:#fff;
-    box-shadow:0 8px 22px rgba(0,0,0,.16);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    cursor:pointer;
-    transition:transform .18s ease, background .18s ease, opacity .18s ease;
-}
-
-.cover-nav-btn:hover{
-    transform:translateY(-50%) scale(1.06);
-    background:rgba(12,17,29,.62);
-}
-
-.cover-nav-btn:active{
-    transform:translateY(-50%) scale(.94);
-}
-
-.cover-nav-btn:disabled{
-    opacity:.28;
-    cursor:default;
-}
-
-.cover-nav-prev{ right:14px; }
-.cover-nav-next{ left:14px; }
-
-.cover-nav-btn .material-icons{
-    font-size:27px;
-}
-
-.cover-history-overlay{
-    position:absolute;
-    z-index:25;
-    left:14px;
-    bottom:14px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:7px 10px;
-    border:1px solid rgba(255,255,255,.25);
-    border-radius:12px;
-    background:rgba(12,17,29,.42);
-    color:#fff;
-    font-size:11px;
-    font-weight:700;
-    backdrop-filter:blur(9px);
-    -webkit-backdrop-filter:blur(9px);
-}
-
-.cover-history-overlay span:last-child{
-    min-width:42px;
-    text-align:center;
-    direction:ltr;
-    opacity:.82;
-}
-
-.cover-history-dots{
-    position:absolute;
-    z-index:25;
-    right:50%;
-    bottom:15px;
-    transform:translateX(50%);
-    max-width:45%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-}
-
-.cover-history-dot{
-    width:7px;
-    height:7px;
-    padding:0;
-    border:0;
-    border-radius:50%;
-    background:rgba(255,255,255,.52);
-    cursor:pointer;
-    transition:width .2s ease, transform .2s ease, background .2s ease;
-}
-
-.cover-history-dot.active{
-    width:22px;
-    border-radius:7px;
-    background:#fff;
-}
-
-.cover-history-dot:hover{
-    transform:scale(1.2);
-}
-
-body.dark .cover-stage{
-    background:#141925;
-}
-
-@media(max-width:700px){
     .cover-stage,
-    .cover-stage .cover-image{
-        height:245px;
+    .cover-image{
+        height:432px;
     }
 
     .cover-nav-btn{
-        width:38px;
-        height:38px;
+        width:50px;
+        height:50px;
     }
 
-    .cover-nav-prev{ right:10px; }
-    .cover-nav-next{ left:10px; }
+    .cover-nav-prev{right:18px;}
+    .cover-nav-next{left:18px;}
+
+    .cover-change-btn{
+        top:198px;
+        right:18px;
+        height:47px;
+        padding:0 16px;
+        font-size:14px;
+    }
 
     .cover-history-overlay{
-        left:10px;
-        bottom:10px;
-        padding:6px 8px;
-        font-size:9px;
-    }
-
-    .cover-history-dots{
-        bottom:12px;
-        max-width:42%;
-    }
-}
-
-/* =========================================================
-   Pro Profile Information + Wallpaper Layout
-   ========================================================= */
-.profile-tab-content{
-    padding-top:4px;
-}
-
-.user-info{
-    gap:10px;
-    padding-top:18px;
-}
-
-.info-card{
-    min-height:72px;
-    padding:10px 14px;
-    border:1px solid #e8ebf3;
-    border-radius:16px;
-    background:#fff;
-    box-shadow:0 5px 16px rgba(35,45,80,.04);
-}
-
-.info-card:not(:last-child)::after{
-    display:none;
-}
-
-.info-card > .material-icons{
-    width:42px;
-    height:42px;
-}
-
-.profile-content{
-    padding-top:12px;
-}
-
-.profile-grid{
-    gap:12px;
-}
-
-.profile-wall-card{
-    border:1px solid #e6eaf2;
-    box-shadow:0 5px 16px rgba(35,45,80,.04);
-    transition:transform .2s ease, box-shadow .2s ease;
-}
-
-.profile-wall-card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 25px rgba(35,45,80,.10);
-}
-
-body.dark .info-card{
-    background:#141925;
-    border-color:#252c3c;
-    box-shadow:none;
-}
-
-body.dark .profile-wall-card{
-    border-color:#252c3c;
-    box-shadow:none;
-}
-
-@media(max-width:700px){
-    .user-info{
-        padding:12px 12px 22px;
-    }
-
-    .info-card{
-        min-height:68px;
-        border-radius:14px;
-    }
-
-    .profile-content{
-        padding:10px 12px 22px;
-    }
-
-    .profile-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:9px;
-    }
-
-    .profile-wall-card img{
-        height:230px;
-    }
-}
-
-
-/* =========================================================
-   Profile Identity — directly below cover
-   Arabic info on the right, premium card on the left
-   ========================================================= */
-
-.profile-identity{
-    position:relative;
-    z-index:30;
-    width:100%;
-    max-width:760px;
-    margin:0 auto;
-    padding:12px 18px 10px;
-    display:grid;
-    grid-template-columns:minmax(0,1fr) 160px;
-    gap:14px;
-    align-items:start;
-    direction:rtl;
-    background:#fff;
-}
-
-.identity-main{
-    grid-column:1;
-    width:100%;
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    text-align:right;
-    direction:rtl;
-}
-
-.identity-name-row{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:6px;
-    direction:rtl;
-}
-
-.identity-name-row h1{
-    margin:0;
-    font-size:29px;
-    line-height:1.2;
-}
-
-.identity-username{
-    margin:3px 0 0;
-    font-size:14px;
-}
-
-.identity-bio{
-    margin:6px 0 9px;
-    font-size:13px;
-    line-height:1.6;
-}
-
-.hero-edit-profile{
-    width:180px;
-    min-width:180px;
-    max-width:180px;
-    height:38px;
-    padding:0 13px;
-    border-radius:19px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    font-size:13px;
-}
-
-.identity-side-card.premium-card{
-    grid-column:2;
-    width:160px;
-    min-width:160px;
-    height:64px;
-    min-height:64px;
-    margin:0;
-    transform:none;
-    align-self:start;
-}
-
-@media(max-width:700px){
-    .profile-identity{
-        max-width:none;
-        padding:10px 12px 9px;
-        grid-template-columns:minmax(0,1fr) 150px;
-        gap:9px;
-    }
-
-    .identity-name-row h1{
-        font-size:25px;
-    }
-
-    .identity-username{
-        font-size:12px;
-    }
-
-    .identity-bio{
-        margin:4px 0 7px;
+        left:20px;
+        bottom:18px;
         font-size:11px;
     }
 
-    .hero-edit-profile{
-        width:175px;
-        min-width:175px;
-        max-width:175px;
-        height:35px;
-        border-radius:18px;
-        font-size:12px;
-    }
+    .cover-history-dots{bottom:20px;}
 
-    .identity-side-card.premium-card{
-        width:150px;
-        min-width:150px;
-        height:58px;
-        min-height:58px;
-        border-radius:14px;
-    }
-}
-
-@media(max-width:380px){
-    .profile-identity{
-        grid-template-columns:minmax(0,1fr) 140px;
-        gap:7px;
-        padding-left:10px;
-        padding-right:10px;
-    }
-
-    .identity-side-card.premium-card{
-        width:140px;
-        min-width:140px;
-    }
-
-    .identity-name-row h1{
-        font-size:23px;
-    }
-
-    .hero-edit-profile{
-        width:165px;
-        min-width:165px;
-        max-width:165px;
-    }
-}
-
-
-/* =========================================================
-   Profile Identity — final spacing/layout
-   ========================================================= */
-
-.profile-identity{
-    position:relative !important;
-    z-index:30;
-    width:100%;
-    max-width:760px;
-    margin:-48px auto 0 !important;
-    padding:0 14px 10px !important;
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) 150px !important;
-    gap:10px !important;
-    align-items:start !important;
-    direction:rtl;
-    background:#fff;
-}
-
-.identity-main{
-    grid-column:1 !important;
-    width:100%;
-    min-width:0;
-    margin:0 !important;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    text-align:right;
-    direction:rtl;
-}
-
-.identity-name-row{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:5px;
-    direction:rtl;
-}
-
-.identity-name-row h1{
-    margin:0 !important;
-    font-size:25px;
-    line-height:1.2;
-}
-
-.identity-username{
-    margin:2px 0 0 !important;
-    font-size:12px;
-}
-
-.identity-bio{
-    margin:4px 0 7px !important;
-    font-size:11px;
-    line-height:1.5;
-}
-
-.hero-edit-profile{
-    width:175px !important;
-    min-width:175px !important;
-    max-width:175px !important;
-    height:35px;
-    margin:0 !important;
-    padding:0 12px;
-    border-radius:18px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    font-size:12px;
-}
-
-.identity-side-card.premium-card{
-    grid-column:2 !important;
-    width:150px !important;
-    min-width:150px !important;
-    max-width:150px !important;
-    height:58px !important;
-    min-height:58px !important;
-    margin:0 !important;
-    padding:6px 8px;
-    transform:none !important;
-    align-self:start !important;
-    position:relative;
-    z-index:20;
-}
-
-@media(max-width:380px){
-    .profile-identity{
-        margin-top:-44px !important;
-        grid-template-columns:minmax(0,1fr) 140px !important;
-        gap:7px !important;
-        padding-left:10px !important;
-        padding-right:10px !important;
-    }
-
-    .identity-side-card.premium-card{
-        width:140px !important;
-        min-width:140px !important;
-        max-width:140px !important;
-    }
-
-    .identity-name-row h1{
-        font-size:23px;
-    }
-
-    .hero-edit-profile{
-        width:165px !important;
-        min-width:165px !important;
-        max-width:165px !important;
-    }
-}
-
-
-/* =========================================================
-   Premium + Medals — fixed two-column identity layout
-   ========================================================= */
-
-.profile-identity{
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) 150px !important;
-    grid-template-rows:auto auto !important;
-    column-gap:10px !important;
-    row-gap:6px !important;
-    align-items:start !important;
-}
-
-.identity-main{
-    grid-column:1 !important;
-    grid-row:1 / span 2 !important;
-    align-self:start !important;
-}
-
-.identity-side-card.premium-card{
-    grid-column:2 !important;
-    grid-row:1 !important;
-    align-self:start !important;
-    position:relative !important;
-    top:0 !important;
-    bottom:auto !important;
-    margin:0 !important;
-    transform:none !important;
-}
-
-.profile-medals-trigger{
-    grid-column:2 !important;
-    grid-row:2 !important;
-    align-self:start !important;
-    position:relative !important;
-    top:0 !important;
-    bottom:auto !important;
-    margin:0 !important;
-}
-
-@media(max-width:700px){
-    .profile-identity{
-        grid-template-columns:minmax(0,1fr) 150px !important;
-        grid-template-rows:auto auto !important;
-        column-gap:9px !important;
-        row-gap:5px !important;
-    }
-}
-
-@media(max-width:380px){
-    .profile-identity{
-        grid-template-columns:minmax(0,1fr) 140px !important;
-    }
-    .profile-medals-trigger{
-        width:140px !important;
-        min-width:140px !important;
-    }
-}
-
-/* =========================================================
-   Profile Medals — compact inline expandable panel
-   ========================================================= */
-
-.profile-medals-trigger{
-    grid-column:2 !important;
-    grid-row:2 !important;
-    width:150px;
-    min-width:150px;
-    height:34px;
-    margin:0;
-    padding:0 8px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:5px;
-    border:1px solid #ead7a1;
-    border-radius:17px;
-    background:linear-gradient(180deg,#fffaf0,#fff7df);
-    color:#8b6b19;
-    font-size:10px;
-    font-weight:700;
-    cursor:pointer;
-    box-shadow:0 3px 10px rgba(176,139,42,.08);
-    direction:rtl;
-    transition:width .22s ease, border-radius .22s ease, background .18s ease;
-}
-
-.profile-medals-trigger .material-icons{
-    font-size:15px;
-}
-
-.medal-trigger-icon{
-    width:20px;
-    height:20px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    background:#f4ce5e;
-    color:#6d5110;
-    font-size:10px;
-    flex:0 0 20px;
-}
-
-.profile-medals-inline-panel{
-    grid-column:2 !important;
-    grid-row:3 !important;
-    width:150px;
-    min-width:150px;
-    max-height:0;
-    overflow:hidden;
-    opacity:0;
-    margin:0;
-    padding:0;
-    border:1px solid transparent;
-    border-radius:15px;
-    background:#fffdf8;
-    box-shadow:0 4px 14px rgba(176,139,42,.08);
-    direction:rtl;
-    transition:max-height .24s ease, opacity .18s ease, margin-top .24s ease, padding .24s ease, border-color .24s ease;
-}
-
-.profile-medals-inline-panel.open{
-    max-height:190px;
-    opacity:1;
-    margin-top:3px;
-    padding:7px;
-    border-color:#eee2c3;
-}
-
-.profile-medals-inline-head{
-    height:20px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    color:#8b6b19;
-    font-size:9px;
-    font-weight:700;
-    margin-bottom:4px;
-}
-
-.profile-medals-inline-head .material-icons{
-    font-size:15px;
-}
-
-.profile-medals-viewport{
-    width:100%;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scroll-snap-type:x mandatory;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
-    touch-action:pan-x;
-    overscroll-behavior-x:contain;
-}
-
-.profile-medals-viewport::-webkit-scrollbar{
-    display:none;
-}
-
-.profile-medals-track{
-    display:flex;
-    width:max-content;
-}
-
-.profile-medals-page{
-    width:136px;
-    flex:0 0 136px;
-    min-height:74px;
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    grid-template-rows:repeat(2,1fr);
-    gap:5px;
-    scroll-snap-align:start;
-    direction:rtl;
-}
-
-.profile-medal{
-    height:34px;
-    min-width:0;
-    border:1px solid #f0e6ce;
-    border-radius:9px;
-    background:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.profile-medal-badge{
-    width:17px;
-    height:17px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(145deg,#f7d86d,#c9981c);
-    border:1px solid #fff5cf;
-    box-shadow:0 2px 5px rgba(176,139,42,.15);
-    color:#6f510e;
-}
-
-.profile-medal-badge .material-icons{
-    font-size:10px;
-}
-
-.profile-medals-dots{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:3px;
-    height:5px;
-    margin-top:4px;
-    direction:ltr;
-}
-
-.profile-medal-dot{
-    width:3px;
-    height:3px;
-    border:0;
-    padding:0;
-    border-radius:50%;
-    background:#d8cfb8;
-}
-
-.profile-medal-dot.active{
-    width:9px;
-    border-radius:3px;
-    background:#c79d35;
-}
-
-@media(max-width:700px){
-    .profile-medals-trigger{
-        width:150px;
-        min-width:150px;
-        height:33px;
-        font-size:9.5px;
-    }
-
-    .profile-medals-inline-panel{
-        width:150px;
-        min-width:150px;
-    }
-
-    .profile-medals-page{
-        width:136px;
-        flex-basis:136px;
-    }
-}
-
-@media(max-width:380px){
-    .profile-medals-trigger{
-        width:140px;
-        min-width:140px;
-    }
-
-    .profile-medals-inline-panel{
-        width:140px;
-        min-width:140px;
-    }
-
-    .profile-medals-page{
-        width:126px;
-        flex-basis:126px;
-    }
-}
-
-/* Final placement: the medals expansion belongs to the identity grid.
-   It must never escape the profile identity section. */
-.profile-identity{
-    position:relative !important;
-    grid-template-rows:auto auto auto !important;
-}
-
-.profile-identity > .profile-medals-inline-panel{
-    grid-column:2 !important;
-    grid-row:3 !important;
-    justify-self:stretch !important;
-    align-self:start !important;
-    position:static !important;
-    inset:auto !important;
-    float:none !important;
-    transform:none !important;
-}
-
-.profile-identity > .profile-medals-trigger{
-    grid-column:2 !important;
-    grid-row:2 !important;
-    position:static !important;
-    inset:auto !important;
-    transform:none !important;
-}
-
-/* =========================================================
-   Medal history — inside Information tab
-   ========================================================= */
-
-.profile-medal-history{
-    margin-top:12px;
-    padding:14px;
-    border:1px solid #ececf1;
-    border-radius:18px;
-    background:#fff;
-    box-shadow:0 5px 18px rgba(30,38,60,.045);
-    direction:rtl;
-}
-
-.profile-medal-history-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:10px;
-}
-
-.profile-medal-history-head h3{
-    margin:2px 0 0;
-    font-size:15px;
-    font-weight:800;
-    color:#252936;
-}
-
-.profile-medal-history-kicker{
-    display:block;
-    direction:ltr;
-    font-size:8px;
-    letter-spacing:1.8px;
-    color:#b18a2d;
-    font-weight:800;
-}
-
-.profile-medal-history-head > .material-icons{
-    width:30px;
-    height:30px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    background:#fff7df;
-    color:#b18a2d;
-    font-size:16px;
-}
-
-.profile-medal-history-list{
-    display:grid;
-    gap:7px;
-}
-
-.profile-medal-history-item{
-    min-height:52px;
-    display:grid;
-    grid-template-columns:34px minmax(0,1fr) auto;
-    align-items:center;
-    gap:9px;
-    padding:7px 8px;
-    border:1px solid #f0eef0;
-    border-radius:13px;
-    background:#fcfcfd;
-}
-
-.profile-medal-history-badge{
-    width:30px;
-    height:30px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(145deg,#f8dc79,#c99a1f);
-    color:#70520b;
-    box-shadow:0 2px 6px rgba(190,150,40,.14);
-}
-
-.profile-medal-history-badge .material-icons{
-    font-size:15px;
-}
-
-.profile-medal-history-name{
-    font-size:11px;
-    font-weight:800;
-    color:#353946;
-}
-
-.profile-medal-history-desc{
-    margin-top:2px;
-    font-size:8px;
-    color:#989ca6;
-}
-
-.profile-medal-history-date{
-    text-align:left;
-    white-space:nowrap;
-    color:#8f6e1e;
-    font-size:9px;
-    font-weight:700;
-}
-
-.profile-medal-history-date small{
-    display:block;
-    margin-bottom:2px;
-    color:#a4a7af;
-    font-size:7px;
-    font-weight:500;
-}
-
-@media(max-width:380px){
-    .profile-medal-history{
-        padding:12px;
-    }
-    .profile-medal-history-item{
-        grid-template-columns:31px minmax(0,1fr) auto;
-        gap:7px;
-        padding:6px;
-    }
-    .profile-medal-history-badge{
-        width:28px;
-        height:28px;
-    }
-}
-
-/* =========================================================
-   Premium crown on avatar — replaces the old camera spot
-   ========================================================= */
-
-.profile-avatar-crown{
-    position:absolute;
-    right:50%;
-    bottom:-13px;
-    transform:translateX(50%);
-    width:38px;
-    height:38px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    background:linear-gradient(145deg,#f7d96e,#c7951e);
-    border:3px solid #fff;
-    box-shadow:0 4px 12px rgba(155,116,17,.25);
-    color:#fff8d7;
-    z-index:8;
-    pointer-events:none;
-}
-
-.profile-avatar-crown .material-icons{
-    font-size:20px;
-    line-height:1;
-}
-
-@media(max-width:380px){
-    .profile-avatar-crown{
-        width:35px;
-        height:35px;
-        bottom:-12px;
-        border-width:3px;
-    }
-    .profile-avatar-crown .material-icons{
-        font-size:18px;
-    }
-}
-
-/* Crown badge on the main profile avatar */
-.profile-avatar-box{position:relative;overflow:visible}
-.profile-avatar-crown{
-  position:absolute;left:50%;bottom:-15px;transform:translateX(-50%);
-  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-  border-radius:50%;background:linear-gradient(145deg,#f8dc78,#c99520);
-  border:3px solid #fff;box-shadow:0 3px 10px rgba(125,91,10,.28);
-  color:#fff9d8;z-index:20;pointer-events:none;
-}
-.profile-avatar-crown .material-icons{font-size:19px;line-height:1}
-@media(max-width:380px){
-  .profile-avatar-crown{width:34px;height:34px;bottom:-14px}
-  .profile-avatar-crown .material-icons{font-size:18px}
-}
-
-
-/* Stable avatar presentation: the image always keeps its footprint. */
-.profile-avatar-box{
-    width:95px;
-    height:95px;
-    overflow:visible;
-}
-.profile-avatar{
-    background:#eef2f8;
-}
-
-
-/* =========================================================
-   Supabase Medals — locked / unlocked states
-   ========================================================= */
-.profile-medal.locked{
-    opacity:.42;
-    filter:grayscale(.55);
-    background:#f8f8fa;
-}
-.profile-medal.locked .profile-medal-badge{
-    background:#e5e7ec;
-    border-color:#fff;
-    color:#9298a5;
-    box-shadow:none;
-}
-.profile-medal.unlocked{
-    opacity:1;
-    filter:none;
-}
-.profile-medal-history-item.locked{
-    background:#fafafa;
-    opacity:.68;
-}
-.profile-medal-history-item.locked .profile-medal-history-badge{
-    background:#e5e7ec;
-    color:#9298a5;
-    box-shadow:none;
-}
-.profile-medal-history-item.unlocked .profile-medal-history-badge{
-    box-shadow:0 3px 8px rgba(190,150,40,.18);
-}
-.premium-medals-count{
-    direction:ltr;
-    white-space:nowrap;
-}
-
-
-/* =========================================================
-   Avatar — moved to the red-circle position
-   ========================================================= */
-
-.profile-cover{
-    overflow:visible;
-}
-
-.profile-avatar-box{
-    position:absolute !important;
-    top:342px !important;
-    right:18px !important;
-    left:auto !important;
-    width:95px !important;
-    height:95px !important;
-    z-index:80 !important;
-    transform:none !important;
-    overflow:visible !important;
-}
-
-.profile-avatar{
-    width:95px !important;
-    height:95px !important;
-    display:block !important;
-    object-fit:cover !important;
-    border:4px solid #fff !important;
-    border-radius:50% !important;
-    background:#eef2f8 !important;
-    box-shadow:0 7px 20px rgba(35,45,80,.18) !important;
-}
-
-.profile-avatar-crown{
-    z-index:81 !important;
-}
-
-@media(max-width:700px){
     .profile-avatar-box{
-        top:342px !important;
-        right:18px !important;
-        left:auto !important;
-    }
-}
-
-@media(max-width:380px){
-    .profile-avatar-box{
-        top:337px !important;
-        right:18px !important;
+        top:292px;
+        right:64px;
+        width:166px;
+        height:166px;
     }
 
     .profile-avatar{
-        width:91px !important;
-        height:91px !important;
+        width:166px;
+        height:166px;
+        border-width:6px;
     }
+
+    .profile-identity{
+        min-height:297px;
+        margin:0;
+        padding:47px 24px 22px;
+        grid-template-columns:minmax(0,1fr) 265px;
+        column-gap:30px;
+    }
+
+    .identity-name-row{gap:7px;}
+    .identity-name-row h1{font-size:34px;}
+    .verified-badge{width:22px;height:22px;flex-basis:22px;}
+    .verified-badge svg{width:22px;height:22px;}
+    .identity-username{font-size:17px;margin-top:6px;}
+    .identity-bio{font-size:15px;margin-top:7px;}
+
+    .hero-edit-profile{
+        width:310px;
+        height:55px;
+        margin-top:13px;
+        font-size:16px;
+    }
+
+    .identity-side-stack{gap:20px;}
+    .identity-side-card{height:104px;min-height:104px;border-radius:21px;}
+    .profile-medals-trigger{height:59px;}
+
+    .profile-stats{
+        max-width:none;
+        margin:0;
+        padding:14px 15px;
+        gap:10px;
+        border-radius:22px;
+    }
+
+    .stat-card{
+        height:106px;
+        border-radius:19px;
+    }
+
+    .stat-icon{font-size:28px;}
+    .stat-card strong{font-size:23px;}
+    .stat-card > span:last-child{font-size:11px;}
+
+    .profile-tabs{
+        width:calc(100% - 42px);
+        margin:14px 21px 0;
+        padding:6px;
+        border-radius:20px;
+    }
+
+    .profile-tab{
+        height:72px;
+        padding:0 9px;
+        font-size:14px;
+    }
+
+    .profile-tab .material-icons{font-size:22px;}
+
+    .profile-tab-content{padding-top:12px;}
+    .profile-content{padding:0 21px 22px;}
+    .profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+    .profile-wall-card img{height:230px;}
+
+    .user-info{padding:0 21px 22px;gap:10px;}
+    .info-card{min-height:88px;border-radius:18px;}
 }
 
+/* Narrow phones: preserve old composition without collapsing the two columns. */
+@media(max-width:520px){
+
+    .profile-header{padding:0 12px;}
+    .profile-header h2{font-size:21px;}
+
+    .menu-btn,
+    .login-btn,
+    .settings-btn{
+        width:46px;
+        height:46px;
+        min-width:46px;
+    }
+
+    .profile-actions{gap:7px;}
+
+    .profile-avatar-box{
+        right:34px;
+        top:292px;
+        width:146px;
+        height:146px;
+    }
+
+    .profile-avatar{
+        width:146px;
+        height:146px;
+        border-width:5px;
+    }
+
+    .profile-identity{
+        padding:42px 18px 20px;
+        grid-template-columns:minmax(0,1fr) 205px;
+        column-gap:18px;
+        min-height:282px;
+    }
+
+    .identity-name-row h1{font-size:28px;}
+    .identity-username{font-size:14px;}
+    .identity-bio{font-size:13px;}
+    .hero-edit-profile{
+        width:100%;
+        max-width:245px;
+        height:50px;
+        font-size:14px;
+    }
+
+    .identity-side-card{
+        height:92px;
+        min-height:92px;
+        padding:10px;
+    }
+
+    .premium-crown{
+        width:44px;
+        height:44px;
+        flex-basis:44px;
+        font-size:23px;
+    }
+
+    .identity-side-content strong{font-size:13px;}
+    .identity-side-content small{font-size:10px;}
+    .premium-arrow{font-size:25px;}
+
+    .profile-medals-trigger{
+        height:52px;
+        font-size:12px;
+    }
+
+    .medal-trigger-icon{
+        width:30px;
+        height:30px;
+        flex-basis:30px;
+    }
+
+    .profile-stats{
+        padding:11px 10px;
+        gap:6px;
+    }
+
+    .stat-card{
+        height:94px;
+        border-radius:16px;
+    }
+
+    .stat-icon{font-size:25px;}
+    .stat-card strong{font-size:20px;}
+    .stat-card > span:last-child{font-size:9px;}
+
+    .profile-tabs{
+        width:calc(100% - 24px);
+        margin:12px 12px 0;
+    }
+
+    .profile-tab{
+        height:66px;
+        font-size:12px;
+    }
+
+    .profile-tab .material-icons{font-size:20px;}
+}
+
+/* Very small phones */
+@media(max-width:380px){
+
+    .profile-cover,
+    .cover-stage,
+    .cover-image{height:410px;}
+
+    .profile-avatar-box{
+        top:276px;
+        right:23px;
+        width:128px;
+        height:128px;
+    }
+
+    .profile-avatar{
+        width:128px;
+        height:128px;
+    }
+
+    .profile-identity{
+        min-height:260px;
+        padding:37px 12px 17px;
+        grid-template-columns:minmax(0,1fr) 175px;
+        column-gap:12px;
+    }
+
+    .identity-name-row h1{font-size:24px;}
+    .identity-username{font-size:12px;}
+    .identity-bio{font-size:11px;}
+    .hero-edit-profile{height:45px;font-size:12px;}
+
+    .identity-side-card{
+        height:78px;
+        min-height:78px;
+        border-radius:16px;
+        padding:8px;
+    }
+
+    .premium-crown{
+        width:36px;
+        height:36px;
+        flex-basis:36px;
+        font-size:20px;
+    }
+
+    .identity-side-content strong{font-size:11px;}
+    .identity-side-content small{font-size:8px;}
+    .premium-arrow{font-size:21px;}
+
+    .profile-medals-trigger{height:45px;font-size:10px;}
+    .medal-trigger-icon{width:25px;height:25px;flex-basis:25px;}
+
+    .profile-stats{padding:8px 7px;gap:5px;}
+    .stat-card{height:80px;border-radius:13px;}
+    .stat-icon{font-size:21px;}
+    .stat-card strong{font-size:17px;}
+    .stat-card > span:last-child{font-size:8px;}
+}
 
 /* =========================================================
-   Avatar — final correction to the red-circle position
+   Accessibility / reduced motion
    ========================================================= */
 
-.profile-avatar-box{
-    top:165px !important;
-    right:18px !important;
-    left:auto !important;
-}
-
-@media(max-width:700px){
-    .profile-avatar-box{
-        top:165px !important;
-        right:18px !important;
-        left:auto !important;
-    }
-}
-
-@media(max-width:380px){
-    .profile-avatar-box{
-        top:160px !important;
-        right:18px !important;
-    }
-}
-
-
-/* =========================================================
-   Premium crown — icon only, transparent background
-   ========================================================= */
-.profile-avatar-crown{
-    left:6px !important;
-    right:auto !important;
-    top:auto !important;
-    bottom:-4px !important;
-    width:36px !important;
-    height:36px !important;
-    padding:0 !important;
-    margin:0 !important;
-    border:0 !important;
-    border-radius:0 !important;
-    background:transparent !important;
-    box-shadow:none !important;
-    transform:none !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    color:#c99a1f !important;
-    z-index:30 !important;
-}
-
-.profile-avatar-crown .material-icons{
-    font-size:27px !important;
-    line-height:1 !important;
-    color:#c99a1f !important;
-    background:transparent !important;
-    text-shadow:0 1px 1px rgba(90,65,5,.12);
-}
-
-@media(max-width:380px){
-    .profile-avatar-crown{
-        left:6px !important;
-        bottom:-3px !important;
-        width:34px !important;
-        height:34px !important;
-    }
-    .profile-avatar-crown .material-icons{
-        font-size:25px !important;
-    }
+@media(prefers-reduced-motion:reduce){
+    *{scroll-behavior:auto !important;transition:none !important;}
 }

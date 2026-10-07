@@ -1,51 +1,60 @@
 /* =========================================================
-   WallpaperHub — Founder Crown Controller
-   Only the site founder receives the avatar crown.
+   WallpaperHub — Founder Crown
+   Single source of truth: the founder UID below.
    ========================================================= */
 
 (() => {
     const FOUNDER_UID = "0bad1b2a-b993-45f2-992c-f18509d9fa34";
 
-    function getTargetUID() {
-        return String(
-            new URLSearchParams(window.location.search).get("uid") || ""
-        ).trim();
+    const normalize = value => String(value || "").trim().toLowerCase();
+
+    function getProfileUID() {
+        const params = new URLSearchParams(window.location.search);
+
+        // Public profile pages use ?uid=...
+        const publicUID =
+            params.get("uid") ||
+            params.get("user") ||
+            params.get("profile");
+
+        if (publicUID) return normalize(publicUID);
+
+        // Own profile: profile.js already persists the authenticated UID
+        // in localStorage. No auth token is read or exposed here.
+        return normalize(
+            localStorage.getItem("userId") ||
+            localStorage.getItem("uid") ||
+            localStorage.getItem("userUID")
+        );
     }
 
-    function updateFounderCrown() {
+    function renderFounderCrown() {
         const crown = document.querySelector(".profile-avatar-crown");
         if (!crown) return;
 
-        const targetUID = getTargetUID();
-
-        const profileUID =
-            targetUID ||
-            String(window.WallpaperHubCurrentUserId || "").trim();
-
-        const isFounder = profileUID === FOUNDER_UID;
+        const isFounder = getProfileUID() === normalize(FOUNDER_UID);
 
         crown.classList.toggle("is-founder", isFounder);
         crown.hidden = !isFounder;
         crown.setAttribute("aria-hidden", isFounder ? "false" : "true");
     }
 
-    const crown = document.querySelector(".profile-avatar-crown");
-    if (crown) {
-        crown.hidden = true;
-        crown.classList.remove("is-founder");
-    }
-
-    window.addEventListener("WallpaperHubAuthReady", updateFounderCrown);
-    window.addEventListener("popstate", updateFounderCrown);
-
+    // Hidden by default: nobody sees the crown while identity is loading.
     document.addEventListener("DOMContentLoaded", () => {
-        updateFounderCrown();
+        renderFounderCrown();
 
-        let tries = 0;
+        // Auth/profile data may arrive shortly after DOM ready.
+        let attempts = 0;
         const timer = setInterval(() => {
-            updateFounderCrown();
-            tries += 1;
-            if (tries >= 20) clearInterval(timer);
+            renderFounderCrown();
+            attempts += 1;
+
+            if (attempts >= 20) {
+                clearInterval(timer);
+            }
         }, 250);
     });
+
+    window.addEventListener("storage", renderFounderCrown);
+    window.addEventListener("popstate", renderFounderCrown);
 })();

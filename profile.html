@@ -167,71 +167,86 @@ alt="Avatar">
 <section class="profile-identity" aria-label="معلومات الحساب">
 
     <div class="identity-main">
+
         <div class="identity-name-row">
             <h1 id="heroDisplayName">Nabil Rahali</h1>
+
             <span id="verifiedBadge"
-      class="verified-badge"
-      aria-label="حساب موثق"
-      title="حساب موثق"
-      hidden>
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path
-            class="verified-shape"
-            fill="#168bf0"
-            d="M12 2.5l2.2 1.2 2.5-.1 1.1 2.2 2.1 1.4-.5 2.5.8 2.4-1.7 1.9-.1 2.5-2.4.8-1.7 1.8-2.3-.8-2.4.8-1.7-1.8-2.4-.8-.1-2.5-1.7-1.9.8-2.4-.5-2.5 2.1-1.4 1.1-2.2 2.5.1L12 2.5z"/>
-        <path
-            class="verified-check"
-            fill="none"
-            stroke="#fff"
-            stroke-width="2.4"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M8.3 12.2l2.2 2.2 5.2-5.2"/>
-    </svg>
-</span>
-            <span class="material-icons">edit</span>
-        </button>
-    </div>
-
-    <div class="identity-side-card premium-card">
-        <span class="premium-crown">♛</span>
-        <div class="identity-side-content">
-            <strong>مستخدم مميز</strong>
-            <small>WallpaperHub</small>
+                  class="verified-badge"
+                  aria-label="حساب موثق"
+                  title="حساب موثق"
+                  hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path class="verified-shape"
+                          fill="#168bf0"
+                          stroke="none"
+                          d="M12 2.5l2.2 1.2 2.5-.1 1.1 2.2 2.1 1.4-.5 2.5.8 2.4-1.7 1.9-.1 2.5-2.4.8-1.7 1.8-2.3-.8-2.4.8-1.7-1.8-2.4-.8-.1-2.5-1.7-1.9.8-2.4-.5-2.5 2.1-1.4 1.1-2.2 2.5.1L12 2.5z"/>
+                    <path class="verified-check"
+                          fill="none"
+                          stroke="#fff"
+                          stroke-width="2.4"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M8.3 12.2l2.2 2.2 5.2-5.2"/>
+                </svg>
+            </span>
         </div>
-        <span class="material-icons premium-arrow">chevron_left</span>
+
+        <div id="heroUsername" class="identity-username">@nabilrahali</div>
+
+        <div id="heroBio" class="identity-bio">مرحبا بكم حساب صاحب الموقع</div>
+
+        <button id="heroEditProfileBtn"
+                class="hero-edit-profile"
+                type="button">
+            <span class="material-icons">edit</span>
+            <span>تعديل الملف الشخصي</span>
+        </button>
+
     </div>
 
-    <button
-        id="profileMedalsBtn"
-        class="profile-medals-trigger"
-        type="button"
-        aria-expanded="false"
-        aria-controls="profileMedalsPanel">
-        <span class="medal-trigger-icon">♛</span>
-        <span>ميداليات مميزة</span>
-        <span class="material-icons">expand_more</span>
-    </button>
+    <div class="identity-side-stack">
 
-<div
-    id="profileMedalsPanel"
-    class="profile-medals-inline-panel"
-    aria-hidden="true">
+        <div class="identity-side-card premium-card">
+            <span class="premium-crown">♛</span>
+            <div class="identity-side-content">
+                <strong>مستخدم مميز</strong>
+                <small>WallpaperHub</small>
+            </div>
+            <span class="material-icons premium-arrow">chevron_left</span>
+        </div>
 
-    <div class="profile-medals-inline-head">
-        <span>ميداليات الحساب</span>
-        <span class="material-icons">workspace_premium</span>
+        <button id="profileMedalsBtn"
+                class="profile-medals-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="profileMedalsPanel">
+            <span class="medal-trigger-icon">♛</span>
+            <span>ميداليات مميزة</span>
+            <span class="material-icons">expand_more</span>
+        </button>
+
+        <div id="profileMedalsPanel"
+             class="profile-medals-inline-panel"
+             aria-hidden="true">
+
+            <div class="profile-medals-inline-head">
+                <span>ميداليات الحساب</span>
+                <span class="material-icons">workspace_premium</span>
+            </div>
+
+            <div id="profileMedalsViewport"
+                 class="profile-medals-viewport"
+                 aria-label="ميداليات الحساب">
+                <div id="profileMedalsTrack" class="profile-medals-track"></div>
+            </div>
+
+            <div id="profileMedalsDots"
+                 class="profile-medals-dots"
+                 aria-hidden="true"></div>
+        </div>
+
     </div>
-
-    <div
-        id="profileMedalsViewport"
-        class="profile-medals-viewport"
-        aria-label="ميداليات الحساب">
-        <div id="profileMedalsTrack" class="profile-medals-track"></div>
-    </div>
-
-    <div id="profileMedalsDots" class="profile-medals-dots" aria-hidden="true"></div>
-</div>
 
 </section>
 
@@ -280,12 +295,12 @@ alt="Avatar">
      Profile Tabs
      ========================================================= -->
 <section class="profile-tabs" aria-label="أقسام الملف الشخصي">
-    <button class="profile-tab" type="button" data-profile-tab="info">
+    <button class="profile-tab active" type="button" data-profile-tab="info">
         <span class="material-icons">person</span>
         <span>معلوماتي</span>
     </button>
 
-    <button class="profile-tab active" type="button" data-profile-tab="wallpapers">
+    <button class="profile-tab" type="button" data-profile-tab="wallpapers">
         <span class="material-icons">wallpaper</span>
         <span>خلفياتي</span>
     </button>
@@ -308,7 +323,7 @@ alt="Avatar">
 
 <section class="profile-tab-content">
 
-    <div class="profile-panel" data-profile-panel="info">
+    <div class="profile-panel active" data-profile-panel="info">
         <section class="user-info">
             <div class="info-card">
                 <span class="material-icons">person</span>
@@ -372,7 +387,7 @@ alt="Avatar">
         </section>
     </div>
 
-    <div class="profile-panel active" data-profile-panel="wallpapers">
+    <div class="profile-panel" data-profile-panel="wallpapers">
         <div class="profile-content">
             <div id="ownWallpapers" class="profile-grid"></div>
         </div>
