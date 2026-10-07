@@ -123,16 +123,6 @@ settings
     <div id="coverHistoryDots" class="cover-history-dots" aria-label="أغلفة الحساب"></div>
 </div>
 
-<button
-    id="changeCoverBtn"
-    class="cover-change-btn"
-    type="button"
-    aria-label="تغيير الغلاف"
-    title="تغيير الغلاف">
-    <span class="material-icons">photo_camera</span>
-    <span>تغيير الغلاف</span>
-</button>
-
 <input
     id="coverInput"
     class="cover-file-input"
@@ -424,128 +414,99 @@ alt="Avatar">
 ========================== -->
 
 
-<div
-id="editModal"
-class="edit-modal">
+<div id="editModal" class="edit-modal" aria-hidden="true">
+    <div class="edit-box" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
 
+        <div class="edit-modal-head">
+            <div>
+                <span class="edit-modal-kicker">PROFILE</span>
+                <h2 id="editModalTitle">تعديل الحساب</h2>
+            </div>
 
-<div class="edit-box">
+            <button id="closeEditBtn" class="edit-close-btn" type="button"
+                    aria-label="إغلاق" title="إغلاق">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
 
+        <div class="edit-media-grid">
 
+            <div class="edit-avatar-card">
+                <div class="edit-avatar-preview-wrap">
+                    <img id="editAvatarPreview"
+                         class="edit-avatar-preview"
+                         src="assets/images/user.png"
+                         alt="الصورة الشخصية">
+                    <button id="modalChangeAvatarBtn"
+                            class="edit-media-change avatar-change"
+                            type="button"
+                            aria-label="تغيير الصورة الشخصية"
+                            title="تغيير الصورة الشخصية">
+                        <span class="material-icons">photo_camera</span>
+                    </button>
+                </div>
+                <span>الصورة الشخصية</span>
+            </div>
 
-<h2>
-تعديل الحساب
-</h2>
+            <div class="edit-cover-card">
+                <div class="edit-cover-preview-wrap">
+                    <img id="editCoverPreview"
+                         class="edit-cover-preview"
+                         src="assets/images/default-cover.jpg"
+                         alt="غلاف الحساب">
+                    <button id="modalChangeCoverBtn"
+                            class="edit-cover-change"
+                            type="button"
+                            aria-label="تغيير الغلاف">
+                        <span class="material-icons">photo_camera</span>
+                        <span>تغيير الغلاف</span>
+                    </button>
+                </div>
+                <span>غلاف الحساب</span>
+            </div>
 
-<div class="edit-avatar-section">
-    <div class="edit-avatar-preview-wrap">
-        <img
-            id="editAvatarPreview"
-            class="edit-avatar-preview"
-            src="assets/images/user.png"
-            alt="الصورة الشخصية">
+        </div>
+
+        <div class="edit-fields">
+            <div class="edit-input">
+                <label for="editName">الاسم</label>
+                <input id="editName"
+                       type="text"
+                       placeholder="اسم المستخدم"
+                       autocomplete="name">
+            </div>
+
+            <div class="edit-input edit-bio-input">
+                <label for="editBio">النبذة</label>
+                <input id="editBio"
+                       type="text"
+                       maxlength="40"
+                       placeholder="اكتب نبذة عنك"
+                       autocomplete="off">
+                <small class="edit-input-hint">
+                    <span id="editBioCount">0</span>/40
+                </small>
+            </div>
+        </div>
+
+        <div class="edit-buttons">
+            <button id="closeEditSecondaryBtn" class="edit-cancel-btn" type="button">
+                إلغاء
+            </button>
+            <button id="saveProfileBtn" class="edit-save-btn" type="button">
+                <span class="material-icons">check</span>
+                <span>حفظ التعديلات</span>
+            </button>
+        </div>
+
     </div>
 </div>
 
-
-
-
-<div class="edit-input">
-
-
-<label>
-الاسم
-</label>
-
-
-
-<input
-
-id="editName"
-
-type="text"
-
-placeholder="اسم المستخدم"
-
->
-
-
-</div>
-
-<div class="edit-input">
-
-<label>
-النبذة
-</label>
-
-<input
-id="editBio"
-type="text"
-maxlength="40"
-placeholder="اكتب نبذة عنك"
-autocomplete="off"
->
-
-<small class="edit-input-hint">40 حرف كحد أقصى</small>
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="edit-buttons">
-
-
-<button
-
-id="saveProfileBtn"
-
-type="button"
-
->
-
-حفظ
-
-</button>
-
-
-
-
-
-<button
-
-id="closeEditBtn"
-
-type="button"
-
->
-
-إلغاء
-
-</button>
-
-
-
-
-</div>
-
-
-
-
-</div>
-
-
-</div>
+<input id="avatarInput"
+       class="cover-file-input"
+       type="file"
+       accept="image/*"
+       aria-hidden="true">
 
 <!-- ==========================
  Bottom Navigation

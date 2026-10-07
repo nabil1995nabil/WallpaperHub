@@ -212,6 +212,7 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 .cover-nav-btn .material-icons{font-size:35px;}
 
 .cover-change-btn{
+    display:none !important;
     position:absolute;
     top:198px;
     right:18px;
@@ -940,7 +941,7 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 .empty-profile{grid-column:1/-1;padding:35px 10px;text-align:center;color:#8991a5;}
 
 /* =========================================================
-   Edit modal
+   Edit modal — compact modern profile editor
    ========================================================= */
 
 .edit-modal{
@@ -950,41 +951,111 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     display:none;
     align-items:center;
     justify-content:center;
-    padding:20px;
-    background:rgba(10,14,25,.42);
+    padding:14px;
+    background:rgba(8,12,22,.48);
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
 }
 
-.edit-modal.show{display:flex;}
+.edit-modal.show{
+    display:flex;
+}
 
 .edit-box{
-    width:100%;
-    max-width:430px;
-    padding:24px;
-    border-radius:22px;
-    background:#fff;
-    box-shadow:0 18px 45px rgba(0,0,0,.18);
+    width:min(100%,380px);
+    max-height:min(88vh,620px);
+    overflow:auto;
+    padding:16px;
+    border:1px solid rgba(255,255,255,.78);
+    border-radius:24px;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 22px 60px rgba(12,18,35,.24);
+    scrollbar-width:none;
 }
 
-.edit-box h2{
-    margin-bottom:22px;
-    text-align:center;
-    color:#171c2a;
-    font-size:22px;
+.edit-box::-webkit-scrollbar{
+    display:none;
 }
 
-.edit-avatar-section{
+.edit-modal-head{
     display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:13px;
+}
+
+.edit-modal-kicker{
+    display:block;
+    margin-bottom:1px;
+    color:#9ba2b1;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.16em;
+}
+
+.edit-modal-head h2{
+    margin:0;
+    color:#171c2a;
+    font-size:20px;
+    font-weight:900;
+    line-height:1.2;
+}
+
+.edit-close-btn{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:flex;
+    align-items:center;
     justify-content:center;
-    margin-bottom:20px;
+    border:1px solid #e6e9f0;
+    border-radius:11px;
+    background:#f5f7fa;
+    color:#687184;
+    cursor:pointer;
+}
+
+.edit-close-btn .material-icons{
+    font-size:19px;
+}
+
+.edit-media-grid{
+    display:grid;
+    grid-template-columns:82px minmax(0,1fr);
+    align-items:center;
+    gap:12px;
+    margin-bottom:13px;
+}
+
+.edit-avatar-card,
+.edit-cover-card{
+    min-width:0;
+}
+
+.edit-avatar-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+}
+
+.edit-avatar-card > span,
+.edit-cover-card > span{
+    color:#8a91a0;
+    font-size:9px;
+    font-weight:700;
 }
 
 .edit-avatar-preview-wrap{
-    width:84px;
-    height:84px;
+    position:relative;
+    width:70px;
+    height:70px;
     padding:3px;
-    border:2px solid #eef1f7;
+    border:2px solid #edf0f5;
     border-radius:50%;
     background:#fff;
+    box-shadow:0 5px 16px rgba(35,45,80,.10);
 }
 
 .edit-avatar-preview{
@@ -993,30 +1064,272 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     display:block;
     object-fit:cover;
     border-radius:50%;
+    background:#eef1f6;
 }
 
-.edit-input{margin-bottom:16px;}
-.edit-input label{display:block;margin-bottom:7px;color:#70788b;font-size:13px;}
+.edit-media-change{
+    position:absolute;
+    right:-3px;
+    bottom:-3px;
+    width:27px;
+    height:27px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:2px solid #fff;
+    border-radius:50%;
+    background:#5364ee;
+    color:#fff;
+    box-shadow:0 4px 10px rgba(83,100,238,.28);
+    cursor:pointer;
+}
+
+.edit-media-change .material-icons{
+    font-size:14px;
+}
+
+.edit-cover-card{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.edit-cover-preview-wrap{
+    position:relative;
+    width:100%;
+    height:76px;
+    overflow:hidden;
+    border:1px solid #e5e8ef;
+    border-radius:15px;
+    background:#eef1f6;
+}
+
+.edit-cover-preview{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+}
+
+.edit-cover-preview-wrap::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(180deg,transparent 25%,rgba(0,0,0,.38));
+}
+
+.edit-cover-change{
+    position:absolute;
+    right:7px;
+    bottom:7px;
+    z-index:2;
+    height:29px;
+    padding:0 9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:10px;
+    background:rgba(24,28,38,.72);
+    color:#fff;
+    font-size:9px;
+    font-weight:800;
+    backdrop-filter:blur(7px);
+    cursor:pointer;
+}
+
+.edit-cover-change .material-icons{
+    font-size:14px;
+}
+
+.edit-fields{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.edit-input{
+    margin:0;
+}
+
+.edit-input label{
+    display:block;
+    margin:0 0 4px;
+    color:#747c8c;
+    font-size:10px;
+    font-weight:800;
+}
+
 .edit-input input{
     width:100%;
-    height:48px;
-    padding:0 14px;
+    height:43px;
+    padding:0 12px;
     outline:none;
-    border:1px solid #e2e6ee;
-    border-radius:13px;
-    background:#f6f8fb;
+    border:1px solid #e1e5ed;
+    border-radius:12px;
+    background:#f7f8fb;
     color:#171c2a;
+    font-size:13px;
+    transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
 }
+
 .edit-input input:focus{
     border-color:#5364ee;
-    box-shadow:0 0 0 3px rgba(83,100,238,.10);
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(83,100,238,.09);
 }
-.edit-input-hint{display:block;margin-top:5px;color:#8a92a5;font-size:10px;}
 
-.edit-buttons{display:flex;gap:10px;margin-top:22px;}
-.edit-buttons button{flex:1;height:46px;border-radius:13px;cursor:pointer;font-size:14px;font-weight:700;}
-#saveProfileBtn{background:#5364ee;color:#fff;}
-#closeEditBtn{background:#edf0f5;color:#5364ee;}
+.edit-bio-input{
+    position:relative;
+}
+
+.edit-input-hint{
+    display:block;
+    margin-top:3px;
+    color:#9aa1ae;
+    font-size:8px;
+    text-align:left;
+    direction:ltr;
+}
+
+.edit-buttons{
+    display:grid;
+    grid-template-columns:92px minmax(0,1fr);
+    gap:8px;
+    margin-top:13px;
+}
+
+.edit-buttons button{
+    height:42px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:800;
+}
+
+.edit-cancel-btn{
+    background:#eef1f6;
+    color:#5364ee;
+}
+
+.edit-save-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    background:#5364ee;
+    color:#fff;
+    box-shadow:0 7px 16px rgba(83,100,238,.20);
+}
+
+.edit-save-btn .material-icons{
+    font-size:17px;
+}
+
+.edit-modal .cover-file-input{
+    position:fixed;
+}
+
+body.dark .edit-box{
+    border-color:#252c3c;
+    background:#141925;
+}
+
+body.dark .edit-modal-head h2{
+    color:#fff;
+}
+
+body.dark .edit-close-btn{
+    border-color:#2a3142;
+    background:#202738;
+    color:#c3cad8;
+}
+
+body.dark .edit-input input{
+    background:#0d111a;
+    border-color:#2a3142;
+    color:#fff;
+}
+
+body.dark .edit-input input:focus{
+    background:#111722;
+}
+
+body.dark .edit-cancel-btn{
+    background:#202738;
+}
+
+@media(max-width:700px){
+    .edit-modal{
+        padding:12px;
+    }
+
+    .edit-box{
+        width:min(100%,360px);
+        padding:14px;
+        border-radius:22px;
+        max-height:86vh;
+    }
+
+    .edit-modal-head{
+        margin-bottom:11px;
+    }
+
+    .edit-modal-head h2{
+        font-size:19px;
+    }
+
+    .edit-media-grid{
+        grid-template-columns:76px minmax(0,1fr);
+        gap:10px;
+        margin-bottom:11px;
+    }
+
+    .edit-avatar-preview-wrap{
+        width:64px;
+        height:64px;
+    }
+
+    .edit-cover-preview-wrap{
+        height:68px;
+    }
+
+    .edit-input input{
+        height:41px;
+        font-size:12px;
+    }
+
+    .edit-buttons{
+        grid-template-columns:84px minmax(0,1fr);
+        margin-top:11px;
+    }
+
+    .edit-buttons button{
+        height:40px;
+        font-size:10px;
+    }
+}
+
+@media(max-width:380px){
+    .edit-box{
+        padding:12px;
+    }
+
+    .edit-media-grid{
+        grid-template-columns:70px minmax(0,1fr);
+    }
+
+    .edit-avatar-preview-wrap{
+        width:58px;
+        height:58px;
+    }
+
+    .edit-cover-preview-wrap{
+        height:62px;
+    }
+}
 
 /* =========================================================
    Dark mode

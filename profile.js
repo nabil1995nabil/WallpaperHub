@@ -441,7 +441,7 @@ function hideOwnerEditControls(){
     const ids = [
         "editProfileBtn",
         "modalChangeAvatarBtn",
-        "changeCoverBtn",
+        "modalChangeCoverBtn",
         "avatarInput",
         "coverInput"
     ];
@@ -458,6 +458,9 @@ function showOwnerEditControls(){
 
     if(editBtn) editBtn.style.display = "";
     if(avatarBtn) avatarBtn.style.display = "";
+
+    const coverBtn = document.getElementById("modalChangeCoverBtn");
+    if(coverBtn) coverBtn.style.display = "";
 }
 
 async function loadPublicProfile(uid){
@@ -2143,9 +2146,8 @@ function renderWalls(container, ids){
 
 
 const editProfileBtn =
-document.getElementById(
-"editProfileBtn"
-);
+document.getElementById("editProfileBtn") ||
+document.getElementById("heroEditProfileBtn");
 
 
 const editModal =
@@ -2176,6 +2178,15 @@ document.getElementById(
 "editBio"
 );
 
+const editBioCount =
+document.getElementById("editBioCount");
+
+if(editBio && editBioCount){
+    editBio.addEventListener("input", ()=>{
+        editBioCount.textContent = Array.from(editBio.value || "").length;
+    });
+}
+
 
 const avatarInput =
 document.getElementById(
@@ -2188,11 +2199,14 @@ document.getElementById(
 "coverInput"
 );
 
-const changeCoverBtn =
-document.getElementById("changeCoverBtn");
+const modalChangeCoverBtn =
+document.getElementById("modalChangeCoverBtn");
 
-if(changeCoverBtn && coverInput){
-    changeCoverBtn.onclick = ()=>{
+const editCoverPreview =
+document.getElementById("editCoverPreview");
+
+if(modalChangeCoverBtn && coverInput){
+    modalChangeCoverBtn.onclick = ()=>{
         if(!isOwnProfile()) return;
         coverInput.click();
     };
@@ -2228,11 +2242,10 @@ if(!isOwnProfile()){
     return;
 }
 
-if(editModal)
-
-editModal.classList.add(
-"show"
-);
+if(editModal){
+    editModal.classList.add("show");
+    editModal.setAttribute("aria-hidden", "false");
+}
 
 
 
@@ -2249,6 +2262,18 @@ if(editBio){
 
 if(editAvatarPreview && userAvatar){
     editAvatarPreview.src = userAvatar.src || "assets/images/user.png";
+}
+
+if(editCoverPreview && coverImage){
+    editCoverPreview.src =
+        coverImage.src ||
+        localStorage.getItem("userCover") ||
+        DEFAULT_PROFILE_COVER;
+}
+
+const editBioCount = document.getElementById("editBioCount");
+if(editBioCount && editBio){
+    editBioCount.textContent = Array.from(editBio.value || "").length;
 }
 
 
@@ -2271,21 +2296,24 @@ if(editAvatarPreview && userAvatar){
 
 
 if(closeEditBtn){
+    closeEditBtn.onclick = ()=>{
+        if(editModal){
+            editModal.classList.remove("show");
+            editModal.setAttribute("aria-hidden", "true");
+        }
+    };
+}
 
+const closeEditSecondaryBtn =
+document.getElementById("closeEditSecondaryBtn");
 
-closeEditBtn.onclick = ()=>{
-
-
-if(editModal)
-
-editModal.classList.remove(
-"show"
-);
-
-
-};
-
-
+if(closeEditSecondaryBtn){
+    closeEditSecondaryBtn.onclick = ()=>{
+        if(editModal){
+            editModal.classList.remove("show");
+            editModal.setAttribute("aria-hidden", "true");
+        }
+    };
 }
 
 
@@ -2524,6 +2552,14 @@ async (src)=>{
 
 
 addCoverToHistory(src);
+
+if(editCoverPreview){
+    editCoverPreview.src = src;
+}
+
+if(coverImage){
+    coverImage.src = src;
+}
 
 localStorage.setItem("userCover", src);
 
