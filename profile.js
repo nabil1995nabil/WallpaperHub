@@ -801,7 +801,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
         // استعادة الحساب من Supabase قبل الاعتماد على بيانات المتصفح.
         await loadCloudUserData(user);
         await loadVerifiedStatus(user.id);
-        await loadProfileMedals();
+        await loadProfileMedals(user.id);
         await syncLocalFavoritesToCloud();
 
         const metadata = user.user_metadata || {};
@@ -1307,16 +1307,45 @@ function normalizeVerified(value){
 async function loadVerifiedStatus(uid, knownValue = undefined){
     const targetUID = String(uid || "").trim();
 
-    if(knownValue !== undefined && knownValue !== null){
-        currentVerifiedStatus = normalizeVerified(knownValue);
-        return currentVerifiedStatus;
-    }
-
     if(!targetUID){
         currentVerifiedStatus = false;
+        renderVerifiedBadge(false);
         return false;
     }
 
+    // المصدر الموثوق الأول: API السيرفر.
+    // السيرفر يقرأ user_profile_sync بصلاحياته، لذلك لا نعتمد
+    // على RLS الخاص بمتصفح المستخدم.
+    try{
+        const response = await fetch(
+            `/api/users/${encodeURIComponent(targetUID)}/profile`,
+            {
+                method:"GET",
+                cache:"no-store",
+                headers:{ "Accept":"application/json" }
+            }
+        );
+
+        if(response.ok){
+            const payload = await response.json();
+            if(payload?.success && payload?.user){
+                currentVerifiedStatus = normalizeVerified(payload.user.is_verified);
+                renderVerifiedBadge(currentVerifiedStatus);
+                return currentVerifiedStatus;
+            }
+        }
+    }catch(error){
+        console.warn("PROFILE VERIFICATION SERVER LOAD:", error.message);
+    }
+
+    // نستخدم القيمة القادمة من المصدر العام كاحتياط.
+    if(knownValue !== undefined && knownValue !== null){
+        currentVerifiedStatus = normalizeVerified(knownValue);
+        renderVerifiedBadge(currentVerifiedStatus);
+        return currentVerifiedStatus;
+    }
+
+    // احتياط أخير فقط إذا تعذر السيرفر.
     try{
         const { data, error } = await supabase
             .from("user_profile_sync")
@@ -1327,14 +1356,13 @@ async function loadVerifiedStatus(uid, knownValue = undefined){
         if(error) throw error;
 
         currentVerifiedStatus = normalizeVerified(data?.is_verified);
-        return currentVerifiedStatus;
     }catch(error){
-        // إذا لم يكن العمود موجوداً بعد أو كانت RLS تمنع القراءة،
-        // لا نعرض الشارة بشكل افتراضي.
         currentVerifiedStatus = false;
-        console.warn("PROFILE VERIFICATION LOAD:", error.message);
-        return false;
+        console.warn("PROFILE VERIFICATION SUPABASE FALLBACK:", error.message);
     }
+
+    renderVerifiedBadge(currentVerifiedStatus);
+    return currentVerifiedStatus;
 }
 
 function renderVerifiedBadge(value){
@@ -2711,19 +2739,28 @@ function applyProfileMedalData(payload){
     const owned=Array.isArray(payload?.owned) ? payload.owned : [];
 
     profileMedals=(catalog.length ? catalog : profileMedalsFallback).map(m=>({
-        key:String(m.key || ""),
+        key:String(m.key || m.medal_key || "").trim(),
         icon:String(m.icon || "workspace_premium"),
-        title:String(m.title || m.key || "ميدالية"),
+        title:String(m.title || m.name || m.key || m.medal_key || "ميدالية"),
         description:String(m.description || "")
     })).filter(m=>m.key);
 
+    // دعم key و medal_key حتى لا تنكسر الواجهة مع أي نسخة قديمة.
     ownedProfileMedals=new Map(
         owned
-            .filter(item=>item?.key)
-            .map(item=>[String(item.key),{
-                awarded_at:item.awarded_at || null,
-                metadata:item.metadata || null
-            }])
+            .map(item => {
+                const key = String(item?.key ?? item?.medal_key ?? "").trim();
+                if(!key) return null;
+
+                return [
+                    key,
+                    {
+                        awarded_at:item?.awarded_at || item?.awardedAt || null,
+                        metadata:item?.metadata || null
+                    }
+                ];
+            })
+            .filter(Boolean)
     );
 
     renderProfileMedals();
@@ -2733,12 +2770,16 @@ function applyProfileMedalData(payload){
 
 async function loadProfileMedals(uid=null){
     try{
-        let url="/api/profile/medals";
-        const headers={};
+        const targetUID = String(uid || currentUser?.id || "").trim();
+        let url = "";
+        const headers = { "Accept":"application/json" };
 
-        if(uid && String(uid).trim()){
-            url=`/api/users/${encodeURIComponent(String(uid).trim())}/medals`;
+        // للحساب الشخصي أيضًا نستخدم UID الصريح، وبالتالي نفس مصدر
+        // user_medals الذي تستخدمه صفحة الإدارة والبروفايل العام.
+        if(targetUID){
+            url = `/api/users/${encodeURIComponent(targetUID)}/medals`;
         }else{
+            url = "/api/profile/medals";
             const {data}=await supabase.auth.getSession();
             const token=data?.session?.access_token;
             if(token) headers.Authorization=`Bearer ${token}`;
@@ -2750,23 +2791,37 @@ async function loadProfileMedals(uid=null){
             cache:"no-store"
         });
 
-        if(!response.ok) throw new Error(`MEDALS API ${response.status}`);
+        if(!response.ok){
+            const body = await response.text().catch(()=>"");
+            throw new Error(
+                `MEDALS API ${response.status}${body ? `: ${body.slice(0,180)}` : ""}`
+            );
+        }
 
         const payload=await response.json();
+
         if(payload?.success){
             applyProfileMedalData(payload);
+
+            console.log("PROFILE MEDALS SYNC:", {
+                userId: payload.userId || targetUID,
+                owned: Array.isArray(payload.owned)
+                    ? payload.owned.map(m => m?.key || m?.medal_key).filter(Boolean)
+                    : []
+            });
+
             return payload;
         }
 
         throw new Error(payload?.message || "تعذر تحميل الميداليات");
     }catch(error){
         console.warn("PROFILE MEDALS LOAD:",error.message);
-        // عند فشل السيرفر لا نعتبر الميداليات مفتوحة.
-        // هذا يمنع منح ميداليات للمستخدم الجديد بسبب fallback محلي.
+
         ownedProfileMedals=new Map();
         renderProfileMedals();
         renderProfileMedalHistory();
         updateProfileMedalCount();
+
         return null;
     }
 }
