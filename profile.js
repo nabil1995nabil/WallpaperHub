@@ -788,6 +788,11 @@ function updateLoginState(user){
 supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
+
+    // Founder crown controller: expose only the current user's UID.
+    // No auth token or private data is exposed.
+    window.WallpaperHubCurrentUserId = user?.id ? String(user.id) : "";
+
     updateLoginState(user);
 
     // بروفايل عام: لا نستخدم localStorage الخاص بالزائر ولا نسمح بالتعديل.
