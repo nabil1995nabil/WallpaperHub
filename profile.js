@@ -1370,7 +1370,11 @@ function renderVerifiedBadge(value){
     if(!verifiedBadge) return;
 
     const visible = normalizeVerified(value);
+
+    // profile.html has style="display:none" on the badge by default.
+    // hidden alone does not override an inline display:none.
     verifiedBadge.hidden = !visible;
+    verifiedBadge.style.display = visible ? "inline-flex" : "none";
     verifiedBadge.setAttribute("aria-hidden", visible ? "false" : "true");
 }
 
