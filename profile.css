@@ -989,299 +989,13 @@ body.dark #closeEditBtn{background:#202738;}
    Mobile — the supplied old design
    ========================================================= */
 
-@media(max-width:700px){
 
-    body{padding-bottom:92px;}
-
-    .profile-header{
-        height:72px;
-        padding:0 17px;
-    }
-
-    .profile-header h2{font-size:23px;}
-
-    .menu-btn,
-    .login-btn,
-    .settings-btn{
-        width:50px;
-        height:50px;
-        min-width:50px;
-    }
-
-    .profile-actions{gap:9px;}
-
-    .profile-cover{
-        height:432px;
-    }
-
-    .cover-stage,
-    .cover-image{
-        height:432px;
-    }
-
-    .cover-nav-btn{
-        width:50px;
-        height:50px;
-    }
-
-    .cover-nav-prev{right:18px;}
-    .cover-nav-next{left:18px;}
-
-    .cover-change-btn{
-        top:198px;
-        right:18px;
-        height:47px;
-        padding:0 16px;
-        font-size:14px;
-    }
-
-    .cover-history-overlay{
-        left:20px;
-        bottom:18px;
-        font-size:11px;
-    }
-
-    .cover-history-dots{bottom:20px;}
-
-    .profile-avatar-box{
-        top:292px;
-        right:64px;
-        width:166px;
-        height:166px;
-    }
-
-    .profile-avatar{
-        width:166px;
-        height:166px;
-        border-width:6px;
-    }
-
-    .profile-identity{
-        min-height:297px;
-        margin:0;
-        padding:47px 24px 22px;
-        grid-template-columns:minmax(0,1fr) 265px;
-        column-gap:30px;
-    }
-
-    .identity-name-row{gap:7px;}
-    .identity-name-row h1{font-size:34px;}
-    .verified-badge{width:22px;height:22px;flex-basis:22px;}
-    .verified-badge svg{width:22px;height:22px;}
-    .identity-username{font-size:17px;margin-top:6px;}
-    .identity-bio{font-size:15px;margin-top:7px;}
-
-    .hero-edit-profile{
-        width:310px;
-        height:55px;
-        margin-top:13px;
-        font-size:16px;
-    }
-
-    .identity-side-stack{gap:20px;}
-    .identity-side-card{height:104px;min-height:104px;border-radius:21px;}
-    .profile-medals-trigger{height:59px;}
-
-    .profile-stats{
-        max-width:none;
-        margin:0;
-        padding:14px 15px;
-        gap:10px;
-        border-radius:22px;
-    }
-
-    .stat-card{
-        height:106px;
-        border-radius:19px;
-    }
-
-    .stat-icon{font-size:28px;}
-    .stat-card strong{font-size:23px;}
-    .stat-card > span:last-child{font-size:11px;}
-
-    .profile-tabs{
-        width:calc(100% - 42px);
-        margin:14px 21px 0;
-        padding:6px;
-        border-radius:20px;
-    }
-
-    .profile-tab{
-        height:72px;
-        padding:0 9px;
-        font-size:14px;
-    }
-
-    .profile-tab .material-icons{font-size:22px;}
-
-    .profile-tab-content{padding-top:12px;}
-    .profile-content{padding:0 21px 22px;}
-    .profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
-    .profile-wall-card img{height:230px;}
-
-    .user-info{padding:0 21px 22px;gap:10px;}
-    .info-card{min-height:88px;border-radius:18px;}
-}
 
 /* Narrow phones: preserve old composition without collapsing the two columns. */
-@media(max-width:520px){
 
-    .profile-header{padding:0 12px;}
-    .profile-header h2{font-size:21px;}
-
-    .menu-btn,
-    .login-btn,
-    .settings-btn{
-        width:46px;
-        height:46px;
-        min-width:46px;
-    }
-
-    .profile-actions{gap:7px;}
-
-    .profile-avatar-box{
-        right:34px;
-        top:292px;
-        width:146px;
-        height:146px;
-    }
-
-    .profile-avatar{
-        width:146px;
-        height:146px;
-        border-width:5px;
-    }
-
-    .profile-identity{
-        padding:42px 18px 20px;
-        grid-template-columns:minmax(0,1fr) 205px;
-        column-gap:18px;
-        min-height:282px;
-    }
-
-    .identity-name-row h1{font-size:28px;}
-    .identity-username{font-size:14px;}
-    .identity-bio{font-size:13px;}
-    .hero-edit-profile{
-        width:100%;
-        max-width:245px;
-        height:50px;
-        font-size:14px;
-    }
-
-    .identity-side-card{
-        height:92px;
-        min-height:92px;
-        padding:10px;
-    }
-
-    .premium-crown{
-        width:44px;
-        height:44px;
-        flex-basis:44px;
-        font-size:23px;
-    }
-
-    .identity-side-content strong{font-size:13px;}
-    .identity-side-content small{font-size:10px;}
-    .premium-arrow{font-size:25px;}
-
-    .profile-medals-trigger{
-        height:52px;
-        font-size:12px;
-    }
-
-    .medal-trigger-icon{
-        width:30px;
-        height:30px;
-        flex-basis:30px;
-    }
-
-    .profile-stats{
-        padding:11px 10px;
-        gap:6px;
-    }
-
-    .stat-card{
-        height:94px;
-        border-radius:16px;
-    }
-
-    .stat-icon{font-size:25px;}
-    .stat-card strong{font-size:20px;}
-    .stat-card > span:last-child{font-size:9px;}
-
-    .profile-tabs{
-        width:calc(100% - 24px);
-        margin:12px 12px 0;
-    }
-
-    .profile-tab{
-        height:66px;
-        font-size:12px;
-    }
-
-    .profile-tab .material-icons{font-size:20px;}
-}
 
 /* Very small phones */
-@media(max-width:380px){
 
-    .profile-cover,
-    .cover-stage,
-    .cover-image{height:410px;}
-
-    .profile-avatar-box{
-        top:276px;
-        right:23px;
-        width:128px;
-        height:128px;
-    }
-
-    .profile-avatar{
-        width:128px;
-        height:128px;
-    }
-
-    .profile-identity{
-        min-height:260px;
-        padding:37px 12px 17px;
-        grid-template-columns:minmax(0,1fr) 175px;
-        column-gap:12px;
-    }
-
-    .identity-name-row h1{font-size:24px;}
-    .identity-username{font-size:12px;}
-    .identity-bio{font-size:11px;}
-    .hero-edit-profile{height:45px;font-size:12px;}
-
-    .identity-side-card{
-        height:78px;
-        min-height:78px;
-        border-radius:16px;
-        padding:8px;
-    }
-
-    .premium-crown{
-        width:36px;
-        height:36px;
-        flex-basis:36px;
-        font-size:20px;
-    }
-
-    .identity-side-content strong{font-size:11px;}
-    .identity-side-content small{font-size:8px;}
-    .premium-arrow{font-size:21px;}
-
-    .profile-medals-trigger{height:45px;font-size:10px;}
-    .medal-trigger-icon{width:25px;height:25px;flex-basis:25px;}
-
-    .profile-stats{padding:8px 7px;gap:5px;}
-    .stat-card{height:80px;border-radius:13px;}
-    .stat-icon{font-size:21px;}
-    .stat-card strong{font-size:17px;}
-    .stat-card > span:last-child{font-size:8px;}
-}
 
 /* =========================================================
    Accessibility / reduced motion
@@ -1289,4 +1003,540 @@ body.dark #closeEditBtn{background:#202738;}
 
 @media(prefers-reduced-motion:reduce){
     *{scroll-behavior:auto !important;transition:none !important;}
+}
+
+/* =========================================================
+   MOBILE — compact phone-first layout
+   One responsive system; no layered mobile overrides.
+   Designed for narrow phones around 360–430 CSS px.
+   ========================================================= */
+
+@media (max-width:700px){
+
+    body{
+        padding-bottom:82px;
+        background:#f7f8fc;
+    }
+
+    /* Header */
+    .profile-header{
+        height:58px;
+        padding:0 10px;
+    }
+
+    .profile-header h2{
+        font-size:20px;
+    }
+
+    .menu-btn,
+    .login-btn,
+    .settings-btn{
+        width:40px;
+        height:40px;
+        min-width:40px;
+        border-radius:50%;
+    }
+
+    .profile-actions{
+        gap:6px;
+    }
+
+    .profile-header .material-icons{
+        font-size:22px;
+    }
+
+    /* Cover */
+    .profile-cover{
+        height:270px;
+    }
+
+    .cover-stage,
+    .cover-image{
+        height:270px;
+    }
+
+    .cover-image{
+        object-position:center;
+    }
+
+    .cover-nav-btn{
+        width:38px;
+        height:38px;
+    }
+
+    .cover-nav-prev{right:9px;}
+    .cover-nav-next{left:9px;}
+
+    .cover-nav-btn .material-icons{
+        font-size:27px;
+    }
+
+    .cover-change-btn{
+        top:126px;
+        right:10px;
+        height:38px;
+        padding:0 12px;
+        border-radius:19px;
+        gap:4px;
+        font-size:11px;
+    }
+
+    .cover-change-btn .material-icons{
+        font-size:17px;
+    }
+
+    .cover-history-overlay{
+        left:10px;
+        bottom:10px;
+        gap:5px;
+        padding:6px 9px;
+        border-radius:11px;
+        font-size:8px;
+    }
+
+    .cover-history-dots{
+        bottom:12px;
+        gap:5px;
+    }
+
+    .cover-history-dot{
+        width:6px;
+        height:6px;
+    }
+
+    .cover-history-dot.active{
+        width:25px;
+    }
+
+    /* Avatar */
+    .profile-avatar-box{
+        top:184px;
+        right:25px;
+        width:104px;
+        height:104px;
+    }
+
+    .profile-avatar{
+        width:104px;
+        height:104px;
+        border-width:4px;
+        box-shadow:0 6px 18px rgba(35,45,80,.18);
+    }
+
+    .profile-avatar-crown{
+        left:2px;
+        bottom:-2px;
+        width:31px;
+        height:31px;
+    }
+
+    .profile-avatar-crown .material-icons{
+        font-size:23px;
+    }
+
+    /* Identity */
+    .profile-identity{
+        min-height:190px;
+        margin:0;
+        padding:27px 12px 12px;
+        grid-template-columns:minmax(0,1fr) 132px;
+        column-gap:10px;
+        row-gap:8px;
+    }
+
+    .identity-name-row{
+        gap:4px;
+    }
+
+    .identity-name-row h1{
+        max-width:100%;
+        overflow:hidden;
+        font-size:22px;
+        line-height:1.2;
+        text-overflow:ellipsis;
+    }
+
+    .verified-badge{
+        width:18px;
+        height:18px;
+        flex-basis:18px;
+    }
+
+    .verified-badge svg{
+        width:18px;
+        height:18px;
+    }
+
+    .identity-username{
+        margin-top:3px;
+        font-size:12px;
+    }
+
+    .identity-bio{
+        margin-top:4px;
+        font-size:10px;
+        line-height:1.45;
+    }
+
+    .hero-edit-profile{
+        width:100%;
+        max-width:190px;
+        height:39px;
+        margin-top:8px;
+        padding:0 10px;
+        border-radius:20px;
+        gap:5px;
+        font-size:11px;
+        box-shadow:0 5px 16px rgba(67,83,125,.08);
+    }
+
+    .hero-edit-profile .material-icons{
+        font-size:18px;
+    }
+
+    .identity-side-stack{
+        gap:8px;
+    }
+
+    .identity-side-card{
+        width:100%;
+        height:59px;
+        min-height:59px;
+        padding:6px 7px;
+        gap:5px;
+        border-radius:13px;
+    }
+
+    .premium-crown{
+        width:32px;
+        height:32px;
+        flex-basis:32px;
+        border-radius:9px;
+        font-size:17px;
+    }
+
+    .identity-side-content{
+        gap:0;
+    }
+
+    .identity-side-content strong{
+        font-size:9px;
+    }
+
+    .identity-side-content small{
+        font-size:7px;
+    }
+
+    .premium-arrow{
+        font-size:20px;
+    }
+
+    .profile-medals-trigger{
+        width:100%;
+        height:35px;
+        padding:0 7px;
+        gap:4px;
+        border-radius:18px;
+        font-size:8px;
+    }
+
+    .medal-trigger-icon{
+        width:22px;
+        height:22px;
+        flex-basis:22px;
+        font-size:11px;
+    }
+
+    .profile-medals-trigger .material-icons{
+        font-size:14px;
+    }
+
+    .profile-medals-inline-panel{
+        border-radius:12px;
+    }
+
+    .profile-medals-inline-panel.open{
+        max-height:160px;
+        padding:7px;
+    }
+
+    .profile-medals-inline-head{
+        font-size:8px;
+        margin-bottom:5px;
+    }
+
+    .profile-medals-page{
+        gap:4px;
+    }
+
+    .profile-medal-badge{
+        width:30px;
+        height:30px;
+    }
+
+    .profile-medal-badge .material-icons{
+        font-size:16px;
+    }
+
+    /* Statistics */
+    .profile-stats{
+        width:100%;
+        max-width:none;
+        margin:0;
+        padding:8px;
+        gap:5px;
+        border-radius:17px;
+    }
+
+    .stat-card{
+        height:72px;
+        padding:5px 2px;
+        gap:2px;
+        border-radius:13px;
+    }
+
+    .stat-icon{
+        width:21px;
+        height:21px;
+        font-size:19px;
+    }
+
+    .stat-card strong{
+        font-size:16px;
+    }
+
+    .stat-card > span:last-child{
+        font-size:7px;
+    }
+
+    /* Tabs */
+    .profile-tabs{
+        width:calc(100% - 20px);
+        max-width:none;
+        margin:8px 10px 0;
+        padding:4px;
+        gap:2px;
+        border-radius:14px;
+    }
+
+    .profile-tab{
+        height:52px;
+        padding:0 5px;
+        gap:3px;
+        border-radius:10px;
+        font-size:9px;
+    }
+
+    .profile-tab .material-icons{
+        font-size:16px;
+    }
+
+    .profile-tab.active::after{
+        right:10px;
+        left:10px;
+        bottom:3px;
+        height:3px;
+    }
+
+    /* Content */
+    .profile-tab-content{
+        padding-top:8px;
+    }
+
+    .profile-content{
+        padding:0 10px 18px;
+    }
+
+    .profile-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:7px;
+    }
+
+    .profile-wall-card{
+        padding:3px;
+        border-radius:11px;
+    }
+
+    .profile-wall-card img{
+        height:180px;
+        border-radius:8px;
+    }
+
+    .profile-wall-info{
+        padding:4px 2px 2px;
+    }
+
+    .profile-wall-info h3{
+        font-size:9px;
+    }
+
+    .profile-wall-info p{
+        font-size:7px;
+    }
+
+    /* Info cards */
+    .user-info{
+        padding:0 10px 18px;
+        gap:7px;
+    }
+
+    .info-card{
+        min-height:64px;
+        padding:8px 10px;
+        gap:9px;
+        border-radius:13px;
+    }
+
+    .info-card > .material-icons{
+        width:35px;
+        height:35px;
+        flex-basis:35px;
+        border-radius:10px;
+        font-size:19px;
+    }
+
+    .info-card h4{
+        font-size:9px;
+        margin-bottom:2px;
+    }
+
+    .info-card p{
+        font-size:13px;
+    }
+
+    .profile-medal-history{
+        width:calc(100% - 20px);
+        margin:0 auto 18px;
+        padding:12px;
+        border-radius:14px;
+    }
+
+    .profile-medal-history-head h3{
+        font-size:14px;
+    }
+
+    /* Modal */
+    .edit-modal{
+        padding:12px;
+    }
+
+    .edit-box{
+        max-width:380px;
+        padding:18px;
+        border-radius:18px;
+    }
+
+    .edit-box h2{
+        font-size:19px;
+        margin-bottom:16px;
+    }
+
+    .edit-avatar-preview-wrap{
+        width:70px;
+        height:70px;
+    }
+}
+
+/* Extra-narrow phones */
+@media (max-width:380px){
+
+    .profile-cover,
+    .cover-stage,
+    .cover-image{
+        height:255px;
+    }
+
+    .cover-change-btn{
+        top:116px;
+    }
+
+    .profile-avatar-box{
+        top:173px;
+        right:20px;
+        width:94px;
+        height:94px;
+    }
+
+    .profile-avatar{
+        width:94px;
+        height:94px;
+    }
+
+    .profile-identity{
+        min-height:177px;
+        padding:24px 10px 10px;
+        grid-template-columns:minmax(0,1fr) 118px;
+        column-gap:8px;
+    }
+
+    .identity-name-row h1{
+        font-size:20px;
+    }
+
+    .identity-username{
+        font-size:11px;
+    }
+
+    .identity-bio{
+        font-size:9px;
+    }
+
+    .hero-edit-profile{
+        max-width:170px;
+        height:36px;
+        font-size:10px;
+    }
+
+    .identity-side-card{
+        height:54px;
+        min-height:54px;
+    }
+
+    .premium-crown{
+        width:29px;
+        height:29px;
+        flex-basis:29px;
+    }
+
+    .profile-medals-trigger{
+        height:32px;
+        font-size:7px;
+    }
+
+    .profile-stats{
+        padding:7px 6px;
+        gap:4px;
+    }
+
+    .stat-card{
+        height:66px;
+    }
+
+    .stat-icon{
+        font-size:18px;
+    }
+
+    .stat-card strong{
+        font-size:15px;
+    }
+
+    .stat-card > span:last-child{
+        font-size:6.5px;
+    }
+
+    .profile-tab{
+        height:48px;
+        font-size:8px;
+    }
+
+    .profile-tab .material-icons{
+        font-size:15px;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    *{
+        scroll-behavior:auto !important;
+        transition:none !important;
+    }
 }
