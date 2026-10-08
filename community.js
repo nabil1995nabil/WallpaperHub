@@ -19,6 +19,15 @@ let pendingFileData = null;
 let pendingPrivateImageData = null;
 let pendingPrivateFileData = null;
 
+// ================= Community message actions / replies =================
+let activeReply = null;
+let messageActionTarget = null;
+let messageLongPressTimer = null;
+let messageLongPressRow = null;
+let messageLongPressStartX = 0;
+let messageLongPressStartY = 0;
+const MESSAGE_LONG_PRESS_MS = 520;
+
 // ================= Real WebRTC Voice Room =================
 const VOICE_MAX_PARTICIPANTS = 6;
 let voiceChannel = null;
@@ -123,6 +132,174 @@ async function fetchJson(url, options = {}){
   return result;
 }
 
+
+function messagePreviewText(message){
+  if(!message) return 'رسالة';
+  if(message.deleted) return 'تم حذف هذه الرسالة';
+  const text = String(message.text || '').trim();
+  if(text) return text;
+  if(message.imageUrl) return '📷 صورة';
+  if(message.fileUrl) return `📎 ${message.fileName || 'ملف'}`;
+  return 'رسالة';
+}
+
+function closeMessageActionSheet(){
+  const sheet = $('#messageActionSheet');
+  if(!sheet) return;
+
+  sheet.classList.remove('is-open');
+  sheet.setAttribute('aria-hidden','true');
+
+  clearTimeout(closeMessageActionSheet.timer);
+  closeMessageActionSheet.timer = setTimeout(() => {
+    if(!sheet.classList.contains('is-open')) sheet.classList.add('hidden');
+  }, 220);
+
+  messageActionTarget = null;
+}
+
+function openMessageActionSheet(message){
+  if(!message?.id) return;
+
+  const sheet = $('#messageActionSheet');
+  const title = $('#messageActionTitle');
+  const preview = $('#messageActionPreview');
+  const avatar = $('#messageActionAvatar');
+  const deleteButton = $('#messageActionDelete');
+  const reportButton = $('#messageActionReport');
+
+  if(!sheet || !title || !preview || !avatar) return;
+
+  messageActionTarget = message;
+
+  const user = message.user || {};
+  title.textContent = user.name || 'عضو';
+  preview.textContent = messagePreviewText(message);
+
+  const avatarUrl = String(user.avatarUrl || '').trim();
+  avatar.innerHTML = '';
+  if(avatarUrl){
+    const image = document.createElement('img');
+    image.src = avatarUrl;
+    image.alt = '';
+    avatar.appendChild(image);
+  }else{
+    avatar.textContent = initials(user.name);
+  }
+
+  const mine = Boolean(currentUser && String(message.userId) === String(currentUser.id));
+
+  if(deleteButton){
+    deleteButton.classList.toggle('hidden', !mine || Boolean(message.deleted));
+  }
+  if(reportButton){
+    reportButton.classList.toggle('hidden', mine || Boolean(message.deleted));
+  }
+
+  clearTimeout(closeMessageActionSheet.timer);
+  sheet.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    sheet.classList.add('is-open');
+    sheet.setAttribute('aria-hidden','false');
+  });
+}
+
+function setReplyTarget(message){
+  if(!message?.id) return;
+
+  activeReply = message;
+
+  const composer = $('#replyComposer');
+  const name = $('#replyComposerName');
+  const preview = $('#replyComposerPreview');
+
+  if(composer){
+    composer.classList.remove('hidden');
+    composer.setAttribute('aria-hidden','false');
+  }
+  if(name) name.textContent = message.user?.name || 'عضو';
+  if(preview) preview.textContent = messagePreviewText(message);
+
+  closeMessageActionSheet();
+  input.focus();
+}
+
+function clearReplyTarget(){
+  activeReply = null;
+  const composer = $('#replyComposer');
+  if(composer){
+    composer.classList.add('hidden');
+    composer.setAttribute('aria-hidden','true');
+  }
+}
+
+function scrollToMessage(id){
+  if(!id) return;
+
+  const row = feed.querySelector(`[data-id="${CSS.escape(String(id))}"]`);
+  if(!row){
+    showToast('الرسالة الأصلية غير موجودة');
+    return;
+  }
+
+  row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.classList.remove('reply-highlight');
+
+  requestAnimationFrame(() => row.classList.add('reply-highlight'));
+
+  clearTimeout(row.replyHighlightTimer);
+  row.replyHighlightTimer = setTimeout(() => row.classList.remove('reply-highlight'),1800);
+}
+
+function bindMessageLongPress(row, message){
+  let moved = false;
+
+  const cancel = () => {
+    clearTimeout(messageLongPressTimer);
+    messageLongPressTimer = null;
+    messageLongPressRow = null;
+  };
+
+  row.addEventListener('pointerdown',event => {
+    if(event.button !== undefined && event.button !== 0) return;
+
+    messageLongPressRow = row;
+    messageLongPressStartX = event.clientX;
+    messageLongPressStartY = event.clientY;
+    moved = false;
+
+    clearTimeout(messageLongPressTimer);
+    messageLongPressTimer = setTimeout(() => {
+      if(!moved && messageLongPressRow === row) openMessageActionSheet(message);
+      messageLongPressTimer = null;
+    },MESSAGE_LONG_PRESS_MS);
+  },{passive:true});
+
+  row.addEventListener('pointermove',event => {
+    if(messageLongPressRow !== row) return;
+
+    const dx = Math.abs(event.clientX - messageLongPressStartX);
+    const dy = Math.abs(event.clientY - messageLongPressStartY);
+
+    if(dx > 10 || dy > 10){
+      moved = true;
+      cancel();
+    }
+  },{passive:true});
+
+  row.addEventListener('pointerup',cancel,{passive:true});
+  row.addEventListener('pointercancel',cancel,{passive:true});
+  row.addEventListener('pointerleave',event => {
+    if(event.pointerType === 'mouse') cancel();
+  },{passive:true});
+
+  row.addEventListener('contextmenu',event => {
+    event.preventDefault();
+    cancel();
+    openMessageActionSheet(message);
+  });
+}
+
 function renderMessage(message){
   const row = document.createElement('article');
   const mine = Boolean(currentUser && message.userId === currentUser.id);
@@ -196,24 +373,44 @@ function renderMessage(message){
     bubble.textContent = String(message.text || '');
   }
 
-  stack.append(meta,bubble);
+  if(message.replyTo){
+    const quote = document.createElement('button');
+    quote.type = 'button';
+    quote.className = 'message-reply-quote';
+    quote.dataset.replyTargetId = String(message.replyTo.id || message.replyToId || '');
+    quote.setAttribute('aria-label','الانتقال إلى الرسالة الأصلية');
 
-  if(mine && !message.deleted){
-    const actions = document.createElement('div');
-    actions.className = 'message-actions';
+    const quoteAccent = document.createElement('span');
+    quoteAccent.className = 'message-reply-accent';
 
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'delete-message';
-    del.textContent = 'حذف الرسالة';
-    del.addEventListener('click',() => deleteMessage(message.id,row));
+    const quoteBody = document.createElement('span');
+    quoteBody.className = 'message-reply-body';
 
-    actions.append(del);
-    stack.append(actions);
+    const quoteName = document.createElement('b');
+    quoteName.className = 'message-reply-name';
+    quoteName.textContent = message.replyTo.user?.name || 'عضو';
+
+    const quoteText = document.createElement('span');
+    quoteText.className = 'message-reply-text';
+    quoteText.textContent = messagePreviewText(message.replyTo);
+
+    quoteBody.append(quoteName,quoteText);
+    quote.append(quoteAccent,quoteBody);
+
+    quote.addEventListener('click',event => {
+      event.stopPropagation();
+      scrollToMessage(message.replyTo.id || message.replyToId);
+    });
+
+    stack.append(quote);
   }
+
+  stack.append(meta,bubble);
 
   row.innerHTML = avatarMarkup(user);
   row.append(stack);
+
+  bindMessageLongPress(row,message);
 
   return row;
 }
@@ -526,7 +723,8 @@ async function sendMessage(){
       body:JSON.stringify({
         content,
         imageData: pendingImageData || null,
-        fileData: pendingFileData || null
+        fileData: pendingFileData || null,
+        replyToId: activeReply?.id ? String(activeReply.id) : null
       })
     });
 
@@ -536,6 +734,7 @@ async function sendMessage(){
 
     input.value = '';
     clearPendingImage();
+    clearReplyTarget();
     input.focus();
   }catch(error){
     showToast(error.message);
@@ -1953,6 +2152,40 @@ $('#memberSearch').addEventListener('input',event => {
 });
 
 
+$('#replyComposerCancel').addEventListener('click',clearReplyTarget);
+
+$('#replyComposerJump').addEventListener('click',() => {
+  if(activeReply?.id) scrollToMessage(activeReply.id);
+});
+
+$('#messageActionSheet').addEventListener('click',event => {
+  if(event.target.id === 'messageActionSheet') closeMessageActionSheet();
+});
+
+$('#messageActionCancel').addEventListener('click',closeMessageActionSheet);
+
+$('#messageActionReply').addEventListener('click',() => {
+  if(messageActionTarget) setReplyTarget(messageActionTarget);
+});
+
+$('#messageActionDelete').addEventListener('click',async () => {
+  const target = messageActionTarget;
+  if(!target) return;
+
+  const row = feed.querySelector(`[data-id="${CSS.escape(String(target.id))}"]`);
+  closeMessageActionSheet();
+
+  if(row) await deleteMessage(target.id,row);
+});
+
+$('#messageActionReport').addEventListener('click',() => {
+  const target = messageActionTarget;
+  closeMessageActionSheet();
+
+  if(!target) return;
+  showToast('تم تسجيل الإبلاغ — هذه الواجهة تجريبية حاليًا');
+});
+
 $('#privateClose').addEventListener('click',closePrivateChat);
 $('#privateChatOverlay').addEventListener('click',event => {
   if(event.target.id === 'privateChatOverlay') closePrivateChat();
@@ -2076,7 +2309,20 @@ $('#profileButton').addEventListener('click',() => {
 })();
 
 document.addEventListener('keydown',event => {
-  if(event.key === 'Escape' && !$('#privateChatOverlay').classList.contains('hidden')){
+  if(event.key !== 'Escape') return;
+
+  const sheet = $('#messageActionSheet');
+  if(sheet?.classList.contains('is-open')){
+    closeMessageActionSheet();
+    return;
+  }
+
+  if(activeReply){
+    clearReplyTarget();
+    return;
+  }
+
+  if(!$('#privateChatOverlay').classList.contains('hidden')){
     closePrivateChat();
   }
 });

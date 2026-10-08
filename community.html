@@ -237,6 +237,21 @@
             </article>
           </div>
 
+          <div class="reply-composer hidden" id="replyComposer" aria-hidden="true">
+            <div class="reply-composer-icon">
+              <span class="material-icons-round">reply</span>
+            </div>
+            <button class="reply-composer-jump" id="replyComposerJump" type="button" aria-label="الانتقال للرسالة الأصلية">
+              <span class="reply-composer-copy">
+                <b id="replyComposerName">عضو</b>
+                <small id="replyComposerPreview">رسالة</small>
+              </span>
+            </button>
+            <button class="reply-composer-cancel" id="replyComposerCancel" type="button" aria-label="إلغاء الرد">
+              <span class="material-icons-round">close</span>
+            </button>
+          </div>
+
           <form class="composer" id="composer">
             <button type="button" class="attach" id="attachButton" title="إرفاق ملف أو صورة" aria-label="إرفاق ملف أو صورة">
               <span class="material-icons-round">add</span>
@@ -404,6 +419,42 @@
               <span class="material-icons-round">send</span>
             </button>
           </form>
+        </div>
+      </section>
+
+      <section class="message-action-sheet hidden" id="messageActionSheet" aria-hidden="true">
+        <div class="message-action-panel" role="dialog" aria-modal="true" aria-labelledby="messageActionTitle">
+          <div class="message-action-handle" aria-hidden="true"></div>
+
+          <div class="message-action-context">
+            <div class="message-action-avatar" id="messageActionAvatar">ع</div>
+            <div class="message-action-context-copy">
+              <b id="messageActionTitle">عضو</b>
+              <span id="messageActionPreview">رسالة</span>
+            </div>
+          </div>
+
+          <div class="message-action-list">
+            <button class="message-action-button reply-action" id="messageActionReply" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">reply</span></span>
+              <span>رد على الرسالة</span>
+            </button>
+
+            <button class="message-action-button delete-action hidden" id="messageActionDelete" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">delete_outline</span></span>
+              <span>حذف الرسالة</span>
+            </button>
+
+            <button class="message-action-button report-action hidden" id="messageActionReport" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">flag</span></span>
+              <span>إبلاغ عن الرسالة</span>
+            </button>
+
+            <button class="message-action-button cancel-action" id="messageActionCancel" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">close</span></span>
+              <span>إلغاء</span>
+            </button>
+          </div>
         </div>
       </section>
 

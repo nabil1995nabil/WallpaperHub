@@ -1449,3 +1449,116 @@ body{
   .shared-files-heading{flex-direction:column}
   .shared-files-heading .panel-back{align-self:flex-start}
 }
+
+
+/* =========================================================
+   Community message action sheet + reply UI
+   ========================================================= */
+.reply-composer{
+  margin:10px 12px -4px;
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 10px;
+  border:1px solid rgba(93,111,255,.20);
+  border-radius:16px;
+  background:linear-gradient(135deg,#f7f8ff,#ffffff);
+  box-shadow:0 8px 24px rgba(35,49,90,.07);
+  animation:replyComposerIn .22s ease both;
+}
+.reply-composer-icon{
+  width:34px;height:34px;flex:0 0 34px;border-radius:11px;
+  display:grid;place-items:center;background:linear-gradient(145deg,#496dff,#7544ff);color:#fff;
+}
+.reply-composer-icon .material-icons-round{font-size:18px}
+.reply-composer-jump{
+  min-width:0;flex:1;border:0;background:transparent;padding:0;text-align:right;cursor:pointer;
+}
+.reply-composer-copy{display:flex;flex-direction:column;min-width:0}
+.reply-composer-copy b{color:#3d55cf;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-composer-copy small{margin-top:2px;color:#6d7890;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-composer-cancel{
+  width:32px;height:32px;flex:0 0 32px;border:0;border-radius:50%;
+  background:#eef1f7;color:#758198;display:grid;place-items:center;cursor:pointer;
+}
+.reply-composer-cancel .material-icons-round{font-size:18px}
+.message-reply-quote{
+  width:100%;max-width:100%;margin:0 0 5px;padding:6px 8px;
+  display:flex;align-items:stretch;gap:7px;border:0;border-radius:9px;
+  background:rgba(91,110,255,.07);color:inherit;text-align:right;cursor:pointer;
+  transition:background .18s ease,transform .18s ease;
+}
+.message-reply-quote:hover{background:rgba(91,110,255,.12);transform:translateY(-1px)}
+.message-reply-accent{
+  width:3px;flex:0 0 3px;border-radius:3px;background:linear-gradient(180deg,#4b70ff,#7b43ff);
+}
+.message-reply-body{min-width:0;display:flex;flex-direction:column;gap:1px}
+.message-reply-name{color:#4962cf;font-size:8px;line-height:1.4}
+.message-reply-text{
+  display:block;max-width:100%;color:#69758a;font-size:8px;line-height:1.5;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.message-row.mine .message-reply-quote{background:rgba(255,255,255,.12)}
+.message-row.mine .message-reply-name{color:#dce3ff}
+.message-row.mine .message-reply-text{color:#d3d9ef}
+.message-row{-webkit-touch-callout:none}
+.message-row.reply-highlight .message-bubble,
+.message-row.reply-highlight .message-reply-quote{animation:messageReplyHighlight 1.8s ease both}
+@keyframes messageReplyHighlight{
+  0%,100%{filter:none;box-shadow:none}
+  18%{filter:brightness(1.04);box-shadow:0 0 0 3px rgba(82,108,255,.22),0 8px 24px rgba(67,84,170,.12)}
+  45%{filter:brightness(1.04);box-shadow:0 0 0 5px rgba(82,108,255,.14),0 8px 24px rgba(67,84,170,.10)}
+}
+@keyframes replyComposerIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.message-action-sheet{
+  position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;
+  padding:18px;background:rgba(8,14,28,.18);backdrop-filter:blur(3px);
+  opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease;
+}
+.message-action-sheet.is-open{opacity:1;visibility:visible}
+.message-action-panel{
+  width:min(430px,100%);padding:9px 12px 12px;border:1px solid rgba(121,139,194,.18);
+  border-radius:25px;background:rgba(255,255,255,.98);box-shadow:0 22px 65px rgba(24,35,70,.20);
+  transform:translateY(22px) scale(.98);transition:transform .24s cubic-bezier(.2,.8,.2,1);
+}
+.message-action-sheet.is-open .message-action-panel{transform:translateY(0) scale(1)}
+.message-action-handle{width:38px;height:4px;border-radius:999px;margin:0 auto 11px;background:#d9deea}
+.message-action-context{display:flex;align-items:center;gap:10px;padding:8px 7px 12px;border-bottom:1px solid #edf0f5}
+.message-action-avatar{
+  width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;overflow:hidden;
+  background:linear-gradient(145deg,#314a9b,#7b48cc);color:#fff;font-size:12px;font-weight:800;
+}
+.message-action-avatar img{width:100%;height:100%;object-fit:cover}
+.message-action-context-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.message-action-context-copy b{color:#222b3a;font-size:11px}
+.message-action-context-copy span{color:#778298;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.message-action-list{display:flex;flex-direction:column;gap:4px;padding-top:8px}
+.message-action-button{
+  width:100%;min-height:48px;border:0;border-radius:14px;padding:7px 10px;display:flex;align-items:center;gap:10px;
+  background:transparent;cursor:pointer;text-align:right;transition:background .16s ease,transform .16s ease;
+}
+.message-action-button:hover{background:#f5f7fb;transform:translateX(-2px)}
+.message-action-button>span:last-child{font-size:11px;font-weight:700}
+.message-action-icon{
+  width:35px;height:35px;flex:0 0 35px;border-radius:11px;display:grid;place-items:center;background:#f0f3fa;color:#5369dc;
+}
+.message-action-icon .material-icons-round{font-size:19px}
+.message-action-button.delete-action{color:#ed566b}
+.message-action-button.delete-action .message-action-icon{background:#fff0f2;color:#ed566b}
+.message-action-button.report-action{color:#bd7a2d}
+.message-action-button.report-action .message-action-icon{background:#fff6e9;color:#c5832e}
+.message-action-button.cancel-action{margin-top:3px;border-top:1px solid #edf0f5;border-radius:0 0 14px 14px;color:#68758b}
+.message-action-button.cancel-action .message-action-icon{background:#f1f3f7;color:#748095}
+@media (max-width:600px){
+  .message-action-sheet{padding:0}
+  .message-action-panel{width:100%;border-radius:25px 25px 0 0;padding:9px 13px calc(12px + env(safe-area-inset-bottom))}
+  .message-action-button{min-height:52px}
+  .reply-composer{margin-left:10px;margin-right:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  .message-action-sheet,.message-action-panel,.reply-composer,.message-action-button,.message-reply-quote{
+    transition:none!important;animation:none!important;
+  }
+}
