@@ -143,6 +143,133 @@ function messagePreviewText(message){
   return 'رسالة';
 }
 
+
+function openReportModal(message){
+  const modal = $('#messageReportModal');
+  if(!modal || !message?.id) return;
+
+  const avatar = $('#messageReportAvatar');
+  const name = $('#messageReportUser');
+  const time = $('#messageReportTime');
+  const preview = $('#messageReportPreview');
+  const image = $('#messageReportImage');
+  const file = $('#messageReportFile');
+  const details = $('#messageReportDetails');
+  const reason = $('#messageReportReason');
+  const submit = $('#messageReportSubmit');
+  const user = message.user || {};
+
+  if(avatar){
+    avatar.innerHTML = '';
+    const avatarUrl = String(user.avatarUrl || '').trim();
+    if(avatarUrl){
+      const img = document.createElement('img');
+      img.src = avatarUrl;
+      img.alt = '';
+      avatar.appendChild(img);
+    }else{
+      avatar.textContent = initials(user.name);
+    }
+  }
+
+  if(name) name.textContent = user.name || 'عضو';
+  if(time) time.textContent = timeOf(message.createdAt);
+  if(preview) preview.textContent = messagePreviewText(message);
+
+  if(image){
+    image.classList.toggle('hidden', !message.imageUrl || Boolean(message.deleted));
+    if(message.imageUrl && !message.deleted) image.src = message.imageUrl;
+    else image.removeAttribute('src');
+  }
+
+  if(file){
+    file.classList.toggle('hidden', !message.fileUrl || Boolean(message.deleted));
+    file.textContent = message.fileName ? `📎 ${message.fileName}` : '📎 ملف مرفق';
+    if(message.fileUrl && !message.deleted){
+      file.href = message.fileUrl;
+      file.download = message.fileName || '';
+    }else{
+      file.removeAttribute('href');
+    }
+  }
+
+  if(reason) reason.value = '';
+  if(details) details.value = '';
+  if(submit){
+    submit.disabled = false;
+    submit.dataset.messageId = String(message.id);
+  }
+
+  modal.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden','false');
+  });
+}
+
+function closeReportModal(){
+  const modal = $('#messageReportModal');
+  if(!modal) return;
+
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden','true');
+
+  clearTimeout(closeReportModal.timer);
+  closeReportModal.timer = setTimeout(() => {
+    if(!modal.classList.contains('is-open')) modal.classList.add('hidden');
+  },220);
+}
+
+async function submitMessageReport(){
+  const modal = $('#messageReportModal');
+  const submit = $('#messageReportSubmit');
+  const reason = $('#messageReportReason');
+  const details = $('#messageReportDetails');
+
+  if(!modal || !submit || !currentUser) return;
+
+  const messageId = String(submit.dataset.messageId || '').trim();
+  const selectedReason = String(reason?.value || '').trim();
+  const explanation = String(details?.value || '').trim();
+
+  if(!messageId){
+    showToast('الرسالة غير صالحة');
+    return;
+  }
+
+  if(!selectedReason){
+    showToast('اختر سبب البلاغ أولًا');
+    reason?.focus();
+    return;
+  }
+
+  submit.disabled = true;
+
+  try{
+    const result = await fetchJson('/api/community/message-reports',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        ...(await authHeaders())
+      },
+      body:JSON.stringify({
+        messageId,
+        reason:selectedReason,
+        details:explanation
+      })
+    });
+
+    closeReportModal();
+    showToast(result?.duplicate
+      ? 'سبق أن أبلغت عن هذه الرسالة'
+      : 'تم إرسال البلاغ إلى فريق الإدارة');
+  }catch(error){
+    showToast(error.message || 'تعذر إرسال البلاغ');
+  }finally{
+    submit.disabled = false;
+  }
+}
+
 function closeMessageActionSheet(){
   const sheet = $('#messageActionSheet');
   if(!sheet) return;
@@ -2183,7 +2310,24 @@ $('#messageActionReport').addEventListener('click',() => {
   closeMessageActionSheet();
 
   if(!target) return;
-  showToast('تم تسجيل الإبلاغ — هذه الواجهة تجريبية حاليًا');
+
+  if(!currentUser){
+    showToast('يجب تسجيل الدخول لإرسال بلاغ');
+    return;
+  }
+
+  openReportModal(target);
+});
+
+
+$('#messageReportClose').addEventListener('click',closeReportModal);
+$('#messageReportCancel').addEventListener('click',closeReportModal);
+$('#messageReportModal').addEventListener('click',event => {
+  if(event.target.id === 'messageReportModal') closeReportModal();
+});
+$('#messageReportForm').addEventListener('submit',event => {
+  event.preventDefault();
+  submitMessageReport();
 });
 
 $('#privateClose').addEventListener('click',closePrivateChat);
@@ -2310,6 +2454,12 @@ $('#profileButton').addEventListener('click',() => {
 
 document.addEventListener('keydown',event => {
   if(event.key !== 'Escape') return;
+
+  const reportModal = $('#messageReportModal');
+  if(reportModal?.classList.contains('is-open')){
+    closeReportModal();
+    return;
+  }
 
   const sheet = $('#messageActionSheet');
   if(sheet?.classList.contains('is-open')){

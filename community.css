@@ -1562,3 +1562,55 @@ body{
     transition:none!important;animation:none!important;
   }
 }
+
+
+/* Community message report modal */
+.message-report-modal{
+  position:fixed;inset:0;z-index:140;display:flex;align-items:center;justify-content:center;
+  padding:18px;background:rgba(7,12,25,.24);backdrop-filter:blur(7px);
+  opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease;
+}
+.message-report-modal.is-open{opacity:1;visibility:visible}
+.message-report-panel{
+  width:min(520px,100%);max-height:min(90vh,760px);overflow:auto;
+  padding:18px;border:1px solid rgba(111,130,190,.18);border-radius:25px;
+  background:rgba(255,255,255,.98);box-shadow:0 30px 90px rgba(18,29,64,.22);
+  transform:translateY(14px) scale(.98);transition:transform .24s cubic-bezier(.2,.8,.2,1);
+}
+.message-report-modal.is-open .message-report-panel{transform:translateY(0) scale(1)}
+.message-report-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.message-report-title-wrap{display:flex;align-items:center;gap:10px}
+.message-report-title-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#fff5e8;color:#c9822e;border:1px solid #f7dfbf}
+.message-report-title-icon .material-icons-round{font-size:20px}
+.message-report-title-wrap b{display:block;font-size:13px;color:#202a3a}
+.message-report-title-wrap small{display:block;margin-top:2px;font-size:9px;color:#78849a}
+.message-report-close{width:34px;height:34px;border:0;border-radius:50%;background:#f1f3f7;color:#758198;display:grid;place-items:center;cursor:pointer}
+.message-report-message{margin:15px 0;padding:12px;border:1px solid #e8ebf2;border-radius:17px;background:#f8f9fc}
+.message-report-author{display:flex;align-items:center;gap:9px}
+.message-report-avatar{width:38px;height:38px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,#314a9b,#7b48cc);color:#fff;font-size:11px;font-weight:800}
+.message-report-avatar img{width:100%;height:100%;object-fit:cover}
+.message-report-author b{display:block;font-size:10px;color:#263145}
+.message-report-author time{display:block;margin-top:2px;font-size:8px;color:#7d8799}
+.message-report-preview{margin-top:9px;padding:9px 10px;border-radius:11px;background:#fff;color:#4b566b;font-size:10px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.message-report-image{width:100%;max-height:210px;object-fit:cover;border-radius:12px;margin-top:9px}
+.message-report-file{display:block;margin-top:9px;padding:9px 10px;border-radius:11px;background:#eef2ff;color:#5267c9;font-size:9px;font-weight:700}
+.message-report-form{display:flex;flex-direction:column;gap:12px}
+.message-report-form label{display:flex;flex-direction:column;gap:6px}
+.message-report-form label>span{font-size:10px;font-weight:800;color:#39455a}
+.message-report-form label small{font-size:8px;font-weight:500;color:#8b95a5}
+.message-report-form select,.message-report-form textarea{width:100%;border:1px solid #e1e5ed;border-radius:13px;background:#fff;outline:0;color:#263145;font-size:10px;padding:10px 11px;transition:border-color .18s,box-shadow .18s}
+.message-report-form textarea{resize:vertical;min-height:82px;line-height:1.7}
+.message-report-form select:focus,.message-report-form textarea:focus{border-color:#6b7dff;box-shadow:0 0 0 3px rgba(88,108,255,.10)}
+.message-report-note{display:flex;align-items:center;gap:7px;padding:9px 10px;border-radius:12px;background:#f4f7ff;color:#63708a;font-size:8px;line-height:1.6}
+.message-report-note .material-icons-round{font-size:16px;color:#5b70df}
+.message-report-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+.message-report-cancel,.message-report-submit{min-height:42px;border-radius:12px;padding:0 16px;border:0;font-size:10px;font-weight:800;cursor:pointer}
+.message-report-cancel{background:#f1f3f7;color:#68758b}
+.message-report-submit{display:flex;align-items:center;gap:6px;background:linear-gradient(100deg,#4b70ff,#7a42ff);color:#fff}
+.message-report-submit:disabled{opacity:.55;cursor:not-allowed}
+.message-report-submit .material-icons-round{font-size:16px}
+@media(max-width:600px){
+  .message-report-modal{padding:0;align-items:flex-end}
+  .message-report-panel{width:100%;max-height:92vh;border-radius:25px 25px 0 0;padding:15px 13px calc(13px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){.message-report-modal,.message-report-panel{transition:none!important}}

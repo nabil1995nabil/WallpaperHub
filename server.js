@@ -1543,6 +1543,460 @@ app.get("/community.js", async (req,res,next)=>{
 });
 
 
+
+// ======================================
+// Community Message Reports
+// بلاغات رسائل المجتمع — محفوظة في Supabase
+// ======================================
+
+const COMMUNITY_REPORT_REASONS = new Set([
+    "abuse",
+    "hate",
+    "sexual",
+    "spam",
+    "threat",
+    "impersonation",
+    "other"
+]);
+
+function communityReportPriority(reason){
+    return ["threat","hate","sexual"].includes(String(reason || "")) ? "high" : "normal";
+}
+
+function communityReportReasonLabel(reason){
+    const labels = {
+        abuse:"إساءة أو تنمر",
+        hate:"خطاب كراهية",
+        sexual:"محتوى غير مناسب",
+        spam:"سبام أو إعلان مزعج",
+        threat:"تهديد أو عنف",
+        impersonation:"انتحال شخصية أو احتيال",
+        other:"سبب آخر"
+    };
+    return labels[String(reason || "")] || "بلاغ";
+}
+
+async function getCommunityReportUserSnapshot(user){
+    const profile = await getCommunityProfileSafe(user?.id);
+    const fallback = communityFallbackProfile(user);
+
+    return {
+        id:String(user?.id || ""),
+        name:String(
+            profile?.full_name ||
+            profile?.username ||
+            fallback?.full_name ||
+            fallback?.username ||
+            user?.email?.split("@")[0] ||
+            "عضو"
+        ),
+        username:String(profile?.username || fallback?.username || ""),
+        email:String(user?.email || ""),
+        avatarUrl:String(profile?.avatar_url || fallback?.avatar_url || "")
+    };
+}
+
+function communityReportResponse(row, duplicateCount = 1){
+    return {
+        id:String(row.id),
+        messageId:row.message_id ? String(row.message_id) : null,
+        reporterId:String(row.reporter_id || ""),
+        reporterName:String(row.reporter_name || "عضو"),
+        reporterUsername:String(row.reporter_username || ""),
+        reporterEmail:String(row.reporter_email || ""),
+        reporterAvatarUrl:String(row.reporter_avatar_url || ""),
+        targetUserId:row.target_user_id ? String(row.target_user_id) : null,
+        targetUserName:String(row.target_user_name || "عضو"),
+        targetUserEmail:String(row.target_user_email || ""),
+        targetUserAvatarUrl:String(row.target_user_avatar_url || ""),
+        messageText:String(row.message_text || ""),
+        messageImageUrl:String(row.message_image_url || ""),
+        messageFileUrl:String(row.message_file_url || ""),
+        messageFileName:String(row.message_file_name || ""),
+        messageFileType:String(row.message_file_type || ""),
+        messageCreatedAt:row.message_created_at || null,
+        messageDeleted:Boolean(row.message_deleted),
+        reason:String(row.reason || "other"),
+        reasonLabel:communityReportReasonLabel(row.reason),
+        details:String(row.details || ""),
+        status:String(row.status || "pending"),
+        priority:String(row.priority || "normal"),
+        adminNotes:String(row.admin_notes || ""),
+        reviewedBy:row.reviewed_by ? String(row.reviewed_by) : null,
+        reviewedAt:row.reviewed_at || null,
+        createdAt:row.created_at || null,
+        updatedAt:row.updated_at || null,
+        duplicateCount:Number(duplicateCount || 1)
+    };
+}
+
+app.post("/api/community/message-reports", async (req,res) => {
+    try{
+        const reporter = await getAuthenticatedUser(req);
+        if(!reporter){
+            return res.status(401).json({
+                success:false,
+                message:"يجب تسجيل الدخول لإرسال بلاغ"
+            });
+        }
+
+        const messageId = String(req.body?.messageId || "").trim();
+        const reason = String(req.body?.reason || "").trim().toLowerCase();
+        const details = String(req.body?.details || "").trim().slice(0,1000);
+
+        const uuidPattern =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+        if(!uuidPattern.test(messageId)){
+            return res.status(400).json({
+                success:false,
+                message:"معرّف الرسالة غير صالح"
+            });
+        }
+
+        if(!COMMUNITY_REPORT_REASONS.has(reason)){
+            return res.status(400).json({
+                success:false,
+                message:"سبب البلاغ غير صالح"
+            });
+        }
+
+        const {data:message,error:messageError} = await supabase
+            .from("community_messages")
+            .select(
+                "id,user_id,content,image_url,file_url,file_name,file_type,file_size,created_at,deleted_at"
+            )
+            .eq("id",messageId)
+            .maybeSingle();
+
+        if(messageError) throw messageError;
+
+        if(!message){
+            return res.status(404).json({
+                success:false,
+                message:"الرسالة غير موجودة"
+            });
+        }
+
+        if(String(message.user_id) === String(reporter.id)){
+            return res.status(400).json({
+                success:false,
+                message:"لا يمكنك الإبلاغ عن رسالتك الخاصة"
+            });
+        }
+
+        const reporterSnapshot = await getCommunityReportUserSnapshot(reporter);
+
+        let targetUser = null;
+        try{
+            const {data:targetAuth,error:targetAuthError} =
+                await supabase.auth.admin.getUserById(String(message.user_id));
+            if(!targetAuthError && targetAuth?.user){
+                targetUser = await getCommunityReportUserSnapshot(targetAuth.user);
+            }
+        }catch(_error){}
+
+        if(!targetUser){
+            const targetProfile = await getCommunityProfileSafe(message.user_id);
+            const fallback = {
+                id:String(message.user_id),
+                name:String(targetProfile?.full_name || targetProfile?.username || "عضو"),
+                username:String(targetProfile?.username || ""),
+                email:"",
+                avatarUrl:String(targetProfile?.avatar_url || "")
+            };
+            targetUser = fallback;
+        }
+
+        const payload = {
+            id:crypto.randomUUID(),
+            message_id:String(message.id),
+            reporter_id:String(reporter.id),
+            reporter_name:reporterSnapshot.name,
+            reporter_username:reporterSnapshot.username,
+            reporter_email:reporterSnapshot.email,
+            reporter_avatar_url:reporterSnapshot.avatarUrl,
+            target_user_id:String(message.user_id),
+            target_user_name:targetUser.name,
+            target_user_email:targetUser.email,
+            target_user_avatar_url:targetUser.avatarUrl,
+            message_text:String(message.content || ""),
+            message_image_url:String(message.image_url || ""),
+            message_file_url:String(message.file_url || ""),
+            message_file_name:String(message.file_name || ""),
+            message_file_type:String(message.file_type || ""),
+            message_created_at:message.created_at || null,
+            message_deleted:Boolean(message.deleted_at),
+            reason,
+            details,
+            status:"pending",
+            priority:communityReportPriority(reason),
+            admin_notes:"",
+            created_at:new Date().toISOString(),
+            updated_at:new Date().toISOString()
+        };
+
+        const {data,error} = await supabase
+            .from("community_message_reports")
+            .insert(payload)
+            .select("*")
+            .single();
+
+        if(error){
+            if(String(error.code || "") === "23505"){
+                return res.status(409).json({
+                    success:true,
+                    duplicate:true,
+                    message:"سبق أن أبلغت عن هذه الرسالة"
+                });
+            }
+            throw error;
+        }
+
+        return res.status(201).json({
+            success:true,
+            duplicate:false,
+            report:communityReportResponse(data)
+        });
+    }catch(error){
+        console.log("CREATE COMMUNITY MESSAGE REPORT ERROR:",error?.message || error);
+        return res.status(500).json({
+            success:false,
+            message:"تعذر إرسال البلاغ"
+        });
+    }
+});
+
+app.get("/api/admin/community-reports", async (req,res) => {
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const status = String(req.query.status || "all").trim().toLowerCase();
+        const priority = String(req.query.priority || "all").trim().toLowerCase();
+        const search = String(req.query.search || "").trim().toLowerCase();
+        const limit = Math.min(
+            Math.max(Number.parseInt(req.query.limit,10) || 1000,1),
+            2000
+        );
+
+        const {data,error} = await supabase
+            .from("community_message_reports")
+            .select("*")
+            .order("created_at",{ascending:false})
+            .limit(limit);
+
+        if(error) throw error;
+
+        const rows = data || [];
+        const grouped = new Map();
+
+        rows.forEach(row => {
+            const key = String(row.message_id || `report:${row.id}`);
+            grouped.set(key,(grouped.get(key) || 0) + 1);
+        });
+
+        let reports = rows.map(row =>
+            communityReportResponse(
+                row,
+                grouped.get(String(row.message_id || `report:${row.id}`)) || 1
+            )
+        );
+
+        if(status !== "all"){
+            reports = reports.filter(report => report.status === status);
+        }
+
+        if(priority !== "all"){
+            reports = reports.filter(report => report.priority === priority);
+        }
+
+        if(search){
+            reports = reports.filter(report => {
+                const haystack = [
+                    report.reporterName,
+                    report.reporterUsername,
+                    report.reporterEmail,
+                    report.targetUserName,
+                    report.targetUserEmail,
+                    report.messageText,
+                    report.reasonLabel,
+                    report.details
+                ].join(" ").toLowerCase();
+                return haystack.includes(search);
+            });
+        }
+
+        const all = rows.map(row =>
+            communityReportResponse(
+                row,
+                grouped.get(String(row.message_id || `report:${row.id}`)) || 1
+            )
+        );
+
+        return res.json({
+            success:true,
+            reports,
+            stats:{
+                total:all.length,
+                pending:all.filter(r=>r.status==="pending").length,
+                reviewing:all.filter(r=>r.status==="reviewing").length,
+                resolved:all.filter(r=>r.status==="resolved").length,
+                dismissed:all.filter(r=>r.status==="dismissed").length,
+                highPriority:all.filter(r=>r.priority==="high" && !["resolved","dismissed"].includes(r.status)).length
+            }
+        });
+    }catch(error){
+        console.log("GET COMMUNITY REPORTS ERROR:",error?.message || error);
+        return res.status(500).json({
+            success:false,
+            message:"تعذر تحميل البلاغات",
+            reports:[]
+        });
+    }
+});
+
+app.patch("/api/admin/community-reports/:id", async (req,res) => {
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const id = String(req.params.id || "").trim();
+        if(!id) return res.status(400).json({success:false,message:"معرّف البلاغ غير صالح"});
+
+        const allowedStatus = new Set(["pending","reviewing","resolved","dismissed"]);
+        const allowedPriority = new Set(["normal","high","urgent"]);
+
+        const updates = {};
+        if(req.body?.status !== undefined){
+            const value = String(req.body.status || "").trim().toLowerCase();
+            if(!allowedStatus.has(value)){
+                return res.status(400).json({success:false,message:"حالة البلاغ غير صالحة"});
+            }
+            updates.status = value;
+        }
+
+        if(req.body?.priority !== undefined){
+            const value = String(req.body.priority || "").trim().toLowerCase();
+            if(!allowedPriority.has(value)){
+                return res.status(400).json({success:false,message:"أولوية البلاغ غير صالحة"});
+            }
+            updates.priority = value;
+        }
+
+        if(req.body?.adminNotes !== undefined){
+            updates.admin_notes = String(req.body.adminNotes || "").trim().slice(0,3000);
+        }
+
+        if(!Object.keys(updates).length){
+            return res.status(400).json({success:false,message:"لا توجد تغييرات"});
+        }
+
+        if(updates.status){
+            updates.reviewed_by = String(admin.id);
+            updates.reviewed_at = new Date().toISOString();
+        }
+        updates.updated_at = new Date().toISOString();
+
+        const {data,error} = await supabase
+            .from("community_message_reports")
+            .update(updates)
+            .eq("id",id)
+            .select("*")
+            .maybeSingle();
+
+        if(error) throw error;
+        if(!data) return res.status(404).json({success:false,message:"البلاغ غير موجود"});
+
+        try{
+            await writeAdminAuditLog({
+                adminUserId:admin.id,
+                targetUserId:data.target_user_id || null,
+                action:"community_report_updated",
+                details:{
+                    report_id:String(data.id),
+                    message_id:data.message_id ? String(data.message_id) : null,
+                    status:data.status,
+                    priority:data.priority
+                }
+            });
+        }catch(auditError){
+            console.log("COMMUNITY REPORT AUDIT ERROR:",auditError?.message || auditError);
+        }
+
+        return res.json({
+            success:true,
+            report:communityReportResponse(data)
+        });
+    }catch(error){
+        console.log("UPDATE COMMUNITY REPORT ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تحديث البلاغ"});
+    }
+});
+
+app.delete("/api/admin/community-reports/:id/message", async (req,res) => {
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const reportId = String(req.params.id || "").trim();
+        if(!reportId) return res.status(400).json({success:false,message:"معرّف البلاغ غير صالح"});
+
+        const {data:report,error:reportError} = await supabase
+            .from("community_message_reports")
+            .select("id,message_id")
+            .eq("id",reportId)
+            .maybeSingle();
+
+        if(reportError) throw reportError;
+        if(!report) return res.status(404).json({success:false,message:"البلاغ غير موجود"});
+        if(!report.message_id){
+            return res.status(400).json({success:false,message:"الرسالة الأصلية غير موجودة"});
+        }
+
+        const {data:message,error:messageError} = await supabase
+            .from("community_messages")
+            .select("id,image_path,file_path")
+            .eq("id",String(report.message_id))
+            .maybeSingle();
+
+        if(messageError) throw messageError;
+
+        if(message){
+            const {error:deleteError} = await supabase
+                .from("community_messages")
+                .delete()
+                .eq("id",String(report.message_id));
+
+            if(deleteError) throw deleteError;
+
+            if(message.image_path) await deleteCommunityImage(message.image_path);
+            if(message.file_path) await deleteCommunityFile(message.file_path);
+        }
+
+        const now = new Date().toISOString();
+
+        const {error:updateError} = await supabase
+            .from("community_message_reports")
+            .update({
+                status:"resolved",
+                reviewed_by:String(admin.id),
+                reviewed_at:now,
+                admin_notes:"تم حذف الرسالة من لوحة الإدارة.",
+                updated_at:now
+            })
+            .eq("message_id",String(report.message_id));
+
+        if(updateError) throw updateError;
+
+        return res.json({success:true,messageId:String(report.message_id)});
+    }catch(error){
+        console.log("ADMIN DELETE REPORTED COMMUNITY MESSAGE ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر حذف الرسالة"});
+    }
+});
+
+
 // ======================================
 // Static Files
 // ======================================
@@ -1667,14 +2121,46 @@ app.get(
     "/admin",
     (req,res)=>{
 
-        res.sendFile(
-            path.join(
-                __dirname,
-                "admin",
-                "admin.html"
-            )
-        );
+        const adminFile = path.join(__dirname,"admin","admin.html");
 
+        try{
+            let source = fs.readFileSync(adminFile,"utf8");
+
+            if(!source.includes('data-community-reports-link')){
+                const menuAnchor = '<li onclick="openUserManagement()">\n👥 إدارة المستخدمين\n</li>';
+
+                if(source.includes(menuAnchor)){
+                    source = source.replace(
+                        menuAnchor,
+                        `${menuAnchor}\n\n<li data-community-reports-link onclick="openCommunityReports()">\n🚩 بلاغات المجتمع\n</li>`
+                    );
+                }else{
+                    source = source.replace(
+                        '</ul>',
+                        '<li data-community-reports-link onclick="openCommunityReports()">🚩 بلاغات المجتمع</li>\n</ul>'
+                    );
+                }
+
+                const script = `
+<script>
+window.openCommunityReports=function(){
+    location.href="/admin/community-reports.html";
+};
+</script>`;
+
+                source = source.replace(
+                    '</body>',
+                    `${script}\n</body>`
+                );
+            }
+
+            res.set("Content-Type","text/html; charset=utf-8");
+            res.set("Cache-Control","no-store, no-cache, must-revalidate");
+            return res.send(source);
+        }catch(error){
+            console.log("ADMIN PAGE LOAD ERROR:",error?.message || error);
+            return res.sendFile(adminFile);
+        }
     }
 );
 

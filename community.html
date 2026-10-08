@@ -458,6 +458,71 @@
         </div>
       </section>
 
+
+      <section class="message-report-modal hidden" id="messageReportModal" aria-hidden="true">
+        <div class="message-report-panel" role="dialog" aria-modal="true" aria-labelledby="messageReportTitle">
+          <div class="message-report-head">
+            <div class="message-report-title-wrap">
+              <span class="message-report-title-icon"><span class="material-icons-round">flag</span></span>
+              <div>
+                <b id="messageReportTitle">الإبلاغ عن رسالة</b>
+                <small>ساعدنا في الحفاظ على مجتمع آمن ومحترم.</small>
+              </div>
+            </div>
+            <button class="message-report-close" id="messageReportClose" type="button" aria-label="إغلاق">
+              <span class="material-icons-round">close</span>
+            </button>
+          </div>
+
+          <div class="message-report-message">
+            <div class="message-report-author">
+              <div class="message-report-avatar" id="messageReportAvatar">ع</div>
+              <div>
+                <b id="messageReportUser">عضو</b>
+                <time id="messageReportTime"></time>
+              </div>
+            </div>
+            <div class="message-report-preview" id="messageReportPreview">رسالة</div>
+            <img class="message-report-image hidden" id="messageReportImage" alt="صورة الرسالة">
+            <a class="message-report-file hidden" id="messageReportFile" target="_blank" rel="noopener"></a>
+          </div>
+
+          <form class="message-report-form" id="messageReportForm">
+            <label>
+              <span>ما سبب الإبلاغ؟</span>
+              <select id="messageReportReason" required>
+                <option value="">اختر سببًا</option>
+                <option value="abuse">إساءة أو تنمر</option>
+                <option value="hate">خطاب كراهية</option>
+                <option value="sexual">محتوى غير مناسب</option>
+                <option value="spam">سبام أو إعلان مزعج</option>
+                <option value="threat">تهديد أو عنف</option>
+                <option value="impersonation">انتحال شخصية أو احتيال</option>
+                <option value="other">سبب آخر</option>
+              </select>
+            </label>
+
+            <label>
+              <span>تفاصيل إضافية <small>(اختياري)</small></span>
+              <textarea id="messageReportDetails" maxlength="1000" rows="3" placeholder="اكتب أي تفاصيل تساعد فريق الإدارة على فهم البلاغ..."></textarea>
+            </label>
+
+            <div class="message-report-note">
+              <span class="material-icons-round">verified_user</span>
+              <span>سيتم إرسال معلومات البلاغ إلى فريق الإدارة فقط.</span>
+            </div>
+
+            <div class="message-report-actions">
+              <button type="button" class="message-report-cancel" id="messageReportCancel">إلغاء</button>
+              <button type="submit" class="message-report-submit" id="messageReportSubmit">
+                <span class="material-icons-round">send</span>
+                إرسال البلاغ
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </main>
   </div>
