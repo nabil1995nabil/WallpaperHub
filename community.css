@@ -1261,3 +1261,191 @@ body{
     box-shadow:0 8px 22px rgba(24,39,70,.10);
   }
 }
+
+
+/* ================= Shared Community Files ================= */
+.shared-files-panel{
+  padding:24px;
+  min-height:0;
+  background:
+    radial-gradient(circle at 95% 0%,rgba(91,111,255,.055),transparent 28%),
+    #fff;
+}
+.shared-files-heading{
+  align-items:flex-start;
+  gap:18px;
+  margin-bottom:18px;
+}
+.shared-files-heading h2{
+  margin:5px 0 2px;
+  font-size:25px;
+  color:#18202d;
+}
+.shared-files-subtitle{
+  margin:0;
+  color:#7a8699;
+  font-size:11px;
+  line-height:1.8;
+}
+.shared-files-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.shared-file-item{
+  min-height:68px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:11px;
+  padding:9px 11px;
+  border:1px solid #e7eaf0;
+  border-radius:16px;
+  background:linear-gradient(180deg,#fff,#fbfcfe);
+  box-shadow:0 4px 16px rgba(34,47,78,.045);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  direction:ltr;
+}
+.shared-file-item:hover{
+  transform:translateY(-1px);
+  border-color:rgba(91,111,255,.32);
+  box-shadow:0 7px 22px rgba(54,72,126,.09);
+}
+.shared-file-icon{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  color:#5669df;
+  background:linear-gradient(145deg,#f0f3ff,#f8f9ff);
+  border:1px solid rgba(91,111,255,.16);
+}
+.shared-file-icon .material-icons-round{font-size:25px}
+.shared-file-info{
+  min-width:0;
+  direction:rtl;
+  text-align:right;
+}
+.shared-file-name{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#202938;
+  font-size:12px;
+  line-height:1.45;
+  font-weight:800;
+  text-decoration:none;
+}
+.shared-file-name:hover{color:#5367df}
+.shared-file-meta{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:5px 8px;
+  margin-top:3px;
+  color:#8a95a6;
+  font-size:8px;
+  line-height:1.4;
+}
+.shared-file-meta span{white-space:nowrap}
+.shared-file-type{color:#596bda;font-weight:800}
+.shared-file-size:before,
+.shared-file-sender:before,
+.shared-file-time:before{
+  content:"•";
+  margin-left:5px;
+  color:#c0c6d0;
+}
+.shared-file-download{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  color:#fff;
+  background:linear-gradient(135deg,#4b6dff,#7042f5);
+  box-shadow:0 5px 13px rgba(83,84,220,.16);
+  text-decoration:none;
+  transition:transform .18s ease,filter .18s ease;
+}
+.shared-file-download:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.04);
+}
+.shared-file-download .material-icons-round{font-size:20px}
+.shared-files-empty,
+.shared-files-loading{
+  min-height:250px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:#7d889a;
+  padding:30px 15px;
+}
+.shared-files-empty-icon{
+  width:64px;
+  height:64px;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  color:#7285eb;
+  background:#f2f4ff;
+  border:1px solid rgba(91,111,255,.14);
+  margin-bottom:12px;
+}
+.shared-files-empty-icon .material-icons-round{font-size:30px}
+.shared-files-empty h3{
+  margin:0 0 4px;
+  color:#202938;
+  font-size:17px;
+}
+.shared-files-empty p{
+  max-width:400px;
+  margin:0;
+  font-size:10px;
+  line-height:1.9;
+}
+.shared-files-loading{
+  flex-direction:row;
+  gap:8px;
+  min-height:150px;
+  font-size:10px;
+}
+.shared-files-loading .material-icons-round{
+  font-size:20px;
+  color:#687cf0;
+  animation:sharedFilesSpin 1s linear infinite;
+}
+@keyframes sharedFilesSpin{to{transform:rotate(360deg)}}
+
+@media(max-width:760px){
+  .shared-files-panel{padding:16px 12px 20px;border-radius:22px}
+  .shared-files-heading{align-items:stretch;margin-bottom:13px}
+  .shared-files-heading h2{font-size:20px}
+  .shared-files-subtitle{font-size:9px;max-width:290px}
+  .shared-files-heading .panel-back{flex:0 0 auto;align-self:flex-start;padding:8px 10px}
+  .shared-file-item{
+    min-height:62px;
+    grid-template-columns:40px minmax(0,1fr) 38px;
+    gap:9px;
+    padding:8px 9px;
+    border-radius:14px;
+  }
+  .shared-file-icon{width:40px;height:40px;border-radius:12px}
+  .shared-file-icon .material-icons-round{font-size:22px}
+  .shared-file-name{font-size:10px}
+  .shared-file-meta{font-size:7px;gap:4px 6px}
+  .shared-file-download{width:38px;height:38px;border-radius:11px}
+  .shared-file-download .material-icons-round{font-size:18px}
+  .shared-files-empty{min-height:280px}
+}
+@media(max-width:430px){
+  .shared-files-heading{flex-direction:column}
+  .shared-files-heading .panel-back{align-self:flex-start}
+}

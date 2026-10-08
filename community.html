@@ -327,11 +327,24 @@
         <div class="private-conversations hidden" id="privateConversations"></div>
       </section>
 
-      <section class="secondary-panel hidden" id="filesPanel">
-        <div class="empty-panel">
-          <span class="material-icons-round">folder_open</span>
-          <h2>الملفات المشتركة</h2>
-          <p>يمكنك إرسال الملفات مباشرة من زر + داخل المحادثة. الحد الأقصى للملف 10MB.</p>
+      <section class="secondary-panel hidden shared-files-panel" id="filesPanel">
+        <div class="panel-heading shared-files-heading">
+          <div>
+            <span class="eyebrow">COMMUNITY FILES</span>
+            <h2>الملفات المشتركة</h2>
+            <p class="shared-files-subtitle">جميع المرفقات التي تم إرسالها في المجتمع تظهر هنا بشكل مرتب وسهل التنزيل.</p>
+          </div>
+          <button class="panel-back" data-back-general type="button">
+            <span class="material-icons-round">arrow_back</span>
+            الغرفة العامة
+          </button>
+        </div>
+
+        <div class="shared-files-list" id="sharedFilesList" aria-live="polite">
+          <div class="shared-files-loading">
+            <span class="material-icons-round">sync</span>
+            <span>جاري تحميل الملفات...</span>
+          </div>
         </div>
       </section>
 

@@ -13,6 +13,7 @@ let privateTarget = null;
 let privateConversationId = null;
 let privateRealtimeChannel = null;
 let privateConversationsCache = [];
+let communityMessagesCache = [];
 let pendingImageData = null;
 let pendingFileData = null;
 let pendingPrivateImageData = null;
@@ -226,19 +227,24 @@ function addRealtimeMessage(message){
   const welcome = feed.querySelector('.welcome');
   if(welcome) welcome.remove();
 
+  communityMessagesCache.push(message);
   feed.appendChild(renderMessage(message));
   feed.scrollTop = feed.scrollHeight;
   updateMessageCount();
+  if(activeTab === 'files') renderSharedFiles();
 }
 
 function removeRealtimeMessage(id){
   const element = feed.querySelector(`[data-id="${CSS.escape(String(id))}"]`);
   if(element) element.remove();
+  communityMessagesCache = communityMessagesCache.filter(message => String(message?.id) !== String(id));
   updateMessageCount();
+  if(activeTab === 'files') renderSharedFiles();
 }
 
 async function loadMessages(){
   const result = await fetchJson('/api/community/messages?limit=100');
+  communityMessagesCache = Array.isArray(result.messages) ? result.messages : [];
 
   feed.innerHTML = '';
 
@@ -1022,6 +1028,134 @@ function showAllMembers(){
   renderAllMembers();
 }
 
+
+function sharedFileDataFromMessage(message){
+  if(!message || message.deleted) return null;
+
+  const fileUrl = String(message.fileUrl || '').trim();
+  const imageUrl = String(message.imageUrl || '').trim();
+
+  if(fileUrl){
+    return {
+      id:String(message.id || ''),
+      url:fileUrl,
+      name:String(message.fileName || 'ملف مشترك').trim() || 'ملف مشترك',
+      type:String(message.fileType || '').trim(),
+      size:Number(message.fileSize || 0),
+      sender:String(message.user?.name || 'عضو').trim() || 'عضو',
+      createdAt:message.createdAt || '',
+      icon:fileIcon(message.fileName,message.fileType),
+      label:fileTypeLabel(message.fileName,message.fileType)
+    };
+  }
+
+  if(imageUrl){
+    return {
+      id:String(message.id || ''),
+      url:imageUrl,
+      name:'صورة مشتركة',
+      type:'image/*',
+      size:0,
+      sender:String(message.user?.name || 'عضو').trim() || 'عضو',
+      createdAt:message.createdAt || '',
+      icon:'image',
+      label:'IMAGE'
+    };
+  }
+
+  return null;
+}
+
+function renderSharedFiles(){
+  const target = $('#sharedFilesList');
+  if(!target) return;
+
+  const files = communityMessagesCache
+    .map(sharedFileDataFromMessage)
+    .filter(Boolean)
+    .reverse();
+
+  target.innerHTML = '';
+
+  if(!files.length){
+    target.innerHTML = `
+      <div class="shared-files-empty">
+        <div class="shared-files-empty-icon">
+          <span class="material-icons-round">folder_off</span>
+        </div>
+        <h3>لا توجد ملفات مشتركة بعد</h3>
+        <p>عند إرسال صورة أو ملف من زر + داخل المجتمع سيظهر هنا تلقائيًا.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  files.forEach(file => {
+    const card = document.createElement('article');
+    card.className = 'shared-file-item';
+    card.dataset.fileId = file.id;
+
+    const icon = document.createElement('div');
+    icon.className = 'shared-file-icon';
+    icon.innerHTML = `<span class="material-icons-round">${file.icon}</span>`;
+
+    const info = document.createElement('div');
+    info.className = 'shared-file-info';
+
+    const name = document.createElement('a');
+    name.className = 'shared-file-name';
+    name.href = file.url;
+    name.target = '_blank';
+    name.rel = 'noopener noreferrer';
+    name.download = file.name;
+    name.textContent = file.name;
+    name.title = file.name;
+
+    const meta = document.createElement('div');
+    meta.className = 'shared-file-meta';
+
+    const type = document.createElement('span');
+    type.className = 'shared-file-type';
+    type.textContent = file.label;
+    meta.append(type);
+
+    if(file.size > 0){
+      const size = document.createElement('span');
+      size.className = 'shared-file-size';
+      size.textContent = formatFileSize(file.size);
+      meta.append(size);
+    }
+
+    const sender = document.createElement('span');
+    sender.className = 'shared-file-sender';
+    sender.textContent = file.sender;
+
+    const time = document.createElement('time');
+    time.className = 'shared-file-time';
+    time.textContent = timeOf(file.createdAt);
+
+    meta.append(sender,time);
+    info.append(name,meta);
+
+    const download = document.createElement('a');
+    download.className = 'shared-file-download';
+    download.href = file.url;
+    download.target = '_blank';
+    download.rel = 'noopener noreferrer';
+    download.download = file.name;
+    download.setAttribute('aria-label',`تنزيل ${file.name}`);
+    download.title = 'تنزيل الملف';
+    download.innerHTML = '<span class="material-icons-round">download</span>';
+
+    card.append(icon,info,download);
+    fragment.appendChild(card);
+  });
+
+  target.appendChild(fragment);
+}
+
 function showTab(tab){
   activeTab = tab;
 
@@ -1039,6 +1173,10 @@ function showTab(tab){
   if(tab === 'members'){
     showAllMembers();
     loadPrivateConversations();
+  }
+
+  if(tab === 'files'){
+    renderSharedFiles();
   }
 }
 
