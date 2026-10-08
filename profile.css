@@ -1943,3 +1943,205 @@ body.dark #closeEditBtn{background:#202738;}
         transition:none !important;
     }
 }
+
+
+/* =========================================================
+   Social Links — polished editor
+   تحسين حقول مواقع التواصل داخل نافذة تعديل الحساب
+   ========================================================= */
+
+.edit-social-section{
+    margin-top:14px;
+    padding:13px;
+    border:1px solid #e7eaf1;
+    border-radius:17px;
+    background:linear-gradient(180deg,#fbfcff,#f7f8fc);
+}
+
+.edit-social-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:11px;
+}
+
+.edit-social-head > div{
+    min-width:0;
+}
+
+.edit-social-kicker{
+    display:block;
+    margin-bottom:2px;
+    color:#9aa1af;
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.16em;
+    line-height:1;
+}
+
+.edit-social-head strong{
+    display:block;
+    color:#202638;
+    font-size:13px;
+    font-weight:900;
+}
+
+.edit-social-head > .material-icons{
+    width:32px;
+    height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 32px;
+    border-radius:10px;
+    background:#eef1ff;
+    color:#5364ee;
+    font-size:18px;
+}
+
+.edit-social-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+}
+
+.edit-social-field{
+    position:relative;
+    display:flex;
+    align-items:center;
+    min-width:0;
+    height:43px;
+    padding:0 9px 0 10px;
+    border:1px solid #e0e4ec;
+    border-radius:13px;
+    background:#fff;
+    box-shadow:0 3px 10px rgba(35,45,80,.035);
+    transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+
+.edit-social-field:focus-within{
+    border-color:#5364ee;
+    box-shadow:0 0 0 3px rgba(83,100,238,.08);
+}
+
+.edit-social-icon{
+    width:30px;
+    height:30px;
+    flex:0 0 30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-inline-end:8px;
+    border-radius:9px;
+    color:#fff;
+}
+
+.edit-social-icon .material-icons{
+    font-size:17px;
+}
+
+.edit-social-icon.telegram{background:#229ed9;}
+.edit-social-icon.facebook{background:#1877f2;}
+.edit-social-icon.youtube{background:#ff0033;}
+.edit-social-icon.tiktok{background:#171717;}
+
+.edit-social-field input{
+    width:100%;
+    min-width:0;
+    height:100%;
+    padding:0;
+    border:0;
+    outline:0;
+    background:transparent;
+    color:#202638;
+    font-size:12px;
+    direction:ltr;
+    text-align:left;
+}
+
+.edit-social-field input::placeholder{
+    color:#9ba2af;
+    opacity:1;
+}
+
+.edit-social-field input:focus{
+    border:0;
+    box-shadow:none;
+    background:transparent;
+}
+
+/* تحسين نافذة التعديل على الهاتف */
+@media(max-width:700px){
+    .edit-social-section{
+        margin-top:12px;
+        padding:11px;
+        border-radius:15px;
+    }
+
+    .edit-social-head{
+        margin-bottom:9px;
+    }
+
+    .edit-social-head strong{
+        font-size:12px;
+    }
+
+    .edit-social-head > .material-icons{
+        width:29px;
+        height:29px;
+        flex-basis:29px;
+        font-size:16px;
+        border-radius:9px;
+    }
+
+    .edit-social-field{
+        height:40px;
+        padding:0 8px;
+        border-radius:11px;
+    }
+
+    .edit-social-icon{
+        width:28px;
+        height:28px;
+        flex-basis:28px;
+        margin-inline-end:7px;
+        border-radius:8px;
+    }
+
+    .edit-social-icon .material-icons{
+        font-size:16px;
+    }
+
+    .edit-social-field input{
+        font-size:11px;
+    }
+}
+
+/* الوضع الداكن */
+body.dark .edit-social-section{
+    border-color:#2a3142;
+    background:linear-gradient(180deg,#171d2a,#131824);
+}
+
+body.dark .edit-social-head strong{
+    color:#fff;
+}
+
+body.dark .edit-social-head > .material-icons{
+    background:#20283a;
+    color:#9eabff;
+}
+
+body.dark .edit-social-field{
+    border-color:#2a3142;
+    background:#0d111a;
+}
+
+body.dark .edit-social-field input{
+    color:#fff;
+}
+
+body.dark .edit-social-field input::placeholder{
+    color:#7f899d;
+}
