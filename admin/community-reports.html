@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>بلاغات المجتمع | WallpaperHub Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="community-reports.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <header class="topbar">
+      <div class="identity">
+        <div class="identity-icon"><span class="material-icons-round">flag</span></div>
+        <div>
+          <span class="eyebrow">COMMUNITY MODERATION</span>
+          <h1>بلاغات المجتمع</h1>
+          <p>مراجعة البلاغات الواردة على رسائل المجتمع واتخاذ الإجراء المناسب.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost-btn" id="backAdmin" type="button">
+          <span class="material-icons-round">arrow_forward</span>
+          لوحة الإدارة
+        </button>
+        <button class="primary-btn" id="refreshReports" type="button">
+          <span class="material-icons-round">refresh</span>
+          تحديث
+        </button>
+      </div>
+    </header>
+
+    <section class="stats-grid">
+      <article class="stat-card"><div class="stat-icon blue"><span class="material-icons-round">flag</span></div><div><b id="statTotal">0</b><small>إجمالي البلاغات</small></div></article>
+      <article class="stat-card"><div class="stat-icon amber"><span class="material-icons-round">pending_actions</span></div><div><b id="statPending">0</b><small>قيد الانتظار</small></div></article>
+      <article class="stat-card"><div class="stat-icon violet"><span class="material-icons-round">manage_search</span></div><div><b id="statReviewing">0</b><small>قيد المراجعة</small></div></article>
+      <article class="stat-card"><div class="stat-icon green"><span class="material-icons-round">task_alt</span></div><div><b id="statResolved">0</b><small>تمت معالجتها</small></div></article>
+      <article class="stat-card danger-stat"><div class="stat-icon red"><span class="material-icons-round">priority_high</span></div><div><b id="statHigh">0</b><small>بلاغات عالية الأولوية</small></div></article>
+    </section>
+
+    <section class="toolbar">
+      <label class="search">
+        <span class="material-icons-round">search</span>
+        <input id="searchInput" type="search" placeholder="ابحث باسم المبلّغ أو البريد أو محتوى الرسالة..." autocomplete="off">
+      </label>
+      <div class="filters" id="statusFilters">
+        <button class="filter active" data-status="all">الكل</button>
+        <button class="filter" data-status="pending">قيد الانتظار</button>
+        <button class="filter" data-status="reviewing">قيد المراجعة</button>
+        <button class="filter" data-status="resolved">تمت المعالجة</button>
+        <button class="filter" data-status="dismissed">مرفوض</button>
+      </div>
+      <select id="priorityFilter" class="priority-filter">
+        <option value="all">كل الأولويات</option>
+        <option value="high">عالية</option>
+        <option value="normal">عادية</option>
+        <option value="urgent">عاجلة</option>
+      </select>
+    </section>
+
+    <main class="reports-card">
+      <div class="reports-head">
+        <div>
+          <span class="eyebrow">REPORT QUEUE</span>
+          <h2>البلاغات الواردة</h2>
+        </div>
+        <span class="live-status"><i></i><span id="loadState">جاري الاتصال...</span></span>
+      </div>
+      <div id="reportsList" class="reports-list">
+        <div class="empty-state"><span class="material-icons-round">sync</span><b>جاري تحميل البلاغات...</b></div>
+      </div>
+    </main>
+  </div>
+
+  <section class="report-drawer hidden" id="reportDrawer" aria-hidden="true">
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="drawer-head">
+        <div>
+          <span class="eyebrow">REPORT DETAILS</span>
+          <h2 id="drawerTitle">تفاصيل البلاغ</h2>
+        </div>
+        <button class="close-btn" id="closeDrawer" type="button"><span class="material-icons-round">close</span></button>
+      </div>
+
+      <div class="drawer-scroll">
+        <section class="detail-section reporter-section">
+          <div class="section-title"><span class="material-icons-round">person</span><b>صاحب البلاغ</b></div>
+          <div class="person-card">
+            <div class="person-avatar" id="reporterAvatar">ع</div>
+            <div class="person-info">
+              <b id="reporterName">—</b>
+              <span id="reporterUsername">—</span>
+              <a id="reporterEmail" href="#">—</a>
+            </div>
+          </div>
+          <div class="meta-grid">
+            <div><small>وقت البلاغ</small><b id="reportCreatedAt">—</b></div>
+            <div><small>عدد البلاغات على الرسالة</small><b id="duplicateCount">1</b></div>
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <div class="section-title"><span class="material-icons-round">flag</span><b>سبب البلاغ</b></div>
+          <div class="reason-row"><span class="reason-badge" id="detailReason">—</span><span class="priority-badge" id="detailPriority">—</span></div>
+          <p class="details-text" id="detailDetails">لا توجد تفاصيل إضافية.</p>
+        </section>
+
+        <section class="detail-section">
+          <div class="section-title"><span class="material-icons-round">chat</span><b>الرسالة المبلّغ عنها</b></div>
+          <div class="reported-message">
+            <div class="person-card compact">
+              <div class="person-avatar small" id="targetAvatar">ع</div>
+              <div class="person-info">
+                <b id="targetName">—</b>
+                <span id="targetEmail">—</span>
+              </div>
+            </div>
+            <div class="reported-time" id="messageCreatedAt">—</div>
+            <div class="reported-text" id="messageText">—</div>
+            <img id="messageImage" class="reported-image hidden" alt="صورة الرسالة">
+            <a id="messageFile" class="reported-file hidden" target="_blank" rel="noopener"></a>
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <div class="section-title"><span class="material-icons-round">tune</span><b>إجراء الإدارة</b></div>
+          <div class="control-grid">
+            <label><span>الحالة</span><select id="statusSelect">
+              <option value="pending">قيد الانتظار</option>
+              <option value="reviewing">قيد المراجعة</option>
+              <option value="resolved">تمت المعالجة</option>
+              <option value="dismissed">مرفوض</option>
+            </select></label>
+            <label><span>الأولوية</span><select id="prioritySelect">
+              <option value="normal">عادية</option>
+              <option value="high">عالية</option>
+              <option value="urgent">عاجلة</option>
+            </select></label>
+          </div>
+          <label class="notes-label"><span>ملاحظات الأدمن</span><textarea id="adminNotes" rows="4" maxlength="3000" placeholder="اكتب ملاحظات المراجعة أو سبب القرار..."></textarea></label>
+          <div class="drawer-actions">
+            <button class="save-btn" id="saveReport" type="button"><span class="material-icons-round">save</span> حفظ القرار</button>
+            <button class="danger-btn" id="deleteReportedMessage" type="button"><span class="material-icons-round">delete_outline</span> حذف الرسالة</button>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </section>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="community-reports.js"></script>
+</body>
+</html>
