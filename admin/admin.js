@@ -2128,6 +2128,16 @@ function openUserManagement(){
 window.openUserManagement = openUserManagement;
 
 // ==========================================
+// فتح صفحة الإبلاغات
+// ==========================================
+
+function openCommunityReports(){
+    location.href = "community-reports.html";
+}
+
+window.openCommunityReports = openCommunityReports;
+
+// ==========================================
 // فتح صفحة نشر الإعلانات
 // ==========================================
 

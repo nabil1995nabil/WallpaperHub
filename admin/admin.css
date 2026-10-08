@@ -1430,3 +1430,16 @@ font-size:12px;
 @media(max-width:900px){
   .admin-account-card{margin:8px 12px 0}
 }
+
+
+/* ===========================
+   Community Reports Menu
+   =========================== */
+.menu .community-reports-menu{
+    background:linear-gradient(135deg,#ef4444,#f97316);
+    color:#fff;
+}
+
+.menu .community-reports-menu:hover{
+    background:linear-gradient(135deg,#dc2626,#ea580c);
+}
