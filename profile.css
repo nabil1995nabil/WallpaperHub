@@ -301,7 +301,6 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     z-index:50;
     width:166px;
     height:166px;
-   background: transparent;
     overflow:visible;
 }
 
@@ -310,9 +309,9 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     height:166px;
     display:block;
     object-fit:cover;
-    border:6px solid #fff;
+    border:0;
     border-radius:50%;
-    background:#fff;
+    background:transparent;
     box-shadow:0 8px 25px rgba(35,45,80,.22);
 }
 
@@ -1523,7 +1522,6 @@ body.dark #closeEditBtn{background:#202738;}
     .profile-avatar{
         width:104px;
         height:104px;
-        border-width:4px;
         box-shadow:0 6px 18px rgba(35,45,80,.18);
     }
 
