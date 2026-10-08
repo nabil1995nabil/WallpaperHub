@@ -1346,6 +1346,193 @@ app.get("/api/supabase/config", (req, res) => {
 
 
 // ======================================
+// COMMUNITY DOWNLOAD DELIVERY
+// Forces real downloads instead of opening Supabase Storage URLs.
+// The existing Community UI is preserved.
+// ======================================
+
+function sanitizeDownloadName(value, fallback = "download"){
+    const clean = String(value || "")
+        .replace(/[\r\n"]/g, "_")
+        .replace(/[\\/:*?<>|]+/g, "_")
+        .trim();
+    return clean || fallback;
+}
+
+function encodeContentDispositionFilename(filename){
+    const safe = sanitizeDownloadName(filename, "download");
+    const ascii = safe.replace(/[^\x20-\x7E]/g, "_") || "download";
+    return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(safe)}`;
+}
+
+app.get("/api/community/messages/:id/download", async (req,res)=>{
+    try{
+        const id = String(req.params.id || "").trim();
+
+        if(!id){
+            return res.status(400).json({
+                success:false,
+                message:"معرّف الملف غير صالح"
+            });
+        }
+
+        const {data:row,error} = await supabase
+            .from("community_messages")
+            .select("id,image_url,image_path,file_url,file_path,file_name,file_type,file_size,deleted_at")
+            .eq("id",id)
+            .maybeSingle();
+
+        if(error) throw error;
+
+        if(!row || row.deleted_at){
+            return res.status(404).json({
+                success:false,
+                message:"الملف غير موجود"
+            });
+        }
+
+        const isFile = Boolean(String(row.file_url || row.file_path || "").trim());
+        const sourceUrl = String(
+            isFile ? row.file_url : row.image_url
+        ).trim();
+
+        if(!sourceUrl){
+            return res.status(404).json({
+                success:false,
+                message:"رابط الملف غير موجود"
+            });
+        }
+
+        const upstream = await fetch(sourceUrl);
+
+        if(!upstream.ok){
+            return res.status(502).json({
+                success:false,
+                message:"تعذر جلب الملف من التخزين"
+            });
+        }
+
+        const contentType = String(
+            row.file_type ||
+            upstream.headers.get("content-type") ||
+            "application/octet-stream"
+        ).split(";")[0].trim();
+
+        let filename = String(row.file_name || "").trim();
+
+        if(!filename){
+            const pathValue = String(row.image_path || "").trim();
+            const extMatch = pathValue.match(/\.([a-z0-9]{1,10})$/i);
+
+            const ext = extMatch ? extMatch[1] : (
+                contentType === "image/png" ? "png" :
+                contentType === "image/gif" ? "gif" :
+                contentType === "image/webp" ? "webp" :
+                "jpg"
+            );
+
+            filename = `صورة-مشتركة.${ext}`;
+        }
+
+        res.set("Content-Type", contentType);
+        res.set("Content-Disposition", encodeContentDispositionFilename(filename));
+        res.set("Cache-Control", "private, no-store, max-age=0");
+        res.set("X-Content-Type-Options", "nosniff");
+
+        const contentLength = upstream.headers.get("content-length");
+        if(contentLength) res.set("Content-Length", contentLength);
+
+        const body = await upstream.buffer();
+        return res.send(body);
+
+    }catch(error){
+        console.log(
+            "COMMUNITY FILE DOWNLOAD ERROR:",
+            error?.message || error
+        );
+
+        return res.status(500).json({
+            success:false,
+            message:"تعذر تنزيل الملف"
+        });
+    }
+});
+
+// Serve community.js with the download behavior wired into the existing UI.
+// No visual/design changes are made to the Community page.
+app.get("/community.js", async (req,res,next)=>{
+    try{
+        const localCandidates = [
+            path.join(STATIC_ROOT, "community.js"),
+            path.join(STATIC_DIR, "community.js")
+        ];
+
+        let source = "";
+
+        for(const candidate of localCandidates){
+            try{
+                if(fs.existsSync(candidate) && fs.statSync(candidate).isFile()){
+                    source = fs.readFileSync(candidate, "utf8");
+                    break;
+                }
+            }catch(_error){}
+        }
+
+        if(!source){
+            const remote = await fetch(GITHUB_STATIC_BASE + "community.js");
+
+            if(!remote.ok) return next();
+
+            source = await remote.text();
+        }
+
+        const nameAnchor = [
+            "    name.href = file.url;",
+            "    name.target = '_blank';",
+            "    name.rel = 'noopener noreferrer';",
+            "    name.download = file.name;"
+        ].join("\n");
+
+        const nameAnchorFixed = [
+            "    name.href = `/api/community/messages/${encodeURIComponent(file.id)}/download`;",
+            "    name.target = '_self';",
+            "    name.rel = 'noopener noreferrer';",
+            "    name.download = file.name;"
+        ].join("\n");
+
+        const downloadAnchor = [
+            "    download.href = file.url;",
+            "    download.target = '_blank';",
+            "    download.rel = 'noopener noreferrer';",
+            "    download.download = file.name;"
+        ].join("\n");
+
+        const downloadAnchorFixed = [
+            "    download.href = `/api/community/messages/${encodeURIComponent(file.id)}/download`;",
+            "    download.target = '_self';",
+            "    download.rel = 'noopener noreferrer';",
+            "    download.download = file.name;"
+        ].join("\n");
+
+        source = source.replace(nameAnchor, nameAnchorFixed);
+        source = source.replace(downloadAnchor, downloadAnchorFixed);
+
+        res.set("Content-Type", "application/javascript; charset=utf-8");
+        res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+
+        return res.send(source);
+
+    }catch(error){
+        console.log(
+            "COMMUNITY JS DOWNLOAD PATCH ERROR:",
+            error?.message || error
+        );
+        return next();
+    }
+});
+
+
+// ======================================
 // Static Files
 // ======================================
 
