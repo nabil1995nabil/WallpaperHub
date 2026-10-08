@@ -1,4 +1,4 @@
-import { supabase } from "/js/supabase.js";
+import { supabase } from "../supabase.js";
 
 let reports = [];
 let activeStatus = "all";
