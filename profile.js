@@ -247,6 +247,144 @@ function normalizeActionList(value){
     )];
 }
 
+
+/* ===================================================
+   Social Links — public profile icons
+   روابط التواصل تُحفظ كروابط، وتُعرض كأيقونات SVG فقط.
+=================================================== */
+
+const SOCIAL_LINK_KEYS = ["telegram","facebook","youtube","tiktok"];
+
+function normalizeSocialLinks(value){
+    const source = value && typeof value === "object" ? value : {};
+    const clean = {};
+    SOCIAL_LINK_KEYS.forEach(key => {
+        clean[key] = String(source[key] || "").trim();
+    });
+    return clean;
+}
+
+function getLocalSocialLinks(){
+    try{
+        return normalizeSocialLinks(
+            JSON.parse(localStorage.getItem("profileSocialLinks") || "{}")
+        );
+    }catch{
+        return normalizeSocialLinks({});
+    }
+}
+
+function setLocalSocialLinks(value){
+    const clean = normalizeSocialLinks(value);
+    localStorage.setItem("profileSocialLinks", JSON.stringify(clean));
+    return clean;
+}
+
+function socialHasAny(value){
+    return SOCIAL_LINK_KEYS.some(key => Boolean(String(value?.[key] || "").trim()));
+}
+
+function normalizeSocialUrl(value){
+    const raw = String(value || "").trim();
+    if(!raw) return "";
+
+    try{
+        const url = new URL(
+            /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+        );
+
+        if(url.protocol !== "http:" && url.protocol !== "https:"){
+            return "";
+        }
+
+        return url.href;
+    }catch{
+        return "";
+    }
+}
+
+function renderProfileSocialLinks(value){
+    const card = document.getElementById("profileSocialCard");
+    const container = document.getElementById("profileSocialLinks");
+    if(!card || !container) return;
+
+    const links = normalizeSocialLinks(value);
+    container.replaceChildren();
+
+    const icons = {
+        telegram: {
+            label:"Telegram",
+            path:"M21.5 4.2 18.1 20c-.25 1.12-.91 1.4-1.85.87l-5.1-3.76-2.46 2.37c-.27.27-.5.13-.59-.35l-.92-4.75-4.2-1.5c-1.13-.33-1.14-1.1.24-1.63L19.6 2.74c.98-.36 1.84.24 1.9 1.46Z",
+            className:"telegram"
+        },
+        facebook: {
+            label:"Facebook",
+            path:"M13.5 21v-8h2.7l.4-3h-3.1V8.08c0-.87.24-1.46 1.5-1.46h1.7V3.94c-.3-.04-1.33-.14-2.53-.14-2.5 0-4.2 1.53-4.2 4.35V10H7.2v3h2.77v8h3.53Z",
+            className:"facebook"
+        },
+        youtube: {
+            label:"YouTube",
+            path:"M23.5 6.2a3 3 0 0 0-2.12-2.12C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.58A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.12 2.12C4.5 20.5 12 20.5 12 20.5s7.5 0 9.38-.58a3 3 0 0 0 2.12-2.12A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.5v-7l6 3.5-6 3.5Z",
+            className:"youtube"
+        },
+        tiktok: {
+            label:"TikTok",
+            path:"M16.3 3h3.05c.25 1.55 1.13 2.9 2.65 3.65v3.05a8.7 8.7 0 0 1-2.64-.8v6.2A5.9 5.9 0 1 1 13.46 9v3.16a2.75 2.75 0 1 0 2.84 2.94V3Z",
+            className:"tiktok"
+        }
+    };
+
+    SOCIAL_LINK_KEYS.forEach(key => {
+        const href = normalizeSocialUrl(links[key]);
+        if(!href) return;
+
+        const meta = icons[key];
+        const link = document.createElement("a");
+
+        link.className = `profile-social-link ${meta.className}`;
+        link.href = href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.setAttribute("aria-label", meta.label);
+        link.title = meta.label;
+
+        link.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="${meta.path}"></path>
+            </svg>
+        `;
+
+        container.appendChild(link);
+    });
+
+    const hasLinks = container.children.length > 0;
+    card.hidden = !hasLinks;
+}
+
+function readEditSocialLinks(){
+    return normalizeSocialLinks({
+        telegram: document.getElementById("editSocialTelegram")?.value || "",
+        facebook: document.getElementById("editSocialFacebook")?.value || "",
+        youtube: document.getElementById("editSocialYoutube")?.value || "",
+        tiktok: document.getElementById("editSocialTiktok")?.value || ""
+    });
+}
+
+function fillEditSocialLinks(value){
+    const links = normalizeSocialLinks(value);
+    const map = {
+        telegram:"editSocialTelegram",
+        facebook:"editSocialFacebook",
+        youtube:"editSocialYoutube",
+        tiktok:"editSocialTiktok"
+    };
+
+    Object.entries(map).forEach(([key,id]) => {
+        const el = document.getElementById(id);
+        if(el) el.value = links[key] || "";
+    });
+}
+
 function getLocalSyncData(){
     const read = key => {
         try { return JSON.parse(localStorage.getItem(key) || "[]"); }
@@ -262,7 +400,8 @@ function getLocalSyncData(){
         join_date: localStorage.getItem("joinDate") || "",
         favorite_ids: normalizeActionList(read("favorites")),
         download_ids: normalizeActionList(read("downloads")),
-        view_ids: normalizeActionList(read("views"))
+        view_ids: normalizeActionList(read("views")),
+        social_links: getLocalSocialLinks()
     };
 }
 
@@ -281,6 +420,11 @@ function applyCloudUserData(data){
     setIfPresent("userCover", data.cover_url);
     setIfPresent("profileBio", data.bio);
     setIfPresent("joinDate", data.join_date);
+
+    if(data.social_links){
+        setLocalSocialLinks(data.social_links);
+        renderProfileSocialLinks(data.social_links);
+    }
 
     [
         ["favorites", data.favorite_ids],
@@ -303,6 +447,10 @@ function mergeSyncData(cloud, local){
         }
     });
 
+    merged.social_links = normalizeSocialLinks(
+        cloud?.social_links || local?.social_links || {}
+    );
+
     ["favorite_ids","download_ids","view_ids"].forEach(key => {
         merged[key] = normalizeActionList([
             ...(Array.isArray(cloud?.[key]) ? cloud[key] : []),
@@ -319,7 +467,7 @@ async function loadCloudUserData(user, options = {}){
     try{
         const { data: cloud, error } = await supabase
             .from(USER_SYNC_TABLE)
-            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids,social_links")
             .eq("user_id", user.id)
             .maybeSingle();
 
@@ -365,7 +513,8 @@ async function saveCloudUserData(user, data = getLocalSyncData()){
         join_date: data.join_date || "",
         favorite_ids: normalizeActionList(data.favorite_ids),
         download_ids: normalizeActionList(data.download_ids),
-        view_ids: normalizeActionList(data.view_ids)
+        view_ids: normalizeActionList(data.view_ids),
+        social_links: normalizeSocialLinks(data.social_links)
     };
 
     try{
@@ -401,7 +550,7 @@ async function syncCloudAction(type, id){
     try{
         const { data: cloud } = await supabase
             .from(USER_SYNC_TABLE)
-            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids")
+            .select("user_id,full_name,username,avatar_url,cover_url,bio,join_date,favorite_ids,download_ids,view_ids,social_links")
             .eq("user_id", currentUser.id)
             .maybeSingle();
 
@@ -596,6 +745,8 @@ async function loadPublicProfile(uid){
                 userAvatar.src = "assets/images/user.png";
             };
         }
+
+        renderProfileSocialLinks(profile.social_links || {});
 
         if(uidText) uidText.textContent = "••••••••••••••";
         userUID = targetUID;
@@ -2265,6 +2416,8 @@ if(editAvatarPreview && userAvatar){
     editAvatarPreview.src = userAvatar.src || "assets/images/user.png";
 }
 
+fillEditSocialLinks(getLocalSocialLinks());
+
 if(editCoverPreview && coverImage){
     editCoverPreview.src =
         coverImage.src ||
@@ -2361,11 +2514,16 @@ localStorage.setItem(
     bio
 );
 
+const socialLinks = readEditSocialLinks();
+setLocalSocialLinks(socialLinks);
+renderProfileSocialLinks(socialLinks);
+
 if(currentUser){
     const cloudData = getLocalSyncData();
 
     cloudData.full_name = name;
     cloudData.bio = bio;
+    cloudData.social_links = socialLinks;
 
     const existingUsername = String(
         localStorage.getItem("username") || ""

@@ -2145,3 +2145,163 @@ body.dark .edit-social-field input{
 body.dark .edit-social-field input::placeholder{
     color:#7f899d;
 }
+
+
+/* =========================================================
+   Public Social Links — compact horizontal SVG icons
+   ========================================================= */
+
+.profile-social-card{
+    width:calc(100% - 42px);
+    margin:0 auto 14px;
+    padding:13px 15px;
+    border:1px solid #e6e9f0;
+    border-radius:19px;
+    background:#fff;
+    box-shadow:0 5px 16px rgba(35,45,80,.04);
+}
+
+.profile-social-card[hidden]{
+    display:none !important;
+}
+
+.profile-social-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.profile-social-head > div{
+    min-width:0;
+}
+
+.profile-social-kicker{
+    display:block;
+    margin-bottom:2px;
+    color:#a0a7b5;
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.16em;
+    line-height:1;
+}
+
+.profile-social-head h3{
+    margin:0;
+    color:#252b3b;
+    font-size:14px;
+    font-weight:900;
+}
+
+.profile-social-caption{
+    color:#9aa1af;
+    font-size:9px;
+    font-weight:700;
+}
+
+.profile-social-links{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    direction:ltr;
+    min-height:34px;
+}
+
+.profile-social-link{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    text-decoration:none;
+    background:#f4f6fa;
+    border:1px solid #e4e8ef;
+    box-shadow:0 3px 9px rgba(35,45,80,.05);
+    transition:transform .16s ease,box-shadow .16s ease;
+}
+
+.profile-social-link:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(35,45,80,.10);
+}
+
+.profile-social-link:active{
+    transform:translateY(0);
+}
+
+.profile-social-link svg{
+    width:18px;
+    height:18px;
+    display:block;
+    fill:currentColor;
+}
+
+.profile-social-link.telegram{color:#229ed9;}
+.profile-social-link.facebook{color:#1877f2;}
+.profile-social-link.youtube{color:#e62117;}
+.profile-social-link.tiktok{color:#111827;}
+
+body.dark .profile-social-card{
+    border-color:#252c3c;
+    background:#141925;
+}
+
+body.dark .profile-social-head h3{
+    color:#fff;
+}
+
+body.dark .profile-social-caption,
+body.dark .profile-social-kicker{
+    color:#8f99ad;
+}
+
+body.dark .profile-social-link{
+    background:#1b2130;
+    border-color:#2a3142;
+}
+
+@media(max-width:700px){
+    .profile-social-card{
+        width:calc(100% - 20px);
+        margin:0 auto 10px;
+        padding:10px 11px;
+        border-radius:14px;
+    }
+
+    .profile-social-head{
+        margin-bottom:8px;
+    }
+
+    .profile-social-kicker{
+        font-size:6px;
+    }
+
+    .profile-social-head h3{
+        font-size:12px;
+    }
+
+    .profile-social-caption{
+        font-size:8px;
+    }
+
+    .profile-social-links{
+        gap:7px;
+        min-height:32px;
+    }
+
+    .profile-social-link{
+        width:32px;
+        height:32px;
+        flex-basis:32px;
+        border-radius:9px;
+    }
+
+    .profile-social-link svg{
+        width:17px;
+        height:17px;
+    }
+}
