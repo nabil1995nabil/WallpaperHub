@@ -814,3 +814,450 @@ body.private-chat-open{overflow:hidden}
     padding-top:14px;
   }
 }
+
+
+/* =========================================================
+   WallpaperHub Community — UI Polish / Voice Room v2
+   الهدف: وضوح النص، بطاقة صوت بيضاء، وعدم تغطية عناصر الغرفة.
+   ========================================================= */
+
+/* ---------- General typography & surfaces ---------- */
+body{
+  background:#f6f8fc;
+  color:#18202d;
+}
+
+.main{
+  color:#18202d;
+}
+
+.search-box input,
+.composer-field input{
+  color:#18202d !important;
+}
+
+.search-box input::placeholder,
+.composer-field input::placeholder{
+  color:#8a95a7 !important;
+}
+
+.chat-card,
+.side-card,
+.secondary-panel,
+.room-tab{
+  box-shadow:0 4px 18px rgba(27,42,76,.045);
+}
+
+.room-tab{
+  transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.room-tab:hover{
+  box-shadow:0 7px 20px rgba(52,73,122,.08);
+}
+
+.chat-head{
+  background:#fff;
+}
+
+.chat-title b,
+.side-card-head h3,
+.panel-heading h2{
+  color:#18202d;
+  font-weight:800;
+}
+
+.chat-title small{
+  color:#78859a;
+}
+
+.chat-tools .small-icon:hover,
+.member-item:hover,
+.topics-list button:hover{
+  background:#f0f3f8;
+  color:#5364d8;
+}
+
+.feed{
+  background:#fff;
+}
+
+.welcome h2{
+  color:#1c2636 !important;
+  font-weight:800;
+}
+
+.welcome p{
+  color:#7b879a !important;
+}
+
+.welcome-icon{
+  background:#eef2ff;
+  color:#5364d8;
+  border:1px solid #e0e5ff;
+}
+
+.message-meta b{
+  color:#303b4d;
+  font-weight:800;
+}
+
+.message-meta time{
+  color:#8b96a7;
+}
+
+.message-bubble{
+  color:#273142;
+  background:#f2f5f9;
+  border-color:#e5e9f0;
+}
+
+.composer{
+  background:#fff;
+  box-shadow:0 5px 18px rgba(29,45,79,.06);
+}
+
+.composer-field{
+  background:#f5f7fa;
+  border:1px solid #edf0f4;
+}
+
+.attach{
+  background:#eef2f7;
+  color:#637188;
+}
+
+.attach:hover{
+  background:#e5eaf3;
+  color:#4f63d8;
+}
+
+.send{
+  box-shadow:0 5px 14px rgba(76,85,238,.16);
+}
+
+.member-item{
+  color:#243044;
+}
+
+.member-info b{
+  color:#273245;
+  font-weight:800;
+}
+
+.member-info small{
+  color:#8590a2;
+}
+
+.topics-list span{
+  color:#344054;
+  font-weight:700;
+}
+
+.topics-list small{
+  color:#8a95a7;
+}
+
+/* ---------- Voice hero: clean white card ---------- */
+.community-hero-switch.is-voice{
+  background:#fff !important;
+  border-color:#e1e6ef;
+  box-shadow:0 8px 28px rgba(32,48,82,.07);
+}
+
+.community-hero-switch.is-voice .voice-mode{
+  background:
+    radial-gradient(circle at 50% 58%,rgba(83,100,238,.075),transparent 24%),
+    radial-gradient(circle at 8% 95%,rgba(78,111,255,.055),transparent 32%),
+    radial-gradient(circle at 92% 85%,rgba(125,73,235,.055),transparent 30%),
+    #fff !important;
+  color:#18202d !important;
+  border-radius:inherit;
+}
+
+.community-hero-switch.is-voice .voice-mode:before{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.88),rgba(247,249,253,.22)),
+    radial-gradient(circle at 50% 56%,transparent 0 23%,rgba(83,100,238,.045) 45%,transparent 70%);
+}
+
+.community-hero-switch.is-voice .voice-copy{
+  inset:0;
+  padding:18px 18px 0;
+  color:#18202d;
+}
+
+.community-hero-switch.is-voice .voice-heading{
+  margin-top:9px;
+}
+
+.community-hero-switch.is-voice .voice-heading .eyebrow{
+  color:#8a94a8;
+  font-weight:700;
+}
+
+.community-hero-switch.is-voice .voice-heading h1{
+  color:#18202d;
+  text-shadow:none;
+  font-size:34px;
+  letter-spacing:-.4px;
+}
+
+.community-hero-switch.is-voice .voice-heading h1 em{
+  background:linear-gradient(90deg,#26334b,#5a65e9);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.community-hero-switch.is-voice .voice-heading p{
+  color:#7a8699;
+}
+
+.community-hero-switch.is-voice .voice-stats{
+  margin-top:10px;
+}
+
+.community-hero-switch.is-voice .voice-stats span{
+  background:#f7f8fb;
+  border:1px solid #e5e9f0;
+  color:#69768a;
+  box-shadow:0 3px 12px rgba(34,51,85,.045);
+  backdrop-filter:none;
+}
+
+.community-hero-switch.is-voice .voice-stats b{
+  color:#263246;
+}
+
+.community-hero-switch.is-voice .voice-background-rings span{
+  border-color:rgba(83,100,238,.13);
+}
+
+.community-hero-switch.is-voice .voice-background-rings span:nth-child(2){
+  border-color:rgba(115,79,230,.13);
+}
+
+.community-hero-switch.is-voice .voice-background-rings span:nth-child(3){
+  border-color:rgba(73,111,255,.15);
+}
+
+.community-hero-switch.is-voice .voice-background-rings span:nth-child(4){
+  border-color:rgba(100,91,255,.18);
+}
+
+.community-hero-switch.is-voice .voice-mic{
+  background:linear-gradient(145deg,#eef1ff,#dfe5ff);
+  border:5px solid #d3dcff;
+  color:#5364d8;
+  box-shadow:0 12px 30px rgba(73,92,210,.14);
+}
+
+.community-hero-switch.is-voice .voice-person{
+  background:linear-gradient(145deg,#6878ff,#8650dd);
+  box-shadow:0 7px 18px rgba(61,79,180,.13);
+}
+
+.community-hero-switch.is-voice .voice-person .avatar-placeholder{
+  background:linear-gradient(145deg,#edf1ff,#dfe5ff);
+  color:#5364d8;
+  border:2px solid #fff;
+}
+
+.community-hero-switch.is-voice .voice-empty-avatar{
+  background:#f2f5fa;
+  color:#8190a6;
+  border:1px solid #e0e5ed;
+}
+
+.community-hero-switch.is-voice .voice-online-dot{
+  border-color:#fff;
+}
+
+.community-hero-switch.is-voice .voice-person-exit{
+  background:#fff;
+  color:#68758a;
+  border-color:#e0e5ec;
+  box-shadow:0 3px 9px rgba(30,45,76,.12);
+}
+
+.community-hero-switch.is-voice .voice-room-label{
+  bottom:62px;
+  background:#f7f8fb;
+  border:1px solid #e2e7ef;
+  color:#6d7a8e;
+  box-shadow:0 4px 12px rgba(32,48,82,.055);
+  backdrop-filter:none;
+}
+
+.community-hero-switch.is-voice .voice-room-label .material-icons-round{
+  color:#6577e8;
+}
+
+/* Actions are anchored at the bottom, never across the mic/participants. */
+.community-hero-switch.is-voice .voice-actions{
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:14px;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  gap:9px;
+  z-index:30;
+}
+
+.community-hero-switch.is-voice .voice-actions .hero-cta{
+  margin:0;
+  min-height:42px;
+  padding:9px 16px;
+  border-radius:13px;
+  font-size:10px;
+  box-shadow:0 6px 15px rgba(67,83,190,.10);
+}
+
+.community-hero-switch.is-voice .voice-actions .hero-cta:first-child{
+  background:linear-gradient(100deg,#536dff,#7045e8);
+}
+
+.community-hero-switch.is-voice .voice-actions .hero-cta-secondary{
+  background:#fff;
+  border:1px solid #dfe4ec;
+  color:#46536a;
+  box-shadow:0 5px 13px rgba(35,50,80,.06);
+  backdrop-filter:none;
+}
+
+.community-hero-switch.is-voice .voice-actions .hero-cta-secondary:hover{
+  background:#f6f8fb;
+}
+
+@media(max-width:760px){
+  .community-hero-switch.is-voice,
+  .community-hero-switch.is-voice .voice-mode{
+    height:285px;
+    min-height:285px;
+  }
+
+  .community-hero-switch.is-voice .voice-copy{
+    padding:14px 10px 0;
+  }
+
+  .community-hero-switch.is-voice .voice-live{
+    padding:6px 10px;
+    font-size:8px;
+  }
+
+  .community-hero-switch.is-voice .voice-heading h1{
+    font-size:27px;
+  }
+
+  .community-hero-switch.is-voice .voice-heading p{
+    font-size:9px;
+  }
+
+  .community-hero-switch.is-voice .voice-stats{
+    margin-top:8px;
+  }
+
+  .community-hero-switch.is-voice .voice-background-rings{
+    top:57%;
+  }
+
+  .community-hero-switch.is-voice .voice-mic{
+    top:57%;
+  }
+
+  .community-hero-switch.is-voice .person-1,
+  .community-hero-switch.is-voice .person-2{
+    top:18%;
+  }
+
+  .community-hero-switch.is-voice .person-3,
+  .community-hero-switch.is-voice .person-4{
+    top:57%;
+  }
+
+  .community-hero-switch.is-voice .person-5{
+    top:70%;
+  }
+
+  .community-hero-switch.is-voice .person-6{
+    top:10%;
+  }
+
+  .community-hero-switch.is-voice .voice-room-label{
+    bottom:57px;
+    font-size:7px;
+  }
+
+  .community-hero-switch.is-voice .voice-actions{
+    left:9px;
+    right:9px;
+    bottom:9px;
+    gap:6px;
+  }
+
+  .community-hero-switch.is-voice .voice-actions .hero-cta{
+    min-height:39px;
+    padding:8px 8px;
+    font-size:8px;
+    border-radius:11px;
+    white-space:nowrap;
+  }
+}
+
+@media(max-width:430px){
+  .community-hero-switch.is-voice .voice-heading h1{
+    font-size:24px;
+  }
+
+  .community-hero-switch.is-voice .voice-heading p{
+    font-size:8px;
+  }
+
+  .community-hero-switch.is-voice .voice-stats span{
+    font-size:7px;
+    padding:5px 7px;
+  }
+
+  .community-hero-switch.is-voice .voice-room-label{
+    bottom:54px;
+  }
+
+  .community-hero-switch.is-voice .voice-actions{
+    bottom:8px;
+  }
+
+  .community-hero-switch.is-voice .voice-actions .hero-cta{
+    min-height:38px;
+    font-size:7.5px;
+  }
+}
+
+/* ---------- Better mobile chat composition ---------- */
+@media(max-width:760px){
+  .chat-card{
+    border-radius:20px;
+  }
+
+  .chat-head{
+    min-height:64px;
+  }
+
+  .chat-title b{
+    font-size:12px;
+  }
+
+  .chat-title small{
+    font-size:8px;
+  }
+
+  .feed{
+    background:#fff;
+  }
+
+  .composer{
+    box-shadow:0 8px 22px rgba(24,39,70,.10);
+  }
+}
