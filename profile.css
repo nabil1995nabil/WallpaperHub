@@ -301,6 +301,7 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     z-index:50;
     width:166px;
     height:166px;
+   background: transparent;
     overflow:visible;
 }
 
