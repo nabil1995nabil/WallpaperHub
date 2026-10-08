@@ -657,7 +657,7 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     grid-template-columns:repeat(4,minmax(0,1fr));
     gap:11px;
     border-radius:24px;
-    background:#eef3fb;
+    background:transparent;
 }
 
 .stat-card{
@@ -1688,6 +1688,7 @@ body.dark #closeEditBtn{background:#202738;}
         padding:8px;
         gap:5px;
         border-radius:17px;
+        background:transparent;
     }
 
     .stat-card{
