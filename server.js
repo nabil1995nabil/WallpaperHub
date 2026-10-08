@@ -2453,7 +2453,7 @@ app.get(
             try{
                 const { data: syncData, error: syncError } = await supabase
                     .from("user_profile_sync")
-                    .select("cover_url,bio,join_date,is_verified,verified_at,verified_by")
+                    .select("cover_url,bio,join_date,social_links,is_verified,verified_at,verified_by")
                     .eq("user_id", targetUID)
                     .maybeSingle();
 
@@ -2478,6 +2478,7 @@ app.get(
                         cover_url:syncProfile?.cover_url || "",
                         bio:syncProfile?.bio || "",
                         join_date:syncProfile?.join_date || "",
+                        social_links:syncProfile?.social_links || {},
                         is_verified:Boolean(syncProfile?.is_verified),
                         verified_at:syncProfile?.verified_at || null,
                         verified_by:syncProfile?.verified_by || null

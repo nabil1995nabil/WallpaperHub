@@ -502,7 +502,7 @@ async function loadPublicProfile(uid){
             try{
                 const { data, error } = await supabase
                     .from("user_profile_sync")
-                    .select("user_id, full_name, username, avatar_url, is_verified, verified_at, verified_by")
+                    .select("user_id, full_name, username, avatar_url, social_links, is_verified, verified_at, verified_by")
                     .eq("user_id", targetUID)
                     .maybeSingle();
 
@@ -512,6 +512,7 @@ async function loadPublicProfile(uid){
                         full_name: data.full_name || "",
                         username: data.username || "",
                         avatar_url: data.avatar_url || "",
+                        social_links: data.social_links || {},
                         is_verified: data.is_verified,
                         verified_at: data.verified_at || null,
                         verified_by: data.verified_by || null

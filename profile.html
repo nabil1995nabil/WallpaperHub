@@ -377,6 +377,18 @@ alt="Avatar">
         </section>
     </div>
 
+        <!-- Social Links -->
+        <section id="profileSocialCard" class="profile-social-card" aria-label="مواقع التواصل الاجتماعي" hidden>
+            <div class="profile-social-head">
+                <div>
+                    <span class="profile-social-kicker">SOCIAL</span>
+                    <h3>مواقع التواصل</h3>
+                </div>
+                <span class="material-icons">public</span>
+            </div>
+            <div id="profileSocialLinks" class="profile-social-links"></div>
+        </section>
+
     <div class="profile-panel" data-profile-panel="wallpapers">
         <div class="profile-content">
             <div id="ownWallpapers" class="profile-grid"></div>
@@ -488,6 +500,35 @@ alt="Avatar">
                 </small>
             </div>
         </div>
+
+        <section class="edit-social-section" aria-label="مواقع التواصل الاجتماعي">
+            <div class="edit-social-head">
+                <div>
+                    <span class="edit-social-kicker">SOCIAL</span>
+                    <strong>مواقع التواصل</strong>
+                </div>
+                <span class="material-icons">public</span>
+            </div>
+
+            <div class="edit-social-grid">
+                <label class="edit-social-field">
+                    <span class="edit-social-icon telegram"><span class="material-icons">send</span></span>
+                    <input id="editSocialTelegram" type="url" inputmode="url" placeholder="رابط Telegram" autocomplete="url">
+                </label>
+                <label class="edit-social-field">
+                    <span class="edit-social-icon facebook"><span class="material-icons">facebook</span></span>
+                    <input id="editSocialFacebook" type="url" inputmode="url" placeholder="رابط Facebook" autocomplete="url">
+                </label>
+                <label class="edit-social-field">
+                    <span class="edit-social-icon youtube"><span class="material-icons">smart_display</span></span>
+                    <input id="editSocialYoutube" type="url" inputmode="url" placeholder="رابط YouTube" autocomplete="url">
+                </label>
+                <label class="edit-social-field">
+                    <span class="edit-social-icon tiktok"><span class="material-icons">music_note</span></span>
+                    <input id="editSocialTiktok" type="url" inputmode="url" placeholder="رابط TikTok" autocomplete="url">
+                </label>
+            </div>
+        </section>
 
         <div class="edit-buttons">
             <button id="closeEditSecondaryBtn" class="edit-cancel-btn" type="button">
