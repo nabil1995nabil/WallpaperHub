@@ -7909,10 +7909,16 @@ app.post("/api/community/messages/:id/reactions",async(req,res)=>{
   else{
     const {error}=await supabase.from("community_message_reactions").upsert({message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()},{onConflict:"message_id,user_id"});
     if(error)throw error;
-    await createCommunityEventNotification({
-      recipientUID:message.user_id,fromUser:user.id,type:"community_message_reaction",messageId:id,
-      message:`${user.user_metadata?.full_name || user.user_metadata?.name || "عضو"} تفاعل مع رسالتك بـ ${emoji}.`
-    });
+    // حفظ التفاعل هو العملية الأساسية؛ فشل إنشاء الإشعار لا يجب أن يجعل الواجهة
+    // تعرض "تعذر حفظ التفاعل" بعد أن يكون التفاعل قد حُفظ بالفعل.
+    try{
+      await createCommunityEventNotification({
+        recipientUID:message.user_id,fromUser:user.id,type:"community_message_reaction",messageId:id,
+        message:`${user.user_metadata?.full_name || user.user_metadata?.name || "عضو"} تفاعل مع رسالتك بـ ${emoji}.`
+      });
+    }catch(notificationError){
+      console.log("COMMUNITY REACTION NOTIFICATION ERROR:",notificationError?.message || notificationError);
+    }
   }
   return res.json({success:true,reactions:await getCommunityMessageReactions(id,user.id)});
  }catch(error){console.log("COMMUNITY REACTION SAVE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ التفاعل"})}
