@@ -142,6 +142,51 @@
             </select></label>
           </div>
           <label class="notes-label"><span>ملاحظات الأدمن</span><textarea id="adminNotes" rows="4" maxlength="3000" placeholder="اكتب ملاحظات المراجعة أو سبب القرار..."></textarea></label>
+          <section class="moderation-action-box">
+            <div class="section-title"><span class="material-icons-round">gavel</span><b>إجراءات المجتمع على صاحب الرسالة</b></div>
+            <p class="moderation-help">يمكنك تطبيق تقييد مستقل على المجتمع أو الكتابة أو المحادثة الصوتية. التقييد مؤقت أو دائم حسب الإجراء.</p>
+            <label class="notes-label">
+              <span>سبب الإجراء <small>(اختياري)</small></span>
+              <textarea id="moderationReason" rows="2" maxlength="1000" placeholder="مثال: تكرار الإساءة في المجتمع..."></textarea>
+            </label>
+            <div class="moderation-grid">
+              <div class="moderation-card">
+                <div class="moderation-card-head"><span class="material-icons-round">block</span><b>استبعاد من المجتمع</b></div>
+                <small>يمنع القراءة والكتابة ودخول الغرفة الصوتية.</small>
+                <div class="moderation-inline">
+                  <select id="communityBanDuration">
+                    <option value="24h">24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="permanent">دائم</option>
+                  </select>
+                  <button type="button" class="moderation-btn danger" id="applyCommunityBan">استبعاد</button>
+                  <button type="button" class="moderation-btn ghost" id="clearCommunityBan">إلغاء</button>
+                </div>
+              </div>
+              <div class="moderation-card">
+                <div class="moderation-card-head"><span class="material-icons-round">edit_off</span><b>تجميد الكتابة</b></div>
+                <small>يستطيع مشاهدة المجتمع لكن لا يستطيع إرسال رسائل.</small>
+                <div class="moderation-inline">
+                  <select id="chatFreezeDuration">
+                    <option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h">24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="permanent">دائم</option>
+                  </select>
+                  <button type="button" class="moderation-btn warn" id="applyChatFreeze">تجميد</button>
+                  <button type="button" class="moderation-btn ghost" id="clearChatFreeze">إلغاء</button>
+                </div>
+              </div>
+              <div class="moderation-card">
+                <div class="moderation-card-head"><span class="material-icons-round">mic_off</span><b>تجميد الصوت</b></div>
+                <small>يمنع الدخول إلى المحادثة الصوتية فقط.</small>
+                <div class="moderation-inline">
+                  <select id="voiceFreezeDuration">
+                    <option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h">24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="permanent">دائم</option>
+                  </select>
+                  <button type="button" class="moderation-btn warn" id="applyVoiceFreeze">تجميد</button>
+                  <button type="button" class="moderation-btn ghost" id="clearVoiceFreeze">إلغاء</button>
+                </div>
+              </div>
+            </div>
+            <div class="moderation-current" id="moderationCurrentState">جاري تحميل حالة قيود المجتمع...</div>
+          </section>
+
           <div class="drawer-actions">
             <button class="save-btn" id="saveReport" type="button"><span class="material-icons-round">save</span> حفظ القرار</button>
             <button class="danger-btn" id="deleteReportedMessage" type="button"><span class="material-icons-round">delete_outline</span> حذف الرسالة</button>

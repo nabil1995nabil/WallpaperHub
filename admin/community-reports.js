@@ -207,6 +207,8 @@ function openDrawer(report){
   $("#statusSelect").value=report.status;
   $("#prioritySelect").value=report.priority;
   $("#adminNotes").value=report.adminNotes||"";
+  $("#moderationReason").value="";
+  loadModerationState(report.targetUserId);
 }
 
 function closeDrawer(){
@@ -250,6 +252,56 @@ async function deleteReportedMessage(){
   }catch(error){showToast(error.message||"تعذر حذف الرسالة")}
   finally{button.disabled=false}
 }
+
+async function applyCommunityModeration(action, duration="24h"){
+  if(!selectedReport?.targetUserId)return;
+  const reason=String($("#moderationReason")?.value||"").trim();
+  try{
+    const result=await api(`/api/admin/community-moderation/${encodeURIComponent(selectedReport.targetUserId)}`,{
+      method:"PATCH",body:JSON.stringify({action,duration,reason})
+    });
+    showToast(result?.message || "تم تطبيق إجراء المجتمع");
+    renderModerationState(result?.moderation);
+    await loadReports();
+  }catch(error){showToast(error.message||"تعذر تطبيق الإجراء");}
+}
+function formatModerationUntil(value){
+  if(!value)return "دائم";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return "—";
+  return d.toLocaleString("ar-MA",{dateStyle:"medium",timeStyle:"short"});
+}
+function renderModerationState(state){
+  const el=$("#moderationCurrentState");
+  if(!el)return;
+  if(!state){el.textContent="لا توجد بيانات حالية.";return;}
+  const items=[];
+  if(state.communityBanned) items.push(state.communityBanPermanent?"🚫 استبعاد المجتمع: دائم":`🚫 استبعاد المجتمع حتى ${formatModerationUntil(state.communityBanUntil)}`);
+  if(state.chatFrozen) items.push(state.communityChatFreezePermanent
+    ? "✍️ تجميد الكتابة: دائم"
+    : `✍️ تجميد الكتابة حتى ${formatModerationUntil(state.communityChatFreezeUntil)}`);
+  if(state.voiceFrozen) items.push(state.communityVoiceFreezePermanent
+    ? "🎙️ تجميد الصوت: دائم"
+    : `🎙️ تجميد الصوت حتى ${formatModerationUntil(state.communityVoiceFreezeUntil)}`);
+  el.textContent=items.length?items.join(" · "):"لا توجد قيود مجتمع نشطة على هذا المستخدم.";
+}
+async function loadModerationState(userId){
+  const el=$("#moderationCurrentState");
+  if(el)el.textContent="جاري تحميل حالة قيود المجتمع...";
+  try{
+    const data=await api(`/api/community/admin-moderation/${encodeURIComponent(userId)}`);
+    renderModerationState(data.moderation);
+  }catch(error){
+    if(el)el.textContent="تعذر تحميل الحالة الحالية، يمكنك تطبيق إجراء جديد.";
+  }
+}
+
+$("#applyCommunityBan").addEventListener("click",()=>applyCommunityModeration("community_ban",$("#communityBanDuration").value));
+$("#clearCommunityBan").addEventListener("click",()=>applyCommunityModeration("clear_community_ban"));
+$("#applyChatFreeze").addEventListener("click",()=>applyCommunityModeration("chat_freeze",$("#chatFreezeDuration").value));
+$("#clearChatFreeze").addEventListener("click",()=>applyCommunityModeration("clear_chat_freeze"));
+$("#applyVoiceFreeze").addEventListener("click",()=>applyCommunityModeration("voice_freeze",$("#voiceFreezeDuration").value));
+$("#clearVoiceFreeze").addEventListener("click",()=>applyCommunityModeration("clear_voice_freeze"));
 
 $("#reportsList").addEventListener("click",event=>{
   const button=event.target.closest("[data-report-id]");
