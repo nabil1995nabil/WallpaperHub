@@ -312,3 +312,17 @@ function(e){
 
 
 }
+
+// Add badge elements after sidebar.html is injected.
+function ensureSectionBadgeNodes(){
+  document.querySelectorAll('.drawer-menu a[data-badge-section]').forEach(link=>{
+    if(!link.querySelector('.section-unread-dot')){
+      const dot=document.createElement('span');
+      dot.className='section-unread-dot';
+      dot.setAttribute('aria-hidden','true');
+      link.appendChild(dot);
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded',ensureSectionBadgeNodes);
+new MutationObserver(ensureSectionBadgeNodes).observe(document.documentElement,{childList:true,subtree:true});
