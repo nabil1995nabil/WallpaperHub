@@ -605,7 +605,7 @@ async function refreshMessageReactions(messageId){
 function setupMessageReactionUI(message,stack,meta){
   const trigger=document.createElement('button'); trigger.type='button'; trigger.className='message-reaction-trigger';
   trigger.setAttribute('aria-label','تفاعل مع الرسالة');
-  trigger.innerHTML='<span class="material-icons-round">add_reaction</span><span>تفاعل</span>';
+  trigger.innerHTML='<span class="material-icons-round" aria-hidden="true">add_reaction</span>';
   const picker=document.createElement('div'); picker.className='message-reaction-picker hidden'; picker.setAttribute('role','group'); picker.setAttribute('aria-label','اختر تفاعلًا');
   REACTION_EMOJIS.forEach(emoji=>{
     const button=document.createElement('button'); button.type='button'; button.textContent=emoji; button.setAttribute('aria-label','تفاعل '+emoji);
