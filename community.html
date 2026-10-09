@@ -260,6 +260,7 @@
   </div>
 </div>
 
+<div class="mention-suggestions hidden" id="mentionSuggestions" role="listbox" aria-label="اقتراحات الأعضاء"></div>
 <form class="composer" id="composer">
             <button type="button" class="attach" id="attachButton" title="إرفاق ملف أو صورة" aria-label="إرفاق ملف أو صورة">
               <span class="material-icons-round">add</span>
@@ -443,6 +444,16 @@
           </div>
 
           <div class="message-action-list">
+            <button class="message-action-button edit-action hidden" id="messageActionEdit" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">edit</span></span>
+              <span>تعديل الرسالة</span>
+            </button>
+
+            <button class="message-action-button pin-action" id="messageActionPin" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">push_pin</span></span>
+              <span id="messageActionPinLabel">تثبيت الرسالة</span>
+            </button>
+
             <button class="message-action-button reply-action" id="messageActionReply" type="button">
               <span class="message-action-icon"><span class="material-icons-round">reply</span></span>
               <span>رد على الرسالة</span>
@@ -526,6 +537,23 @@
                 <span class="material-icons-round">send</span>
                 إرسال البلاغ
               </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="message-edit-modal hidden" id="messageEditModal" aria-hidden="true">
+        <div class="message-edit-panel" role="dialog" aria-modal="true" aria-labelledby="messageEditTitle">
+          <div class="message-edit-head">
+            <span class="material-icons-round">edit_note</span>
+            <div><b id="messageEditTitle">تعديل الرسالة</b><small>يمكنك تعديل نص رسالتك خلال 15 دقيقة من إرسالها.</small></div>
+            <button type="button" id="messageEditClose" aria-label="إغلاق">×</button>
+          </div>
+          <form id="messageEditForm">
+            <textarea id="messageEditInput" maxlength="2000" rows="4" required placeholder="اكتب النص الجديد..."></textarea>
+            <div class="message-edit-actions">
+              <button type="button" id="messageEditCancel">إلغاء</button>
+              <button type="submit" id="messageEditSave">حفظ التعديل</button>
             </div>
           </form>
         </div>
