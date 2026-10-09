@@ -52,6 +52,8 @@ let voiceAudioContext = null;
 let voiceAudioMonitors = new Map();
 let voiceSlotByUser = new Map();
 let canManagePinnedMessage = false;
+let pinnedMessagePermissionLoaded = false;
+let pinnedMessageLoadPromise = null;
 let currentPinnedMessage = null;
 let pinnedMessageChannel = null;
 let reactionsChannel = null;
@@ -437,9 +439,13 @@ function openMessageActionSheet(message){
   }
   const pinButton=$('#messageActionPin');
   if(pinButton){
-    pinButton.classList.toggle('hidden',!canManagePinnedMessage||Boolean(message.deleted));
+    // لا نخفي زر التثبيت قبل اكتمال مزامنة الصلاحية؛ الضغط ينتظر نتيجة الخادم.
+    pinButton.classList.toggle('hidden',(!canManagePinnedMessage && pinnedMessagePermissionLoaded)||Boolean(message.deleted));
+    pinButton.disabled=false;
     const label=$('#messageActionPinLabel');
-    if(label) label.textContent=String(currentPinnedMessage?.id||'')===String(message.id)?'إلغاء تثبيت الرسالة للجميع':'تثبيت الرسالة للجميع';
+    if(label) label.textContent=!pinnedMessagePermissionLoaded
+      ? 'جارٍ التحقق...'
+      : (String(currentPinnedMessage?.id||'')===String(message.id)?'إلغاء تثبيت الرسالة للجميع':'تثبيت الرسالة للجميع');
   }
 
   clearTimeout(closeMessageActionSheet.timer);
@@ -625,14 +631,34 @@ function renderPinnedMessageBanner(message){
   text.textContent=`${message.user?.name||'عضو'}: ${messagePreviewText(message)}`;banner.classList.remove('hidden');
 }
 async function loadPinnedMessage(){
-  try{
-    const result=await fetchJson('/api/community/pinned-message',{headers:await authHeaders()});
-    canManagePinnedMessage=Boolean(result.canManage);renderPinnedMessageBanner(result.pinnedMessage||null);
-    $('#messageActionPin')?.classList.toggle('hidden',!canManagePinnedMessage);
-  }catch(_error){canManagePinnedMessage=false;$('#messageActionPin')?.classList.add('hidden')}
+  if(pinnedMessageLoadPromise) return pinnedMessageLoadPromise;
+  pinnedMessageLoadPromise=(async()=>{
+    try{
+      const result=await fetchJson('/api/community/pinned-message',{headers:await authHeaders()});
+      canManagePinnedMessage=Boolean(result.canManage);
+      renderPinnedMessageBanner(result.pinnedMessage||null);
+    }catch(_error){
+      canManagePinnedMessage=false;
+    }finally{
+      pinnedMessagePermissionLoaded=true;
+      const pinButton=$('#messageActionPin');
+      const target=messageActionTarget;
+      if(pinButton){
+        pinButton.disabled=false;
+        pinButton.classList.toggle('hidden',!canManagePinnedMessage||Boolean(target?.deleted));
+        const label=$('#messageActionPinLabel');
+        if(label && target) label.textContent=String(currentPinnedMessage?.id||'')===String(target.id)
+          ? 'إلغاء تثبيت الرسالة للجميع' : 'تثبيت الرسالة للجميع';
+      }
+    }
+  })();
+  try { await pinnedMessageLoadPromise; }
+  finally { pinnedMessageLoadPromise=null; }
 }
 async function togglePinnedMessage(message){
-  if(!message?.id||!canManagePinnedMessage)return;
+  if(!message?.id)return;
+  if(!pinnedMessagePermissionLoaded) await loadPinnedMessage();
+  if(!canManagePinnedMessage){showToast('لا تملك صلاحية تثبيت الرسائل، أو تعذر التحقق من الصلاحية');return;}
   const pinned=String(currentPinnedMessage?.id||'')===String(message.id);
   try{
     if(pinned){await fetchJson('/api/community/pinned-message',{method:'DELETE',headers:await authHeaders()});renderPinnedMessageBanner(null);showToast('تم إلغاء تثبيت الرسالة للجميع')}

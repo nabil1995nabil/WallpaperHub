@@ -7905,9 +7905,19 @@ app.post("/api/community/messages/:id/reactions",async(req,res)=>{
   if(messageError)throw messageError;if(!message)return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
   const {data:existing,error:existingError}=await supabase.from("community_message_reactions").select("emoji").eq("message_id",id).eq("user_id",String(user.id)).maybeSingle();
   if(existingError)throw existingError;
-  if(existing&&String(existing.emoji)===emoji){const {error}=await supabase.from("community_message_reactions").delete().eq("message_id",id).eq("user_id",String(user.id));if(error)throw error}
-  else{
-    const {error}=await supabase.from("community_message_reactions").upsert({message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()},{onConflict:"message_id,user_id"});
+  if(existing&&String(existing.emoji)===emoji){
+    const {error}=await supabase.from("community_message_reactions").delete().eq("message_id",id).eq("user_id",String(user.id));
+    if(error)throw error;
+  }else if(existing){
+    // تحديث التفاعل الموجود دون الاعتماد على قيد unique المطلوب لعملية upsert.
+    const {error}=await supabase.from("community_message_reactions")
+      .update({emoji,updated_at:new Date().toISOString()})
+      .eq("message_id",id).eq("user_id",String(user.id));
+    if(error)throw error;
+  }else{
+    const {error}=await supabase.from("community_message_reactions").insert({
+      message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()
+    });
     if(error)throw error;
     // حفظ التفاعل هو العملية الأساسية؛ فشل إنشاء الإشعار لا يجب أن يجعل الواجهة
     // تعرض "تعذر حفظ التفاعل" بعد أن يكون التفاعل قد حُفظ بالفعل.
