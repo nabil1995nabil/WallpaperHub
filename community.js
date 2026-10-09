@@ -75,6 +75,25 @@ function avatarMarkup(user, className = 'message-avatar'){
   return `<div class="${className}">${image}</div>`;
 }
 
+function updateComposerState(){
+  const loggedIn = Boolean(currentUser);
+  const canWrite = loggedIn && Boolean(communityModeration.canWrite);
+  if(input){
+    input.disabled = !canWrite;
+    input.placeholder = !loggedIn
+      ? 'سجّل الدخول للمشاركة في المجتمع'
+      : (!communityModeration.canWrite
+        ? (communityModeration.communityBanned
+          ? 'تم استبعادك من المجتمع'
+          : 'الكتابة مجمدة على حسابك مؤقتًا')
+        : 'اكتب رسالة للمجتمع...');
+  }
+  if(send){
+    send.disabled = !canWrite;
+    send.setAttribute('aria-disabled', String(!canWrite));
+  }
+}
+
 function showToast(text){
   const toast = $('#toast');
   if(!toast) return;
