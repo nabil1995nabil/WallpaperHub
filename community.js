@@ -51,6 +51,12 @@ let voiceReadyPromise = null;
 let voiceAudioContext = null;
 let voiceAudioMonitors = new Map();
 let voiceSlotByUser = new Map();
+let canManagePinnedMessage = false;
+let currentPinnedMessage = null;
+let pinnedMessageChannel = null;
+let reactionsChannel = null;
+const REACTION_EMOJIS = ['👍','❤️','😂','😮','😢','🔥'];
+
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -401,9 +407,6 @@ function openMessageActionSheet(message){
   const avatar = $('#messageActionAvatar');
   const deleteButton = $('#messageActionDelete');
   const reportButton = $('#messageActionReport');
-  const editButton = $('#messageActionEdit');
-  const pinButton = $('#messageActionPin');
-  const pinLabel = $('#messageActionPinLabel');
 
   if(!sheet || !title || !preview || !avatar) return;
 
@@ -432,15 +435,11 @@ function openMessageActionSheet(message){
   if(reportButton){
     reportButton.classList.toggle('hidden', mine || Boolean(message.deleted));
   }
-  if(editButton){
-    const withinEditWindow = message.createdAt && (Date.now() - new Date(message.createdAt).getTime() <= 15 * 60 * 1000);
-    editButton.classList.toggle('hidden', !mine || Boolean(message.deleted) || !withinEditWindow || Boolean(message.imageUrl || message.fileUrl));
-  }
+  const pinButton=$('#messageActionPin');
   if(pinButton){
-    pinButton.classList.toggle('hidden', !mine || Boolean(message.deleted));
-  }
-  if(pinLabel){
-    pinLabel.textContent = message.pinnedAt ? 'إلغاء تثبيت الرسالة' : 'تثبيت الرسالة';
+    pinButton.classList.toggle('hidden',!canManagePinnedMessage||Boolean(message.deleted));
+    const label=$('#messageActionPinLabel');
+    if(label) label.textContent=String(currentPinnedMessage?.id||'')===String(message.id)?'إلغاء تثبيت الرسالة للجميع':'تثبيت الرسالة للجميع';
   }
 
   clearTimeout(closeMessageActionSheet.timer);
@@ -547,63 +546,131 @@ function bindMessageLongPress(row, message){
   });
 }
 
-function appendMessageTextWithMentions(container, text){
-  const value = String(text || '');
-  const pattern = /(^|[\s(])@([a-zA-Z0-9_.-]{2,32})/g;
-  let last = 0;
-  let match;
-  while((match = pattern.exec(value))){
-    const fullStart = match.index;
-    const mentionStart = fullStart + match[1].length;
-    if(mentionStart > last) container.appendChild(document.createTextNode(value.slice(last,mentionStart)));
-    const mention = document.createElement('span');
-    mention.className = 'message-mention';
-    mention.textContent = '@' + match[2];
-    container.appendChild(mention);
-    last = pattern.lastIndex;
+
+function safeMessageTextWithMentions(text){
+  const fragment=document.createDocumentFragment(), value=String(text||'');
+  const pattern=/@([\p{L}\p{N}_.-]+)/gu; let last=0,match;
+  while((match=pattern.exec(value))){
+    if(match.index>last) fragment.appendChild(document.createTextNode(value.slice(last,match.index)));
+    const span=document.createElement('span'); span.className='message-mention'; span.textContent='@'+match[1]; fragment.appendChild(span);
+    last=pattern.lastIndex;
   }
-  if(last < value.length) container.appendChild(document.createTextNode(value.slice(last)));
+  if(last<value.length) fragment.appendChild(document.createTextNode(value.slice(last)));
+  return fragment;
 }
-
-const REACTION_EMOJIS = ['👍','❤️','😂','😮','😢','🔥'];
-
-function renderMessageReactions(message, row, stack){
-  const bar = document.createElement('div');
-  bar.className = 'message-reactions';
-  bar.setAttribute('aria-label','تفاعلات الرسالة');
-  const reactions = Array.isArray(message.reactions) ? message.reactions : [];
-  const counts = new Map();
-  reactions.forEach(item => {
-    const emoji = String(item.emoji || '');
-    if(!emoji) return;
-    const entry = counts.get(emoji) || {count:0, mine:false};
-    entry.count += 1;
-    if(currentUser && String(item.userId) === String(currentUser.id)) entry.mine = true;
-    counts.set(emoji,entry);
+function renderMessageReactions(message,container){
+  const reactions=Array.isArray(message?.reactions)?message.reactions:[];
+  if(!container || !reactions.length) return;
+  const summary=document.createElement('div'); summary.className='message-reaction-summary';
+  reactions.forEach(item=>{
+    const chip=document.createElement('button'); chip.type='button';
+    chip.className='message-reaction-chip'+(item.reacted?' mine':'');
+    chip.title=item.reacted?'تفاعلك — اضغط لإزالته أو تغييره':'اضغط للتفاعل بهذا الرمز';
+    const emoji=document.createElement('span'); emoji.textContent=item.emoji;
+    const count=document.createElement('span'); count.className='reaction-count'; count.textContent=String(item.count||1);
+    chip.append(emoji,count); chip.addEventListener('click',()=>submitMessageReaction(message.id,item.emoji)); summary.appendChild(chip);
   });
-
-  REACTION_EMOJIS.forEach(emoji => {
-    const existing = counts.get(emoji);
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'message-reaction' + (existing?.mine ? ' is-active' : '');
-    button.title = existing ? `${emoji} ${existing.count}` : `تفاعل ${emoji}`;
-    button.setAttribute('aria-label',button.title);
-    button.textContent = emoji;
-    if(existing?.count){
-      const count = document.createElement('span');
-      count.textContent = String(existing.count);
-      button.appendChild(count);
+  container.appendChild(summary);
+}
+function closeAllReactionPickers(except){
+  $$('.message-reaction-picker',feed).forEach(p=>{if(p!==except)p.classList.add('hidden')});
+  $$('.message-reaction-trigger',feed).forEach(b=>{if(b.parentElement?.querySelector('.message-reaction-picker')!==except)b.classList.remove('is-active')});
+}
+async function submitMessageReaction(messageId,emoji){
+  if(!currentUser){showToast('سجّل الدخول للتفاعل مع الرسائل');return}
+  try{
+    const result=await fetchJson(`/api/community/messages/${encodeURIComponent(messageId)}/reactions`,{
+      method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({emoji})
+    });
+    const message=communityMessagesCache.find(m=>String(m.id)===String(messageId));
+    if(message) message.reactions=result.reactions||[];
+    const row=feed.querySelector(`[data-id="${CSS.escape(String(messageId))}"]`);
+    if(row){
+      row.querySelector('.message-reaction-summary')?.remove();
+      renderMessageReactions(message||{reactions:result.reactions},row.querySelector('.message-stack'));
+      row.querySelector('.message-reaction-picker')?.classList.add('hidden');
+      row.querySelector('.message-reaction-trigger')?.classList.remove('is-active');
     }
-    button.addEventListener('click',() => toggleMessageReaction(message.id,emoji));
-    bar.appendChild(button);
+  }catch(error){showToast(error.message||'تعذر حفظ التفاعل')}
+}
+async function refreshMessageReactions(messageId){
+  try{
+    const result=await fetchJson(`/api/community/messages/${encodeURIComponent(messageId)}/reactions`,{headers:await authHeaders()});
+    const message=communityMessagesCache.find(m=>String(m.id)===String(messageId));
+    if(message) message.reactions=result.reactions||[];
+    const row=feed.querySelector(`[data-id="${CSS.escape(String(messageId))}"]`);
+    if(row){row.querySelector('.message-reaction-summary')?.remove();renderMessageReactions(message||{reactions:result.reactions},row.querySelector('.message-stack'))}
+  }catch(_error){}
+}
+function setupMessageReactionUI(message,stack,meta){
+  const trigger=document.createElement('button'); trigger.type='button'; trigger.className='message-reaction-trigger';
+  trigger.setAttribute('aria-label','تفاعل مع الرسالة');
+  trigger.innerHTML='<span class="material-icons-round">add_reaction</span><span>تفاعل</span>';
+  const picker=document.createElement('div'); picker.className='message-reaction-picker hidden'; picker.setAttribute('role','group'); picker.setAttribute('aria-label','اختر تفاعلًا');
+  REACTION_EMOJIS.forEach(emoji=>{
+    const button=document.createElement('button'); button.type='button'; button.textContent=emoji; button.setAttribute('aria-label','تفاعل '+emoji);
+    button.addEventListener('click',event=>{event.stopPropagation();submitMessageReaction(message.id,emoji);picker.classList.add('hidden');trigger.classList.remove('is-active')});
+    picker.appendChild(button);
   });
-
-  const total = document.createElement('span');
-  total.className = 'message-reaction-hint';
-  total.textContent = 'تفاعل';
-  bar.appendChild(total);
-  stack.appendChild(bar);
+  trigger.addEventListener('click',event=>{
+    event.stopPropagation();const open=picker.classList.contains('hidden');closeAllReactionPickers(picker);
+    picker.classList.toggle('hidden',!open);trigger.classList.toggle('is-active',open);
+  });
+  meta.appendChild(trigger);stack.appendChild(picker);renderMessageReactions(message,stack);
+}
+function renderPinnedMessageBanner(message){
+  const banner=$('#pinnedMessageBanner'), text=$('#pinnedMessageText'); if(!banner||!text)return;
+  currentPinnedMessage=message||null;
+  if(!message?.id){banner.classList.add('hidden');return}
+  text.textContent=`${message.user?.name||'عضو'}: ${messagePreviewText(message)}`;banner.classList.remove('hidden');
+}
+async function loadPinnedMessage(){
+  try{
+    const result=await fetchJson('/api/community/pinned-message',{headers:await authHeaders()});
+    canManagePinnedMessage=Boolean(result.canManage);renderPinnedMessageBanner(result.pinnedMessage||null);
+    $('#messageActionPin')?.classList.toggle('hidden',!canManagePinnedMessage);
+  }catch(_error){canManagePinnedMessage=false;$('#messageActionPin')?.classList.add('hidden')}
+}
+async function togglePinnedMessage(message){
+  if(!message?.id||!canManagePinnedMessage)return;
+  const pinned=String(currentPinnedMessage?.id||'')===String(message.id);
+  try{
+    if(pinned){await fetchJson('/api/community/pinned-message',{method:'DELETE',headers:await authHeaders()});renderPinnedMessageBanner(null);showToast('تم إلغاء تثبيت الرسالة للجميع')}
+    else{const result=await fetchJson('/api/community/pinned-message',{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({messageId:String(message.id)})});renderPinnedMessageBanner(result.pinnedMessage||message);showToast('تم تثبيت الرسالة للجميع')}
+    closeMessageActionSheet();
+  }catch(error){showToast(error.message||'تعذر تغيير الرسالة المثبتة')}
+}
+function scrollToPinnedMessage(){
+  if(!currentPinnedMessage?.id){showToast('لا توجد رسالة مثبتة حاليًا');return}
+  if(!hasMessage(currentPinnedMessage.id)){loadMessages().then(()=>scrollToMessage(currentPinnedMessage.id)).catch(()=>showToast('تعذر تحميل الرسالة المثبتة'));return}
+  scrollToMessage(currentPinnedMessage.id);
+}
+function updateMentionSuggestions(){
+  const box=$('#mentionSuggestions');if(!box)return;
+  const cursor=input.selectionStart??input.value.length, before=input.value.slice(0,cursor);
+  const match=/(?:^|\s)@([\p{L}\p{N}_.-]{0,32})$/u.exec(before);
+  if(!match||!currentUser){box.classList.add('hidden');box.innerHTML='';return}
+  const query=String(match[1]||'').toLowerCase();
+  const list=membersCache.filter(m=>String(m.id)!==String(currentUser.id)).filter(m=>{
+    return !query||String(m.username||'').toLowerCase().includes(query)||String(m.name||'').toLowerCase().includes(query)
+  }).slice(0,7);
+  box.innerHTML='';
+  if(!list.length){const empty=document.createElement('div');empty.className='mention-option-copy';empty.style.padding='10px';empty.textContent='لا يوجد أعضاء مطابقون';box.appendChild(empty);box.classList.remove('hidden');return}
+  list.forEach(member=>{
+    const option=document.createElement('button');option.type='button';option.className='mention-option';option.setAttribute('role','option');
+    const avatar=document.createElement('span');avatar.className='mention-option-avatar';
+    if(member.avatarUrl){const img=document.createElement('img');img.src=member.avatarUrl;img.alt='';avatar.appendChild(img)}else avatar.textContent=initials(member.name);
+    const copy=document.createElement('span');copy.className='mention-option-copy';const name=document.createElement('b');name.textContent=member.name||'عضو';
+    const username=document.createElement('small');username.textContent=member.username?'@'+member.username:'عضو في المجتمع';copy.append(name,username);option.append(avatar,copy);
+    option.addEventListener('mousedown',e=>e.preventDefault());
+    option.addEventListener('click',()=>{
+      const pos=input.selectionStart??input.value.length, prefix=input.value.slice(0,pos), token=/(?:^|\s)@([\p{L}\p{N}_.-]{0,32})$/u.exec(prefix);if(!token)return;
+      const start=pos-token[0].length+(token[0].startsWith(' ')?1:0), label=String(member.username||member.name||'').replace(/^@/,'').replace(/\s+/g,'_'), insertion='@'+label+' ';
+      input.value=input.value.slice(0,start)+insertion+input.value.slice(pos);input.setSelectionRange(start+insertion.length,start+insertion.length);input.focus();box.classList.add('hidden');box.innerHTML='';
+    });
+    box.appendChild(option);
+  });
+  box.classList.remove('hidden');
 }
 
 function renderMessage(message){
@@ -625,22 +692,8 @@ function renderMessage(message){
 
   const time = document.createElement('time');
   time.textContent = timeOf(message.createdAt);
-  if(message.updatedAt){
-    const edited = document.createElement('small');
-    edited.className = 'message-edited-label';
-    edited.textContent = 'معدّلة';
-    edited.title = `آخر تعديل: ${timeOf(message.updatedAt)}`;
-    meta.append(name,time,edited);
-  }else{
-    meta.append(name,time);
-  }
-  if(message.pinnedAt){
-    const pinned = document.createElement('span');
-    pinned.className = 'message-pinned-label';
-    pinned.title = 'رسالة مثبتة';
-    pinned.innerHTML = '<span class="material-icons-round">push_pin</span>';
-    meta.appendChild(pinned);
-  }
+
+  meta.append(name,time);
 
   const bubble = document.createElement('div');
   const hasImage = Boolean(message.imageUrl) && !message.deleted;
@@ -690,7 +743,7 @@ function renderMessage(message){
 
     bubble.appendChild(imageWrap);
   }else{
-    appendMessageTextWithMentions(bubble,String(message.text || ''));
+    bubble.appendChild(safeMessageTextWithMentions(String(message.text || '')));
   }
 
   if(message.replyTo){
@@ -726,7 +779,7 @@ function renderMessage(message){
   }
 
   stack.append(meta,bubble);
-  if(!message.deleted) renderMessageReactions(message,row,stack);
+  setupMessageReactionUI(message,stack,meta);
 
   row.innerHTML = avatarMarkup(user);
   row.append(stack);
@@ -821,27 +874,24 @@ function subscribeToMessages(){
     },payload => {
       removeRealtimeMessage(payload?.old?.id);
     })
-    .on('postgres_changes',{
-      event:'UPDATE',
-      schema:'public',
-      table:'community_messages'
-    },payload => {
-      const id = payload?.new?.id;
-      if(id) refreshCommunityMessage(id).catch(()=>loadMessages().catch(()=>{}));
-    })
-    .on('postgres_changes',{
-      event:'*',
-      schema:'public',
-      table:'community_message_reactions'
-    },payload => {
-      const id = payload?.new?.message_id || payload?.old?.message_id;
-      if(id) refreshCommunityMessage(id).catch(()=>{});
-    })
     .subscribe(status => {
       if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
         reconnectTimer = setTimeout(() => subscribeToMessages(),5000);
       }
     });
+}
+
+function subscribeToMessageInteractions(){
+  if(!supabaseClient)return;
+  if(pinnedMessageChannel)supabaseClient.removeChannel(pinnedMessageChannel);
+  if(reactionsChannel)supabaseClient.removeChannel(reactionsChannel);
+  pinnedMessageChannel=supabaseClient.channel('community-pinned-message-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'community_pinned_messages'},()=>loadPinnedMessage())
+    .subscribe();
+  reactionsChannel=supabaseClient.channel('community-reactions-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'community_message_reactions'},payload=>{
+      const id=payload?.new?.message_id||payload?.old?.message_id;if(id)refreshMessageReactions(String(id));
+    }).subscribe();
 }
 
 async function deleteMessage(id, element){
@@ -1042,138 +1092,6 @@ function clearPendingPrivateImage(){
   pendingPrivateImageData = null;
   pendingPrivateFileData = null;
   clearFilePreview('#privateAttachmentPreview','#privateAttachmentPreviewImage');
-}
-
-async function refreshCommunityMessage(id){
-  const result = await fetchJson(`/api/community/messages/${encodeURIComponent(id)}`,{headers:await authHeaders()});
-  const updated = result.message;
-  if(!updated) return;
-  const index = communityMessagesCache.findIndex(item => String(item.id) === String(id));
-  if(index >= 0) communityMessagesCache[index] = updated;
-  const oldRow = feed.querySelector(`[data-id="${CSS.escape(String(id))}"]`);
-  if(oldRow) oldRow.replaceWith(renderMessage(updated));
-  else addRealtimeMessage(updated);
-  if(activeTab === 'files') renderSharedFiles();
-}
-
-async function toggleMessageReaction(messageId,emoji){
-  if(!currentUser){ showToast('سجّل الدخول للتفاعل مع الرسائل'); return; }
-  try{
-    const result = await fetchJson(`/api/community/messages/${encodeURIComponent(messageId)}/reactions`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json',...(await authHeaders())},
-      body:JSON.stringify({emoji})
-    });
-    const message = communityMessagesCache.find(item => String(item.id) === String(messageId));
-    if(message) message.reactions = result.reactions || [];
-    const row = feed.querySelector(`[data-id="${CSS.escape(String(messageId))}"]`);
-    if(row && message) row.replaceWith(renderMessage(message));
-  }catch(error){ showToast(error.message || 'تعذر حفظ التفاعل'); }
-}
-
-let editingMessageTarget = null;
-function openMessageEdit(message){
-  if(!message || !currentUser || String(message.userId) !== String(currentUser.id)) return;
-  editingMessageTarget = message;
-  const modal = $('#messageEditModal');
-  $('#messageEditInput').value = String(message.text || '');
-  closeMessageActionSheet();
-  modal.classList.remove('hidden');
-  requestAnimationFrame(() => {
-    modal.classList.add('is-open');
-    modal.setAttribute('aria-hidden','false');
-    $('#messageEditInput').focus();
-  });
-}
-function closeMessageEdit(){
-  const modal = $('#messageEditModal');
-  if(!modal) return;
-  modal.classList.remove('is-open');
-  modal.setAttribute('aria-hidden','true');
-  setTimeout(() => { if(!modal.classList.contains('is-open')) modal.classList.add('hidden'); },180);
-  editingMessageTarget = null;
-}
-async function saveMessageEdit(){
-  if(!editingMessageTarget) return;
-  const content = $('#messageEditInput').value.trim();
-  if(!content){ showToast('لا يمكن حفظ رسالة فارغة'); return; }
-  const save = $('#messageEditSave');
-  save.disabled = true;
-  try{
-    await fetchJson(`/api/community/messages/${encodeURIComponent(editingMessageTarget.id)}`,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json',...(await authHeaders())},
-      body:JSON.stringify({content})
-    });
-    const id = editingMessageTarget.id;
-    closeMessageEdit();
-    await refreshCommunityMessage(id);
-    showToast('تم تعديل الرسالة');
-  }catch(error){ showToast(error.message || 'تعذر تعديل الرسالة'); }
-  finally{ save.disabled = false; }
-}
-async function toggleMessagePin(message){
-  if(!message) return;
-  closeMessageActionSheet();
-  try{
-    const result = await fetchJson(`/api/community/messages/${encodeURIComponent(message.id)}/pin`,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json',...(await authHeaders())},
-      body:JSON.stringify({pinned:!message.pinnedAt})
-    });
-    await refreshCommunityMessage(message.id);
-    showToast(result.pinned ? 'تم تثبيت الرسالة' : 'تم إلغاء تثبيت الرسالة');
-  }catch(error){ showToast(error.message || 'تعذر تغيير تثبيت الرسالة'); }
-}
-
-function hideMentionSuggestions(){
-  const box = $('#mentionSuggestions');
-  if(box) box.classList.add('hidden');
-}
-function updateMentionSuggestions(){
-  const box = $('#mentionSuggestions');
-  if(!box || !input) return;
-  const caret = input.selectionStart ?? input.value.length;
-  const before = input.value.slice(0,caret);
-  const match = before.match(/(?:^|\s)@([a-zA-Z0-9_.-]{0,32})$/);
-  if(!match){ hideMentionSuggestions(); return; }
-  const query = match[1].toLowerCase();
-  const candidates = membersCache.filter(member =>
-    String(member.username || '').trim() &&
-    String(member.id) !== String(currentUser?.id || '') &&
-    String(member.username).toLowerCase().includes(query)
-  ).slice(0,6);
-  box.innerHTML = '';
-  if(!candidates.length){ hideMentionSuggestions(); return; }
-  candidates.forEach(member => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'mention-suggestion';
-    const avatar = document.createElement('span');
-    avatar.className = 'mention-suggestion-avatar';
-    if(member.avatarUrl){
-      const image = document.createElement('img');
-      image.src = member.avatarUrl; image.alt = ''; avatar.appendChild(image);
-    }else avatar.textContent = initials(member.name);
-    const text = document.createElement('span');
-    text.className = 'mention-suggestion-copy';
-    const name = document.createElement('b'); name.textContent = member.name || member.username;
-    const username = document.createElement('small'); username.textContent = '@' + member.username;
-    text.append(name,username); button.append(avatar,text);
-    button.addEventListener('mousedown',event => event.preventDefault());
-    button.addEventListener('click',() => {
-      const cursor = input.selectionStart ?? input.value.length;
-      const left = input.value.slice(0,cursor).replace(/(?:^|\s)@[a-zA-Z0-9_.-]{0,32}$/,(whole) => whole.startsWith(' ') ? ' ' : '');
-      const right = input.value.slice(cursor);
-      input.value = left + '@' + member.username + ' ' + right;
-      const next = (left + '@' + member.username + ' ').length;
-      input.setSelectionRange(next,next);
-      hideMentionSuggestions();
-      input.focus();
-    });
-    box.appendChild(button);
-  });
-  box.classList.remove('hidden');
 }
 
 async function sendMessage(){
@@ -2651,6 +2569,13 @@ $('#memberSearch').addEventListener('input',event => {
 });
 
 
+$('#pinnedMessageBanner')?.addEventListener('click',scrollToPinnedMessage);
+$('#messageActionPin')?.addEventListener('click',()=>{const target=messageActionTarget;if(target)togglePinnedMessage(target)});
+input.addEventListener('input',updateMentionSuggestions);
+input.addEventListener('click',updateMentionSuggestions);
+input.addEventListener('keyup',event=>{if(event.key==='Escape')$('#mentionSuggestions')?.classList.add('hidden');else if(!['ArrowLeft','ArrowRight','Enter'].includes(event.key))updateMentionSuggestions()});
+document.addEventListener('click',event=>{if(!event.target.closest('.composer-field'))$('#mentionSuggestions')?.classList.add('hidden')});
+
 $('#replyComposerCancel').addEventListener('click',clearReplyTarget);
 
 $('#replyComposerJump').addEventListener('click',() => {
@@ -2666,27 +2591,6 @@ $('#messageActionCancel').addEventListener('click',closeMessageActionSheet);
 $('#messageActionReply').addEventListener('click',() => {
   if(messageActionTarget) setReplyTarget(messageActionTarget);
 });
-
-$('#messageActionEdit').addEventListener('click',() => {
-  const target = messageActionTarget;
-  if(target) openMessageEdit(target);
-});
-$('#messageActionPin').addEventListener('click',() => {
-  const target = messageActionTarget;
-  if(target) toggleMessagePin(target);
-});
-$('#messageEditClose').addEventListener('click',closeMessageEdit);
-$('#messageEditCancel').addEventListener('click',closeMessageEdit);
-$('#messageEditModal').addEventListener('click',event => {
-  if(event.target.id === 'messageEditModal') closeMessageEdit();
-});
-$('#messageEditForm').addEventListener('submit',event => {
-  event.preventDefault();
-  saveMessageEdit();
-});
-input.addEventListener('input',updateMentionSuggestions);
-input.addEventListener('keyup',updateMentionSuggestions);
-input.addEventListener('click',updateMentionSuggestions);
 
 $('#messageActionDelete').addEventListener('click',async () => {
   const target = messageActionTarget;
@@ -2832,12 +2736,14 @@ $('#profileButton').addEventListener('click',() => {
 (async function(){
   try{
     await initSupabase();
+    subscribeToMessageInteractions();
     updateProfileCard();
     updateComposerState();
     await Promise.all([
       loadMessages(),
       loadMembers(),
-      loadPrivateConversations()
+      loadPrivateConversations(),
+      loadPinnedMessage()
     ]);
   }catch(error){
     updateComposerState();
@@ -2847,12 +2753,6 @@ $('#profileButton').addEventListener('click',() => {
 
 document.addEventListener('keydown',event => {
   if(event.key !== 'Escape') return;
-
-  const editModal = $('#messageEditModal');
-  if(editModal?.classList.contains('is-open')){
-    closeMessageEdit();
-    return;
-  }
 
   const reportModal = $('#messageReportModal');
   if(reportModal?.classList.contains('is-open')){

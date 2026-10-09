@@ -327,6 +327,36 @@ function adminUserSummary(user, profile, control){
 // Express
 // ======================================
 
+
+function isSiteOwnerUser(user){
+    if(!user)return false;
+    const ownerUid=String(process.env.SITE_OWNER_UID||"").trim();
+    if(ownerUid)return String(user.id)===ownerUid;
+    const admins=String(process.env.ADMIN_UIDS||"").split(",").map(v=>v.trim()).filter(Boolean);
+    return admins.length?String(user.id)===admins[0]:false;
+}
+async function getCommunityMessageByIdForInteractions(messageId){
+    const {data:row,error}=await supabase.from("community_messages")
+      .select("id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,deleted_at")
+      .eq("id",messageId).maybeSingle();
+    if(error)throw error;if(!row)return null;
+    const profiles=await getCommunityProfiles([row.user_id]);let replyTo=null;
+    if(row.reply_to_id){
+      const {data:replyRow,error:replyError}=await supabase.from("community_messages")
+        .select("id,user_id,content,image_url,file_url,file_name,file_type,file_size,created_at,deleted_at")
+        .eq("id",row.reply_to_id).maybeSingle();
+      if(replyError)throw replyError;
+      if(replyRow){const rp=await getCommunityProfiles([replyRow.user_id]);replyTo=communityReplyPreview(replyRow,rp.get(String(replyRow.user_id)))}
+    }
+    return communityMessageResponse(row,profiles.get(String(row.user_id)),replyTo);
+}
+async function getCommunityMessageReactions(messageId,viewerId){
+    const {data,error}=await supabase.from("community_message_reactions").select("message_id,user_id,emoji").eq("message_id",messageId);
+    if(error)throw error;const grouped=new Map();
+    for(const row of data||[]){const emoji=String(row.emoji||"");if(!emoji)continue;const item=grouped.get(emoji)||{emoji,count:0,reacted:false};item.count++;if(viewerId&&String(row.user_id)===String(viewerId))item.reacted=true;grouped.set(emoji,item)}
+    return [...grouped.values()].sort((a,b)=>b.count-a.count);
+}
+
 const app = express();
 
 const PORT = process.env.PORT || 3000;
@@ -6939,10 +6969,6 @@ function communityMessageResponse(row, profile, replyTo = null) {
         fileSize: Number(row.file_size || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at || null,
-        editedAt: row.edited_at || null,
-        pinnedAt: row.pinned_at || null,
-        pinnedBy: row.pinned_by ? String(row.pinned_by) : null,
-        reactions: Array.isArray(row.reactions) ? row.reactions : [],
         deleted: Boolean(row.deleted_at),
         replyToId: row.reply_to_id ? String(row.reply_to_id) : null,
         replyTo,
@@ -6957,23 +6983,6 @@ function communityMessageResponse(row, profile, replyTo = null) {
             avatarUrl: String(profile?.avatar_url || "")
         }
     };
-}
-
-async function getCommunityReactionMap(messageIds) {
-    const ids = [...new Set((Array.isArray(messageIds) ? messageIds : []).map(v => String(v || "").trim()).filter(Boolean))];
-    if (!ids.length) return new Map();
-    const { data, error } = await supabase
-        .from("community_message_reactions")
-        .select("message_id,user_id,emoji")
-        .in("message_id", ids);
-    if (error) throw error;
-    const map = new Map();
-    (data || []).forEach(row => {
-        const id = String(row.message_id);
-        if (!map.has(id)) map.set(id, []);
-        map.get(id).push({ userId:String(row.user_id), emoji:String(row.emoji) });
-    });
-    return map;
 }
 
 async function getCommunityReplyMap(rows) {
@@ -7763,6 +7772,58 @@ app.get("/api/community/moderation/me", async(req,res)=>{
     }
 });
 
+
+// ================= Community pinned message: site owner only =================
+app.get("/api/community/pinned-message",async(req,res)=>{
+ try{
+  const viewer=await getAuthenticatedUser(req);
+  const {data:pin,error}=await supabase.from("community_pinned_messages").select("message_id,pinned_by,created_at").eq("slot",1).maybeSingle();
+  if(error)throw error;
+  const pinnedMessage=pin?.message_id?await getCommunityMessageByIdForInteractions(String(pin.message_id)):null;
+  if(pinnedMessage)pinnedMessage.reactions=await getCommunityMessageReactions(pinnedMessage.id,viewer?.id||null);
+  return res.json({success:true,pinnedMessage,canManage:isSiteOwnerUser(viewer)});
+ }catch(error){console.log("COMMUNITY PIN LOAD ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تحميل الرسالة المثبتة"})}
+});
+app.post("/api/community/pinned-message",async(req,res)=>{
+ try{
+  const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+  if(!isSiteOwnerUser(user))return res.status(403).json({success:false,message:"تثبيت الرسائل متاح لمالك الموقع فقط"});
+  const messageId=String(req.body?.messageId||"").trim(),uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if(!uuid.test(messageId))return res.status(400).json({success:false,message:"معرّف الرسالة غير صالح"});
+  const {data:exists,error:readError}=await supabase.from("community_messages").select("id").eq("id",messageId).maybeSingle();
+  if(readError)throw readError;if(!exists)return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
+  const {error}=await supabase.from("community_pinned_messages").upsert({slot:1,message_id:messageId,pinned_by:String(user.id),created_at:new Date().toISOString()},{onConflict:"slot"});
+  if(error)throw error;return res.json({success:true,pinnedMessage:await getCommunityMessageByIdForInteractions(messageId)});
+ }catch(error){console.log("COMMUNITY PIN SET ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تثبيت الرسالة"})}
+});
+app.delete("/api/community/pinned-message",async(req,res)=>{
+ try{
+  const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+  if(!isSiteOwnerUser(user))return res.status(403).json({success:false,message:"إلغاء التثبيت متاح لمالك الموقع فقط"});
+  const {error}=await supabase.from("community_pinned_messages").delete().eq("slot",1);if(error)throw error;
+  return res.json({success:true});
+ }catch(error){console.log("COMMUNITY PIN CLEAR ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر إلغاء تثبيت الرسالة"})}
+});
+app.get("/api/community/messages/:id/reactions",async(req,res)=>{
+ try{const viewer=await getAuthenticatedUser(req);return res.json({success:true,reactions:await getCommunityMessageReactions(String(req.params.id||""),viewer?.id||null)})}
+ catch(error){console.log("COMMUNITY REACTIONS LOAD ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تحميل التفاعلات"})}
+});
+app.post("/api/community/messages/:id/reactions",async(req,res)=>{
+ try{
+  const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول للتفاعل"});
+  const moderation=await getCommunityModerationForUser(user.id);if(!moderation.canRead)return res.status(403).json({success:false,message:"لا يمكنك التفاعل أثناء استبعادك من المجتمع"});
+  const id=String(req.params.id||"").trim(),emoji=String(req.body?.emoji||""),allowed=["👍","❤️","😂","😮","😢","🔥"];
+  if(!allowed.includes(emoji))return res.status(400).json({success:false,message:"التفاعل غير مدعوم"});
+  const {data:message,error:messageError}=await supabase.from("community_messages").select("id").eq("id",id).maybeSingle();
+  if(messageError)throw messageError;if(!message)return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
+  const {data:existing,error:existingError}=await supabase.from("community_message_reactions").select("emoji").eq("message_id",id).eq("user_id",String(user.id)).maybeSingle();
+  if(existingError)throw existingError;
+  if(existing&&String(existing.emoji)===emoji){const {error}=await supabase.from("community_message_reactions").delete().eq("message_id",id).eq("user_id",String(user.id));if(error)throw error}
+  else{const {error}=await supabase.from("community_message_reactions").upsert({message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()},{onConflict:"message_id,user_id"});if(error)throw error}
+  return res.json({success:true,reactions:await getCommunityMessageReactions(id,user.id)});
+ }catch(error){console.log("COMMUNITY REACTION SAVE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ التفاعل"})}
+});
+
 app.get("/api/community/messages", async (req, res) => {
     try {
         const viewer = await getAuthenticatedUser(req);
@@ -7788,7 +7849,7 @@ app.get("/api/community/messages", async (req, res) => {
         const { data, error } = await supabase
             .from("community_messages")
             .select(
-                "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,edited_at,pinned_at,pinned_by,deleted_at"
+                "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,deleted_at"
             )
             .order("created_at", { ascending: true })
             .limit(limit);
@@ -7796,7 +7857,6 @@ app.get("/api/community/messages", async (req, res) => {
         if (error) throw error;
 
         const replyMap = await getCommunityReplyMap(data || []);
-        const reactionMap = await getCommunityReactionMap((data || []).map(row => row.id));
 
         // Profile enrichment is optional. A profile/RLS problem
         // must never prevent existing messages from being shown.
@@ -7821,10 +7881,20 @@ app.get("/api/community/messages", async (req, res) => {
                     ? replyMap.get(String(row.reply_to_id)) || null
                     : null
             )
-        ).map(message => ({
-            ...message,
-            reactions: reactionMap.get(String(message.id)) || []
-        }));
+        );
+        const messageIds=(data||[]).map(row=>String(row.id));
+        let reactionRows=[];
+        if(messageIds.length){
+          const {data:rows,error:reactionError}=await supabase.from("community_message_reactions").select("message_id,user_id,emoji").in("message_id",messageIds);
+          if(reactionError)throw reactionError;reactionRows=rows||[];
+        }
+        const reactionMap=new Map();
+        for(const row of reactionRows){
+          const id=String(row.message_id),emoji=String(row.emoji||"");const list=reactionMap.get(id)||[];
+          let item=list.find(value=>value.emoji===emoji);if(!item){item={emoji,count:0,reacted:false};list.push(item)}
+          item.count++;if(viewer&&String(row.user_id)===String(viewer.id))item.reacted=true;reactionMap.set(id,list);
+        }
+        messages.forEach(message=>{message.reactions=reactionMap.get(String(message.id))||[]});
 
         return res.json({
             success: true,
@@ -7992,9 +8062,6 @@ app.post("/api/community/messages", async (req, res) => {
                 reply_to_id: replyToId,
                 created_at: createdAt,
                 updated_at: null,
-                edited_at: null,
-                pinned_at: null,
-                pinned_by: null,
                 deleted_at: null
             },
             profile,
@@ -8054,7 +8121,7 @@ app.get("/api/community/messages/:id", async (req, res) => {
         const { data, error } = await supabase
             .from("community_messages")
             .select(
-                "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,edited_at,pinned_at,pinned_by,deleted_at"
+                "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,deleted_at"
             )
             .eq("id", id)
             .maybeSingle();
@@ -8093,13 +8160,10 @@ app.get("/api/community/messages/:id", async (req, res) => {
             }
         }
 
-        const reactionMap = await getCommunityReactionMap([data.id]);
-        const message = communityMessageResponse(data, profile, replyTo);
-        message.reactions = reactionMap.get(String(data.id)) || [];
-        return res.json({
-            success: true,
-            message
-        });
+        const message=communityMessageResponse(data,profile,replyTo);
+        const viewer=await getAuthenticatedUser(req);
+        message.reactions=await getCommunityMessageReactions(data.id,viewer?.id||null);
+        return res.json({success:true,message});
     } catch (error) {
         console.log(
             "GET COMMUNITY MESSAGE ERROR:",
@@ -8217,116 +8281,6 @@ app.get("/api/community/members", async (req, res) => {
             message: "تعذر تحميل أعضاء المجتمع",
             members: []
         });
-    }
-});
-
-// Edit a community message. Only its author may edit it, within 15 minutes.
-app.patch("/api/community/messages/:id", async (req, res) => {
-    try {
-        const user = await getAuthenticatedUser(req);
-        if (!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
-        const moderation = await getCommunityModerationForUser(user.id);
-        if (!moderation.canWrite) return res.status(403).json({success:false,message:"لا يمكنك تعديل الرسائل أثناء تقييد الكتابة"});
-        const id = String(req.params.id || "").trim();
-        const content = String(req.body?.content || "").trim();
-        if (!id) return res.status(400).json({success:false,message:"معرّف الرسالة غير صالح"});
-        if (!content || content.length > 2000) return res.status(400).json({success:false,message:"اكتب نصًا صالحًا لا يتجاوز 2000 حرف"});
-        const {data:existing,error:readError} = await supabase
-            .from("community_messages")
-            .select("id,user_id,created_at,deleted_at")
-            .eq("id",id).maybeSingle();
-        if (readError) throw readError;
-        if (!existing) return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
-        if (String(existing.user_id) !== String(user.id)) return res.status(403).json({success:false,message:"يمكنك تعديل رسائلك فقط"});
-        if (existing.deleted_at) return res.status(400).json({success:false,message:"لا يمكن تعديل رسالة محذوفة"});
-        if (!existing.created_at || Date.now() - new Date(existing.created_at).getTime() > 15 * 60 * 1000)
-            return res.status(403).json({success:false,message:"انتهت مهلة تعديل الرسالة (15 دقيقة)"});
-        const {data:updated,error:updateError} = await supabase
-            .from("community_messages")
-            .update({content,updated_at:new Date().toISOString(),edited_at:new Date().toISOString()})
-            .eq("id",id)
-            .select("id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,edited_at,pinned_at,pinned_by,deleted_at")
-            .single();
-        if (updateError) throw updateError;
-        const profile = await getCommunityProfileSafe(user.id) || communityFallbackProfile(user);
-        let replyTo = null;
-        if(updated.reply_to_id){
-            const {data:replyRow,error:replyError} = await supabase.from("community_messages")
-                .select("id,user_id,content,image_url,file_url,file_name,file_type,file_size,created_at,deleted_at")
-                .eq("id",updated.reply_to_id).maybeSingle();
-            if(replyError) throw replyError;
-            if(replyRow){
-                const profiles = await getCommunityProfiles([replyRow.user_id]);
-                replyTo = communityReplyPreview(replyRow,profiles.get(String(replyRow.user_id)));
-            }
-        }
-        const reactionMap = await getCommunityReactionMap([id]);
-        const message = communityMessageResponse(updated,profile,replyTo);
-        message.reactions = reactionMap.get(String(id)) || [];
-        return res.json({success:true,message});
-    }catch(error){
-        console.log("PATCH COMMUNITY MESSAGE ERROR:",error?.message || error);
-        return res.status(500).json({success:false,message:"تعذر تعديل الرسالة"});
-    }
-});
-
-// Toggle a reaction for the authenticated user.
-app.post("/api/community/messages/:id/reactions", async (req, res) => {
-    try {
-        const user = await getAuthenticatedUser(req);
-        if (!user) return res.status(401).json({success:false,message:"سجّل الدخول للتفاعل"});
-        const id = String(req.params.id || "").trim();
-        const emoji = String(req.body?.emoji || "");
-        const allowed = ["👍","❤️","😂","😮","😢","🔥"];
-        if (!allowed.includes(emoji)) return res.status(400).json({success:false,message:"التفاعل غير مدعوم"});
-        const {data:message,error:messageError} = await supabase
-            .from("community_messages").select("id,deleted_at").eq("id",id).maybeSingle();
-        if (messageError) throw messageError;
-        if (!message || message.deleted_at) return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
-        const {data:existing,error:existingError} = await supabase
-            .from("community_message_reactions").select("message_id")
-            .eq("message_id",id).eq("user_id",user.id).eq("emoji",emoji).maybeSingle();
-        if(existingError) throw existingError;
-        if(existing){
-            const {error:deleteError} = await supabase.from("community_message_reactions")
-                .delete().eq("message_id",id).eq("user_id",user.id).eq("emoji",emoji);
-            if(deleteError) throw deleteError;
-        }else{
-            const {error:insertError} = await supabase.from("community_message_reactions")
-                .insert({message_id:id,user_id:user.id,emoji});
-            if(insertError) throw insertError;
-        }
-        const reactionMap = await getCommunityReactionMap([id]);
-        return res.json({success:true,reactions:reactionMap.get(id) || []});
-    }catch(error){
-        console.log("COMMUNITY REACTION ERROR:",error?.message || error);
-        return res.status(500).json({success:false,message:"تعذر حفظ التفاعل"});
-    }
-});
-
-// Pin/unpin a message. Authors may pin their own message; admins may pin any message.
-app.patch("/api/community/messages/:id/pin", async (req, res) => {
-    try {
-        const user = await getAuthenticatedUser(req);
-        if (!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
-        const id = String(req.params.id || "").trim();
-        const pinned = Boolean(req.body?.pinned);
-        const {data:existing,error:readError} = await supabase
-            .from("community_messages").select("id,user_id,deleted_at").eq("id",id).maybeSingle();
-        if(readError) throw readError;
-        if(!existing || existing.deleted_at) return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
-        if(String(existing.user_id) !== String(user.id) && !isAdminUser(user))
-            return res.status(403).json({success:false,message:"يمكنك تثبيت رسائلك فقط"});
-        const now = new Date().toISOString();
-        const {error:updateError} = await supabase.from("community_messages").update({
-            pinned_at:pinned ? now : null,
-            pinned_by:pinned ? user.id : null
-        }).eq("id",id);
-        if(updateError) throw updateError;
-        return res.json({success:true,pinned});
-    }catch(error){
-        console.log("COMMUNITY PIN ERROR:",error?.message || error);
-        return res.status(500).json({success:false,message:"تعذر تغيير تثبيت الرسالة"});
     }
 });
 
