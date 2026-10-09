@@ -252,7 +252,15 @@
             </button>
           </div>
 
-          <form class="composer" id="composer">
+          <div class="community-moderation-notice hidden" id="communityModerationNotice" role="status" aria-live="polite">
+  <span class="material-icons-round">lock</span>
+  <div>
+    <b id="communityModerationTitle">تم تقييد بعض صلاحيات المجتمع</b>
+    <small id="communityModerationText"></small>
+  </div>
+</div>
+
+<form class="composer" id="composer">
             <button type="button" class="attach" id="attachButton" title="إرفاق ملف أو صورة" aria-label="إرفاق ملف أو صورة">
               <span class="material-icons-round">add</span>
             </button>

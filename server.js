@@ -192,6 +192,18 @@ async function getUserAdminControl(userId){
         ban_reason:null,
         ban_until:null,
         warning_level:0,
+        community_ban_until:null,
+        community_ban_permanent:false,
+        community_ban_reason:null,
+        community_ban_by:null,
+        community_chat_freeze_until:null,
+        community_chat_freeze_permanent:false,
+        community_chat_freeze_reason:null,
+        community_chat_freeze_by:null,
+        community_voice_freeze_until:null,
+        community_voice_freeze_permanent:false,
+        community_voice_freeze_reason:null,
+        community_voice_freeze_by:null,
         created_at:null,
         updated_at:null
     };
@@ -295,7 +307,19 @@ function adminUserSummary(user, profile, control){
         ban_type:control?.ban_type || null,
         ban_reason:control?.ban_reason || null,
         ban_until:control?.ban_until || null,
-        admin_notes:control?.admin_notes || ""
+        admin_notes:control?.admin_notes || "",
+        community_ban_until:control?.community_ban_until || null,
+        community_ban_permanent:Boolean(control?.community_ban_permanent),
+        community_ban_reason:control?.community_ban_reason || null,
+        community_ban_by:control?.community_ban_by || null,
+        community_chat_freeze_until:control?.community_chat_freeze_until || null,
+        community_chat_freeze_permanent:Boolean(control?.community_chat_freeze_permanent),
+        community_chat_freeze_reason:control?.community_chat_freeze_reason || null,
+        community_chat_freeze_by:control?.community_chat_freeze_by || null,
+        community_voice_freeze_until:control?.community_voice_freeze_until || null,
+        community_voice_freeze_permanent:Boolean(control?.community_voice_freeze_permanent),
+        community_voice_freeze_reason:control?.community_voice_freeze_reason || null,
+        community_voice_freeze_by:control?.community_voice_freeze_by || null
     };
 }
 
@@ -807,6 +831,181 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
     }catch(error){
         console.log("ADMIN USER CONTROL ERROR:",error);
         return res.status(500).json({success:false,message:error?.message || "تعذر تحديث حساب المستخدم"});
+    }
+});
+
+
+// ======================================
+// Admin Community Moderation
+// ======================================
+
+app.get("/api/community/admin-moderation/:uid", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+        const uid = String(req.params.uid || "").trim();
+        if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
+        const control = await getUserAdminControl(uid);
+        return res.json({success:true,moderation:communityModerationState(control)});
+    }catch(error){
+        console.log("GET ADMIN COMMUNITY MODERATION STATE ERROR:",error);
+        return res.status(500).json({success:false,message:"تعذر تحميل حالة قيود المجتمع"});
+    }
+});
+
+app.patch("/api/admin/community-moderation/:uid", async(req,res)=>{
+    try{
+        const admin = await requireAdmin(req,res);
+        if(!admin) return;
+
+        const uid = String(req.params.uid || "").trim();
+        const action = String(req.body?.action || "").trim().toLowerCase();
+        const duration = String(req.body?.duration || "").trim().toLowerCase();
+        const reason = String(req.body?.reason || "").trim().slice(0,1000);
+
+        if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
+
+        const target = await supabase.auth.admin.getUserById(uid);
+        if(target?.error || !target?.data?.user){
+            return res.status(404).json({success:false,message:"المستخدم غير موجود"});
+        }
+
+        if(uid === String(admin.id)){
+            return res.status(400).json({success:false,message:"لا يمكن تطبيق تقييد مجتمع على حساب الأدمن الحالي"});
+        }
+
+        const validActions = new Set([
+            "community_ban","chat_freeze","voice_freeze",
+            "clear_community_ban","clear_chat_freeze","clear_voice_freeze"
+        ]);
+        if(!validActions.has(action)){
+            return res.status(400).json({success:false,message:"إجراء المجتمع غير صالح"});
+        }
+
+        const current = await getUserAdminControl(uid);
+        const payload = {
+            user_id:uid,
+            role:current.role || "user",
+            status:current.status || "active",
+            admin_notes:current.admin_notes || "",
+            ban_type:current.ban_type || null,
+            ban_reason:current.ban_reason || null,
+            ban_until:current.ban_until || null,
+            warning_level:Number(current.warning_level || 0),
+            community_ban_until:current.community_ban_until || null,
+            community_ban_permanent:Boolean(current.community_ban_permanent),
+            community_ban_reason:current.community_ban_reason || null,
+            community_ban_by:current.community_ban_by || null,
+            community_chat_freeze_until:current.community_chat_freeze_until || null,
+            community_chat_freeze_permanent:Boolean(current.community_chat_freeze_permanent),
+            community_chat_freeze_reason:current.community_chat_freeze_reason || null,
+            community_chat_freeze_by:current.community_chat_freeze_by || null,
+            community_voice_freeze_until:current.community_voice_freeze_until || null,
+            community_voice_freeze_permanent:Boolean(current.community_voice_freeze_permanent),
+            community_voice_freeze_reason:current.community_voice_freeze_reason || null,
+            community_voice_freeze_by:current.community_voice_freeze_by || null
+        };
+
+        const isClear = action.startsWith("clear_");
+        const needsDuration = !isClear;
+        let timed = null;
+        if(needsDuration){
+            timed = communityModerationDuration(duration);
+            if(!timed){
+                return res.status(400).json({success:false,message:"مدة التقييد غير صالحة"});
+            }
+        }
+
+        const now = new Date().toISOString();
+
+        if(action === "community_ban"){
+            payload.community_ban_until = timed.until;
+            payload.community_ban_permanent = Boolean(timed.permanent);
+            payload.community_ban_reason = reason || null;
+            payload.community_ban_by = String(admin.id);
+        }else if(action === "chat_freeze"){
+            payload.community_chat_freeze_until = timed.until;
+            payload.community_chat_freeze_permanent = Boolean(timed.permanent);
+            payload.community_chat_freeze_reason = reason || null;
+            payload.community_chat_freeze_by = String(admin.id);
+        }else if(action === "voice_freeze"){
+            payload.community_voice_freeze_until = timed.until;
+            payload.community_voice_freeze_permanent = Boolean(timed.permanent);
+            payload.community_voice_freeze_reason = reason || null;
+            payload.community_voice_freeze_by = String(admin.id);
+        }else if(action === "clear_community_ban"){
+            payload.community_ban_until = null;
+            payload.community_ban_permanent = false;
+            payload.community_ban_reason = null;
+            payload.community_ban_by = null;
+        }else if(action === "clear_chat_freeze"){
+            payload.community_chat_freeze_until = null;
+            payload.community_chat_freeze_permanent = false;
+            payload.community_chat_freeze_reason = null;
+            payload.community_chat_freeze_by = null;
+        }else if(action === "clear_voice_freeze"){
+            payload.community_voice_freeze_until = null;
+            payload.community_voice_freeze_permanent = false;
+            payload.community_voice_freeze_reason = null;
+            payload.community_voice_freeze_by = null;
+        }
+
+        const {data:control,error} = await supabase
+            .from("user_admin_controls")
+            .upsert(payload,{onConflict:"user_id"})
+            .select("*")
+            .single();
+
+        if(error) throw error;
+
+        const state = communityModerationState(control);
+
+        await writeAdminAuditLog({
+            adminUserId:admin.id,
+            targetUserId:uid,
+            action:`community_${action}`,
+            details:{
+                reason,
+                duration:duration || null,
+                applied_at:now,
+                moderation_state:state
+            }
+        });
+
+        let notificationCreated = false;
+        try{
+            let message = `${communityModerationActionLabel(action)} تم تطبيقه على حسابك.`;
+            if(!isClear && timed?.permanent){
+                message += " المدة: دائم.";
+            }else if(!isClear && timed?.until){
+                message += ` حتى ${new Date(timed.until).toLocaleString("ar")}.`;
+            }
+            if(reason) message += ` السبب: ${reason}`;
+
+            const notification = await createNotification({
+                recipientUID:uid,
+                fromUser:admin.id,
+                type:"community_moderation",
+                message
+            });
+            notificationCreated = Boolean(notification);
+        }catch(notificationError){
+            console.log("COMMUNITY MODERATION NOTIFICATION ERROR:",notificationError?.message || notificationError);
+        }
+
+        return res.json({
+            success:true,
+            action,
+            control,
+            moderation:state,
+            notification_created:notificationCreated
+        });
+    }catch(error){
+        console.log("ADMIN COMMUNITY MODERATION ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:error?.message || "تعذر تطبيق إجراء المجتمع"
+        });
     }
 });
 
@@ -7435,8 +7634,128 @@ app.delete("/api/community/private/messages/:id", async (req,res) => {
 });
 
 
+
+// ======================================
+// Community moderation
+// مستقل عن حظر الحساب الكامل:
+// - community ban: يمنع دخول/كتابة المجتمع والصوت.
+// - chat freeze: يمنع الكتابة فقط مع بقاء القراءة.
+// - voice freeze: يمنع دخول الغرفة الصوتية فقط.
+// ======================================
+
+function communityModerationState(control, nowMs = Date.now()){
+    const communityBanUntil = control?.community_ban_until
+        ? new Date(control.community_ban_until).getTime() : 0;
+    const chatFreezeUntil = control?.community_chat_freeze_until
+        ? new Date(control.community_chat_freeze_until).getTime() : 0;
+    const voiceFreezeUntil = control?.community_voice_freeze_until
+        ? new Date(control.community_voice_freeze_until).getTime() : 0;
+
+    const communityBanned =
+        Boolean(control?.community_ban_permanent) ||
+        (Number.isFinite(communityBanUntil) && communityBanUntil > nowMs);
+
+    const chatFrozen =
+        Boolean(control?.community_chat_freeze_permanent) ||
+        (Number.isFinite(chatFreezeUntil) && chatFreezeUntil > nowMs);
+
+    const voiceFrozen =
+        Boolean(control?.community_voice_freeze_permanent) ||
+        (Number.isFinite(voiceFreezeUntil) && voiceFreezeUntil > nowMs);
+
+    return {
+        communityBanned,
+        chatFrozen,
+        voiceFrozen,
+        canRead:!communityBanned,
+        canWrite:!communityBanned && !chatFrozen,
+        canVoice:!communityBanned && !voiceFrozen,
+        communityBanUntil:control?.community_ban_until || null,
+        communityBanPermanent:Boolean(control?.community_ban_permanent),
+        communityBanReason:control?.community_ban_reason || null,
+        communityChatFreezeUntil:control?.community_chat_freeze_until || null,
+        communityChatFreezePermanent:Boolean(control?.community_chat_freeze_permanent),
+        communityChatFreezeReason:control?.community_chat_freeze_reason || null,
+        communityVoiceFreezeUntil:control?.community_voice_freeze_until || null,
+        communityVoiceFreezePermanent:Boolean(control?.community_voice_freeze_permanent),
+        communityVoiceFreezeReason:control?.community_voice_freeze_reason || null
+    };
+}
+
+function communityModerationDuration(value){
+    const raw = String(value || "").trim().toLowerCase();
+    if(raw === "permanent") return {permanent:true,until:null};
+
+    const map = {
+        "1h":60*60*1000,
+        "6h":6*60*60*1000,
+        "24h":24*60*60*1000,
+        "3d":3*24*60*60*1000,
+        "7d":7*24*60*60*1000,
+        "30d":30*24*60*60*1000
+    };
+    if(!Object.prototype.hasOwnProperty.call(map,raw)) return null;
+
+    return {
+        permanent:false,
+        until:new Date(Date.now()+map[raw]).toISOString()
+    };
+}
+
+function communityModerationActionLabel(action){
+    return {
+        community_ban:"استبعاد من المجتمع",
+        chat_freeze:"تجميد الكتابة في المجتمع",
+        voice_freeze:"تجميد المحادثة الصوتية",
+        clear_community_ban:"إلغاء استبعاد المجتمع",
+        clear_chat_freeze:"إلغاء تجميد الكتابة",
+        clear_voice_freeze:"إلغاء تجميد الصوت"
+    }[action] || action;
+}
+
+async function getCommunityModerationForUser(userId){
+    const control = await getUserAdminControl(String(userId));
+    return communityModerationState(control);
+}
+
+app.get("/api/community/moderation/me", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user){
+            return res.status(401).json({
+                success:false,
+                message:"يجب تسجيل الدخول"
+            });
+        }
+
+        const control = await getUserAdminControl(user.id);
+        return res.json({
+            success:true,
+            moderation:communityModerationState(control)
+        });
+    }catch(error){
+        console.log("GET COMMUNITY MODERATION ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            message:"تعذر تحميل حالة قيود المجتمع"
+        });
+    }
+});
+
 app.get("/api/community/messages", async (req, res) => {
     try {
+        const viewer = await getAuthenticatedUser(req);
+        if(viewer){
+            const moderation = await getCommunityModerationForUser(viewer.id);
+            if(!moderation.canRead){
+                return res.status(403).json({
+                    success:false,
+                    code:"COMMUNITY_BANNED",
+                    message:"تم استبعادك من مجتمع WallpaperHub مؤقتًا أو بشكل دائم."
+                });
+            }
+        }
+
         const limit = Math.min(
             Math.max(
                 Number.parseInt(req.query.limit, 10) || 50,
@@ -7507,6 +7826,20 @@ app.post("/api/community/messages", async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "يجب تسجيل الدخول للمشاركة"
+            });
+        }
+
+        const moderation = await getCommunityModerationForUser(user.id);
+        if(!moderation.canWrite){
+            const code = moderation.communityBanned
+                ? "COMMUNITY_BANNED"
+                : "COMMUNITY_CHAT_FROZEN";
+            return res.status(403).json({
+                success:false,
+                code,
+                message:moderation.communityBanned
+                    ? "تم استبعادك من المجتمع ولا يمكنك إرسال رسائل."
+                    : `تم تجميد الكتابة في المجتمع${moderation.communityChatFreezeUntil ? ` حتى ${new Date(moderation.communityChatFreezeUntil).toLocaleString("ar")}` : ""}.`
             });
         }
 

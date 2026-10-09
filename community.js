@@ -18,6 +18,17 @@ let pendingImageData = null;
 let pendingFileData = null;
 let pendingPrivateImageData = null;
 let pendingPrivateFileData = null;
+let communityModeration = {
+  communityBanned:false, chatFrozen:false, voiceFrozen:false,
+  canRead:true, canWrite:true, canVoice:true,
+  communityBanUntil:null, communityBanPermanent:false, communityBanReason:null,
+  communityChatFreezeUntil:null, communityChatFreezePermanent:false, communityChatFreezeReason:null,
+  communityVoiceFreezeUntil:null, communityVoiceFreezePermanent:false, communityVoiceFreezeReason:null
+};
+let communityModerationTimer = null;
+let voiceModerationPollTimer = null;
+
+
 
 // ================= Community message actions / replies =================
 let activeReply = null;
@@ -73,13 +84,88 @@ function showToast(text){
   showToast.timer = setTimeout(() => toast.classList.remove('show'), 3200);
 }
 
-function updateComposerState(){
-  const enabled = Boolean(currentUser);
-  input.disabled = !enabled;
-  send.disabled = !enabled;
-  input.placeholder = enabled
-    ? 'اكتب رسالة للمجتمع...'
-    : 'سجّل الدخول للمشاركة في المجتمع';
+function updateCommunityModerationNotice(){
+  const notice=$('#communityModerationNotice');
+  const title=$('#communityModerationTitle');
+  const text=$('#communityModerationText');
+  if(!notice || !title || !text) return;
+  const clear=!currentUser || (
+    communityModeration.canWrite &&
+    communityModeration.canVoice &&
+    communityModeration.canRead
+  );
+  if(clear){ notice.classList.add('hidden'); return; }
+  notice.classList.remove('hidden');
+  if(communityModeration.communityBanned){
+    title.textContent='تم استبعادك من مجتمع WallpaperHub';
+    text.textContent=communityModeration.communityBanPermanent
+      ? 'تم تقييد وصولك إلى المجتمع بشكل دائم.'
+      : `ينتهي الاستبعاد في ${timeOfDate(communityModeration.communityBanUntil)}.`;
+    return;
+  }
+  const parts=[];
+  if(communityModeration.chatFrozen)
+    parts.push(`الكتابة مجمدة حتى ${timeOfDate(communityModeration.communityChatFreezeUntil)}`);
+  if(communityModeration.voiceFrozen)
+    parts.push(`الصوت مجمد حتى ${timeOfDate(communityModeration.communityVoiceFreezeUntil)}`);
+  title.textContent='يوجد تقييد مؤقت على حسابك في المجتمع';
+  text.textContent=parts.join(' · ') || 'بعض صلاحيات المجتمع موقوفة مؤقتًا.';
+}
+
+function timeOfDate(value){
+  const d=new Date(value);
+  if(!value || Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('ar-MA',{dateStyle:'medium',timeStyle:'short'});
+}
+
+function applyCommunityModerationState(state){
+  if(!state) return;
+  communityModeration={...communityModeration,...state};
+  updateComposerState();
+  updateCommunityModerationNotice();
+  const joinVoice=$('#joinVoice');
+  if(joinVoice){
+    joinVoice.disabled=Boolean(!currentUser || !communityModeration.canVoice);
+    joinVoice.title=communityModeration.canVoice ? '' : 'المحادثة الصوتية غير متاحة لحسابك حاليًا';
+  }
+}
+
+async function loadCommunityModeration({silent=false}={}){
+  if(!currentUser){
+    applyCommunityModerationState({
+      communityBanned:false,chatFrozen:false,voiceFrozen:false,
+      canRead:true,canWrite:false,canVoice:false
+    });
+    return null;
+  }
+  try{
+    const result=await fetchJson('/api/community/moderation/me',{headers:await authHeaders()});
+    applyCommunityModerationState(result.moderation);
+    return result.moderation;
+  }catch(error){
+    if(!silent) showToast(error.message||'تعذر التحقق من حالة المجتمع');
+    return null;
+  }
+}
+
+function ensureCommunityPermission(kind){
+  if(!currentUser){ showToast('سجّل الدخول أولًا'); return false; }
+  if(kind==='read' && !communityModeration.canRead){
+    showToast('تم استبعادك من المجتمع حاليًا'); return false;
+  }
+  if(kind==='write' && !communityModeration.canWrite){
+    showToast(communityModeration.communityBanned
+      ? 'تم استبعادك من المجتمع ولا يمكنك الكتابة'
+      : 'تم تجميد الكتابة في المجتمع مؤقتًا');
+    return false;
+  }
+  if(kind==='voice' && !communityModeration.canVoice){
+    showToast(communityModeration.communityBanned
+      ? 'تم استبعادك من المجتمع ولا يمكنك دخول الصوت'
+      : 'تم تجميد المحادثة الصوتية مؤقتًا');
+    return false;
+  }
+  return true;
 }
 
 async function initSupabase(){
@@ -98,9 +184,11 @@ async function initSupabase(){
     currentUser = session?.user || null;
     updateProfileCard();
     updateComposerState();
+    loadCommunityModeration({silent:true}).catch(()=>{});
     if(currentUser) loadPrivateConversations().catch(()=>{});
   });
 
+  await loadCommunityModeration({silent:true});
   subscribeToMessages();
 }
 
@@ -838,6 +926,9 @@ async function sendMessage(){
   const content = input.value.trim();
   if((!content && !pendingImageData && !pendingFileData) || !currentUser || send.disabled) return;
 
+  const moderation = await loadCommunityModeration({silent:true});
+  if(!moderation || !ensureCommunityPermission('write')) return;
+
   send.disabled = true;
 
   try{
@@ -1547,7 +1638,9 @@ function showCommunityHero(){
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','true');
 }
 
-function showVoiceHero(){
+async function showVoiceHero(){
+  const moderation=await loadCommunityModeration({silent:true});
+  if(!moderation || !ensureCommunityPermission('voice')) return;
   communityHero?.classList.add('is-voice');
   if(normalHero) normalHero.setAttribute('aria-hidden','true');
   if(voiceHeroMode) voiceHeroMode.setAttribute('aria-hidden','false');
@@ -2140,11 +2233,32 @@ async function leaveVoiceRoom(){
   voiceChannel = null;
   voiceReadyPromise = null;
   voiceJoined = false;
+  clearInterval(voiceModerationPollTimer);
+  voiceModerationPollTimer=null;
   voiceMuted = false;
   voiceSlotByUser.clear();
   setVoiceButtonState(false);
 
   if(document.body.classList.contains('voice-active')) updateVoicePresenceUI();
+}
+
+function startVoiceModerationPolling(){
+  clearInterval(voiceModerationPollTimer);
+  voiceModerationPollTimer=setInterval(async()=>{
+    if(!voiceJoined){
+      clearInterval(voiceModerationPollTimer);
+      voiceModerationPollTimer=null;
+      return;
+    }
+    const state=await loadCommunityModeration({silent:true});
+    if(state && !state.canVoice){
+      await leaveVoiceRoom();
+      showCommunityHero();
+      showToast(state.communityBanned
+        ? 'تم استبعادك من المجتمع، وتم إخراجك من الغرفة الصوتية.'
+        : 'تم تجميد المحادثة الصوتية لحسابك، وتم إخراجك من الغرفة.');
+    }
+  },15000);
 }
 
 async function joinRealVoiceRoom(){
@@ -2164,6 +2278,9 @@ async function joinRealVoiceRoom(){
     showToast('جاري تجهيز الاتصال، حاول مرة أخرى بعد لحظة');
     return;
   }
+
+  const moderation=await loadCommunityModeration({silent:true});
+  if(!moderation || !ensureCommunityPermission('voice')) return;
 
   const readyChannel = await ensureVoicePresenceChannel();
 
@@ -2209,6 +2326,7 @@ async function joinRealVoiceRoom(){
 
     voiceJoined = true;
     voiceMuted = false;
+    startVoiceModerationPolling();
     setVoiceButtonState(true);
     updateVoicePresenceUI();
     startVoiceSpeakingMonitor(me.id,voiceLocalStream).catch(()=>{});
