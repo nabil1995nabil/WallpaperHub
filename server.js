@@ -2551,6 +2551,7 @@ function notificationFromDb(row, extra = {}){
         // روابط حقيقية بالخلفية والتعليق حتى تستطيع صفحة الإشعارات
         // فتح wallpaper.html?id=... مباشرة.
         wallpaperId: row.wallpaper_id ?? extra.wallpaperId ?? "",
+        communityMessageId: row.community_message_id ?? extra.communityMessageId ?? "",
         wallpaperTitle: row.wallpaper_title ?? extra.wallpaperTitle ?? "",
         commentId: row.comment_id ?? extra.commentId ?? "",
         commentText: row.comment_text ?? extra.commentText ?? "",
@@ -2742,6 +2743,7 @@ async function createNotification({
     type,
     wallpaperId = null,
     commentId = null,
+    communityMessageId = null,
     message = ""
 }){
     if(!recipientUID) return null;
@@ -2753,6 +2755,7 @@ async function createNotification({
         type: String(type || ""),
         wallpaper_id: wallpaperId == null ? null : String(wallpaperId),
         comment_id: commentId == null ? null : String(commentId),
+        community_message_id: communityMessageId == null ? null : String(communityMessageId),
         message: String(message || ""),
         is_read: false
     };
@@ -7773,6 +7776,90 @@ app.get("/api/community/moderation/me", async(req,res)=>{
 });
 
 
+
+async function createCommunityEventNotification({recipientUID,fromUser,type,messageId,message}){
+    if(!recipientUID || String(recipientUID)===String(fromUser)) return null;
+    try{
+        return await createNotification({
+            recipientUID:String(recipientUID),
+            fromUser:String(fromUser || ""),
+            type,
+            communityMessageId:messageId || null,
+            message:String(message || "")
+        });
+    }catch(error){
+        console.log("COMMUNITY EVENT NOTIFICATION ERROR:",error?.message || error);
+        return null;
+    }
+}
+
+async function notifyCommunityMentions(content, sender, messageId){
+    const handles=[...new Set([...String(content||"").matchAll(/@([\p{L}\p{N}_.-]{2,32})/gu)].map(m=>m[1].toLowerCase()))];
+    if(!handles.length) return;
+    try{
+        const {data:profiles,error}=await supabase.from("user_profile_sync")
+            .select("user_id,username,full_name")
+            .in("username",handles);
+        if(error) throw error;
+        await Promise.all((profiles||[])
+            .filter(profile=>String(profile.user_id)!==String(sender.id))
+            .map(profile=>createCommunityEventNotification({
+                recipientUID:profile.user_id,fromUser:sender.id,type:"community_mention",
+                messageId,message:`${sender.user_metadata?.full_name || sender.user_metadata?.name || "عضو"} أشار إليك في رسالة بالمجتمع.`
+            })));
+    }catch(error){console.log("COMMUNITY MENTION NOTIFICATION ERROR:",error?.message || error)}
+}
+
+
+// ================= Community appeals / direct owner conversation =================
+app.get("/api/community/appeals",async(req,res)=>{
+  try{
+    const user=await getAuthenticatedUser(req);
+    if(!user)return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+    const owner=isSiteOwnerUser(user)||isAdminUser(user);
+    let query=supabase.from("community_appeal_messages")
+      .select("id,conversation_user_id,sender_id,sender_role,message,created_at")
+      .order("created_at",{ascending:true}).limit(500);
+    if(!owner)query=query.eq("conversation_user_id",String(user.id));
+    else if(String(req.query.user||"").trim())query=query.eq("conversation_user_id",String(req.query.user).trim());
+    const {data,error}=await query;if(error)throw error;
+    return res.json({success:true,isOwner:owner,messages:data||[]});
+  }catch(error){
+    console.log("COMMUNITY APPEALS LOAD ERROR:",error?.message||error);
+    return res.status(500).json({success:false,message:"تعذر تحميل محادثة الدعم"});
+  }
+});
+app.post("/api/community/appeals",async(req,res)=>{
+  try{
+    const user=await getAuthenticatedUser(req);
+    if(!user)return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+    const message=String(req.body?.message||"").trim();
+    const owner=isSiteOwnerUser(user)||isAdminUser(user);
+    const conversationUserId=owner?String(req.body?.conversationUserId||"").trim():String(user.id);
+    if(!conversationUserId)return res.status(400).json({success:false,message:"حدد صاحب المحادثة"});
+    if(!message||message.length>3000)return res.status(400).json({success:false,message:"اكتب رسالة من 1 إلى 3000 حرف"});
+    if(owner){
+      const {data:target,error:targetError}=await supabase.auth.admin.getUserById(conversationUserId);
+      if(targetError||!target?.user)return res.status(404).json({success:false,message:"المستخدم غير موجود"});
+    }
+    const {data,error}=await supabase.from("community_appeal_messages").insert({
+      conversation_user_id:conversationUserId,sender_id:String(user.id),
+      sender_role:owner?"owner":"user",message,created_at:new Date().toISOString()
+    }).select("id,conversation_user_id,sender_id,sender_role,message,created_at").single();
+    if(error)throw error;
+    if(owner){
+      await createCommunityEventNotification({recipientUID:conversationUserId,fromUser:user.id,type:"community_appeal_update",messageId:null,message:"لديك رد جديد من إدارة WallpaperHub بخصوص طلب مراجعة الإبعاد."});
+    }else{
+      const ownerUid=String(process.env.SITE_OWNER_UID||"").trim();
+      if(ownerUid) await createCommunityEventNotification({recipientUID:ownerUid,fromUser:user.id,type:"community_appeal_update",messageId:null,message:"وصل طلب مراجعة أو رسالة جديدة بخصوص إبعاد عضو من المجتمع."});
+    }
+    return res.status(201).json({success:true,message:data});
+  }catch(error){
+    console.log("COMMUNITY APPEAL SEND ERROR:",error?.message||error);
+    return res.status(500).json({success:false,message:"تعذر إرسال الرسالة إلى الإدارة"});
+  }
+});
+
 // ================= Community pinned message: site owner only =================
 app.get("/api/community/pinned-message",async(req,res)=>{
  try{
@@ -7814,12 +7901,19 @@ app.post("/api/community/messages/:id/reactions",async(req,res)=>{
   const moderation=await getCommunityModerationForUser(user.id);if(!moderation.canRead)return res.status(403).json({success:false,message:"لا يمكنك التفاعل أثناء استبعادك من المجتمع"});
   const id=String(req.params.id||"").trim(),emoji=String(req.body?.emoji||""),allowed=["👍","❤️","😂","😮","😢","🔥"];
   if(!allowed.includes(emoji))return res.status(400).json({success:false,message:"التفاعل غير مدعوم"});
-  const {data:message,error:messageError}=await supabase.from("community_messages").select("id").eq("id",id).maybeSingle();
+  const {data:message,error:messageError}=await supabase.from("community_messages").select("id,user_id").eq("id",id).maybeSingle();
   if(messageError)throw messageError;if(!message)return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
   const {data:existing,error:existingError}=await supabase.from("community_message_reactions").select("emoji").eq("message_id",id).eq("user_id",String(user.id)).maybeSingle();
   if(existingError)throw existingError;
   if(existing&&String(existing.emoji)===emoji){const {error}=await supabase.from("community_message_reactions").delete().eq("message_id",id).eq("user_id",String(user.id));if(error)throw error}
-  else{const {error}=await supabase.from("community_message_reactions").upsert({message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()},{onConflict:"message_id,user_id"});if(error)throw error}
+  else{
+    const {error}=await supabase.from("community_message_reactions").upsert({message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()},{onConflict:"message_id,user_id"});
+    if(error)throw error;
+    await createCommunityEventNotification({
+      recipientUID:message.user_id,fromUser:user.id,type:"community_message_reaction",messageId:id,
+      message:`${user.user_metadata?.full_name || user.user_metadata?.name || "عضو"} تفاعل مع رسالتك بـ ${emoji}.`
+    });
+  }
   return res.json({success:true,reactions:await getCommunityMessageReactions(id,user.id)});
  }catch(error){console.log("COMMUNITY REACTION SAVE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ التفاعل"})}
 });
@@ -8087,6 +8181,20 @@ app.post("/api/community/messages", async (req, res) => {
                 );
             }
         }
+
+        if(replyToId){
+            try{
+                const {data:replyOwner,error:replyOwnerError}=await supabase
+                    .from("community_messages").select("user_id").eq("id",replyToId).maybeSingle();
+                if(replyOwnerError) throw replyOwnerError;
+                if(replyOwner) await createCommunityEventNotification({
+                    recipientUID:replyOwner.user_id,fromUser:user.id,type:"community_message_reply",
+                    messageId:messageId,
+                    message:`${user.user_metadata?.full_name || user.user_metadata?.name || "عضو"} رد على رسالتك في المجتمع.`
+                });
+            }catch(notificationError){console.log("COMMUNITY REPLY NOTIFICATION ERROR:",notificationError?.message || notificationError)}
+        }
+        await notifyCommunityMentions(content,user,messageId);
 
         return res.status(201).json({
             success: true,

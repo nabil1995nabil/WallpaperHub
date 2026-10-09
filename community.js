@@ -2745,6 +2745,11 @@ $('#profileButton').addEventListener('click',() => {
       loadPrivateConversations(),
       loadPinnedMessage()
     ]);
+    const requestedMessage = new URLSearchParams(location.search).get('message');
+    if(requestedMessage){
+      if(!hasMessage(requestedMessage)) await loadMessages();
+      setTimeout(()=>scrollToMessage(requestedMessage),180);
+    }
   }catch(error){
     updateComposerState();
     showToast(error.message);

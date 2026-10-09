@@ -229,11 +229,6 @@
             </div>
           </div>
 
-          <button type="button" class="pinned-message-banner hidden" id="pinnedMessageBanner" aria-label="الانتقال إلى الرسالة المثبتة">
-            <span class="pinned-banner-icon material-icons-round">push_pin</span>
-            <span class="pinned-banner-copy"><b>رسالة مثبتة من إدارة الموقع</b><small id="pinnedMessageText">اضغط للانتقال إلى الرسالة</small></span>
-            <span class="pinned-banner-arrow material-icons-round">arrow_back</span>
-          </button>
           <div class="feed" id="feed">
             <article class="welcome">
               <div class="welcome-icon"><span class="material-icons-round">forum</span></div>
@@ -283,7 +278,6 @@
             <div class="composer-field">
               <input id="message" autocomplete="off" maxlength="2000" placeholder="اكتب رسالة للمجتمع..." aria-label="رسالة المجتمع">
               <button type="button" class="emoji-button" id="emojiButton" aria-label="إضافة رمز">☺</button>
-              <div class="mention-suggestions hidden" id="mentionSuggestions" role="listbox" aria-label="اقتراحات الأعضاء"></div>
             </div>
             <button class="send" type="submit">
               <span>إرسال</span>
@@ -452,10 +446,6 @@
             <button class="message-action-button reply-action" id="messageActionReply" type="button">
               <span class="message-action-icon"><span class="material-icons-round">reply</span></span>
               <span>رد على الرسالة</span>
-            </button>
-            <button class="message-action-button pin-action hidden" id="messageActionPin" type="button">
-              <span class="message-action-icon"><span class="material-icons-round">push_pin</span></span>
-              <span id="messageActionPinLabel">تثبيت الرسالة للجميع</span>
             </button>
 
             <button class="message-action-button delete-action hidden" id="messageActionDelete" type="button">

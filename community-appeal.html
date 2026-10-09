@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f7ff"><title>حل مشكلة الإبعاد | WallpaperHub</title>
+<link rel="stylesheet" href="community-appeal.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+<main class="appeal-shell">
+  <header class="appeal-header">
+    <a class="back" href="notice.html" aria-label="العودة للإشعارات"><span class="material-icons-round">arrow_forward</span></a>
+    <div class="owner-mark"><span class="material-icons-round">support_agent</span></div>
+    <div class="heading"><h1>مراجعة قرار الإبعاد</h1><p>محادثة مباشرة مع إدارة WallpaperHub</p></div>
+    <span class="secure-mark"><span class="material-icons-round">verified_user</span></span>
+  </header>
+  <section class="appeal-info">
+    <span class="material-icons-round">info</span>
+    <div><b>نحن هنا للاستماع إليك</b><p>اشرح ما حدث بهدوء، واذكر سبب طلب المراجعة. ستصل رسالتك إلى الإدارة، ويمكن متابعة الرد من هنا.</p></div>
+  </section>
+  <section class="conversation-card">
+    <div class="conversation-top"><div><b>دعم المجتمع</b><small id="conversation-status">جارٍ الاتصال…</small><select id="owner-conversation" hidden aria-label="اختيار محادثة عضو"></select></div><button id="refresh-appeal" type="button" aria-label="تحديث المحادثة"><span class="material-icons-round">refresh</span></button></div>
+    <div id="appeal-messages" class="appeal-messages"><div class="loading-state">جارٍ تحميل المحادثة…</div></div>
+    <form id="appeal-form" class="appeal-form">
+      <textarea id="appeal-message" rows="2" maxlength="3000" placeholder="اكتب رسالتك إلى مالك الموقع…" required></textarea>
+      <button id="appeal-send" type="submit"><span class="material-icons-round">send</span><span>إرسال</span></button>
+    </form>
+    <p class="privacy-note"><span class="material-icons-round">lock</span> هذه المحادثة خاصة بينك وبين إدارة الموقع.</p>
+  </section>
+  <p id="appeal-toast" class="appeal-toast" role="status"></p>
+</main>
+<script type="module" src="community-appeal.js"></script>
+</body></html>

@@ -40,6 +40,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return v ? `wallpaper.html?id=${encodeURIComponent(v)}` : "";
   }
 
+  function communityUrl(messageId) {
+    const id = String(messageId ?? "").trim();
+    return id ? `community.html?message=${encodeURIComponent(id)}` : "community.html";
+  }
+
+  function notificationTarget(notif) {
+    const type = String(notif.type || "");
+    if (type === "community_moderation" || type === "community_appeal_update") {
+      return "community-appeal.html";
+    }
+    if (type.startsWith("community_")) {
+      return communityUrl(notif.communityMessageId || notif.community_message_id || notif.messageId || "");
+    }
+    return wallpaperUrl(notif.wallpaperId);
+  }
+
   function showToast(message) {
     const t = $("#toast");
     t.textContent = message;
@@ -93,7 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function typeCategory(type) {
     if (type === "wallpaper_like" || type === "comment_like") return "like";
     if (type === "wallpaper_comment") return "comment";
-    if (type === "wallpaper_mention") return "mention";
+    if (type === "wallpaper_mention" || type === "community_mention") return "mention";
+    if (type.startsWith("community_") || type === "community_moderation") return "community";
     return "other";
   }
 
@@ -146,6 +163,43 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+
+  function renderCommunityNotification(notif) {
+    const type = String(notif.type || "");
+    if (!type.startsWith("community_")) return null;
+    const appeal = type === "community_moderation" || type === "community_appeal_update";
+    let icon = "forum", badge = "💬", title = "إشعار من المجتمع", action = "فتح المحادثة";
+    if (type === "community_message_reply") { icon = "reply"; badge = "↩️"; title = "رد على رسالتك في المجتمع"; action = "عرض الرد"; }
+    else if (type === "community_mention") { icon = "alternate_email"; badge = "@"; title = "تمت الإشارة إليك في المجتمع"; action = "عرض الإشارة"; }
+    else if (type === "community_message_reaction") { icon = "add_reaction"; badge = "✨"; title = "تفاعل مع رسالتك"; action = "عرض الرسالة"; }
+    else if (type === "community_moderation") { icon = "gavel"; badge = "⚠️"; title = "إجراء إداري بخصوص المجتمع"; action = "مراجعة القرار والتواصل"; }
+    else if (type === "community_appeal_update") { icon = "support_agent"; badge = "💬"; title = "رد من إدارة المجتمع"; action = "متابعة المحادثة"; }
+
+    const cardText = escapeHTML(notif.content || notif.message || title);
+    const avatar = escapeHTML(notif.avatar || "assets/images/user.png");
+    const userName = escapeHTML(notif.userName || (appeal ? "إدارة WallpaperHub" : "عضو المجتمع"));
+    const date = escapeHTML(notif.date || "الآن");
+    const target = appeal ? "community-appeal.html" : communityUrl(notif.communityMessageId || notif.community_message_id || "");
+    return {
+      category:"community",
+      html:`
+        <div class="card-side-indicator" style="background:${appeal ? "#ef795c" : "#5967ef"}"></div>
+        <div class="avatar-container">
+          <img src="${avatar}" class="avatar" loading="lazy" onerror="this.src='assets/images/user.png'">
+          <span class="type-badge ${appeal ? "admin" : "comment-badge"}">${badge}</span>
+        </div>
+        <div class="notif-body">
+          <p class="notif-text"><strong>${userName}</strong> ${escapeHTML(title)}</p>
+          <div class="comment-quote ${appeal ? "" : "mention-comment"}">${cardText}</div>
+          <button type="button" class="community-open-btn ${appeal ? "community-appeal-btn" : ""}" data-community-target="${escapeHTML(target)}">
+            <span>${escapeHTML(action)}</span><span class="material-icons">${icon === "gavel" ? "support_agent" : "arrow_back"}</span>
+          </button>
+          <div class="notif-meta">${date}</div>
+        </div>
+        <button class="card-check-read" type="button" title="تحديد كمقروء" aria-label="تحديد كمقروء"><span class="material-icons">done</span></button>`
+    };
+  }
+
   function render() {
     const feed = $("#userNotificationsFeed");
     const annFeed = $("#announcementsFeed");
@@ -163,10 +217,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     filtered.forEach(n => {
-      const rendered = renderNotificationCard(n);
+      const rendered = String(n.type || "").startsWith("community_")
+        ? renderCommunityNotification(n)
+        : renderNotificationCard(n);
       if (!rendered) return;
       const card = document.createElement("article");
-      card.className = `notif-card ${isUnread(n) ? "unread" : ""}`;
+      card.className = `notif-card ${isUnread(n) ? "unread" : ""} ${rendered.category === "community" ? "community-notification" : ""}`;
       card.dataset.notificationId = String(n.id || "");
       card.dataset.category = rendered.category;
       card.dataset.wallpaperId = String(n.wallpaperId || "");
@@ -382,6 +438,13 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#empty-refresh").addEventListener("click",()=>$("#refresh-btn").click());
 
   document.addEventListener("click", async e => {
+    const communityBtn=e.target.closest(".community-open-btn");
+    if (communityBtn) {
+      const card=communityBtn.closest(".notif-card");
+      await markRead(card);
+      location.href=communityBtn.dataset.communityTarget || "community.html";
+      return;
+    }
     const wallpaperBtn=e.target.closest(".notification-wallpaper-btn");
     if (wallpaperBtn) {
       const card=wallpaperBtn.closest(".notif-card");
