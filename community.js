@@ -439,14 +439,19 @@ function openMessageActionSheet(message){
   }
   const pinButton=$('#messageActionPin');
   if(pinButton){
-    // لا نخفي زر التثبيت قبل اكتمال مزامنة الصلاحية؛ الضغط ينتظر نتيجة الخادم.
-    pinButton.classList.toggle('hidden',(!canManagePinnedMessage && pinnedMessagePermissionLoaded)||Boolean(message.deleted));
-    pinButton.disabled=false;
+    // لا نخفي الزر أثناء مزامنة الصلاحية؛ لكن الخادم يبقى صاحب القرار النهائي.
+    pinButton.classList.toggle('hidden', Boolean(message.deleted) || (pinnedMessagePermissionLoaded && !canManagePinnedMessage));
+    pinButton.disabled = Boolean(message.deleted);
     const label=$('#messageActionPinLabel');
-    if(label) label.textContent=!pinnedMessagePermissionLoaded
-      ? 'جارٍ التحقق...'
-      : (String(currentPinnedMessage?.id||'')===String(message.id)?'إلغاء تثبيت الرسالة للجميع':'تثبيت الرسالة للجميع');
+    if(label) label.textContent = !pinnedMessagePermissionLoaded
+      ? 'جارٍ التحقق من الصلاحية...'
+      : (canManagePinnedMessage
+        ? (String(currentPinnedMessage?.id||'')===String(message.id)?'إلغاء تثبيت الرسالة للجميع':'تثبيت الرسالة للجميع')
+        : 'تثبيت الرسالة (للمالك فقط)');
   }
+  if(!pinnedMessagePermissionLoaded) loadPinnedMessage().then(()=>{
+    if(messageActionTarget && String(messageActionTarget.id)===String(message.id)) openMessageActionSheet(messageActionTarget);
+  }).catch(()=>{});
 
   clearTimeout(closeMessageActionSheet.timer);
   sheet.classList.remove('hidden');

@@ -7903,31 +7903,32 @@ app.post("/api/community/messages/:id/reactions",async(req,res)=>{
   if(!allowed.includes(emoji))return res.status(400).json({success:false,message:"التفاعل غير مدعوم"});
   const {data:message,error:messageError}=await supabase.from("community_messages").select("id,user_id").eq("id",id).maybeSingle();
   if(messageError)throw messageError;if(!message)return res.status(404).json({success:false,message:"الرسالة غير موجودة"});
-  const {data:existing,error:existingError}=await supabase.from("community_message_reactions").select("emoji").eq("message_id",id).eq("user_id",String(user.id)).maybeSingle();
+  // اقرأ كل صفوف المستخدم لهذه الرسالة، حتى لو كانت هناك صفوف مكررة قديمة.
+  const {data:existingRows,error:existingError}=await supabase.from("community_message_reactions")
+    .select("emoji").eq("message_id",id).eq("user_id",String(user.id));
   if(existingError)throw existingError;
-  if(existing&&String(existing.emoji)===emoji){
-    const {error}=await supabase.from("community_message_reactions").delete().eq("message_id",id).eq("user_id",String(user.id));
-    if(error)throw error;
-  }else if(existing){
-    // تحديث التفاعل الموجود دون الاعتماد على قيد unique المطلوب لعملية upsert.
-    const {error}=await supabase.from("community_message_reactions")
-      .update({emoji,updated_at:new Date().toISOString()})
-      .eq("message_id",id).eq("user_id",String(user.id));
-    if(error)throw error;
-  }else{
-    const {error}=await supabase.from("community_message_reactions").insert({
+  const alreadySame=(existingRows||[]).some(row=>String(row.emoji)===emoji);
+  // حذف الصفوف الحالية أولًا يجعل الحفظ لا يعتمد على وجود قيد UNIQUE يدعمه upsert.
+  if((existingRows||[]).length){
+    const {error:deleteError}=await supabase.from("community_message_reactions")
+      .delete().eq("message_id",id).eq("user_id",String(user.id));
+    if(deleteError)throw deleteError;
+  }
+  if(!alreadySame){
+    const {error:insertError}=await supabase.from("community_message_reactions").insert({
       message_id:id,user_id:String(user.id),emoji,updated_at:new Date().toISOString()
     });
-    if(error)throw error;
-    // حفظ التفاعل هو العملية الأساسية؛ فشل إنشاء الإشعار لا يجب أن يجعل الواجهة
-    // تعرض "تعذر حفظ التفاعل" بعد أن يكون التفاعل قد حُفظ بالفعل.
-    try{
-      await createCommunityEventNotification({
-        recipientUID:message.user_id,fromUser:user.id,type:"community_message_reaction",messageId:id,
-        message:`${user.user_metadata?.full_name || user.user_metadata?.name || "عضو"} تفاعل مع رسالتك بـ ${emoji}.`
-      });
-    }catch(notificationError){
-      console.log("COMMUNITY REACTION NOTIFICATION ERROR:",notificationError?.message || notificationError);
+    if(insertError)throw insertError;
+    // فشل الإشعار لا يُحوّل نجاح حفظ التفاعل إلى خطأ ظاهر للمستخدم.
+    if(String(message.user_id)!==String(user.id)){
+      try{
+        await createCommunityEventNotification({
+          recipientUID:message.user_id,fromUser:user.id,type:"community_message_reaction",messageId:id,
+          message:`${user.user_metadata?.full_name || user.user_metadata?.name || "عضو"} تفاعل مع رسالتك بـ ${emoji}.`
+        });
+      }catch(notificationError){
+        console.log("COMMUNITY REACTION NOTIFICATION ERROR:",notificationError?.message || notificationError);
+      }
     }
   }
   return res.json({success:true,reactions:await getCommunityMessageReactions(id,user.id)});

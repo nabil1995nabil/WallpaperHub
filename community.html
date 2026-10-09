@@ -229,6 +229,15 @@
             </div>
           </div>
 
+          <button class="pinned-message-banner hidden" id="pinnedMessageBanner" type="button" aria-label="الانتقال إلى الرسالة المثبتة">
+            <span class="material-icons-round" aria-hidden="true">push_pin</span>
+            <span class="pinned-message-copy">
+              <b>الرسالة المثبتة</b>
+              <span id="pinnedMessageText"></span>
+            </span>
+            <span class="material-icons-round pinned-message-arrow" aria-hidden="true">arrow_back</span>
+          </button>
+
           <div class="feed" id="feed">
             <article class="welcome">
               <div class="welcome-icon"><span class="material-icons-round">forum</span></div>
@@ -446,6 +455,11 @@
             <button class="message-action-button reply-action" id="messageActionReply" type="button">
               <span class="message-action-icon"><span class="material-icons-round">reply</span></span>
               <span>رد على الرسالة</span>
+            </button>
+
+            <button class="message-action-button pin-action hidden" id="messageActionPin" type="button">
+              <span class="message-action-icon"><span class="material-icons-round">push_pin</span></span>
+              <span id="messageActionPinLabel">تثبيت الرسالة للجميع</span>
             </button>
 
             <button class="message-action-button delete-action hidden" id="messageActionDelete" type="button">
