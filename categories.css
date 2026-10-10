@@ -146,3 +146,19 @@ body.categories-page-body{
  .category-content strong{font-size:13px}.category-content small{font-size:8.5px}
  .favorite-toggle{left:9px;bottom:9px;width:28px;height:28px}
 }
+
+
+/* New categories: use real photographic thumbnails as category icons */
+.category-photo-icon{
+    padding:0;
+    overflow:hidden;
+    background:#fff;
+    border:2px solid rgba(255,255,255,.88);
+}
+.category-photo-icon img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:inherit;
+}
