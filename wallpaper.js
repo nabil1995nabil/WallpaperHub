@@ -462,157 +462,87 @@ if(wallVideo){
 }
 
 
-
 // ===============================
-// GYROSCOPE_PARALLAX_ENGINE
-// تحريك منظور الخلفية مع حركة الهاتف
-// يعمل بطبقة parallax بسيطة للصور والفيديو، دون التأثير على عارض 360 الحالي.
+// AUTO_360_GYROSCOPE
+// التوجيه التلقائي لعارض 360 عند توفر مستشعر الحركة.
+// لا يوجد زر: يفعّل التوجيه عند عرض خلفية 360 فقط.
 // ===============================
-const gyroMotion = {
-    enabled: false,
-    permissionPending: false,
-    supported: typeof window !== "undefined" &&
-        ("DeviceOrientationEvent" in window),
-    baseX: 0,
-    baseY: 0,
-    smoothX: 0,
-    smoothY: 0,
-    raf: 0,
-    hintTimer: 0
-};
+let auto360OrientationAttached = false;
+let auto360PermissionChecked = false;
+let auto360SensorAvailable = false;
+let auto360LastAlpha = null;
+let auto360LastBeta = null;
+let auto360LastGamma = null;
 
-const gyroMotionBtn = document.getElementById("gyroMotionBtn");
-const wallpaperPreviewWrapper = document.querySelector(".wallpaper-preview-wrapper");
+function auto360OrientationHandler(event){
+    if(!currentWallpaper?.is360 || !panorama360.active) return;
 
-function showGyroMotionHint(message, visible = true){
-    if(!wallpaperPreviewWrapper) return;
-    let hint = wallpaperPreviewWrapper.querySelector(".gyro-motion-hint");
-    if(!hint){
-        hint = document.createElement("div");
-        hint.className = "gyro-motion-hint";
-        hint.setAttribute("role", "status");
-        wallpaperPreviewWrapper.appendChild(hint);
-    }
-    hint.textContent = message;
-    hint.classList.toggle("is-visible", visible);
-    if(gyroMotion.hintTimer) clearTimeout(gyroMotion.hintTimer);
-    if(visible){
-        gyroMotion.hintTimer = setTimeout(() => {
-            hint.classList.remove("is-visible");
-        }, 2600);
-    }
-}
-
-function resetGyroMotionTransform(){
-    [wallImage, wallVideo].forEach(media => {
-        if(!media) return;
-        media.style.transition = "transform 220ms ease-out";
-        media.style.transform = "translate3d(0,0,0) scale(1.06)";
-        requestAnimationFrame(() => {
-            if(media) media.style.transform = "";
-        });
-    });
-    if(wallpaperPreviewWrapper) wallpaperPreviewWrapper.classList.remove("is-gyro-motion");
-}
-
-function onGyroOrientation(event){
-    if(!gyroMotion.enabled || !wallpaperPreviewWrapper) return;
-    if(wallpaperPreviewWrapper.classList.contains("is-panorama")) return;
-
-    // Gamma: ميل الهاتف يميناً/يساراً، Beta: ميله للأمام/الخلف.
-    const gamma = Number(event.gamma);
+    const alpha = Number(event.alpha);
     const beta = Number(event.beta);
-    if(!Number.isFinite(gamma) || !Number.isFinite(beta)) return;
+    const gamma = Number(event.gamma);
+    if(!Number.isFinite(alpha) || !Number.isFinite(beta) || !Number.isFinite(gamma)) return;
 
-    const x = Math.max(-1, Math.min(1, gamma / 28));
-    const y = Math.max(-1, Math.min(1, (beta - 35) / 35));
+    auto360SensorAvailable = true;
 
-    gyroMotion.baseX = x;
-    gyroMotion.baseY = y;
-
-    if(!gyroMotion.raf){
-        gyroMotion.raf = requestAnimationFrame(renderGyroMotion);
-    }
-}
-
-function renderGyroMotion(){
-    gyroMotion.raf = 0;
-    if(!gyroMotion.enabled || !wallpaperPreviewWrapper) return;
-    if(wallpaperPreviewWrapper.classList.contains("is-panorama")) return;
-
-    gyroMotion.smoothX += (gyroMotion.baseX - gyroMotion.smoothX) * 0.12;
-    gyroMotion.smoothY += (gyroMotion.baseY - gyroMotion.smoothY) * 0.12;
-
-    const tx = -gyroMotion.smoothX * 13;
-    const ty = -gyroMotion.smoothY * 13;
-    const transform = `translate3d(${tx.toFixed(2)}px,${ty.toFixed(2)}px,0) scale(1.09)`;
-
-    [wallImage, wallVideo].forEach(media => {
-        if(!media || getComputedStyle(media).display === "none") return;
-        media.style.transition = "none";
-        media.style.transform = transform;
-    });
-
-    if(Math.abs(gyroMotion.baseX - gyroMotion.smoothX) > 0.002 ||
-       Math.abs(gyroMotion.baseY - gyroMotion.smoothY) > 0.002){
-        gyroMotion.raf = requestAnimationFrame(renderGyroMotion);
-    }
-}
-
-async function enableGyroMotion(){
-    if(!gyroMotion.supported){
-        showGyroMotionHint("هذا المتصفح لا يدعم مستشعر حركة الهاتف");
+    // Convert device orientation into incremental view changes.
+    // Only apply small deltas to avoid sudden jumps from absolute sensor readings.
+    if(auto360LastAlpha === null){
+        auto360LastAlpha = alpha;
+        auto360LastBeta = beta;
+        auto360LastGamma = gamma;
         return;
     }
 
-    // iOS requires an explicit permission prompt from a user gesture.
+    let deltaGamma = gamma - auto360LastGamma;
+    let deltaBeta = beta - auto360LastBeta;
+    let deltaAlpha = alpha - auto360LastAlpha;
+
+    if(deltaGamma > 180) deltaGamma -= 360;
+    if(deltaGamma < -180) deltaGamma += 360;
+    if(deltaBeta > 180) deltaBeta -= 360;
+    if(deltaBeta < -180) deltaBeta += 360;
+    if(deltaAlpha > 180) deltaAlpha -= 360;
+    if(deltaAlpha < -180) deltaAlpha += 360;
+
+    auto360LastAlpha = alpha;
+    auto360LastBeta = beta;
+    auto360LastGamma = gamma;
+
+    // In the existing 360 engine, yaw and pitch are radians.
+    const sensitivity = 0.006;
+    panorama360.targetYaw -= (deltaGamma + deltaAlpha * 0.35) * sensitivity;
+    panorama360.targetPitch += deltaBeta * sensitivity;
+    panorama360.targetPitch = Math.max(-1.35, Math.min(1.35, panorama360.targetPitch));
+}
+
+async function enableAuto360Gyroscope(){
+    if(!currentWallpaper?.is360 || !panorama360.active) return;
+
+    if(!("DeviceOrientationEvent" in window)) return;
+
     try{
+        // Browsers such as iOS Safari require permission from a user gesture.
+        // Since the feature must be automatic (no button), requestPermission is not
+        // invoked automatically where the browser requires a tap; sensor remains unavailable there.
         if(typeof DeviceOrientationEvent.requestPermission === "function"){
-            const permission = await DeviceOrientationEvent.requestPermission();
-            if(permission !== "granted"){
-                showGyroMotionHint("لم يتم السماح بالوصول إلى مستشعر الحركة");
-                return;
-            }
+            auto360PermissionChecked = true;
+            return;
         }
+        window.addEventListener("deviceorientation", auto360OrientationHandler, { passive:true });
+        auto360OrientationAttached = true;
     }catch(error){
-        console.warn("GYROSCOPE PERMISSION ERROR:", error);
-        showGyroMotionHint("تعذر تفعيل مستشعر الحركة");
-        return;
+        console.warn("AUTO 360 GYROSCOPE ERROR:", error);
     }
-
-    gyroMotion.enabled = true;
-    wallpaperPreviewWrapper?.classList.add("is-gyro-motion");
-    gyroMotionBtn?.classList.add("is-active");
-    gyroMotionBtn?.setAttribute("aria-pressed", "true");
-    window.addEventListener("deviceorientation", onGyroOrientation, { passive:true });
-    showGyroMotionHint("حرّك هاتفك لمشاهدة الخلفية تتحرك");
 }
 
-function disableGyroMotion(){
-    gyroMotion.enabled = false;
-    window.removeEventListener("deviceorientation", onGyroOrientation);
-    if(gyroMotion.raf) cancelAnimationFrame(gyroMotion.raf);
-    gyroMotion.raf = 0;
-    gyroMotion.baseX = gyroMotion.baseY = 0;
-    gyroMotion.smoothX = gyroMotion.smoothY = 0;
-    gyroMotionBtn?.classList.remove("is-active");
-    gyroMotionBtn?.setAttribute("aria-pressed", "false");
-    resetGyroMotionTransform();
+function disableAuto360Gyroscope(){
+    if(auto360OrientationAttached){
+        window.removeEventListener("deviceorientation", auto360OrientationHandler);
+    }
+    auto360OrientationAttached = false;
+    auto360LastAlpha = auto360LastBeta = auto360LastGamma = null;
 }
 
-if(gyroMotionBtn){
-    gyroMotionBtn.setAttribute("aria-pressed", "false");
-    gyroMotionBtn.addEventListener("click", () => {
-        if(gyroMotion.enabled){
-            disableGyroMotion();
-            showGyroMotionHint("تم إيقاف تحريك الخلفية");
-        }else{
-            enableGyroMotion();
-        }
-    });
-}
-
-window.addEventListener("pagehide", disableGyroMotion);
 
 // ===============================
 // Load Wallpaper
@@ -660,6 +590,11 @@ async function loadWallpaper() {
         );
 
         showWallpaper();
+        disableAuto360Gyroscope();
+        if(currentWallpaper?.is360){
+            // Wait one frame so the 360 renderer can initialize and mark itself active.
+            requestAnimationFrame(() => enableAuto360Gyroscope());
+        }
         autoAnalyzeWallpaper();
         loadSimilar();
         checkLikeStatus();
@@ -5150,3 +5085,6 @@ loadWallpaper();
     activateTab(initialTab, false);
     updateCommentsTabCount();
 })();
+
+
+window.addEventListener("pagehide", disableAuto360Gyroscope);
