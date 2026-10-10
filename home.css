@@ -1724,3 +1724,45 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
         border: 1px solid rgba(91,93,245,.07);
     }
 }
+
+
+/* =========================================================
+   DISCOVERY SECTIONS — visible even before wallpapers are added
+========================================================= */
+.discovery-section {
+    display: block;
+    width: calc(100% - 32px);
+    max-width: 1000px;
+    margin: 24px auto;
+}
+.discovery-section[hidden] {
+    display: block !important;
+}
+.discovery-empty {
+    flex: 0 0 100%;
+    min-height: 92px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    border: 1px dashed #dfe3ef;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f8f9ff, #f2f5ff);
+    color: #777f96;
+    font-size: 12px;
+    line-height: 1.7;
+    text-align: center;
+    box-sizing: border-box;
+}
+.discovery-empty-icon {
+    font-size: 24px;
+    flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+    .discovery-section {
+        width: calc(100% - 28px);
+        margin: 22px auto;
+    }
+}

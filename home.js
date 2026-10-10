@@ -200,8 +200,10 @@ function renderDiscoverySections() {
     const normalize = value => String(value || "").trim().toLowerCase();
 
     Object.entries(sections).forEach(([key, container]) => {
-        if (!container) return;
-        container.innerHTML = "";
+        if (!container) {
+            console.warn("Discovery section container not found:", key);
+            return;
+        }
 
         const validNames = (aliases[key] || [key]).map(normalize);
         const matches = wallpapers.filter(wall => {
@@ -209,14 +211,26 @@ function renderDiscoverySections() {
             return validNames.includes(category);
         });
 
-        matches.slice().reverse().slice(0, 8).forEach(wall => {
-            container.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
-        });
+        container.innerHTML = "";
 
-        const section = container.closest(".discovery-section");
-        if (section) {
-            section.hidden = matches.length === 0;
+        if (matches.length) {
+            matches.slice().reverse().slice(0, 8).forEach(wall => {
+                container.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
+            });
+        } else {
+            container.innerHTML = `
+                <div class="discovery-empty" role="status">
+                    <span class="discovery-empty-icon" aria-hidden="true">${key === "snow" ? "❄️" : key === "aurora" ? "🌌" : key === "cyberpunk" ? "🌃" : "🎨"}</span>
+                    <span>ستظهر الخلفيات هنا عند نشر خلفيات بهذا القسم</span>
+                </div>
+            `;
         }
+
+        // Keep the section visible even when there are no matching wallpapers.
+        const section = container.closest(".discovery-section");
+        if (section) section.hidden = false;
+
+        console.log(`DISCOVERY [${key}] matched:`, matches.length);
     });
 }
 
