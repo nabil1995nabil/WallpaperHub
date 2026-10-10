@@ -87,7 +87,11 @@ const categoryNames = {
     pc:"🖥️ خلفيات PC",
     mobile:"📱 خلفيات الهاتف",
     tablet:"📲 خلفيات Tablet",
-    featured:"🔥 خلفيات مميزة"
+    featured:"🔥 خلفيات مميزة",
+    snow:"❄️ خلفيات الثلج والشتاء",
+    aurora:"🌌 خلفيات الشفق القطبي",
+    cyberpunk:"🌃 خلفيات السايبربانك",
+    gradients:"🎨 خلفيات التدرجات والألوان"
 };
 
 const typeNames = {
@@ -146,7 +150,11 @@ function categoryMatches(wallpaper, target){
         pc:["pc","desktop","computer","حاسوب","كمبيوتر"],
         mobile:["mobile","phone","smartphone","هاتف","هاتف ذكي"],
         tablet:["tablet","تابلت","لوحي"],
-        featured:["featured","مميز","مميزة","مميزّة","خلفيات مميزة"]
+        featured:["featured","مميز","مميزة","مميزّة","خلفيات مميزة"],
+        snow:["snow","winter","ثلج","الثلج","شتاء","الشتاء","خلفيات الثلج والشتاء"],
+        aurora:["aurora","aurora borealis","الشفق القطبي","الشفق"],
+        cyberpunk:["cyberpunk","سايبربانك","سايبر بانك"],
+        gradients:["gradients","gradient","colors","colours","تدرجات","التدرجات","ألوان","الوان"]
     };
 
     return (aliases[wanted] || []).some(alias => value === normalizeText(alias));
@@ -428,7 +436,9 @@ const categoryGroups = [
             ["minimal","Minimal","auto_awesome"], ["dark","Dark","dark_mode"],
             ["amoled","AMOLED","contrast"], ["abstract","Abstract","blur_on"],
             ["3d","3D","view_in_ar"], ["neon","Neon","lightbulb"],
-            ["colors","ألوان","palette"], ["ai","ذكاء اصطناعي","smart_toy"]
+            ["colors","ألوان","palette"], ["ai","ذكاء اصطناعي","smart_toy"],
+            ["snow","الثلج والشتاء","ac_unit"], ["aurora","الشفق القطبي","flare"],
+            ["cyberpunk","سايبربانك","bolt"], ["gradients","التدرجات والألوان","gradient"]
         ]
     },
     {
