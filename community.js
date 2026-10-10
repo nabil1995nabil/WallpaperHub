@@ -696,7 +696,7 @@ function updateMentionSuggestions(){
     option.addEventListener('mousedown',e=>e.preventDefault());
     option.addEventListener('click',()=>{
       const pos=input.selectionStart??input.value.length, prefix=input.value.slice(0,pos), token=/(?:^|\s)@([\p{L}\p{N}_.-]{0,32})$/u.exec(prefix);if(!token)return;
-      const start=pos-token[0].length+(token[0].startsWith(' ')?1:0), label=String(member.username||member.name||'').replace(/^@/,'').replace(/\s+/g,'_'), insertion='@'+label+' ';
+      const start=pos-token[0].length+(token[0].startsWith(' ')?1:0), label=String(member.username||member.name||'').replace(/^@/,'').trim().replace(/\s+/g,'_'), insertion='@'+label+' ';
       input.value=input.value.slice(0,start)+insertion+input.value.slice(pos);input.setSelectionRange(start+insertion.length,start+insertion.length);input.focus();box.classList.add('hidden');box.innerHTML='';
     });
     box.appendChild(option);

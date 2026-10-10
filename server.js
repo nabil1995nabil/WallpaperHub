@@ -7794,15 +7794,20 @@ async function createCommunityEventNotification({recipientUID,fromUser,type,mess
 }
 
 async function notifyCommunityMentions(content, sender, messageId){
-    const handles=[...new Set([...String(content||"").matchAll(/@([\p{L}\p{N}_.-]{2,32})/gu)].map(m=>m[1].toLowerCase()))];
+    const handles=[...new Set([...String(content||"").matchAll(/@([\p{L}\p{N}_.-]{2,64})/gu)].map(m=>m[1].toLowerCase()))];
     if(!handles.length) return;
     try{
         const {data:profiles,error}=await supabase.from("user_profile_sync")
-            .select("user_id,username,full_name")
-            .in("username",handles);
+            .select("user_id,username,full_name");
         if(error) throw error;
-        await Promise.all((profiles||[])
-            .filter(profile=>String(profile.user_id)!==String(sender.id))
+        const normalize=value=>String(value||"").trim().toLowerCase().replace(/^@/,"").replace(/[\s_-]+/g,"_");
+        const matched=(profiles||[]).filter(profile=>{
+            if(String(profile.user_id)===String(sender.id)) return false;
+            const username=normalize(profile.username);
+            const fullName=normalize(profile.full_name);
+            return handles.some(handle=>handle===username || handle===fullName);
+        });
+        await Promise.all([...new Map(matched.map(profile=>[String(profile.user_id),profile])).values()]
             .map(profile=>createCommunityEventNotification({
                 recipientUID:profile.user_id,fromUser:sender.id,type:"community_mention",
                 messageId,message:`${sender.user_metadata?.full_name || sender.user_metadata?.name || "عضو"} أشار إليك في رسالة بالمجتمع.`
