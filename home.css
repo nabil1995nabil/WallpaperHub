@@ -1682,3 +1682,45 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
 .community-stat{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,.075)}
 @media(max-width:600px){.community-motion-canvas{opacity:.62!important}}
 @media(prefers-reduced-motion:reduce){.community-motion-canvas{display:none!important}}
+
+
+/* =========================================================
+   DISCOVERY SECTIONS — new homepage category rails
+========================================================= */
+.discovery-section {
+    position: relative;
+    padding: 15px 0 17px;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 95% 0%, rgba(91,93,245,.055), transparent 34%),
+        linear-gradient(180deg, rgba(247,248,252,.72), rgba(255,255,255,0));
+}
+.discovery-section[hidden] {
+    display: none !important;
+}
+.discovery-section .title {
+    padding: 0 2px;
+}
+.discovery-section .title h3 {
+    letter-spacing: -.25px;
+}
+.discovery-section .section-kicker {
+    color: var(--primary);
+    opacity: .78;
+}
+.discovery-section .wall-grid {
+    background: transparent;
+    padding-top: 4px;
+}
+.discovery-section .wall-card {
+    box-shadow: 0 8px 22px rgba(20,25,55,.10);
+}
+.discovery-section .wall-card:hover {
+    box-shadow: 0 12px 28px rgba(20,25,55,.16);
+}
+@media (min-width: 700px) {
+    .discovery-section {
+        padding: 18px 14px 20px;
+        border: 1px solid rgba(91,93,245,.07);
+    }
+}

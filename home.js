@@ -177,6 +177,49 @@ document.getElementById("likedWallpapers");
 
 const downloadedContainer =
 document.getElementById("downloadedWallpapers");
+
+// =======================================
+// أقسام اكتشاف إضافية في الصفحة الرئيسية
+// تعتمد على نفس بيانات /api/wallpapers دون API جديد.
+// =======================================
+function renderDiscoverySections() {
+    const sections = {
+        snow: document.getElementById("snowWallpapers"),
+        aurora: document.getElementById("auroraWallpapers"),
+        cyberpunk: document.getElementById("cyberpunkWallpapers"),
+        gradients: document.getElementById("gradientsWallpapers")
+    };
+
+    const aliases = {
+        snow: ["snow", "winter", "ثلج", "الثلج", "شتاء", "الشتاء"],
+        aurora: ["aurora", "aurora borealis", "الشفق القطبي", "الشفق"],
+        cyberpunk: ["cyberpunk", "سايبربانك", "سايبر بانك"],
+        gradients: ["gradients", "gradient", "colors", "colours", "تدرجات", "التدرجات", "ألوان", "الوان"]
+    };
+
+    const normalize = value => String(value || "").trim().toLowerCase();
+
+    Object.entries(sections).forEach(([key, container]) => {
+        if (!container) return;
+        container.innerHTML = "";
+
+        const validNames = (aliases[key] || [key]).map(normalize);
+        const matches = wallpapers.filter(wall => {
+            const category = normalize(wall?.category);
+            return validNames.includes(category);
+        });
+
+        matches.slice().reverse().slice(0, 8).forEach(wall => {
+            container.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
+        });
+
+        const section = container.closest(".discovery-section");
+        if (section) {
+            section.hidden = matches.length === 0;
+        }
+    });
+}
+
 // =======================================
 // تحميل البيانات
 // =======================================
@@ -205,6 +248,7 @@ async function loadWallpapers() {
         renderLiked();
         renderLatest();
         renderRecommended();
+        renderDiscoverySections();
         createDynamicSections();
         // تحميل التوصيات الشخصية من الخادم بعد تحميل الخلفيات الأساسية.
         await loadPersonalizedRecommendations();
@@ -426,7 +470,12 @@ function createDynamicSections() {
         "rain",
         "sunset",
         "architecture",
-        "deep-space",];
+        "deep-space",
+        "snow",
+        "aurora",
+        "cyberpunk",
+        "gradients"
+    ];
 
     categories.forEach(category => {
 
@@ -502,7 +551,11 @@ function renderCategory(category) {
             "rain": ["مطر", "المطر"],
             "sunset": ["غروب", "الغروب"],
             "architecture": ["عمارة", "العمارة"],
-            "deep-space": ["فضاء عميق", "الفضاء العميق"]
+            "deep-space": ["فضاء عميق", "الفضاء العميق"],
+            "snow": ["winter", "ثلج", "الثلج", "شتاء", "الشتاء"],
+            "aurora": ["aurora borealis", "الشفق القطبي", "الشفق"],
+            "cyberpunk": ["سايبربانك", "سايبر بانك"],
+            "gradients": ["gradient", "colors", "colours", "تدرجات", "التدرجات", "ألوان", "الوان"]
         };
 
         if (aliasMap[targetCat] && aliasMap[targetCat].includes(wallCat)) {
