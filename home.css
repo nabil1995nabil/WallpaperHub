@@ -1766,3 +1766,21 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
         margin: 22px auto;
     }
 }
+
+
+
+/* USER REQUEST — pure white background for discovery category cards */
+.discovery-section {
+    background: #ffffff !important;
+    background-image: none !important;
+    border-color: #ffffff !important;
+    box-shadow: none !important;
+}
+.discovery-section .wall-grid {
+    background: #ffffff !important;
+}
+.discovery-empty {
+    background: #ffffff !important;
+    border: 1px dashed #e6e8ef !important;
+    box-shadow: none !important;
+}
