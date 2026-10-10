@@ -1443,3 +1443,14 @@ font-size:12px;
 .menu .community-reports-menu:hover{
     background:linear-gradient(135deg,#dc2626,#ea580c);
 }
+
+
+/* WallpaperHub admin metadata additions */
+.wall-auto-metadata{
+  display:block;margin-top:9px;padding:11px 13px;border-radius:11px;
+  background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
+  font-size:13px;font-weight:700;line-height:1.7;
+}
+.form-group small{line-height:1.7}
+#wallDevice,#wallColors{min-height:48px}
+@media(max-width:600px){.wall-auto-metadata{font-size:12px}}

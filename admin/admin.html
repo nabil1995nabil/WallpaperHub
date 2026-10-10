@@ -338,6 +338,11 @@ placeholder="مثال: Rain Night"
 🏛️ العمارة
 </option>
 
+
+<option value="snow">❄️ الثلج والشتاء</option>
+<option value="aurora">🌌 الشفق القطبي</option>
+<option value="cyberpunk">🌃 سايبربانك</option>
+<option value="gradients">🎨 التدرجات والألوان</option>
 <option value="deep-space">
 🚀 الفضاء العميق
 </option>
@@ -397,6 +402,22 @@ placeholder="5 MB"
 
 
 
+<!-- Metadata enhancements (no database schema change) -->
+<div class="form-group">
+<label for="wallDevice">الجهاز المستهدف</label>
+<select id="wallDevice">
+<option value="all">📱💻 جميع الأجهزة</option>
+<option value="phone">📱 الهاتف</option>
+<option value="desktop">💻 الكمبيوتر</option>
+<option value="tablet">📟 الجهاز اللوحي</option>
+</select>
+<small>اختيار تنظيمي في واجهة النشر؛ لا يُحفظ في قاعدة البيانات الحالية.</small>
+</div>
+<div class="form-group">
+<label for="wallColors">الألوان الرئيسية</label>
+<input id="wallColors" type="text" placeholder="#111827, #60a5fa">
+<small>يمكن تركه فارغًا.</small>
+</div>
 <!-- الوسوم -->
 
 
@@ -445,6 +466,8 @@ multiple
 
 >
 
+
+<small id="wallAutoMetadata" class="wall-auto-metadata">ستظهر الدقة والحجم تلقائيًا بعد اختيار ملف واحد.</small>
 
 <small id="selectedImagesCount">
 

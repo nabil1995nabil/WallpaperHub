@@ -139,7 +139,43 @@ let wallpapers = [];
 let editingId = null;
 
 
+
 let selectedFiles = [];
+
+function formatBytes(bytes){
+    if(!Number.isFinite(bytes) || bytes < 0) return "";
+    if(bytes === 0) return "0 B";
+    const units=["B","KB","MB","GB"];
+    const i=Math.min(Math.floor(Math.log(bytes)/Math.log(1024)),units.length-1);
+    return `${(bytes/Math.pow(1024,i)).toFixed(i===0?0:2)} ${units[i]}`;
+}
+async function updateAutoFileMetadata(files){
+    const output=document.getElementById("wallAutoMetadata");
+    if(!output) return;
+    const list=Array.from(files||[]);
+    if(!list.length){ output.textContent="ستظهر الدقة والحجم تلقائيًا بعد اختيار ملف واحد."; return; }
+    const total=list.reduce((sum,file)=>sum+Number(file.size||0),0);
+    const first=list[0];
+    let dimensions="";
+    if(first.type.startsWith("image/")){
+        dimensions=await new Promise(resolve=>{
+            const url=URL.createObjectURL(first), img=new Image();
+            img.onload=()=>{resolve(`${img.naturalWidth}×${img.naturalHeight}`);URL.revokeObjectURL(url);};
+            img.onerror=()=>{resolve("تعذر قراءة الأبعاد");URL.revokeObjectURL(url);};
+            img.src=url;
+        });
+    }else if(first.type.startsWith("video/")){
+        dimensions=await new Promise(resolve=>{
+            const url=URL.createObjectURL(first), video=document.createElement("video");
+            video.preload="metadata";
+            video.onloadedmetadata=()=>{resolve(`${video.videoWidth}×${video.videoHeight}`);URL.revokeObjectURL(url);};
+            video.onerror=()=>{resolve("تعذر قراءة الأبعاد");URL.revokeObjectURL(url);};
+            video.src=url;
+        });
+    }else dimensions="غير متاح";
+    output.textContent=`الدقة: ${dimensions} · حجم ${list.length>1?"الملفات المختارة":"الملف"}: ${formatBytes(total)}`;
+}
+
 
 
 
@@ -280,6 +316,8 @@ function fallbackTags(file){
         amoled:["amoled","dark","black"], animals:["animals","wildlife"], anime:["anime","illustration"],
         city:["city","urban","architecture"], sports:["sports","athlete"], "4k":["4k","high resolution"],
         minimal:["minimal","clean"], rain:["rain","weather"], sunset:["sunset","sky"],
+        snow:["snow","winter","ice","snowfall","frost"], aurora:["aurora","northern lights","night sky","polar lights"],
+        cyberpunk:["cyberpunk","neon","futuristic","sci-fi","night city"], gradients:["gradient","abstract","minimal","colorful"],
         architecture:["architecture","building"], "deep-space":["deep space","galaxy","universe"]
     };
     const tags=[...(map[category]||[]),...name.toLowerCase().split(/\s+/).filter(x=>x.length>2),...title.toLowerCase().split(/\s+/).filter(x=>x.length>2)];
@@ -675,6 +713,7 @@ reader.readAsDataURL(file);
 
 
 if(imageInput){
+imageInput.addEventListener("change",()=>updateAutoFileMetadata(imageInput.files).catch(()=>{}));
 
 
 imageInput.addEventListener(
