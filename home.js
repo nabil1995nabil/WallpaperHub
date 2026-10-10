@@ -179,62 +179,6 @@ const downloadedContainer =
 document.getElementById("downloadedWallpapers");
 
 // =======================================
-// أقسام اكتشاف إضافية في الصفحة الرئيسية
-// تعتمد على نفس بيانات /api/wallpapers دون API جديد.
-// =======================================
-function renderDiscoverySections() {
-    const sections = {
-        snow: document.getElementById("snowWallpapers"),
-        aurora: document.getElementById("auroraWallpapers"),
-        cyberpunk: document.getElementById("cyberpunkWallpapers"),
-        gradients: document.getElementById("gradientsWallpapers")
-    };
-
-    const aliases = {
-        snow: ["snow", "winter", "ثلج", "الثلج", "شتاء", "الشتاء"],
-        aurora: ["aurora", "aurora borealis", "الشفق القطبي", "الشفق"],
-        cyberpunk: ["cyberpunk", "سايبربانك", "سايبر بانك"],
-        gradients: ["gradients", "gradient", "colors", "colours", "تدرجات", "التدرجات", "ألوان", "الوان"]
-    };
-
-    const normalize = value => String(value || "").trim().toLowerCase();
-
-    Object.entries(sections).forEach(([key, container]) => {
-        if (!container) {
-            console.warn("Discovery section container not found:", key);
-            return;
-        }
-
-        const validNames = (aliases[key] || [key]).map(normalize);
-        const matches = wallpapers.filter(wall => {
-            const category = normalize(wall?.category);
-            return validNames.includes(category);
-        });
-
-        container.innerHTML = "";
-
-        if (matches.length) {
-            matches.slice().reverse().slice(0, 8).forEach(wall => {
-                container.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
-            });
-        } else {
-            container.innerHTML = `
-                <div class="discovery-empty" role="status">
-                    <span class="discovery-empty-icon" aria-hidden="true">${key === "snow" ? "❄️" : key === "aurora" ? "🌌" : key === "cyberpunk" ? "🌃" : "🎨"}</span>
-                    <span>ستظهر الخلفيات هنا عند نشر خلفيات بهذا القسم</span>
-                </div>
-            `;
-        }
-
-        // Keep the section visible even when there are no matching wallpapers.
-        const section = container.closest(".discovery-section");
-        if (section) section.hidden = false;
-
-        console.log(`DISCOVERY [${key}] matched:`, matches.length);
-    });
-}
-
-// =======================================
 // تحميل البيانات
 // =======================================
 async function loadWallpapers() {
@@ -262,7 +206,6 @@ async function loadWallpapers() {
         renderLiked();
         renderLatest();
         renderRecommended();
-        renderDiscoverySections();
         createDynamicSections();
         // تحميل التوصيات الشخصية من الخادم بعد تحميل الخلفيات الأساسية.
         await loadPersonalizedRecommendations();
@@ -454,6 +397,10 @@ sunset:"🌅 الغروب",
 architecture:"🏛️ العمارة",
 
 "deep-space":"🚀 الفضاء العميق"
+    "snow": "❄️ الثلج والشتاء",
+    "aurora": "🌌 الشفق القطبي",
+    "cyberpunk": "🌃 السايبربانك",
+    "gradients": "🎨 التدرجات والألوان"
 };
 
 // =======================================
