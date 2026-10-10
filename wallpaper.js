@@ -462,6 +462,158 @@ if(wallVideo){
 }
 
 
+
+// ===============================
+// GYROSCOPE_PARALLAX_ENGINE
+// تحريك منظور الخلفية مع حركة الهاتف
+// يعمل بطبقة parallax بسيطة للصور والفيديو، دون التأثير على عارض 360 الحالي.
+// ===============================
+const gyroMotion = {
+    enabled: false,
+    permissionPending: false,
+    supported: typeof window !== "undefined" &&
+        ("DeviceOrientationEvent" in window),
+    baseX: 0,
+    baseY: 0,
+    smoothX: 0,
+    smoothY: 0,
+    raf: 0,
+    hintTimer: 0
+};
+
+const gyroMotionBtn = document.getElementById("gyroMotionBtn");
+const wallpaperPreviewWrapper = document.querySelector(".wallpaper-preview-wrapper");
+
+function showGyroMotionHint(message, visible = true){
+    if(!wallpaperPreviewWrapper) return;
+    let hint = wallpaperPreviewWrapper.querySelector(".gyro-motion-hint");
+    if(!hint){
+        hint = document.createElement("div");
+        hint.className = "gyro-motion-hint";
+        hint.setAttribute("role", "status");
+        wallpaperPreviewWrapper.appendChild(hint);
+    }
+    hint.textContent = message;
+    hint.classList.toggle("is-visible", visible);
+    if(gyroMotion.hintTimer) clearTimeout(gyroMotion.hintTimer);
+    if(visible){
+        gyroMotion.hintTimer = setTimeout(() => {
+            hint.classList.remove("is-visible");
+        }, 2600);
+    }
+}
+
+function resetGyroMotionTransform(){
+    [wallImage, wallVideo].forEach(media => {
+        if(!media) return;
+        media.style.transition = "transform 220ms ease-out";
+        media.style.transform = "translate3d(0,0,0) scale(1.06)";
+        requestAnimationFrame(() => {
+            if(media) media.style.transform = "";
+        });
+    });
+    if(wallpaperPreviewWrapper) wallpaperPreviewWrapper.classList.remove("is-gyro-motion");
+}
+
+function onGyroOrientation(event){
+    if(!gyroMotion.enabled || !wallpaperPreviewWrapper) return;
+    if(wallpaperPreviewWrapper.classList.contains("is-panorama")) return;
+
+    // Gamma: ميل الهاتف يميناً/يساراً، Beta: ميله للأمام/الخلف.
+    const gamma = Number(event.gamma);
+    const beta = Number(event.beta);
+    if(!Number.isFinite(gamma) || !Number.isFinite(beta)) return;
+
+    const x = Math.max(-1, Math.min(1, gamma / 28));
+    const y = Math.max(-1, Math.min(1, (beta - 35) / 35));
+
+    gyroMotion.baseX = x;
+    gyroMotion.baseY = y;
+
+    if(!gyroMotion.raf){
+        gyroMotion.raf = requestAnimationFrame(renderGyroMotion);
+    }
+}
+
+function renderGyroMotion(){
+    gyroMotion.raf = 0;
+    if(!gyroMotion.enabled || !wallpaperPreviewWrapper) return;
+    if(wallpaperPreviewWrapper.classList.contains("is-panorama")) return;
+
+    gyroMotion.smoothX += (gyroMotion.baseX - gyroMotion.smoothX) * 0.12;
+    gyroMotion.smoothY += (gyroMotion.baseY - gyroMotion.smoothY) * 0.12;
+
+    const tx = -gyroMotion.smoothX * 13;
+    const ty = -gyroMotion.smoothY * 13;
+    const transform = `translate3d(${tx.toFixed(2)}px,${ty.toFixed(2)}px,0) scale(1.09)`;
+
+    [wallImage, wallVideo].forEach(media => {
+        if(!media || getComputedStyle(media).display === "none") return;
+        media.style.transition = "none";
+        media.style.transform = transform;
+    });
+
+    if(Math.abs(gyroMotion.baseX - gyroMotion.smoothX) > 0.002 ||
+       Math.abs(gyroMotion.baseY - gyroMotion.smoothY) > 0.002){
+        gyroMotion.raf = requestAnimationFrame(renderGyroMotion);
+    }
+}
+
+async function enableGyroMotion(){
+    if(!gyroMotion.supported){
+        showGyroMotionHint("هذا المتصفح لا يدعم مستشعر حركة الهاتف");
+        return;
+    }
+
+    // iOS requires an explicit permission prompt from a user gesture.
+    try{
+        if(typeof DeviceOrientationEvent.requestPermission === "function"){
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if(permission !== "granted"){
+                showGyroMotionHint("لم يتم السماح بالوصول إلى مستشعر الحركة");
+                return;
+            }
+        }
+    }catch(error){
+        console.warn("GYROSCOPE PERMISSION ERROR:", error);
+        showGyroMotionHint("تعذر تفعيل مستشعر الحركة");
+        return;
+    }
+
+    gyroMotion.enabled = true;
+    wallpaperPreviewWrapper?.classList.add("is-gyro-motion");
+    gyroMotionBtn?.classList.add("is-active");
+    gyroMotionBtn?.setAttribute("aria-pressed", "true");
+    window.addEventListener("deviceorientation", onGyroOrientation, { passive:true });
+    showGyroMotionHint("حرّك هاتفك لمشاهدة الخلفية تتحرك");
+}
+
+function disableGyroMotion(){
+    gyroMotion.enabled = false;
+    window.removeEventListener("deviceorientation", onGyroOrientation);
+    if(gyroMotion.raf) cancelAnimationFrame(gyroMotion.raf);
+    gyroMotion.raf = 0;
+    gyroMotion.baseX = gyroMotion.baseY = 0;
+    gyroMotion.smoothX = gyroMotion.smoothY = 0;
+    gyroMotionBtn?.classList.remove("is-active");
+    gyroMotionBtn?.setAttribute("aria-pressed", "false");
+    resetGyroMotionTransform();
+}
+
+if(gyroMotionBtn){
+    gyroMotionBtn.setAttribute("aria-pressed", "false");
+    gyroMotionBtn.addEventListener("click", () => {
+        if(gyroMotion.enabled){
+            disableGyroMotion();
+            showGyroMotionHint("تم إيقاف تحريك الخلفية");
+        }else{
+            enableGyroMotion();
+        }
+    });
+}
+
+window.addEventListener("pagehide", disableGyroMotion);
+
 // ===============================
 // Load Wallpaper
 // ===============================
