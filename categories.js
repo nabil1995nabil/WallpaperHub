@@ -3,7 +3,8 @@ const categories = [...document.querySelectorAll(".category-card")];
 const categoryNames = {
  all:"الكل",nature:"الطبيعة",cars:"السيارات",games:"الألعاب",space:"الفضاء",
  ai:"الذكاء الاصطناعي",amoled:"AMOLED",animals:"الحيوانات",anime:"الأنمي",
- city:"المدن",dark:"Dark","4k":"4K",sports:"الرياضة",minimal:"Minimal"
+ city:"المدن",dark:"Dark","4k":"4K",sports:"الرياضة",minimal:"Minimal",
+ snow:"الثلج والشتاء",aurora:"الشفق القطبي",cyberpunk:"السايبربانك",gradients:"التدرجات والألوان"
 };
 
 const searchInput=document.getElementById("categorySearch");
