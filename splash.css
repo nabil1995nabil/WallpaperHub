@@ -406,4 +406,21 @@ body{
         animation-iteration-count:1 !important;
         scroll-behavior:auto !important;
     }
+}\n\n
+/* Fallback link when JavaScript is disabled */
+.splash-fallback {
+    position: fixed;
+    z-index: 10;
+    right: 16px;
+    bottom: 16px;
 }
+.splash-fallback a {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--brand);
+    text-decoration: none;
+    font-weight: 800;
+}
+\n

@@ -1,47 +1,58 @@
-const title = document.getElementById("title");
-const loadingBar = document.getElementById("loadingBar");
-const loadingText = document.getElementById("loadingText");
-const loadingPercent = document.getElementById("loadingPercent");
+(() => {
+    const title = document.getElementById("title");
+    const loadingBar = document.getElementById("loadingBar");
+    const loadingText = document.getElementById("loadingText");
+    const loadingPercent = document.getElementById("loadingPercent");
 
-if (title) {
-    title.innerHTML = "WallpaperHub"
-        .split("")
-        .map((letter, index) => `<span style="--i:${index}">${letter}</span>`)
-        .join("");
-}
-
-const messages = [
-    "نجهّز عالمك...",
-    "نرتّب أجمل الخلفيات...",
-    "لحظات وتبدأ التجربة..."
-];
-
-let progress = 0;
-let messageIndex = 0;
-
-function updateProgress() {
-    progress = Math.min(100, progress + Math.random() * 8 + 4);
-
-    if (loadingBar) loadingBar.style.width = `${progress}%`;
-    if (loadingPercent) loadingPercent.textContent = `${Math.round(progress)}%`;
-
-    if (progress > 32 && messageIndex === 0) {
-        messageIndex = 1;
-        if (loadingText) loadingText.textContent = messages[messageIndex];
+    if (title) {
+        title.textContent = "WallpaperHub";
+        title.innerHTML = "WallpaperHub"
+            .split("")
+            .map((letter, index) => `<span style="--i:${index}">${letter}</span>`)
+            .join("");
     }
 
-    if (progress > 72 && messageIndex === 1) {
-        messageIndex = 2;
-        if (loadingText) loadingText.textContent = messages[messageIndex];
+    const messages = [
+        "نجهّز عالمك...",
+        "نرتّب أجمل الخلفيات...",
+        "لحظات وتبدأ التجربة..."
+    ];
+
+    let progress = 0;
+    let messageIndex = 0;
+    let redirected = false;
+
+    function goHome() {
+        if (redirected) return;
+        redirected = true;
+        window.location.replace(new URL("home.html", window.location.href).href);
     }
 
-    if (progress < 100) {
-        setTimeout(updateProgress, 120);
+    function updateProgress() {
+        if (redirected) return;
+
+        progress = Math.min(100, progress + 5);
+        if (loadingBar) loadingBar.style.width = `${progress}%`;
+        if (loadingPercent) loadingPercent.textContent = `${progress}%`;
+
+        if (progress >= 35 && messageIndex === 0) {
+            messageIndex = 1;
+            if (loadingText) loadingText.textContent = messages[1];
+        } else if (progress >= 75 && messageIndex === 1) {
+            messageIndex = 2;
+            if (loadingText) loadingText.textContent = messages[2];
+        }
+
+        if (progress < 100) {
+            window.setTimeout(updateProgress, 70);
+        }
     }
-}
 
-requestAnimationFrame(updateProgress);
+    requestAnimationFrame(updateProgress);
 
-setTimeout(() => {
-    window.location.href = "home.html";
-}, 5000);
+    // Navigate after a short, predictable splash; this is independent of the progress animation.
+    window.setTimeout(goHome, 2200);
+
+    // Safety net: if the splash remains visible unusually long, retry navigation once.
+    window.setTimeout(goHome, 4500);
+})();
