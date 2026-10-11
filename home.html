@@ -162,6 +162,20 @@
 
 
 <!-- ==================================================
+     إعلان AdSense — بين الأكثر تحميلاً وبطاقة المجتمع
+     بدّل YOUR_AD_SLOT_ID برقم الوحدة الإعلانية من AdSense
+================================================== -->
+<div class="home-ad-section" aria-label="مساحة إعلانية">
+    <div class="home-ad-label">ADVERTISEMENT</div>
+    <ins class="adsbygoogle home-ad-unit"
+         style="display:block"
+         data-ad-client="ca-pub-8383296220423056"
+         data-ad-slot="YOUR_AD_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+</div>
+
+<!-- ==================================================
      7. مجتمع WallpaperHub
 ================================================== -->
 <section class="community-section">
@@ -344,6 +358,14 @@
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8383296220423056"
      crossorigin="anonymous"></script>
+<script>
+(function () {
+    var ad = document.querySelector('.home-ad-unit');
+    if (ad && ad.dataset.adSlot && ad.dataset.adSlot !== 'YOUR_AD_SLOT_ID') {
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    }
+})();
+</script>
 
 </body>
 </html>

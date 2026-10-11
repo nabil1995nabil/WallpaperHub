@@ -1684,3 +1684,47 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
 @media(prefers-reduced-motion:reduce){.community-motion-canvas{display:none!important}}
 
 
+/* HOMEPAGE ADSENSE — clean horizontal ad between downloads and community */
+.home-ad-section {
+    width: calc(100% - 32px);
+    max-width: 1000px;
+    min-width: 0;
+    margin: 24px auto 28px;
+    padding: 10px;
+    overflow: hidden;
+    border: 1px solid #eceef4;
+    border-radius: 22px;
+    background: #f7f8fc;
+    box-shadow: 0 8px 24px rgba(33, 38, 70, .045);
+}
+.home-ad-label {
+    margin: 0 0 8px;
+    color: #9a9eae;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    line-height: 1.2;
+    text-align: center;
+    direction: ltr;
+}
+.home-ad-unit {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 90px;
+    overflow: hidden;
+    border-radius: 14px;
+}
+@media (max-width: 600px) {
+    .home-ad-section {
+        width: calc(100% - 28px);
+        margin: 20px auto 24px;
+        padding: 8px;
+        border-radius: 19px;
+    }
+    .home-ad-unit {
+        min-height: 80px;
+        border-radius: 12px;
+    }
+}
+
