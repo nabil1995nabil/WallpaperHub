@@ -2253,8 +2253,9 @@ if (STATIC_DIR !== STATIC_ROOT) {
 const GITHUB_STATIC_BASE =
     "https://raw.githubusercontent.com/nabil1995nabil/WallpaperHub/main/";
 
+
 const STATIC_EXTENSIONS = new Set([
-    ".css", ".js", ".mjs", ".json", ".map",
+    ".css", ".js", ".mjs", ".json", ".xml", ".map",
     ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico",
     ".avif", ".bmp", ".webm", ".mp4", ".mov", ".m4v",
     ".woff", ".woff2", ".ttf", ".otf", ".eot"
@@ -3887,7 +3888,11 @@ const HOME_CATEGORY_KEYS = [
     "animals",
     "dark",
     "4k",
-    "sports"
+    "sports",
+    "snow",
+    "aurora",
+    "cyberpunk",
+    "gradients"
 ];
 
 app.get("/api/categories", async (req, res) => {
