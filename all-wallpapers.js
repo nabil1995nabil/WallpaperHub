@@ -91,7 +91,8 @@ const categoryNames = {
     snow:"❄️ خلفيات الثلج والشتاء",
     aurora:"🌌 خلفيات الشفق القطبي",
     cyberpunk:"🌃 خلفيات السايبربانك",
-    gradients:"🎨 خلفيات التدرجات والألوان"
+    gradients:"🎨 خلفيات التدرجات والألوان",
+    other:"✨ خلفيات أخرى"
 };
 
 const typeNames = {
@@ -291,6 +292,13 @@ async function loadWallpapers(){
 }
 
 function preparePage(){
+    if(type === "other"){
+        currentFilter = "other";
+        pageTitle.textContent = "✨ خلفيات أخرى";
+        return;
+    }
+
+
     pageWallpapers = [...allWallpapers];
 
     if(category){
@@ -348,8 +356,58 @@ function applySort(list){
     if(sort === "likes") list.sort((a,b) => Number(b.likes || 0) - Number(a.likes || 0));
 }
 
+let pixabayWallpapers = [];
+let pixabayRequestId = 0;
+
+async function loadPixabayWallpapers(){
+    const requestId = ++pixabayRequestId;
+    loading.style.display = "flex";
+    emptyState.style.display = "none";
+    wallpapersGrid.innerHTML = "";
+    pageTitle.textContent = "✨ خلفيات أخرى";
+
+    try{
+        const response = await fetch(
+            "/api/pixabay-wallpapers?q=wallpaper%20backgrounds&per_page=24",
+            {cache:"no-store"}
+        );
+        if(!response.ok) throw new Error("Pixabay API " + response.status);
+
+        const data = await response.json();
+        if(requestId !== pixabayRequestId) return;
+
+        pixabayWallpapers = Array.isArray(data?.wallpapers) ? data.wallpapers : [];
+        visibleWallpapers = pixabayWallpapers.map((wall,index)=>({
+            ...wall,
+            id: wall.id || ("pixabay-" + index),
+            source: "pixabay"
+        }));
+
+        loading.style.display = "none";
+        wallpaperCount.textContent = `${visibleWallpapers.length.toLocaleString("ar-MA")} خلفية`;
+        renderWallpapers();
+    }catch(error){
+        if(requestId !== pixabayRequestId) return;
+        console.warn("PIXABAY ALL-WALLPAPERS ERROR:",error);
+        loading.style.display = "none";
+        wallpapersGrid.innerHTML = "";
+        emptyState.style.display = "block";
+        const title = emptyState.querySelector("h3");
+        const message = emptyState.querySelector("p");
+        if(title) title.textContent = "تعذر تحميل خلفيات أخرى";
+        if(message) message.textContent = "تحقق من إعداد PIXABAY_API_KEY في Vercel ثم أعد المحاولة.";
+        wallpaperCount.textContent = "0 خلفية";
+    }
+}
+
 function applyFilters(){
-    visibleWallpapers = [...pageWallpapers];
+    if(currentFilter !== "other") visibleWallpapers = [...pageWallpapers];
+
+    // Pixabay section: load images from the server-side API proxy.
+    if(currentFilter === "other"){
+        loadPixabayWallpapers();
+        return;
+    }
 
     // Unsplash uses the same main wallpaper grid.
     // No duplicate 10-photo section and no photographer names below the cards.
@@ -438,7 +496,8 @@ const categoryGroups = [
             ["3d","3D","view_in_ar"], ["neon","Neon","lightbulb"],
             ["colors","ألوان","palette"], ["ai","ذكاء اصطناعي","smart_toy"],
             ["snow","الثلج والشتاء","ac_unit"], ["aurora","الشفق القطبي","flare"],
-            ["cyberpunk","سايبربانك","bolt"], ["gradients","التدرجات والألوان","gradient"]
+            ["cyberpunk","سايبربانك","bolt"], ["gradients","التدرجات والألوان","gradient"],
+            ["other","خلفيات أخرى","auto_awesome"]
         ]
     },
     {
@@ -610,6 +669,10 @@ function renderWallpapers(){
         card.append(image,qualityBadge,favoriteButton,overlay);
 
         card.addEventListener("click",() => {
+            if(wallpaper.source === "pixabay" && wallpaper.pageURL){
+                window.open(wallpaper.pageURL,"_blank","noopener");
+                return;
+            }
             localStorage.setItem("selectedWallpaper",String(wallpaper.id ?? ""));
             location.href = `wallpaper.html?id=${encodeURIComponent(wallpaper.id)}`;
         });
