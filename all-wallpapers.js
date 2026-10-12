@@ -669,10 +669,26 @@ function renderWallpapers(){
         card.append(image,qualityBadge,favoriteButton,overlay);
 
         card.addEventListener("click",() => {
-            if(wallpaper.source === "pixabay" && wallpaper.pageURL){
-                window.open(wallpaper.pageURL,"_blank","noopener");
+            // افتح صفحة المعرض داخل WallpaperHub حتى لصور Pixabay.
+            // نمرر بيانات الصورة مؤقتاً لأن الصورة الخارجية ليست في جدول wallpapers.
+            if(wallpaper.source === "pixabay"){
+                const galleryItem = {
+                    id: String(wallpaper.id ?? ""),
+                    title: String(wallpaper.title || "خلفية"),
+                    image: String(wallpaper.image || wallpaper.thumbnail || ""),
+                    thumbnail: String(wallpaper.thumbnail || wallpaper.image || ""),
+                    resolution: String(wallpaper.resolution || ""),
+                    category: String(wallpaper.category || "other"),
+                    source: "pixabay",
+                    pageURL: String(wallpaper.pageURL || ""),
+                    downloads: Number(wallpaper.downloads || 0),
+                    likes: Number(wallpaper.likes || 0)
+                };
+                sessionStorage.setItem("selectedExternalWallpaper", JSON.stringify(galleryItem));
+                location.href = `wallpaper.html?source=pixabay&id=${encodeURIComponent(galleryItem.id)}`;
                 return;
             }
+
             localStorage.setItem("selectedWallpaper",String(wallpaper.id ?? ""));
             location.href = `wallpaper.html?id=${encodeURIComponent(wallpaper.id)}`;
         });

@@ -548,7 +548,63 @@ function disableAuto360Gyroscope(){
 // Load Wallpaper
 // ===============================
 
+
+// =====================================
+// Pixabay wallpapers: render in WallpaperHub gallery
+// =====================================
+function getExternalWallpaperFromSession(){
+    try{
+        const raw = sessionStorage.getItem("selectedExternalWallpaper");
+        if(!raw) return null;
+        const item = JSON.parse(raw);
+        if(!item || item.source !== "pixabay" || !(item.image || item.thumbnail)) return null;
+        return {
+            ...item,
+            id: String(item.id || ""),
+            title: item.title || "خلفية",
+            image: item.image || item.thumbnail,
+            thumbnail: item.thumbnail || item.image,
+            category: item.category || "other",
+            source: "pixabay",
+            author: item.author || "Pixabay",
+            resolution: item.resolution || "",
+            size: item.size || "",
+            description: item.description || "خلفية من Pixabay معروضة داخل WallpaperHub.",
+            tags: Array.isArray(item.tags) ? item.tags : [],
+            colors: Array.isArray(item.colors) ? item.colors : [],
+            downloads: Number(item.downloads || 0),
+            likes: Number(item.likes || 0),
+            views: Number(item.views || 0),
+            rating: Number(item.rating || 0),
+            ratingCount: Number(item.ratingCount || 0),
+            is360: false,
+            type: "image"
+        };
+    }catch(error){
+        console.warn("PIXABAY SESSION WALLPAPER ERROR:", error);
+        return null;
+    }
+}
+
+
 async function loadWallpaper() {
+    // الصور القادمة من Pixabay لا تملك رقماً داخل جدول wallpapers؛ نعرضها من بيانات البطاقة.
+    const externalWallpaper = params.get("source") === "pixabay"
+        ? getExternalWallpaperFromSession()
+        : null;
+
+    if(externalWallpaper){
+        currentWallpaper = externalWallpaper;
+        allWallpapers = [externalWallpaper];
+        categoryWallpapers = [externalWallpaper];
+        currentWallpaperIndex = 0;
+        wallpaperId = externalWallpaper.id;
+        showWallpaper();
+        renderExternalWallpaperDetails();
+        loadSimilar();
+        return;
+    }
+
     try {
         const response = await fetch(API, { cache: "no-store" });
         if (!response.ok) throw new Error("API ERROR");
@@ -886,6 +942,9 @@ function applyPublisherProfile(user, publisherUID, wallpaperId = null) {
 // ===============================
 
 function getWallpaperPageLink(id){
+    if(currentWallpaper?.source === "pixabay"){
+        return window.location.href;
+    }
     const url = new URL("wallpaper.html", window.location.href);
     url.searchParams.set("id", String(id));
     return url.href;
@@ -1682,6 +1741,61 @@ if(panoramaCanvas){
             }
         }
     );
+}
+
+
+function renderExternalWallpaperDetails(){
+    const wall = currentWallpaper;
+    if(!wall) return;
+
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = value == null || value === "" ? "—" : String(value);
+    };
+
+    setText("wallTitle2", wall.title || "خلفية");
+    setText("wallDescription", wall.description || "خلفية من Pixabay معروضة داخل WallpaperHub.");
+    setText("wallResolution", wall.resolution || "غير متوفر");
+    setText("wallSize", wall.size || "غير متوفر");
+    setText("wallDownloads", wall.downloads || 0);
+    setText("wallAuthor", wall.author || "Pixabay");
+    setText("wallDate", "—");
+    setText("captureLocation", "غير متوفر");
+    setText("captureDate", "غير متوفر");
+    setText("captureTime", "غير متوفر");
+    setText("imageSource", "Pixabay");
+    setText("wallLikes", wall.likes || 0);
+    setText("wallViews", wall.views || 0);
+    setText("wallQuickRating", wall.ratingCount || 0);
+    setText("wallQuickDate", "—");
+    setText("wallRating", Number(wall.rating || 0).toFixed(1));
+    setText("ratingCount", wall.ratingCount || 0);
+
+    const avatar = document.getElementById("wallAuthorAvatar");
+    if(avatar){
+        avatar.src = "/assets/logo/no-image.png";
+        avatar.onerror = null;
+    }
+
+    if(tagsContainer){
+        tagsContainer.innerHTML = "";
+        (Array.isArray(wall.tags) ? wall.tags : []).forEach(tag => {
+            const span = document.createElement("span");
+            span.className = "tag";
+            span.textContent = "#" + String(tag);
+            tagsContainer.appendChild(span);
+        });
+    }
+
+    if(colorPalette) colorPalette.innerHTML = "";
+    if(wallImageLink) wallImageLink.textContent = location.href;
+    if(wallDirectImageLink) wallDirectImageLink.textContent = wall.image || "";
+
+    // Pixabay items are external assets; don't send database-only actions for them.
+    const downloadBtn = document.getElementById("downloadBtn");
+    if(downloadBtn){
+        downloadBtn.dataset.externalImage = wall.image || "";
+    }
 }
 
 function showWallpaper(){

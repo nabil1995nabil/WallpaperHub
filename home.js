@@ -296,9 +296,20 @@ function createWallpaperCard(wall) {
 
 
 
-const cardAction = wall.source === "pixabay" && wall.pageURL
-        ? `window.open('${String(wall.pageURL).replace(/'/g, "%27")}', '_blank', 'noopener')`
-        : `openWallpaper('${wall.id}')`;
+// افتح معرض WallpaperHub حتى للصور القادمة من Pixabay.
+const cardAction = wall.source === "pixabay"
+        ? `openExternalWallpaper('${encodeURIComponent(JSON.stringify({
+            id: String(wall.id || ""),
+            title: String(wall.title || "خلفية"),
+            image: String(wall.image || wall.thumbnail || ""),
+            thumbnail: String(wall.thumbnail || wall.image || ""),
+            category: String(wall.category || "other"),
+            source: "pixabay",
+            pageURL: String(wall.pageURL || ""),
+            downloads: Number(wall.downloads || 0),
+            likes: Number(wall.likes || 0)
+        }))}')`
+        : `openWallpaper('${String(wall.id ?? "").replace(/'/g, "%27")}')`;
 
 return `
 
@@ -590,6 +601,19 @@ function openWallpaper(id) {
 
 window.openWallpaper =
 openWallpaper;
+
+// فتح صورة Pixabay داخل معرض WallpaperHub بدلاً من الموقع الخارجي.
+function openExternalWallpaper(encodedWallpaper){
+    try{
+        const wallpaper = JSON.parse(decodeURIComponent(encodedWallpaper));
+        sessionStorage.setItem("selectedExternalWallpaper", JSON.stringify(wallpaper));
+        window.location.href =
+            `wallpaper.html?source=pixabay&id=${encodeURIComponent(wallpaper.id)}`;
+    }catch(error){
+        console.error("Unable to open external wallpaper in local gallery:", error);
+    }
+}
+window.openExternalWallpaper = openExternalWallpaper;
 
 // =======================================
 // المفضلة
