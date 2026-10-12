@@ -1,3 +1,5 @@
+import { supabase } from "./supabase.js";
+
 /*
  * WallpaperHub Publish Studio
  * UI queue is implemented per file. Real cloud upload requires the project's upload endpoint.
@@ -233,25 +235,19 @@ function beginDemoTransfers(){
 const CLOUDINARY_CLOUD_NAME = "ls9wdurp";
 const CLOUDINARY_UPLOAD_PRESET = "wallpaperhub_upload";
 let publisherSession = null;
-const authToken = () => {
-  const keys = ["supabase.auth.token","sb-access-token","access_token","supabaseAccessToken"];
-  for(const key of keys){
-    try{
-      const raw=localStorage.getItem(key);
-      if(!raw)continue;
-      if(raw.startsWith("eyJ"))return raw;
-      const parsed=JSON.parse(raw);
-      if(parsed?.access_token)return parsed.access_token;
-      if(parsed?.currentSession?.access_token)return parsed.currentSession.access_token;
-    }catch{}
-  }
-  for(let i=0;i<localStorage.length;i++){
-    const key=localStorage.key(i);
-    if(!key||!key.startsWith("sb-")||!key.endsWith("-auth-token"))continue;
-    try{const parsed=JSON.parse(localStorage.getItem(key)||"{}");if(parsed.access_token)return parsed.access_token;}catch{}
-  }
-  return "";
-};
+async function getAccessToken(){
+  const { data, error } = await supabase.auth.getSession();
+  if(error) throw error;
+  return data?.session?.access_token || "";
+}
+async function startGoogleLogin(){
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider:"google",
+    options:{ redirectTo: window.location.origin + "/publish.html" }
+  });
+  if(error) throw error;
+}
+
 function setProfileGate(message,loggedIn=false){
   const notice=$("roleNotice");
   notice.hidden=false;
@@ -262,16 +258,22 @@ function setProfileGate(message,loggedIn=false){
     let login=$("publishLoginGate");
     if(!login){
       login=document.createElement("div");login.id="publishLoginGate";login.className="panel";
-      login.innerHTML='<div class="panel-heading"><div><span class="step">!</span><h2>سجّل الدخول للمتابعة</h2></div></div><p class="muted">تحتاج إلى حساب WallpaperHub حتى تظهر بيانات ملفك الشخصي وتستطيع إرسال الخلفيات.</p><a class="primary-btn" href="/login.html">الانتقال إلى تسجيل الدخول</a>';
+      login.innerHTML='<div class="panel-heading"><div><span class="step">!</span><h2>سجّل الدخول للمتابعة</h2></div></div><p class="muted">استعمل نفس حسابك في WallpaperHub. بعد تسجيل الدخول سنرجعك تلقائياً إلى لوحة النشر.</p><div class="publish-auth-actions"><button type="button" class="primary-btn" id="publishGoogleLogin">المتابعة باستخدام Google</button><a class="outline-btn" href="/profile.html">فتح البروفايل</a></div>';
       $("publishForm").before(login);
+      login.querySelector("#publishGoogleLogin")?.addEventListener("click",async()=>{
+        const btn=login.querySelector("#publishGoogleLogin");
+        btn.disabled=true;btn.textContent="جارٍ تحويلك لتسجيل الدخول...";
+        try{await startGoogleLogin();}
+        catch(error){notify(error.message||"تعذر بدء تسجيل الدخول");btn.disabled=false;btn.textContent="المتابعة باستخدام Google";}
+      });
     }
     login.hidden=false;
   }
 }
 async function loadPublisherSession(){
-  const token=authToken();
-  if(!token){setProfileGate("لم نعثر على جلسة تسجيل دخول محفوظة في هذا المتصفح.");return false;}
   try{
+    const token=await getAccessToken();
+    if(!token){setProfileGate("ما كايناش جلسة دخول نشطة. سجّل الدخول بنفس حساب البروفايل.");return false;}
     const response=await fetch("/api/publish/session",{headers:{Authorization:`Bearer ${token}`}});
     const data=await response.json();
     if(!response.ok||!data.success)throw new Error(data.message||"تعذر التحقق من الحساب");
@@ -347,7 +349,8 @@ form.addEventListener("submit",async e=>{
     }
     const tags=$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean);
     const colors=$("wallColors").value.split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);
-    const token=authToken();
+    const token=await getAccessToken();
+    if(!token) throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
     for(const file of selectedFiles){
       const job=uploadJobs.get(fingerprint(file));
       if(!job?.result?.secure_url)throw new Error(`لم يكتمل رفع ${file.name}`);
@@ -381,5 +384,13 @@ form.addEventListener("submit",async e=>{
 });
 $("submitBtn").textContent="التحقق من الحساب...";
 loadPublisherSession();
+supabase.auth.onAuthStateChange((event, session)=>{
+  if(event==="SIGNED_IN" || event==="TOKEN_REFRESHED"){
+    setTimeout(()=>loadPublisherSession(),0);
+  }else if(event==="SIGNED_OUT"){
+    publisherSession=null;
+    setProfileGate("تم تسجيل الخروج. سجّل الدخول مجدداً للمتابعة.");
+  }
+});
 
 renderFiles();
