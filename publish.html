@@ -106,14 +106,14 @@
         <section class="panel media-panel">
           <div class="panel-heading">
             <div><span class="step">02</span><h2>الملفات والمعاينة</h2></div>
-            <span class="muted">صور، فيديو، GIF</span>
+            <span class="muted">حتى 50 صورة</span>
           </div>
 
           <label class="dropzone" id="dropzone" for="wallFiles">
-            <input id="wallFiles" type="file" accept="image/*,video/*,.gif" multiple>
+            <input id="wallFiles" type="file" accept="image/*,.gif" multiple>
             <span class="upload-icon">↑</span>
             <strong>اختار الملفات أو جرّهم لهنا</strong>
-            <span>يمكن اختيار عدة ملفات دفعة واحدة</span>
+            <span>اختار حتى 50 صورة في الدفعة الواحدة</span>
             <small>الصيغ المدعومة: صور وفيديو وGIF</small>
           </label>
           <div class="file-toolbar"><span id="fileCount">ما تختار حتى ملف</span><button type="button" class="text-btn danger-text" id="clearFilesBtn">مسح الاختيار</button></div>
@@ -147,11 +147,13 @@
         <div class="panel-heading"><div><span class="step">04</span><h2>قائمة النشر</h2></div><span class="muted">تحقق قبل الإرسال</span></div>
         <div class="queue-stats"><div><span id="queueTotal">0</span><small>ملفات مختارة</small></div><div><span id="queueValid">0</span><small>ملفات صالحة</small></div><div><span id="queueDuplicates">0</span><small>تنبيهات</small></div></div>
         <div id="validationList" class="validation-list"><p class="muted">اختار ملفات باش نتحقق منها.</p></div>
-        <div class="upload-progress-box" id="uploadProgressBox" hidden>
-          <div class="progress-head"><strong id="progressLabel">تجهيز الملفات...</strong><span id="progressText">0%</span></div>
-          <div class="progress-track"><span id="progressBar"></span></div>
-          <div class="progress-actions"><button type="button" class="outline-btn" id="pauseBtn">إيقاف مؤقت</button><button type="button" class="outline-btn" id="resumeBtn" disabled>استكمال</button><span id="uploadStatus">جاهز</span></div>
-        </div>
+        <section class="upload-manager" id="uploadManager" hidden>
+          <div class="upload-manager-heading">
+            <div><h3>حالة رفع الملفات</h3><p>كل صورة عندها شريط تقدم وأزرار تحكم مستقلّة.</p></div>
+            <span id="uploadOverall">0 / 0 مكتملة</span>
+          </div>
+          <div id="uploadItems" class="upload-items"></div>
+        </section>
         <div class="bottom-actions">
           <button type="button" class="outline-btn" id="saveDraftBtn">حفظ كمسودة</button>
           <div class="primary-actions"><button type="button" class="ghost-btn" id="resetBtn">إعادة تعيين</button><button type="submit" class="primary-btn" id="submitBtn">إرسال الخلفيات للمراجعة <span>↗</span></button></div>
