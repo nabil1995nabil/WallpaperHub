@@ -293,7 +293,9 @@ function renderPublisherCard(user){
   if(!card){
     card=document.createElement("section");card.id="publisherProfileCard";card.className="panel publisher-profile-card";
     card.innerHTML='<div class="publisher-avatar-wrap"><img id="publisherAvatar" alt="صورة الحساب"><span class="publisher-online-dot"></span></div><div class="publisher-profile-data"><strong id="publisherName"></strong><span id="publisherUsername"></span><span id="publisherEmail"></span><a href="/profile.html" class="publisher-profile-link">تعديل بيانات البروفايل</a></div><span class="publisher-role" id="publisherRole"></span>';
-    $("roleNotice").after(card);
+    const slot = $("publisherAccountSlot");
+    if (slot) slot.appendChild(card);
+    else $("roleNotice").after(card);
   }
   const img=$("publisherAvatar");
   img.src=user.avatar_url||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23edf2ff'/%3E%3Ccircle cx='32' cy='23' r='12' fill='%2397a9e8'/%3E%3Cpath d='M10 60c2-15 10-22 22-22s20 7 22 22' fill='%2397a9e8'/%3E%3C/svg%3E";
@@ -302,7 +304,7 @@ function renderPublisherCard(user){
   $("publisherName").textContent = displayName || "مستخدم";
   $("publisherUsername").textContent = user.username
     ? `@${user.username}`
-    : (displayName && displayName !== fallbackName ? displayName : "أكمل اسم المستخدم من البروفايل");
+    : (user.full_name || user.name || displayName || "أكمل اسم المستخدم من البروفايل");
   $("publisherEmail").textContent=user.email||"";
   $("publisherRole").textContent=publisherSession.permissions.canPublishDirectly?"نشر مباشر":"إرسال للمراجعة";
 }
