@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مراجعة الخلفيات | WallpaperHub</title>
+  <link rel="stylesheet" href="admin-review.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>مراجعة الخلفيات</h1>
+      <p>إدارة مساهمات المجتمع قبل نشرها</p>
+    </div>
+    <button id="refreshBtn" class="button secondary">تحديث القائمة</button>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>المساهمون</h2>
+        <span id="pendingTotal" class="count">0</span>
+      </div>
+      <input id="userSearch" type="search" placeholder="البحث عن مساهم...">
+      <div id="contributors" class="contributors">
+        <p class="muted">جارٍ تحميل المساهمين...</p>
+      </div>
+    </section>
+
+    <section class="panel submissions-panel">
+      <div class="panel-heading">
+        <div>
+          <h2 id="submissionHeading">طلبات المراجعة</h2>
+          <p id="selectedContributor" class="muted">اختر مساهمًا لعرض طلباته</p>
+        </div>
+      </div>
+
+      <div class="filters">
+        <input id="submissionSearch" type="search" placeholder="بحث بالعنوان أو التصنيف">
+        <select id="categoryFilter">
+          <option value="">كل التصنيفات</option>
+          <option value="nature">الطبيعة</option>
+          <option value="anime">أنمي</option>
+          <option value="cars">سيارات</option>
+          <option value="abstract">مجردة</option>
+          <option value="other">أخرى</option>
+        </select>
+        <select id="dateFilter">
+          <option value="all">كل الفترات</option>
+          <option value="today">اليوم</option>
+          <option value="week">آخر 7 أيام</option>
+          <option value="month">آخر 30 يومًا</option>
+        </select>
+      </div>
+
+      <div class="bulk-actions">
+        <label class="select-all">
+          <input type="checkbox" id="selectAll">
+          تحديد المعروض
+        </label>
+        <button id="approveSelected" class="button success">قبول المحدد</button>
+        <button id="rejectSelected" class="button danger">رفض المحدد</button>
+      </div>
+
+      <div id="submissions" class="submissions">
+        <div class="empty-state">اختر مساهمًا لعرض الخلفيات المعلقة.</div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="rejectDialog">
+    <form method="dialog" id="rejectForm">
+      <h2>رفض الخلفية</h2>
+      <p>اكتب سبب الرفض ليتم حفظه في سجل الطلب.</p>
+      <textarea id="rejectReason" maxlength="500"
+        placeholder="سبب الرفض..." required></textarea>
+      <div class="dialog-actions">
+        <button type="button" id="cancelReject" class="button secondary">إلغاء</button>
+        <button type="submit" class="button danger">تأكيد الرفض</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="admin-review.js" defer></script>
+</body>
+</html>
