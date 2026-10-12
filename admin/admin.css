@@ -1454,3 +1454,15 @@ font-size:12px;
 .form-group small{line-height:1.7}
 #wallDevice,#wallColors{min-height:48px}
 @media(max-width:600px){.wall-auto-metadata{font-size:12px}}
+
+
+/* ===========================
+   Wallpaper Review Menu
+   =========================== */
+.menu .wallpaper-review-menu{
+    background:linear-gradient(135deg,#0f766e,#2563eb);
+    color:#fff;
+}
+.menu .wallpaper-review-menu:hover{
+    background:linear-gradient(135deg,#115e59,#1d4ed8);
+}
