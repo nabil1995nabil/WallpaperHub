@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>WallpaperHub | نشر الخلفيات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="publish.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="WallpaperHub">
+      <span class="brand-mark">W</span><span>Wallpaper<span class="brand-accent">Hub</span><small>مركز نشر الخلفيات</small></span>
+    </a>
+    <div class="topbar-actions">
+      <span class="connection"><i></i> واجهة النشر</span>
+      <a class="ghost-btn" href="/">العودة للموقع</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="intro">
+      <div>
+        <span class="eyebrow">PUBLISH STUDIO</span>
+        <h1>خلّي خلفيتك <span>تتكلم.</span></h1>
+        <p>حضّر الخلفيات، راجع المعاينة، ومن بعد أرسلها للنشر أو للمراجعة حسب صلاحيات حسابك.</p>
+      </div>
+      <div class="intro-chip"><span class="spark">✦</span> استوديو نشر متكامل</div>
+    </section>
+
+    <div class="notice" id="roleNotice">
+      <span class="notice-icon">ⓘ</span>
+      <div><strong id="roleTitle">وضع الإرسال للمراجعة</strong><p id="roleDescription">هذه واجهة جاهزة. ربط التحقق الحقيقي من الحساب يحتاج إعداد Supabase وواجهة السيرفر في مشروعك.</p></div>
+    </div>
+
+    <form id="publishForm" novalidate>
+      <div class="workspace">
+        <section class="panel form-panel">
+          <div class="panel-heading">
+            <div><span class="step">01</span><h2>تفاصيل الخلفية</h2></div>
+            <span class="muted">المعلومات الأساسية</span>
+          </div>
+
+          <div class="field">
+            <label for="wallTitle">عنوان الخلفية <b>*</b></label>
+            <input id="wallTitle" name="title" maxlength="120" placeholder="مثال: Midnight Mountains" required>
+            <div class="field-foot"><span>عنوان واضح وسهل البحث</span><span id="titleCount">0 / 120</span></div>
+          </div>
+
+          <div class="field">
+            <label for="wallDescription">وصف الخلفية</label>
+            <textarea id="wallDescription" name="description" rows="3" maxlength="600" placeholder="اكتب وصفاً قصيراً للمشهد والألوان والأجواء..."></textarea>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="wallCategory">القسم <b>*</b></label>
+              <select id="wallCategory" name="category" required>
+                <option value="nature">🌿 الطبيعة</option><option value="cars">🚗 السيارات</option>
+                <option value="games">🎮 الألعاب</option><option value="space">🌌 الفضاء</option>
+                <option value="ai">🤖 الذكاء الاصطناعي</option><option value="amoled">🖤 AMOLED</option>
+                <option value="animals">🐾 الحيوانات</option><option value="anime">🌀 الأنمي</option>
+                <option value="city">🏙️ المدن</option><option value="sports">⚽ الرياضة</option>
+                <option value="4k">💎 4K</option><option value="minimal">✨ Minimal</option>
+                <option value="rain">🌧️ المطر</option><option value="sunset">🌅 الغروب</option>
+                <option value="architecture">🏛️ العمارة</option><option value="other">📁 أخرى</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="wallType">نوع الملف</label>
+              <select id="wallType" name="type"><option value="auto">تلقائي حسب الملف</option><option value="image">صورة</option><option value="video">فيديو متحرك</option><option value="gif">GIF</option></select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="wallTags">وسوم البحث</label>
+            <input id="wallTags" name="tags" placeholder="nature, mountains, night, blue">
+            <div class="field-foot"><span>افصل بين الوسوم بفاصلة</span><button type="button" class="text-btn" id="suggestTagsBtn">✦ اقتراح وسوم</button></div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="wallColors">الألوان الرئيسية</label>
+              <input id="wallColors" name="colors" placeholder="#111827, #60a5fa">
+            </div>
+            <div class="field">
+              <label for="wallDevice">الجهاز المستهدف</label>
+              <select id="wallDevice" name="device"><option value="all">جميع الأجهزة</option><option value="phone">الهاتف</option><option value="desktop">الكمبيوتر</option><option value="tablet">الجهاز اللوحي</option></select>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field"><label for="wallResolution">الدقة</label><input id="wallResolution" readonly placeholder="تُستخرج تلقائياً"></div>
+            <div class="field"><label for="wallSize">الحجم</label><input id="wallSize" readonly placeholder="يُحسب تلقائياً"></div>
+          </div>
+
+          <div class="field">
+            <label for="scheduleAt">جدولة النشر <span class="optional">اختياري</span></label>
+            <input id="scheduleAt" type="datetime-local">
+            <p class="helper">يُحفظ وقت الجدولة في بيانات المسودة؛ النشر التلقائي يحتاج دعماً من السيرفر.</p>
+          </div>
+        </section>
+
+        <section class="panel media-panel">
+          <div class="panel-heading">
+            <div><span class="step">02</span><h2>الملفات والمعاينة</h2></div>
+            <span class="muted">صور، فيديو، GIF</span>
+          </div>
+
+          <label class="dropzone" id="dropzone" for="wallFiles">
+            <input id="wallFiles" type="file" accept="image/*,video/*,.gif" multiple>
+            <span class="upload-icon">↑</span>
+            <strong>اختار الملفات أو جرّهم لهنا</strong>
+            <span>يمكن اختيار عدة ملفات دفعة واحدة</span>
+            <small>الصيغ المدعومة: صور وفيديو وGIF</small>
+          </label>
+          <div class="file-toolbar"><span id="fileCount">ما تختار حتى ملف</span><button type="button" class="text-btn danger-text" id="clearFilesBtn">مسح الاختيار</button></div>
+          <div class="preview-grid" id="previewGrid"><div class="empty-preview"><span>▧</span><p>المعاينة غادي تظهر هنا</p></div></div>
+
+          <div class="preview-tools">
+            <button type="button" class="tool-btn" id="phonePreviewBtn" aria-pressed="false">▯ معاينة الهاتف</button>
+            <button type="button" class="tool-btn" id="cropBtn" aria-pressed="false">⌗ وضع القصّ</button>
+          </div>
+
+          <div class="panorama-box">
+            <div class="panorama-head"><div><span class="step">03</span><h3>عرض 360°</h3></div><span class="pill">ميزة بانورامية</span></div>
+            <p>فعّل الوضع إذا كانت الصورة بانورامية مناسبة. تقدر تجرّ المشهد يمين ويسار لمعاينته.</p>
+            <label class="switch-row"><span><strong>خلفية 360 درجة</strong><small>معاينة بانورامية بالسحب</small></span><input type="checkbox" id="is360"><span class="switch"></span></label>
+            <div class="panorama-preview" id="panoramaPreview"><span>360°</span><small>اختار صورة باش تبدا المعاينة</small></div>
+            <div class="panorama-controls">
+              <button type="button" class="tool-btn" id="gyroBtn">◎ تفعيل الجيروسكوب</button>
+              <span id="gyroStatus">الجيروسكوب غير مفعّل</span>
+            </div>
+            <p class="helper">الجيروسكوب يتطلب هاتفاً ومتصفحاً يدعمان مستشعر الحركة؛ قد يحتاج إذناً صريحاً واتصال HTTPS.</p>
+          </div>
+
+          <div class="ai-box">
+            <div class="ai-icon">✦</div><div class="ai-copy"><strong>مساعد المحتوى</strong><p id="aiStatus">يقترح وسوماً وألواناً أولية اعتماداً على اسم الملف والقسم.</p></div>
+            <button type="button" class="outline-btn" id="aiBtn">اقتراح تلقائي</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel queue-panel">
+        <div class="panel-heading"><div><span class="step">04</span><h2>قائمة النشر</h2></div><span class="muted">تحقق قبل الإرسال</span></div>
+        <div class="queue-stats"><div><span id="queueTotal">0</span><small>ملفات مختارة</small></div><div><span id="queueValid">0</span><small>ملفات صالحة</small></div><div><span id="queueDuplicates">0</span><small>تنبيهات</small></div></div>
+        <div id="validationList" class="validation-list"><p class="muted">اختار ملفات باش نتحقق منها.</p></div>
+        <div class="upload-progress-box" id="uploadProgressBox" hidden>
+          <div class="progress-head"><strong id="progressLabel">تجهيز الملفات...</strong><span id="progressText">0%</span></div>
+          <div class="progress-track"><span id="progressBar"></span></div>
+          <div class="progress-actions"><button type="button" class="outline-btn" id="pauseBtn">إيقاف مؤقت</button><button type="button" class="outline-btn" id="resumeBtn" disabled>استكمال</button><span id="uploadStatus">جاهز</span></div>
+        </div>
+        <div class="bottom-actions">
+          <button type="button" class="outline-btn" id="saveDraftBtn">حفظ كمسودة</button>
+          <div class="primary-actions"><button type="button" class="ghost-btn" id="resetBtn">إعادة تعيين</button><button type="submit" class="primary-btn" id="submitBtn">إرسال الخلفيات للمراجعة <span>↗</span></button></div>
+        </div>
+        <p class="secure-note">🔒 وضع النشر المباشر أو المراجعة يجب أن يحدده السيرفر حسب صلاحيات الحساب.</p>
+      </section>
+    </form>
+    <footer>WallpaperHub Publish Studio <span>•</span> واجهة نشر مستقلة</footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="publish.js"></script>
+</body>
+</html>
