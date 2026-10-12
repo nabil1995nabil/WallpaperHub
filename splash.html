@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="WallpaperHub — عالم من الخلفيات المميزة">
+<title>WallpaperHub</title>
+<link rel="stylesheet" href="splash.css">
+<link rel="stylesheet" href="css/theme.css">
+</head>
+
+<body>
+<main class="splash-minimal" aria-label="WallpaperHub">
+    <div class="splash-glow splash-glow-one" aria-hidden="true"></div>
+    <div class="splash-glow splash-glow-two" aria-hidden="true"></div>
+
+    <div class="splash-center">
+        <div class="logo-wave" aria-hidden="true"></div>
+        <img class="splash-mark"
+             src="assets/logo/wallpaperhub-w-logo.svg"
+             alt="WallpaperHub"
+             onerror="this.style.display='none';document.getElementById('logoFallback').style.display='grid';">
+        <div id="logoFallback" class="logo-fallback" aria-label="W" style="display:none">W</div>
+    </div>
+
+    <footer class="splash-bottom">
+        <span class="brand-word">WallpaperHub</span>
+        <span class="brand-caption">PREMIUM WALLPAPERS</span>
+    </footer>
+
+    <a class="splash-skip" href="home.html" aria-label="تجاوز شاشة البداية">تخطي</a>
+    <noscript><a class="splash-noscript" href="home.html">الدخول إلى WallpaperHub</a></noscript>
+</main>
+<script src="splash.js"></script>
+</body>
+</html>
