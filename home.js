@@ -178,6 +178,9 @@ document.getElementById("likedWallpapers");
 const downloadedContainer =
 document.getElementById("downloadedWallpapers");
 
+const otherWallpapersContainer =
+document.getElementById("otherWallpapers");
+
 // =======================================
 // تحميل البيانات
 // =======================================
@@ -207,6 +210,7 @@ async function loadWallpapers() {
         renderLatest();
         renderRecommended();
         createDynamicSections();
+        renderOtherWallpapers();
         // تحميل التوصيات الشخصية من الخادم بعد تحميل الخلفيات الأساسية.
         await loadPersonalizedRecommendations();
 
@@ -292,10 +296,14 @@ function createWallpaperCard(wall) {
 
 
 
+const cardAction = wall.source === "pixabay" && wall.pageURL
+        ? `window.open('${String(wall.pageURL).replace(/'/g, "%27")}', '_blank', 'noopener')`
+        : `openWallpaper('${wall.id}')`;
+
 return `
 
 <div class="wall-card"
-onclick="openWallpaper('${wall.id}')">
+onclick="${cardAction}">
 
 ${mediaHTML}
 
@@ -402,6 +410,37 @@ architecture:"🏛️ العمارة",
     "cyberpunk": "🌃 السايبربانك",
     "gradients": "🎨 التدرجات والألوان"
 };
+
+// =======================================
+// خلفيات أخرى — جلب الصور من Pixabay عبر API الخادم
+// =======================================
+async function renderOtherWallpapers() {
+    if (!otherWallpapersContainer) return;
+
+    otherWallpapersContainer.innerHTML =
+        '<div class="other-wallpapers-loading">جاري تحميل خلفيات جديدة…</div>';
+
+    try {
+        const response = await fetch(
+            "/api/pixabay-wallpapers?q=wallpaper%20backgrounds&per_page=12",
+            { cache: "no-store" }
+        );
+        if (!response.ok) throw new Error("Pixabay API " + response.status);
+
+        const data = await response.json();
+        const items = Array.isArray(data?.wallpapers) ? data.wallpapers : [];
+        if (!items.length) throw new Error("No Pixabay images returned");
+
+        otherWallpapersContainer.innerHTML = "";
+        items.slice(0, 12).forEach(wall => {
+            otherWallpapersContainer.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
+        });
+    } catch (error) {
+        console.warn("PIXABAY WALLPAPERS ERROR:", error);
+        otherWallpapersContainer.innerHTML =
+            '<div class="other-wallpapers-empty">تعذر تحميل الصور الجديدة حالياً. جرّب مرة أخرى لاحقاً.</div>';
+    }
+}
 
 // =======================================
 // إنشاء أقسام الخلفيات

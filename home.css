@@ -1729,3 +1729,18 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
     }
 }
 
+
+/* Pixabay-backed Other Wallpapers status messages */
+.other-wallpapers-section { padding-bottom: 24px; }
+.other-wallpapers-section .section-kicker { color: #8b70e8; }
+.other-wallpapers-loading,
+.other-wallpapers-empty {
+    flex: 0 0 100%;
+    padding: 18px 12px;
+    color: #7c8191;
+    font-size: 13px;
+    text-align: center;
+    background: #f7f8fc;
+    border: 1px solid #eceef4;
+    border-radius: 16px;
+}

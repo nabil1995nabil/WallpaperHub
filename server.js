@@ -2227,6 +2227,69 @@ app.delete("/api/admin/community-reports/:id/message", async (req,res) => {
 
 
 // ======================================
+// Pixabay backgrounds proxy
+// PIXABAY_API_KEY stays on the server; never send it to the browser.
+// ======================================
+app.get("/api/pixabay-wallpapers", async (req, res) => {
+    const apiKey = String(process.env.PIXABAY_API_KEY || "").trim();
+    if (!apiKey) {
+        return res.status(503).json({
+            success: false,
+            message: "Pixabay API is not configured"
+        });
+    }
+
+    const query = String(req.query.q || "wallpaper backgrounds").trim().slice(0, 100);
+    const page = Math.max(1, Math.min(20, Number.parseInt(req.query.page, 10) || 1));
+    const perPage = Math.max(3, Math.min(24, Number.parseInt(req.query.per_page, 10) || 12));
+
+    try {
+        const params = new URLSearchParams({
+            key: apiKey,
+            q: query,
+            image_type: "photo",
+            orientation: "vertical",
+            safesearch: "true",
+            per_page: String(perPage),
+            page: String(page)
+        });
+
+        const upstream = await fetch("https://pixabay.com/api/?" + params.toString(), {
+            method: "GET",
+            timeout: 12000
+        });
+
+        if (!upstream.ok) {
+            console.error("PIXABAY API STATUS:", upstream.status);
+            return res.status(502).json({ success: false, message: "Pixabay request failed" });
+        }
+
+        const payload = await upstream.json();
+        const hits = Array.isArray(payload.hits) ? payload.hits : [];
+
+        return res.json({
+            success: true,
+            total: Number(payload.totalHits || 0),
+            wallpapers: hits.map(hit => ({
+                id: "pixabay-" + String(hit.id),
+                title: String(hit.tags || "Pixabay wallpaper").slice(0, 140),
+                image: String(hit.largeImageURL || hit.webformatURL || ""),
+                thumbnail: String(hit.webformatURL || hit.previewURL || ""),
+                category: "other",
+                source: "pixabay",
+                pageURL: String(hit.pageURL || ""),
+                user: String(hit.user || ""),
+                downloads: Number(hit.downloads || 0),
+                likes: Number(hit.likes || 0)
+            })).filter(item => item.image && item.thumbnail)
+        });
+    } catch (error) {
+        console.error("PIXABAY API ERROR:", error?.message || error);
+        return res.status(502).json({ success: false, message: "Unable to load Pixabay wallpapers" });
+    }
+});
+
+// ======================================
 // Static Files
 // ======================================
 
