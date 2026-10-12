@@ -566,10 +566,10 @@ function getExternalWallpaperFromSession(){
             thumbnail: item.thumbnail || item.image,
             category: item.category || "other",
             source: "pixabay",
-            author: item.author || "Pixabay",
+            author: item.author || "WallpaperHub",
             resolution: item.resolution || "",
             size: item.size || "",
-            description: item.description || "خلفية من Pixabay معروضة داخل WallpaperHub.",
+            description: item.description || "خلفية معروضة داخل WallpaperHub.",
             tags: Array.isArray(item.tags) ? item.tags : [],
             colors: Array.isArray(item.colors) ? item.colors : [],
             downloads: Number(item.downloads || 0),
@@ -1754,16 +1754,16 @@ function renderExternalWallpaperDetails(){
     };
 
     setText("wallTitle2", wall.title || "خلفية");
-    setText("wallDescription", wall.description || "خلفية من Pixabay معروضة داخل WallpaperHub.");
+    setText("wallDescription", wall.description || "خلفية معروضة داخل WallpaperHub.");
     setText("wallResolution", wall.resolution || "غير متوفر");
     setText("wallSize", wall.size || "غير متوفر");
     setText("wallDownloads", wall.downloads || 0);
-    setText("wallAuthor", wall.author || "Pixabay");
+    setText("wallAuthor", wall.author || "WallpaperHub");
     setText("wallDate", "—");
     setText("captureLocation", "غير متوفر");
     setText("captureDate", "غير متوفر");
     setText("captureTime", "غير متوفر");
-    setText("imageSource", "Pixabay");
+    setText("imageSource", "");
     setText("wallLikes", wall.likes || 0);
     setText("wallViews", wall.views || 0);
     setText("wallQuickRating", wall.ratingCount || 0);
@@ -1896,6 +1896,9 @@ if(
 // ===============================
 if(imageSource){
 
+if(currentWallpaper.source === "pixabay"){
+    imageSource.textContent = "";
+}else{
 
 let source =
 currentWallpaper.source ||
@@ -1928,7 +1931,7 @@ imageSource.textContent =
 
 }
 
-
+}
 }
 
 // ===============================
