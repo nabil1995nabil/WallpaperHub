@@ -4023,6 +4023,251 @@ app.get("/api/categories", async (req, res) => {
     }
 });
 
+// ================================================
+// WallpaperHub: Admin submission review API
+// الصلاحيات تُفحص في السيرفر، وليس في الواجهة فقط
+// ================================================
+
+async function requireReviewAdmin(req, res) {
+  const user = await getAuthenticatedUser(req);
+
+  if (!user) {
+    res.status(401).json({
+      success: false,
+      message: "سجّل الدخول أولاً"
+    });
+    return null;
+  }
+
+  if (!isAdminUser(user) && !isSiteOwnerUser(user)) {
+    res.status(403).json({
+      success: false,
+      message: "ليست لديك صلاحية مراجعة الخلفيات"
+    });
+    return null;
+  }
+
+  return user;
+}
+
+// قائمة الطلبات المعلقة مع بيانات المساهمين
+app.get("/api/admin/review/submissions", async (req, res) => {
+  try {
+    const reviewer = await requireReviewAdmin(req, res);
+    if (!reviewer) return;
+
+    const { data: submissions, error } = await supabase
+      .from("wallpaper_submissions")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (error) throw error;
+
+    const rows = submissions || [];
+    const userIds = [...new Set(rows.map(row => String(row.user_id)))];
+
+    let profiles = [];
+
+    if (userIds.length) {
+      const { data, error: profileError } = await supabase
+        .from("profiles")
+        .select("id,full_name,username,avatar_url")
+        .in("id", userIds);
+
+      if (profileError) {
+        console.warn("REVIEW PROFILES:", profileError.message);
+      } else {
+        profiles = data || [];
+      }
+    }
+
+    const profileMap = new Map(
+      profiles.map(profile => [String(profile.id), profile])
+    );
+
+    const contributorsMap = new Map();
+
+    for (const row of rows) {
+      const uid = String(row.user_id);
+      const profile = profileMap.get(uid) || {};
+      const contributor = contributorsMap.get(uid) || {
+        id: uid,
+        name: profile.full_name || profile.username || "مساهم",
+        username: profile.username || "",
+        avatar_url: profile.avatar_url || "",
+        pending_count: 0
+      };
+
+      contributor.pending_count += 1;
+      contributorsMap.set(uid, contributor);
+    }
+
+    return res.json({
+      success: true,
+      reviewerId: String(reviewer.id),
+      contributors: [...contributorsMap.values()],
+      submissions: rows.map(row => ({
+        ...row,
+        contributor: profileMap.get(String(row.user_id)) || null
+      }))
+    });
+  } catch (error) {
+    console.error("ADMIN REVIEW LOAD:", error?.message || error);
+    return res.status(500).json({
+      success: false,
+      message: "تعذر تحميل طلبات المراجعة"
+    });
+  }
+});
+
+// مراجعة طلب واحد: approve أو reject
+app.post("/api/admin/review/:id", async (req, res) => {
+  try {
+    const reviewer = await requireReviewAdmin(req, res);
+    if (!reviewer) return;
+
+    const id = String(req.params.id || "").trim();
+    const action = String(req.body?.action || "").trim();
+    const note = String(req.body?.review_note || "").trim().slice(0, 500);
+
+    if (!id || !["approve", "reject"].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: "طلب مراجعة غير صالح"
+      });
+    }
+
+    if (action === "reject" && !note) {
+      return res.status(400).json({
+        success: false,
+        message: "اكتب سبب الرفض"
+      });
+    }
+
+    // جلب الطلب المعلق فقط. الطلب الذي تمت مراجعته لا يعاد نشره.
+    const { data: submission, error: readError } = await supabase
+      .from("wallpaper_submissions")
+      .select("*")
+      .eq("id", id)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (readError) throw readError;
+
+    if (!submission) {
+      return res.status(409).json({
+        success: false,
+        message: "الطلب غير موجود أو تمت مراجعته من قبل"
+      });
+    }
+
+    if (action === "approve") {
+      // تحقق إضافي يمنع نشر الصورة نفسها إذا كانت موجودة مسبقًا.
+      const { data: duplicate, error: duplicateError } = await supabase
+        .from("wallpapers")
+        .select("id")
+        .eq("image", submission.image_url)
+        .limit(1);
+
+      if (duplicateError) throw duplicateError;
+
+      if (duplicate && duplicate.length) {
+        return res.status(409).json({
+          success: false,
+          duplicate: true,
+          message: "هذه الصورة موجودة مسبقًا في مكتبة الخلفيات"
+        });
+      }
+
+      const wallpaperPayload = {
+        title: submission.title,
+        category: submission.category || "other",
+        image: submission.image_url,
+        thumbnail: submission.thumbnail_url || submission.image_url,
+        resolution: submission.resolution || "",
+        size: submission.file_size || "",
+        description: submission.description || "",
+        tags: Array.isArray(submission.tags) ? submission.tags : [],
+        colors: Array.isArray(submission.colors) ? submission.colors : [],
+        user_id: String(submission.user_id),
+        date: new Date().toISOString(),
+        views: 0,
+        downloads: 0,
+        likes: 0,
+        type: submission.is_360 ? "360" : "image",
+        is_360: Boolean(submission.is_360),
+        author: "community",
+        source_submission_id: submission.id
+      };
+
+      // المرجع الفريد في قاعدة البيانات يمنع تكرار النشر.
+      const { data: existingPublished, error: existingError } = await supabase
+        .from("wallpapers")
+        .select("id")
+        .eq("source_submission_id", submission.id)
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+
+      if (!existingPublished) {
+        const { error: insertError } = await supabase
+          .from("wallpapers")
+          .insert([wallpaperPayload]);
+
+        if (insertError) {
+          // في حالة طلبين متزامنين، قد يكون الطلب الآخر نشرها بالفعل.
+          const { data: concurrentPublished, error: checkError } = await supabase
+            .from("wallpapers")
+            .select("id")
+            .eq("source_submission_id", submission.id)
+            .maybeSingle();
+
+          if (checkError || !concurrentPublished) throw insertError;
+        }
+      }
+    }
+
+    // لا نحدّث الحالة إلا بعد نجاح النشر، في حالة الموافقة.
+    const newStatus = action === "approve" ? "approved" : "rejected";
+
+    const { data: updated, error: updateError } = await supabase
+      .from("wallpaper_submissions")
+      .update({
+        status: newStatus,
+        review_note: action === "reject" ? note : null,
+        reviewed_by: String(reviewer.id),
+        reviewed_at: new Date().toISOString()
+      })
+      .eq("id", submission.id)
+      .eq("status", "pending")
+      .select("id,status,review_note,reviewed_by,reviewed_at")
+      .maybeSingle();
+
+    if (updateError) throw updateError;
+
+    if (!updated) {
+      return res.status(409).json({
+        success: false,
+        message: "تمت مراجعة الطلب بواسطة مستخدم آخر"
+      });
+    }
+
+    return res.json({
+      success: true,
+      submission: updated,
+      message: action === "approve" ? "تم قبول الخلفية" : "تم رفض الخلفية"
+    });
+  } catch (error) {
+    console.error("ADMIN REVIEW ACTION:", error?.message || error);
+    return res.status(500).json({
+      success: false,
+      message: "تعذرت معالجة الطلب"
+    });
+  }
+});
+
 // ======================================
 // Wallpaper Downloads
 // ======================================
