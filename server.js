@@ -4316,16 +4316,46 @@ app.get("/api/publish/session", async (req,res)=>{
         if(syncResult.error) console.warn("PUBLISH PROFILE SYNC LOOKUP:",syncResult.error.message);
         const sync = syncResult.data || {};
 
+        // Verification is a profile badge only; it must never grant publishing rights.
+        // Direct publishing is derived only from server-trusted owner/admin identity.
         const owner = isSiteOwnerUser(user);
         const admin = isAdminUser(user);
+        const emailName = String(user.email || "").split("@")[0];
+        const fullName = String(
+            profile?.full_name ||
+            sync.full_name ||
+            metadata.full_name ||
+            metadata.name ||
+            metadata.fullName ||
+            metadata.user_name ||
+            metadata.preferred_username ||
+            emailName ||
+            "مستخدم"
+        ).trim();
+        const username = String(
+            profile?.username ||
+            sync.username ||
+            metadata.username ||
+            metadata.user_name ||
+            metadata.preferred_username ||
+            ""
+        ).trim();
+        const avatarUrl = String(
+            profile?.avatar_url ||
+            sync.avatar_url ||
+            metadata.avatar_url ||
+            metadata.picture ||
+            metadata.avatar ||
+            ""
+        ).trim();
         return res.json({
             success:true,
             user:{
                 id:String(user.id),
                 email:String(user.email || ""),
-                username:String(profile?.username || sync.username || metadata.username || metadata.user_name || ""),
-                full_name:String(profile?.full_name || sync.full_name || metadata.full_name || metadata.name || user.email?.split("@")[0] || "مستخدم"),
-                avatar_url:String(profile?.avatar_url || sync.avatar_url || metadata.avatar_url || metadata.picture || "")
+                username,
+                full_name:fullName,
+                avatar_url:avatarUrl
             },
             permissions:{owner,admin,canPublishDirectly:owner||admin,mode:(owner||admin)?"direct":"review"}
         });
