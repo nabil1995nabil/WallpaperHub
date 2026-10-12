@@ -858,33 +858,6 @@ section,
 
 
 /* =========================================================
-   MOBILE CARD HEIGHT — RED FRAME SIZE
-   تم تقليل ارتفاع بطاقات الخلفيات ليطابق الحجم المحدد في الصورة
-========================================================= */
-
-
-@media (max-width: 600px){
-
-    
-.wall-card{
-        height: 150px !important;
-        min-height: 150px;
-        max-height: 150px;
-    }
-
-
-    
-.wall-card img,
-.wall-card video{
-        height: 100%;
-    }
-
-
-}
-
-
-
-/* =========================================================
    COMMUNITY 4K BACKGROUND
 ========================================================= */
 
@@ -1729,3 +1702,64 @@ display:flex!important;flex-direction:column!important;justify-content:space-bet
     }
 }
 
+
+
+/* =========================================================
+   FINAL HOMEPAGE SPACING FIX
+   Keep the last category fully visible on mobile.
+   Preserve the existing visual design and horizontal carousels.
+========================================================= */
+
+@media (max-width: 600px) {
+    /* Restore the intended tall wallpaper cards from the screenshot */
+    .wall-card {
+        height: 264px !important;
+        min-height: 264px !important;
+        max-height: 264px !important;
+    }
+
+    /* Give each section consistent breathing room */
+    .wall-section,
+    .categories-section {
+        margin-top: 24px;
+        margin-bottom: 28px;
+    }
+
+    .title,
+    .section-heading {
+        margin-bottom: 15px;
+        align-items: center;
+    }
+
+    /* Reserve scroll space after the final section so it is not clipped */
+    main {
+        padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    /* Prevent the final row from being cropped by a parent */
+    .categories-section,
+    .categories,
+    .category-list {
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible;
+    }
+
+    .category-list {
+        padding-bottom: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .wall-card {
+        height: 238px !important;
+        min-height: 238px !important;
+        max-height: 238px !important;
+    }
+
+    .wall-section,
+    .categories-section {
+        margin-top: 20px;
+        margin-bottom: 24px;
+    }
+}
