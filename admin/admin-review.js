@@ -81,8 +81,9 @@
     const category = $("categoryFilter").value;
     const period = $("dateFilter").value;
     const now = Date.now();
+    const sort = $("sortFilter")?.value || "newest";
 
-    return state.submissions.filter(item => {
+    const filtered = state.submissions.filter(item => {
       if (state.selectedUser && String(item.user_id) !== state.selectedUser) {
         return false;
       }
@@ -104,6 +105,14 @@
 
       return true;
     });
+
+    filtered.sort((a, b) => {
+      if (sort === "title") return String(a.title || "").localeCompare(String(b.title || ""), "ar");
+      const ta = new Date(a.created_at || 0).getTime() || 0;
+      const tb = new Date(b.created_at || 0).getTime() || 0;
+      return sort === "oldest" ? ta - tb : tb - ta;
+    });
+    return filtered;
   }
 
   function renderContributors() {
@@ -114,6 +123,8 @@
     );
 
     $("pendingTotal").textContent = state.submissions.length;
+    if ($("contributorTotal")) $("contributorTotal").textContent = state.contributors.length;
+    if ($("contributorCount")) $("contributorCount").textContent = `${contributors.length} مستخدم`;
 
     $("contributors").innerHTML = contributors.length
       ? contributors.map(user => `
@@ -123,9 +134,10 @@
             ? `<img class="avatar" src="${escapeHtml(user.avatar_url)}" alt="" loading="lazy">`
             : `<span class="avatar" aria-hidden="true">👤</span>`}
           <span class="contributor-info">
-            <strong class="contributor-name">${escapeHtml(user.name)}</strong>
-            <span class="contributor-sub">${user.pending_count} طلب معلق</span>
+            <strong class="contributor-name">${escapeHtml(user.name || user.username || "مستخدم")}</strong>
+            <span class="contributor-sub">${Number(user.pending_count || 0)} خلفية معلقة</span>
           </span>
+          <span class="contributor-arrow" aria-hidden="true">‹</span>
         </button>
       `).join("")
       : `<div class="empty-state">لا يوجد مساهمون مطابقون.</div>`;
@@ -143,6 +155,8 @@
       : "اختر مساهمًا من القائمة أو اعرض كل الطلبات";
 
     $("selectAll").checked = false;
+    if ($("visibleCount")) $("visibleCount").textContent = `${items.length} خلفية`;
+    if ($("selectedCount")) $("selectedCount").textContent = "لم يتم تحديد أي خلفية";
 
     if (!items.length) {
       $("submissions").innerHTML =
@@ -150,29 +164,32 @@
       return;
     }
 
+    const urlCounts = {};
+    state.submissions.forEach(row => {
+      const key = String(row.image_url || row.thumbnail_url || "").trim();
+      if (key) urlCounts[key] = (urlCounts[key] || 0) + 1;
+    });
+
     $("submissions").innerHTML = items.map(item => {
       const tags = Array.isArray(item.tags) ? item.tags : [];
       const image = item.thumbnail_url || item.image_url;
+      const duplicate = !!(item.image_url && urlCounts[String(item.image_url).trim()] > 1);
+      const missing = !item.title || !item.category || !item.image_url;
 
       return `
         <article class="submission" data-id="${escapeHtml(item.id)}">
-          <input type="checkbox" class="submission-check"
-            value="${escapeHtml(item.id)}" aria-label="تحديد الخلفية">
-
-          <a href="${escapeHtml(item.image_url)}" target="_blank" rel="noopener noreferrer">
-            <img class="wallpaper-preview"
-              src="${escapeHtml(image)}"
-              alt="${escapeHtml(item.title)}"
-              loading="lazy">
-          </a>
-
+          <input type="checkbox" class="submission-check" value="${escapeHtml(item.id)}" aria-label="تحديد الخلفية">
+          <img class="wallpaper-preview" data-preview="${escapeHtml(item.id)}" src="${escapeHtml(image || "")}" alt="${escapeHtml(item.title || "خلفية بدون عنوان")}" loading="lazy">
           <div class="submission-content">
-            <h3 class="submission-title">${escapeHtml(item.title)}</h3>
+            <h3 class="submission-title">${escapeHtml(item.title || "بدون عنوان")}</h3>
             <div class="meta">
-              التصنيف: ${escapeHtml(item.category || "other")}<br>
-              الدقة: ${escapeHtml(item.resolution || "غير محددة")}<br>
-              الحجم: ${escapeHtml(item.file_size || "غير محدد")}<br>
-              تاريخ الإرسال: ${escapeHtml(dateText(item.created_at))}
+              <span>▦ ${escapeHtml(item.category || "غير مصنف")}</span>
+              <span>◷ ${escapeHtml(dateText(item.created_at))}</span>
+            </div>
+            <div class="tags">
+              ${duplicate ? '<span class="tag duplicate">احتمال تكرار</span>' : ""}
+              ${missing ? '<span class="tag warning">معلومات ناقصة</span>' : ""}
+              ${item.resolution ? `<span class="tag">${escapeHtml(item.resolution)}</span>` : ""}
             </div>
 
             ${item.description
@@ -231,6 +248,7 @@
 
       state.contributors = data.contributors || [];
       state.submissions = data.submissions || [];
+      if ($("attentionTotal")) $("attentionTotal").textContent = state.submissions.filter(item => !item.title || !item.category || !item.image_url).length;
 
       if (state.selectedUser &&
           !state.contributors.some(user => user.id === state.selectedUser)) {
@@ -287,14 +305,14 @@
     const button = event.target.closest("[data-user]");
     if (!button) return;
 
-    state.selectedUser = button.dataset.user;
+    state.selectedUser = state.selectedUser === button.dataset.user ? "" : button.dataset.user;
     renderContributors();
     renderSubmissions();
   });
 
   $("userSearch").addEventListener("input", renderContributors);
 
-  ["submissionSearch", "categoryFilter", "dateFilter"].forEach(id => {
+  ["submissionSearch", "categoryFilter", "dateFilter", "sortFilter"].forEach(id => {
     $(id).addEventListener("input", renderSubmissions);
     $(id).addEventListener("change", renderSubmissions);
   });
@@ -328,11 +346,40 @@
     }
   });
 
+  function updateSelectionUI() {
+    const checks = [...document.querySelectorAll(".submission-check")];
+    const selected = checks.filter(input => input.checked).length;
+    if ($("selectedCount")) $("selectedCount").textContent = selected ? `تم تحديد ${selected} خلفية` : "لم يتم تحديد أي خلفية";
+    document.querySelectorAll(".submission").forEach(card => {
+      const checkbox = card.querySelector(".submission-check");
+      card.classList.toggle("selected", !!checkbox?.checked);
+    });
+    $("selectAll").checked = checks.length > 0 && selected === checks.length;
+    $("selectAll").indeterminate = selected > 0 && selected < checks.length;
+  }
+
   $("selectAll").addEventListener("change", event => {
     document.querySelectorAll(".submission-check").forEach(input => {
       input.checked = event.target.checked;
     });
+    updateSelectionUI();
   });
+
+  $("submissions").addEventListener("change", event => {
+    if (event.target.matches(".submission-check")) updateSelectionUI();
+  });
+
+  $("submissions").addEventListener("click", event => {
+    const image = event.target.closest("[data-preview]");
+    if (!image) return;
+    const item = state.submissions.find(row => String(row.id) === String(image.dataset.preview));
+    if (!item) return;
+    $("previewImage").src = item.image_url || item.thumbnail_url || "";
+    $("previewCaption").textContent = `${item.title || "بدون عنوان"} · ${item.category || "غير مصنف"} · ${dateText(item.created_at)}`;
+    $("previewDialog").showModal();
+  });
+
+  $("closePreview").addEventListener("click", () => $("previewDialog").close());
 
   $("approveSelected").addEventListener("click", () => {
     performBulk("approve", selectedIds());
