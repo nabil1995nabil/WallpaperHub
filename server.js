@@ -4291,6 +4291,90 @@ app.post(
 );
 
 // ======================================
+// Publisher session + moderated submissions
+// Owner/admin publish directly; regular members submit for review.
+// Requires the SQL table described in publish-setup.sql.
+// ======================================
+
+app.get("/api/publish/session", async (req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+        const metadata = user.user_metadata || {};
+        let profile = null;
+        const {data:profileRow,error:profileError} = await supabase
+            .from("profiles")
+            .select("id,full_name,username,avatar_url")
+            .eq("id",String(user.id))
+            .maybeSingle();
+        if(profileError) console.warn("PUBLISH PROFILE LOOKUP:",profileError.message);
+        profile = profileRow || null;
+
+        const syncResult = await supabase.from("user_profile_sync")
+            .select("full_name,username,avatar_url")
+            .eq("user_id",String(user.id)).maybeSingle();
+        if(syncResult.error) console.warn("PUBLISH PROFILE SYNC LOOKUP:",syncResult.error.message);
+        const sync = syncResult.data || {};
+
+        const owner = isSiteOwnerUser(user);
+        const admin = isAdminUser(user);
+        return res.json({
+            success:true,
+            user:{
+                id:String(user.id),
+                email:String(user.email || ""),
+                username:String(profile?.username || sync.username || metadata.username || metadata.user_name || ""),
+                full_name:String(profile?.full_name || sync.full_name || metadata.full_name || metadata.name || user.email?.split("@")[0] || "مستخدم"),
+                avatar_url:String(profile?.avatar_url || sync.avatar_url || metadata.avatar_url || metadata.picture || "")
+            },
+            permissions:{owner,admin,canPublishDirectly:owner||admin,mode:(owner||admin)?"direct":"review"}
+        });
+    }catch(error){
+        console.error("PUBLISH SESSION ERROR:",error);
+        return res.status(500).json({success:false,message:"تعذر التحقق من الحساب"});
+    }
+});
+
+app.post("/api/publish/submissions", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول لإرسال الخلفيات"});
+        if(isAdminUser(user) || isSiteOwnerUser(user)){
+            return res.status(400).json({success:false,message:"حسابك يملك صلاحية النشر المباشر؛ استخدم مسار النشر المباشر"});
+        }
+        const body = req.body || {};
+        const image = String(body.image || "").trim();
+        const title = String(body.title || "").trim();
+        if(!image || !/^https:\/\/res\.cloudinary\.com\//i.test(image)){
+            return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
+        }
+        if(!title) return res.status(400).json({success:false,message:"عنوان الخلفية مطلوب"});
+        const tags = Array.isArray(body.tags) ? body.tags.map(v=>String(v).trim()).filter(Boolean).slice(0,30) : [];
+        const colors = Array.isArray(body.colors) ? body.colors.map(v=>String(v).trim()).filter(v=>/^#[0-9A-F]{6}$/i.test(v)).slice(0,12) : [];
+        const {data,error} = await supabase.from("wallpaper_submissions").insert([{
+            user_id:String(user.id),
+            title:title.slice(0,120),
+            description:String(body.description || "").slice(0,600),
+            category:String(body.category || "other").slice(0,60),
+            image_url:image,
+            thumbnail_url:String(body.thumbnail || image).trim(),
+            resolution:String(body.resolution || "").slice(0,40),
+            file_size:String(body.size || "").slice(0,40),
+            tags, colors,
+            device:String(body.device || "all").slice(0,30),
+            is_360:Boolean(body.is360),
+            status:"pending",
+            scheduled_at:body.scheduledAt ? new Date(body.scheduledAt).toISOString() : null
+        }]).select("id,status,created_at").single();
+        if(error) throw error;
+        return res.status(201).json({success:true,submission:data,message:"تم إرسال الخلفية للمراجعة"});
+    }catch(error){
+        console.error("PUBLISH SUBMISSION ERROR:",error);
+        return res.status(500).json({success:false,message:"تعذر حفظ طلب المراجعة. تأكد من إنشاء جدول wallpaper_submissions."});
+    }
+});
+
+// ======================================
 // Add Wallpaper
 // ======================================
 
@@ -4305,6 +4389,13 @@ app.post(
                 return res.status(401).json({
                     success:false,
                     message:"يجب تسجيل الدخول قبل نشر الخلفية"
+                });
+            }
+
+            if(!isAdminUser(publisher) && !isSiteOwnerUser(publisher)){
+                return res.status(403).json({
+                    success:false,
+                    message:"حسابك يرسل الخلفيات للمراجعة ولا يملك صلاحية النشر المباشر"
                 });
             }
 

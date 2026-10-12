@@ -300,3 +300,15 @@ footer span{padding:0 5px;color:#c4cbd6}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* Authenticated publisher profile card */
+.publisher-profile-card{display:flex;align-items:center;gap:13px;margin:0 0 18px;padding:14px 17px}
+.publisher-avatar-wrap{position:relative;flex:0 0 52px;width:52px;height:52px}
+.publisher-avatar-wrap img{display:block;width:52px;height:52px;border:1px solid var(--line);border-radius:50%;object-fit:cover;background:#f3f5fb}
+.publisher-online-dot{position:absolute;right:1px;bottom:2px;width:11px;height:11px;border:2px solid #fff;border-radius:50%;background:#20b77b}
+.publisher-profile-data{display:flex;flex:1;flex-direction:column;min-width:0;gap:1px}
+.publisher-profile-data strong{overflow:hidden;font-size:13px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.publisher-profile-data span{overflow:hidden;color:var(--muted);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.publisher-role{flex-shrink:0;padding:6px 10px;border-radius:99px;background:#edf2ff;color:var(--blue);font-size:9px;font-weight:800}
+#publishLoginGate .primary-btn{margin-top:8px}
+@media(max-width:560px){.publisher-profile-card{gap:10px;padding:12px}.publisher-avatar-wrap,.publisher-avatar-wrap img{width:44px;height:44px;flex-basis:44px}.publisher-role{font-size:8px;padding:5px 7px}}
