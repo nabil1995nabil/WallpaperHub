@@ -395,3 +395,41 @@ body.drawer-open .bottom-nav{
  box-shadow:0 0 0 3px rgba(240,68,68,.10);flex:0 0 auto
 }
 .drawer-menu a[data-badge-section].has-unread .section-unread-dot{display:block}
+
+
+/* Compact SVG shortcut to the standalone publishing page */
+.drawer-header .drawer-publish-link{
+    position:absolute;
+    top:17px;
+    right:17px;
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #e8ebf2;
+    border-radius:10px;
+    background:#fff;
+    color:#5865d9;
+    text-decoration:none;
+    transition:background .2s ease,border-color .2s ease,transform .2s ease;
+    z-index:2;
+}
+.drawer-header .drawer-publish-link:hover{
+    background:#f5f6ff;
+    border-color:#cbd2ff;
+    transform:translateY(-1px);
+}
+.drawer-header .drawer-publish-link:active{
+    transform:scale(.96);
+}
+.drawer-publish-link svg{
+    width:19px;
+    height:19px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    display:block;
+}
