@@ -29,7 +29,7 @@
   async function api(url, options = {}) {
     const token = getAccessToken();
     if (!token) {
-      throw new Error("انتهت الجلسة أو لم يتم تسجيل الدخول. سجّل الدخول ثم افتح الصفحة مجددًا.");
+      throw new Error("خاصك تسجل الدخول أولاً بنفس حساب الأدمن، ومن بعد رجع لصفحة مراجعة الخلفيات.");
     }
 
     const response = await fetch(url, {
@@ -145,81 +145,44 @@
 
   function renderSubmissions() {
     const items = filteredSubmissions();
-
-    $("submissionHeading").textContent =
-      state.selectedUser ? "طلبات المساهم" : "كل الطلبات المعلقة";
-
-    const user = state.contributors.find(item => item.id === state.selectedUser);
+    $("submissionHeading").textContent = state.selectedUser ? "خلفيات المستخدم المحدد" : "كل الطلبات المعلقة";
+    const user = state.contributors.find(item => String(item.id) === String(state.selectedUser));
     $("selectedContributor").textContent = user
-      ? user.name
-      : "اختر مساهمًا من القائمة أو اعرض كل الطلبات";
-
+      ? `${user.name || user.username || "مستخدم"} · ${Number(user.pending_count || 0)} خلفية معلقة`
+      : "اختر مستخدماً من القائمة أو اعرض كل الطلبات.";
     $("selectAll").checked = false;
     if ($("visibleCount")) $("visibleCount").textContent = `${items.length} خلفية`;
     if ($("selectedCount")) $("selectedCount").textContent = "لم يتم تحديد أي خلفية";
-
     if (!items.length) {
-      $("submissions").innerHTML =
-        `<div class="empty-state">لا توجد طلبات مطابقة للفلاتر الحالية.</div>`;
+      $("submissions").innerHTML = `<div class="empty-state"><span class="empty-icon">▧</span><strong>لا توجد خلفيات مطابقة</strong><p>غيّر الفلاتر أو اختر مستخدماً آخر.</p></div>`;
       return;
     }
-
     const urlCounts = {};
     state.submissions.forEach(row => {
       const key = String(row.image_url || row.thumbnail_url || "").trim();
       if (key) urlCounts[key] = (urlCounts[key] || 0) + 1;
     });
-
     $("submissions").innerHTML = items.map(item => {
-      const tags = Array.isArray(item.tags) ? item.tags : [];
-      const image = item.thumbnail_url || item.image_url;
+      const image = item.thumbnail_url || item.image_url || "";
       const duplicate = !!(item.image_url && urlCounts[String(item.image_url).trim()] > 1);
-      const missing = !item.title || !item.category || !item.image_url;
-
+      const missing = !item.category || !item.image_url;
       return `
         <article class="submission" data-id="${escapeHtml(item.id)}">
-          <input type="checkbox" class="submission-check" value="${escapeHtml(item.id)}" aria-label="تحديد الخلفية">
-          <img class="wallpaper-preview" data-preview="${escapeHtml(item.id)}" src="${escapeHtml(image || "")}" alt="${escapeHtml(item.title || "خلفية بدون عنوان")}" loading="lazy">
-          <div class="submission-content">
-            <h3 class="submission-title">${escapeHtml(item.title || "بدون عنوان")}</h3>
-            <div class="meta">
-              <span>▦ ${escapeHtml(item.category || "غير مصنف")}</span>
-              <span>◷ ${escapeHtml(dateText(item.created_at))}</span>
-            </div>
-            <div class="tags">
-              ${duplicate ? '<span class="tag duplicate">احتمال تكرار</span>' : ""}
-              ${missing ? '<span class="tag warning">معلومات ناقصة</span>' : ""}
-              ${item.resolution ? `<span class="tag">${escapeHtml(item.resolution)}</span>` : ""}
-            </div>
-
-            ${item.description
-              ? `<p class="description">${escapeHtml(item.description)}</p>`
-              : ""}
-
-            <div class="tags">
-              ${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}
-            </div>
-
-            ${Array.isArray(item.colors) && item.colors.length
-              ? `<div class="tags">
-                  ${item.colors.map(color =>
-                    `<span class="tag">${escapeHtml(color)}</span>`
-                  ).join("")}
-                </div>`
-              : ""}
-
-            <div class="card-actions">
-              <button class="button success" data-action="approve"
-                data-id="${escapeHtml(item.id)}">قبول</button>
-              <button class="button danger" data-action="reject"
-                data-id="${escapeHtml(item.id)}">رفض</button>
-              <a class="text-link" href="${escapeHtml(item.image_url)}"
-                target="_blank" rel="noopener noreferrer">فتح الصورة الأصلية</a>
-            </div>
+          <label class="tile-check" aria-label="تحديد الخلفية">
+            <input type="checkbox" class="submission-check" value="${escapeHtml(item.id)}"><span></span>
+          </label>
+          <div class="tile-meta">
+            <span class="tile-category">${escapeHtml(item.category || "غير مصنف")}</span>
+            <span class="tile-resolution">${escapeHtml(item.resolution || "دقة غير محددة")}</span>
           </div>
-        </article>
-      `;
+          <img class="wallpaper-preview" data-preview="${escapeHtml(item.id)}" src="${escapeHtml(image)}" alt="معاينة خلفية" loading="lazy">
+          <div class="tile-flags">
+            ${duplicate ? '<span class="tag duplicate">تكرار محتمل</span>' : ""}
+            ${missing ? '<span class="tag warning">بيانات ناقصة</span>' : ""}
+          </div>
+        </article>`;
     }).join("");
+    updateSelectionUI();
   }
 
   function selectedIds() {
@@ -317,33 +280,14 @@
     $(id).addEventListener("change", renderSubmissions);
   });
 
-  $("submissions").addEventListener("click", async event => {
-    const button = event.target.closest("[data-action]");
-    if (!button) return;
-
-    const id = button.dataset.id;
-    const action = button.dataset.action;
-
-    if (action === "approve") {
-      if (!confirm("هل تريد قبول هذه الخلفية ونشرها؟")) return;
-
-      button.disabled = true;
-
-      try {
-        const result = await review(id, "approve");
-        toast(result.message || "تم قبول الخلفية.");
-        await reload();
-      } catch (error) {
-        toast(error.message);
-        button.disabled = false;
-      }
-    }
-
-    if (action === "reject") {
-      state.rejectIds = [id];
-      $("rejectReason").value = "";
-      $("rejectDialog").showModal();
-    }
+  $("submissions").addEventListener("click", event => {
+    const image = event.target.closest("[data-preview]");
+    if (!image) return;
+    const item = state.submissions.find(row => String(row.id) === String(image.dataset.preview));
+    if (!item) return;
+    $("previewImage").src = item.image_url || item.thumbnail_url || "";
+    $("previewCaption").textContent = `${item.category || "غير مصنف"} · ${item.resolution || "دقة غير محددة"} · ${dateText(item.created_at)}`;
+    $("previewDialog").showModal();
   });
 
   function updateSelectionUI() {
@@ -367,16 +311,6 @@
 
   $("submissions").addEventListener("change", event => {
     if (event.target.matches(".submission-check")) updateSelectionUI();
-  });
-
-  $("submissions").addEventListener("click", event => {
-    const image = event.target.closest("[data-preview]");
-    if (!image) return;
-    const item = state.submissions.find(row => String(row.id) === String(image.dataset.preview));
-    if (!item) return;
-    $("previewImage").src = item.image_url || item.thumbnail_url || "";
-    $("previewCaption").textContent = `${item.title || "بدون عنوان"} · ${item.category || "غير مصنف"} · ${dateText(item.created_at)}`;
-    $("previewDialog").showModal();
   });
 
   $("closePreview").addEventListener("click", () => $("previewDialog").close());
