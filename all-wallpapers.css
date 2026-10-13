@@ -478,3 +478,24 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 
 /* Pixabay-backed "Other wallpapers" state */
 .filter-btn[data-filter="other"]{white-space:nowrap}
+
+
+/* WEATHER WALLPAPERS */
+.weather-section{margin:8px 12px 14px;padding:14px 12px 11px;border:1px solid #e5e8f2;border-radius:19px;background:linear-gradient(145deg,#fbfcff,#f5f7ff);box-shadow:0 5px 16px rgba(40,52,92,.045)}
+.weather-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.weather-heading{display:flex;align-items:center;gap:9px;min-width:0}
+.weather-heading>.material-icons{width:39px;height:39px;display:grid;place-items:center;flex:0 0 39px;border-radius:13px;background:#e9edff;color:#5865e8;font-size:23px}
+.weather-heading h3{font-size:13px;line-height:1.35;font-weight:850;color:#202b43}
+.weather-heading p{margin-top:3px;font-size:10px;color:#78839a}
+.weather-location-btn{min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 9px;border-radius:11px;white-space:nowrap;color:#4e5ed8;background:#eef0ff;border:1px solid #dce0ff;font-size:10px;font-weight:800;cursor:pointer}
+.weather-location-btn .material-icons{font-size:15px}
+.weather-location-btn:disabled{opacity:.6;cursor:wait}
+.weather-options{display:flex;gap:7px;overflow-x:auto;padding:1px 0 5px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.weather-options::-webkit-scrollbar{display:none}
+.weather-chip{flex:0 0 auto;min-width:62px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 10px;border-radius:13px;background:#fff;border:1px solid #e3e7f0;color:#5c6880;font-size:10px;font-weight:750;cursor:pointer;transition:.18s ease}
+.weather-chip>span:first-child{font-size:20px;line-height:1}
+.weather-chip.active{color:#4e5cdb;background:#edf0ff;border-color:#cbd2ff;box-shadow:0 4px 10px rgba(85,95,220,.10)}
+.weather-chip:active{transform:scale(.97)}
+.weather-status{min-height:14px;margin-top:8px;color:#8791a5;font-size:10px;line-height:1.5}
+@media(min-width:600px){.weather-section{margin-inline:22px;padding:15px 16px}.weather-options{gap:9px}}
+@media(max-width:380px){.weather-section{margin-inline:10px;padding:12px 9px}.weather-location-btn{padding-inline:7px;font-size:9px}.weather-chip{min-width:57px}}

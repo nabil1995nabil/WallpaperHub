@@ -400,6 +400,56 @@ async function loadPixabayWallpapers(){
     }
 }
 
+const weatherKeywords = {
+    sunny:["sunny","sun","sunshine","clear sky","clear","مشمس","شمس","صحو","سماء صافية"],
+    cloudy:["cloudy","cloud","overcast","grey sky","غائم","غيوم","سحب","سحابي"],
+    rainy:["rain","rainy","rainfall","wet","مطر","ممطر","ممطرة","قطرات"],
+    snowy:["snow","snowy","winter","ice","frost","ثلج","ثلجي","جليد","شتاء"],
+    stormy:["storm","thunder","lightning","thunderstorm","عاصفة","رعد","برق","عاصف"],
+    sunset:["sunset","sunrise","dusk","dawn","golden hour","غروب","شروق"]
+};
+function wallpaperMatchesWeather(wallpaper,weatherType){
+    const fields = [wallpaper?.weather,wallpaper?.weather_type,wallpaper?.timeOfDay,wallpaper?.time_of_day,wallpaper?.title,wallpaper?.description,wallpaper?.category,wallpaper?.tags,wallpaper?.colors];
+    const text = normalizeText(fields.map(value => Array.isArray(value) ? value.join(" ") : String(value ?? "")).join(" "));
+    return (weatherKeywords[weatherType] || []).map(normalizeText).some(keyword => keyword && text.includes(keyword));
+}
+function setWeatherFilter(weatherType,label){
+    currentFilter = weatherType === "all" ? "all" : `weather-${weatherType}`;
+    document.querySelectorAll(".weather-chip").forEach(button => button.classList.toggle("active",button.dataset.weather === weatherType));
+    filterButtons.forEach(button => button.classList.toggle("active",weatherType === "all" && button.dataset.filter === "all"));
+    document.querySelectorAll(".category-item").forEach(button => button.classList.remove("active"));
+    pageTitle.textContent = weatherType === "all" ? "جميع الخلفيات" : `خلفيات ${label}`;
+    const status = document.getElementById("weatherStatus");
+    if(status) status.textContent = weatherType === "all" ? "كتظهر جميع الخلفيات." : "تصفية حسب الكلمات والتاغات المتوفرة في بيانات الخلفيات.";
+    applyFilters();
+}
+async function filterByCurrentWeather(){
+    const button = document.getElementById("weatherLocationBtn");
+    const status = document.getElementById("weatherStatus");
+    if(!navigator.geolocation){if(status) status.textContent="المتصفح لا يدعم تحديد الموقع. اختار حالة الطقس يدويًا.";return;}
+    if(button) button.disabled=true;
+    if(status) status.textContent="كنحاولو نحددو الطقس الحالي...";
+    try{
+        const position = await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:false,timeout:9000,maximumAge:600000}));
+        const {latitude,longitude}=position.coords;
+        const response=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=weather_code&timezone=auto`,{cache:"no-store"});
+        if(!response.ok) throw new Error("Weather service unavailable");
+        const data=await response.json(), code=Number(data?.current?.weather_code);
+        let weatherType="sunny";
+        if([0,1].includes(code)) weatherType="sunny";
+        else if([2,3,45,48].includes(code)) weatherType="cloudy";
+        else if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) weatherType="rainy";
+        else if([71,73,75,77,85,86].includes(code)) weatherType="snowy";
+        else if([95,96,99].includes(code)) weatherType="stormy";
+        const labels={sunny:"مشمس",cloudy:"غائم",rainy:"ممطر",snowy:"ثلجي",stormy:"عاصف"};
+        setWeatherFilter(weatherType,labels[weatherType]);
+        if(status) status.textContent=`الطقس الحالي: ${labels[weatherType]}. تمت تصفية الخلفيات الموسومة به.`;
+    }catch(error){
+        console.warn("CURRENT WEATHER FILTER ERROR:",error);
+        if(status) status.textContent="ما قدرناش نجيبو الطقس. سمح بتحديد الموقع أو اختار حالة الطقس يدويًا.";
+    }finally{if(button) button.disabled=false;}
+}
+
 function applyFilters(){
     if(currentFilter !== "other") visibleWallpapers = [...pageWallpapers];
 
@@ -455,6 +505,9 @@ function applyFilters(){
             const scoreB = Number(b.rating || 0) * 10 + Number(b.downloads || 0) + (b.popular ? 50 : 0);
             return scoreB - scoreA;
         });
+    }else if(currentFilter.startsWith("weather-")){
+        const weatherType = currentFilter.slice("weather-".length);
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => wallpaperMatchesWeather(wallpaper,weatherType));
     }else if(currentFilter !== "all"){
         visibleWallpapers = visibleWallpapers.filter(wallpaper => categoryMatches(wallpaper,currentFilter));
     }
@@ -838,6 +891,12 @@ async function toggleFavorite(id,button){
 // ============================
 
 searchInput.addEventListener("input",applyFilters);
+document.querySelectorAll(".weather-chip").forEach(button => button.addEventListener("click",()=>{
+    const value=button.dataset.weather||"all";
+    const labels={all:"الكل",sunny:"مشمس",cloudy:"غائم",rainy:"ممطر",snowy:"ثلجي",stormy:"عاصف",sunset:"غروب"};
+    setWeatherFilter(value,labels[value]||"حسب الطقس");
+}));
+document.getElementById("weatherLocationBtn")?.addEventListener("click",filterByCurrentWeather);
 
 searchBtn.addEventListener("click",() => {
     searchInput.focus();
