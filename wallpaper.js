@@ -31,6 +31,30 @@ function getImageUrl(url){
     return "/" + url.replace(/^\/+/, "");
 
 }
+// HDR / Wide Color Gamut: preserve native browser color management.
+ // لا نستخدم فلاتر اصطناعية؛ جودة HDR تعتمد على ملف أصلي يدعمها وعلى الجهاز والمتصفح.
+function prepareWallpaperColorRendering(imageElement, wallpaper){
+    if(!imageElement || !wallpaper) return;
+
+    const hdrFormat = String(
+        wallpaper.hdrFormat || wallpaper.hdr_format || wallpaper.hdrType || wallpaper.hdr_type || ""
+    ).trim().toUpperCase();
+
+    const colorSpace = String(
+        wallpaper.colorSpace || wallpaper.color_space ||
+        wallpaper.colorProfile || wallpaper.color_profile ||
+        wallpaper.colorGamut || wallpaper.color_gamut || ""
+    ).trim().toUpperCase();
+
+    const isHDR = wallpaper.isHDR === true || wallpaper.is_hdr === true ||
+        ["HDR10", "HDR10+", "DOLBY VISION", "HLG"].includes(hdrFormat);
+
+    imageElement.dataset.wallpaperHdr = isHDR ? "true" : "false";
+    imageElement.dataset.wallpaperHdrFormat = hdrFormat;
+    imageElement.dataset.wallpaperColorSpace = colorSpace;
+    imageElement.style.imageRendering = "auto";
+}
+
 // ===============================
 // Media Detector
 // ===============================
@@ -368,6 +392,22 @@ function normalizeWallpaperData(base = {}, row = {}) {
     merged.source = first(
         row.source, row.image_source, row.imageSource, base.source
     ) ?? "";
+
+    // HDR / Wide Color Gamut metadata. لا يغيّر هذا التصميم ولا يحوّل الصور العادية إلى HDR.
+    merged.hdrFormat = String(first(
+        row.hdr_format, row.hdrFormat, row.hdr_type, row.hdrType,
+        base.hdrFormat, base.hdr_format
+    ) ?? "").trim().toUpperCase();
+    merged.colorSpace = String(first(
+        row.color_space, row.colorSpace, row.color_profile, row.colorProfile,
+        row.color_gamut, row.colorGamut, base.colorSpace, base.color_space
+    ) ?? "").trim().toUpperCase();
+    merged.isHDR = (
+        row.is_hdr === true || row.isHDR === true ||
+        String(first(row.is_hdr, row.isHDR, base.isHDR, base.is_hdr) ?? "")
+            .trim().toLowerCase() === "true" ||
+        ["HDR10", "HDR10+", "DOLBY VISION", "HLG"].includes(merged.hdrFormat)
+    );
 
     // user_id هو المصدر الأساسي لمالك الخلفية.
     merged.ownerUID = String(first(
@@ -1858,8 +1898,9 @@ if(wallImage){
 
     wallImage.removeAttribute("srcset");
     wallImage.removeAttribute("sizes");
-    wallImage.decoding = "sync";
+    wallImage.decoding = "async";
     wallImage.loading = "eager";
+    prepareWallpaperColorRendering(wallImage, currentWallpaper);
     wallImage.src = originalImageUrl;
 
     wallImage.style.display = "block";
@@ -2991,7 +3032,8 @@ fullscreenImage.style.display =
 
 fullscreenImage.removeAttribute("srcset");
 fullscreenImage.removeAttribute("sizes");
-fullscreenImage.decoding = "sync";
+fullscreenImage.decoding = "async";
+prepareWallpaperColorRendering(fullscreenImage, currentWallpaper);
 fullscreenImage.src = getImageUrl(currentWallpaper.image);
 
 }
@@ -3076,6 +3118,7 @@ function openPhonePreview(){
             phonePreviewImage.style.display = "block";
             phonePreviewImage.removeAttribute("srcset");
             phonePreviewImage.removeAttribute("sizes");
+            prepareWallpaperColorRendering(phonePreviewImage, currentWallpaper);
             phonePreviewImage.src = url;
         }
     }

@@ -4061,3 +4061,10 @@ body.phone-preview-open{
         height:23px;
     }
 }
+
+/* إصلاح عرض الخلفية: إظهار الصورة كاملة داخل الإطار دون تكبير أو قصّ.
+   لا يغيّر هذا التعديل أبعاد الإطار أو تصميم الصفحة. */
+#wallImage,
+#wallVideo {
+    object-fit: contain !important;
+}
