@@ -5,9 +5,14 @@ import { supabase } from "./supabase.js";
 
 console.log("WallpaperHub Player Loaded");
 
-// الإعجابات لا تُخزّن محلياً؛ امسح أي بيانات قديمة من الإصدارات السابقة.
-localStorage.removeItem("likes");
-localStorage.removeItem("likedWallpapers");
+// الإعجابات لا تُخزّن محلياً؛ امسح أي بيانات قديمة بأمان.
+try {
+    localStorage.removeItem("likes");
+    localStorage.removeItem("likedWallpapers");
+} catch (error) {
+    // قد يكون التخزين محجوباً في بعض أوضاع المتصفح؛ لا نوقف تحميل الصفحة.
+    console.warn("LEGACY LIKE STORAGE CLEANUP SKIPPED:", error);
+}
 // ===============================
 // URL Helper
 // ===============================
@@ -3501,6 +3506,19 @@ if (downloadBtn) {
 // ===============================
 
 const likeBtn = document.getElementById("likeBtn");
+let likeRequestInProgress = false;
+let likeStatusRequestId = 0;
+
+// طلبات الإعجاب لا ينبغي أن تبقى معلقة إلى ما لا نهاية على الهاتف.
+async function fetchLikeRequest(url, options = {}, timeoutMs = 8000){
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try{
+        return await fetch(url, { ...options, signal: controller.signal });
+    }finally{
+        clearTimeout(timeoutId);
+    }
+}
 
 // يقرأ UID من جلسة Supabase فقط.
 // لا نستخدم localStorage ولا guest للإعجاب.
@@ -3542,13 +3560,15 @@ function setLikeButtonState(liked){
 // فحص حالة الإعجاب للمستخدم المسجل حالياً.
 // الزائر دائماً يرى القلب غير مضغوط.
 async function checkLikeStatus(){
+    let wallpaperCheckId = null;
 
     try{
 
         if(!currentWallpaper || !likeBtn)
             return;
 
-        const wallpaperCheckId = currentWallpaper.id;
+        wallpaperCheckId = currentWallpaper.id;
+        const requestId = ++likeStatusRequestId;
 
         const user = await getAuthenticatedLikeUser();
 
@@ -3562,13 +3582,14 @@ async function checkLikeStatus(){
             (await supabase.auth.getSession())
                 ?.data?.session?.access_token || "";
 
-        const res = await fetch(
+        const res = await fetchLikeRequest(
             `/api/wallpapers/${encodeURIComponent(wallpaperCheckId)}/like-status`,
             {
                 headers: accessToken
                     ? { Authorization:`Bearer ${accessToken}` }
                     : {}
-            }
+            },
+            8000
         );
 
         if(!res.ok){
@@ -3579,6 +3600,7 @@ async function checkLikeStatus(){
 
         // لا نطبق نتيجة طلب قديم على خلفية أخرى.
         if(
+            requestId !== likeStatusRequestId ||
             !currentWallpaper ||
             Number(currentWallpaper.id) !== Number(wallpaperCheckId)
         ){
@@ -3595,7 +3617,11 @@ async function checkLikeStatus(){
         );
 
         // عند فشل التحقق لا نعرض إعجاباً قديماً من localStorage.
-        setLikeButtonState(false);
+        // لا نغيّر زر خلفية جديدة بسبب طلب قديم انتهت مهلته.
+        if(typeof wallpaperCheckId === "undefined" ||
+           (currentWallpaper && Number(currentWallpaper.id) === Number(wallpaperCheckId))){
+            setLikeButtonState(false);
+        }
     }
 }
 
@@ -3603,10 +3629,15 @@ async function checkLikeStatus(){
 // يجب أن يكون هناك حساب Supabase حقيقي؛ لا يوجد guest.
 async function likeWallpaper(){
 
+    if(likeRequestInProgress) return;
+
     try{
 
         if(!currentWallpaper || !likeBtn)
             return;
+
+        likeRequestInProgress = true;
+        likeBtn.setAttribute("aria-busy", "true");
 
         const user = await getAuthenticatedLikeUser();
 
@@ -3636,30 +3667,33 @@ async function likeWallpaper(){
             return;
         }
 
-        const response = await fetch(
+        let storedUserName = "";
+        try { storedUserName = localStorage.getItem("userName") || ""; } catch {}
+
+        const response = await fetchLikeRequest(
             `/api/wallpapers/${encodeURIComponent(wallpaperLikeId)}/like`,
             {
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json",
                     Authorization:`Bearer ${accessToken}`
                 },
-
                 body: JSON.stringify({
-                    // نرسل UID الحقيقي من جلسة Supabase.
                     userId: user.id,
-
-                    userName:
-                        localStorage.getItem("userName")
+                    userName: storedUserName
                         || user.user_metadata?.full_name
                         || user.email
                         || "مستخدم"
                 })
-            }
+            },
+            10000
         );
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+
+        if(!response.ok){
+            throw new Error(data?.error || `LIKE HTTP ${response.status}`);
+        }
 
         console.log("LIKE RESPONSE:", data);
 
@@ -3718,6 +3752,9 @@ async function likeWallpaper(){
         );
 
         await checkLikeStatus();
+    }finally{
+        likeRequestInProgress = false;
+        if(likeBtn) likeBtn.removeAttribute("aria-busy");
     }
 }
 
@@ -4470,10 +4507,7 @@ function getCommentText(){
 
     return String(commentInput.innerText || "")
         .replace(/\u00a0/g," ")
-        .replace(/
-{3,}/g,"
-
-")
+        .replace(/\n{3,}/g, "\n\n")
         .trim();
 }
 
