@@ -88,6 +88,57 @@ const API = "/api/wallpapers";
 // ===============================
 // Elements
 // ===============================
+
+// ===============================
+// EXTENDED SIDE BACKGROUND
+// يملأ الجانبين بنسخة مموهة من نفس الصورة، مع الحفاظ على الصورة الأصلية كاملة.
+function updateWallpaperSideBackground(imageUrl, enabled = true) {
+    const wrapper = wallImage?.closest(".wallpaper-preview-wrapper");
+    if (!wrapper) return;
+
+    let layer = wrapper.querySelector(":scope > .wallpaper-ambient-background");
+    if (!layer) {
+        layer = document.createElement("div");
+        layer.className = "wallpaper-ambient-background";
+        layer.setAttribute("aria-hidden", "true");
+        Object.assign(layer.style, {
+            position: "absolute",
+            inset: "0",
+            zIndex: "0",
+            pointerEvents: "none",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            filter: "blur(18px) brightness(.68) saturate(.9)",
+            transform: "scale(1.06)",
+            transformOrigin: "center",
+            transition: "opacity .2s ease",
+            opacity: "0"
+        });
+        const computed = getComputedStyle(wrapper);
+        if (computed.position === "static") wrapper.style.position = "relative";
+        wrapper.style.overflow = "hidden";
+        wrapper.insertBefore(layer, wrapper.firstChild);
+    }
+
+    if (!enabled || !imageUrl) {
+        layer.style.opacity = "0";
+        layer.style.backgroundImage = "none";
+        return;
+    }
+
+    // استخدم نفس رابط الصورة الأصلية، ولا نغيّر أبعاد أو قصّ الصورة الأمامية.
+    layer.style.backgroundImage = `url("${String(imageUrl).replace(/["\\]/g, "\\$&")}")`;
+    layer.style.opacity = "1";
+
+    if (wallImage) {
+        const imageStyle = getComputedStyle(wallImage);
+        if (imageStyle.position === "static") wallImage.style.position = "relative";
+        wallImage.style.zIndex = "1";
+    }
+}
+
+
 const wallImage =
 document.getElementById("wallImage");
 const wallVideo =
@@ -1476,6 +1527,7 @@ function p360Active(active){
     }
 
     if(on){
+        updateWallpaperSideBackground("", false);
         p360Soon();
     }
 }
@@ -1879,7 +1931,7 @@ if(nextWallpaperBtn) nextWallpaperBtn.hidden=true;
 
 if(isVideoMedia(currentWallpaper)){
 
-
+updateWallpaperSideBackground("", false);
 setupVideo(media);
 
 
@@ -1895,6 +1947,7 @@ if(wallImage){
 
     // عرض النسخة الأصلية الموجودة في image، وليس thumbnail.
     const originalImageUrl = getImageUrl(currentWallpaper.image || media);
+    updateWallpaperSideBackground(originalImageUrl, !currentWallpaper.is360);
 
     wallImage.removeAttribute("srcset");
     wallImage.removeAttribute("sizes");
