@@ -589,6 +589,7 @@ function isOwnProfile(){
 function hideOwnerEditControls(){
     const ids = [
         "editProfileBtn",
+        "heroEditProfileBtn",
         "modalChangeAvatarBtn",
         "modalChangeCoverBtn",
         "avatarInput",
@@ -764,7 +765,7 @@ async function loadPublicProfile(uid){
         const ownerWalls = Array.isArray(list)
             ? list.filter(w => {
                 const owner = String(
-                    w.ownerUID || w.userId || w.user_id || ""
+                    w.ownerUID || w.userId || w.user_id || w.owner_id || ""
                 ).trim();
                 return owner === targetUID;
             })
@@ -981,14 +982,18 @@ supabase.auth.onAuthStateChange(async (event, session) => {
             is_verified: currentVerifiedStatus
         });
 
-        const photoURL =
+        // احتفظ بالصورة التي اختارها المستخدم؛ صورة Google مجرد قيمة افتراضية.
+        const photoURL = String(
+            localStorage.getItem("userAvatar") ||
+            localStorage.getItem("avatar_url") ||
             metadata.avatar_url ||
             metadata.picture ||
-            "";
+            ""
+        ).trim();
 
         localStorage.setItem("userName", displayName);
         localStorage.setItem("userEmail", user.email || "");
-        localStorage.setItem("userAvatar", photoURL);
+        if(photoURL) localStorage.setItem("userAvatar", photoURL);
         localStorage.setItem(
             "joinDate",
             localStorage.getItem("joinDate") || new Date().toLocaleDateString("ar-MA")
@@ -1110,7 +1115,7 @@ function resetGuestProfile() {
     if (avatar) avatar.src = "assets/images/user.png";
     
     // 5. تصفير الخلفيات المعروضة
-    ["ownWallpapers", "downloadedWallpapers", "likedWallpapers", "viewedWallpapers"].forEach(id => {
+    ["ownWallpapers", "downloadedWallpapers", "likedWallpapers", "favoriteWallpapers", "favoritesWallpapers", "viewedWallpapers"].forEach(id => {
         const container = document.getElementById(id);
         if (container) {
             container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
@@ -1127,9 +1132,15 @@ function resetGuestProfile() {
         "joinDate", 
         "lastLogin",
         "profileBio",
-        "downloads", 
-        "favorites", 
+        "downloads",
+        "downloads-wallpapers",
+        "downloadedWallpapers",
+        "favorites",
         "views",
+        "likes",
+        "likedWallpapers",
+        "profileSocialLinks",
+        COVER_HISTORY_LOCAL_KEY,
         "userData"
     ];
     userKeys.forEach(key => localStorage.removeItem(key));
@@ -1159,8 +1170,13 @@ if (loginBtn) {
                     "lastLogin",
                     "profileBio",
                     "downloads",
+                    "downloads-wallpapers",
+                    "downloadedWallpapers",
                     "favorites",
                     "views",
+                    "likes",
+                    "likedWallpapers",
+                    "profileSocialLinks",
                     "userName",
                     "username",
                     "userEmail",
@@ -1922,7 +1938,10 @@ async function getActualLikedIds(){
 async function getActualDownloadIds(){
     // جلب التحميلات من كلا المفتاحين المحليين لضمان عدم ضياع أي بيانات
     const localDownloads = getList("downloads");
-    const localDownloadedWalls = getList("downloads-wallpapers") || getList("downloadedWallpapers");
+    const localDownloadedWalls = normalizeActionList([
+        ...getList("downloads-wallpapers"),
+        ...getList("downloadedWallpapers")
+    ]);
     const combinedLocal = normalizeActionList([...localDownloads, ...localDownloadedWalls]);
 
     // إذا لم يكن المستخدم مسجلاً للدخول، نعيد البيانات المحلية مباشرة
@@ -2048,17 +2067,13 @@ async function loadWallpapers(){
 try{
 
 
-const res =
-await fetch(API);
+const res = await fetch(API, { cache: "no-store" });
+if(!res.ok) throw new Error(`WALLPAPERS API ${res.status}`);
 
+const payload = await res.json();
+wallpapers = Array.isArray(payload) ? payload : [];
 
-
-wallpapers =
-await res.json();
-
-
-
-renderProfile();
+await renderProfile();
 
 
 
@@ -2143,16 +2158,12 @@ async function renderProfile() {
     renderWalls(likedContainer, likes);
 
     // لا نخلط المحفوظات مع الإعجابات: favorites مخصص للمحفوظات فقط.
+    // لا نستخدم حاوية الإعجابات كبديل للمفضلة؛ وإلا ستستبدل إحدى القائمتين الأخرى.
     const savedContainer =
         document.getElementById("favoriteWallpapers") ||
-        document.getElementById("favoritesWallpapers") ||
-        document.getElementById("likedWallpapers");
+        document.getElementById("favoritesWallpapers");
 
-    // إذا كان likedWallpapers هو اسم الحاوية القديم للمفضلة،
-    // نعرض المحفوظات فيه كما كانت الواجهة القديمة تتوقع.
-    if(savedContainer) {
-        renderWalls(savedContainer, saved);
-    }
+    if(savedContainer) renderWalls(savedContainer, saved);
 
     renderWalls(viewedContainer, views);
 }
@@ -2281,18 +2292,42 @@ function renderWalls(container, ids){
 
         const card = document.createElement("div");
         card.className = "profile-wall-card";
-        
-        card.innerHTML = `
-            <img src="${profileIsGifMedia(wall) ? wall.image : (wall.thumbnail || wall.image)}" alt="">
-        `;
 
-        card.onclick = () => {
-            const finalId = wall.id ?? wall.wallpaperId ?? wall.wallpaper_id ?? wall.wallId ?? id;
-            location.href = "wallpaper.html?id=" + finalId;
+        const image = document.createElement("img");
+        image.alt = String(wall.title || wall.name || "خلفية");
+        image.loading = "lazy";
+        image.referrerPolicy = "no-referrer";
+        image.src = String(
+            profileIsGifMedia(wall) ? wall.image : (wall.thumbnail || wall.image || "")
+        );
+        image.onerror = () => {
+            image.onerror = null;
+            image.removeAttribute("src");
+            image.alt = "تعذر تحميل الخلفية";
         };
+        card.appendChild(image);
+
+        card.setAttribute("role", "link");
+        card.setAttribute("tabindex", "0");
+        const finalId = wall.id ?? wall.wallpaperId ?? wall.wallpaper_id ?? wall.wallId ?? id;
+        const openWallpaper = () => {
+            location.href = "wallpaper.html?id=" + encodeURIComponent(String(finalId));
+        };
+        card.addEventListener("click", openWallpaper);
+        card.addEventListener("keydown", event => {
+            if(event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openWallpaper();
+            }
+        });
 
         container.appendChild(card);
     });
+
+    // إذا لم تطابق أي معرفات خلفية موجودة، لا تترك القسم فارغًا.
+    if(!container.children.length){
+        container.innerHTML = '<div class="empty-profile">لا توجد خلفيات حاليا</div>';
+    }
 }
 
 
@@ -2586,40 +2621,27 @@ editModal.classList.remove(
 ========================== */
 
 
-function readImage(
-file,
-callback
-){
+function readImage(file, callback){
+    if(!file) return;
 
+    if(!file.type || !file.type.startsWith("image/")){
+        alert("يرجى اختيار ملف صورة صالح.");
+        return;
+    }
 
-if(!file)
+    // Data URLs تُخزّن في localStorage؛ حدّ الحجم يمنع امتلاء التخزين.
+    const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+    if(file.size > MAX_IMAGE_SIZE){
+        alert("حجم الصورة كبير. اختر صورة لا يتجاوز حجمها 2 ميغابايت.");
+        return;
+    }
 
-return;
-
-
-
-const reader =
-new FileReader();
-
-
-
-reader.onload = ()=>{
-
-
-callback(
-reader.result
-);
-
-
-};
-
-
-
-reader.readAsDataURL(
-file
-);
-
-
+    const reader = new FileReader();
+    reader.onload = () => {
+        if(typeof reader.result === "string") callback(reader.result);
+    };
+    reader.onerror = () => alert("تعذرت قراءة الصورة. حاول اختيار صورة أخرى.");
+    reader.readAsDataURL(file);
 }
 
 
