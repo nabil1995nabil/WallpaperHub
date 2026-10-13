@@ -82,12 +82,14 @@ MAIN PREVIEW
 .preview img,
 .preview video{
     touch-action:pan-y;
+    display:block;
     width:100%;
     height:100%;
-    display:block;
+    max-width:100%;
     object-fit:cover;
+    object-position:center;
     border-radius:inherit;
-    background:#eee;
+    background:#111;
 }
 
 #wallVideo{
@@ -4060,46 +4062,4 @@ body.phone-preview-open{
         width:23px;
         height:23px;
     }
-}
-
-
-/* =========================================================
-   WALLPAPER SIDE FILL FIX
-   Keep the original image fully visible; use the blurred
-   ambient layer behind it to fill any empty side areas.
-   This is a display-only override; layout and controls stay intact.
-   ========================================================= */
-.wallpaper-preview-wrapper > .wallpaper-ambient-background{
-    position:absolute !important;
-    inset:0 !important;
-    z-index:0 !important;
-    display:block !important;
-    background-position:center !important;
-    background-repeat:no-repeat !important;
-    background-size:cover !important;
-    pointer-events:none !important;
-}
-
-.wallpaper-preview-wrapper > #wallImage{
-    position:relative !important;
-    z-index:1 !important;
-    display:block !important;
-    width:auto !important;
-    height:100% !important;
-    max-width:100% !important;
-    max-height:100% !important;
-    margin-left:auto !important;
-    margin-right:auto !important;
-    object-fit:contain !important;
-    background:transparent !important;
-    border-radius:inherit;
-}
-
-/* Keep video playback and the 360 canvas unchanged. */
-.wallpaper-preview-wrapper > #wallVideo{
-    z-index:1;
-}
-
-.wallpaper-preview-wrapper.is-panorama > #wallImage{
-    visibility:hidden !important;
 }
