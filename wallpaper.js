@@ -4,6 +4,10 @@
 import { supabase } from "./supabase.js";
 
 console.log("WallpaperHub Player Loaded");
+
+// الإعجابات لا تُخزّن محلياً؛ امسح أي بيانات قديمة من الإصدارات السابقة.
+localStorage.removeItem("likes");
+localStorage.removeItem("likedWallpapers");
 // ===============================
 // URL Helper
 // ===============================
@@ -3676,9 +3680,24 @@ async function likeWallpaper(){
                     : true
             );
 
-            if (typeof window.syncUserStats === "function") {
-                window.syncUserStats("likes", wallpaperLikeId);
+            // لا نحفظ الإعجاب في localStorage؛ API/Supabase هما المصدر الوحيد.
+            localStorage.removeItem("likes");
+            localStorage.removeItem("likedWallpapers");
+
+            if(Number.isFinite(Number(data.totalLikes))){
+                currentWallpaper.likes = Number(data.totalLikes);
+                const matchingWall = allWallpapers.find(
+                    item => Number(item.id) === Number(wallpaperLikeId)
+                );
+                if(matchingWall) matchingWall.likes = Number(data.totalLikes);
+                if(wallLikes){
+                    wallLikes.textContent = formatQuickStat(Number(data.totalLikes));
+                }
             }
+
+            window.dispatchEvent(new CustomEvent("wallpaperStatsChanged", {
+                detail:{ type:"likes", id:String(wallpaperLikeId), liked:Boolean(data.liked) }
+            }));
 
         }else{
 
@@ -4451,7 +4470,10 @@ function getCommentText(){
 
     return String(commentInput.innerText || "")
         .replace(/\u00a0/g," ")
-        .replace(/\n{3,}/g,"\n\n")
+        .replace(/
+{3,}/g,"
+
+")
         .trim();
 }
 

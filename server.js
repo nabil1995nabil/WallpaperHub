@@ -4352,43 +4352,81 @@ app.post(
     async(req,res)=>{
         try{
             const wallpaperId = Number(req.params.id);
+            if(!Number.isInteger(wallpaperId) || wallpaperId <= 0){
+                return res.status(400).json({success:false,message:"معرّف الخلفية غير صالح"});
+            }
+
             const authenticatedUser = await getAuthenticatedUser(req);
             if(!authenticatedUser){
                 return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
             }
+
             const userId = String(authenticatedUser.id).trim();
             const userProfile = await getPublisherProfile(authenticatedUser);
             const userName = userProfile.fullName || "مستخدم";
 
-            const { data, error } = await supabase
+            const { data: existingLike, error: existingError } = await supabase
                 .from("likes")
-                .insert([{ wallpaper_id: wallpaperId, user_id: userId }])
-                .select()
-                .single();
+                .select("id")
+                .eq("wallpaper_id", wallpaperId)
+                .eq("user_id", userId)
+                .maybeSingle();
 
-            if(error){
-                if(error.code === "23505"){
-                    return res.json({ success:true, liked:true, message:"Already liked" });
+            if(existingError) throw existingError;
+
+            let liked = false;
+            let actionData = null;
+
+            if(existingLike){
+                // الضغط على إعجاب موجود يلغي الإعجاب من Supabase.
+                const { error: deleteError } = await supabase
+                    .from("likes")
+                    .delete()
+                    .eq("id", existingLike.id)
+                    .eq("user_id", userId);
+
+                if(deleteError) throw deleteError;
+                liked = false;
+            }else{
+                const { data, error } = await supabase
+                    .from("likes")
+                    .insert([{ wallpaper_id: wallpaperId, user_id: userId }])
+                    .select()
+                    .single();
+
+                if(error){
+                    // إذا حدث ضغط متزامن، أعد الحالة الحالية بدل إظهار فشل كاذب.
+                    if(error.code === "23505"){
+                        liked = true;
+                    }else{
+                        throw error;
+                    }
+                }else{
+                    liked = true;
+                    actionData = data;
                 }
-                throw error;
             }
+
+            // جدول likes هو المصدر الوحيد للحقيقة؛ حدّث عداد العرض من عدد صفوفه.
+            const { count, error: countError } = await supabase
+                .from("likes")
+                .select("id", { count:"exact", head:true })
+                .eq("wallpaper_id", wallpaperId);
+
+            if(countError) throw countError;
+
+            const totalLikes = Number(count || 0);
+            const { error: likesCountError } = await supabase
+                .from("wallpapers")
+                .update({ likes: totalLikes })
+                .eq("id", wallpaperId);
+
+            if(likesCountError) throw likesCountError;
 
             const wall = await getWallpaperFromSupabase(wallpaperId);
-
-            // تحديث عداد إعجابات الخلفية نفسه. جدول likes هو مصدر حقيقة من ضغط إعجاب،
-            // بينما wallpapers.likes مجرد عداد عرض متزامن.
-            if(wall){
-                const nextLikes = Number(wall.likes || 0) + 1;
-                const { error: likesCountError } = await supabase
-                    .from("wallpapers")
-                    .update({ likes: nextLikes })
-                    .eq("id", wallpaperId);
-                if(likesCountError) throw likesCountError;
-            }
-
             const wallpaperOwnerUID = String(wall?.ownerUID || wall?.userId || "").trim();
 
-            if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
+            if(liked && !existingLike && userId !== wallpaperOwnerUID && wallpaperOwnerUID){
                 await createNotification({
                     recipientUID: wallpaperOwnerUID,
                     fromUser: userId,
@@ -4398,10 +4436,15 @@ app.post(
                 });
             }
 
-            res.json({ success:true, liked:true, data });
+            return res.json({
+                success:true,
+                liked,
+                totalLikes,
+                data:actionData
+            });
         }catch(error){
             console.log("LIKE SUPABASE ERROR:", error);
-            res.status(500).json({ success:false, error:error.message });
+            return res.status(500).json({success:false,message:error.message});
         }
     }
 );

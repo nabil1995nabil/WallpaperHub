@@ -19,6 +19,10 @@ console.log(
 "WallpaperHub Profile Loaded"
 );
 
+// تنظيف مفاتيح الإعجابات القديمة؛ المصدر الوحيد للإعجابات هو Supabase.
+localStorage.removeItem("likes");
+localStorage.removeItem("likedWallpapers");
+
 
 
 
@@ -1050,10 +1054,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 });// استعادة الإحصائيات من localStorage بشكل فوري قبل اكتمال Supabase.
 const initialDownloads = getList("downloads");
 const initialFavorites = getList("favorites");
-const initialLikes = [...new Set([
-    ...getList("likes"),
-    ...getList("likedWallpapers")
-])];
+const initialLikes = [];
 const initialViews = getList("views");
 
 const initialWallpaperCount = document.getElementById("wallpaperCount");
@@ -1906,14 +1907,9 @@ function getList(key){
 
 
 async function getActualLikedIds(){
-    const localLikes = normalizeActionList([
-        ...getList("likes"),
-        ...getList("likedWallpapers")
-    ]);
-
-    // المستخدم المسجل: جدول likes هو المصدر الأساسي لتفادي جمع بيانات محلية
-    // قديمة مع بيانات الخادم واحتساب الإعجاب نفسه أكثر من مرة.
-    if(!currentUser?.id) return localLikes;
+    // الإعجابات تُقرأ حصراً من جدول likes في Supabase.
+    // لا نستخدم localStorage حتى لا تظهر إعجابات قديمة أو غير متزامنة.
+    if(!currentUser?.id) return [];
 
     try{
         const { data, error } = await supabase
@@ -1923,15 +1919,20 @@ async function getActualLikedIds(){
 
         if(error) throw error;
 
-        return normalizeActionList(
+        const ids = normalizeActionList(
             (data || [])
                 .map(row => row?.wallpaper_id)
                 .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
         );
+
+        // إزالة النسخ المحلية القديمة نهائياً؛ ليست مصدراً للإعجابات.
+        localStorage.removeItem("likes");
+        localStorage.removeItem("likedWallpapers");
+        return ids;
     }catch(error){
-        // عند تعذّر الاتصال نستخدم آخر بيانات محلية متاحة، ولا نغيّرها أو نمسحها.
         console.warn("PROFILE LIKES LOAD ERROR:", error);
-        return localLikes;
+        // عند فشل الاتصال لا نعرض بيانات محلية قديمة كأنها مؤكدة.
+        return [];
     }
 }
 
@@ -2121,10 +2122,7 @@ async function renderProfile() {
 
     const likes = results[3].status === "fulfilled"
         ? results[3].value
-        : [...new Set([
-            ...getList("likes"),
-            ...getList("likedWallpapers")
-        ])];
+        : [];
 
     const ownUID = String(currentUser?.id || "").trim();
     const ownWalls = ownUID
@@ -2191,10 +2189,7 @@ async function updateUserStats() {
 
     const likes = results[3].status === "fulfilled"
         ? results[3].value
-        : [...new Set([
-            ...getList("likes"),
-            ...getList("likedWallpapers")
-        ])];
+        : [];
 
     const downloadEl = document.getElementById("downloadCount");
     const likeEl = document.getElementById("likeCount");
@@ -2225,9 +2220,19 @@ async function updateUserStats() {
 window.syncUserStats = function(type, id) {
     if(id === null || id === undefined || String(id).trim() === "") return;
 
+    const actionType = String(type).toLowerCase();
+
+    // الإعجابات تُدار حصراً عبر API وجدول likes في Supabase.
+    // تجاهل أي نداء قديم يحاول تسجيل الإعجاب محلياً.
+    if(actionType === "like" || actionType === "likes" || actionType === "likedwallpapers"){
+        localStorage.removeItem("likes");
+        localStorage.removeItem("likedWallpapers");
+        updateUserStats();
+        renderProfile();
+        return;
+    }
+
     const allowed = {
-        like: "likedWallpapers",
-        likes: "likedWallpapers",
         favorite: "favorites",
         favorites: "favorites",
         download: "downloads",
@@ -2236,7 +2241,7 @@ window.syncUserStats = function(type, id) {
         views: "views"
     };
 
-    const key = allowed[String(type).toLowerCase()] || String(type);
+    const key = allowed[actionType] || String(type);
     const list = getList(key);
     const value = String(id);
 
