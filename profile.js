@@ -1068,7 +1068,7 @@ const initialViewCount = document.getElementById("viewCount");
 if(initialWallpaperCount) initialWallpaperCount.textContent = "0";
 if(initialDownloadCount) initialDownloadCount.textContent = initialDownloads.length;
 if(initialFavoriteCount) initialFavoriteCount.textContent = initialFavorites.length;
-if(initialLikeCount) initialLikeCount.textContent = initialLikes.length;
+if(initialLikeCount) initialLikeCount.textContent = currentUser?.id ? "…" : "0";
 if(initialViewCount) initialViewCount.textContent = initialViews.length;
 
 /* ==========================
@@ -1930,9 +1930,9 @@ async function getActualLikedIds(){
         localStorage.removeItem("likedWallpapers");
         return ids;
     }catch(error){
-        console.warn("PROFILE LIKES LOAD ERROR:", error);
-        // عند فشل الاتصال لا نعرض بيانات محلية قديمة كأنها مؤكدة.
-        return [];
+        console.error("PROFILE LIKES LOAD ERROR:", error);
+        // لا نستخدم بيانات محلية، ولا نعرض الفشل على أنه صفر حقيقي.
+        return null;
     }
 }
 
@@ -2063,38 +2063,20 @@ function updateWallpaperCount(count){
 
 
 async function loadWallpapers(){
-
-
-try{
-
-
-const res = await fetch(API, { cache: "no-store" });
-if(!res.ok) throw new Error(`WALLPAPERS API ${res.status}`);
-
-const payload = await res.json();
-wallpapers = Array.isArray(payload) ? payload : [];
-
-await renderProfile();
-
-
-
+    try{
+        const res = await fetch(API, { cache: "no-store" });
+        if(!res.ok) throw new Error(`WALLPAPERS API ${res.status}`);
+        const payload = await res.json();
+        wallpapers = Array.isArray(payload) ? payload : [];
+    }catch(error){
+        console.warn("WALLPAPERS LIST LOAD ERROR:", error);
+        wallpapers = [];
+    }finally{
+        // لا نربط إحصائيات الإعجابات بنجاح تحميل قائمة الخلفيات.
+        // حتى لو تعطل endpoint الخلفيات، تُقرأ الإحصائيات مباشرة من Supabase.
+        await renderProfile();
+    }
 }
-
-catch(error){
-
-
-console.log(
-"Wallpapers Error",
-error
-);
-
-
-}
-
-
-
-}
-
 
 
 /* ==========================
@@ -2120,9 +2102,8 @@ async function renderProfile() {
     const views = results[2].status === "fulfilled"
         ? results[2].value : getList("views");
 
-    const likes = results[3].status === "fulfilled"
-        ? results[3].value
-        : [];
+    const likesLoaded = results[3].status === "fulfilled" && Array.isArray(results[3].value);
+    const likes = likesLoaded ? results[3].value : [];
 
     const ownUID = String(currentUser?.id || "").trim();
     const ownWalls = ownUID
@@ -2137,8 +2118,10 @@ async function renderProfile() {
     const downloadCountEl = document.getElementById("downloadCount");
     if(downloadCountEl) downloadCountEl.textContent = downloads.length;
 
-    const likeCountEl = document.getElementById("likeCount");
-    if(likeCountEl) likeCountEl.textContent = likes.length;
+    const likeCountEl =
+        document.getElementById("likeCount") ||
+        document.getElementById("likesCount");
+    if(likeCountEl) likeCountEl.textContent = likesLoaded ? likes.length : (currentUser?.id ? "—" : "0");
 
     const viewCountEl = document.getElementById("viewCount");
     if(viewCountEl) viewCountEl.textContent = views.length;
@@ -2187,19 +2170,20 @@ async function updateUserStats() {
     const views = results[2].status === "fulfilled"
         ? results[2].value : getList("views");
 
-    const likes = results[3].status === "fulfilled"
-        ? results[3].value
-        : [];
+    const likesLoaded = results[3].status === "fulfilled" && Array.isArray(results[3].value);
+    const likes = likesLoaded ? results[3].value : [];
 
     const downloadEl = document.getElementById("downloadCount");
-    const likeEl = document.getElementById("likeCount");
+    const likeEl =
+        document.getElementById("likeCount") ||
+        document.getElementById("likesCount");
     const viewEl = document.getElementById("viewCount");
     const favoriteEl =
         document.getElementById("favoriteCount") ||
         document.getElementById("favoritesCount");
 
     if(downloadEl) downloadEl.textContent = downloads.length;
-    if(likeEl) likeEl.textContent = likes.length;
+    if(likeEl) likeEl.textContent = likesLoaded ? likes.length : (currentUser?.id ? "—" : "0");
     if(viewEl) viewEl.textContent = views.length;
     if(favoriteEl) favoriteEl.textContent = saved.length;
 
