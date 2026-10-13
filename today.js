@@ -8,7 +8,8 @@ function todayGetImageUrl(image) {
         return "assets/logo/no-image.png";
     }
 
-    if (image.startsWith("http")) {
+    image = String(image);
+    if (image.startsWith("http") || image.startsWith("data:") || image.startsWith("/")) {
         return image;
     }
 
@@ -59,109 +60,403 @@ async function loadTodayComponent() {
 
 
 /* =========================================================
-   تحميل بيانات خلفية اليوم وتفعيل الأزرار
+   Dynamic Today Wallpaper
+   النظام 1: اختيار صورة حسب الوقت والطقس.
+   النظام 2: استعمال نسخة مرتبطة بنفس الخلفية إذا كانت متوفرة.
+   الطقس لا يُطلب إلا بعد اختيار الزائر، أو اختيار مدينة يدوياً.
 ========================================================= */
+
+const TODAY_WEATHER_STORAGE_KEY = "wallpaperHubTodayWeatherPreference";
+let todayWallpaperPool = [];
+let todayWeatherInfo = null;
+let todayCurrentWallpaper = null;
+
+function todaySafeStorageGet(key) {
+    try { return localStorage.getItem(key); } catch (_) { return null; }
+}
+function todaySafeStorageSet(key, value) {
+    try { localStorage.setItem(key, value); } catch (_) {}
+}
+function todaySafeStorageRemove(key) {
+    try { localStorage.removeItem(key); } catch (_) {}
+}
+
+function todayGetLocalDateKey(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function todayGetTimePeriod(date = new Date()) {
+    const hour = date.getHours();
+    if (hour >= 6 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 17) return "day";
+    if (hour >= 17 && hour < 20) return "sunset";
+    return "night";
+}
+
+function todayPeriodLabel(period) {
+    return ({
+        morning: "الصباح",
+        day: "النهار",
+        sunset: "الغروب",
+        night: "الليل"
+    })[period] || "خلفية اليوم";
+}
+
+function todayWeatherLabel(weather) {
+    return ({
+        sunny: "مشمس",
+        rainy: "ممطر",
+        cloudy: "غائم",
+        snowy: "ثلجي",
+        foggy: "ضبابي",
+        stormy: "عاصف"
+    })[weather] || "";
+}
+
+function todayNormalizeText(value) {
+    if (Array.isArray(value)) return value.join(" ").toLowerCase();
+    if (value && typeof value === "object") return Object.values(value).join(" ").toLowerCase();
+    return String(value || "").toLowerCase();
+}
+
+function todayWallpaperText(wallpaper) {
+    return [
+        wallpaper.title, wallpaper.description, wallpaper.category,
+        wallpaper.tags, wallpaper.timeOfDay, wallpaper.time_of_day,
+        wallpaper.weather, wallpaper.weatherType, wallpaper.weather_type,
+        wallpaper.mood, wallpaper.keywords
+    ].map(todayNormalizeText).join(" ");
+}
+
+function todayHasTerm(text, terms) {
+    return terms.some(term => text.includes(term));
+}
+
+function todayScoreWallpaper(wallpaper, period, weather) {
+    const text = todayWallpaperText(wallpaper);
+    const timeFields = todayNormalizeText(
+        wallpaper.timeOfDay || wallpaper.time_of_day || wallpaper.time || ""
+    );
+    const weatherFields = todayNormalizeText(
+        wallpaper.weather || wallpaper.weatherType || wallpaper.weather_type || ""
+    );
+    const timeTerms = {
+        morning: ["morning", "sunrise", "dawn", "صباح", "شروق", "فجر"],
+        day: ["day", "daylight", "noon", "نهار", "ظهر"],
+        sunset: ["sunset", "dusk", "golden hour", "غروب", "شفق"],
+        night: ["night", "moon", "stars", "dark", "ليل", "قمر", "نجوم"]
+    };
+    const weatherTerms = {
+        sunny: ["sunny", "sun", "clear", "مشمس", "شمس", "صحو"],
+        rainy: ["rain", "rainy", "storm", "مطر", "ممطر", "عاصف"],
+        cloudy: ["cloud", "cloudy", "overcast", "غائم", "غيوم"],
+        snowy: ["snow", "snowy", "ثلج", "ثلجي"],
+        foggy: ["fog", "mist", "foggy", "ضباب", "ضبابي"],
+        stormy: ["storm", "thunder", "عاصفة", "رعد"]
+    };
+    let score = 0;
+
+    if (timeFields) {
+        if (todayHasTerm(timeFields, timeTerms[period] || [])) score += 8;
+        else if (todayHasTerm(timeFields, ["all", "any", "كل الأوقات", "all-day"])) score += 1;
+        else score -= 2;
+    } else if (todayHasTerm(text, timeTerms[period] || [])) {
+        score += 3;
+    }
+
+    if (weather) {
+        if (weatherFields) {
+            if (todayHasTerm(weatherFields, weatherTerms[weather] || [])) score += 10;
+            else if (todayHasTerm(weatherFields, ["any", "all", "كل الحالات"])) score += 1;
+            else score -= 2;
+        } else if (todayHasTerm(text, weatherTerms[weather] || [])) {
+            score += 4;
+        }
+    }
+    return score;
+}
+
+function todayStableHash(value) {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i++) {
+        hash ^= value.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+}
+
+function todayPickWallpaper(wallpapers, period, weather, dateKey) {
+    if (!wallpapers.length) return null;
+    const scored = wallpapers.map(w => ({
+        wallpaper: w,
+        score: todayScoreWallpaper(w, period, weather)
+    }));
+    const maxScore = Math.max(...scored.map(item => item.score));
+    const candidates = scored.filter(item => item.score === maxScore).map(item => item.wallpaper);
+    const seed = `${dateKey}|${period}|${weather || "no-weather"}`;
+    return candidates[todayStableHash(seed) % candidates.length];
+}
+
+function todayGetVariant(wallpaper, period, weather) {
+    if (!wallpaper || typeof wallpaper !== "object") return null;
+    const containers = [
+        wallpaper.variants,
+        wallpaper.timeVariants,
+        wallpaper.time_variants,
+        wallpaper.weatherVariants,
+        wallpaper.weather_variants,
+        wallpaper.dynamicVariants,
+        wallpaper.dynamic_variants
+    ].filter(value => value && typeof value === "object" && !Array.isArray(value));
+
+    const keys = [];
+    if (weather) keys.push(`${period}_${weather}`, `${weather}_${period}`, weather);
+    keys.push(period, ({
+        morning: "sunrise",
+        sunset: "dusk",
+        night: "evening",
+        day: "daylight"
+    })[period]);
+
+    for (const container of containers) {
+        for (const key of keys) {
+            const variant = container[key];
+            if (variant) {
+                if (typeof variant === "string") return { image: variant };
+                if (typeof variant === "object") return variant;
+            }
+        }
+    }
+    return null;
+}
+
+function todayResolveVariantImage(variant) {
+    if (!variant) return null;
+    return variant.image || variant.src || variant.url || variant.thumbnail || null;
+}
+
+function todayRenderWallpaper(wallpaper, period, weather) {
+    if (!wallpaper) return;
+    const img = document.getElementById("todayImage");
+    const title = document.getElementById("todayTitle");
+    const desc = document.getElementById("todayDescription");
+    const view = document.getElementById("todayView");
+    const download = document.getElementById("todayDownload");
+    const weatherButton = document.getElementById("todayWeatherButton");
+    const weatherLabel = document.getElementById("todayWeatherButtonLabel");
+
+    const variant = todayGetVariant(wallpaper, period, weather);
+    const variantImage = todayResolveVariantImage(variant);
+    const displayImage = variantImage || (todayIsGifMedia(wallpaper)
+        ? wallpaper.image
+        : (wallpaper.thumbnail || wallpaper.image));
+    const displayTitle = (variant && variant.title) || wallpaper.title || "خلفية اليوم";
+
+    if (img) {
+        img.onerror = () => {
+            img.onerror = null;
+            const fallback = todayGetImageUrl(wallpaper.thumbnail || wallpaper.image);
+            if (img.src !== new URL(fallback, window.location.href).href) img.src = fallback;
+            else img.src = "assets/logo/no-image.png";
+        };
+        img.src = todayGetImageUrl(displayImage);
+        img.alt = displayTitle;
+    }
+    if (title) title.textContent = displayTitle;
+    if (desc) {
+        const baseDescription = wallpaper.description || wallpaper.category || "جمال العالم بين يديك";
+        const weatherText = weather ? ` • ${todayWeatherLabel(weather)}` : "";
+        desc.textContent = `${baseDescription} • ${todayPeriodLabel(period)}${weatherText}`;
+    }
+    if (view) {
+        view.onclick = () => {
+            window.location.href = "wallpaper.html?id=" + encodeURIComponent(wallpaper.id);
+        };
+    }
+    if (download) {
+        download.onclick = () => {
+            const a = document.createElement("a");
+            a.href = todayGetImageUrl(variantImage || wallpaper.image);
+            const ext = String(variantImage || wallpaper.image || "").split("?")[0].split(".").pop();
+            a.download = (displayTitle || "wallpaper") + "." + (ext && ext.length <= 5 ? ext : "jpg");
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        };
+    }
+    if (weatherButton) {
+        weatherButton.setAttribute("aria-pressed", todayWeatherInfo ? "true" : "false");
+        if (weatherLabel) weatherLabel.textContent = todayWeatherInfo
+            ? (todayWeatherInfo.city ? todayWeatherInfo.city : todayWeatherLabel(weather))
+            : "حسب الطقس";
+        weatherButton.title = todayWeatherInfo
+            ? `الطقس مفعّل: ${todayWeatherLabel(weather) || "حالة محلية"} — اضغط للتغيير`
+            : "اختيار الطقس حسب موقعك أو مدينتك";
+    }
+    todayCurrentWallpaper = wallpaper;
+}
+
+async function todayFetchWeather(latitude, longitude, cityName = "") {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=temperature_2m,weather_code&timezone=auto`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("تعذر جلب الطقس");
+    const data = await response.json();
+    const code = Number(data.current && data.current.weather_code);
+    let weather = "cloudy";
+    if (code === 0 || code === 1) weather = "sunny";
+    else if ([2, 3, 45, 48].includes(code)) weather = [45, 48].includes(code) ? "foggy" : "cloudy";
+    else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) weather = "rainy";
+    else if ([71, 73, 75, 77, 85, 86].includes(code)) weather = "snowy";
+    else if ([95, 96, 99].includes(code)) weather = "stormy";
+
+    return {
+        weather,
+        city: cityName || "طقس موقعك",
+        temperature: data.current && data.current.temperature_2m,
+        fetchedAt: Date.now()
+    };
+}
+
+async function todayGeocodeCity(city) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=ar&format=json`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("تعذر العثور على المدينة");
+    const data = await response.json();
+    const result = data.results && data.results[0];
+    if (!result) throw new Error("لم يتم العثور على المدينة");
+    return {
+        latitude: result.latitude,
+        longitude: result.longitude,
+        name: [result.name, result.admin1, result.country].filter(Boolean).join("، ")
+    };
+}
+
+async function todayEnableWeatherByLocation() {
+    if (!navigator.geolocation) throw new Error("المتصفح لا يدعم تحديد الموقع");
+    const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 30 * 60 * 1000
+        });
+    });
+    const weather = await todayFetchWeather(
+        position.coords.latitude,
+        position.coords.longitude,
+        "طقس موقعك"
+    );
+    todayWeatherInfo = weather;
+    todaySafeStorageSet(TODAY_WEATHER_STORAGE_KEY, JSON.stringify({
+        mode: "location",
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        city: weather.city,
+        savedAt: Date.now()
+    }));
+}
+
+async function todayEnableWeatherByCity() {
+    const city = window.prompt("اكتب اسم مدينتك لتخصيص خلفية اليوم حسب الطقس:");
+    if (!city || !city.trim()) return false;
+    const location = await todayGeocodeCity(city.trim());
+    const weather = await todayFetchWeather(location.latitude, location.longitude, location.name);
+    todayWeatherInfo = weather;
+    todaySafeStorageSet(TODAY_WEATHER_STORAGE_KEY, JSON.stringify({
+        mode: "city",
+        latitude: location.latitude,
+        longitude: location.longitude,
+        city: location.name,
+        savedAt: Date.now()
+    }));
+    return true;
+}
+
+async function todayUpdateDynamicWallpaper() {
+    if (!todayWallpaperPool.length) return;
+    const now = new Date();
+    const period = todayGetTimePeriod(now);
+    const weather = todayWeatherInfo ? todayWeatherInfo.weather : null;
+    const dateKey = todayGetLocalDateKey(now);
+    const selected = todayPickWallpaper(todayWallpaperPool, period, weather, dateKey);
+    if (!selected) return;
+    todayRenderWallpaper(selected, period, weather);
+}
+
+async function todayConfigureWeatherButton() {
+    const button = document.getElementById("todayWeatherButton");
+    if (!button || button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+
+    button.addEventListener("click", async () => {
+        const choice = window.confirm(
+            "لتخصيص خلفية اليوم حسب الطقس، اختر موافق للسماح بتحديد موقعك، أو إلغاء لاختيار المدينة يدوياً."
+        );
+        button.disabled = true;
+        const originalLabel = document.getElementById("todayWeatherButtonLabel");
+        try {
+            if (choice) {
+                await todayEnableWeatherByLocation();
+            } else {
+                const ok = await todayEnableWeatherByCity();
+                if (!ok) return;
+            }
+            await todayUpdateDynamicWallpaper();
+        } catch (error) {
+            console.warn("Today weather unavailable:", error);
+            window.alert("ما قدرناش نجيبوا الطقس دابا. غادي تبقى خلفية اليوم كتتبدل حسب الوقت فقط.");
+            todayWeatherInfo = null;
+            todaySafeStorageRemove(TODAY_WEATHER_STORAGE_KEY);
+            await todayUpdateDynamicWallpaper();
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
+async function todayRestoreWeatherPreference() {
+    const saved = todaySafeStorageGet(TODAY_WEATHER_STORAGE_KEY);
+    if (!saved) return;
+    try {
+        const preference = JSON.parse(saved);
+        if (!preference.latitude || !preference.longitude) return;
+        const age = Date.now() - Number(preference.savedAt || 0);
+        if (age > 3 * 60 * 60 * 1000) {
+            const refreshed = await todayFetchWeather(preference.latitude, preference.longitude, preference.city || "");
+            todayWeatherInfo = refreshed;
+            todaySafeStorageSet(TODAY_WEATHER_STORAGE_KEY, JSON.stringify({
+                ...preference,
+                savedAt: Date.now()
+            }));
+        } else {
+            todayWeatherInfo = await todayFetchWeather(preference.latitude, preference.longitude, preference.city || "");
+        }
+    } catch (error) {
+        console.warn("Today weather restore error:", error);
+        todayWeatherInfo = null;
+    }
+}
 
 async function loadTodayWallpaper() {
     try {
         const response = await fetch("/api/wallpapers?_=" + Date.now());
-
-        if (!response.ok) {
-            throw new Error("API error: " + response.status);
-        }
-
+        if (!response.ok) throw new Error("API error: " + response.status);
         const wallpapers = await response.json();
-
         if (!Array.isArray(wallpapers) || wallpapers.length === 0) {
             console.warn("Today: لا توجد خلفيات في API");
             return;
         }
 
-        /* تاريخ اليوم لضمان ثبات الخلفية طوال اليوم */
-        const todayKey = new Date().toISOString().split("T")[0];
-        let today = null;
-
-        /* الخلفية المحفوظة مسبقاً */
-        const saved = localStorage.getItem("dailyWallpaper");
-
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                if (data.date === todayKey) {
-                    today = wallpapers.find(w => String(w.id) === String(data.id));
-                }
-            } catch (error) {
-                console.warn("Today cache error:", error);
-            }
-        }
-
-        /* إذا لم توجد خلفية محفوظة لهذا اليوم، اختر واحدة عشوائياً */
-        if (!today) {
-            today = wallpapers[Math.floor(Math.random() * wallpapers.length)];
-
-            localStorage.setItem(
-                "dailyWallpaper",
-                JSON.stringify({
-                    id: today.id,
-                    date: todayKey
-                })
-            );
-        }
-
-        if (!today) {
-            return;
-        }
-
-        /* ربط عناصر HTML */
-        const img = document.getElementById("todayImage");
-        const title = document.getElementById("todayTitle");
-        const desc = document.getElementById("todayDescription");
-        const view = document.getElementById("todayView");
-        const download = document.getElementById("todayDownload");
-
-        /* تعيين الصورة */
-        if (img) {
-            img.src = todayGetImageUrl(todayIsGifMedia(today) ? today.image : (today.thumbnail || today.image));
-            img.onerror = () => {
-                img.src = "assets/logo/no-image.png";
-            };
-        }
-
-        /* تعيين العنوان */
-        if (title) {
-            title.textContent = today.title || "خلفية اليوم";
-        }
-
-        /* تعيين الوصف أو القسم */
-        if (desc) {
-            desc.textContent = today.description || today.category || "جمال العالم بين يديك";
-        }
-
-        /* حدث النقر على زر العرض الآن */
-        if (view) {
-            view.onclick = () => {
-                window.location.href = "wallpaper.html?id=" + encodeURIComponent(today.id);
-            };
-        }
-
-        /* حدث النقر على التحميل (إن وجد) */
-        if (download) {
-            download.onclick = () => {
-                const a = document.createElement("a");
-                a.href = todayGetImageUrl(today.image);
-                a.download = (today.title || "wallpaper") + (todayIsGifMedia(today) ? ".gif" : ".jpg");
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            };
-        }
-
+        todayWallpaperPool = wallpapers.filter(w => w && (w.id != null) && (w.image || w.thumbnail));
+        await todayRestoreWeatherPreference();
+        await todayConfigureWeatherButton();
+        await todayUpdateDynamicWallpaper();
     } catch (error) {
         console.error("Today wallpaper error:", error);
     }
 }
-
-
 
 
 /* =========================================================
