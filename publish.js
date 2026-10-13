@@ -163,7 +163,7 @@ $("aiBtn").addEventListener("click",()=>{
   $("titleCount").textContent=`${$("wallTitle").value.length} / 120`;notify("اقتراحات أولية جاهزة للمراجعة.");
 });
 function draftPayload(){
-  return {title:$("wallTitle").value.trim(),description:$("wallDescription").value.trim(),category:$("wallCategory").value,type:$("wallType").value,tags:$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean),colors:$("wallColors").value.trim(),device:$("wallDevice").value,resolution:$("wallResolution").value,size:$("wallSize").value,is360:$("is360").checked,scheduledAt:$("scheduleAt").value,fileNames:selectedFiles.map(f=>({name:f.name,size:f.size,type:f.type,lastModified:f.lastModified}))};
+  return {title:$("wallTitle").value.trim(),category:$("wallCategory").value,type:$("wallType").value,tags:$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean),colors:$("wallColors").value.trim(),device:$("wallDevice").value,resolution:$("wallResolution").value,size:$("wallSize").value,is360:$("is360").checked,scheduledAt:$("scheduleAt").value,fileNames:selectedFiles.map(f=>({name:f.name,size:f.size,type:f.type,lastModified:f.lastModified}))};
 }
 $("saveDraftBtn").addEventListener("click",()=>{
   const data=draftPayload();if(!data.title&&!selectedFiles.length){notify("أدخل عنواناً أو اختر صورة قبل حفظ المسودة.");return;}
@@ -363,7 +363,6 @@ form.addEventListener("submit",async e=>{
       const metadataInfo=await metadata(file);
       const payload={
         title:selectedFiles.length>1?`${$("wallTitle").value.trim()} - ${file.name.replace(/\.[^.]+$/,"")}`:$("wallTitle").value.trim(),
-        description:$("wallDescription").value.trim(),
         category:$("wallCategory").value,
         type:"image",
         image:job.result.secure_url,
