@@ -4062,9 +4062,44 @@ body.phone-preview-open{
     }
 }
 
-/* إصلاح عرض الخلفية: إظهار الصورة كاملة داخل الإطار دون تكبير أو قصّ.
-   لا يغيّر هذا التعديل أبعاد الإطار أو تصميم الصفحة. */
-#wallImage,
-#wallVideo {
-    object-fit: contain !important;
+
+/* =========================================================
+   WALLPAPER SIDE FILL FIX
+   Keep the original image fully visible; use the blurred
+   ambient layer behind it to fill any empty side areas.
+   This is a display-only override; layout and controls stay intact.
+   ========================================================= */
+.wallpaper-preview-wrapper > .wallpaper-ambient-background{
+    position:absolute !important;
+    inset:0 !important;
+    z-index:0 !important;
+    display:block !important;
+    background-position:center !important;
+    background-repeat:no-repeat !important;
+    background-size:cover !important;
+    pointer-events:none !important;
+}
+
+.wallpaper-preview-wrapper > #wallImage{
+    position:relative !important;
+    z-index:1 !important;
+    display:block !important;
+    width:auto !important;
+    height:100% !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    object-fit:contain !important;
+    background:transparent !important;
+    border-radius:inherit;
+}
+
+/* Keep video playback and the 360 canvas unchanged. */
+.wallpaper-preview-wrapper > #wallVideo{
+    z-index:1;
+}
+
+.wallpaper-preview-wrapper.is-panorama > #wallImage{
+    visibility:hidden !important;
 }
