@@ -5,7 +5,7 @@
 
 
 /* ==========================
-   Firebase
+   supabase
 ========================== */
 
 
@@ -1890,7 +1890,13 @@ function getList(key){
 
 
 async function getActualLikedIds(){
-    let localLikes = [...new Set([...getList("likes"), ...getList("likedWallpapers")])];
+    const localLikes = normalizeActionList([
+        ...getList("likes"),
+        ...getList("likedWallpapers")
+    ]);
+
+    // المستخدم المسجل: جدول likes هو المصدر الأساسي لتفادي جمع بيانات محلية
+    // قديمة مع بيانات الخادم واحتساب الإعجاب نفسه أكثر من مرة.
     if(!currentUser?.id) return localLikes;
 
     try{
@@ -1901,9 +1907,13 @@ async function getActualLikedIds(){
 
         if(error) throw error;
 
-        const cloudLikes = (data || []).map(row => row?.wallpaper_id).filter(Boolean).map(String);
-        return [...new Set([...cloudLikes, ...localLikes])];
+        return normalizeActionList(
+            (data || [])
+                .map(row => row?.wallpaper_id)
+                .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+        );
     }catch(error){
+        // عند تعذّر الاتصال نستخدم آخر بيانات محلية متاحة، ولا نغيّرها أو نمسحها.
         console.warn("PROFILE LIKES LOAD ERROR:", error);
         return localLikes;
     }
