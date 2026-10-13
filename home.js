@@ -163,6 +163,9 @@ async function loadPersonalizedRecommendations(){
 const latestContainer =
 document.getElementById("latestWallpapers");
 
+const weatherTimeContainer =
+document.getElementById("weatherTimeWallpapers");
+
 const recommendedContainer =
 document.getElementById("recommendedWallpapers");
 
@@ -208,6 +211,7 @@ async function loadWallpapers() {
         renderDownloaded();
         renderLiked();
         renderLatest();
+        renderWeatherTime();
         renderRecommended();
         createDynamicSections();
         renderOtherWallpapers();
@@ -353,6 +357,109 @@ function renderLatest() {
     });
 
 }
+
+// =======================================
+// حسب الطقس والوقت — المرحلة الأولى: اختيار حسب وقت اليوم
+// يعتمد على بيانات الخلفيات الموجودة، ويتجدد الاختيار مع كل تحميل للرئيسية.
+// ربط الطقس وصفحة "عرض الكل" سيضاف في المرحلة التالية.
+// =======================================
+
+function getCurrentWallpaperTimePeriod() {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 17) return "day";
+    if (hour >= 17 && hour < 20) return "sunset";
+    return "night";
+}
+
+function getWallpaperSearchText(wall) {
+    const values = [
+        wall?.title, wall?.description, wall?.category,
+        wall?.tags, wall?.keywords, wall?.timeOfDay, wall?.time_of_day,
+        wall?.weather, wall?.type
+    ];
+    return values.flatMap(value => Array.isArray(value) ? value : [value])
+        .filter(Boolean).join(" ").toLowerCase();
+}
+
+function wallpaperMatchesTimePeriod(wall, period) {
+    const text = getWallpaperSearchText(wall);
+    const groups = {
+        morning: ["sunrise", "sun rise", "morning", "dawn", "sunrise", "شروق", "الصباح", "صباح", "الفجر"],
+        day: ["daytime", "sunny day", "day light", "daylight", "noon", "نهار", "النهار", "نهارية", "مشمس"],
+        sunset: ["sunset", "sun set", "golden hour", "dusk", "evening", "غروب", "الغروب", "مساء", "الشفق"],
+        night: ["night", "nighttime", "moon", "stars", "starry", "dark sky", "ليل", "الليل", "ليلي", "قمر", "نجوم"]
+    };
+    const tags = groups[period] || [];
+    return tags.some(tag => text.includes(tag));
+}
+
+function getPeriodFallbackCategories(period) {
+    const map = {
+        morning: ["sunrise", "nature"],
+        day: ["nature"],
+        sunset: ["sunset"],
+        night: ["dark", "amoled", "space", "deep-space"]
+    };
+    return map[period] || [];
+}
+
+function renderWeatherTime() {
+    if (!weatherTimeContainer || !Array.isArray(wallpapers)) return;
+
+    const period = getCurrentWallpaperTimePeriod();
+    const periodNames = {
+        morning: "الصباح والشروق",
+        day: "النهار",
+        sunset: "الغروب",
+        night: "الليل"
+    };
+    const note = document.getElementById("weatherTimeNote");
+    if (note) note.textContent = `خلفيات ${periodNames[period]} — تتجدد مع كل زيارة`;
+
+    const matching = wallpapers.filter(wall => wallpaperMatchesTimePeriod(wall, period));
+    const fallbackCategories = getPeriodFallbackCategories(period);
+    const fallback = wallpapers.filter(wall => {
+        const category = String(wall?.category || "").toLowerCase();
+        return fallbackCategories.includes(category);
+    });
+
+    // لا نخلط الفترات: إذا لم توجد صور مصنفة بوضوح، نستخدم أقرب فئات احتياطية.
+    let pool = matching.length ? matching : fallback;
+    const seen = new Set();
+    pool = pool.filter(wall => {
+        const id = String(wall?.id ?? wall?.image ?? "");
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+    });
+
+    // تبديل ترتيب الاختيار عند كل تحميل، مع تجنب ترتيب ثابت دائمًا.
+    for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    weatherTimeContainer.innerHTML = "";
+    pool.slice(0, 8).forEach(wall => {
+        weatherTimeContainer.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
+    });
+
+    if (!pool.length) {
+        weatherTimeContainer.innerHTML =
+            '<div class="weather-time-empty">ما لقيناش حالياً خلفيات مصنفة لهاد الفترة. غادي نعرضوها هنا ملي تتوفر بيانات مناسبة.</div>';
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const viewAll = document.getElementById("weatherTimeViewAll");
+    if (viewAll) {
+        viewAll.addEventListener("click", event => {
+            // رابط "عرض الكل" سيتصل بصفحة التصفية الخاصة في المرحلة التالية.
+            event.preventDefault();
+        });
+    }
+});
 
 // =======================================
 // المقترحة
