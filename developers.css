@@ -444,3 +444,12 @@ font-size:12px;
 .one-time-token code{word-break:break-all}
 .one-time-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .badge-inactive{opacity:.65}
+
+
+/* Developer token environment variable fields */
+.token-env-field{margin-top:14px;text-align:right}
+.token-env-field label{display:block;color:#cbd5e1;font-size:.85rem;margin-bottom:6px}
+.token-env-field .one-time-token{margin:0 0 8px;background:rgba(255,255,255,.08);color:#fff}
+.token-env-field .one-time-token code{color:#e2e8f0;overflow-wrap:anywhere}
+.token-one-time-box .one-time-inner{max-height:90vh;overflow:auto}
+@media(max-width:480px){.one-time-inner{padding:16px!important}.one-time-actions .btn-action{flex:1}}

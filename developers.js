@@ -165,7 +165,7 @@ if(form){
             // المفتاح الكامل يظهر مرة واحدة فقط بعد الإنشاء.
             const secret = data.token?.token || "";
             if(secret){
-                showNewToken(secret);
+                showNewToken(secret, data.token?.appName || appName);
             }else{
                 alert("تم إنشاء Token بنجاح");
             }
@@ -196,12 +196,12 @@ function renderTokens(tokens){
             <div class="token-meta">
                 <div>
                     <div class="token-name">${escapeHtml(token.appName || "My App")}</div>
-                    <div class="token-domain">${escapeHtml(token.domain || "بدون نطاق")} • ${Number(token.limit || 0)} طلب / يوم</div>
+                    <div class="token-domain">${escapeHtml(token.domain || "بدون نطاق")}</div>
                 </div>
                 <span class="badge ${token.active ? "badge-active" : "badge-inactive"}">${token.active ? "نشط" : "متوقف"}</span>
             </div>
             <div class="token-stats">
-                <p>📊 الطلبات اليوم: ${Number(token.requests || 0)} / ${Number(token.limit || 0)}</p>
+                <p>📊 الخلفيات المستهلكة اليوم: ${Number(token.lastRequestDate === new Date().toISOString().slice(0,10) ? token.requests || 0 : 0)} / 20</p>
                 <p>🕒 آخر استعمال: ${escapeHtml(token.lastUsed || "لا يوجد")}</p>
             </div>
             <div class="token-value-box">
@@ -303,14 +303,16 @@ async function getWallpapers(){
 // ================================
 // عرض المفتاح الجديد مرة واحدة
 // ================================
-function showNewToken(secret){
+function showNewToken(secret, tokenName = "WallpaperHub API"){
     const box = document.createElement("div");
     box.className = "token-one-time-box";
     box.innerHTML = `
         <div class="one-time-inner">
-            <h3>🔐 تم إنشاء Token</h3>
-            <p>احفظ هذا المفتاح الآن. لن يتم عرضه كاملًا مرة أخرى.</p>
-            <div class="one-time-token"><code>${escapeHtml(secret)}</code></div>
+            <h3>🔐 تم إنشاء مفتاح API</h3>
+            <p>انسخ الاسم والمفتاح إلى Vercel كمتغيرين منفصلين. المفتاح الكامل لن يظهر مرة أخرى.</p>
+            <div class="token-env-field"><label>اسم التوكن / المشروع</label><div class="one-time-token"><code>${escapeHtml(tokenName)}</code></div></div>
+            <div class="token-env-field"><label>اسم متغير Vercel</label><div class="one-time-token"><code>WALLPAPERHUB_API_KEY</code></div><button type="button" class="btn-action copy-env-name">نسخ اسم المتغير</button></div>
+            <div class="token-env-field"><label>Key — قيمة المتغير</label><div class="one-time-token"><code>${escapeHtml(secret)}</code></div></div>
             <div class="one-time-actions">
                 <button type="button" class="btn-action copy-new-token">نسخ المفتاح</button>
                 <button type="button" class="btn-action close-new-token">تم الحفظ</button>
@@ -330,6 +332,10 @@ function showNewToken(secret){
         }
     };
 
+    box.querySelector(".copy-env-name").onclick = async () => {
+        try { await navigator.clipboard.writeText("WALLPAPERHUB_API_KEY"); alert("تم نسخ اسم المتغير"); }
+        catch(error) { alert("تعذر النسخ تلقائيًا"); }
+    };
     box.querySelector(".close-new-token").onclick = () => box.remove();
 }
 

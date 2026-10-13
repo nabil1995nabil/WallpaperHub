@@ -5051,7 +5051,7 @@ function tokenResponse(token, includeSecret = false){
         userId: token.user_id,
         appName: token.app_name,
         domain: token.domain,
-        limit: token.daily_limit,
+        limit: 20,
         requests: token.requests || 0,
         lastRequestDate: token.last_request_date,
         lastUsed: token.last_used,
@@ -5080,7 +5080,7 @@ app.post("/api/tokens/create", async (req, res) => {
             app_name: appName,
             domain,
             token: createTokenValue(),
-            daily_limit: 200,
+            daily_limit: 20,
             requests: 0,
             last_request_date: null,
             last_used: null,
@@ -5326,9 +5326,11 @@ async function verifyApiToken(
         // فحص الحد اليومي
         // ======================================
 
+        apiToken.daily_limit = 20;
+        apiToken.requests = Number(apiToken.requests || 0);
+
         if(
-            apiToken.requests >=
-            apiToken.daily_limit
+            apiToken.requests >= 20
         ){
 
             return res.status(429).json({
@@ -5344,60 +5346,15 @@ async function verifyApiToken(
         }
 
 
-        // ======================================
-        // تسجيل الطلب
-        // ======================================
-
-        apiToken.requests++;
-
-        apiToken.last_used =
-            new Date()
-                .toISOString();
-
-
-        // ======================================
-        // حفظ الإحصائيات في Supabase
-        // ======================================
-
-        const {
-            error: updateError
-        } =
-            await supabase
-                .from("api_tokens")
-                .update({
-
-                    requests:
-                        apiToken.requests,
-
-                    last_request_date:
-                        apiToken.last_request_date,
-
-                    last_used:
-                        apiToken.last_used,
-
-                    last_ip:
-                        apiToken.last_ip
-
-                })
-                .eq(
-                    "id",
-                    apiToken.id
-                );
-
-
-        if(updateError){
-
-            throw updateError;
-
-        }
-
-
+        // لا نستهلك الحصة هنا؛ الحصة تقاس بعدد الخلفيات التي أُرجعت
+        // فعليًا، ويُسجل الاستهلاك داخل endpoint بعد تحديد عدد النتائج.
         // ======================================
         // تمرير بيانات Token إلى API
         // ======================================
 
-        req.apiToken =
-            apiToken;
+        req.apiToken = apiToken;
+        req.apiTokenClientIp = clientIp;
+        req.apiTokenToday = today;
 
 
         next();
@@ -6266,12 +6223,47 @@ async (req,res)=>{
 try{
 
 
-const wallpapers = await getWallpapersFromSupabase();
+const allWallpapers = await getWallpapersFromSupabase();
+    const usedToday = req.apiToken.last_request_date === req.apiTokenToday
+        ? Number(req.apiToken.requests || 0)
+        : 0;
+    const remaining = Math.max(0, 20 - usedToday);
+
+    if(remaining <= 0){
+        return res.status(429).json({
+            success:false,
+            code:"DAILY_WALLPAPER_LIMIT_REACHED",
+            message:"تم استهلاك الحد اليومي: 20 خلفية. حاول غدًا.",
+            dailyLimit:20,
+            usedToday,
+            remaining:0
+        });
+    }
+
+    // كل عنصر يتم إرجاعه يستهلك خلفية واحدة من الحصة اليومية.
+    const wallpapers = allWallpapers.slice(usedToday, usedToday + remaining);
+    const nextUsed = usedToday + wallpapers.length;
+    const now = new Date().toISOString();
+    const { error: usageError } = await supabase
+        .from("api_tokens")
+        .update({
+            requests:nextUsed,
+            last_request_date:req.apiTokenToday,
+            last_used:now,
+            last_ip:req.apiTokenClientIp || "unknown"
+        })
+        .eq("id", req.apiToken.id)
+        .eq("token", req.apiToken.token);
+
+    if(usageError) throw usageError;
 
     res.json({
         success:true,
-        developer:req.apiToken.appName,
+        developer:req.apiToken.app_name || req.apiToken.appName,
         count:wallpapers.length,
+        dailyLimit:20,
+        usedToday:nextUsed,
+        remaining:Math.max(0,20-nextUsed),
         data:wallpapers
     });
 
