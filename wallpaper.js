@@ -307,7 +307,7 @@ function normalizeWallpaperData(base = {}, row = {}) {
         first(row.views, row.view_count, base.views), 0
     );
     merged.likes = numeric(
-        first(row.likes, row.like_count, row.favorites, base.likes), 0
+        first(row.likes, row.like_count, base.likes), 0
     );
     merged.rating = numeric(first(row.rating, base.rating), 0);
     merged.ratingCount = numeric(
@@ -2051,7 +2051,6 @@ if(wallLikes){
     wallLikes.textContent = formatQuickStat(
         currentWallpaper.likes ??
         currentWallpaper.likeCount ??
-        currentWallpaper.favorites ??
         0
     );
 }
@@ -3715,8 +3714,12 @@ async function likeWallpaper(){
             );
 
             // لا نحفظ الإعجاب في localStorage؛ API/Supabase هما المصدر الوحيد.
-            localStorage.removeItem("likes");
-            localStorage.removeItem("likedWallpapers");
+            try {
+                localStorage.removeItem("likes");
+                localStorage.removeItem("likedWallpapers");
+            } catch (storageError) {
+                console.warn("LEGACY LIKE STORAGE CLEANUP SKIPPED:", storageError);
+            }
 
             if(Number.isFinite(Number(data.totalLikes))){
                 currentWallpaper.likes = Number(data.totalLikes);
