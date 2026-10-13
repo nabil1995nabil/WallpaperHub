@@ -499,3 +499,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 .weather-status{min-height:14px;margin-top:8px;color:#8791a5;font-size:10px;line-height:1.5}
 @media(min-width:600px){.weather-section{margin-inline:22px;padding:15px 16px}.weather-options{gap:9px}}
 @media(max-width:380px){.weather-section{margin-inline:10px;padding:12px 9px}.weather-location-btn{padding-inline:7px;font-size:9px}.weather-chip{min-width:57px}}
+
+
+/* Weather system on/off control */
+.weather-head-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.weather-toggle{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 8px;border:1px solid #dfe4ef;border-radius:11px;background:#fff;color:#66728a;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.weather-toggle input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.weather-toggle-track{width:30px;height:17px;padding:2px;border-radius:99px;background:#cbd2df;transition:background .2s;direction:ltr}
+.weather-toggle-track>span{display:block;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .2s}
+.weather-toggle input:checked+.weather-toggle-track{background:#5a63f2}
+.weather-toggle input:checked+.weather-toggle-track>span{transform:translateX(13px)}
+.weather-toggle input:focus-visible+.weather-toggle-track{outline:3px solid #aab2ff;outline-offset:2px}
+.weather-section.weather-disabled .weather-options,.weather-section.weather-disabled .weather-location-btn{opacity:.42;pointer-events:none}
+.weather-section.weather-disabled .weather-status{color:#9aa2b2}
+@media(max-width:430px){.weather-section-head{align-items:flex-start}.weather-head-actions{flex-direction:column-reverse;align-items:flex-end;gap:5px}.weather-heading>.material-icons{width:34px;height:34px;flex-basis:34px}}

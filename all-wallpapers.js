@@ -413,7 +413,64 @@ function wallpaperMatchesWeather(wallpaper,weatherType){
     const text = normalizeText(fields.map(value => Array.isArray(value) ? value.join(" ") : String(value ?? "")).join(" "));
     return (weatherKeywords[weatherType] || []).map(normalizeText).some(keyword => keyword && text.includes(keyword));
 }
+const WEATHER_SYSTEM_STORAGE_KEY = "wallpaperhub_weather_system_enabled";
+const weatherSystemToggle = document.getElementById("weatherSystemToggle");
+const weatherToggleLabel = document.getElementById("weatherToggleLabel");
+const weatherSection = document.getElementById("weather-section");
+
+function isWeatherSystemEnabled(){
+    return weatherSystemToggle ? weatherSystemToggle.checked : true;
+}
+function syncWeatherSystemState(){
+    const enabled = isWeatherSystemEnabled();
+    if(weatherSection){
+        weatherSection.classList.toggle("weather-disabled", !enabled);
+        weatherSection.setAttribute("aria-disabled", String(!enabled));
+    }
+    if(weatherToggleLabel) weatherToggleLabel.textContent = enabled ? "مفعّل" : "متوقف";
+    if(weatherSystemToggle){
+        weatherSystemToggle.setAttribute("aria-label", enabled ? "إيقاف نظام حسب الطقس" : "تفعيل نظام حسب الطقس");
+    }
+    document.querySelectorAll(".weather-chip").forEach(button => {
+        button.disabled = !enabled;
+    });
+    const locationButton = document.getElementById("weatherLocationBtn");
+    if(locationButton) locationButton.disabled = !enabled;
+}
+function initializeWeatherSystemToggle(){
+    if(!weatherSystemToggle) return;
+    try{
+        const saved = localStorage.getItem(WEATHER_SYSTEM_STORAGE_KEY);
+        weatherSystemToggle.checked = saved === null ? true : saved === "true";
+    }catch(error){
+        weatherSystemToggle.checked = true;
+    }
+    syncWeatherSystemState();
+    weatherSystemToggle.addEventListener("change", () => {
+        const enabled = weatherSystemToggle.checked;
+        try{ localStorage.setItem(WEATHER_SYSTEM_STORAGE_KEY, String(enabled)); }catch(error){}
+        syncWeatherSystemState();
+        // إذا أُوقف النظام أثناء اختيار حالة طقس، نرجع إلى الكل حتى لا تبقى
+        // تصفية الطقس مخفية وتؤثر في نتائج بقية الفلاتر.
+        if(!enabled && currentFilter.startsWith("weather-")){
+            currentFilter = "all";
+            document.querySelectorAll(".weather-chip").forEach(button => button.classList.toggle("active", button.dataset.weather === "all"));
+            filterButtons.forEach(button => button.classList.toggle("active", button.dataset.filter === "all"));
+            pageTitle.textContent = "جميع الخلفيات";
+            const status = document.getElementById("weatherStatus");
+            if(status) status.textContent = "نظام الطقس متوقف. الفلاتر والأقسام الأخرى تعمل بشكل مستقل.";
+            applyFilters();
+        }else{
+            const status = document.getElementById("weatherStatus");
+            if(status) status.textContent = enabled
+                ? "نظام الطقس مفعّل. يمكنك اختيار حالة الطقس."
+                : "نظام الطقس متوقف. الفلاتر والأقسام الأخرى تعمل بشكل مستقل.";
+        }
+    });
+}
+
 function setWeatherFilter(weatherType,label){
+    if(!isWeatherSystemEnabled()) return;
     currentFilter = weatherType === "all" ? "all" : `weather-${weatherType}`;
     document.querySelectorAll(".weather-chip").forEach(button => button.classList.toggle("active",button.dataset.weather === weatherType));
     filterButtons.forEach(button => button.classList.toggle("active",weatherType === "all" && button.dataset.filter === "all"));
@@ -424,6 +481,7 @@ function setWeatherFilter(weatherType,label){
     applyFilters();
 }
 async function filterByCurrentWeather(){
+    if(!isWeatherSystemEnabled()) return;
     const button = document.getElementById("weatherLocationBtn");
     const status = document.getElementById("weatherStatus");
     if(!navigator.geolocation){if(status) status.textContent="المتصفح لا يدعم تحديد الموقع. اختار حالة الطقس يدويًا.";return;}
@@ -890,6 +948,7 @@ async function toggleFavorite(id,button){
 // البحث والفلاتر
 // ============================
 
+initializeWeatherSystemToggle();
 searchInput.addEventListener("input",applyFilters);
 document.querySelectorAll(".weather-chip").forEach(button => button.addEventListener("click",()=>{
     const value=button.dataset.weather||"all";

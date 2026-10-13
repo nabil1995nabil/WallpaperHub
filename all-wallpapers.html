@@ -85,10 +85,17 @@
                 <p>اختار الأجواء اللي كتناسبك</p>
             </div>
         </div>
-        <button id="weatherLocationBtn" class="weather-location-btn" type="button">
-            <span class="material-icons">my_location</span>
-            طقس مدينتي
-        </button>
+        <div class="weather-head-actions">
+            <label class="weather-toggle" for="weatherSystemToggle">
+                <span id="weatherToggleLabel">مفعّل</span>
+                <input id="weatherSystemToggle" type="checkbox" role="switch" checked>
+                <span class="weather-toggle-track" aria-hidden="true"><span></span></span>
+            </label>
+            <button id="weatherLocationBtn" class="weather-location-btn" type="button">
+                <span class="material-icons">my_location</span>
+                طقس مدينتي
+            </button>
+        </div>
     </div>
     <div class="weather-options" id="weatherOptions">
         <button class="weather-chip active" type="button" data-weather="all">
