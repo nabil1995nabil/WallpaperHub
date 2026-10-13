@@ -191,5 +191,18 @@
 <script src="effects.js"></script>
 <script src="js/performance-engine.js"></script>
 <script src="theme.js"></script>
+<script id="weather-section-anchor-fix">
+(function () {
+  function scrollToWeatherSection() {
+    if (window.location.hash !== '#weather-section') return;
+    var section = document.getElementById('weather-section');
+    if (section) section.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }
+  window.addEventListener('load', function () {
+    setTimeout(scrollToWeatherSection, 100);
+    setTimeout(scrollToWeatherSection, 500);
+  });
+})();
+</script>
 </body>
 </html>
