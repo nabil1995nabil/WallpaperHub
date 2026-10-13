@@ -19,9 +19,13 @@ console.log(
 "WallpaperHub Profile Loaded"
 );
 
-// تنظيف مفاتيح الإعجابات القديمة؛ المصدر الوحيد للإعجابات هو Supabase.
-localStorage.removeItem("likes");
-localStorage.removeItem("likedWallpapers");
+// تنظيف آمن لمفاتيح الإعجابات القديمة؛ المصدر الوحيد هو Supabase.
+try {
+    localStorage.removeItem("likes");
+    localStorage.removeItem("likedWallpapers");
+} catch (error) {
+    console.warn("OLD LOCAL LIKES CLEANUP:", error);
+}
 
 
 
@@ -948,6 +952,8 @@ function updateLoginState(user){
 supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
+    // لا نربط إحصائية الإعجابات بتحميل البروفايل أو الخلفيات.
+    void refreshLikeStats();
 
     // Founder crown controller: expose only the current user's UID.
     // No auth token or private data is exposed.
@@ -1907,8 +1913,8 @@ function getList(key){
 
 
 async function getActualLikedIds(){
-    // الإعجابات تُقرأ حصراً من جدول likes في Supabase.
-    // لا نستخدم localStorage حتى لا تظهر إعجابات قديمة أو غير متزامنة.
+    // المصدر الوحيد للإعجابات هو جدول likes في Supabase.
+    // لا نعتمد على localStorage ولا على إحصائيات نظام آخر.
     if(!currentUser?.id) return [];
 
     try{
@@ -1920,21 +1926,68 @@ async function getActualLikedIds(){
         if(error) throw error;
 
         const ids = normalizeActionList(
-            (data || [])
+            (Array.isArray(data) ? data : [])
                 .map(row => row?.wallpaper_id)
                 .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
         );
 
-        // إزالة النسخ المحلية القديمة نهائياً؛ ليست مصدراً للإعجابات.
-        localStorage.removeItem("likes");
-        localStorage.removeItem("likedWallpapers");
+        // إزالة البيانات القديمة بشكل آمن؛ فشل التخزين لا يعطل الإحصائيات.
+        try {
+            localStorage.removeItem("likes");
+            localStorage.removeItem("likedWallpapers");
+        } catch(storageError) {
+            console.warn("OLD LOCAL LIKES CLEANUP:", storageError);
+        }
         return ids;
     }catch(error){
         console.error("PROFILE LIKES LOAD ERROR:", error);
-        // لا نستخدم بيانات محلية، ولا نعرض الفشل على أنه صفر حقيقي.
+        // null تعني أن الطلب فشل، وليست صفراً.
         return null;
     }
 }
+
+/**
+ * تحديث إحصائية الإعجابات بشكل مستقل عن تحميل الخلفيات والمحفوظات والتنزيلات.
+ * يُستدعى عند تسجيل الدخول وعند تغيّر الإعجابات.
+ */
+let likesRefreshSequence = 0;
+async function refreshLikeStats(){
+    const sequence = ++likesRefreshSequence;
+    const countEl =
+        document.getElementById("likeCount") ||
+        document.getElementById("likesCount");
+
+    if(!countEl) return;
+
+    if(!currentUser?.id){
+        countEl.textContent = "0";
+        countEl.setAttribute("aria-label", "0 إعجابات");
+        if(likedContainer) renderWalls(likedContainer, []);
+        return;
+    }
+
+    countEl.textContent = "…";
+    countEl.setAttribute("aria-label", "جارٍ تحميل عدد الإعجابات");
+
+    const ids = await getActualLikedIds();
+    // تجاهل نتيجة طلب قديم إذا تغيّر المستخدم أو بدأ طلب أحدث.
+    if(sequence !== likesRefreshSequence) return;
+
+    if(!Array.isArray(ids)){
+        countEl.textContent = "—";
+        countEl.setAttribute("aria-label", "تعذر تحميل عدد الإعجابات");
+        return;
+    }
+
+    countEl.textContent = new Intl.NumberFormat("ar").format(ids.length);
+    countEl.setAttribute("aria-label", `${ids.length} إعجابات`);
+
+    // عرض بطاقات الإعجابات مستقل عن بقية الإحصائيات.
+    if(likedContainer) renderWalls(likedContainer, ids);
+}
+
+// بدء تحميل الإعجابات مستقلاً بعد تهيئة عناصر الصفحة.
+void refreshLikeStats();
 
 async function getActualDownloadIds(){
     // جلب التحميلات من كلا المفتاحين المحليين لضمان عدم ضياع أي بيانات
@@ -2209,8 +2262,13 @@ window.syncUserStats = function(type, id) {
     // الإعجابات تُدار حصراً عبر API وجدول likes في Supabase.
     // تجاهل أي نداء قديم يحاول تسجيل الإعجاب محلياً.
     if(actionType === "like" || actionType === "likes" || actionType === "likedwallpapers"){
-        localStorage.removeItem("likes");
-        localStorage.removeItem("likedWallpapers");
+        try {
+            localStorage.removeItem("likes");
+            localStorage.removeItem("likedWallpapers");
+        } catch (error) {
+            console.warn("OLD LOCAL LIKES CLEANUP:", error);
+        }
+        void refreshLikeStats();
         updateUserStats();
         renderProfile();
         return;
