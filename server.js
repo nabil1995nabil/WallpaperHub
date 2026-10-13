@@ -4750,7 +4750,9 @@ app.post(
                 resolution: req.body.resolution || "",
                 size: req.body.size || "",
                 downloads: Number(req.body.downloads || 0),
-                likes: Number(req.body.likes || 0),
+                // يبدأ عداد إعجابات الخلفية الجديدة من صفر؛ لا نثق بقيمة يرسلها المتصفح.
+                // العدد الحقيقي لاحقًا مصدره جدول likes فقط، ولا علاقة له بـ favorite_ids.
+                likes: 0,
                 views: Number(req.body.views || 0),
                 rating: Number(req.body.rating || 0),
                 ratingCount: Number(req.body.ratingCount || 0),
