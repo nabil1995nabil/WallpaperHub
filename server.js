@@ -2290,6 +2290,94 @@ app.get("/api/pixabay-wallpapers", async (req, res) => {
 });
 
 // ======================================
+// Dynamic XML Sitemap for Google Search
+// Includes public pages and published wallpapers from Supabase.
+// Keep this route BEFORE express.static and the GitHub static proxy.
+// ======================================
+app.get("/sitemap.xml", async (req, res) => {
+    const SITE_ORIGIN = "https://wallpaper-hub-7niz.vercel.app";
+    const urls = new Set();
+
+    const addUrl = (pathname) => {
+        const clean = String(pathname || "").trim();
+        if (!clean || clean.startsWith("/api/") || clean.includes("#")) return;
+        urls.add(`${SITE_ORIGIN}${clean.startsWith("/") ? clean : `/${clean}`}`);
+    };
+
+    // Only add root-level pages that actually exist in the deployed project.
+    // Do not include admin, authentication, private profile, or submission pages.
+    addUrl("/");
+    const publicPages = [
+        "home.html",
+        "all-wallpapers.html",
+        "categories.html",
+        "wallpaper.html",
+        "today.html",
+        "today-dynamic.html",
+        "home-weather-time.html",
+        "photo-editor.html",
+        "developers.html",
+        "notice.html"
+    ];
+
+    for (const page of publicPages) {
+        const localPath = path.join(STATIC_ROOT, page);
+        const serverPath = path.join(STATIC_DIR, page);
+        if ((fs.existsSync(localPath) && fs.statSync(localPath).isFile()) ||
+            (fs.existsSync(serverPath) && fs.statSync(serverPath).isFile())) {
+            // wallpaper.html is a template; only its ID-specific URLs are added below.
+            if (page !== "wallpaper.html") addUrl(`/${page}`);
+        }
+    }
+
+    // The wallpapers table contains approved/published wallpapers; pending submissions
+    // are stored separately and must never be exposed in the public sitemap.
+    try {
+        let offset = 0;
+        const pageSize = 1000;
+        const maxUrls = 50000;
+
+        while (offset < maxUrls) {
+            const end = Math.min(offset + pageSize - 1, maxUrls - 1);
+            const { data, error } = await supabase
+                .from("wallpapers")
+                .select("id")
+                .order("id", { ascending: true })
+                .range(offset, end);
+
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+
+            for (const row of rows) {
+                const id = String(row?.id ?? "").trim();
+                if (/^\d+$/.test(id)) {
+                    addUrl(`/wallpaper.html?id=${encodeURIComponent(id)}`);
+                }
+            }
+
+            if (rows.length < pageSize) break;
+            offset += rows.length;
+        }
+    } catch (error) {
+        // Keep the sitemap of known public pages available even if Supabase is temporarily unavailable.
+        console.error("SITEMAP WALLPAPERS QUERY ERROR:", error?.message || error);
+    }
+
+    const xmlEscape = (value) => String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+
+    const body = [...urls].map(url => `  <url><loc>${xmlEscape(url)}</loc></url>`).join("\n");
+    res.status(200);
+    res.set("Content-Type", "application/xml; charset=utf-8");
+    res.set("Cache-Control", "public, max-age=300, s-maxage=300");
+    return res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`);
+});
+
+// ======================================
 // Static Files
 // ======================================
 
