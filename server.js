@@ -9090,6 +9090,43 @@ app.patch("/api/announcements/:id/read", async (req, res) => {
     }
 });
 
+// Mark all announcements as read for the authenticated user.
+app.patch("/api/announcements/read-all", async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user) return res.status(401).json({ success:false, message:"يجب تسجيل الدخول" });
+
+        const [{ data: announcements, error: announcementsError }, { data: existingReads, error: readsError }] = await Promise.all([
+            supabase.from("announcements").select("id"),
+            supabase.from("user_announcement_reads").select("announcement_id").eq("user_id", String(user.id))
+        ]);
+        if (announcementsError) throw announcementsError;
+        if (readsError) throw readsError;
+
+        const readIds = new Set((existingReads || []).map(row => String(row.announcement_id)));
+        const now = new Date().toISOString();
+        const rows = (announcements || [])
+            .filter(row => row?.id != null && !readIds.has(String(row.id)))
+            .map(row => ({
+                user_id: String(user.id),
+                announcement_id: row.id,
+                read_at: now
+            }));
+
+        if (rows.length) {
+            const { error } = await supabase
+                .from("user_announcement_reads")
+                .upsert(rows, { onConflict:"user_id,announcement_id" });
+            if (error) throw error;
+        }
+
+        return res.json({ success:true, updated:rows.length });
+    } catch (error) {
+        console.error("MARK ALL ANNOUNCEMENTS READ ERROR:", error?.message || error);
+        return res.status(500).json({ success:false, message:"تعذر تحديث قراءة الإعلانات" });
+    }
+});
+
 // Start / Export Server
 // ======================================
 // Vercel imports the Express app directly.

@@ -376,6 +376,32 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally { btn.disabled=false; }
   }
 
+  // Opening the notification center acknowledges the current items so the
+  // shared red badges are cleared consistently across the drawer and header.
+  let acknowledgedOnOpenUserId = "";
+  async function acknowledgeNotificationsOnOpen(session){
+    const userId=String(session?.user?.id||"");
+    if(!userId || !session?.access_token || acknowledgedOnOpenUserId===userId) return;
+    acknowledgedOnOpenUserId=userId;
+    const headers={Authorization:`Bearer ${session.access_token}`};
+    try{
+      const results=await Promise.allSettled([
+        fetch("/api/notifications/read-all",{method:"PATCH",headers,cache:"no-store"}),
+        fetch("/api/announcements/read-all",{method:"PATCH",headers,cache:"no-store"})
+      ]);
+      for(const result of results){
+        if(result.status==="rejected") console.warn("ACKNOWLEDGE NOTIFICATIONS ERROR:",result.reason);
+        else if(!result.value.ok) console.warn("ACKNOWLEDGE NOTIFICATIONS STATUS:",result.value.status);
+      }
+      await loadUserNotifications({checkNew:false});
+      if(typeof window.refreshWallpaperHubSectionBadges==="function"){
+        window.refreshWallpaperHubSectionBadges();
+      }
+    }catch(error){
+      console.warn("ACKNOWLEDGE NOTIFICATIONS ERROR:",error);
+    }
+  }
+
   async function requestBrowserNotifications() {
     if (!("Notification" in window)) { showToast("هذا المتصفح لا يدعم تنبيهات الجهاز"); return; }
     const permission = await Notification.requestPermission();
@@ -502,6 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
   getSession().then(async session=>{
     currentUser=session?.user||null;
     await loadUserNotifications({checkNew:false});
+    await acknowledgeNotificationsOnOpen(session);
     setupRealtime();
     updateSettingUI();
   }).catch(e=>console.error("NOTICE AUTH ERROR:",e));
@@ -512,6 +539,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if(realtimeChannel) supabase.removeChannel(realtimeChannel);
     clearInterval(refreshTimer);
     await loadUserNotifications({checkNew:false});
+    if(session?.user) await acknowledgeNotificationsOnOpen(session);
+    else acknowledgedOnOpenUserId="";
     setupRealtime();
   });
 });
