@@ -9006,17 +9006,21 @@ app.get("/api/section-badges", async (req, res) => {
         const user = await getAuthenticatedUser(req);
         if (!user) return res.status(401).json({ success:false, message:"يجب تسجيل الدخول" });
         const uid = String(user.id);
-        const [notificationsResult, statesResult, announcementsResult, announcementReadsResult] = await Promise.all([
+        const [notificationsResult, statesResult, announcementsResult, announcementReadsResult, communityMessagesResult] = await Promise.all([
             supabase.from("notifications").select("type,is_read,created_at")
                 .eq("user_id", uid).order("created_at", { ascending:false }).limit(2000),
             supabase.from("user_section_read_state").select("section_key,last_read_at").eq("user_id", uid),
             supabase.from("announcements").select("id").order("created_at", { ascending:false }).limit(500),
-            supabase.from("user_announcement_reads").select("announcement_id").eq("user_id", uid)
+            supabase.from("user_announcement_reads").select("announcement_id").eq("user_id", uid),
+            // رسائل المجتمع العامة: تظهر كنقطة غير مقروءة لكل عضو آخر منذ آخر زيارة.
+            supabase.from("community_messages").select("user_id,created_at")
+                .order("created_at", { ascending:false }).limit(2000)
         ]);
         if (notificationsResult.error) throw notificationsResult.error;
         if (statesResult.error) throw statesResult.error;
         if (announcementsResult.error) throw announcementsResult.error;
         if (announcementReadsResult.error) throw announcementReadsResult.error;
+        if (communityMessagesResult.error) throw communityMessagesResult.error;
         const states = new Map((statesResult.data || []).map(row => [
             String(row.section_key), row.last_read_at ? new Date(row.last_read_at).getTime() : 0
         ]));
@@ -9032,11 +9036,16 @@ app.get("/api/section-badges", async (req, res) => {
         const unreadAnnouncementIds = (announcementsResult.data || [])
             .map(row => String(row.id))
             .filter(id => id && !readAnnouncementIds.has(id));
+        const communityLastRead = states.get("community") || 0;
+        const unreadCommunityMessages = (communityMessagesResult.data || []).filter(row => {
+            const created = row.created_at ? new Date(row.created_at).getTime() : 0;
+            return String(row.user_id || "") !== uid && created > communityLastRead;
+        }).length;
         return res.json({
             success:true,
             counts:{
                 notice:rows.filter(row => !row.is_read).length + unreadAnnouncementIds.length,
-                community:rows.filter(row => isCommunity(row) && afterRead(row, "community")).length,
+                community:rows.filter(row => isCommunity(row) && afterRead(row, "community")).length + unreadCommunityMessages,
                 contact:rows.filter(row => isContact(row) && afterRead(row, "contact")).length
             },
             unreadAnnouncementIds,
@@ -9087,43 +9096,6 @@ app.patch("/api/announcements/:id/read", async (req, res) => {
     } catch (error) {
         console.error("MARK ANNOUNCEMENT READ ERROR:", error?.message || error);
         return res.status(500).json({ success:false, message:"تعذر حفظ قراءة الإعلان" });
-    }
-});
-
-// Mark all announcements as read for the authenticated user.
-app.patch("/api/announcements/read-all", async (req, res) => {
-    try {
-        const user = await getAuthenticatedUser(req);
-        if (!user) return res.status(401).json({ success:false, message:"يجب تسجيل الدخول" });
-
-        const [{ data: announcements, error: announcementsError }, { data: existingReads, error: readsError }] = await Promise.all([
-            supabase.from("announcements").select("id"),
-            supabase.from("user_announcement_reads").select("announcement_id").eq("user_id", String(user.id))
-        ]);
-        if (announcementsError) throw announcementsError;
-        if (readsError) throw readsError;
-
-        const readIds = new Set((existingReads || []).map(row => String(row.announcement_id)));
-        const now = new Date().toISOString();
-        const rows = (announcements || [])
-            .filter(row => row?.id != null && !readIds.has(String(row.id)))
-            .map(row => ({
-                user_id: String(user.id),
-                announcement_id: row.id,
-                read_at: now
-            }));
-
-        if (rows.length) {
-            const { error } = await supabase
-                .from("user_announcement_reads")
-                .upsert(rows, { onConflict:"user_id,announcement_id" });
-            if (error) throw error;
-        }
-
-        return res.json({ success:true, updated:rows.length });
-    } catch (error) {
-        console.error("MARK ALL ANNOUNCEMENTS READ ERROR:", error?.message || error);
-        return res.status(500).json({ success:false, message:"تعذر تحديث قراءة الإعلانات" });
     }
 });
 

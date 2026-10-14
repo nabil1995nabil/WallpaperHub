@@ -206,6 +206,24 @@ function ensureCommunityPermission(kind){
   return true;
 }
 
+
+// تسجيل زيارة المجتمع في نظام النقاط المشترك.
+// هذا يجعل الرسائل الجديدة تظهر كنقطة عند الأعضاء الآخرين، وتختفي عند دخولهم للمجتمع.
+async function markCommunitySectionRead(){
+  if(!currentUser || document.visibilityState !== 'visible') return;
+  try{
+    await fetchJson('/api/section-badges/community/read',{
+      method:'PATCH',
+      headers:await authHeaders()
+    });
+    if(typeof window.refreshWallpaperHubSectionBadges === 'function'){
+      window.refreshWallpaperHubSectionBadges();
+    }
+  }catch(error){
+    console.warn('COMMUNITY READ STATE ERROR:',error?.message || error);
+  }
+}
+
 async function initSupabase(){
   const response = await fetch('/api/supabase/config',{cache:'no-store'});
   if(!response.ok) throw new Error('Supabase غير مهيأ');
@@ -228,6 +246,7 @@ async function initSupabase(){
   });
 
   await loadCommunityModeration({silent:true});
+  await markCommunitySectionRead();
   subscribeToMessages();
 }
 
@@ -905,7 +924,10 @@ function subscribeToMessages(){
         const result = await fetchJson(
           `/api/community/messages/${encodeURIComponent(row.id)}`
         );
-        if(result?.message) addRealtimeMessage(result.message);
+        if(result?.message){
+          addRealtimeMessage(result.message);
+          if(document.visibilityState === 'visible') markCommunitySectionRead();
+        }
       }catch(_error){
         // The INSERT already exists. Refresh is only a fallback.
         loadMessages().catch(()=>{});
@@ -2822,6 +2844,12 @@ try {
     showToast(error.message);
   }
 })();
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState === 'visible' && (location.pathname.split('/').pop() || '').toLowerCase() === 'community.html'){
+    markCommunitySectionRead();
+  }
+});
 
 document.addEventListener('keydown',event => {
   if(event.key !== 'Escape') return;
