@@ -4072,9 +4072,9 @@ app.get("/api/admin/review/submissions", async (req, res) => {
 
     if (userIds.length) {
       const { data, error: profileError } = await supabase
-        .from("profiles")
-        .select("id,full_name,username,avatar_url")
-        .in("id", userIds);
+        .from("user_profile_sync")
+        .select("user_id,full_name,username,avatar_url")
+        .in("user_id", userIds);
 
       if (profileError) {
         console.warn("REVIEW PROFILES:", profileError.message);
@@ -4084,7 +4084,7 @@ app.get("/api/admin/review/submissions", async (req, res) => {
     }
 
     const profileMap = new Map(
-      profiles.map(profile => [String(profile.id), profile])
+      profiles.map(profile => [String(profile.user_id), profile])
     );
 
     const contributorsMap = new Map();
@@ -4667,6 +4667,11 @@ app.post("/api/publish/submissions", async(req,res)=>{
             return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
         }
         if(!title) return res.status(400).json({success:false,message:"عنوان الخلفية مطلوب"});
+        const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
+        if (scheduledAt && Number.isNaN(scheduledAt.getTime())) {
+            return res.status(400).json({success:false,message:"تاريخ الجدولة غير صالح"});
+        }
+        const is360 = body.is360 === true || body.is360 === 1 || String(body.is360).toLowerCase() === "true";
         const tags = Array.isArray(body.tags) ? body.tags.map(v=>String(v).trim()).filter(Boolean).slice(0,30) : [];
         const colors = Array.isArray(body.colors) ? body.colors.map(v=>String(v).trim()).filter(v=>/^#[0-9A-F]{6}$/i.test(v)).slice(0,12) : [];
         const {data,error} = await supabase.from("wallpaper_submissions").insert([{
@@ -4680,9 +4685,9 @@ app.post("/api/publish/submissions", async(req,res)=>{
             file_size:String(body.size || "").slice(0,40),
             tags, colors,
             device:String(body.device || "all").slice(0,30),
-            is_360:Boolean(body.is360),
+            is_360:is360,
             status:"pending",
-            scheduled_at:body.scheduledAt ? new Date(body.scheduledAt).toISOString() : null
+            scheduled_at:scheduledAt ? scheduledAt.toISOString() : null
         }]).select("id,status,created_at").single();
         if(error) throw error;
         return res.status(201).json({success:true,submission:data,message:"تم إرسال الخلفية للمراجعة"});
@@ -4717,15 +4722,25 @@ app.post(
                 });
             }
 
+            const body = req.body || {};
+            const image = String(body.image || "").trim();
+            const title = String(body.title || "").trim();
+            if (!image || !/^https:\/\/res\.cloudinary\.com\//i.test(image)) {
+                return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
+            }
+            if (!title) {
+                return res.status(400).json({success:false,message:"عنوان الخلفية مطلوب"});
+            }
+
             const publisherProfile = await getPublisherProfile(publisher);
-            const metadata = await getImageMetadata(req.body.image);
+            const metadata = await getImageMetadata(image);
 
             // تحليل خادم إضافي حتى تبقى بيانات التوصيات موجودة
             // حتى لو لم يعتمد النشر على واجهة الأدمن.
-            const aiAnalysis = await analyzeImageWithGemini(req.body.image);
-            const detectedSource = aiAnalysis.source || await detectImageSource(req.body.image);
+            const aiAnalysis = await analyzeImageWithGemini(image);
+            const detectedSource = aiAnalysis.source || await detectImageSource(image);
 
-            const requestTags = Array.isArray(req.body.tags) ? req.body.tags : [];
+            const requestTags = Array.isArray(body.tags) ? body.tags : [];
             const aiTags = Array.isArray(aiAnalysis.tags) ? aiAnalysis.tags : [];
             const mergedTags = [...new Set(
                 [...requestTags, ...aiTags]
@@ -4733,7 +4748,7 @@ app.post(
                     .filter(Boolean)
             )].slice(0, 30);
 
-            const requestColors = Array.isArray(req.body.colors) ? req.body.colors : [];
+            const requestColors = Array.isArray(body.colors) ? body.colors : [];
             const aiColors = Array.isArray(aiAnalysis.colors) ? aiAnalysis.colors : [];
             const mergedColors = [...new Set(
                 [...requestColors, ...aiColors]
@@ -4743,33 +4758,34 @@ app.post(
 
             const wallpaper = {
                 id: Date.now(),
-                title: req.body.title || "Untitled",
-                category: String(req.body.category || "other").trim().toLowerCase(),
-                image: req.body.image || "",
-                thumbnail: req.body.thumbnail || req.body.image || "",
-                resolution: req.body.resolution || "",
-                size: req.body.size || "",
-                downloads: Number(req.body.downloads || 0),
+                title: title || "Untitled",
+                category: String(body.category || "other").trim().toLowerCase(),
+                image: image,
+                thumbnail: body.thumbnail || image,
+                resolution: body.resolution || "",
+                size: body.size || "",
+                downloads: Number(body.downloads || 0),
                 // يبدأ عداد إعجابات الخلفية الجديدة من صفر؛ لا نثق بقيمة يرسلها المتصفح.
                 // العدد الحقيقي لاحقًا مصدره جدول likes فقط، ولا علاقة له بـ favorite_ids.
                 likes: 0,
-                views: Number(req.body.views || 0),
-                rating: Number(req.body.rating || 0),
-                ratingCount: Number(req.body.ratingCount || 0),
-                ratingSum: Number(req.body.ratingSum || 0),
+                views: Number(body.views || 0),
+                rating: Number(body.rating || 0),
+                ratingCount: Number(body.ratingCount || 0),
+                ratingSum: Number(body.ratingSum || 0),
                 author: publisherProfile.fullName,
                 // UID صاحب الخلفية يأتي من Supabase Auth وليس من body.
                 userId: String(publisher.id).trim(),
-                date: req.body.date || new Date().toLocaleString("ar-MA"),
+                date: body.date || new Date().toLocaleString("ar-MA"),
                 // بيانات التشابه البصري والمضموني المستخدمة في محرك التوصيات.
                 colors: mergedColors,
                 tags: mergedTags,
-                featured: Boolean(req.body.featured),
-                todayWallpaper: Boolean(req.body.todayWallpaper),
-                popular: Boolean(req.body.popular),
-                type: req.body.type || "image",
-                animated: Boolean(req.body.animated || ["video","gif"].includes(String(req.body.type || "").toLowerCase())),
-                is360: String(req.body.type || "image").toLowerCase() === "image" && Boolean(req.body.is360),
+                featured: Boolean(body.featured),
+                todayWallpaper: Boolean(body.todayWallpaper),
+                popular: Boolean(body.popular),
+                type: body.type || "image",
+                animated: Boolean(body.animated || ["video","gif"].includes(String(body.type || "").toLowerCase())),
+                is360: String(body.type || "image").toLowerCase() === "image" &&
+                    (body.is360 === true || body.is360 === 1 || String(body.is360).toLowerCase() === "true"),
                 // These metadata values are calculated for compatibility, but the current
                 // wallpapers table has no columns for them.
                 location: metadata.location || "غير معروف",
@@ -7601,34 +7617,46 @@ async function getCommunityProfiles(userIds) {
 
     const profiles = new Map();
 
-    // First use the normal public profile table.
-    try {
-        const { data, error } = await supabase
-            .from("profiles")
-            .select("id,full_name,username,avatar_url")
-            .in("id", ids);
+    // Merge both profile stores. Some project features write to profiles,
+    // while the canonical profile editor synchronizes data to user_profile_sync.
+    // Prefer non-empty values so one partially-filled row cannot hide another.
+    for (const source of [
+        { table: "profiles", idColumn: "id" },
+        { table: "user_profile_sync", idColumn: "user_id" }
+    ]) {
+        try {
+            const { data, error } = await supabase
+                .from(source.table)
+                .select(`${source.idColumn},full_name,username,avatar_url`)
+                .in(source.idColumn, ids);
 
-        if (!error) {
-            (data || []).forEach(profile => {
-                profiles.set(String(profile.id), profile);
+            if (error) {
+                console.log(`COMMUNITY ${source.table.toUpperCase()} PROFILE ERROR:`, error.message || error);
+                continue;
+            }
+
+            (data || []).forEach(row => {
+                const id = String(row[source.idColumn] || "").trim();
+                if (!id) return;
+                const existing = profiles.get(id) || { id, full_name: "", username: "", avatar_url: "" };
+                profiles.set(id, {
+                    id,
+                    full_name: String(row.full_name || existing.full_name || ""),
+                    username: String(row.username || existing.username || ""),
+                    avatar_url: String(row.avatar_url || existing.avatar_url || "")
+                });
             });
-        } else {
-            console.log(
-                "COMMUNITY PROFILES TABLE ERROR:",
-                error?.message || error
-            );
+        } catch (error) {
+            console.log(`COMMUNITY ${source.table.toUpperCase()} PROFILE ERROR:`, error?.message || error);
         }
-    } catch (error) {
-        console.log(
-            "COMMUNITY PROFILES TABLE ERROR:",
-            error?.message || error
-        );
     }
 
-    // Important: some accounts may not have a row in profiles yet.
-    // In that case use Supabase Auth metadata so other users still see
-    // the real name and avatar instead of the generic "عضو".
-    const missingIds = ids.filter(id => !profiles.has(id));
+    // Auth metadata is a final fallback for accounts without profile rows,
+    // and also fills any blank fields in existing profile rows.
+    const missingIds = ids.filter(id => {
+        const profile = profiles.get(id);
+        return !profile || !profile.full_name || !profile.username || !profile.avatar_url;
+    });
 
     if (missingIds.length) {
         const fallbackResults = await Promise.all(
@@ -7642,13 +7670,14 @@ async function getCommunityProfiles(userIds) {
                     const user = data.user;
                     const fallback = communityFallbackProfile(user);
 
+                    const existing = profiles.get(id) || { id, full_name: "", username: "", avatar_url: "" };
                     return [
                         id,
                         {
                             id,
-                            full_name: fallback.full_name,
-                            username: fallback.username,
-                            avatar_url: fallback.avatar_url
+                            full_name: existing.full_name || fallback.full_name || "",
+                            username: existing.username || fallback.username || "",
+                            avatar_url: existing.avatar_url || fallback.avatar_url || ""
                         }
                     ];
                 } catch (error) {
@@ -8438,7 +8467,7 @@ app.get("/api/community/messages", async (req, res) => {
             .select(
                 "id,user_id,content,image_url,image_path,file_url,file_path,file_name,file_type,file_size,reply_to_id,created_at,updated_at,deleted_at"
             )
-            .order("created_at", { ascending: true })
+            .order("created_at", { ascending: false })
             .limit(limit);
 
         if (error) throw error;
@@ -8794,39 +8823,37 @@ app.get("/api/community/members", async (req, res) => {
         // every registered account can appear in the Community members list.
         const memberMap = new Map();
 
-        try {
-            const { data: profileRows, error: profileError } = await supabase
-                .from("profiles")
-                .select("id,full_name,username,avatar_url")
-                .limit(1000);
+        for (const source of [
+            { table: "profiles", idColumn: "id" },
+            { table: "user_profile_sync", idColumn: "user_id" }
+        ]) {
+            try {
+                const { data: profileRows, error: profileError } = await supabase
+                    .from(source.table)
+                    .select(`${source.idColumn},full_name,username,avatar_url`)
+                    .limit(1000);
 
-            if (profileError) {
-                console.log(
-                    "COMMUNITY MEMBERS PROFILE TABLE ERROR:",
-                    profileError?.message || profileError
-                );
-            } else {
+                if (profileError) {
+                    console.log(`COMMUNITY MEMBERS ${source.table.toUpperCase()} ERROR:`, profileError.message || profileError);
+                    continue;
+                }
+
                 (profileRows || []).forEach(profile => {
-                    const id = String(profile?.id || "").trim();
+                    const id = String(profile?.[source.idColumn] || "").trim();
                     if (!id) return;
-
+                    const existing = memberMap.get(id) || { id, name: "", username: "", avatarUrl: "" };
+                    const candidateName = String(profile.full_name || profile.username || "");
+                    const existingNameIsGeneric = !existing.name || existing.name === "عضو";
                     memberMap.set(id, {
                         id,
-                        name: String(
-                            profile.full_name ||
-                            profile.username ||
-                            "عضو"
-                        ),
-                        username: String(profile.username || ""),
-                        avatarUrl: String(profile.avatar_url || "")
+                        name: String((candidateName && candidateName !== "عضو") ? candidateName : (existingNameIsGeneric ? (candidateName || existing.name || "عضو") : existing.name)),
+                        username: String(profile.username || existing.username || ""),
+                        avatarUrl: String(profile.avatar_url || existing.avatarUrl || "")
                     });
                 });
+            } catch (profileError) {
+                console.log(`COMMUNITY MEMBERS ${source.table.toUpperCase()} ERROR:`, profileError?.message || profileError);
             }
-        } catch (profileError) {
-            console.log(
-                "COMMUNITY MEMBERS PROFILE TABLE ERROR:",
-                profileError?.message || profileError
-            );
         }
 
         // Fill missing members directly from Supabase Auth.
@@ -8846,15 +8873,15 @@ app.get("/api/community/members", async (req, res) => {
             } else {
                 (authData?.users || []).forEach(user => {
                     const id = String(user?.id || "").trim();
-                    if (!id || memberMap.has(id)) return;
+                    if (!id) return;
 
                     const fallback = communityFallbackProfile(user);
-
+                    const existing = memberMap.get(id) || { id, name: "", username: "", avatarUrl: "" };
                     memberMap.set(id, {
                         id,
-                        name: String(fallback.full_name || "عضو"),
-                        username: String(fallback.username || ""),
-                        avatarUrl: String(fallback.avatar_url || "")
+                        name: String(existing.name && existing.name !== "عضو" ? existing.name : (fallback.full_name || existing.name || "عضو")),
+                        username: String(existing.username || fallback.username || ""),
+                        avatarUrl: String(existing.avatarUrl || fallback.avatar_url || "")
                     });
                 });
             }
@@ -8865,7 +8892,16 @@ app.get("/api/community/members", async (req, res) => {
             );
         }
 
-        const members = [...memberMap.values()].slice(0, limit);
+        const viewer = await getAuthenticatedUser(req).catch(() => null);
+        const allMembers = [...memberMap.values()];
+        if (viewer?.id) {
+            allMembers.sort((a, b) => {
+                if (String(a.id) === String(viewer.id)) return -1;
+                if (String(b.id) === String(viewer.id)) return 1;
+                return String(a.name || "").localeCompare(String(b.name || ""));
+            });
+        }
+        const members = allMembers.slice(0, limit);
 
         return res.json({
             success: true,

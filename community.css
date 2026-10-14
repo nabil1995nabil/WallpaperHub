@@ -1953,3 +1953,59 @@ body { color: #202635; }
 @media(max-width:760px){
  .mention-suggestions{width:min(300px,calc(100vw - 34px));max-height:250px}
 }
+
+
+/* Community readability fixes + persistent dark mode */
+.nav-item{color:#77839b}
+.nav-item:hover{background:#f1f4fb;color:#28364d}
+.nav-item.active{color:#fff}
+.welcome{color:#6f7b8f}
+.welcome h2{color:#18202d}
+.member-item:hover{background:#f3f5fa}
+.topics-list button:hover{background:#f3f5fa}
+
+body.community-dark{background:#080d18;color:#e8edf8}
+body.community-dark .sidebar,
+body.community-dark .topbar,
+body.community-dark .search-box,
+body.community-dark .icon-button,
+body.community-dark .profile-button,
+body.community-dark .community-hero,
+body.community-dark .room-tab,
+body.community-dark .chat-card,
+body.community-dark .side-card,
+body.community-dark .secondary-panel,
+body.community-dark .all-members .member-item{background:#101827;border-color:#243149;color:#e8edf8}
+body.community-dark .brand,
+body.community-dark .mobile-brand,
+body.community-dark .hero-copy h1,
+body.community-dark .chat-title b,
+body.community-dark .message-meta b,
+body.community-dark .member-info b,
+body.community-dark .panel-heading h2,
+body.community-dark .empty-panel h2,
+body.community-dark .welcome h2{color:#e8edf8}
+body.community-dark .hero-copy p,
+body.community-dark .chat-title small,
+body.community-dark .member-info small,
+body.community-dark .welcome,
+body.community-dark .empty-panel,
+body.community-dark .profile-content p{color:#a6b2c8}
+body.community-dark .search-box input{color:#e8edf8}
+body.community-dark .search-box input::placeholder{color:#8e9bb4}
+body.community-dark .nav-item{color:#a6b2c8}
+body.community-dark .nav-item:hover{background:#1b2940;color:#fff}
+body.community-dark .nav-item.active{background:linear-gradient(145deg,#526aff,#6547ff);color:#fff}
+body.community-dark .room-tab small,
+body.community-dark .side-card small{color:#9ba8c0}
+body.community-dark .message-bubble{background:#202b3d;color:#e8edf8;border-color:#2a3850}
+body.community-dark .message-row.mine .message-bubble{background:linear-gradient(135deg,#3151d8,#5540ce);color:#fff}
+body.community-dark .feed{scrollbar-color:#394866 transparent}
+body.community-dark .member-item:hover,
+body.community-dark .topics-list button:hover{background:#1b2940}
+body.community-dark .composer-field,
+body.community-dark .reply-composer,
+body.community-dark .private-conversation,
+body.community-dark .attachment-preview{background:#131e30;border-color:#2a3850;color:#e8edf8}
+body.community-dark .toast{background:#172236;border-color:#2a3850;color:#f0f4ff}
+body.community-dark .panel-back{background:#1b2940;border-color:#2a3850;color:#e8edf8}

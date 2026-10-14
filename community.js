@@ -74,13 +74,24 @@ function timeOf(value){
   return date.toLocaleTimeString('ar-MA',{hour:'2-digit',minute:'2-digit'});
 }
 
+function safeAvatarUrl(value){
+  const raw = String(value || '').trim();
+  if(!raw) return '';
+  try{
+    const parsed = new URL(raw, window.location.origin);
+    return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : '';
+  }catch(_error){ return ''; }
+}
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
 function avatarMarkup(user, className = 'message-avatar'){
   const name = user?.name || 'عضو';
-  const avatar = String(user?.avatarUrl || '').trim();
+  const avatar = safeAvatarUrl(user?.avatarUrl);
   const image = avatar
-    ? `<img src="${avatar.replace(/"/g, '&quot;')}" alt="" loading="lazy">`
-    : initials(name);
-  return `<div class="${className}">${image}</div>`;
+    ? `<img src="${escapeHtml(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+    : escapeHtml(initials(name));
+  return `<div class="${escapeHtml(className)}">${image}</div>`;
 }
 
 function updateComposerState(){
@@ -212,6 +223,7 @@ async function initSupabase(){
     updateProfileCard();
     updateComposerState();
     loadCommunityModeration({silent:true}).catch(()=>{});
+    loadMembers().then(updateProfileCard).catch(()=>{});
     if(currentUser) loadPrivateConversations().catch(()=>{});
   });
 
@@ -846,11 +858,12 @@ function removeRealtimeMessage(id){
 
 async function loadMessages(){
   const result = await fetchJson('/api/community/messages?limit=100');
-  communityMessagesCache = Array.isArray(result.messages) ? result.messages : [];
+  const messages = Array.isArray(result.messages) ? result.messages.slice().reverse() : [];
+  communityMessagesCache = messages;
 
   feed.innerHTML = '';
 
-  if(!Array.isArray(result.messages) || !result.messages.length){
+  if(!messages.length){
     const welcome = document.createElement('article');
     welcome.className = 'welcome';
     welcome.innerHTML = `
@@ -863,7 +876,7 @@ async function loadMessages(){
     return;
   }
 
-  result.messages.forEach(message => feed.appendChild(renderMessage(message)));
+  messages.forEach(message => feed.appendChild(renderMessage(message)));
   feed.scrollTop = feed.scrollHeight;
   updateMessageCount();
 }
@@ -1178,34 +1191,39 @@ input.addEventListener('keydown',event => {
 function updateProfileCard(){
   const user = currentUser;
   const metadata = user?.user_metadata || {};
-  const name =
-    metadata.full_name ||
-    metadata.name ||
-    metadata.user_name ||
-    user?.email?.split('@')[0] ||
-    'عضو في المجتمع';
+  const profile = membersCache.find(member => String(member?.id || '') === String(user?.id || '')) || {};
+  const name = String(
+    profile.name && profile.name !== 'عضو' ? profile.name :
+    metadata.full_name || metadata.name || metadata.user_name ||
+    user?.email?.split('@')[0] || 'عضو في المجتمع'
+  );
+  const avatar = String(
+    profile.avatarUrl || metadata.avatar_url || metadata.avatarUrl || metadata.picture || ''
+  ).trim();
 
-  const avatar =
-    metadata.avatar_url ||
-    metadata.picture ||
-    '';
+  const nameNode = $('#profileName');
+  const subtitleNode = $('#profileSubtitle');
+  if(nameNode) nameNode.textContent = name;
+  if(subtitleNode) subtitleNode.textContent = user ? (user.email || 'عضو في مجتمع WallpaperHub') : 'سجّل الدخول للمشاركة';
 
-  $('#profileName').textContent = name;
-  $('#profileSubtitle').textContent =
-    user ? (user.email || 'عضو في مجتمع WallpaperHub') : 'سجّل الدخول للمشاركة';
-
-  const target = $('#profileAvatar');
-  target.innerHTML = avatar
-    ? `<img src="${avatar.replace(/"/g,'&quot;')}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-    : initials(name);
-
-  const topAvatar = $('#profileButton .avatar-fallback');
-  if(topAvatar){
-    topAvatar.textContent = initials(name);
+  const setAvatar = (target, size) => {
+    if(!target) return;
+    target.replaceChildren();
     if(avatar){
-      topAvatar.innerHTML = `<img src="${avatar.replace(/"/g,'&quot;')}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      const image = document.createElement('img');
+      image.src = avatar;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.referrerPolicy = 'no-referrer';
+      image.style.cssText = `width:100%;height:100%;object-fit:cover;border-radius:50%;${size ? `max-width:${size}px;max-height:${size}px;` : ''}`;
+      image.addEventListener('error', () => { target.replaceChildren(document.createTextNode(initials(name))); }, {once:true});
+      target.appendChild(image);
+    }else{
+      target.textContent = initials(name);
     }
-  }
+  };
+  setAvatar($('#profileAvatar'));
+  setAvatar($('#profileButton .avatar-fallback'));
 }
 
 function updateMessageCount(){
@@ -1219,30 +1237,44 @@ function memberElement(member){
   item.dataset.name = `${member.name || ''} ${member.username || ''}`.toLowerCase();
   item.dataset.userId = String(member.id || '');
 
-  const avatar = String(member.avatarUrl || '').trim();
-  const image = avatar
-    ? `<img src="${avatar.replace(/"/g,'&quot;')}" alt="" loading="lazy">`
-    : initials(member.name);
+  const avatar = document.createElement('div');
+  avatar.className = 'member-avatar';
+  const avatarUrl = String(member.avatarUrl || '').trim();
+  if(avatarUrl){
+    const image = document.createElement('img');
+    image.src = avatarUrl;
+    image.alt = '';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+    image.addEventListener('error', () => { avatar.replaceChildren(document.createTextNode(initials(member.name))); }, {once:true});
+    avatar.appendChild(image);
+  }else avatar.textContent = initials(member.name);
 
-  item.innerHTML = `
-    <div class="member-avatar">${image}</div>
-    <div class="member-info">
-      <b></b>
-      <small>${member.username ? '@' + member.username : 'عضو في المجتمع'}</small>
-    </div>
-    <i class="member-online"></i>
-    <button class="member-message-button" type="button" aria-label="مراسلة خاصة">
-      <span class="material-icons-round">chat_bubble</span>
-    </button>
-  `;
-  $('.member-info b',item).textContent = member.name || 'عضو';
+  const info = document.createElement('div');
+  info.className = 'member-info';
+  const name = document.createElement('b');
+  name.textContent = member.name || 'عضو';
+  const username = document.createElement('small');
+  username.textContent = member.username ? '@' + member.username : 'عضو في المجتمع';
+  info.append(name, username);
 
-  $('.member-message-button',item).addEventListener('click',event => {
+  const online = document.createElement('i');
+  online.className = 'member-online';
+  const messageButton = document.createElement('button');
+  messageButton.type = 'button';
+  messageButton.className = 'member-message-button';
+  messageButton.setAttribute('aria-label', 'مراسلة خاصة');
+  const icon = document.createElement('span');
+  icon.className = 'material-icons-round';
+  icon.textContent = 'chat_bubble';
+  messageButton.appendChild(icon);
+  item.append(avatar, info, online, messageButton);
+
+  messageButton.addEventListener('click', event => {
     event.stopPropagation();
     openPrivateChat(member);
   });
-  item.addEventListener('click',() => openPrivateChat(member));
-
+  item.addEventListener('click', () => openPrivateChat(member));
   return item;
 }
 
@@ -1265,7 +1297,7 @@ async function loadMembers(){
       preview.innerHTML = '<div class="mini-loading">لا يوجد أعضاء لعرضهم بعد.</div>';
     }
   }catch(error){
-    preview.innerHTML = `<div class="mini-loading">${error.message}</div>`;
+    const errorNode = document.createElement('div'); errorNode.className = 'mini-loading'; errorNode.textContent = error.message || 'تعذر تحميل الأعضاء'; preview.replaceChildren(errorNode);
   }
 }
 
@@ -1299,9 +1331,9 @@ function renderPrivateConversations(){
     item.type = 'button';
     item.className = 'private-conversation';
 
-    const avatar = String(conversation.otherUser?.avatarUrl || '').trim();
+    const avatar = safeAvatarUrl(conversation.otherUser?.avatarUrl);
     const image = avatar
-      ? `<img src="${avatar.replace(/"/g,'&quot;')}" alt="" loading="lazy">`
+      ? `<img src="${escapeHtml(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
       : initials(conversation.otherUser?.name);
 
     item.innerHTML = `
@@ -1327,10 +1359,10 @@ function renderPrivateConversations(){
 
 
 function privateAvatarMarkup(user){
-  const avatar = String(user?.avatarUrl || '').trim();
+  const avatar = safeAvatarUrl(user?.avatarUrl);
   return avatar
-    ? `<img src="${avatar.replace(/"/g,'&quot;')}" alt="">`
-    : initials(user?.name);
+    ? `<img src="${escapeHtml(avatar)}" alt="" referrerpolicy="no-referrer">`
+    : escapeHtml(initials(user?.name));
 }
 
 function clearPrivateRealtime(){
@@ -1820,18 +1852,10 @@ function currentVoiceProfile(){
   return {
     id:String(currentUser?.id || ''),
     name:
-      metadata.full_name ||
-      metadata.name ||
-      metadata.user_name ||
-      member?.name ||
-      currentUser?.email?.split('@')[0] ||
-      'عضو',
+      member?.name || metadata.full_name || metadata.name || metadata.user_name ||
+      currentUser?.email?.split('@')[0] || 'عضو',
     avatarUrl:
-      metadata.avatar_url ||
-      metadata.avatarUrl ||
-      metadata.picture ||
-      member?.avatarUrl ||
-      ''
+      member?.avatarUrl || metadata.avatar_url || metadata.avatarUrl || metadata.picture || ''
   };
 }
 
@@ -2753,16 +2777,27 @@ $('#fileInput').addEventListener('change', async event => {
 $('#removeAttachment').addEventListener('click',clearPendingImage);
 
 $('.notification-button').addEventListener('click',() => {
-  showToast('لا توجد إشعارات جديدة');
+  window.location.href = currentUser ? '/notifications' : '/login';
 });
 
 $('.theme-button').addEventListener('click',() => {
-  showToast('المجتمع يعمل حاليًا بالوضع الداكن');
+  const enabled = document.body.classList.toggle('community-dark');
+  $('.theme-button .material-icons-round').textContent = enabled ? 'light_mode' : 'dark_mode';
+  $('.theme-button').setAttribute('aria-label', enabled ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن');
+  try { localStorage.setItem('wallpaperhub-community-theme', enabled ? 'dark' : 'light'); } catch (_) {}
 });
 
 $('#profileButton').addEventListener('click',() => {
-  showToast(currentUser ? 'أنت داخل المجتمع الآن' : 'سجّل الدخول للمشاركة');
+  window.location.href = currentUser ? '/profile' : '/login';
 });
+
+try {
+  if(localStorage.getItem('wallpaperhub-community-theme') === 'dark'){
+    document.body.classList.add('community-dark');
+    $('.theme-button .material-icons-round').textContent = 'light_mode';
+    $('.theme-button').setAttribute('aria-label', 'تفعيل الوضع الفاتح');
+  }
+} catch (_) {}
 
 (async function(){
   try{
@@ -2776,6 +2811,7 @@ $('#profileButton').addEventListener('click',() => {
       loadPrivateConversations(),
       loadPinnedMessage()
     ]);
+    updateProfileCard();
     const requestedMessage = new URLSearchParams(location.search).get('message');
     if(requestedMessage){
       if(!hasMessage(requestedMessage)) await loadMessages();
