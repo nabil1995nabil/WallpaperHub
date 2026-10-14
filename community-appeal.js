@@ -7,11 +7,18 @@ document.addEventListener("DOMContentLoaded",()=>{
  function escapeText(v){return String(v??"")}
  async function authHeaders(){if(!session){const r=await supabase.auth.getSession();session=r.data?.session||null}return session?.access_token?{Authorization:`Bearer ${session.access_token}`} : {}}
  async function api(url,options={}){const headers={...(await authHeaders()),...(options.headers||{})};const r=await fetch(url,{...options,headers,cache:"no-store"});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.message||"تعذر الاتصال بالخادم");return data}
+ async function markContactRead(){
+  try{
+   const result=await api("/api/section-badges/contact/read",{method:"PATCH"});
+   if(result?.success && typeof window.refreshWallpaperHubSectionBadges==="function") window.refreshWallpaperHubSectionBadges();
+  }catch(error){console.warn("CONTACT READ STATE ERROR:",error?.message||error)}
+ }
  function render(){feed.innerHTML="";if(!items.length){const empty=document.createElement("div");empty.className="empty-conversation";empty.textContent="ابدأ المحادثة واشرح للإدارة سبب طلب المراجعة.";feed.appendChild(empty);return}
   items.forEach(m=>{const mine=String(m.sender_id)===String(session?.user?.id);const wrap=document.createElement("div");wrap.className="appeal-message"+(mine?" mine":"");const name=document.createElement("span");name.className="sender";name.textContent=mine?"أنت":(m.sender_role==="owner"?"مالك الموقع":"عضو");const bubble=document.createElement("div");bubble.className="bubble";bubble.textContent=escapeText(m.message);const time=document.createElement("span");time.className="time";time.textContent=m.created_at?new Date(m.created_at).toLocaleString("ar"): "الآن";wrap.append(name,bubble,time);feed.appendChild(wrap)});feed.scrollTop=feed.scrollHeight
  }
  async function load(){try{
-  const data=await api("/api/community/appeals"+(activeConversation?"?user="+encodeURIComponent(activeConversation):""));
+  // Owners need the full conversation list on every refresh; members only see their own thread.
+  const data=await api("/api/community/appeals"+(!isOwner&&activeConversation?"?user="+encodeURIComponent(activeConversation):""));
   isOwner=Boolean(data.isOwner);allItems=data.messages||[];
   if(isOwner){
     const conversations=[...new Map(allItems.map(m=>[String(m.conversation_user_id),m])).keys()];
@@ -24,11 +31,14 @@ document.addEventListener("DOMContentLoaded",()=>{
     items=allItems.filter(m=>String(m.conversation_user_id)===String(activeConversation));
     $("#conversation-status").textContent=activeConversation?"مراجعة محادثة عضو":"لا توجد محادثات بعد";
   }else{ownerSelect.hidden=true;items=allItems;$("#conversation-status").textContent="محادثة خاصة مع الإدارة"}
-  render()
+  render();
+  // Keep the badge synchronized while the user is already reading this page.
+  if(document.visibilityState==="visible") await markContactRead();
  }catch(e){$("#conversation-status").textContent="تعذر الاتصال";if(!items.length){feed.innerHTML="";const empty=document.createElement("div");empty.className="empty-conversation";empty.textContent=e.message;feed.appendChild(empty)}}}
  async function submit(e){e.preventDefault();const message=input.value.trim();if(!message)return;send.disabled=true;try{const payload={message};const url=new URL(location.href);const target=url.searchParams.get("user");if(isOwner){payload.conversationUserId=activeConversation||target;if(!payload.conversationUserId)throw new Error("اختر محادثة عضو أولاً")}const data=await api("/api/community/appeals",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});items.push(data.message);input.value="";render();toast("تم إرسال رسالتك")}catch(e){toast(e.message)}finally{send.disabled=false}}
  form.addEventListener("submit",submit);$("#refresh-appeal").addEventListener("click",load);
  ownerSelect.addEventListener("change",()=>{activeConversation=ownerSelect.value;const url=new URL(location.href);if(activeConversation)url.searchParams.set("user",activeConversation);history.replaceState({}, "", url);load()});
- supabase.auth.getSession().then(async r=>{session=r.data?.session||null;if(!session){$("#conversation-status").textContent="يرجى تسجيل الدخول";feed.innerHTML='<div class="empty-conversation">سجّل الدخول أولاً ثم أعد فتح صفحة المراجعة.</div>';form.hidden=true;return}await load();const user=session.user.id;channel=supabase.channel("community-appeal-"+user).on("postgres_changes",{event:"INSERT",schema:"public",table:"community_appeal_messages",filter:`conversation_user_id=eq.${user}`},()=>load()).subscribe();timer=setInterval(()=>{if(document.visibilityState==="visible")load()},12000)}).catch(()=>toast("تعذر التحقق من الجلسة"));
+ supabase.auth.getSession().then(async r=>{session=r.data?.session||null;if(!session){$("#conversation-status").textContent="يرجى تسجيل الدخول";feed.innerHTML='<div class="empty-conversation">سجّل الدخول أولاً ثم أعد فتح صفحة المراجعة.</div>';form.hidden=true;return}await load();const user=session.user.id;const eventFilter=isOwner?{event:"INSERT",schema:"public",table:"community_appeal_messages"}:{event:"INSERT",schema:"public",table:"community_appeal_messages",filter:`conversation_user_id=eq.${user}`};channel=supabase.channel("community-appeal-"+user).on("postgres_changes",eventFilter,()=>load()).subscribe();timer=setInterval(()=>{if(document.visibilityState==="visible")load()},12000)}).catch(()=>toast("تعذر التحقق من الجلسة"));
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")markContactRead()});
  window.addEventListener("beforeunload",()=>{clearInterval(timer);if(channel)supabase.removeChannel(channel)})
 });

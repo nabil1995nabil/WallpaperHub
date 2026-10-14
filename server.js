@@ -8355,7 +8355,10 @@ app.post("/api/community/appeals",async(req,res)=>{
     if(owner){
       await createCommunityEventNotification({recipientUID:conversationUserId,fromUser:user.id,type:"community_appeal_update",messageId:null,message:"لديك رد جديد من إدارة WallpaperHub بخصوص طلب مراجعة الإبعاد."});
     }else{
-      const ownerUid=String(process.env.SITE_OWNER_UID||"").trim();
+      // Use the same owner resolution as isSiteOwnerUser(): explicit owner UID,
+      // or the first configured admin UID as the fallback owner.
+      const ownerUid=String(process.env.SITE_OWNER_UID||"").trim() ||
+        String(process.env.ADMIN_UIDS||"").split(",").map(v=>v.trim()).filter(Boolean)[0] || "";
       if(ownerUid) await createCommunityEventNotification({recipientUID:ownerUid,fromUser:user.id,type:"community_appeal_update",messageId:null,message:"وصل طلب مراجعة أو رسالة جديدة بخصوص إبعاد عضو من المجتمع."});
     }
     return res.status(201).json({success:true,message:data});
@@ -9031,7 +9034,9 @@ app.get("/api/section-badges", async (req, res) => {
             return created > (states.get(section) || 0);
         };
         const isCommunity = row => String(row.type || "").startsWith("community_");
-        const isContact = row => ["community_appeal_update","community_moderation"].includes(String(row.type || ""));
+        // Contact badge is only for direct owner/member appeal messages.
+        // Moderation notifications belong to the community/notice flow, not contact.
+        const isContact = row => String(row.type || "") === "community_appeal_update";
         const readAnnouncementIds = new Set((announcementReadsResult.data || []).map(row => String(row.announcement_id)));
         const unreadAnnouncementIds = (announcementsResult.data || [])
             .map(row => String(row.id))
@@ -9046,7 +9051,7 @@ app.get("/api/section-badges", async (req, res) => {
             counts:{
                 notice:rows.filter(row => !row.is_read).length + unreadAnnouncementIds.length,
                 community:rows.filter(row => isCommunity(row) && afterRead(row, "community")).length + unreadCommunityMessages,
-                contact:rows.filter(row => isContact(row) && afterRead(row, "contact")).length
+                contact:rows.filter(row => isContact(row) && !row.is_read && afterRead(row, "contact")).length
             },
             unreadAnnouncementIds,
             updatedAt:new Date().toISOString()
@@ -9066,6 +9071,17 @@ app.patch("/api/section-badges/:section/read", async (req, res) => {
             return res.status(400).json({ success:false, message:"القسم غير صالح" });
         }
         const timestamp = new Date().toISOString();
+        // Explicitly mark contact messages read; timestamps alone can leave a dot
+        // visible when notification timestamps are equal or delayed by the DB.
+        if (section === "contact") {
+            const { error:readError } = await supabase.from("notifications")
+                .update({ is_read:true })
+                .eq("user_id", String(user.id))
+                .eq("type", "community_appeal_update")
+                .eq("is_read", false)
+                .lte("created_at", timestamp);
+            if (readError) throw readError;
+        }
         const { error } = await supabase.from("user_section_read_state").upsert({
             user_id:String(user.id), section_key:section, last_read_at:timestamp
         }, { onConflict:"user_id,section_key" });
