@@ -1,10 +1,45 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://wallpaper-hub-7niz.vercel.app/</loc>
   </url>
   <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/index.html</loc>
+  </url>
+  <url>
     <loc>https://wallpaper-hub-7niz.vercel.app/home.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/about.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/all-wallpapers.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/categories.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/community.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/developers.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/notice.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/privacy.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/photo-editor.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/today.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/artguru.html</loc>
+  </url>
+  <url>
+    <loc>https://wallpaper-hub-7niz.vercel.app/premium-user.html</loc>
   </url>
 </urlset>

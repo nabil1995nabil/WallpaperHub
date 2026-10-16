@@ -2307,17 +2307,23 @@ app.get("/sitemap.xml", async (req, res) => {
     // Only add root-level pages that actually exist in the deployed project.
     // Do not include admin, authentication, private profile, or submission pages.
     addUrl("/");
+    // الصفحات العامة الموجودة في المشروع فقط؛ استبعاد صفحات الإدارة والحسابات
+    // والملفات الجزئية التي تُضمَّن داخل صفحات أخرى.
     const publicPages = [
+        "index.html",
         "home.html",
+        "about.html",
         "all-wallpapers.html",
         "categories.html",
-        "wallpaper.html",
-        "today.html",
-        "today-dynamic.html",
-        "home-weather-time.html",
-        "photo-editor.html",
+        "community.html",
         "developers.html",
-        "notice.html"
+        "notice.html",
+        "privacy.html",
+        "photo-editor.html",
+        "today.html",
+        "artguru.html",
+        "premium-user.html",
+        "wallpaper.html"
     ];
 
     for (const page of publicPages) {
