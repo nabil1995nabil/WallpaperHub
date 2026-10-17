@@ -465,10 +465,13 @@ function videoDrawFrame(){
   drawLayer();textLayer();stickerLayer();renderFrame();
 }
 function videoLoop(){
+  videoState.raf=0;
   if(!videoState.mode)return;
+  // Draw one frame while paused; continuously redraw only during playback.
+  // The old loop kept consuming CPU/GPU even when the preview was idle.
   videoDrawFrame();
   const clip=videoCurrentClip();
-  if(clip && videoEl.currentTime>=videoState.trimEnd-.025){
+  if(videoState.playing && clip && videoEl.currentTime>=videoState.trimEnd-.025){
     if(videoState.active<videoState.clips.length-1){
       videoState.active++;
       videoSelectClip(videoState.active);
@@ -482,9 +485,12 @@ function videoLoop(){
     }
   }
   videoUpdateTimeline();
-  videoState.raf=requestAnimationFrame(videoLoop);
+  if(videoState.playing)videoState.raf=requestAnimationFrame(videoLoop);
 }
-function videoStartLoop(){cancelAnimationFrame(videoState.raf);videoLoop()}
+function videoStartLoop(){
+  cancelAnimationFrame(videoState.raf);videoState.raf=0;
+  if(videoState.mode)videoLoop();
+}
 function videoTogglePlay(){
   if(!videoCurrentClip())return;
   if(videoState.playing){
@@ -513,6 +519,7 @@ function videoSetTrim(which,val){
   else videoState.trimEnd=Math.max(t,videoState.trimStart+.05);
   videoEl.currentTime=which==="start"?videoState.trimStart:videoState.trimEnd;
   videoCommitTrim();videoSyncControls();videoUpdateTimeline();
+  if(!videoState.playing)videoStartLoop();
 }
 function videoSplit(){
   const c=videoCurrentClip();if(!c)return;
@@ -545,7 +552,7 @@ function videoResetTrim(){
 async function videoExport(){
   if(!videoState.clips.length)return note("أضف فيديو أولًا");
   if(!window.MediaRecorder||!c.captureStream)return note("التصدير غير مدعوم في هذا المتصفح");
-  const fps=30,stream=c.captureStream(fps);
+  const fps=60,stream=c.captureStream(fps);
   let activeAudio=null;
   const addAudio=()=>{
     try{
@@ -561,7 +568,7 @@ async function videoExport(){
   await new Promise(r=>videoEl.onseeked=r);
   addAudio();
   const mime=MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")?"video/webm;codecs=vp9,opus":"video/webm";
-  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000});
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:12000000});
   const chunks=[];
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
   const done=new Promise(resolve=>rec.onstop=resolve);
