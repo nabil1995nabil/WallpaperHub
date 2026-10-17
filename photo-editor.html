@@ -78,8 +78,8 @@
     </nav>
 
     <div class="mode-tabs">
-      <button class="mode-tab active">أساسية</button>
-      <button class="mode-tab">إنشاء</button>
+      <button class="mode-tab active" data-mode="basic" type="button">أساسية</button>
+      <button class="mode-tab" data-mode="create" type="button">إنشاء</button>
     </div>
 
     <input id="file" type="file" accept="image/*,video/*" hidden>
@@ -112,7 +112,7 @@
       <div id="stickers"></div>
     </div>
 
-          <section class="video-deck" id="videoDeck" aria-hidden="true">
+        <section class="video-deck" id="videoDeck" aria-hidden="true">
         <div class="video-deck-head">
           <div class="video-project">
             <span class="video-live"></span>
