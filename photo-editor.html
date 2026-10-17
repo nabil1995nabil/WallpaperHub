@@ -134,8 +134,10 @@
             <small id="videoProjectInfo">مشروع فيديو</small>
           </div>
           <div class="video-head-actions">
-            <button id="videoUndoTrim">↶</button>
-            <button id="videoAddClip">＋ إضافة مقطع</button>
+            <button id="videoUndoTrim" type="button" title="إلغاء القص">↶</button>
+            <button id="videoMoveLeft" type="button" title="تحريك المقطع لليسار">◀</button>
+            <button id="videoMoveRight" type="button" title="تحريك المقطع لليمين">▶</button>
+            <button id="videoAddClip" type="button">＋ إضافة مقاطع</button>
             <button id="videoClose">×</button>
           </div>
         </div>
@@ -148,7 +150,7 @@
             <div class="video-playhead" id="videoPlayhead"></div>
           </div>
           <span id="videoDuration">00:00</span>
-          <button id="videoMute">🔊</button>
+          <button id="videoMute" type="button">🔊</button>
         </div>
 
         <div class="video-timeline-wrap">
@@ -193,11 +195,11 @@
         </div>
 
         <div class="video-quick-tools">
-          <button id="videoSplit">✂ تقسيم عند المؤشر</button>
-          <button id="videoDuplicate">⧉ تكرار المقطع</button>
-          <button id="videoDelete">⌫ حذف المقطع</button>
-          <button id="videoResetTrim">↺ إلغاء القص</button>
-          <button id="videoExport" class="video-export">⬇ تصدير الفيديو WebM</button>
+          <button id="videoSplit" type="button">✂ تقسيم عند المؤشر</button>
+          <button id="videoDuplicate" type="button">⧉ تكرار المقطع</button>
+          <button id="videoDelete" type="button">⌫ حذف المقطع</button>
+          <button id="videoResetTrim" type="button">↺ إلغاء القص</button>
+          <button id="videoExport" class="video-export" type="button">⬇ دمج وتصدير الفيديو</button>
         </div>
       </section>
 

@@ -328,6 +328,7 @@ renderStickers("emoji");buttons();
 const videoDeck = $("#videoDeck");
 const videoEl = $("#videoSource");
 const videoInput = $("#videoFiles");
+if(videoInput){videoInput.accept="video/*";videoInput.multiple=true;}
 const videoState = {
   mode:false, clips:[], active:0, playing:false, speed:1, volume:1,
   trimStart:0, trimEnd:0, raf:0, draggingTrim:null, objectUrls:[]
@@ -537,6 +538,16 @@ function videoDuplicate(){
   videoState.clips.splice(videoState.active+1,0,copy);
   videoRenderTimeline();note("تم تكرار المقطع");
 }
+function videoMoveClip(direction){
+  const from=videoState.active,to=from+direction;
+  if(to<0||to>=videoState.clips.length)return note("لا يوجد مقطع في هذا الاتجاه");
+  const [clip]=videoState.clips.splice(from,1);
+  videoState.clips.splice(to,0,clip);
+  videoState.active=to;
+  videoRenderTimeline();
+  videoSelectClip(to);
+  note("تم تغيير ترتيب المقاطع");
+}
 function videoDelete(){
   if(videoState.clips.length<=1)return note("يجب أن يبقى مقطع واحد على الأقل");
   videoState.clips.splice(videoState.active,1);
@@ -610,6 +621,8 @@ function videoBind(){
     c.hidden=true;$("#inlineControls")?.classList.remove("has-image");
   };
   $("#videoAddClip").onclick=()=>videoInput.click();
+  $("#videoMoveLeft").onclick=()=>videoMoveClip(-1);
+  $("#videoMoveRight").onclick=()=>videoMoveClip(1);
   videoInput.onchange=e=>{videoAddFiles(e.target.files);e.target.value=""};
   $("#videoUndoTrim").onclick=videoResetTrim;
   $("#videoResetTrim").onclick=videoResetTrim;
