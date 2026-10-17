@@ -18,7 +18,17 @@
     <div class="header-actions">
       <button id="download" class="header-btn save-btn" type="button">حفظ</button>
       <button id="pickTop" class="header-plus" type="button" aria-label="اختيار صورة أو فيديو">+</button>
-      <button id="qualityBtn" class="quality-btn" type="button">الجودة <span>⌄</span></button>
+      <div class="quality-wrap">
+        <button id="qualityBtn" class="quality-btn" type="button" aria-expanded="false" aria-controls="qualityMenu">الجودة <span>⌄</span></button>
+        <div id="qualityMenu" class="quality-menu" hidden>
+          <strong>جودة التصدير</strong>
+          <button type="button" data-quality="0.65">صغيرة · 65%</button>
+          <button type="button" data-quality="0.82">متوازنة · 82%</button>
+          <button type="button" data-quality="0.92" class="selected">عالية · 92%</button>
+          <button type="button" data-quality="1">أعلى جودة · 100%</button>
+          <small>الجودة تؤثر على JPEG فقط. PNG يُحفظ دون فقدان.</small>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -75,6 +85,10 @@
       <button class="tool" data-tool="stickers"><i>✦</i><span>ملصق</span></button>
       <button class="tool" data-tool="frame"><i>▣</i><span>إطار</span></button>
       <button class="tool" data-tool="blur"><i>◌</i><span>تمويه</span></button>
+      <button class="tool" data-tool="light"><i>☼</i><span>إضاءة</span></button>
+      <button class="tool" data-tool="effects"><i>✧</i><span>تأثيرات</span></button>
+      <button class="tool" data-tool="background"><i>▧</i><span>خلفية</span></button>
+      <button class="tool" data-tool="resize"><i>↔</i><span>المقاس</span></button>
     </nav>
 
     <div class="mode-tabs">

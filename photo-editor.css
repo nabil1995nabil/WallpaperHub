@@ -137,3 +137,99 @@ button{border:0;cursor:pointer}
   .quality-btn{padding-inline:9px}
   .cancel-btn{padding-inline:10px}
 }
+
+
+/* ===== Performance / interaction polish ===== */
+button, .tool, .inline-option, .inline-action, .header-btn, .quality-btn, .header-plus{
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .14s ease, background-color .14s ease, border-color .14s ease, opacity .14s ease;
+}
+button:not(:disabled):active{transform:scale(.97)}
+input[type="range"]{touch-action:pan-y}
+.stage{overscroll-behavior:contain;contain:layout paint}
+.stage canvas{will-change:contents}
+.inline-options,.editor-toolbar{overscroll-behavior-x:contain}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+
+/* ===== Video studio: clean inline workspace, never a blocking sheet ===== */
+.video-deck{
+  display:none;
+  margin:0 18px 18px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 8px 28px rgba(20,25,45,.07);
+}
+.video-deck.open{display:block}
+.video-deck-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.video-project{display:flex;align-items:center;gap:9px;min-width:0}
+.video-project b{font-size:13px;letter-spacing:.06em}
+.video-project small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.video-live{width:8px;height:8px;border-radius:50%;background:#5c6ee8;box-shadow:0 0 0 5px #eef0ff}
+.video-head-actions{display:flex;gap:7px}
+.video-head-actions button,.video-quick-tools button{
+  min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:11px;background:#f7f8fa;color:#34363b
+}
+.video-transport{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:10px;align-items:center}
+.video-transport button{width:38px;height:38px;border-radius:11px;background:#f3f4f7;color:#333}
+.video-play{background:var(--accent)!important;color:#fff!important}
+.video-transport span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.video-scrub{height:8px;background:#eceef2;border-radius:99px;position:relative;cursor:pointer;overflow:hidden}
+.video-scrub-fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);border-radius:inherit}
+.video-playhead{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);left:0}
+.video-timeline-wrap{margin-top:14px}
+.video-ruler{height:18px}
+.video-timeline{height:72px;border:1px solid var(--line);border-radius:13px;background:#f7f8fa;position:relative;overflow:hidden}
+.video-clips{display:flex;height:100%;gap:4px;padding:6px}
+.video-clip{
+  flex:1;min-width:100px;border:1px solid #dfe2e8;border-radius:9px;background:#fff;
+  display:flex;align-items:center;justify-content:center;gap:7px;padding:0 8px;cursor:pointer;color:#656971
+}
+.video-clip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.video-clip-index{font-weight:700}
+.video-clip-label{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trim-window{position:absolute;top:2px;bottom:2px;border:2px solid var(--accent);border-radius:10px;pointer-events:none}
+.trim-handle{position:absolute;top:50%;width:10px;height:34px;background:var(--accent);border-radius:7px;transform:translateY(-50%);pointer-events:auto}
+.trim-left{left:-6px}.trim-right{right:-6px}
+.video-controls-grid{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:10px;margin-top:12px}
+.video-control-card{border:1px solid var(--line);border-radius:13px;padding:11px;background:#fff}
+.video-control-card>span{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+.video-chips{display:flex;gap:5px;flex-wrap:wrap}
+.video-chips button{padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:#f7f8fa;font-size:11px}
+.video-chips button.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.video-trim-values{display:flex;justify-content:space-between;font-size:11px;color:var(--accent);margin-bottom:4px}
+.dual-range{display:grid;gap:3px}
+.dual-range input,.video-control-card>input{width:100%;accent-color:var(--accent)}
+.video-control-card small{color:var(--muted);font-size:11px}
+.video-quick-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.video-quick-tools .video-export{background:var(--accent);color:#fff;border-color:var(--accent)}
+body.video-mode .editor-toolbar{opacity:.65}
+@media(max-width:700px){
+  .video-deck{margin:0 10px 10px;padding:10px}
+  .video-transport{grid-template-columns:auto auto 1fr auto}
+  #videoMute{display:none}
+  .video-controls-grid{grid-template-columns:1fr}
+  .video-head-actions button{padding-inline:9px}
+}
+
+/* Professional editor additions: export quality menu and expanded tools */
+.quality-wrap{position:relative;display:flex;align-items:center}
+.quality-menu{position:absolute;top:calc(100% + 10px);right:0;width:min(270px,calc(100vw - 24px));z-index:80;padding:12px;display:flex;flex-direction:column;gap:7px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 38px rgba(18,25,45,.16);text-align:right}
+.quality-menu[hidden]{display:none!important}
+.quality-menu strong{font-size:13px;margin:2px 4px 5px}
+.quality-menu button{padding:10px 12px;border-radius:10px;background:#f7f8fb;color:var(--text);text-align:right;border:1px solid transparent;font-size:13px}
+.quality-menu button.selected{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.quality-menu small{font-size:11px;line-height:1.5;color:var(--muted);padding:3px 4px}
+.size-field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);min-width:100px;flex:1}
+.size-field input{height:38px;width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:0 10px;color:var(--text);background:#fff}
+.tool[hidden]{display:none!important}
+.control-panel.is-simple .slider-row{display:none}
+.inline-actions .size-field{margin:0}
+@media(max-width:700px){
+  .quality-menu{right:auto;left:0}
+  .header-actions{min-width:0}
+  .quality-btn{white-space:nowrap;font-size:12px}
+}
