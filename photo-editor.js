@@ -1,7 +1,8 @@
 (()=>{
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const c=$("#canvas"), x=c.getContext("2d",{willReadFrequently:true}), file=$("#file"), stage=$("#stage"), toast=$("#toast");
-let img=null, zoom=1, ratio="free", drawMode=null, history=[], hi=-1, draggingText=null, pointerDown=false, activeStickerTab="emoji", exportQuality=0.92;
+let img=null, zoom=1, ratio="free", drawMode=null, history=[], hi=-1, draggingText=null, selectedElement=null, pointerDown=false, activeStickerTab="emoji", exportQuality=0.92;
+const activePointers=new Map(); let pinchStartDistance=0, pinchStartZoom=1, pinchActive=false;
 let state={brightness:0,contrast:0,saturation:0,temperature:0,tint:0,fade:0,sharpness:0,opacity:100,vignette:0,glow:0,grain:0,blur:0,edge:0,filter:"none",rot:0,fh:1,fv:1,draw:[],texts:[],stickers:[],frame:"none",frameSize:0,background:"none"};
 
 const defaults=()=>({brightness:0,contrast:0,saturation:0,temperature:0,tint:0,fade:0,sharpness:0,opacity:100,vignette:0,glow:0,grain:0,blur:0,edge:0,filter:"none",rot:0,fh:1,fv:1,draw:[],texts:[],stickers:[],frame:"none",frameSize:0,background:"none"});
@@ -29,7 +30,7 @@ function sync(){
   $("#frame").value=state.frameSize;$("#frameV").textContent=state.frameSize;
 }
 function fit(){if(!img)return;const r=stage.getBoundingClientRect();zoom=Math.min((r.width-40)/c.width,(r.height-40)/c.height,1);applyZoom()}
-function applyZoom(){c.style.width=Math.max(1,c.width*zoom)+"px";c.style.height=Math.max(1,c.height*zoom)+"px";$("#zoom").textContent=Math.round(zoom*100)+"%"}
+function applyZoom(){zoom=Math.max(.15,Math.min(5,zoom));c.style.width=Math.max(1,c.width*zoom)+"px";c.style.height=Math.max(1,c.height*zoom)+"px";$("#zoom").textContent=Math.round(zoom*100)+"%"}
 function load(f){
   if(!f)return;
   if(!f.type?.startsWith("image/"))return note("اختر صورة صالحة");
@@ -39,7 +40,7 @@ function load(f){
       // Guard against extremely large images that can exhaust mobile canvas memory.
       const maxSide=10000,maxPixels=40000000,scale=Math.min(1,maxSide/q.naturalWidth,maxSide/q.naturalHeight,Math.sqrt(maxPixels/(q.naturalWidth*q.naturalHeight)));
       c.width=Math.max(1,Math.round(q.naturalWidth*scale));c.height=Math.max(1,Math.round(q.naturalHeight*scale));
-      img=q;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;c.hidden=false;
+      img=q;selectedElement=null;drawMode=null;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;c.hidden=false;
       $("#inlineControls")?.classList.add("has-image");$("#emptyStage")?.classList.add("hidden");
       $("#info").textContent=`${c.width} × ${c.height}px`;$("#sizeInfo").textContent=`${c.width} × ${c.height}px`;
       history=[];hi=-1;x.clearRect(0,0,c.width,c.height);render();save();fit();sync();note(scale<1?"تم تحميل الصورة مع تحسين حجمها للأداء":"تم تحميل الصورة");
@@ -105,7 +106,7 @@ function inlineRender(name){
    kicker.textContent="الرسم";title.textContent="حجم الفرشاة";
    options.innerHTML=[["brush","🖌","فرشاة"],["eraser","⌫","ممحاة"],["marker","▰","هايلايتر"]].map(a=>inlineButton(a[2],a[0],drawMode===a[0],a[1])).join("");
    options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>{drawMode=drawMode===b.dataset.inlineValue?null:b.dataset.inlineValue;options.querySelectorAll(".inline-option").forEach(x=>x.classList.toggle("active",x.dataset.inlineValue===drawMode));title.textContent=drawMode==="eraser"?"حجم الممحاة":drawMode==="marker"?"حجم الهايلايتر":"حجم الفرشاة"});
-   slider.min=1;slider.max=160;slider.value=$("#brush").value;value.textContent=slider.value;slider.oninput=()=>{$("#brush").value=slider.value;$("#brushV").textContent=slider.value;value.textContent=slider.value};slider.onchange=save;
+   slider.min=1;slider.max=240;slider.value=$("#brush").value;value.textContent=slider.value;slider.oninput=()=>{$("#brush").value=slider.value;$("#brushV").textContent=slider.value;value.textContent=slider.value};slider.onchange=save;
    actions.innerHTML=`<button type="button" class="inline-action" id="inlineDrawColor">لون الفرشاة</button>`;$("#inlineDrawColor").onclick=()=>$("#drawColor").click();return;
  }
  if(name==="blur"){
@@ -121,14 +122,38 @@ function inlineRender(name){
    slider.min=0;slider.max=100;slider.value=state.frameSize;value.textContent=slider.value;slider.oninput=()=>{state.frameSize=+slider.value;value.textContent=slider.value;requestRender()};slider.onchange=save;return;
  }
  if(name==="stickers"){
-   kicker.textContent="الملصقات";title.textContent="أضف عنصرًا";value.textContent="";root.classList.add("is-simple");
-   options.innerHTML=emoji.slice(0,42).map(v=>inlineButton("",v,false,v)).join("");options.querySelectorAll("[data-inline-value]").forEach(b=>b.onclick=()=>addSticker(b.dataset.inlineValue));return;
+   kicker.textContent="الملصقات";title.textContent=selectedElement?"حجم العنصر المحدد":"أضف ملصقًا";value.textContent="";root.classList.add("is-simple");
+   const categories=[ ["emoji","وجوه"],["nature","طبيعة"],["love","حب"],["objects","أشياء"],["food","طعام"],["symbols","رموز"],["shapes","أشكال"],["badges","شعارات"] ];
+   const stickerSets={
+    emoji:"😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫣 🤭 🫢 🫡 🤫 🫠 🤥 😶 😐 😑 😬 🫨 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👹 👺 💀 ☠️ 👻 👽 👾 🤖 💩 🤡 👺" ,
+    nature:"🌈 ☀️ 🌤️ ⛅ 🌥️ ☁️ 🌦️ 🌧️ ⛈️ 🌩️ 🌨️ ❄️ ☃️ ⛄ 🌬️ 💨 🌪️ 🌫️ 🌙 🌛 🌜 🌝 🌞 ⭐ 🌟 ✨ ⚡ 🔥 💧 💦 ☔ 🌊 🌍 🌎 🌏 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌱 🌿 ☘️ 🍀 🍃 🍂 🍁 🌵 🌴 🌳 🌲 🪴 🌷 🌹 🥀 🌺 🌸 🌼 🌻 💐 🪻 🦋 🐝 🐞 🐢 🐬 🐳 🐠 🐙 🦜 🦚 🦄 🐈 🐕 🐼 🦊 🐸 🐯 🦁 🐻 🐨 🐰 🦉 🦋",
+    love:"❤️ 🩷 🧡 💛 💚 💙 🩵 💜 🤎 🖤 🩶 🤍 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 💌 💋 💍 💎 🫶 🤝 🥰 😍 😘 💐 🌹 🌷 💑 💏",
+    objects:"📱 💻 🖥️ ⌨️ 🖱️ 🎥 📷 📸 🎞️ 📺 🎧 🎤 🎼 🎹 🎸 🥁 🎮 🕹️ 💿 💾 🔋 🔌 💡 🔦 🕯️ 📚 📖 ✏️ 🖊️ 🖋️ 📝 📌 📍 ✂️ 🧷 🔒 🔑 🗝️ ⚙️ 🛠️ 🔨 🧲 🧰 🧪 🧬 🔭 🚀 🛸 ✈️ 🚗 🏎️ 🚲 🛵 🏆 🥇 🏅 🎖️ 🎁 🎈 🎉 🎊 🎀 🪄 🪩",
+    food:"🍎 🍏 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🫒 🥑 🍆 🥔 🥕 🌽 🌶️ 🫑 🥒 🥬 🥦 🧄 🧅 🍄 🥜 🌰 🍞 🥐 🥨 🧀 🥚 🍳 🧇 🥞 🧈 🍗 🍖 🌭 🍔 🍟 🍕 🫓 🥪 🥙 🌮 🌯 🫔 🥗 🥘 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥠 🥮 🍢 🍡 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🥛 ☕ 🧋 🧃 🥤 🍵 🍶 🍺",
+    symbols:"✨ 💫 ⭐ 🌟 ⚡ 🔥 💥 💯 ✅ ✔️ ☑️ ❌ ❎ ➕ ➖ ➗ ✖️ ♾️ 💲 💱 ™️ ©️ ®️ ⚠️ 🚫 ⛔ 🔞 🔰 ♻️ 🔱 ⚜️ 🔆 🔅 🔝 🔛 🔜 🔚 🔙 ⬆️ ⬇️ ⬅️ ➡️ ↗️ ↘️ ↙️ ↖️ 🔄 🔃 🔁 🔂 ▶️ ⏸️ ⏹️ ⏺️ ⏭️ ⏮️ 🔀 🔔 🔕 💤 🆕 🆒 🆓 🆙 🆗 🆘 🆔 🅰️ 🅱️ 🅾️ 🆎 🅿️ 🔴 🟠 🟡 🟢 🔵 🟣 ⚫ ⚪ 🟤 🔺 🔻 🔸 🔹 🔶 🔷",
+    shapes:"◆ ◇ ● ○ ■ □ ▲ △ ▼ ▽ ★ ☆ ✦ ✧ ✚ ✕ ♡ ♥ ☾ ☀ ☁ ☂ ✓ ➜ ➤ ∞ @ # ❖ ❂ ❉ ❋ ❇ ❈ ✳ ✴ ✵ ✶ ✷ ✸ ✹ ✺ ✻ ✼ ✽ ✾ ✿ ❀ ❁ ❃ ❄ ❅ ❆ ⌁ ⌘ ⌖ ⌗ ⊕ ⊗ ⊙ ⊛ ⊞ ⊟ ⊠ ⊡ ◈ ◉ ◎ ◌ ◍ ◐ ◑ ◒ ◓ ◔ ◕",
+    badges:"SALE NEW HOT VIP LIVE PRO 2026 WOW LIMITED FREE TOP EDIT MOOD LOVE URBAN DREAM FOLLOW LIKE SHARE SUBSCRIBE OFFICIAL PREMIUM EXCLUSIVE TRENDING BEST PICK SPECIAL SALE 50% 70% OMG COOL NICE FRESH VIBE STYLE ART DESIGN DROP NOW ON AIR MADE WITH LOVE"
+   };
+   const chosen=activeStickerTab in stickerSets?activeStickerTab:"emoji";
+   const set=stickerSets[chosen].split(/\s+/).filter(Boolean);
+   actions.innerHTML=`<div class="sticker-categories">${categories.map(([k,l])=>`<button type="button" class="inline-action ${k===chosen?"primary":""}" data-sticker-category="${k}">${l}</button>`).join("")}</div><input class="sticker-search" id="stickerSearch" type="search" placeholder="ابحث عن ملصق أو رمز..." aria-label="البحث عن ملصق"><div class="sticker-grid" id="stickerGrid"></div><div class="sticker-edit-controls"><label>الحجم <input id="stickerSize" type="range" min="16" max="420" value="${selectedElement?.type==="sticker"?state.stickers[selectedElement.index]?.s||110:110}"></label><button type="button" class="inline-action" id="stickerRotate">تدوير 15°</button><button type="button" class="inline-action" id="stickerDelete">حذف المحدد</button></div>`;
+   const grid=$("#stickerGrid");
+   const renderGrid=(query="")=>{const q=query.trim().toLowerCase();const vals=set.filter(v=>!q||v.toLowerCase().includes(q));grid.innerHTML=vals.map((v,i)=>`<button type="button" class="sticker-pick" data-sticker-pick="${i}" aria-label="إضافة ${v}">${v}</button>`).join("");grid.querySelectorAll("[data-sticker-pick]").forEach((b,i)=>b.onclick=()=>addSticker(vals[i]));};
+   renderGrid();$("#stickerSearch").oninput=e=>renderGrid(e.target.value);
+   actions.querySelectorAll("[data-sticker-category]").forEach(b=>b.onclick=()=>{activeStickerTab=b.dataset.stickerCategory;inlineRender("stickers")});
+   $("#stickerSize").oninput=e=>{if(!selectedElement||selectedElement.type!=="sticker")return;const o=state.stickers[selectedElement.index];if(o){o.s=+e.target.value;value.textContent=o.s;requestRender()}};$("#stickerSize").onchange=save;
+   $("#stickerRotate").onclick=()=>{if(!selectedElement||selectedElement.type!=="sticker")return note("حدد ملصقًا من الصورة أولًا");const o=state.stickers[selectedElement.index];if(o){o.r=(o.r||0)+15;render();save()}};
+   $("#stickerDelete").onclick=()=>{if(!selectedElement)return note("حدد عنصرًا من الصورة أولًا");if(selectedElement.type==="sticker")state.stickers.splice(selectedElement.index,1);else state.texts.splice(selectedElement.index,1);selectedElement=null;render();save();inlineRender("stickers")};
+   actions.querySelector("#stickerSearch")?.focus({preventScroll:true});return;
  }
  if(name==="text"){
-   kicker.textContent="النص";title.textContent="حجم النص";
-   actions.innerHTML=`<input id="inlineText" type="text" placeholder="اكتب النص هنا..." style="flex:1;min-width:140px;height:36px;border:1px solid #e0e2e7;border-radius:10px;padding:0 10px;outline:0"><button type="button" class="inline-action primary" id="inlineAddText">إضافة</button>`;
-   slider.min=8;slider.max=200;slider.value=$("#fontSize").value||56;value.textContent=slider.value;slider.oninput=()=>{$("#fontSize").value=slider.value;value.textContent=slider.value};slider.onchange=save;
-   $("#inlineAddText").onclick=()=>{$("#text").value=$("#inlineText").value;addText()};return;
+   kicker.textContent="النصوص";title.textContent=selectedElement?.type==="text"?"حجم النص المحدد":"حجم النص الجديد";
+   actions.innerHTML=`<input id="inlineText" type="text" placeholder="اكتب النص هنا..." style="flex:1;min-width:140px;height:40px;border:1px solid #e0e2e7;border-radius:10px;padding:0 10px;outline:0"><button type="button" class="inline-action primary" id="inlineAddText">إضافة نص</button><button type="button" class="inline-action" id="inlineTextDelete">حذف المحدد</button><button type="button" class="inline-action" id="inlineTextRotate">تدوير 15°</button>`;
+   const selectedText=selectedElement?.type==="text"?state.texts[selectedElement.index]:null;
+   slider.min=8;slider.max=420;slider.value=selectedText?.s||(+$("#fontSize").value||56);value.textContent=slider.value;slider.oninput=()=>{const size=+slider.value;$("#fontSize").value=size;value.textContent=size;if(selectedElement?.type==="text"){const t=state.texts[selectedElement.index];if(t){t.s=size;requestRender()}}};slider.onchange=save;
+   $("#inlineAddText").onclick=()=>{$("#text").value=$("#inlineText").value;addText()};
+   $("#inlineTextDelete").onclick=()=>{if(!selectedElement)return note("حدد نصًا من الصورة أولًا");if(selectedElement.type==="text")state.texts.splice(selectedElement.index,1);else return note("العنصر المحدد ليس نصًا");selectedElement=null;render();save();inlineRender("text")};
+   $("#inlineTextRotate").onclick=()=>{if(selectedElement?.type!=="text")return note("حدد نصًا من الصورة أولًا");const t=state.texts[selectedElement.index];if(t){t.r=(t.r||0)+15;render();save()}};return;
  }
   if(name==="light"){
     kicker.textContent="الإضاءة واللون";title.textContent="اختر الإعداد";value.textContent="";root.classList.add("is-simple");
@@ -158,7 +183,7 @@ function inlineRender(name){
   }
   kicker.textContent=toolNames[name]||"أدوات";title.textContent="أدوات";value.textContent="";root.classList.add("is-simple");
 }
-function openTool(name){setInlineToolActive(name);inlineRender(name)}
+function openTool(name){inlineState.tool=name;setInlineToolActive(name);inlineRender(name)}
 function closeTool(){$$(".tool").forEach(b=>b.classList.remove("active"));drawMode=null;$$("[data-draw]").forEach(b=>b.classList.remove("active"))}
 $$(".tool").forEach(b=>b.onclick=()=>openTool(b.dataset.tool));
 
@@ -225,7 +250,7 @@ function renderFrame(){if(state.frame==="none"||state.frameSize<=0)return;const 
 const templates=[["BIG TITLE","BIG TITLE"],["NEW DROP","NEW DROP"],["GOOD VIBES","GOOD VIBES"],["DREAM","DREAM"],["EXPLORE","EXPLORE"],["MOMENTS","MOMENTS"],["NO SIGNAL","NO SIGNAL"],["HELLO WORLD","HELLO WORLD"]];
 function templateButton(t){const b=document.createElement("button");b.innerHTML=`${t[0]}<small>إضافة</small>`;b.onclick=()=>addText(t[1]);return b}
 $("#textTemplates").append(...templates.slice(0,4).map(templateButton));$("#textTemplates2").append(...templates.slice(4).map(templateButton));
-function addText(value){if(!hasImage())return;const t={t:value||$("#text").value.trim()||"نص جديد",x:c.width/2,y:c.height/2,s:+$("#fontSize").value||56,f:$("#font").value,c:$("#textColor").value,b:boldState,i:italicState,shadow:shadowState,shadowBlur:+$("#shadowBlur").value,stroke:+$("#strokeWidth").value,sc:"#000",r:0};state.texts.push(t);render();save();note("تمت إضافة النص");}
+function addText(value){if(!hasImage())return;const t={t:value||$("#text").value.trim()||"نص جديد",x:c.width/2,y:c.height/2,s:+$("#fontSize").value||56,f:$("#font").value,c:$("#textColor").value,b:boldState,i:italicState,shadow:shadowState,shadowBlur:+$("#shadowBlur").value,stroke:+$("#strokeWidth").value,sc:"#000",r:0};state.texts.push(t);selectedElement={type:"text",index:state.texts.length-1};render();save();note("تمت إضافة النص");}
 let boldState=false,italicState=false,shadowState=true;
 $("#bold").onclick=()=>{$("#bold").classList.toggle("active");boldState=!boldState};$("#italic").onclick=()=>{$("#italic").classList.toggle("active");italicState=!italicState};$("#textShadow").onclick=()=>{$("#textShadow").classList.toggle("active");shadowState=!shadowState};$("#textStroke").onclick=()=>{$("#textStroke").classList.toggle("active");$("#strokeWidth").value=$("#strokeWidth").value==="0"?"6":"0"};
 $("#addText").onclick=()=>addText();
@@ -236,16 +261,49 @@ const badges=["SALE","NEW","HOT","VIP","LIVE","PRO","2026","WOW","LIMITED","FREE
 function renderStickers(tab){const arr=tab==="emoji"?emoji:tab==="shapes"?shapes:badges;$("#stickers").innerHTML=arr.map(v=>`<button data-sticker="${v}">${v}</button>`).join("");$$("[data-sticker]").forEach(b=>b.onclick=()=>addSticker(b.dataset.sticker))}
 $$("[data-sticker-tab]").forEach(b=>b.onclick=()=>{$$("[data-sticker-tab]").forEach(z=>z.classList.remove("active"));b.classList.add("active");activeStickerTab=b.dataset.stickerTab;renderStickers(activeStickerTab)});
 renderStickers("emoji");
-function addSticker(t){if(!hasImage())return;state.stickers.push({t,x:c.width/2,y:c.height/2,s:t.length>2?100:110,o:1,r:0});render();save();note("تمت إضافة العنصر")}
+function addSticker(t){if(!hasImage())return;state.stickers.push({t,x:c.width/2,y:c.height/2,s:t.length>2?100:110,o:1,r:0});selectedElement={type:"sticker",index:state.stickers.length-1};render();save();note("تمت إضافة الملصق");if(inlineState.tool==="stickers")inlineRender("stickers")}
 
 const sw=["#ffffff","#000000","#ff375f","#ff9f0a","#ffd60a","#30d158","#64d2ff","#0a84ff","#5e5ce6","#bf5af2","#ff2d55","#8e8e93"];$("#swatches").innerHTML=sw.map(v=>`<button style="background:${v}" data-color="${v}"></button>`).join("");$$("[data-color]").forEach(b=>b.onclick=()=>$("#drawColor").value=b.dataset.color);
 $$("[data-draw]").forEach(b=>b.onclick=()=>{$$("[data-draw]").forEach(z=>z.classList.remove("active"));if(drawMode===b.dataset.draw){drawMode=null;return}drawMode=b.dataset.draw;b.classList.add("active")});
 $("#brush").oninput=()=>$("#brushV").textContent=$("#brush").value;$("#brushOpacity").oninput=()=>$("#brushOpacityV").textContent=$("#brushOpacity").value;
 
 function point(e){const r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*(c.width/r.width),y:(e.clientY-r.top)*(c.height/r.height)}}
-c.addEventListener("pointerdown",e=>{if(!img)return;if(drawMode){pointerDown=true;c.setPointerCapture(e.pointerId);const p=point(e),obj={m:drawMode,c:$("#drawColor").value,s:+$("#brush").value,o:+$("#brushOpacity").value/100,a:[p]};state.draw.push(obj);return}const p=point(e);for(let i=state.stickers.length-1;i>=0;i--){const s=state.stickers[i],d=Math.hypot(p.x-s.x,p.y-s.y);if(d<s.s*.55){draggingText={type:"sticker",index:i,dx:p.x-s.x,dy:p.y-s.y};c.setPointerCapture(e.pointerId);return}}for(let i=state.texts.length-1;i>=0;i--){const t=state.texts[i];if(Math.abs(p.x-t.x)<Math.max(80,t.s*3)&&Math.abs(p.y-t.y)<t.s*1.2){draggingText={type:"text",index:i,dx:p.x-t.x,dy:p.y-t.y};c.setPointerCapture(e.pointerId);return}}});
-c.addEventListener("pointermove",e=>{const p=point(e);if(pointerDown&&drawMode){const a=state.draw[state.draw.length-1];a.a.push(p);requestRender();return}if(draggingText){const o=state[draggingText.type==="text"?"texts":"stickers"][draggingText.index];o.x=p.x-draggingText.dx;o.y=p.y-draggingText.dy;render()}});
-c.addEventListener("pointerup",()=>{if(pointerDown){pointerDown=false;save()}if(draggingText){draggingText=null;save()}});c.addEventListener("pointercancel",()=>{pointerDown=false;draggingText=null});
+function distanceBetweenPointers(){const pts=[...activePointers.values()];if(pts.length<2)return 0;return Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)}
+function eraseAt(p,radius){
+  const rr=Math.max(4,radius*.62),rr2=rr*rr,rebuilt=[];
+  for(const stroke of state.draw){
+    if(stroke.m==="eraser"){rebuilt.push(stroke);continue}
+    let segment=[];
+    const flush=()=>{if(segment.length)rebuilt.push({...stroke,a:segment});segment=[]};
+    for(const q of stroke.a){
+      if((q.x-p.x)**2+(q.y-p.y)**2<=rr2){flush();continue}
+      segment.push(q);
+    }
+    flush();
+  }
+  state.draw=rebuilt;
+}
+c.addEventListener("pointerdown",e=>{
+ if(!img)return;
+ if(e.pointerType==="touch"){
+   activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(activePointers.size===2){pinchActive=true;pinchStartDistance=distanceBetweenPointers()||1;pinchStartZoom=zoom;pointerDown=false;draggingText=null;return}
+ }
+ if(pinchActive)return;
+ if(drawMode){pointerDown=true;c.setPointerCapture(e.pointerId);const p=point(e);if(drawMode==="eraser"){eraseAt(p,+$("#brush").value);requestRender();return}const obj={m:drawMode,c:$("#drawColor").value,s:+$("#brush").value,o:+$("#brushOpacity").value/100,a:[p]};state.draw.push(obj);return}
+ const p=point(e);
+ for(let i=state.stickers.length-1;i>=0;i--){const o=state.stickers[i],d=Math.hypot(p.x-o.x,p.y-o.y);if(d<Math.max(o.s*.7,24)){selectedElement={type:"sticker",index:i};draggingText={type:"sticker",index:i,dx:p.x-o.x,dy:p.y-o.y};c.setPointerCapture(e.pointerId);if(inlineState.tool==="stickers")inlineRender("stickers");return}}
+ for(let i=state.texts.length-1;i>=0;i--){const o=state.texts[i];if(Math.abs(p.x-o.x)<Math.max(80,o.s*3)&&Math.abs(p.y-o.y)<o.s*1.2){selectedElement={type:"text",index:i};draggingText={type:"text",index:i,dx:p.x-o.x,dy:p.y-o.y};c.setPointerCapture(e.pointerId);if(inlineState.tool==="text")inlineRender("text");return}}
+});
+c.addEventListener("pointermove",e=>{
+ if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pinchActive&&activePointers.size>=2){const d=distanceBetweenPointers();if(d>0){zoom=Math.max(.15,Math.min(5,pinchStartZoom*d/pinchStartDistance));applyZoom()}e.preventDefault();return}
+ const p=point(e);
+ if(pointerDown&&drawMode){if(drawMode==="eraser"){eraseAt(p,+$("#brush").value);requestRender();return}const a=state.draw[state.draw.length-1];if(a){const prev=a.a[a.a.length-1];if(!prev||Math.hypot(p.x-prev.x,p.y-prev.y)>1.5){a.a.push(p);requestRender()}}return}
+ if(draggingText){const o=state[draggingText.type==="text"?"texts":"stickers"][draggingText.index];if(o){o.x=p.x-draggingText.dx;o.y=p.y-draggingText.dy;requestRender()}}
+});
+function finishPointer(e){activePointers.delete(e.pointerId);if(activePointers.size<2)pinchActive=false;if(pointerDown){pointerDown=false;save()}if(draggingText){draggingText=null;save()}}
+c.addEventListener("pointerup",finishPointer);c.addEventListener("pointercancel",finishPointer);
 
 $$("[data-effect]").forEach(b=>b.onclick=()=>{if(!hasImage())return;const a=b.dataset.effect;if(a==="soft"){state.blur=4;state.glow=18;state.contrast=-5}else if(a==="duo"){state.saturation=-40;state.tint=45}else if(a==="noir"){state.filter="noir"}else if(a==="poster"){state.contrast=35;state.saturation=30;state.sharpness=35}else if(a==="film"){state.grain=28;state.fade=12;state.contrast=8}else if(a==="dream"){state.blur=3;state.glow=22;state.saturation=-10}sync();render();save();note("تم تطبيق التأثير")});
 $("#blur").oninput=()=>{state.blur=+$("#blur").value;$("#blurV").textContent=state.blur;render()};$("#blur").onchange=save;$("#edge").oninput=()=>{state.edge=+$("#edge").value;$("#edgeV").textContent=state.edge;render()};$("#edge").onchange=save;
@@ -256,7 +314,8 @@ $$("[data-preset]").forEach(b=>b.onclick=()=>{const p=b.dataset.preset;const set
 
 $("#undo").onclick=()=>{if(hi>0){hi--;restore(history[hi]);buttons()}};$("#redo").onclick=()=>{if(hi<history.length-1){hi++;restore(history[hi]);buttons()}};
 if($("#reset"))$("#reset").onclick=()=>{if(!hasImage())return;state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;render();save();sync();note("تمت إعادة ضبط الصورة")};
-$("#minus").onclick=()=>{zoom=Math.max(.15,zoom-.1);applyZoom()};$("#plus").onclick=()=>{zoom=Math.min(3,zoom+.1);applyZoom()};$("#fit").onclick=fit;
+$("#minus").onclick=()=>{zoom=Math.max(.15,zoom/1.12);applyZoom()};$("#plus").onclick=()=>{zoom=Math.min(5,zoom*1.12);applyZoom()};$("#fit").onclick=fit;
+stage.addEventListener("wheel",e=>{if(!img||!e.ctrlKey)return;e.preventDefault();zoom=Math.max(.15,Math.min(5,zoom*(e.deltaY<0?1.08:1/1.08)));applyZoom()},{passive:false});
 if($("#full"))$("#full").onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}};
 $("#download").onclick=()=>{if(!hasImage())return;render();c.toBlob(blob=>{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="wallpaperhub-edited.jpg";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}, "image/png");note("جاري تنزيل الصورة")};
 
