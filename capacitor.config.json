@@ -1,0 +1,12 @@
+{
+  "appId": "com.wallpaperhub.app",
+  "appName": "WallpaperHub",
+  "webDir": "www",
+  "server": {
+    "url": "https://wallpaper-hub-7niz.vercel.app",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
