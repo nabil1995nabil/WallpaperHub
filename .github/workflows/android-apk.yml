@@ -1,1 +1,61 @@
+name: Build WallpaperHub Android APK
 
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'capacitor.config.json'
+      - 'package.android.json'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Prepare Android wrapper workspace
+        run: |
+          mkdir -p android-wrapper/www
+          cp capacitor.config.json android-wrapper/capacitor.config.json
+          cp package.android.json android-wrapper/package.json
+          printf '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body></body></html>' > android-wrapper/www/index.html
+
+      - name: Install Capacitor
+        working-directory: android-wrapper
+        run: npm install
+
+      - name: Add Android platform
+        working-directory: android-wrapper
+        run: npx cap add android
+
+      - name: Sync Android project
+        working-directory: android-wrapper
+        run: npx cap sync android
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build debug APK
+        working-directory: android-wrapper/android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WallpaperHub-debug-apk
+          path: android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
