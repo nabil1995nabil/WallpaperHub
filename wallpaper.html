@@ -215,6 +215,24 @@ download
 
 </section>
 
+<!-- نافذة خيارات تنزيل الخلفية -->
+<div id="downloadOptionsModal" class="download-options-modal" aria-hidden="true">
+  <button class="download-options-backdrop" type="button" data-close-download aria-label="إغلاق نافذة التنزيل"></button>
+  <section class="download-options-dialog" role="dialog" aria-modal="true" aria-labelledby="downloadOptionsTitle">
+    <header class="download-options-head">
+      <div><span class="download-options-kicker">WALLPAPERHUB DOWNLOAD</span><h3 id="downloadOptionsTitle">خيارات التنزيل</h3><p>اختار الصيغة والدقة المناسبة ليك</p></div>
+      <button id="closeDownloadOptions" class="download-options-close" type="button" aria-label="إغلاق">×</button>
+    </header>
+    <div class="download-options-body">
+      <div class="download-option-group"><label for="downloadFormat">صيغة الصورة</label><select id="downloadFormat"><option value="image/jpeg">JPG — حجم صغير ومتوافق</option><option value="image/png">PNG — جودة عالية</option><option value="image/webp">WEBP — حجم أقل وجودة جيدة</option><option value="image/avif">AVIF — ضغط قوي (حسب دعم المتصفح)</option><option value="image/svg+xml">SVG — تحويل حقيقي إلى Vector</option></select><small>كيحوّل الصورة إلى مسارات Vector قابلة للتكبير؛ الصور الفوتوغرافية قد تختلف تفاصيلها عن الأصل.</small></div>
+      <div class="download-option-group"><label for="downloadResolution">الدقة</label><select id="downloadResolution"><option value="480">صغيرة — حتى 480px</option><option value="720">متوسطة — حتى 720px</option><option value="1080" selected>عالية — حتى 1080px</option><option value="1440">عالية جداً — حتى 1440px</option><option value="2160">4K — حتى 2160px</option><option value="original">الأصلية — أقصى دقة متاحة</option></select><small id="downloadResolutionHint">سيتم الحفاظ على تناسب أبعاد الصورة.</small></div>
+      <label class="download-original-row"><input id="downloadKeepOriginal" type="checkbox"><span><strong>تحميل الملف الأصلي</strong><small>بدون تحويل أو تغيير الدقة</small></span></label>
+      <div id="downloadOptionsStatus" class="download-options-status" role="status" aria-live="polite"></div>
+    </div>
+    <footer class="download-options-footer"><button id="cancelDownloadOptions" class="download-cancel-btn" type="button">إلغاء</button><button id="confirmWallpaperDownload" class="download-confirm-btn" type="button"><span class="material-icons">download</span> تنزيل الصورة</button></footer>
+  </section>
+</div>
+
 <!-- =========================
      Phone Preview — معاينة حقيقية للهاتف
 ========================= -->
@@ -875,6 +893,7 @@ class="similar-grid"
      aria-atomic="true"></div>
 
 <!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
 <script type="module" src="wallpaper.js"></script>
 
 <script src="effects.js"></script>

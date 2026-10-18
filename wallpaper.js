@@ -3562,37 +3562,157 @@ function getExtensionFromMime(mime) {
     return map[mime] || "";
 }
 
-if (downloadBtn) {
-    downloadBtn.onclick = async (e) => {
-        e.preventDefault();
+const downloadOptionsModal = document.getElementById("downloadOptionsModal");
+const downloadFormat = document.getElementById("downloadFormat");
+const downloadResolution = document.getElementById("downloadResolution");
+const downloadKeepOriginal = document.getElementById("downloadKeepOriginal");
+const downloadOptionsStatus = document.getElementById("downloadOptionsStatus");
+const confirmWallpaperDownload = document.getElementById("confirmWallpaperDownload");
 
-        if (!currentWallpaper) return;
-
-        const url = getImageUrl(currentWallpaper.image);
-
-        // تحميل الملف الأصلي بدون تصغير أو إعادة ضغط
-        downloadWithWatermark(url, currentWallpaper.title);
-
-        // حفظ التحميل في الإحصائيات إذا كانت الدالة متوفرة.
-        if (typeof window.syncUserStats === "function") {
-            window.syncUserStats("downloads", currentWallpaper.id);
+function openDownloadOptions(){
+    if(!currentWallpaper || !downloadOptionsModal) return;
+    downloadOptionsStatus.textContent = "";
+    downloadOptionsStatus.classList.remove("error");
+    downloadKeepOriginal.checked = false;
+    downloadFormat.disabled = false;
+    downloadResolution.disabled = false;
+    downloadOptionsModal.classList.add("is-open");
+    downloadOptionsModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+function closeDownloadOptions(){
+    if(!downloadOptionsModal) return;
+    downloadOptionsModal.classList.remove("is-open");
+    downloadOptionsModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    if(confirmWallpaperDownload) confirmWallpaperDownload.disabled = false;
+}
+function updateDownloadOptionState(){
+    const original = downloadKeepOriginal.checked;
+    downloadFormat.disabled = original;
+    downloadResolution.disabled = original;
+    downloadOptionsStatus.textContent = original ? "سيتم تنزيل الملف كما هو من المصدر." : "سيتم الحفاظ على نسبة أبعاد الصورة وتغيير حجمها حسب اختيارك.";
+}
+function downloadBlob(blob, filename){
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+}
+function safeDownloadName(title, extension){
+    const clean = String(title || "wallpaper").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "-").trim().slice(0, 100) || "wallpaper";
+    return `${clean}.${extension}`;
+}
+function blobToDataUrl(blob){
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("تعذر تجهيز الصورة للصيغة المختارة."));
+        reader.readAsDataURL(blob);
+    });
+}
+async function createConvertedWallpaper(blob, mime, maxEdge){
+    const bitmap = await createImageBitmap(blob);
+    try{
+        let width = bitmap.width, height = bitmap.height;
+        if(maxEdge !== "original"){
+            const edge = Number(maxEdge);
+            const ratio = Math.min(1, edge / Math.max(width, height));
+            width = Math.max(1, Math.round(width * ratio));
+            height = Math.max(1, Math.round(height * ratio));
         }
-
-        // حفظ التحميل
-        saveUserAction("downloads", currentWallpaper.id);
-        await syncUserActionToSupabase("downloads", currentWallpaper.id);
-
-        try {
-            const { data: sessionData } = await supabase.auth.getSession();
-            const accessToken = sessionData?.session?.access_token || "";
-            await fetch(`${API}/${currentWallpaper.id}/download`, {
-                method: "POST",
-                headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d", { alpha: mime !== "image/jpeg" });
+        if(!ctx) throw new Error("المتصفح لا يدعم تحويل الصورة.");
+        if(mime === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0,0,width,height); }
+        ctx.drawImage(bitmap, 0, 0, width, height);
+        if(mime === "image/svg+xml"){
+            // Trace raster pixels into real SVG vector paths (not an embedded PNG).
+            if(!window.ImageTracer || typeof window.ImageTracer.imagedataToSVG !== "function"){
+                throw new Error("تعذر تحميل محوّل SVG. تأكد من اتصال الإنترنت ثم أعد المحاولة.");
+            }
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const svg = window.ImageTracer.imagedataToSVG(imageData, {
+                numberofcolors: 32,
+                colorquantcycles: 3,
+                ltres: 1,
+                qtres: 1,
+                pathomit: 4,
+                rightangleenhance: true,
+                scale: 1,
+                roundcoords: 1,
+                viewbox: true,
+                desc: false,
+                linefilter: true
             });
-        } catch (error) {
-            console.error("DOWNLOAD ERROR", error);
+            if(!svg || !svg.includes("<path")) throw new Error("ما قدرناش نحوّلو الصورة إلى مسارات Vector.");
+            return { blob:new Blob([svg],{type:"image/svg+xml;charset=utf-8"}), extension:"svg", width, height };
         }
-    };
+        const quality = mime === "image/png" ? undefined : 0.92;
+        const output = await new Promise((resolve,reject)=>canvas.toBlob(result=>{
+            if(!result) return reject(new Error("هاد الصيغة ما مدعومـاش فهاد المتصفح."));
+            if(mime !== "image/png" && result.type !== mime) return reject(new Error("المتصفح ما كيدعمش الصيغة المختارة؛ جرّب WEBP أو JPG."));
+            resolve(result);
+        },mime,quality));
+        const extension = ({"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif"})[mime];
+        return {blob:output,extension,width,height};
+    } finally { bitmap.close?.(); }
+}
+async function recordWallpaperDownload(){
+    if(!currentWallpaper) return;
+    if(typeof window.syncUserStats === "function") window.syncUserStats("downloads", currentWallpaper.id);
+    saveUserAction("downloads", currentWallpaper.id);
+    await syncUserActionToSupabase("downloads", currentWallpaper.id);
+    try{
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || "";
+        await fetch(`${API}/${currentWallpaper.id}/download`, {method:"POST",headers:accessToken?{Authorization:`Bearer ${accessToken}`}:{}});
+    }catch(error){ console.error("DOWNLOAD ERROR",error); }
+}
+if(downloadBtn){ downloadBtn.onclick = (e) => { e.preventDefault(); openDownloadOptions(); }; }
+if(downloadKeepOriginal) downloadKeepOriginal.addEventListener("change", updateDownloadOptionState);
+["closeDownloadOptions","cancelDownloadOptions"].forEach(id=>document.getElementById(id)?.addEventListener("click",closeDownloadOptions));
+downloadOptionsModal?.querySelectorAll("[data-close-download]").forEach(el=>el.addEventListener("click",closeDownloadOptions));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&downloadOptionsModal?.classList.contains("is-open"))closeDownloadOptions();});
+if(confirmWallpaperDownload){
+    confirmWallpaperDownload.addEventListener("click",async()=>{
+        if(!currentWallpaper) return;
+        const original = downloadKeepOriginal.checked;
+        const url = getImageUrl(currentWallpaper.image);
+        confirmWallpaperDownload.disabled = true;
+        downloadOptionsStatus.classList.remove("error");
+        downloadOptionsStatus.textContent = "جاري تجهيز الصورة...";
+        try{
+            if(original){
+                const response = await fetch(url,{mode:"cors"});
+                if(!response.ok) throw new Error("تعذر الوصول إلى ملف الصورة الأصلي.");
+                const blob = await response.blob();
+                const ext = (blob.type.split("/")[1]||url.split("?")[0].split(".").pop()||"img").replace("jpeg","jpg").replace(/[^a-z0-9]/gi,"").slice(0,8);
+                downloadBlob(blob,safeDownloadName(currentWallpaper.title,ext||"img"));
+            }else{
+                const response = await fetch(url,{mode:"cors"});
+                if(!response.ok) throw new Error("تعذر تحميل الصورة. قد يمنع مصدر الصورة التحويل.");
+                const sourceBlob = await response.blob();
+                if(!sourceBlob.type.startsWith("image/")) throw new Error("هذا الملف ليس صورة قابلة للتحويل.");
+                const mime = downloadFormat.value;
+                const result = await createConvertedWallpaper(sourceBlob,mime,downloadResolution.value);
+                downloadBlob(result.blob,safeDownloadName(currentWallpaper.title,result.extension));
+                downloadOptionsStatus.textContent = `جاهزة: ${result.width} × ${result.height}px`;
+            }
+            closeDownloadOptions();
+            await recordWallpaperDownload();
+        }catch(error){
+            console.error("WALLPAPER DOWNLOAD OPTIONS ERROR",error);
+            downloadOptionsStatus.textContent = error.message || "وقع مشكل أثناء تجهيز التنزيل. جرّب صيغة أخرى أو الملف الأصلي.";
+            downloadOptionsStatus.classList.add("error");
+            confirmWallpaperDownload.disabled = false;
+        }
+    });
 }
 
 // ===============================
