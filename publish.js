@@ -271,24 +271,77 @@ function setProfileGate(message,loggedIn=false){
     login.hidden=false;
   }
 }
+let publisherSessionCheck = null;
 async function loadPublisherSession(){
-  try{
-    const token=await getAccessToken();
-    if(!token){setProfileGate("ما كايناش جلسة دخول نشطة. سجّل الدخول بنفس حساب البروفايل.");return false;}
-    const response=await fetch("/api/publish/session",{headers:{Authorization:`Bearer ${token}`}});
-    const data=await response.json();
-    if(!response.ok||!data.success)throw new Error(data.message||"تعذر التحقق من الحساب");
-    publisherSession=data;
-    $("publishForm").hidden=false;
-    const oldGate=$("publishLoginGate");if(oldGate)oldGate.hidden=true;
-    $("roleTitle").textContent=data.permissions.canPublishDirectly?"النشر المباشر متاح لحسابك":"إرسال الخلفيات للمراجعة";
-    $("roleDescription").textContent=data.permissions.canPublishDirectly
-      ?"مرحباً بك، يمكنك نشر الخلفيات مباشرة بصلاحيات حسابك."
-      :"ستُرسل الخلفيات إلى قائمة المراجعة، ولن تظهر في الموقع حتى يوافق عليها المشرف.";
-    renderPublisherCard(data.user);
-    await loadPublisherPoints();
-    return true;
-  }catch(error){setProfileGate(error.message||"انتهت جلسة الدخول. سجّل الدخول مجدداً.");return false;}
+  // يمنع استدعاءات متزامنة من بدء الصفحة وحدث استعادة الجلسة.
+  if(publisherSessionCheck) return publisherSessionCheck;
+  publisherSessionCheck = (async()=>{
+    try{
+      // getSession ينتظر تهيئة عميل Supabase؛ لا نحكم بالخروج قبل استعادة الجلسة.
+      let token = await getAccessToken();
+      if(!token){
+        // محاولة إضافية قصيرة لتجاوز سباق استعادة جلسة OAuth عند فتح الصفحة.
+        await new Promise(resolve=>setTimeout(resolve,700));
+        token = await getAccessToken();
+      }
+      if(!token){
+        publisherSession=null;
+        setProfileGate("ما لقيناش جلسة دخول محفوظة فهاد الصفحة. افتح البروفايل بنفس النطاق وجرب تحديث الصفحة.");
+        return false;
+      }
+
+      let response, data;
+      for(let attempt=0;attempt<2;attempt++){
+        response=await fetch("/api/publish/session",{
+          headers:{Authorization:`Bearer ${token}`,Accept:"application/json"},
+          cache:"no-store"
+        });
+        data=await response.json().catch(()=>({success:false,message:"ردّ السيرفر ماشي JSON صالح"}));
+        if(response.ok && data.success) break;
+        // لا نكرر طلباً غير مصرح به؛ إعادة المحاولة فقط لأخطاء السيرفر المؤقتة.
+        if(response.status<500 || attempt===1) break;
+        await new Promise(resolve=>setTimeout(resolve,500));
+      }
+
+      if(!response?.ok || !data?.success){
+        const status=response?.status||0;
+        if(status===401){
+          publisherSession=null;
+          setProfileGate("السيرفر ما قبلش جلسة Supabase. حدّث الصفحة، وإذا استمر الخطأ سجّل الخروج والدخول بنفس الحساب.");
+        }else{
+          // خطأ السيرفر لا يعني أن المستخدم خرج من حسابه؛ لا نعرضه كخطأ تسجيل دخول.
+          const notice=$("roleNotice"); notice.hidden=false;
+          $("roleTitle").textContent="تعذر التحقق من صلاحيات النشر";
+          $("roleDescription").textContent=`الجلسة موجودة، لكن السيرفر رجّع خطأ (${status||"اتصال"}). جرّب بعد قليل؛ إذا تكرر الخطأ يجب فحص سجلات السيرفر لمسار /api/publish/session.`;
+          $("publishForm").hidden=true;
+          const login=$("publishLoginGate"); if(login) login.hidden=true;
+        }
+        console.error("PUBLISH SESSION CHECK FAILED",{status:response?.status,message:data?.message});
+        return false;
+      }
+
+      publisherSession=data;
+      $("publishForm").hidden=false;
+      const oldGate=$("publishLoginGate");if(oldGate)oldGate.hidden=true;
+      $("roleTitle").textContent=data.permissions.canPublishDirectly?"النشر المباشر متاح لحسابك":"إرسال الخلفيات للمراجعة";
+      $("roleDescription").textContent=data.permissions.canPublishDirectly
+        ?"مرحباً بك، يمكنك نشر الخلفيات مباشرة بصلاحيات حسابك."
+        :"ستُرسل الخلفيات إلى قائمة المراجعة، ولن تظهر في الموقع حتى يوافق عليها المشرف.";
+      renderPublisherCard(data.user);
+      // تعذّر تحميل النقاط لا يجب أن يُحوّل المستخدم إلى شاشة تسجيل الدخول.
+      await loadPublisherPoints();
+      return true;
+    }catch(error){
+      console.error("PUBLISH SESSION NETWORK ERROR:",error);
+      const notice=$("roleNotice"); notice.hidden=false;
+      $("roleTitle").textContent="تعذر الاتصال بخدمة التحقق";
+      $("roleDescription").textContent="ما قدرناش نوصلو للسيرفر للتحقق من صلاحيات النشر. تحقق من الاتصال وحاول تحديث الصفحة؛ ماشي بالضرورة أن الجلسة سالات.";
+      $("publishForm").hidden=true;
+      const login=$("publishLoginGate"); if(login) login.hidden=true;
+      return false;
+    }finally{publisherSessionCheck=null;}
+  })();
+  return publisherSessionCheck;
 }
 function renderPublisherCard(user){
   let card=$("publisherProfileCard");
@@ -410,8 +463,9 @@ form.addEventListener("submit",async e=>{
 $("submitBtn").textContent="التحقق من الحساب...";
 loadPublisherSession();
 supabase.auth.onAuthStateChange((event, session)=>{
-  if(event==="SIGNED_IN" || event==="TOKEN_REFRESHED"){
-    setTimeout(()=>loadPublisherSession(),0);
+  if(event==="INITIAL_SESSION" || event==="SIGNED_IN" || event==="TOKEN_REFRESHED" || event==="USER_UPDATED"){
+    // نترك حدث INITIAL_SESSION يكمل استعادة الحالة قبل طلب التحقق من السيرفر.
+    queueMicrotask(()=>loadPublisherSession());
   }else if(event==="SIGNED_OUT"){
     publisherSession=null;
     setProfileGate("تم تسجيل الخروج. سجّل الدخول مجدداً للمتابعة.");
