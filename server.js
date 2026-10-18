@@ -1575,6 +1575,56 @@ app.get("/api/supabase/config", (req, res) => {
 
 
 // ======================================
+// Social post media upload authorization
+// Server signs Cloudinary uploads; media remains on durable Cloudinary storage.
+// Stories intentionally continue using Supabase Storage from the browser.
+// ======================================
+app.post("/api/social/media-signature", async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user) {
+            return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
+        }
+
+        if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+            return res.status(503).json({
+                success:false,
+                message:"إعدادات Cloudinary ناقصة في متغيرات البيئة على Vercel"
+            });
+        }
+
+        const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
+        const isImage = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"].includes(mimeType);
+        const isVideo = ["video/mp4", "video/webm", "video/quicktime"].includes(mimeType);
+        if (!isImage && !isVideo) {
+            return res.status(400).json({ success:false, message:"صيغة الصورة أو الفيديو غير مدعومة" });
+        }
+
+        const timestamp = Math.floor(Date.now() / 1000);
+        const resourceType = isVideo ? "video" : "image";
+        const folder = `wallpaperhub/social/posts/${String(user.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
+        const publicId = `post-${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
+        const signaturePayload = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+        const signature = sha1(signaturePayload);
+
+        return res.json({
+            success:true,
+            cloudName:CLOUDINARY_CLOUD_NAME,
+            apiKey:CLOUDINARY_API_KEY,
+            timestamp,
+            folder,
+            publicId,
+            signature,
+            resourceType
+        });
+    } catch (error) {
+        console.error("SOCIAL MEDIA SIGNATURE ERROR:", error?.message || error);
+        return res.status(500).json({ success:false, message:"تعذر تجهيز رفع الوسائط" });
+    }
+});
+
+
+// ======================================
 // COMMUNITY DOWNLOAD DELIVERY
 // Forces real downloads instead of opening Supabase Storage URLs.
 // The existing Community UI is preserved.
