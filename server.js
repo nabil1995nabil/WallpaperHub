@@ -4314,21 +4314,30 @@ app.post("/api/admin/review/:id", async (req, res) => {
     }
 
     if (action === "approve") {
-      // تحقق إضافي يمنع نشر الصورة نفسها إذا كانت موجودة مسبقًا.
-      const { data: duplicate, error: duplicateError } = await supabase
+      // نبحث أولاً عن نشر سابق لنفس الطلب حتى يمكن إكمال احتساب النقاط بأمان
+      // إذا انقطع الاتصال بعد إدخال الخلفية وقبل إتمام استجابة المراجعة.
+      const { data: existingPublished, error: existingError } = await supabase
         .from("wallpapers")
         .select("id")
-        .eq("image", submission.image_url)
-        .limit(1);
+        .eq("source_submission_id", submission.id)
+        .maybeSingle();
+      if (existingError) throw existingError;
 
-      if (duplicateError) throw duplicateError;
-
-      if (duplicate && duplicate.length) {
-        return res.status(409).json({
-          success: false,
-          duplicate: true,
-          message: "هذه الصورة موجودة مسبقًا في مكتبة الخلفيات"
-        });
+      // لا نسمح بصورة مكررة في مكتبة الخلفيات إلا إذا كانت هي نشر هذا الطلب نفسه.
+      if (!existingPublished) {
+        const { data: duplicate, error: duplicateError } = await supabase
+          .from("wallpapers")
+          .select("id")
+          .eq("image", submission.image_url)
+          .limit(1);
+        if (duplicateError) throw duplicateError;
+        if (duplicate && duplicate.length) {
+          return res.status(409).json({
+            success: false,
+            duplicate: true,
+            message: "هذه الصورة موجودة مسبقًا في مكتبة الخلفيات"
+          });
+        }
       }
 
       const wallpaperPayload = {
@@ -4353,14 +4362,6 @@ app.post("/api/admin/review/:id", async (req, res) => {
       };
 
       // المرجع الفريد في قاعدة البيانات يمنع تكرار النشر.
-      const { data: existingPublished, error: existingError } = await supabase
-        .from("wallpapers")
-        .select("id")
-        .eq("source_submission_id", submission.id)
-        .maybeSingle();
-
-      if (existingError) throw existingError;
-
       if (!existingPublished) {
         const { error: insertError } = await supabase
           .from("wallpapers")
@@ -4377,6 +4378,19 @@ app.post("/api/admin/review/:id", async (req, res) => {
           if (checkError || !concurrentPublished) throw insertError;
         }
       }
+
+      // منح النقاط بعد وجود الخلفية المنشورة فعلياً. RPC وقيد UNIQUE يمنعان التكرار
+      // حتى لو تكرر طلب الموافقة أو حصلت إعادة محاولة بعد انقطاع الاتصال.
+      const { data: publishedForPoints, error: pointsWallpaperError } = await supabase
+        .from("wallpapers")
+        .select("id,user_id")
+        .eq("source_submission_id", submission.id)
+        .maybeSingle();
+      if(pointsWallpaperError) throw pointsWallpaperError;
+      if(!publishedForPoints || String(publishedForPoints.user_id || "") !== String(submission.user_id)){
+        throw new Error("تعذر التحقق من صاحب الخلفية المنشورة قبل احتساب النقاط");
+      }
+      await awardWallpaperPoints(submission.user_id, publishedForPoints.id);
     }
 
     // لا نحدّث الحالة إلا بعد نجاح النشر، في حالة الموافقة.
@@ -4729,6 +4743,51 @@ app.post(
 );
 
 // ======================================
+// Secure wallpaper points ledger
+// Points are awarded only by the server after a wallpaper is actually published.
+// One published wallpaper can earn points only once (enforced by the database).
+// 1 point = 10 tenths; each wallpaper earns exactly 1 tenth (0.1 point).
+// ======================================
+async function awardWallpaperPoints(userId, wallpaperId){
+    const uid = String(userId || "").trim();
+    const wid = Number(wallpaperId);
+    if(!uid || !Number.isSafeInteger(wid) || wid <= 0){
+        throw new Error("بيانات احتساب النقاط غير صالحة");
+    }
+    const { data, error } = await supabase.rpc("award_wallpaper_points", {
+        p_user_id: uid,
+        p_wallpaper_id: wid
+    });
+    if(error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row || row.success !== true){
+        throw new Error("تعذر تأكيد إضافة نقاط الخلفية");
+    }
+    const totalTenths = Number(row.total_points_tenths || 0);
+    return {
+        awarded: Boolean(row.awarded),
+        points_tenths: totalTenths,
+        points: Number((totalTenths / 10).toFixed(1)),
+        wallpapers_count: Number(row.wallpapers_count || 0)
+    };
+}
+
+async function getWallpaperPoints(userId){
+    const uid = String(userId || "").trim();
+    const { data, error } = await supabase.rpc("get_wallpaper_points", { p_user_id: uid });
+    if(error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row || row.success !== true) throw new Error("تعذر قراءة سجل النقاط");
+    const tenths = Number(row.points_tenths || 0);
+    return {
+        points_tenths: tenths,
+        points: Number((tenths / 10).toFixed(1)),
+        wallpapers_count: Number(row.wallpapers_count || 0),
+        updated_at: row.updated_at || null
+    };
+}
+
+// ======================================
 // Publisher session + moderated submissions
 // Owner/admin publish directly; regular members submit for review.
 // Requires the SQL table described in publish-setup.sql.
@@ -4786,6 +4845,16 @@ app.get("/api/publish/session", async (req,res)=>{
             metadata.avatar ||
             ""
         ).trim();
+        // النقاط تُقرأ من قاعدة البيانات فقط؛ لا نقبل أي رصيد مرسل من المتصفح.
+        let points = 0;
+        const {data:pointsRow,error:pointsError} = await supabase
+            .from("user_points")
+            .select("total_points")
+            .eq("user_id",String(user.id))
+            .maybeSingle();
+        if(pointsError) throw pointsError;
+        points = Number(pointsRow?.total_points || 0);
+
         return res.json({
             success:true,
             user:{
@@ -4795,11 +4864,51 @@ app.get("/api/publish/session", async (req,res)=>{
                 full_name:fullName,
                 avatar_url:avatarUrl
             },
+            points:{total:Number(points.toFixed(1)),perWallpaper:0.1},
             permissions:{owner,admin,canPublishDirectly:owner||admin,mode:(owner||admin)?"direct":"review"}
         });
     }catch(error){
         console.error("PUBLISH SESSION ERROR:",error);
         return res.status(500).json({success:false,message:"تعذر التحقق من الحساب"});
+    }
+});
+
+// رصيد النقاط وسجلها: هوية المستخدم تأتي من جلسة Supabase الموثقة فقط.
+app.get("/api/points/me", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول لعرض نقاطك"});
+
+        const [{data:balance,error:balanceError},{data:ledger,error:ledgerError}] = await Promise.all([
+            supabase.from("user_points").select("total_points,updated_at").eq("user_id",String(user.id)).maybeSingle(),
+            supabase.from("wallpaper_points_ledger").select("wallpaper_id,points,reason,created_at").eq("user_id",String(user.id)).order("created_at",{ascending:false}).limit(100)
+        ]);
+        if(balanceError) throw balanceError;
+        if(ledgerError) throw ledgerError;
+
+        return res.set("Cache-Control","no-store").json({
+            success:true,
+            userId:String(user.id),
+            total:Number(Number(balance?.total_points || 0).toFixed(1)),
+            perWallpaper:0.1,
+            entries:ledger || []
+        });
+    }catch(error){
+        console.error("GET USER POINTS ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تحميل رصيد النقاط"});
+    }
+});
+
+app.get("/api/publish/points", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+        const points = await getWallpaperPoints(user.id);
+        res.set("Cache-Control", "no-store");
+        return res.json({success:true,points});
+    }catch(error){
+        console.error("PUBLISH POINTS LOAD ERROR:", error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تحميل رصيد النقاط"});
     }
 });
 
@@ -4954,6 +5063,8 @@ app.post(
             if(error) throw error;
 
             const publishedWallpaper = wallpaperFromDb(data);
+            // نقاط النشر تُحسب من السيرفر فقط بعد نجاح إدخال الخلفية.
+            const pointsAward = await awardWallpaperPoints(publisher.id, data.id);
 
             await notifyUsersAboutNewWallpaper({
                 wallpaperId: publishedWallpaper.id,
@@ -4961,7 +5072,7 @@ app.post(
                 publisherUID: String(publisher.id).trim()
             });
 
-            res.json({ success:true, wallpaper: publishedWallpaper });
+            res.json({ success:true, wallpaper: publishedWallpaper, points: pointsAward });
         }catch(error){
             console.log("ADD WALLPAPER ERROR:", error);
             res.status(500).json({ success:false, message:error.message });

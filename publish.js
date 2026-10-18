@@ -286,6 +286,7 @@ async function loadPublisherSession(){
       ?"مرحباً بك، يمكنك نشر الخلفيات مباشرة بصلاحيات حسابك."
       :"ستُرسل الخلفيات إلى قائمة المراجعة، ولن تظهر في الموقع حتى يوافق عليها المشرف.";
     renderPublisherCard(data.user);
+    await loadPublisherPoints();
     return true;
   }catch(error){setProfileGate(error.message||"انتهت جلسة الدخول. سجّل الدخول مجدداً.");return false;}
 }
@@ -293,7 +294,7 @@ function renderPublisherCard(user){
   let card=$("publisherProfileCard");
   if(!card){
     card=document.createElement("section");card.id="publisherProfileCard";card.className="panel publisher-profile-card";
-    card.innerHTML='<div class="publisher-avatar-wrap"><img id="publisherAvatar" alt="صورة الحساب"><span class="publisher-online-dot"></span></div><div class="publisher-profile-data"><strong id="publisherName"></strong><span id="publisherUsername"></span><span id="publisherEmail"></span><a href="/profile.html" class="publisher-profile-link">تعديل بيانات البروفايل</a></div><span class="publisher-role" id="publisherRole"></span>';
+    card.innerHTML='<div class="publisher-avatar-wrap"><img id="publisherAvatar" alt="صورة الحساب"><span class="publisher-online-dot"></span></div><div class="publisher-profile-data"><strong id="publisherName"></strong><span id="publisherUsername"></span><span id="publisherEmail"></span><a href="/profile.html" class="publisher-profile-link">تعديل بيانات البروفايل</a></div><span class="publisher-role" id="publisherRole"></span><div class="publisher-points" id="publisherPointsCard"><div><small>رصيد النقاط</small><strong id="publisherPointsValue">—</strong></div><span><b id="publisherPublishedCount">—</b> خلفية احتُسبت</span><small class="publisher-points-note">كل خلفية منشورة ومقبولة = 0.1 نقطة</small></div>';
     const slot = $("publisherAccountSlot");
     if (slot) slot.appendChild(card);
     else $("roleNotice").after(card);
@@ -309,6 +310,23 @@ function renderPublisherCard(user){
   $("publisherEmail").textContent=user.email||"";
   $("publisherRole").textContent=publisherSession.permissions.canPublishDirectly?"نشر مباشر":"إرسال للمراجعة";
 }
+async function loadPublisherPoints(){
+  const value=$("publisherPointsValue"), count=$("publisherPublishedCount");
+  if(!value||!count)return;
+  try{
+    const token=await getAccessToken();
+    if(!token)throw new Error("missing_session");
+    const response=await fetch("/api/publish/points",{headers:{Authorization:`Bearer ${token}`},cache:"no-store"});
+    const result=await response.json();
+    if(!response.ok||!result.success)throw new Error(result.message||"تعذر تحميل النقاط");
+    value.textContent=Number(result.points?.points||0).toFixed(1);
+    count.textContent=String(Number(result.points?.wallpapers_count||0));
+  }catch(error){
+    value.textContent="—";count.textContent="—";
+    console.warn("PUBLISH POINTS UI:",error.message||error);
+  }
+}
+
 async function uploadImageToCloudinary(file,job){
   const formData=new FormData();
   formData.append("file",file);formData.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
@@ -381,7 +399,8 @@ form.addEventListener("submit",async e=>{
       if(!response.ok||!result.success)throw new Error(result.message||`تعذر إرسال ${file.name}`);
       job.status="done";job.progress=100;job.uploaded=file.size;renderUploadJobs();
     }
-    notify(publisherSession.permissions.canPublishDirectly?"تم رفع ونشر الخلفيات بنجاح.":"تم رفع الخلفيات وإرسالها للمراجعة بنجاح.");
+    notify(publisherSession.permissions.canPublishDirectly?"تم نشر الخلفيات واحتساب النقاط.":"تم إرسال الخلفيات للمراجعة. ستُحتسب 0.1 نقطة عن كل خلفية بعد قبولها ونشرها.");
+    await loadPublisherPoints();
   }catch(error){
     notify(error.message||"وقع خطأ أثناء الرفع أو الإرسال.");
   }finally{
