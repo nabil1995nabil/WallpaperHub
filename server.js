@@ -1587,14 +1587,15 @@ app.post("/api/social/media-signature", async (req, res) => {
         }
 
         if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-            const missing = [];
-            if (!CLOUDINARY_CLOUD_NAME) missing.push("CLOUDINARY_CLOUD_NAME");
-            if (!CLOUDINARY_API_KEY) missing.push("CLOUDINARY_API_KEY");
-            if (!CLOUDINARY_API_SECRET) missing.push("CLOUDINARY_API_SECRET");
-            console.error("SOCIAL MEDIA SIGNATURE: Cloudinary config unavailable", { missing });
+            console.error("SOCIAL MEDIA SIGNATURE CONFIG:", JSON.stringify({
+                cloudName:!!CLOUDINARY_CLOUD_NAME,
+                apiKey:!!CLOUDINARY_API_KEY,
+                apiSecret:!!CLOUDINARY_API_SECRET,
+                cloudinaryUrl:!!String(process.env.CLOUDINARY_URL || "").trim()
+            }));
             return res.status(503).json({
                 success:false,
-                message:"الخادم لم يتمكن من قراءة إعدادات Cloudinary. تحقق من سجل Deployment؛ الحقول غير المقروءة: " + missing.join(", ")
+                message:"تعذر قراءة إعدادات Cloudinary من الخادم. راجع سجل Deployment لمعرفة أي قيمة لم تُقرأ؛ لا حاجة لإرسال المفاتيح السرية."
             });
         }
 
@@ -5747,40 +5748,32 @@ reply:
 // لا يمر هذا المسار عبر لوحة النشر اليدوي.
 // ======================================
 
-// Read Cloudinary settings from the standard three variables or CLOUDINARY_URL.
-// Keep parsing defensive: Vercel values may accidentally include surrounding quotes.
-function cleanEnvValue(value){
-    return String(value || "").trim().replace(/^(["'])|(["'])$/g, "");
-}
-const CLOUDINARY_URL = cleanEnvValue(process.env.CLOUDINARY_URL);
-let CLOUDINARY_URL_PARTS = { cloudName:"", apiKey:"", apiSecret:"" };
-if (CLOUDINARY_URL) {
-    try {
-        const parsed = new URL(CLOUDINARY_URL);
-        if (parsed.protocol.toLowerCase() === "cloudinary:") {
-            CLOUDINARY_URL_PARTS = {
-                cloudName: decodeURIComponent(parsed.hostname || ""),
-                apiKey: decodeURIComponent(parsed.username || ""),
-                apiSecret: decodeURIComponent(parsed.password || "")
-            };
-        }
-    } catch (error) {
-        // Fallback parser for a standard cloudinary://key:secret@cloud-name URL.
-        const match = CLOUDINARY_URL.match(/^cloudinary:\/\/([^:]+):(.+)@([^/]+)\/?$/i);
-        if (match) {
-            CLOUDINARY_URL_PARTS = {
-                apiKey: decodeURIComponent(match[1]),
-                apiSecret: decodeURIComponent(match[2]),
-                cloudName: decodeURIComponent(match[3])
-            };
-        } else {
-            console.warn("CLOUDINARY_URL is present but could not be parsed");
+// Cloudinary configuration shared by wallpaper publishing, AI publishing,
+// and social-post media uploads. Supports either the three separate Vercel
+// variables or the standard CLOUDINARY_URL (cloudinary://key:secret@cloud).
+function readCloudinaryConfig(){
+    let cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+    let apiKey = String(process.env.CLOUDINARY_API_KEY || "").trim();
+    let apiSecret = String(process.env.CLOUDINARY_API_SECRET || "").trim();
+    const rawUrl = String(process.env.CLOUDINARY_URL || "").trim();
+
+    if(rawUrl && (!cloudName || !apiKey || !apiSecret)){
+        try{
+            const parsed = new URL(rawUrl);
+            if(parsed.protocol === "cloudinary:"){
+                apiKey = apiKey || decodeURIComponent(parsed.username || "");
+                apiSecret = apiSecret || decodeURIComponent(parsed.password || "");
+                cloudName = cloudName || decodeURIComponent(parsed.hostname || "");
+            }
+        }catch(error){
+            // Keep direct variables if the optional URL is malformed.
         }
     }
+
+    return { cloudName, apiKey, apiSecret };
 }
-const CLOUDINARY_CLOUD_NAME = cleanEnvValue(process.env.CLOUDINARY_CLOUD_NAME) || CLOUDINARY_URL_PARTS.cloudName;
-const CLOUDINARY_API_KEY = cleanEnvValue(process.env.CLOUDINARY_API_KEY) || CLOUDINARY_URL_PARTS.apiKey;
-const CLOUDINARY_API_SECRET = cleanEnvValue(process.env.CLOUDINARY_API_SECRET) || CLOUDINARY_URL_PARTS.apiSecret;
+
+const { cloudName: CLOUDINARY_CLOUD_NAME, apiKey: CLOUDINARY_API_KEY, apiSecret: CLOUDINARY_API_SECRET } = readCloudinaryConfig();
 const AI_PUBLISH_SECRET = String(process.env.AI_PUBLISH_SECRET || "").trim();
 
 function sha1(value){
