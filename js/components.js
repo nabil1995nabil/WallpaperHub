@@ -6,7 +6,7 @@ const bottomNav = document.getElementById("bottomNav");
 
 if(bottomNav){
 
-fetch("/components/bottom-nav.html")
+fetch("bottom-nav.html")
 
 .then(response=>response.text())
 
