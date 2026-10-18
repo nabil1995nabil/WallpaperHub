@@ -134,7 +134,7 @@ textarea{min-height:86px;resize:vertical;line-height:1.8}
 .empty-preview span{font-size:26px;line-height:1.2}
 .empty-preview p{margin:5px 0 0;font-size:10px}
 .preview-card{position:relative;min-width:0;aspect-ratio:3/5;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#f1f4f9}
-.preview-card img,.preview-card video{display:block;width:100%;height:100%;object-fit:cover}
+.preview-card img{display:block;width:100%;height:100%;object-fit:cover}
 .preview-card .file-label{
   position:absolute;right:4px;bottom:4px;left:4px;overflow:hidden;padding:4px 5px;
   border-radius:7px;background:rgba(17,24,39,.78);color:#fff;font-size:8px;line-height:1.5;
@@ -149,7 +149,7 @@ textarea{min-height:86px;resize:vertical;line-height:1.8}
 .tool-btn{flex:1;min-height:37px;padding:7px 9px;font-size:10px}
 .tool-btn[aria-pressed=true]{border-color:#b6c7ff;background:#edf2ff;color:var(--blue)}
 .phone-mode .preview-card{padding:4px;border:4px solid #252d3c;border-radius:19px;background:#252d3c;aspect-ratio:9/18}
-.phone-mode .preview-card img,.phone-mode .preview-card video{border-radius:11px}
+.phone-mode .preview-card img{border-radius:11px}
 .crop-mode .preview-card img{object-fit:cover;transform:scale(1.12)}
 
 /* Panorama and helper cards */

@@ -130,6 +130,8 @@ dropzone.addEventListener("drop",e=>addFiles(e.dataTransfer.files));
 $("clearFilesBtn").addEventListener("click",()=>{
   selectedFiles=[];duplicateFingerprints.clear();uploadJobs.clear();renderFiles();renderUploadJobs();
 });
+$("wallType").value="auto";
+$("wallType").addEventListener("change",()=>{if($("wallType").value!=="gif")$("wallType").value="image";});
 $("titleCount").textContent="0 / 120";
 $("wallTitle").addEventListener("input",e=>$("titleCount").textContent=`${e.target.value.length} / 120`);
 $("phonePreviewBtn").addEventListener("click",e=>{const on=previewGrid.classList.toggle("phone-mode");e.currentTarget.setAttribute("aria-pressed",String(on));});
@@ -163,7 +165,8 @@ $("aiBtn").addEventListener("click",()=>{
   $("titleCount").textContent=`${$("wallTitle").value.length} / 120`;notify("اقتراحات أولية جاهزة للمراجعة.");
 });
 function draftPayload(){
-  return {title:$("wallTitle").value.trim(),category:$("wallCategory").value,type:$("wallType").value,tags:$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean),colors:$("wallColors").value.trim(),device:$("wallDevice").value,resolution:$("wallResolution").value,size:$("wallSize").value,is360:$("is360").checked,scheduledAt:$("scheduleAt").value,fileNames:selectedFiles.map(f=>({name:f.name,size:f.size,type:f.type,lastModified:f.lastModified}))};
+  const selectedType = $("wallType").value === "gif" ? "gif" : "image";
+  return {title:$("wallTitle").value.trim(),category:$("wallCategory").value,type:selectedType,tags:$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean),colors:$("wallColors").value.trim(),device:$("wallDevice").value,resolution:$("wallResolution").value,size:$("wallSize").value,is360:$("is360").checked,scheduledAt:$("scheduleAt").value,fileNames:selectedFiles.map(f=>({name:f.name,size:f.size,type:f.type,lastModified:f.lastModified}))};
 }
 $("saveDraftBtn").addEventListener("click",()=>{
   const data=draftPayload();if(!data.title&&!selectedFiles.length){notify("أدخل عنواناً أو اختر صورة قبل حفظ المسودة.");return;}
