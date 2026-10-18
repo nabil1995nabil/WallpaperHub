@@ -1589,7 +1589,7 @@ app.post("/api/social/media-signature", async (req, res) => {
         if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
             return res.status(503).json({
                 success:false,
-                message:"إعدادات Cloudinary ناقصة في متغيرات البيئة على Vercel"
+                message:"تعذر قراءة إعدادات Cloudinary على الخادم. تحقق من CLOUDINARY_CLOUD_NAME وCLOUDINARY_API_KEY وCLOUDINARY_API_SECRET أو CLOUDINARY_URL، ثم أعد Deploy."
             });
         }
 
@@ -5742,9 +5742,27 @@ reply:
 // لا يمر هذا المسار عبر لوحة النشر اليدوي.
 // ======================================
 
-const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
-const CLOUDINARY_API_KEY = String(process.env.CLOUDINARY_API_KEY || "").trim();
-const CLOUDINARY_API_SECRET = String(process.env.CLOUDINARY_API_SECRET || "").trim();
+// Cloudinary config supports either the three standard environment variables
+// or CLOUDINARY_URL (Cloudinary's common single-variable format).
+const CLOUDINARY_URL = String(process.env.CLOUDINARY_URL || "").trim();
+let CLOUDINARY_URL_PARTS = { cloudName:"", apiKey:"", apiSecret:"" };
+if (CLOUDINARY_URL) {
+    try {
+        const parsed = new URL(CLOUDINARY_URL);
+        if (parsed.protocol === "cloudinary:") {
+            CLOUDINARY_URL_PARTS = {
+                cloudName: decodeURIComponent(parsed.hostname || ""),
+                apiKey: decodeURIComponent(parsed.username || ""),
+                apiSecret: decodeURIComponent(parsed.password || "")
+            };
+        }
+    } catch (error) {
+        console.warn("CLOUDINARY_URL is present but could not be parsed");
+    }
+}
+const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_URL_PARTS.cloudName || "").trim();
+const CLOUDINARY_API_KEY = String(process.env.CLOUDINARY_API_KEY || CLOUDINARY_URL_PARTS.apiKey || "").trim();
+const CLOUDINARY_API_SECRET = String(process.env.CLOUDINARY_API_SECRET || CLOUDINARY_URL_PARTS.apiSecret || "").trim();
 const AI_PUBLISH_SECRET = String(process.env.AI_PUBLISH_SECRET || "").trim();
 
 function sha1(value){
