@@ -20,7 +20,7 @@ let uploadJobs = new Map();
 let uploadTicker = null;
 const MAX_FILES = 50;
 const MAX_FILE_SIZE = 150 * 1024 * 1024;
-const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif","image/gif"]);
+const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 
 function notify(message) {
   toast.textContent = message;
@@ -35,14 +35,12 @@ function bytes(n) {
   return `${size.toFixed(i?2:0)} ${units[i]}`;
 }
 function fileType(file) {
-  if(file.type==="image/gif"||/\.gif$/i.test(file.name))return "gif";
-  if(file.type.startsWith("image/"))return "image";
-  return "unknown";
+  return ALLOWED.has(file.type) ? "image" : "unknown";
 }
 function fingerprint(file){return `${file.name.toLowerCase()}|${file.size}|${file.lastModified}|${file.type}`;}
 function validate(file){
   const errors=[];
-  if(!ALLOWED.has(file.type)&&!/\.gif$/i.test(file.name))errors.push("صيغة صورة غير مدعومة");
+  if(!ALLOWED.has(file.type))errors.push("صيغة غير مدعومة؛ GIF غير مسموح");
   if(file.size>MAX_FILE_SIZE)errors.push("أكبر من 150 MB");
   if(!file.size)errors.push("ملف فارغ");
   return errors;
@@ -63,9 +61,9 @@ async function metadata(file){
 }
 async function addFiles(fileList){
   const incoming=Array.from(fileList||[]);
-  const imageFiles=incoming.filter(f=>f.type.startsWith("image/")||/\.gif$/i.test(f.name));
+  const imageFiles=incoming.filter(f=>ALLOWED.has(f.type));
   const rejected=incoming.length-imageFiles.length;
-  if(rejected)notify(`تم تجاهل ${rejected} ملف غير صوري.`);
+  if(rejected)notify(`تم تجاهل ${rejected} ملف. الصيغ المسموحة: JPG وPNG وWEBP وAVIF فقط؛ GIF غير مسموح.`);
   if(selectedFiles.length+imageFiles.length>MAX_FILES){
     notify(`الحد الأقصى هو ${MAX_FILES} صورة في الدفعة الواحدة.`);return;
   }
@@ -131,7 +129,7 @@ $("clearFilesBtn").addEventListener("click",()=>{
   selectedFiles=[];duplicateFingerprints.clear();uploadJobs.clear();renderFiles();renderUploadJobs();
 });
 $("wallType").value="auto";
-$("wallType").addEventListener("change",()=>{if($("wallType").value!=="gif")$("wallType").value="image";});
+$("wallType").addEventListener("change",()=>{$("wallType").value="image";});
 $("titleCount").textContent="0 / 120";
 $("wallTitle").addEventListener("input",e=>$("titleCount").textContent=`${e.target.value.length} / 120`);
 $("phonePreviewBtn").addEventListener("click",e=>{const on=previewGrid.classList.toggle("phone-mode");e.currentTarget.setAttribute("aria-pressed",String(on));});
@@ -165,7 +163,7 @@ $("aiBtn").addEventListener("click",()=>{
   $("titleCount").textContent=`${$("wallTitle").value.length} / 120`;notify("اقتراحات أولية جاهزة للمراجعة.");
 });
 function draftPayload(){
-  const selectedType = $("wallType").value === "gif" ? "gif" : "image";
+  const selectedType = "image";
   return {title:$("wallTitle").value.trim(),category:$("wallCategory").value,type:selectedType,tags:$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean),colors:$("wallColors").value.trim(),device:$("wallDevice").value,resolution:$("wallResolution").value,size:$("wallSize").value,is360:$("is360").checked,scheduledAt:$("scheduleAt").value,fileNames:selectedFiles.map(f=>({name:f.name,size:f.size,type:f.type,lastModified:f.lastModified}))};
 }
 $("saveDraftBtn").addEventListener("click",()=>{
