@@ -621,6 +621,7 @@ function videoBind(){
     c.hidden=true;$("#inlineControls")?.classList.remove("has-image");
   };
   $("#videoAddClip").onclick=()=>videoInput.click();
+  $("#videoAddClipBottom")?.addEventListener("click",()=>videoInput.click());
   $("#videoMoveLeft").onclick=()=>videoMoveClip(-1);
   $("#videoMoveRight").onclick=()=>videoMoveClip(1);
   videoInput.onchange=e=>{videoAddFiles(e.target.files);e.target.value=""};
@@ -667,6 +668,12 @@ function videoBind(){
   videoEl.addEventListener("pause",()=>{if(!videoState.playing)$("#videoPlay").textContent="▶"});
 }
 videoBind();
+// Switch the compact bottom tool drawer without scrolling the page.
+$$(".video-tool-tab").forEach(tab=>tab.addEventListener("click",()=>{
+  const key=tab.dataset.videoTab;
+  $$(".video-tool-tab").forEach(t=>t.classList.toggle("active",t===tab));
+  $$(".video-tool-panel").forEach(panel=>panel.classList.toggle("active",panel.dataset.videoPanel===key));
+}));
 
 /* Override the original picker so images keep the old editor and videos enter Video Studio. */
 const originalFileOnChange = file.onchange;

@@ -164,44 +164,53 @@
           </div>
         </div>
 
-        <div class="video-controls-grid">
-          <div class="video-control-card">
-            <span>السرعة</span>
-            <div class="video-chips" id="speedChips">
-              <button data-speed="0.5">0.5×</button>
-              <button data-speed="0.75">0.75×</button>
-              <button class="active" data-speed="1">1×</button>
-              <button data-speed="1.25">1.25×</button>
-              <button data-speed="1.5">1.5×</button>
-              <button data-speed="2">2×</button>
+        <nav class="video-tool-tabs" aria-label="أدوات الفيديو">
+          <button type="button" class="video-tool-tab active" data-video-tab="clips">المقاطع</button>
+          <button type="button" class="video-tool-tab" data-video-tab="trim">القص</button>
+          <button type="button" class="video-tool-tab" data-video-tab="speed">السرعة</button>
+          <button type="button" class="video-tool-tab" data-video-tab="audio">الصوت</button>
+          <button type="button" class="video-tool-tab" data-video-tab="export">التصدير</button>
+        </nav>
+        <div class="video-tool-panels">
+          <section class="video-tool-panel active" data-video-panel="clips">
+            <div class="video-quick-tools video-clip-actions">
+              <button id="videoSplit" type="button">✂ تقسيم عند المؤشر</button>
+              <button id="videoDuplicate" type="button">⧉ تكرار المقطع</button>
+              <button id="videoDelete" type="button">⌫ حذف المقطع</button>
+              <button id="videoAddClipBottom" type="button">＋ إضافة فيديوهات</button>
             </div>
-          </div>
-          <div class="video-control-card">
-            <span>قص المقطع الحالي</span>
-            <div class="video-trim-values">
-              <b id="trimStartValue">00:00</b>
-              <b id="trimEndValue">00:00</b>
+          </section>
+          <section class="video-tool-panel" data-video-panel="trim">
+            <div class="video-control-card">
+              <span>قص المقطع الحالي — اسحب المؤشرات داخل الشريط بالأعلى</span>
+              <div class="video-trim-values"><b id="trimStartValue">00:00</b><b id="trimEndValue">00:00</b></div>
+              <div class="dual-range"><input id="trimStart" type="range" min="0" max="1000" value="0" aria-label="بداية القص"><input id="trimEnd" type="range" min="0" max="1000" value="1000" aria-label="نهاية القص"></div>
+              <button id="videoResetTrim" type="button" class="video-panel-action">↺ إلغاء القص</button>
             </div>
-            <div class="dual-range">
-              <input id="trimStart" type="range" min="0" max="1000" value="0">
-              <input id="trimEnd" type="range" min="0" max="1000" value="1000">
-            </div>
+          </section>
+          <section class="video-tool-panel" data-video-panel="speed">
+            <div class="video-control-card"><span>سرعة التشغيل</span><div class="video-chips" id="speedChips">
+              <button data-speed="0.5">×0.5</button><button data-speed="0.75">×0.75</button><button class="active" data-speed="1">×1</button><button data-speed="1.25">×1.25</button><button data-speed="1.5">×1.5</button><button data-speed="2">×2</button>
+            </div></div>
+          </section>
+          <section class="video-tool-panel" data-video-panel="audio">
+            <div class="video-control-card"><span>مستوى الصوت</span><input id="videoVolume" type="range" min="0" max="100" value="100"><small id="videoVolumeValue">100%</small></div>
+          </section>
+          <section class="video-tool-panel" data-video-panel="export">
+            <div class="video-quick-tools"><button id="videoExport" class="video-export" type="button">⬇ دمج وتصدير الفيديو</button></div>
+            <p class="video-export-note">سيتم دمج المقاطع حسب ترتيبها في الخط الزمني وتصديرها بصيغة WebM.</p>
+          </section>
+        </div>
+        <!-- Keep compatibility controls for the existing engine without showing duplicate tools. -->
+        <div class="video-legacy-controls" aria-hidden="true">
+          <div class="video-controls-grid">
+            <div class="video-control-card"><span>السرعة</span><div class="video-chips" id="speedChipsLegacy"></div></div>
+            <div class="video-control-card"><span>قص المقطع الحالي</span><div class="video-trim-values"><b id="trimStartValueLegacy">00:00</b><b id="trimEndValueLegacy">00:00</b></div><div class="dual-range"><input id="trimStartLegacy" type="range" min="0" max="1000" value="0"><input id="trimEndLegacy" type="range" min="0" max="1000" value="1000"></div></div>
+            <div class="video-control-card"><span>الصوت</span><input id="videoVolumeLegacy" type="range" min="0" max="100" value="100"><small id="videoVolumeValueLegacy">100%</small></div>
           </div>
-          <div class="video-control-card">
-            <span>الصوت</span>
-            <input id="videoVolume" type="range" min="0" max="100" value="100">
-            <small id="videoVolumeValue">100%</small>
-          </div>
+          <div class="video-quick-tools"><button id="videoSplitLegacy" type="button">تقسيم</button><button id="videoDuplicateLegacy" type="button">تكرار</button><button id="videoDeleteLegacy" type="button">حذف</button><button id="videoResetTrimLegacy" type="button">إلغاء القص</button><button id="videoExportLegacy" type="button">تصدير</button></div>
         </div>
 
-        <div class="video-quick-tools">
-          <button id="videoSplit" type="button">✂ تقسيم عند المؤشر</button>
-          <button id="videoDuplicate" type="button">⧉ تكرار المقطع</button>
-          <button id="videoDelete" type="button">⌫ حذف المقطع</button>
-          <button id="videoResetTrim" type="button">↺ إلغاء القص</button>
-          <button id="videoExport" class="video-export" type="button">⬇ دمج وتصدير الفيديو</button>
-        </div>
-      </section>
 
   </main>
   <div id="toast" role="status"></div>
