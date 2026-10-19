@@ -952,6 +952,7 @@ function updateLoginState(user){
 supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
+    void refreshProfilePoints();
     // لا نربط إحصائية الإعجابات بتحميل البروفايل أو الخلفيات.
     void refreshLikeStats();
 
@@ -1597,6 +1598,37 @@ function updateHeroIdentity(user, name, profileData = null){
                     month:"long"
                 })
                 : "-");
+    }
+}
+
+// رصيد النقاط الحقيقي يُقرأ من API بعد التحقق من جلسة Supabase؛ لا نستخدم قيمة تجريبية.
+async function refreshProfilePoints(){
+    const valueEl = document.getElementById("profilePointsValue");
+    const button = document.getElementById("profilePointsBtn");
+    if(!valueEl || !button) return;
+    if(isPublicProfile && !isOwnProfile()){
+        button.style.display = "none";
+        return;
+    }
+    button.style.display = "flex";
+    valueEl.textContent = "…";
+    try{
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if(sessionError) throw sessionError;
+        const token = sessionData?.session?.access_token;
+        if(!token){ valueEl.textContent = "0.0"; return; }
+        const response = await fetch("/api/points/me", {
+            method:"GET", cache:"no-store",
+            headers:{ Authorization:`Bearer ${token}`, Accept:"application/json" }
+        });
+        const payload = await response.json().catch(() => ({}));
+        if(!response.ok || payload?.success !== true) throw new Error(payload?.message || "تعذر تحميل النقاط");
+        const total = Number(payload.total);
+        if(!Number.isFinite(total) || total < 0) throw new Error("رصيد غير صالح");
+        valueEl.textContent = total.toLocaleString("en-US", {minimumFractionDigits:1, maximumFractionDigits:1});
+    }catch(error){
+        console.warn("PROFILE POINTS LOAD ERROR:", error?.message || error);
+        valueEl.textContent = currentUser ? "—" : "0.0";
     }
 }
 

@@ -1,34 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>نقاطي | WallpaperHub</title>
-  <link rel="stylesheet" href="points.css">
   <link rel="stylesheet" href="css/theme.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f7f8fc;color:#202433;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.top{display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border-bottom:1px solid #e9ebf2}.back{display:grid;place-items:center;width:42px;height:42px;border:0;border-radius:50%;background:#f0f2f8;color:#414ed0;text-decoration:none}.top h1{font-size:20px;margin:0}.wrap{max-width:680px;margin:22px auto;padding:0 15px}.balance{padding:25px 20px;border-radius:22px;background:#fff;border:1px solid #e8eaf2;box-shadow:0 8px 28px #1a24500a}.eyebrow{color:#777f91;font-size:14px}.total{font-size:38px;font-weight:800;color:#4656d9;margin:8px 0}.note{font-size:13px;color:#777f91;line-height:1.8}.section{margin-top:18px;padding:20px;border-radius:20px;background:#fff;border:1px solid #e8eaf2}.section h2{font-size:17px;margin:0 0 14px}.entry{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #f0f1f6}.entry:last-child{border-bottom:0}.reason{font-weight:600}.date{font-size:12px;color:#858b9a;margin-top:4px}.amount{font-weight:800;white-space:nowrap;color:#15976e}.empty,.status{padding:14px 0;color:#777f91;line-height:1.7}.error{color:#b42318}
+  </style>
 </head>
 <body>
-  <header class="points-header">
-    <button id="pointsBackBtn" type="button" aria-label="الرجوع"><span class="material-icons">arrow_forward</span></button>
-    <h1>نقاطي</h1>
-    <span class="header-spacer"></span>
-  </header>
-  <main class="points-main">
-    <section class="points-balance-card" aria-label="رصيد النقاط">
-      <span class="material-icons balance-icon">paid</span>
-      <p>رصيد نقاطك</p>
-      <strong id="pointsTotal">—</strong>
-      <span class="balance-caption">النقاط المسجلة في حسابك</span>
-    </section>
-    <section class="points-section">
-      <div class="section-heading"><h2>سجل النقاط</h2><span class="material-icons">history</span></div>
-      <p id="pointsStatus" class="points-status" role="status">جاري تحميل النقاط…</p>
-      <div id="pointsLedger" class="points-ledger"></div>
-    </section>
-    <p class="points-note">تُحتسب النقاط من الخادم بعد التحقق من العملية. نظام المكافآت الإضافية سيظهر هنا عند تفعيله.</p>
+  <header class="top"><a class="back" href="profile.html" aria-label="رجوع"><span class="material-icons">arrow_forward</span></a><h1>نقاطي</h1></header>
+  <main class="wrap">
+    <section class="balance"><div class="eyebrow">رصيد النقاط الحالي</div><div id="pointsTotal" class="total">…</div><div class="note">الرصيد المعروض يأتي من الخادم، وليس من قيمة محفوظة في المتصفح.</div></section>
+    <section class="section"><h2>سجل النقاط</h2><div id="pointsHistory" class="status">جارٍ تحميل السجل…</div></section>
   </main>
-  <script type="module" src="points.js"></script>
+  <script type="module">
+    import { supabase } from "./supabase.js";
+    const totalEl=document.getElementById("pointsTotal");
+    const historyEl=document.getElementById("pointsHistory");
+    const reasons={wallpaper_upload:"إضافة خلفية",daily_reward:"المكافأة اليومية",goal_bonus:"مكافأة إكمال الهدف",redemption:"استبدال النقاط",redemption_release:"إرجاع نقاط محجوزة"};
+    const fmtDate=value=>{if(!value)return "";const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleString("ar-MA",{dateStyle:"medium",timeStyle:"short"})};
+    async function load(){
+      try{
+        const {data,error}=await supabase.auth.getSession();
+        if(error)throw error;
+        const token=data?.session?.access_token;
+        if(!token){totalEl.textContent="—";historyEl.textContent="سجّل الدخول لعرض نقاطك.";return;}
+        const response=await fetch("/api/points/me",{cache:"no-store",headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
+        const payload=await response.json().catch(()=>({}));
+        if(!response.ok||payload.success!==true)throw new Error(payload.message||"تعذر تحميل النقاط");
+        const total=Number(payload.total);
+        if(!Number.isFinite(total)||total<0)throw new Error("الرصيد المستلم غير صالح");
+        totalEl.textContent=total.toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1});
+        const entries=Array.isArray(payload.entries)?payload.entries:[];
+        if(!entries.length){historyEl.className="empty";historyEl.textContent="ما كاين حتى نشاط ديال النقاط دابا.";return;}
+        historyEl.className="";historyEl.replaceChildren();
+        for(const item of entries){
+          const row=document.createElement("div");row.className="entry";
+          const info=document.createElement("div");
+          const reason=document.createElement("div");reason.className="reason";reason.textContent=reasons[item.reason]||String(item.reason||"عملية نقاط");
+          const date=document.createElement("div");date.className="date";date.textContent=fmtDate(item.created_at);
+          info.append(reason,date);
+          const amount=document.createElement("div");amount.className="amount";const n=Number(item.points);amount.textContent=`${n>0?"+":""}${Number.isFinite(n)?n.toFixed(1):"0.0"}`;
+          row.append(info,amount);historyEl.append(row);
+        }
+      }catch(error){console.error("POINTS PAGE LOAD ERROR",error);totalEl.textContent="—";historyEl.className="status error";historyEl.textContent=error.message||"تعذر تحميل النقاط. حاول مرة أخرى.";}
+    }
+    load();
+  </script>
 </body>
 </html>
