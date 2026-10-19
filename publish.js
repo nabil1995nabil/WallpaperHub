@@ -233,8 +233,6 @@ function beginDemoTransfers(){
   selectedFiles.forEach(file=>uploadJobs.set(fingerprint(file),{file,url:URL.createObjectURL(file),progress:0,status:"running"}));
   renderUploadJobs();startTicker();
 }
-const CLOUDINARY_CLOUD_NAME = "ls9wdurp";
-const CLOUDINARY_UPLOAD_PRESET = "wallpaperhub_upload";
 let publisherSession = null;
 async function getAccessToken(){
   const { data, error } = await supabase.auth.getSession();
@@ -381,24 +379,47 @@ async function loadPublisherPoints(){
 }
 
 async function uploadImageToCloudinary(file,job){
-  const formData=new FormData();
-  formData.append("file",file);formData.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
-  formData.append("folder","wallpaperhub");
+  const token = await getAccessToken();
+  if(!token) throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
+
+  // الحصول على توقيع مؤقت من السيرفر بدل الاعتماد على Upload Preset قديم/غير مضبوط.
+  const signatureResponse = await fetch("/api/publish/media-signature",{
+    method:"POST",
+    headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},
+    body:JSON.stringify({mimeType:file.type}),
+    cache:"no-store"
+  });
+  const signatureData = await signatureResponse.json().catch(()=>({success:false}));
+  if(!signatureResponse.ok || !signatureData.success){
+    throw new Error(signatureData.message || `تعذر تجهيز رفع الصورة (${signatureResponse.status})`);
+  }
+
+  const formData = new FormData();
+  formData.append("file",file);
+  formData.append("api_key",signatureData.apiKey);
+  formData.append("timestamp",String(signatureData.timestamp));
+  formData.append("signature",signatureData.signature);
+  formData.append("folder",signatureData.folder);
+  formData.append("public_id",signatureData.publicId);
+
   return await new Promise((resolve,reject)=>{
-    const xhr=new XMLHttpRequest();
-    job.xhr=xhr;
-    xhr.open("POST",`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`);
-    xhr.upload.onprogress=e=>{
+    const xhr = new XMLHttpRequest();
+    job.xhr = xhr;
+    xhr.open("POST",`https://api.cloudinary.com/v1_1/${encodeURIComponent(signatureData.cloudName)}/image/upload`);
+    xhr.upload.onprogress = e=>{
       if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;renderUploadJobs();}
     };
-    xhr.onload=()=>{
+    xhr.onload = ()=>{
       let data={};try{data=JSON.parse(xhr.responseText||"{}")}catch{}
-      if(xhr.status>=200&&xhr.status<300&&data.secure_url){
+      if(xhr.status>=200 && xhr.status<300 && data.secure_url){
         job.progress=100;job.status="uploaded";job.uploaded=file.size;job.result=data;renderUploadJobs();resolve(data);
-      }else reject(new Error(data.error?.message||`فشل رفع ${file.name}`));
+      }else{
+        const reason=data.error?.message || `Cloudinary رفض رفع الصورة (HTTP ${xhr.status})`;
+        reject(new Error(reason));
+      }
     };
-    xhr.onerror=()=>reject(new Error("تعذر الاتصال بخدمة رفع الصور"));
-    xhr.onabort=()=>reject(new Error("تم إلغاء الرفع"));
+    xhr.onerror = ()=>reject(new Error("تعذر الاتصال بخدمة رفع الصور. تحقق من الإنترنت أو جرّب شبكة أخرى."));
+    xhr.onabort = ()=>reject(new Error("تم إلغاء الرفع"));
     xhr.send(formData);
   });
 }
