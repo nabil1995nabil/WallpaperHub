@@ -4845,16 +4845,9 @@ app.get("/api/publish/session", async (req,res)=>{
             metadata.avatar ||
             ""
         ).trim();
-        // النقاط تُقرأ من قاعدة البيانات فقط؛ لا نقبل أي رصيد مرسل من المتصفح.
-        let points = 0;
-        const {data:pointsRow,error:pointsError} = await supabase
-            .from("user_points")
-            .select("total_points")
-            .eq("user_id",String(user.id))
-            .maybeSingle();
-        if(pointsError) throw pointsError;
-        points = Number(pointsRow?.total_points || 0);
-
+        // لا نجعل قراءة جدول النقاط القديم شرطاً لفتح لوحة النشر.
+        // الرصيد الفعلي يُقرأ من المسار المخصص /api/publish/points
+        // الذي يستخدم get_wallpaper_points، وأي خطأ فيه لا يمنع التحقق من الجلسة.
         return res.json({
             success:true,
             user:{
@@ -4864,7 +4857,7 @@ app.get("/api/publish/session", async (req,res)=>{
                 full_name:fullName,
                 avatar_url:avatarUrl
             },
-            points:{total:Number(points.toFixed(1)),perWallpaper:0.1},
+            points:{total:0,perWallpaper:0.1},
             permissions:{owner,admin,canPublishDirectly:owner||admin,mode:(owner||admin)?"direct":"review"}
         });
     }catch(error){
