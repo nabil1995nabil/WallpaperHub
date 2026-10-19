@@ -2305,3 +2305,46 @@ body.dark .profile-social-link{
         height:17px;
     }
 }
+
+/* Points link — compact text style beneath the edit-profile button */
+#profilePointsBtn{
+    display:inline-flex !important;
+    align-self:flex-start;
+    justify-content:flex-start !important;
+    gap:5px !important;
+    width:auto !important;
+    min-height:0 !important;
+    margin-top:4px !important;
+    padding:2px 0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:#596274 !important;
+    box-shadow:none !important;
+    font-size:12px !important;
+    font-weight:500 !important;
+    line-height:1.4;
+    text-decoration:none !important;
+}
+
+#profilePointsBtn .material-icons{
+    font-size:15px;
+    color:#a88728;
+}
+
+#profilePointsValue{
+    font-size:12px;
+    font-weight:700;
+    color:#343b4b;
+}
+
+@media(max-width:700px){
+    #profilePointsBtn{
+        gap:4px !important;
+        margin-top:3px !important;
+        padding:1px 0 !important;
+        font-size:10px !important;
+    }
+    #profilePointsBtn .material-icons{font-size:13px;}
+    #profilePointsValue{font-size:10px;}
+}
