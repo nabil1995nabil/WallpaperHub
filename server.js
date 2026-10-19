@@ -1583,12 +1583,19 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const user = await getAuthenticatedUser(req);
         if (!user) return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
 
-        if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+        // اقرأ الإعدادات وقت الطلب، مع دعم أسماء المتغيرات الشائعة وCLOUDINARY_URL.
+        // هذا يمنع فشل مسار النشر إذا كانت إعدادات المشروع محفوظة باسم بديل.
+        const cloudinaryConfig = readCloudinaryConfig();
+        const cloudName = cloudinaryConfig.cloudName;
+        const apiKey = cloudinaryConfig.apiKey;
+        const apiSecret = cloudinaryConfig.apiSecret;
+        if (!cloudName || !apiKey || !apiSecret) {
             console.error("PUBLISH CLOUDINARY CONFIG MISSING", JSON.stringify({
-                cloudName:!!CLOUDINARY_CLOUD_NAME, apiKey:!!CLOUDINARY_API_KEY,
-                apiSecret:!!CLOUDINARY_API_SECRET
+                cloudName:!!cloudName, apiKey:!!apiKey,
+                apiSecret:!!apiSecret,
+                cloudinaryUrl:!!String(process.env.CLOUDINARY_URL || "").trim()
             }));
-            return res.status(503).json({ success:false, message:"إعدادات رفع الصور غير مكتملة في Vercel (Cloudinary)." });
+            return res.status(503).json({ success:false, message:"تعذر قراءة إعدادات Cloudinary من السيرفر. راجع أسماء متغيرات Vercel وسجلات Deployment." });
         }
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
@@ -1599,8 +1606,8 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const timestamp = Math.floor(Date.now() / 1000);
         const folder = `wallpaperhub/wallpapers/${String(user.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
         const publicId = `wallpaper-${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
-        const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`);
-        return res.json({ success:true, cloudName:CLOUDINARY_CLOUD_NAME, apiKey:CLOUDINARY_API_KEY, timestamp, folder, publicId, signature });
+        const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`);
+        return res.json({ success:true, cloudName, apiKey, timestamp, folder, publicId, signature });
     } catch (error) {
         console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.message || error);
         return res.status(500).json({ success:false, message:"تعذر تجهيز رفع الصورة" });
@@ -5890,9 +5897,9 @@ reply:
 // and social-post media uploads. Supports either the three separate Vercel
 // variables or the standard CLOUDINARY_URL (cloudinary://key:secret@cloud).
 function readCloudinaryConfig(){
-    let cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
-    let apiKey = String(process.env.CLOUDINARY_API_KEY || "").trim();
-    let apiSecret = String(process.env.CLOUDINARY_API_SECRET || "").trim();
+    let cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUD_NAME || process.env.CLOUDINARY_NAME || "").trim();
+    let apiKey = String(process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY || "").trim();
+    let apiSecret = String(process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET || "").trim();
     const rawUrl = String(process.env.CLOUDINARY_URL || "").trim();
 
     if(rawUrl && (!cloudName || !apiKey || !apiSecret)){
