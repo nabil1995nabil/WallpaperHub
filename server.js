@@ -1583,12 +1583,24 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const user = await getAuthenticatedUser(req);
         if (!user) return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
 
-        // استخدم إعدادات Cloudinary المشتركة التي يقرأها السيرفر عند التشغيل.
-        // أزلنا فحص الإعدادات المكرر من مسار النشر اليدوي حتى لا يمنع النشر
-        // بسبب مراجعة ثانية مختلفة عن بقية مسارات Cloudinary.
+        // إعدادات Cloudinary المشتركة؛ لا نُصدر توقيعاً إذا كانت الإعدادات ناقصة.
         const cloudName = CLOUDINARY_CLOUD_NAME;
         const apiKey = CLOUDINARY_API_KEY;
         const apiSecret = CLOUDINARY_API_SECRET;
+
+        // لا نوقف تجهيز التوقيع بسبب فحص مسبق لـ apiKey هنا.
+        // نحتفظ بإرجاع apiKey للواجهة، لأن Cloudinary يحتاجه في طلب الرفع نفسه.
+        if (!cloudName || !apiSecret) {
+            console.error("PUBLISH CLOUDINARY CONFIG MISSING:", JSON.stringify({
+                cloudName: Boolean(cloudName),
+                apiSecret: Boolean(apiSecret),
+                cloudinaryUrl: Boolean(String(process.env.CLOUDINARY_URL || "").trim())
+            }));
+            return res.status(503).json({
+                success:false,
+                message:"تعذر تجهيز توقيع Cloudinary على السيرفر."
+            });
+        }
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
