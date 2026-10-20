@@ -1583,9 +1583,11 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const user = await getAuthenticatedUser(req);
         if (!user) return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
 
-        // استعمل إعدادات Cloudinary الحالية عند كل طلب، دون فحص مسبق للمتغيرات
-        // أو إيقاف الرفع برسالة "إعدادات ناقصة". لا نخزن المفاتيح في المتصفح.
-        const { cloudName, apiKey, apiSecret } = readCloudinaryConfig();
+        // استخدم الإعدادات المشتركة التي يهيئها السيرفر مرة واحدة.
+        // لا تنفّذ فحصاً مسبقاً لمتغيرات Cloudinary داخل مسار الرفع.
+        const cloudName = CLOUDINARY_CLOUD_NAME;
+        const apiKey = CLOUDINARY_API_KEY;
+        const apiSecret = CLOUDINARY_API_SECRET;
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
@@ -1596,19 +1598,7 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const folder = `wallpaperhub/wallpapers/${String(user.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
         const publicId = `wallpaper-${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
         const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`);
-        // Return both camelCase and Cloudinary's snake_case key names for compatibility.
-        // Do not block the upload here with a separate environment-variable validation.
-        return res.json({
-            success:true,
-            cloudName,
-            apiKey,
-            api_key:apiKey,
-            timestamp,
-            folder,
-            publicId,
-            public_id:publicId,
-            signature
-        });
+        return res.json({ success:true, cloudName, apiKey, timestamp, folder, publicId, signature });
     } catch (error) {
         console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.stack || error?.message || error);
         return res.status(500).json({ success:false, message:"تعذر تجهيز توقيع Cloudinary على السيرفر." });
@@ -1627,8 +1617,6 @@ app.post("/api/social/media-signature", async (req, res) => {
         if (!user) {
             return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
         }
-
-        // لا نفحص متغيرات Cloudinary هنا؛ نستخدم الإعدادات المشتركة كما هي.
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         const isImage = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"].includes(mimeType);
@@ -6030,7 +6018,6 @@ async function generateGeminiImage(prompt, { aspectRatio = "9:16", imageSize = "
 }
 
 async function uploadBase64ToCloudinary(base64, mimeType = "image/jpeg", folder = "wallpaperhub/ai"){
-    // لا نوقف العملية بفحص مسبق لمتغيرات Cloudinary.
     const timestamp = Math.floor(Date.now() / 1000);
     const publicId = `ai-${Date.now()}-${crypto.randomBytes(6).toString("hex")}`;
     const signaturePayload = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
