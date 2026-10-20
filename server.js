@@ -5897,21 +5897,50 @@ reply:
 // and social-post media uploads. Supports either the three separate Vercel
 // variables or the standard CLOUDINARY_URL (cloudinary://key:secret@cloud).
 function readCloudinaryConfig(){
-    let cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUD_NAME || process.env.CLOUDINARY_NAME || "").trim();
-    let apiKey = String(process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY || "").trim();
-    let apiSecret = String(process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET || "").trim();
-    const rawUrl = String(process.env.CLOUDINARY_URL || "").trim();
+    // Normalize each candidate before fallback. A whitespace-only variable must
+    // not block a valid alias or CLOUDINARY_URL.
+    const firstNonEmpty = (...values) => {
+        for (const value of values) {
+            const cleaned = String(value ?? "").trim().replace(/^(["'])|(["'])$/g, "").trim();
+            if (cleaned) return cleaned;
+        }
+        return "";
+    };
 
-    if(rawUrl && (!cloudName || !apiKey || !apiSecret)){
-        try{
-            const parsed = new URL(rawUrl);
-            if(parsed.protocol === "cloudinary:"){
-                apiKey = apiKey || decodeURIComponent(parsed.username || "");
-                apiSecret = apiSecret || decodeURIComponent(parsed.password || "");
-                cloudName = cloudName || decodeURIComponent(parsed.hostname || "");
+    let cloudName = firstNonEmpty(
+        process.env.CLOUDINARY_CLOUD_NAME,
+        process.env.CLOUD_NAME,
+        process.env.CLOUDINARY_NAME,
+        process.env.CLOUDINARY_CLOUD
+    );
+    let apiKey = firstNonEmpty(
+        process.env.CLOUDINARY_API_KEY,
+        process.env.CLOUDINARY_KEY,
+        process.env.CLOUDINARY_KEY_ID
+    );
+    let apiSecret = firstNonEmpty(
+        process.env.CLOUDINARY_API_SECRET,
+        process.env.CLOUDINARY_SECRET,
+        process.env.CLOUDINARY_API_KEY_SECRET
+    );
+    const rawUrl = firstNonEmpty(process.env.CLOUDINARY_URL);
+
+    if (rawUrl && (!cloudName || !apiKey || !apiSecret)) {
+        try {
+            // Accept the standard cloudinary://KEY:SECRET@CLOUD_NAME URL.
+            const normalizedUrl = rawUrl.startsWith("cloudinary://")
+                ? rawUrl
+                : rawUrl.startsWith("cloudinary:")
+                    ? rawUrl.replace(/^cloudinary:/, "cloudinary://")
+                    : rawUrl;
+            const parsed = new URL(normalizedUrl);
+            if (parsed.protocol === "cloudinary:") {
+                apiKey = apiKey || decodeURIComponent(parsed.username || "").trim();
+                apiSecret = apiSecret || decodeURIComponent(parsed.password || "").trim();
+                cloudName = cloudName || decodeURIComponent(parsed.hostname || "").trim();
             }
-        }catch(error){
-            // Keep direct variables if the optional URL is malformed.
+        } catch (error) {
+            console.error("CLOUDINARY_URL PARSE ERROR:", error?.message || error);
         }
     }
 
