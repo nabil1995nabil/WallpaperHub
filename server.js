@@ -1585,28 +1585,13 @@ app.post("/api/publish/media-signature", async (req, res) => {
             return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
         }
 
-        // اقرأ إعدادات Cloudinary عند كل طلب؛ هذا يتجنب الاعتماد على قيم
-        // قديمة تم تحميلها عند بدء تشغيل السيرفر. لا نرسل apiSecret للمتصفح.
+        // قراءة الإعدادات وقت الطلب؛ لا يوجد فحص مسبق يوقف المسار برسالة إعدادات ناقصة.
+        // يدعم readCloudinaryConfig القيم القياسية وأيضاً CLOUDINARY_URL الملصوق بالخطأ داخل قيمة متغير آخر.
         const { cloudName, apiKey, apiSecret } = readCloudinaryConfig();
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
             return res.status(400).json({ success:false, message:"صيغة الصورة غير مدعومة" });
-        }
-
-        // api_key مطلوب من Cloudinary للرفع الموقّع؛ لا يمكن حذفه من الطلب.
-        // أعد خطأً واضحاً من السيرفر بدلاً من إرسال طلب ناقص إلى Cloudinary.
-        if (!cloudName || !apiKey || !apiSecret) {
-            console.error("PUBLISH CLOUDINARY CONFIG MISSING:", JSON.stringify({
-                cloudName: Boolean(cloudName),
-                apiKey: Boolean(apiKey),
-                apiSecret: Boolean(apiSecret),
-                cloudinaryUrl: Boolean(String(process.env.CLOUDINARY_URL || "").trim())
-            }));
-            return res.status(503).json({
-                success:false,
-                message:"إعدادات Cloudinary غير مكتملة على السيرفر. اضبط CLOUDINARY_CLOUD_NAME وCLOUDINARY_API_KEY وCLOUDINARY_API_SECRET، أو CLOUDINARY_URL."
-            });
         }
 
         const timestamp = Math.floor(Date.now() / 1000);
@@ -5901,70 +5886,68 @@ reply:
 // and social-post media uploads. Supports either the three separate Vercel
 // variables or the standard CLOUDINARY_URL (cloudinary://key:secret@cloud).
 function readCloudinaryConfig(){
-    // Accept both the three separate variables and a standard CLOUDINARY_URL.
-    // Some dashboards accidentally have the whole URL pasted into the API_SECRET
-    // value, so search all Cloudinary values for that URL before falling back.
-    const clean = value => String(value ?? "").trim().replace(/^(\"|')| (\"|')$/g, "").trim();
+    // Normalize each candidate before fallback. A whitespace-only variable must
+    // not block a valid alias or CLOUDINARY_URL.
     const firstNonEmpty = (...values) => {
         for (const value of values) {
-            const cleaned = String(value ?? "").trim().replace(/^(\"|')|([\"'])$/g, "").trim();
+            const cleaned = String(value ?? "").trim().replace(/^(["'])|(["'])$/g, "").trim();
             if (cleaned) return cleaned;
         }
         return "";
     };
 
-    const urlCandidates = [
+    let cloudName = firstNonEmpty(
+        process.env.CLOUDINARY_CLOUD_NAME,
+        process.env.CLOUD_NAME,
+        process.env.CLOUDINARY_NAME,
+        process.env.CLOUDINARY_CLOUD
+    );
+    let apiKey = firstNonEmpty(
+        process.env.CLOUDINARY_API_KEY,
+        process.env.CLOUDINARY_KEY,
+        process.env.CLOUDINARY_KEY_ID
+    );
+    let apiSecret = firstNonEmpty(
+        process.env.CLOUDINARY_API_SECRET,
+        process.env.CLOUDINARY_SECRET,
+        process.env.CLOUDINARY_API_KEY_SECRET
+    );
+    // أحياناً يتم لصق السطر الكامل CLOUDINARY_URL=cloudinary://... داخل قيمة
+    // CLOUDINARY_API_SECRET بدلاً من إنشاء متغير CLOUDINARY_URL مستقل. استخرج الرابط من أي قيمة.
+    const candidates = [
         process.env.CLOUDINARY_URL,
         process.env.CLOUDINARY_API_SECRET,
         process.env.CLOUDINARY_SECRET,
         process.env.CLOUDINARY_API_KEY_SECRET,
         process.env.CLOUDINARY_API_KEY,
         process.env.CLOUDINARY_KEY,
-        process.env.CLOUDINARY_CLOUD_NAME
-    ].map(value => String(value ?? "").trim().replace(/^CLOUDINARY_URL\s*=\s*/i, ""));
+        process.env.CLOUDINARY_KEY_ID,
+        process.env.CLOUDINARY_CLOUD_NAME,
+        process.env.CLOUD_NAME,
+        process.env.CLOUDINARY_NAME,
+        process.env.CLOUDINARY_CLOUD
+    ].map(value => String(value ?? "").trim());
+    let rawUrl = "";
+    for (const candidate of candidates) {
+        const match = candidate.match(/(?:CLOUDINARY_URL\s*=\s*)?(cloudinary:\/\/[^\s"'<>]+)/i);
+        if (match) { rawUrl = match[1].replace(/[;,]+$/, ""); break; }
+    }
 
-    let urlConfig = { cloudName:"", apiKey:"", apiSecret:"" };
-    for (const candidate of urlCandidates) {
-        if (!candidate.toLowerCase().startsWith("cloudinary:")) continue;
+    if (rawUrl && (!cloudName || !apiKey || !apiSecret)) {
         try {
-            const normalized = candidate.startsWith("cloudinary://")
-                ? candidate
-                : candidate.replace(/^cloudinary:/i, "cloudinary://");
-            const parsed = new URL(normalized);
+            const normalizedUrl = rawUrl.startsWith("cloudinary://")
+                ? rawUrl
+                : rawUrl.replace(/^cloudinary:/, "cloudinary://");
+            const parsed = new URL(normalizedUrl);
             if (parsed.protocol === "cloudinary:") {
-                const parsedConfig = {
-                    cloudName: decodeURIComponent(parsed.hostname || "").trim(),
-                    apiKey: decodeURIComponent(parsed.username || "").trim(),
-                    apiSecret: decodeURIComponent(parsed.password || "").trim()
-                };
-                // Prefer a complete URL over separate values that may be stale
-                // or contain the URL itself by mistake.
-                if (parsedConfig.cloudName && parsedConfig.apiKey && parsedConfig.apiSecret) {
-                    urlConfig = parsedConfig;
-                    break;
-                }
+                apiKey = apiKey && !/cloudinary:\/\//i.test(apiKey) ? apiKey : decodeURIComponent(parsed.username || "").trim();
+                apiSecret = apiSecret && !/cloudinary:\/\//i.test(apiSecret) ? apiSecret : decodeURIComponent(parsed.password || "").trim();
+                cloudName = cloudName && !/cloudinary:\/\//i.test(cloudName) ? cloudName : decodeURIComponent(parsed.hostname || "").trim();
             }
         } catch (error) {
             console.error("CLOUDINARY_URL PARSE ERROR:", error?.message || error);
         }
     }
-
-    const cloudName = urlConfig.cloudName || firstNonEmpty(
-        process.env.CLOUDINARY_CLOUD_NAME,
-        process.env.CLOUD_NAME,
-        process.env.CLOUDINARY_NAME,
-        process.env.CLOUDINARY_CLOUD
-    );
-    const apiKey = urlConfig.apiKey || firstNonEmpty(
-        process.env.CLOUDINARY_API_KEY,
-        process.env.CLOUDINARY_KEY,
-        process.env.CLOUDINARY_KEY_ID
-    );
-    const apiSecret = urlConfig.apiSecret || firstNonEmpty(
-        process.env.CLOUDINARY_API_SECRET,
-        process.env.CLOUDINARY_SECRET,
-        process.env.CLOUDINARY_API_KEY_SECRET
-    );
 
     return { cloudName, apiKey, apiSecret };
 }

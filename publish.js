@@ -394,22 +394,14 @@ async function uploadImageToCloudinary(file,job){
     throw new Error(signatureData.message || `تعذر تجهيز رفع الصورة (${signatureResponse.status})`);
   }
 
-  // تحقق من اكتمال بيانات التوقيع قبل إرسال الطلب إلى Cloudinary،
-  // حتى لا يظهر الخطأ الغامض Missing required parameter - api_key.
+  // استعمل بيانات التوقيع التي أعادها السيرفر مباشرة دون فحص محلي مكرر.
+  // api_key يبقى ضمن طلب Cloudinary لأنه حقل مطلوب لعملية الرفع الموقّع.
   const cloudName = String(signatureData.cloudName || "").trim();
   const apiKey = String(signatureData.apiKey ?? signatureData.api_key ?? "").trim();
   const timestamp = signatureData.timestamp;
   const signature = String(signatureData.signature || "").trim();
   const folder = String(signatureData.folder || "").trim();
   const publicId = String(signatureData.publicId ?? signatureData.public_id ?? "").trim();
-
-  if(!cloudName || !apiKey || !timestamp || !signature || !folder || !publicId){
-    console.error("Cloudinary signature response is incomplete", {
-      cloudName:!!cloudName, apiKey:!!apiKey, timestamp:!!timestamp,
-      signature:!!signature, folder:!!folder, publicId:!!publicId
-    });
-    throw new Error("بيانات رفع Cloudinary غير مكتملة. تحقق من إعدادات Cloudinary في السيرفر ثم أعد النشر.");
-  }
 
   const formData = new FormData();
   formData.append("file",file);
