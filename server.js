@@ -1583,20 +1583,12 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const user = await getAuthenticatedUser(req);
         if (!user) return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
 
-        // اقرأ الإعدادات وقت الطلب، مع دعم أسماء المتغيرات الشائعة وCLOUDINARY_URL.
-        // هذا يمنع فشل مسار النشر إذا كانت إعدادات المشروع محفوظة باسم بديل.
-        const cloudinaryConfig = readCloudinaryConfig();
-        const cloudName = cloudinaryConfig.cloudName;
-        const apiKey = cloudinaryConfig.apiKey;
-        const apiSecret = cloudinaryConfig.apiSecret;
-        if (!cloudName || !apiKey || !apiSecret) {
-            console.error("PUBLISH CLOUDINARY CONFIG MISSING", JSON.stringify({
-                cloudName:!!cloudName, apiKey:!!apiKey,
-                apiSecret:!!apiSecret,
-                cloudinaryUrl:!!String(process.env.CLOUDINARY_URL || "").trim()
-            }));
-            return res.status(503).json({ success:false, message:"تعذر قراءة إعدادات Cloudinary من السيرفر. راجع أسماء متغيرات Vercel وسجلات Deployment." });
-        }
+        // استخدم إعدادات Cloudinary المشتركة التي يقرأها السيرفر عند التشغيل.
+        // أزلنا فحص الإعدادات المكرر من مسار النشر اليدوي حتى لا يمنع النشر
+        // بسبب مراجعة ثانية مختلفة عن بقية مسارات Cloudinary.
+        const cloudName = CLOUDINARY_CLOUD_NAME;
+        const apiKey = CLOUDINARY_API_KEY;
+        const apiSecret = CLOUDINARY_API_SECRET;
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
