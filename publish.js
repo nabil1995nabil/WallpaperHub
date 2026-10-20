@@ -394,18 +394,35 @@ async function uploadImageToCloudinary(file,job){
     throw new Error(signatureData.message || `تعذر تجهيز رفع الصورة (${signatureResponse.status})`);
   }
 
+  // تحقق من اكتمال بيانات التوقيع قبل إرسال الطلب إلى Cloudinary،
+  // حتى لا يظهر الخطأ الغامض Missing required parameter - api_key.
+  const cloudName = String(signatureData.cloudName || "").trim();
+  const apiKey = String(signatureData.apiKey ?? signatureData.api_key ?? "").trim();
+  const timestamp = signatureData.timestamp;
+  const signature = String(signatureData.signature || "").trim();
+  const folder = String(signatureData.folder || "").trim();
+  const publicId = String(signatureData.publicId ?? signatureData.public_id ?? "").trim();
+
+  if(!cloudName || !apiKey || !timestamp || !signature || !folder || !publicId){
+    console.error("Cloudinary signature response is incomplete", {
+      cloudName:!!cloudName, apiKey:!!apiKey, timestamp:!!timestamp,
+      signature:!!signature, folder:!!folder, publicId:!!publicId
+    });
+    throw new Error("بيانات رفع Cloudinary غير مكتملة. تحقق من إعدادات Cloudinary في السيرفر ثم أعد النشر.");
+  }
+
   const formData = new FormData();
   formData.append("file",file);
-  formData.append("api_key",String(signatureData.apiKey ?? signatureData.api_key ?? "").trim());
-  formData.append("timestamp",String(signatureData.timestamp));
-  formData.append("signature",signatureData.signature);
-  formData.append("folder",signatureData.folder);
-  formData.append("public_id",signatureData.publicId ?? signatureData.public_id);
+  formData.append("api_key",apiKey);
+  formData.append("timestamp",String(timestamp));
+  formData.append("signature",signature);
+  formData.append("folder",folder);
+  formData.append("public_id",publicId);
 
   return await new Promise((resolve,reject)=>{
     const xhr = new XMLHttpRequest();
     job.xhr = xhr;
-    xhr.open("POST",`https://api.cloudinary.com/v1_1/${encodeURIComponent(signatureData.cloudName)}/image/upload`);
+    xhr.open("POST",`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`);
     xhr.upload.onprogress = e=>{
       if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;renderUploadJobs();}
     };

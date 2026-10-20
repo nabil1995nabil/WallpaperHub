@@ -1581,24 +1581,50 @@ app.get("/api/supabase/config", (req, res) => {
 app.post("/api/publish/media-signature", async (req, res) => {
     try {
         const user = await getAuthenticatedUser(req);
-        if (!user) return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
+        if (!user) {
+            return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
+        }
 
-        // استخدم الإعدادات المشتركة التي يهيئها السيرفر مرة واحدة.
-        // لا تنفّذ فحصاً مسبقاً لمتغيرات Cloudinary داخل مسار الرفع.
-        const cloudName = CLOUDINARY_CLOUD_NAME;
-        const apiKey = CLOUDINARY_API_KEY;
-        const apiSecret = CLOUDINARY_API_SECRET;
+        // اقرأ إعدادات Cloudinary عند كل طلب؛ هذا يتجنب الاعتماد على قيم
+        // قديمة تم تحميلها عند بدء تشغيل السيرفر. لا نرسل apiSecret للمتصفح.
+        const { cloudName, apiKey, apiSecret } = readCloudinaryConfig();
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
             return res.status(400).json({ success:false, message:"صيغة الصورة غير مدعومة" });
         }
 
+        // api_key مطلوب من Cloudinary للرفع الموقّع؛ لا يمكن حذفه من الطلب.
+        // أعد خطأً واضحاً من السيرفر بدلاً من إرسال طلب ناقص إلى Cloudinary.
+        if (!cloudName || !apiKey || !apiSecret) {
+            console.error("PUBLISH CLOUDINARY CONFIG MISSING:", JSON.stringify({
+                cloudName: Boolean(cloudName),
+                apiKey: Boolean(apiKey),
+                apiSecret: Boolean(apiSecret),
+                cloudinaryUrl: Boolean(String(process.env.CLOUDINARY_URL || "").trim())
+            }));
+            return res.status(503).json({
+                success:false,
+                message:"إعدادات Cloudinary غير مكتملة على السيرفر. اضبط CLOUDINARY_CLOUD_NAME وCLOUDINARY_API_KEY وCLOUDINARY_API_SECRET، أو CLOUDINARY_URL."
+            });
+        }
+
         const timestamp = Math.floor(Date.now() / 1000);
         const folder = `wallpaperhub/wallpapers/${String(user.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
         const publicId = `wallpaper-${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
         const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`);
-        return res.json({ success:true, cloudName, apiKey, timestamp, folder, publicId, signature });
+
+        return res.json({
+            success:true,
+            cloudName,
+            apiKey,
+            api_key:apiKey,
+            timestamp,
+            folder,
+            publicId,
+            public_id:publicId,
+            signature
+        });
     } catch (error) {
         console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.stack || error?.message || error);
         return res.status(500).json({ success:false, message:"تعذر تجهيز توقيع Cloudinary على السيرفر." });
