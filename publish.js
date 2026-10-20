@@ -396,11 +396,11 @@ async function uploadImageToCloudinary(file,job){
 
   const formData = new FormData();
   formData.append("file",file);
-  formData.append("api_key",signatureData.apiKey);
+  formData.append("api_key",String(signatureData.apiKey ?? signatureData.api_key ?? "").trim());
   formData.append("timestamp",String(signatureData.timestamp));
   formData.append("signature",signatureData.signature);
   formData.append("folder",signatureData.folder);
-  formData.append("public_id",signatureData.publicId);
+  formData.append("public_id",signatureData.publicId ?? signatureData.public_id);
 
   return await new Promise((resolve,reject)=>{
     const xhr = new XMLHttpRequest();

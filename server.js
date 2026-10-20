@@ -1596,7 +1596,19 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const folder = `wallpaperhub/wallpapers/${String(user.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
         const publicId = `wallpaper-${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
         const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`);
-        return res.json({ success:true, cloudName, apiKey, timestamp, folder, publicId, signature });
+        // Return both camelCase and Cloudinary's snake_case key names for compatibility.
+        // Do not block the upload here with a separate environment-variable validation.
+        return res.json({
+            success:true,
+            cloudName,
+            apiKey,
+            api_key:apiKey,
+            timestamp,
+            folder,
+            publicId,
+            public_id:publicId,
+            signature
+        });
     } catch (error) {
         console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.stack || error?.message || error);
         return res.status(500).json({ success:false, message:"تعذر تجهيز توقيع Cloudinary على السيرفر." });
