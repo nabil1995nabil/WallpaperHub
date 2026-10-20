@@ -2,53 +2,79 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f7ff">
   <title>نقاطي | WallpaperHub</title>
   <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="points.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <style>
-    :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f7f8fc;color:#202433;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.top{display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border-bottom:1px solid #e9ebf2}.back{display:grid;place-items:center;width:42px;height:42px;border:0;border-radius:50%;background:#f0f2f8;color:#414ed0;text-decoration:none}.top h1{font-size:20px;margin:0}.wrap{max-width:680px;margin:22px auto;padding:0 15px}.balance{padding:25px 20px;border-radius:22px;background:#fff;border:1px solid #e8eaf2;box-shadow:0 8px 28px #1a24500a}.eyebrow{color:#777f91;font-size:14px}.total{font-size:38px;font-weight:800;color:#4656d9;margin:8px 0}.note{font-size:13px;color:#777f91;line-height:1.8}.section{margin-top:18px;padding:20px;border-radius:20px;background:#fff;border:1px solid #e8eaf2}.section h2{font-size:17px;margin:0 0 14px}.entry{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #f0f1f6}.entry:last-child{border-bottom:0}.reason{font-weight:600}.date{font-size:12px;color:#858b9a;margin-top:4px}.amount{font-weight:800;white-space:nowrap;color:#15976e}.empty,.status{padding:14px 0;color:#777f91;line-height:1.7}.error{color:#b42318}
-  </style>
 </head>
 <body>
-  <header class="top"><a class="back" href="profile.html" aria-label="رجوع"><span class="material-icons">arrow_forward</span></a><h1>نقاطي</h1></header>
-  <main class="wrap">
-    <section class="balance"><div class="eyebrow">رصيد النقاط الحالي</div><div id="pointsTotal" class="total">…</div><div class="note">الرصيد المعروض يأتي من الخادم، وليس من قيمة محفوظة في المتصفح.</div></section>
-    <section class="section"><h2>سجل النقاط</h2><div id="pointsHistory" class="status">جارٍ تحميل السجل…</div></section>
+  <header class="points-header">
+    <a class="back-button" id="pointsBackBtn" href="profile.html" aria-label="رجوع إلى الحساب"><span class="material-icons">arrow_back</span></a>
+    <div class="header-title">
+      <span class="crown-icon material-icons" aria-hidden="true">workspace_premium</span>
+      <div><h1>نقاطي</h1><p>كل ما يتعلق بنقاطك ومكافآتك</p></div>
+    </div>
+  </header>
+
+  <main class="points-main">
+    <section class="hero-card" aria-labelledby="balanceTitle">
+      <div class="hero-art" aria-hidden="true">
+        <div class="coin-glow"></div><div class="coin-stack stack-one"></div><div class="coin-stack stack-two"></div>
+        <div class="hero-coin"><span class="material-icons">star</span></div>
+        <span class="spark spark-one">✦</span><span class="spark spark-two">✧</span><span class="spark spark-three">✦</span>
+      </div>
+      <div class="hero-content">
+        <div class="eyebrow"><span class="material-icons">database</span><span id="balanceTitle">رصيد النقاط الحالي</span></div>
+        <div class="total" id="pointsTotal" aria-live="polite">…</div>
+        <div class="secure-pill"><span class="material-icons">verified_user</span>رصيدك محفوظ بأمان</div>
+        <p class="hero-note">الرصيد المعروض يأتي من الخادم، وليس من قيمة محفوظة في المتصفح.</p>
+      </div>
+      <div class="goal-row">
+        <div class="goal-label"><span class="goal-badge material-icons">stars</span><div><strong>1.0</strong><small>الهدف القادم</small></div></div>
+        <div class="goal-progress"><div class="goal-numbers"><strong id="goalCurrent">0.1 / 1.0</strong><span>نحو الهدف القادم</span></div><div class="progress-track"><span id="goalProgress"></span></div></div>
+      </div>
+    </section>
+
+    <section class="level-card" aria-label="ملخص النقاط">
+      <div class="level-top">
+        <div class="level-medal"><span class="material-icons">star</span></div>
+        <div class="level-name"><small>المستوى الحالي</small><strong>المبتدئ <span class="material-icons">chevron_right</span></strong></div>
+        <div class="level-target"><strong id="levelProgressText">0.1 / 1.0</strong><small>إلى المستوى التالي</small></div>
+      </div>
+      <div class="progress-track level-track"><span id="levelProgress"></span></div>
+      <div class="stats-grid">
+        <article class="stat stat-purple"><span class="material-icons">star</span><small>إجمالي النقاط</small><strong id="statTotal">—</strong></article>
+        <article class="stat stat-green"><span class="material-icons">wallpaper</span><small>الخلفيات المنشورة</small><strong id="statWallpapers">—</strong></article>
+        <article class="stat stat-blue"><span class="material-icons">local_fire_department</span><small>سجل العمليات</small><strong id="statOperations">—</strong></article>
+        <article class="stat stat-gold"><span class="material-icons">emoji_events</span><small>أعلى مكافأة</small><strong id="statBest">—</strong></article>
+      </div>
+    </section>
+
+    <section class="history-section" aria-labelledby="historyTitle">
+      <div class="section-heading">
+        <div class="heading-icon"><span class="material-icons">history</span></div>
+        <div><h2 id="historyTitle">سجل النقاط</h2><p>جميع العمليات التي حصلت فيها على نقاط</p></div>
+      </div>
+      <div class="filter-tabs" role="group" aria-label="تصفية سجل النقاط">
+        <button type="button" class="filter-tab active" data-filter="all"><span class="material-icons">format_list_bulleted</span>الكل</button>
+        <button type="button" class="filter-tab" data-filter="publish"><span class="material-icons">cloud_upload</span>النشر</button>
+        <button type="button" class="filter-tab" data-filter="download"><span class="material-icons">download</span>التحميلات</button>
+        <button type="button" class="filter-tab" data-filter="reward"><span class="material-icons">redeem</span>المكافآت</button>
+      </div>
+      <div class="ledger-card">
+        <div id="pointsStatus" class="points-status">جارٍ تحميل السجل…</div>
+        <div id="pointsLedger" class="points-ledger"></div>
+      </div>
+    </section>
+
+    <aside class="points-info">
+      <span class="material-icons info-icon">info</span>
+      <div><strong>معلومات مهمة</strong><p>النقاط تُضاف تلقائياً عند نشر خلفية جديدة، ويتم التحقق منها بشكل آمن من الخادم. لا يمكن التلاعب بالنقاط من المتصفح.</p></div>
+    </aside>
   </main>
-  <script type="module">
-    import { supabase } from "./supabase.js";
-    const totalEl=document.getElementById("pointsTotal");
-    const historyEl=document.getElementById("pointsHistory");
-    const reasons={wallpaper_upload:"إضافة خلفية",daily_reward:"المكافأة اليومية",goal_bonus:"مكافأة إكمال الهدف",redemption:"استبدال النقاط",redemption_release:"إرجاع نقاط محجوزة"};
-    const fmtDate=value=>{if(!value)return "";const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleString("ar-MA",{dateStyle:"medium",timeStyle:"short"})};
-    async function load(){
-      try{
-        const {data,error}=await supabase.auth.getSession();
-        if(error)throw error;
-        const token=data?.session?.access_token;
-        if(!token){totalEl.textContent="—";historyEl.textContent="سجّل الدخول لعرض نقاطك.";return;}
-        const response=await fetch("/api/points/me",{cache:"no-store",headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
-        const payload=await response.json().catch(()=>({}));
-        if(!response.ok||payload.success!==true)throw new Error(payload.message||"تعذر تحميل النقاط");
-        const total=Number(payload.total);
-        if(!Number.isFinite(total)||total<0)throw new Error("الرصيد المستلم غير صالح");
-        totalEl.textContent=total.toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1});
-        const entries=Array.isArray(payload.entries)?payload.entries:[];
-        if(!entries.length){historyEl.className="empty";historyEl.textContent="ما كاين حتى نشاط ديال النقاط دابا.";return;}
-        historyEl.className="";historyEl.replaceChildren();
-        for(const item of entries){
-          const row=document.createElement("div");row.className="entry";
-          const info=document.createElement("div");
-          const reason=document.createElement("div");reason.className="reason";reason.textContent=reasons[item.reason]||String(item.reason||"عملية نقاط");
-          const date=document.createElement("div");date.className="date";date.textContent=fmtDate(item.created_at);
-          info.append(reason,date);
-          const amount=document.createElement("div");amount.className="amount";const n=Number(item.points);amount.textContent=`${n>0?"+":""}${Number.isFinite(n)?n.toFixed(1):"0.0"}`;
-          row.append(info,amount);historyEl.append(row);
-        }
-      }catch(error){console.error("POINTS PAGE LOAD ERROR",error);totalEl.textContent="—";historyEl.className="status error";historyEl.textContent=error.message||"تعذر تحميل النقاط. حاول مرة أخرى.";}
-    }
-    load();
-  </script>
+
+  <script type="module" src="points.js"></script>
 </body>
 </html>
