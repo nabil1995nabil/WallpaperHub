@@ -22,6 +22,10 @@ const MAX_FILES = 50;
 const MAX_FILE_SIZE = 150 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 
+// نفس إعدادات Cloudinary المستعملة في admin.js. الرفع عبر Upload Preset لا يحتاج api_key في المتصفح.
+const CLOUDINARY_CLOUD_NAME = "ls9wdurp";
+const CLOUDINARY_UPLOAD_PRESET = "wallpaperhub_upload";
+
 function notify(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -379,52 +383,35 @@ async function loadPublisherPoints(){
 }
 
 async function uploadImageToCloudinary(file,job){
-  const token = await getAccessToken();
-  if(!token) throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
-
-  // الحصول على توقيع مؤقت من السيرفر بدل الاعتماد على Upload Preset قديم/غير مضبوط.
-  const signatureResponse = await fetch("/api/publish/media-signature",{
-    method:"POST",
-    headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},
-    body:JSON.stringify({mimeType:file.type}),
-    cache:"no-store"
-  });
-  const signatureData = await signatureResponse.json().catch(()=>({success:false}));
-  if(!signatureResponse.ok || !signatureData.success){
-    throw new Error(signatureData.message || `تعذر تجهيز رفع الصورة (${signatureResponse.status})`);
-  }
-
-  // استعمل بيانات التوقيع التي أعادها السيرفر مباشرة دون فحص محلي مكرر.
-  // api_key يبقى ضمن طلب Cloudinary لأنه حقل مطلوب لعملية الرفع الموقّع.
-  const cloudName = String(signatureData.cloudName || "").trim();
-  const apiKey = String(signatureData.apiKey ?? signatureData.api_key ?? "").trim();
-  const timestamp = signatureData.timestamp;
-  const signature = String(signatureData.signature || "").trim();
-  const folder = String(signatureData.folder || "").trim();
-  const publicId = String(signatureData.publicId ?? signatureData.public_id ?? "").trim();
-
-  const formData = new FormData();
-  formData.append("file",file);
-  formData.append("api_key",apiKey);
-  formData.append("timestamp",String(timestamp));
-  formData.append("signature",signature);
-  formData.append("folder",folder);
-  formData.append("public_id",publicId);
-
+  // نفس منطق admin.js: رفع غير موقّع باستعمال Upload Preset.
+  // لا نطلب media-signature ولا نرسل api_key؛ Cloudinary يحدد ذلك عبر preset.
   return await new Promise((resolve,reject)=>{
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
     const xhr = new XMLHttpRequest();
     job.xhr = xhr;
-    xhr.open("POST",`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`);
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, true);
     xhr.upload.onprogress = e=>{
-      if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;renderUploadJobs();}
+      if(e.lengthComputable){
+        job.progress = e.total ? e.loaded / e.total * 100 : 0;
+        job.uploaded = e.loaded;
+        renderUploadJobs();
+      }
     };
     xhr.onload = ()=>{
-      let data={};try{data=JSON.parse(xhr.responseText||"{}")}catch{}
-      if(xhr.status>=200 && xhr.status<300 && data.secure_url){
-        job.progress=100;job.status="uploaded";job.uploaded=file.size;job.result=data;renderUploadJobs();resolve(data);
+      let data = {};
+      try{ data = JSON.parse(xhr.responseText || "{}"); }catch{}
+      if(xhr.status >= 200 && xhr.status < 300 && data.secure_url){
+        job.progress = 100;
+        job.status = "uploaded";
+        job.uploaded = file.size;
+        job.result = data;
+        renderUploadJobs();
+        resolve(data);
       }else{
-        const reason=data.error?.message || `Cloudinary رفض رفع الصورة (HTTP ${xhr.status})`;
-        reject(new Error(reason));
+        reject(new Error(data?.error?.message || `Cloudinary رفض رفع الصورة (HTTP ${xhr.status})`));
       }
     };
     xhr.onerror = ()=>reject(new Error("تعذر الاتصال بخدمة رفع الصور. تحقق من الإنترنت أو جرّب شبكة أخرى."));
