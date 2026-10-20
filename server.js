@@ -1628,18 +1628,7 @@ app.post("/api/social/media-signature", async (req, res) => {
             return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
         }
 
-        if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-            console.error("SOCIAL MEDIA SIGNATURE CONFIG:", JSON.stringify({
-                cloudName:!!CLOUDINARY_CLOUD_NAME,
-                apiKey:!!CLOUDINARY_API_KEY,
-                apiSecret:!!CLOUDINARY_API_SECRET,
-                cloudinaryUrl:!!String(process.env.CLOUDINARY_URL || "").trim()
-            }));
-            return res.status(503).json({
-                success:false,
-                message:"تعذر قراءة إعدادات Cloudinary من الخادم. راجع سجل Deployment لمعرفة أي قيمة لم تُقرأ؛ لا حاجة لإرسال المفاتيح السرية."
-            });
-        }
+        // لا نفحص متغيرات Cloudinary هنا؛ نستخدم الإعدادات المشتركة كما هي.
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         const isImage = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"].includes(mimeType);
@@ -6041,10 +6030,7 @@ async function generateGeminiImage(prompt, { aspectRatio = "9:16", imageSize = "
 }
 
 async function uploadBase64ToCloudinary(base64, mimeType = "image/jpeg", folder = "wallpaperhub/ai"){
-    if(!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET){
-        throw new Error("متغيرات Cloudinary ناقصة: CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET");
-    }
-
+    // لا نوقف العملية بفحص مسبق لمتغيرات Cloudinary.
     const timestamp = Math.floor(Date.now() / 1000);
     const publicId = `ai-${Date.now()}-${crypto.randomBytes(6).toString("hex")}`;
     const signaturePayload = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
