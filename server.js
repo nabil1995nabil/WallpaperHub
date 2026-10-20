@@ -1583,24 +1583,9 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const user = await getAuthenticatedUser(req);
         if (!user) return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
 
-        // إعدادات Cloudinary المشتركة؛ لا نُصدر توقيعاً إذا كانت الإعدادات ناقصة.
-        const cloudName = CLOUDINARY_CLOUD_NAME;
-        const apiKey = CLOUDINARY_API_KEY;
-        const apiSecret = CLOUDINARY_API_SECRET;
-
-        // لا نوقف تجهيز التوقيع بسبب فحص مسبق لـ apiKey هنا.
-        // نحتفظ بإرجاع apiKey للواجهة، لأن Cloudinary يحتاجه في طلب الرفع نفسه.
-        if (!cloudName || !apiSecret) {
-            console.error("PUBLISH CLOUDINARY CONFIG MISSING:", JSON.stringify({
-                cloudName: Boolean(cloudName),
-                apiSecret: Boolean(apiSecret),
-                cloudinaryUrl: Boolean(String(process.env.CLOUDINARY_URL || "").trim())
-            }));
-            return res.status(503).json({
-                success:false,
-                message:"تعذر تجهيز توقيع Cloudinary على السيرفر."
-            });
-        }
+        // استعمل إعدادات Cloudinary الحالية عند كل طلب، دون فحص مسبق للمتغيرات
+        // أو إيقاف الرفع برسالة "إعدادات ناقصة". لا نخزن المفاتيح في المتصفح.
+        const { cloudName, apiKey, apiSecret } = readCloudinaryConfig();
 
         const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
         if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
@@ -1613,8 +1598,8 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`);
         return res.json({ success:true, cloudName, apiKey, timestamp, folder, publicId, signature });
     } catch (error) {
-        console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.message || error);
-        return res.status(500).json({ success:false, message:"تعذر تجهيز رفع الصورة" });
+        console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.stack || error?.message || error);
+        return res.status(500).json({ success:false, message:"تعذر تجهيز توقيع Cloudinary على السيرفر." });
     }
 });
 
