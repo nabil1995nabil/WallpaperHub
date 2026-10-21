@@ -40,6 +40,27 @@ document.addEventListener("DOMContentLoaded", () => {
     return v ? `wallpaper.html?id=${encodeURIComponent(v)}` : "";
   }
 
+  // UID public profile links follow profile.js convention.
+  function profileUrl(uid) {
+    const v = String(uid ?? "").trim();
+    return v ? `profile.html?uid=${encodeURIComponent(v)}` : "";
+  }
+
+  function notificationActorId(notif) {
+    return String(
+      notif?.actorId ?? notif?.actor_id ??
+      notif?.followerId ?? notif?.follower_id ??
+      notif?.fromUserId ?? notif?.from_user_id ??
+      notif?.fromUser ?? notif?.from_user ??
+      notif?.userId ?? notif?.user_id ?? ""
+    ).trim();
+  }
+
+  function isFollowNotification(notif) {
+    return ["follow", "user_follow", "new_follower", "new_follow", "follow_user", "user_followed"]
+      .includes(String(notif?.type || "").toLowerCase());
+  }
+
   function communityUrl(messageId) {
     const id = String(messageId ?? "").trim();
     return id ? `community.html?message=${encodeURIComponent(id)}` : "community.html";
@@ -100,7 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const n = new Notification(title, {body, icon:"assets/images/user.png", tag:`wh-${notif?.id || Date.now()}`});
     n.onclick = () => {
       window.focus();
-      if (notif?.wallpaperId) location.href = wallpaperUrl(notif.wallpaperId);
+      if (isFollowNotification(notif)) {
+        const target = profileUrl(notificationActorId(notif));
+        if (target) location.href = target;
+      } else if (notif?.wallpaperId) {
+        location.href = wallpaperUrl(notif.wallpaperId);
+      }
       n.close();
     };
   }
@@ -110,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "wallpaper_like" || type === "comment_like") return "like";
     if (type === "wallpaper_comment") return "comment";
     if (type === "wallpaper_mention" || type === "community_mention") return "mention";
+    if (["follow", "user_follow", "new_follower", "new_follow", "follow_user", "user_followed"].includes(String(type).toLowerCase())) return "follow";
     if (type.startsWith("community_") || type === "community_moderation") return "community";
     return "other";
   }
@@ -164,6 +191,41 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
+
+
+  function renderFollowNotification(notif) {
+    if (!isFollowNotification(notif)) return null;
+    const actorId = notificationActorId(notif);
+    const target = profileUrl(actorId);
+    const userName = escapeHTML(notif.userName || notif.user_name || notif.actorName || notif.actor_name || "مستخدم");
+    const avatar = escapeHTML(notif.avatar || notif.avatarUrl || notif.avatar_url || "assets/images/user.png");
+    const date = escapeHTML(notif.date || notif.created_at || "الآن");
+    const content = escapeHTML(notif.content || "بدأ بمتابعتك على WallpaperHub");
+    const targetAttr = escapeHTML(target);
+    return {
+      category: "follow",
+      html: `
+        <div class="card-side-indicator follow-indicator"></div>
+        <button type="button" class="follow-avatar-button" data-profile-target="${targetAttr}" ${target ? "" : "disabled"} aria-label="فتح ملف ${userName}">
+          <div class="avatar-container">
+            <img src="${avatar}" class="avatar" loading="lazy" onerror="this.src='assets/images/user.png'">
+            <span class="type-badge follow-badge">＋</span>
+          </div>
+        </button>
+        <div class="notif-body">
+          <button type="button" class="follow-user-link" data-profile-target="${targetAttr}" ${target ? "" : "disabled"}><strong>${userName}</strong></button>
+          <p class="notif-text">${content}</p>
+          <button type="button" class="follow-open-profile" data-profile-target="${targetAttr}" ${target ? "" : "disabled"}>
+            <span class="material-icons">account_circle</span>
+            فتح الملف الشخصي
+            <span class="material-icons follow-open-arrow">arrow_back</span>
+          </button>
+          <div class="notif-meta">${date}</div>
+        </div>
+        <button class="card-check-read" type="button" title="تحديد كمقروء" aria-label="تحديد كمقروء"><span class="material-icons">done</span></button>`
+    };
+  }
+
   function renderCommunityNotification(notif) {
     const type = String(notif.type || "");
     if (!type.startsWith("community_")) return null;
@@ -217,15 +279,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     filtered.forEach(n => {
-      const rendered = String(n.type || "").startsWith("community_")
-        ? renderCommunityNotification(n)
-        : renderNotificationCard(n);
+      const rendered = isFollowNotification(n)
+        ? renderFollowNotification(n)
+        : String(n.type || "").startsWith("community_")
+          ? renderCommunityNotification(n)
+          : renderNotificationCard(n);
       if (!rendered) return;
       const card = document.createElement("article");
       card.className = `notif-card ${isUnread(n) ? "unread" : ""} ${rendered.category === "community" ? "community-notification" : ""}`;
       card.dataset.notificationId = String(n.id || "");
       card.dataset.category = rendered.category;
       card.dataset.wallpaperId = String(n.wallpaperId || "");
+      card.dataset.profileUid = notificationActorId(n);
       card.innerHTML = rendered.html;
       feed.appendChild(card);
       shown++;
@@ -438,6 +503,17 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#empty-refresh").addEventListener("click",()=>$("#refresh-btn").click());
 
   document.addEventListener("click", async e => {
+    const profileBtn = e.target.closest("[data-profile-target]");
+    if (profileBtn) {
+      const card = profileBtn.closest(".notif-card");
+      const target = String(profileBtn.dataset.profileTarget || "").trim();
+      if (target) {
+        await markRead(card);
+        location.href = target;
+      }
+      return;
+    }
+
     const communityBtn=e.target.closest(".community-open-btn");
     if (communityBtn) {
       const card=communityBtn.closest(".notif-card");

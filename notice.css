@@ -119,3 +119,22 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .community-open-btn .material-icons{font-size:16px}
 .community-notification .community-appeal-btn{background:#fff5f2;border-color:#ffe0d6;color:#c65336}
 @media(max-width:560px){.community-help-strip{align-items:flex-start;flex-wrap:wrap}.community-help-copy{padding-top:2px}.community-help-link{margin-right:49px}.community-help-copy span{font-size:8.5px}}
+
+
+/* Follow notifications */
+.follow-indicator{background:#16a36b}
+.notif-card:has(.follow-open-profile){border-color:#d6efe3;background:linear-gradient(110deg,#fff,#f7fffb)}
+.follow-avatar-button,.follow-user-link{padding:0;border:0;background:transparent;color:inherit;text-align:right}
+.follow-avatar-button{align-self:flex-start;flex:0 0 46px}
+.follow-avatar-button .avatar-container{width:46px;height:46px}
+.follow-badge{background:#16a36b;color:#fff}
+.follow-user-link{display:inline-block;margin:0 0 2px;font-size:12px}
+.follow-user-link strong{color:#152c25;font-weight:900}
+.follow-open-profile{width:100%;margin-top:7px;padding:8px 10px;display:flex;align-items:center;gap:6px;border:1px solid #ccebdd;border-radius:10px;background:#effbf5;color:#168153;font-size:10px;font-weight:850;text-align:right}
+.follow-open-profile .material-icons{font-size:17px}
+.follow-open-profile .follow-open-arrow{margin-right:auto}
+.follow-avatar-button:disabled,.follow-user-link:disabled,.follow-open-profile:disabled{opacity:.55;cursor:default}
+@media(max-width:560px){
+  .follow-avatar-button{flex-basis:42px}
+  .follow-avatar-button .avatar-container{width:42px;height:42px}
+}

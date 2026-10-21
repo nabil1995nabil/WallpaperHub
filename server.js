@@ -2779,6 +2779,7 @@ function notificationTitle(type){
     if(type === "comment_like") return "إعجاب بتعليقك ❤️";
     if(type === "comment_reply") return "رد على تعليقك 💬";
     if(type === "new_wallpaper") return "خلفية جديدة منشورة 🖼️";
+    if(type === "new_follower") return "متابع جديد 👤";
     return "إشعار جديد";
 }
 
@@ -3623,6 +3624,7 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
         if(readError) throw readError;
 
         let followingNow;
+        let notificationCreated = false;
         if(existing){
             const {error}=await supabase.from("user_follows").delete()
                 .eq("follower_id",String(user.id)).eq("followed_id",targetUID);
@@ -3632,6 +3634,20 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
             const {error}=await supabase.from("user_follows").insert({follower_id:String(user.id),followed_id:targetUID});
             if(error && error.code!=="23505") throw error;
             followingNow=true;
+
+            // أرسل إشعارًا عند إنشاء المتابعة فقط، ولا ترسل إشعارًا عند إلغاء المتابعة.
+            // فشل الإشعار لا يلغي عملية المتابعة التي نجحت بالفعل.
+            try{
+                const notification = await createNotification({
+                    recipientUID:targetUID,
+                    fromUser:user.id,
+                    type:"new_follower",
+                    message:"بدأ بمتابعتك على WallpaperHub."
+                });
+                notificationCreated = Boolean(notification);
+            }catch(notificationError){
+                console.error("NEW FOLLOWER NOTIFICATION ERROR:",notificationError?.message || notificationError);
+            }
         }
 
         const [{count:followers,error:followersError},{count:following,error:followingError}] = await Promise.all([
@@ -3640,7 +3656,7 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
         ]);
         if(followersError) throw followersError;
         if(followingError) throw followingError;
-        return res.json({success:true,is_following:followingNow,followers:Number(followers||0),following:Number(following||0)});
+        return res.json({success:true,is_following:followingNow,followers:Number(followers||0),following:Number(following||0),notification_created:notificationCreated});
     }catch(error){
         console.error("FOLLOW TOGGLE ERROR:",error.message);
         return res.status(500).json({success:false,message:"تعذرت معالجة المتابعة. تأكد من إعداد جدول user_follows."});
