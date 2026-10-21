@@ -594,6 +594,18 @@ function isOwnProfile(){
     return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
 }
 
+function updatePublicProfileActions(){
+    const actions = document.getElementById("publicProfileActions");
+    const editButton = document.getElementById("heroEditProfileBtn");
+    const pointsButton = document.getElementById("profilePointsBtn");
+    if(!actions) return;
+
+    const viewingOther = Boolean(isPublicProfile && !isOwnProfile());
+    actions.hidden = !viewingOther;
+    if(editButton) editButton.style.display = viewingOther ? "none" : "";
+    if(pointsButton && viewingOther) pointsButton.style.display = "none";
+}
+
 function hideOwnerEditControls(){
     const ids = [
         "editProfileBtn",
@@ -804,6 +816,7 @@ async function loadPublicProfile(uid){
         await loadProfileMedals(targetUID);
 
         publicProfileLoaded = targetUID;
+        updatePublicProfileActions();
         console.log("✅ PUBLIC PROFILE LOADED:", targetUID);
     }catch(error){
         console.error("PUBLIC PROFILE LOAD ERROR:", error);
@@ -1450,6 +1463,34 @@ const heroUsername = document.getElementById("heroUsername");
 const heroBio = document.getElementById("heroBio");
 const heroJoinDate = document.getElementById("heroJoinDate");
 const heroEditProfileBtn = document.getElementById("heroEditProfileBtn");
+const publicProfileActions = document.getElementById("publicProfileActions");
+const followProfileBtn = document.getElementById("followProfileBtn");
+const messageProfileBtn = document.getElementById("messageProfileBtn");
+
+if(followProfileBtn){
+    followProfileBtn.addEventListener("click", async () => {
+        if(!currentUser){
+            alert("سجّل الدخول أولاً حتى تتمكن من متابعة الأعضاء.");
+            return;
+        }
+        if(!profileTargetUID || isOwnProfile()) return;
+        // حدث موحّد لربط واجهة المتابعة لاحقاً بطبقة الخادم/قاعدة البيانات.
+        window.dispatchEvent(new CustomEvent("wallpaperhub:follow-request", {
+            detail:{ followerId:currentUser.id, followedId:profileTargetUID }
+        }));
+        alert("واجهة المتابعة جاهزة. لحفظ المتابعة بشكل دائم، يلزم ربطها بجدول المتابعات في قاعدة البيانات.");
+    });
+}
+if(messageProfileBtn){
+    messageProfileBtn.addEventListener("click", () => {
+        if(!currentUser){
+            alert("سجّل الدخول أولاً لإرسال رسالة.");
+            return;
+        }
+        alert("نظام الرسائل غير مربوط بهذه الصفحة حالياً.");
+    });
+}
+
 
 function getHeroUsername(name, user, profileData = null){
     const metadata = user?.user_metadata || {};

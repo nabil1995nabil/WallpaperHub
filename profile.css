@@ -2348,3 +2348,55 @@ body.dark .profile-social-link{
     #profilePointsBtn .material-icons{font-size:13px;}
     #profilePointsValue{font-size:10px;}
 }
+
+
+/* Public profile follow actions */
+.public-profile-actions{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    margin-top:14px;
+    direction:rtl;
+}
+.public-profile-actions[hidden]{display:none!important}
+.follow-profile-btn{
+    min-width:150px;
+    height:48px;
+    padding:0 22px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border-radius:28px;
+    background:linear-gradient(135deg,#1764f5,#2858e8);
+    color:#fff;
+    font-size:15px;
+    font-weight:800;
+    box-shadow:0 8px 20px rgba(37,99,235,.20);
+    cursor:pointer;
+    transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.follow-profile-btn:active{transform:scale(.97)}
+.follow-profile-btn:hover{box-shadow:0 10px 24px rgba(37,99,235,.28)}
+.follow-profile-btn .material-icons{font-size:21px}
+.follow-profile-btn.is-following{
+    color:#3159d9;
+    background:#edf2ff;
+    border:1px solid #dbe5ff;
+    box-shadow:none;
+}
+.message-profile-btn{
+    width:48px;height:48px;flex:0 0 48px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:50%;background:#fff;color:#596579;
+    box-shadow:0 6px 20px rgba(35,45,80,.10);
+    border:1px solid #edf0f6;cursor:pointer;
+}
+.message-profile-btn .material-icons{font-size:23px}
+@media(max-width:600px){
+    .public-profile-actions{margin-top:13px;gap:9px}
+    .follow-profile-btn{height:46px;min-width:132px;padding:0 18px;font-size:14px}
+    .message-profile-btn{width:46px;height:46px;flex-basis:46px}
+}
