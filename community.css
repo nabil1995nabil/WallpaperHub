@@ -2009,3 +2009,16 @@ body.community-dark .private-conversation,
 body.community-dark .attachment-preview{background:#131e30;border-color:#2a3850;color:#e8edf8}
 body.community-dark .toast{background:#172236;border-color:#2a3850;color:#f0f4ff}
 body.community-dark .panel-back{background:#1b2940;border-color:#2a3850;color:#e8edf8}
+
+
+/* زر متابعة صغير ومتناسق بجانب اسم العضو */
+.member-name-line{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.member-name-line b{min-width:0;overflow-wrap:anywhere}
+.member-follow-button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:21px;padding:2px 7px;border:1px solid rgba(79,116,255,.24);border-radius:7px;background:#f4f6ff;color:#4f68dc;font-size:9px;font-weight:800;line-height:1.2;white-space:nowrap;cursor:pointer;transition:background .16s,border-color .16s,opacity .16s}
+.member-follow-button:hover{background:#e9edff;border-color:rgba(79,116,255,.48)}
+.member-follow-button:disabled{opacity:.6;cursor:wait}
+.member-follow-button.is-loading{opacity:.65}
+.member-follow-button.hidden{display:none!important}
+body.community-dark .member-follow-button{background:#172342;border-color:#344779;color:#b9c7ff}
+body.community-dark .member-follow-button:hover{background:#22325a}
+@media(max-width:520px){.member-name-line{gap:4px}.member-follow-button{min-height:20px;padding:2px 6px;font-size:8px;border-radius:6px}}

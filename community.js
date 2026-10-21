@@ -8,6 +8,8 @@ let currentUser = null;
 let realtimeChannel = null;
 let reconnectTimer = null;
 let membersCache = [];
+const memberFollowState = new Map();
+let memberFollowRefreshPromise = null;
 let activeTab = 'general';
 let privateTarget = null;
 let privateConversationId = null;
@@ -1274,11 +1276,48 @@ function memberElement(member){
 
   const info = document.createElement('div');
   info.className = 'member-info';
+  const nameLine = document.createElement('div');
+  nameLine.className = 'member-name-line';
   const name = document.createElement('b');
   name.textContent = member.name || 'عضو';
+  nameLine.appendChild(name);
+
   const username = document.createElement('small');
+  username.className = 'member-username';
   username.textContent = member.username ? '@' + member.username : 'عضو في المجتمع';
-  info.append(name, username);
+  info.append(nameLine, username);
+
+  const followButton = document.createElement('button');
+  followButton.type = 'button';
+  followButton.className = 'member-follow-button hidden';
+  followButton.textContent = '+ متابعة';
+  followButton.setAttribute('aria-label', `متابعة ${member.name || 'العضو'}`);
+  followButton.dataset.followUserId = String(member.id || '');
+  followButton.addEventListener('click', async event => {
+    event.stopPropagation();
+    if(!currentUser){ showToast('سجّل الدخول أولًا لمتابعة الأعضاء'); return; }
+    const uid = String(member.id || '');
+    if(!uid || uid === String(currentUser.id)) return;
+    if(followButton.disabled) return;
+    followButton.disabled = true;
+    followButton.classList.add('is-loading');
+    try{
+      const result = await fetchJson(`/api/users/${encodeURIComponent(uid)}/follow`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', ...(await authHeaders())},
+        body:JSON.stringify({})
+      });
+      const isFollowing = Boolean(result.is_following);
+      memberFollowState.set(uid, isFollowing);
+      updateMemberFollowButton(followButton, uid);
+      showToast(isFollowing ? `أصبحت تتابع ${member.name || 'هذا العضو'}` : 'تم إلغاء المتابعة');
+    }catch(error){
+      showToast(error.message || 'تعذرت متابعة العضو');
+    }finally{
+      followButton.disabled = false;
+      followButton.classList.remove('is-loading');
+    }
+  });
 
   const online = document.createElement('i');
   online.className = 'member-online';
@@ -1290,7 +1329,9 @@ function memberElement(member){
   icon.className = 'material-icons-round';
   icon.textContent = 'chat_bubble';
   messageButton.appendChild(icon);
+  nameLine.appendChild(followButton);
   item.append(avatar, info, online, messageButton);
+  updateMemberFollowButton(followButton, String(member.id || ''));
 
   messageButton.addEventListener('click', event => {
     event.stopPropagation();
@@ -1300,6 +1341,51 @@ function memberElement(member){
   return item;
 }
 
+function updateMemberFollowButton(button, uid){
+  if(!button) return;
+  const ownAccount = !currentUser || String(currentUser.id) === String(uid);
+  const isFollowing = memberFollowState.get(String(uid));
+  // لا نعرض زر المتابعة للحساب الشخصي أو لمن نتابعه بالفعل.
+  button.classList.toggle('hidden', ownAccount || isFollowing === true);
+  button.classList.toggle('is-following', isFollowing === true);
+  button.textContent = '+ متابعة';
+  button.disabled = false;
+}
+
+async function refreshMemberFollowStates(){
+  if(!currentUser || !membersCache.length) {
+    memberFollowState.clear();
+    document.querySelectorAll('.member-follow-button').forEach(button => {
+      updateMemberFollowButton(button, button.dataset.followUserId);
+    });
+    return;
+  }
+  if(memberFollowRefreshPromise) return memberFollowRefreshPromise;
+  memberFollowRefreshPromise = (async () => {
+    const targets = membersCache.filter(member => member.id && String(member.id) !== String(currentUser.id));
+    let index = 0;
+    const workers = Array.from({length:Math.min(6, targets.length)}, async () => {
+      while(index < targets.length){
+        const member = targets[index++];
+        const uid = String(member.id);
+        try{
+          const result = await fetchJson(`/api/users/${encodeURIComponent(uid)}/follow-stats`, {headers:await authHeaders()});
+          memberFollowState.set(uid, Boolean(result.is_following));
+        }catch(error){
+          // لا نخفي الزر بناءً على تخمين إذا تعذر تحميل الحالة.
+          console.warn('MEMBER FOLLOW STATE ERROR:', error?.message || error);
+        }
+      }
+    });
+    await Promise.all(workers);
+    document.querySelectorAll('.member-follow-button').forEach(button => {
+      updateMemberFollowButton(button, button.dataset.followUserId);
+    });
+  })();
+  try{ await memberFollowRefreshPromise; }
+  finally{ memberFollowRefreshPromise = null; }
+}
+
 async function loadMembers(){
   const preview = $('#membersPreview');
   preview.innerHTML = '<div class="mini-loading">جاري تحميل الأعضاء...</div>';
@@ -1307,6 +1393,7 @@ async function loadMembers(){
   try{
     const result = await fetchJson('/api/community/members?limit=50');
     membersCache = Array.isArray(result.members) ? result.members : [];
+    memberFollowState.clear();
 
     $('#statMembers').textContent = String(membersCache.length);
 
@@ -1318,6 +1405,7 @@ async function loadMembers(){
     if(!membersCache.length){
       preview.innerHTML = '<div class="mini-loading">لا يوجد أعضاء لعرضهم بعد.</div>';
     }
+    await refreshMemberFollowStates();
   }catch(error){
     const errorNode = document.createElement('div'); errorNode.className = 'mini-loading'; errorNode.textContent = error.message || 'تعذر تحميل الأعضاء'; preview.replaceChildren(errorNode);
   }
@@ -2848,8 +2936,14 @@ try {
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState === 'visible' && (location.pathname.split('/').pop() || '').toLowerCase() === 'community.html'){
     markCommunitySectionRead();
+    refreshMemberFollowStates().catch(()=>{});
   }
 });
+
+window.addEventListener('pageshow', () => {
+  if((location.pathname.split('/').pop() || '').toLowerCase() === 'community.html') refreshMemberFollowStates().catch(()=>{});
+});
+window.addEventListener('focus', () => { refreshMemberFollowStates().catch(()=>{}); });
 
 document.addEventListener('keydown',event => {
   if(event.key !== 'Escape') return;
