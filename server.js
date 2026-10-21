@@ -3598,16 +3598,15 @@ app.get("/api/users/:uid/follow-stats", async (req,res)=>{
         let isFollowing=false;
         let isFollower=false;
         if(viewer && String(viewer.id)!==targetUID){
-            // هل الزائر يتابع هذا العضو؟
-            const {data:followingRow,error:followingStateError}=await supabase.from("user_follows").select("follower_id")
-                .eq("follower_id",String(viewer.id)).eq("followed_id",targetUID).maybeSingle();
-            if(followingStateError) throw followingStateError;
+            const [{data:followingRow,error:followingRowError},{data:followerRow,error:followerRowError}] = await Promise.all([
+                supabase.from("user_follows").select("follower_id")
+                    .eq("follower_id",String(viewer.id)).eq("followed_id",targetUID).maybeSingle(),
+                supabase.from("user_follows").select("follower_id")
+                    .eq("follower_id",targetUID).eq("followed_id",String(viewer.id)).maybeSingle()
+            ]);
+            if(followingRowError) throw followingRowError;
+            if(followerRowError) throw followerRowError;
             isFollowing=Boolean(followingRow);
-
-            // هل هذا العضو يتابع الزائر؟ نحتاجها لإظهار زر المجتمع فقط لمن لا توجد بينهما متابعة.
-            const {data:followerRow,error:followerStateError}=await supabase.from("user_follows").select("follower_id")
-                .eq("follower_id",targetUID).eq("followed_id",String(viewer.id)).maybeSingle();
-            if(followerStateError) throw followerStateError;
             isFollower=Boolean(followerRow);
         }
         return res.json({success:true,user_id:targetUID,followers:Number(followers||0),following:Number(following||0),is_following:isFollowing,is_follower:isFollower});

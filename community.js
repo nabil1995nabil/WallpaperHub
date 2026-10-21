@@ -754,10 +754,18 @@ function renderMessage(message){
   const name = document.createElement('b');
   name.textContent = user.name || 'عضو';
 
+  // زر صغير بجانب اسم مرسل الرسالة في الغرفة العامة.
+  const messageFollowButton = createFollowButton({
+    id: String(message.userId || user.id || ''),
+    name: user.name || 'عضو',
+    username: user.username || '',
+    avatarUrl: user.avatarUrl || ''
+  }, 'message-follow-button');
+
   const time = document.createElement('time');
   time.textContent = timeOf(message.createdAt);
-
-  meta.append(name,time);
+  if(messageFollowButton) meta.append(name, messageFollowButton, time);
+  else meta.append(name, time);
 
   const bubble = document.createElement('div');
   const hasImage = Boolean(message.imageUrl) && !message.deleted;
@@ -866,6 +874,7 @@ function addRealtimeMessage(message){
   feed.appendChild(renderMessage(message));
   feed.scrollTop = feed.scrollHeight;
   updateMessageCount();
+  refreshMemberFollowStates().catch(()=>{});
   if(activeTab === 'files') renderSharedFiles();
 }
 
@@ -900,6 +909,7 @@ async function loadMessages(){
   messages.forEach(message => feed.appendChild(renderMessage(message)));
   feed.scrollTop = feed.scrollHeight;
   updateMessageCount();
+  refreshMemberFollowStates().catch(()=>{});
 }
 
 function subscribeToMessages(){
@@ -1255,6 +1265,51 @@ function updateMessageCount(){
   $('#statMessages').textContent = String(count);
 }
 
+function createFollowButton(member, extraClass=''){
+  const uid = String(member?.id || '');
+  if(!uid) return null;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `member-follow-button ${extraClass}`.trim();
+  button.textContent = '+ متابعة';
+  button.setAttribute('aria-label', `متابعة ${member.name || 'العضو'}`);
+  button.dataset.followUserId = uid;
+  button.classList.toggle('hidden', !currentUser || uid === String(currentUser.id));
+  button.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleFollowButtonClick(member, button);
+  });
+  updateMemberFollowButton(button, uid);
+  return button;
+}
+
+async function handleFollowButtonClick(member, button){
+  if(!currentUser){ showToast('سجّل الدخول أولًا لمتابعة الأعضاء'); return; }
+  const uid = String(member?.id || button?.dataset.followUserId || '');
+  if(!uid || uid === String(currentUser.id) || !button || button.disabled) return;
+  button.disabled = true;
+  button.classList.add('is-loading');
+  try{
+    const result = await fetchJson(`/api/users/${encodeURIComponent(uid)}/follow`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', ...(await authHeaders())},
+      body:JSON.stringify({})
+    });
+    const oldState = memberFollowState.get(uid) || {};
+    memberFollowState.set(uid, {isFollowing:Boolean(result.is_following), isFollower:Boolean(oldState.isFollower)});
+    document.querySelectorAll('.member-follow-button').forEach(otherButton => {
+      if(String(otherButton.dataset.followUserId) === uid) updateMemberFollowButton(otherButton, uid);
+    });
+    showToast(result.is_following ? `أصبحت تتابع ${member.name || 'هذا العضو'}` : 'تم إلغاء المتابعة');
+  }catch(error){
+    showToast(error.message || 'تعذرت متابعة العضو');
+  }finally{
+    button.disabled = false;
+    button.classList.remove('is-loading');
+  }
+}
+
 function memberElement(member){
   const item = document.createElement('div');
   item.className = 'member-item';
@@ -1287,37 +1342,7 @@ function memberElement(member){
   username.textContent = member.username ? '@' + member.username : 'عضو في المجتمع';
   info.append(nameLine, username);
 
-  const followButton = document.createElement('button');
-  followButton.type = 'button';
-  followButton.className = 'member-follow-button';
-  followButton.textContent = '+ متابعة';
-  followButton.setAttribute('aria-label', `متابعة ${member.name || 'العضو'}`);
-  followButton.dataset.followUserId = String(member.id || '');
-  followButton.addEventListener('click', async event => {
-    event.stopPropagation();
-    if(!currentUser){ showToast('سجّل الدخول أولًا لمتابعة الأعضاء'); return; }
-    const uid = String(member.id || '');
-    if(!uid || uid === String(currentUser.id)) return;
-    if(followButton.disabled) return;
-    followButton.disabled = true;
-    followButton.classList.add('is-loading');
-    try{
-      const result = await fetchJson(`/api/users/${encodeURIComponent(uid)}/follow`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json', ...(await authHeaders())},
-        body:JSON.stringify({})
-      });
-      const isFollowing = Boolean(result.is_following);
-      memberFollowState.set(uid, {isFollowing, isFollower:Boolean(memberFollowState.get(uid)?.isFollower)});
-      updateMemberFollowButton(followButton, uid);
-      showToast(isFollowing ? `أصبحت تتابع ${member.name || 'هذا العضو'}` : 'تم إلغاء المتابعة');
-    }catch(error){
-      showToast(error.message || 'تعذرت متابعة العضو');
-    }finally{
-      followButton.disabled = false;
-      followButton.classList.remove('is-loading');
-    }
-  });
+  const followButton = createFollowButton(member);
 
   const online = document.createElement('i');
   online.className = 'member-online';
@@ -1345,28 +1370,32 @@ function updateMemberFollowButton(button, uid){
   if(!button) return;
   const ownAccount = !currentUser || String(currentUser.id) === String(uid);
   const state = memberFollowState.get(String(uid));
-  const isFollowing = typeof state === 'object' ? Boolean(state.isFollowing) : state === true;
-  const isFollower = typeof state === 'object' ? Boolean(state.isFollower) : false;
-  // الزر يظهر مباشرة، ويختفي فقط للحساب الشخصي أو عند وجود متابعة بأي اتجاه.
+  const isFollowing = typeof state === 'boolean' ? state : Boolean(state?.isFollowing);
+  const isFollower = Boolean(state?.isFollower);
   button.classList.toggle('hidden', ownAccount || isFollowing || isFollower);
   button.classList.toggle('is-following', isFollowing);
   button.textContent = '+ متابعة';
-  button.disabled = false;
 }
 
 async function refreshMemberFollowStates(){
-  if(!currentUser || !membersCache.length) {
+  if(!currentUser){
     memberFollowState.clear();
-    document.querySelectorAll('.member-follow-button').forEach(button => {
-      updateMemberFollowButton(button, button.dataset.followUserId);
-    });
+    document.querySelectorAll('.member-follow-button').forEach(button => updateMemberFollowButton(button, button.dataset.followUserId));
     return;
   }
   if(memberFollowRefreshPromise) return memberFollowRefreshPromise;
   memberFollowRefreshPromise = (async () => {
-    const targets = membersCache.filter(member => member.id && String(member.id) !== String(currentUser.id));
+    const targetMap = new Map();
+    [...membersCache, ...communityMessagesCache.map(message => ({
+      id:String(message.userId || message.user?.id || ''),
+      name:message.user?.name || 'عضو'
+    }))].forEach(member => {
+      const uid = String(member?.id || '');
+      if(uid && uid !== String(currentUser.id) && !targetMap.has(uid)) targetMap.set(uid, member);
+    });
+    const targets = [...targetMap.values()];
     let index = 0;
-    const workers = Array.from({length:Math.min(6, targets.length)}, async () => {
+    const workers = Array.from({length:Math.min(8, targets.length)}, async () => {
       while(index < targets.length){
         const member = targets[index++];
         const uid = String(member.id);
@@ -1374,31 +1403,16 @@ async function refreshMemberFollowStates(){
           const result = await fetchJson(`/api/users/${encodeURIComponent(uid)}/follow-stats`, {headers:await authHeaders()});
           memberFollowState.set(uid, {isFollowing:Boolean(result.is_following), isFollower:Boolean(result.is_follower)});
         }catch(error){
-          // لا نخفي الزر بناءً على تخمين إذا تعذر تحميل الحالة.
           console.warn('MEMBER FOLLOW STATE ERROR:', error?.message || error);
         }
       }
     });
     await Promise.all(workers);
-    document.querySelectorAll('.member-follow-button').forEach(button => {
-      updateMemberFollowButton(button, button.dataset.followUserId);
-    });
+    document.querySelectorAll('.member-follow-button').forEach(button => updateMemberFollowButton(button, button.dataset.followUserId));
   })();
   try{ await memberFollowRefreshPromise; }
   finally{ memberFollowRefreshPromise = null; }
 }
-
-
-
-// حدّث حالة أزرار المتابعة عند الرجوع إلى المجتمع من صفحة أخرى.
-window.addEventListener('pageshow', () => {
-  if(currentUser && membersCache.length) refreshMemberFollowStates().catch(()=>{});
-});
-document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible' && currentUser && membersCache.length){
-    refreshMemberFollowStates().catch(()=>{});
-  }
-});
 
 async function loadMembers(){
   const preview = $('#membersPreview');
@@ -1419,7 +1433,9 @@ async function loadMembers(){
     if(!membersCache.length){
       preview.innerHTML = '<div class="mini-loading">لا يوجد أعضاء لعرضهم بعد.</div>';
     }
+    // استدعاء ثانٍ يضمن تحديث أعضاء القائمة حتى لو بدأ طلب حالة رسائل الدردشة بالتزامن.
     await refreshMemberFollowStates();
+    if(membersCache.length) await refreshMemberFollowStates();
   }catch(error){
     const errorNode = document.createElement('div'); errorNode.className = 'mini-loading'; errorNode.textContent = error.message || 'تعذر تحميل الأعضاء'; preview.replaceChildren(errorNode);
   }

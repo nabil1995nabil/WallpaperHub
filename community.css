@@ -2022,3 +2022,19 @@ body.community-dark .panel-back{background:#1b2940;border-color:#2a3850;color:#e
 body.community-dark .member-follow-button{background:#172342;border-color:#344779;color:#b9c7ff}
 body.community-dark .member-follow-button:hover{background:#22325a}
 @media(max-width:520px){.member-name-line{gap:4px}.member-follow-button{min-height:20px;padding:2px 6px;font-size:8px;border-radius:6px}}
+
+/* Compact follow control beside member and chat sender names */
+.message-follow-button{
+  min-height:18px;
+  padding:1px 6px;
+  border-radius:6px;
+  font-size:8px;
+  font-weight:800;
+  line-height:1.2;
+  margin-inline-start:1px;
+}
+.message-meta{flex-wrap:wrap}
+.message-follow-button.hidden{display:none!important}
+@media(max-width:520px){
+  .message-follow-button{min-height:18px;padding:1px 5px;font-size:8px}
+}
