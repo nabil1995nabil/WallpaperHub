@@ -4371,6 +4371,9 @@ app.post("/api/admin/review/:id", async (req, res) => {
       }
 
       const wallpaperPayload = {
+        // جدول wallpapers يتطلب id غير فارغ؛ مسار النشر المباشر يستخدم Date.now()
+        // كذلك، لذلك نستخدم معرّفًا رقميًا عند قبول طلب المراجعة.
+        id: Date.now(),
         title: submission.title,
         category: submission.category || "other",
         image: submission.image_url,
