@@ -196,6 +196,19 @@ alt="Avatar">
             </button>
         </div>
 
+        <!-- متابعة الحساب: عنصر ثابت داخل HTML حتى يظهر في الحساب الشخصي والعام -->
+        <div id="profileFollowStats" class="profile-follow-stats" dir="rtl" aria-label="إحصائيات المتابعة">
+            <button type="button" class="follow-stat-item" data-follow-list="followers" aria-label="عرض المتابعين">
+                <strong data-follow-count="followers">0</strong>
+                <span data-follow-label="followers">يتابعونك</span>
+            </button>
+            <span class="follow-stat-divider" aria-hidden="true"></span>
+            <button type="button" class="follow-stat-item" data-follow-list="following" aria-label="عرض الحسابات التي أتابعها">
+                <strong data-follow-count="following">0</strong>
+                <span data-follow-label="following">تتابعهم</span>
+            </button>
+        </div>
+
         <button id="heroEditProfileBtn"
                 class="hero-edit-profile"
                 type="button">

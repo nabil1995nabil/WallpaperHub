@@ -1477,44 +1477,51 @@ let followStatsTarget = "";
 let followStatsState = { followers:0, following:0, is_following:false };
 let followStatsRow = null;
 
-function ensureFollowStatsUI(){
-    if(followStatsRow) return followStatsRow;
-    const actions = document.getElementById("publicProfileActions");
-    const identity = document.querySelector(".identity-main");
-    if(!identity) return null;
+// عرض هيكل الإحصائيات فور تحميل الصفحة، ثم تعبئته من السيرفر عند توفر الجلسة.
+document.addEventListener("DOMContentLoaded",()=>renderFollowStats(),{once:true});
 
-    followStatsRow = document.createElement("div");
-    followStatsRow.className = "profile-follow-stats";
-    followStatsRow.id = "profileFollowStats";
-    followStatsRow.dir = "rtl";
-    followStatsRow.innerHTML = `
-      <button type="button" class="follow-stat-item" data-follow-list="followers">
-        <strong data-follow-count="followers">0</strong>
-        <span data-follow-label="followers">يتابعونك</span>
-      </button>
-      <span class="follow-stat-divider" aria-hidden="true"></span>
-      <button type="button" class="follow-stat-item" data-follow-list="following">
-        <strong data-follow-count="following">0</strong>
-        <span data-follow-label="following">تتابعهم</span>
-      </button>`;
-    if(actions && actions.parentElement === identity){
-        actions.insertAdjacentElement("afterend", followStatsRow);
-    }else if(actions){
-        actions.insertAdjacentElement("afterend", followStatsRow);
-    }else{
-        identity.appendChild(followStatsRow);
+function ensureFollowStatsUI(){
+    // استخدم العنصر الموجود في HTML حتى لا يعتمد ظهور الإحصائيات على إنشاء DOM ديناميكي.
+    followStatsRow = document.getElementById("profileFollowStats");
+    if(!followStatsRow){
+        const identity = document.querySelector(".identity-main");
+        if(!identity) return null;
+        followStatsRow = document.createElement("div");
+        followStatsRow.className = "profile-follow-stats";
+        followStatsRow.id = "profileFollowStats";
+        followStatsRow.dir = "rtl";
+        followStatsRow.innerHTML = `
+          <button type="button" class="follow-stat-item" data-follow-list="followers" aria-label="عرض المتابعين">
+            <strong data-follow-count="followers">0</strong>
+            <span data-follow-label="followers">يتابعونك</span>
+          </button>
+          <span class="follow-stat-divider" aria-hidden="true"></span>
+          <button type="button" class="follow-stat-item" data-follow-list="following" aria-label="عرض الحسابات التي أتابعها">
+            <strong data-follow-count="following">0</strong>
+            <span data-follow-label="following">تتابعهم</span>
+          </button>`;
+        const actions = document.getElementById("publicProfileActions");
+        if(actions && actions.parentElement === identity){
+            actions.insertAdjacentElement("afterend", followStatsRow);
+        }else{
+            identity.appendChild(followStatsRow);
+        }
     }
 
-    followStatsRow.querySelectorAll("[data-follow-list]").forEach(button=>{
-        button.addEventListener("click",()=>{
-            const type=button.dataset.followList;
-            // The list UI can be connected to a dedicated members page later.
-            window.dispatchEvent(new CustomEvent("wallpaperhub:follow-list-request",{
-                detail:{type,userId:followStatsTarget}
-            }));
-            alert(type==="followers" ? "سيتم فتح قائمة المتابعين هنا عند إضافة صفحة القائمة." : "سيتم فتح قائمة الحسابات التي يتابعها المستخدم عند إضافة صفحة القائمة.");
+    if(!followStatsRow.dataset.listenersAttached){
+        followStatsRow.querySelectorAll("[data-follow-list]").forEach(button=>{
+            button.addEventListener("click",()=>{
+                const type=button.dataset.followList;
+                window.dispatchEvent(new CustomEvent("wallpaperhub:follow-list-request",{
+                    detail:{type,userId:followStatsTarget}
+                }));
+                alert(type==="followers"
+                    ? "قائمة المتابعين ستُضاف في الخطوة التالية."
+                    : "قائمة الحسابات التي يتابعها المستخدم ستُضاف في الخطوة التالية.");
+            });
         });
-    });
+        followStatsRow.dataset.listenersAttached="true";
+    }
     return followStatsRow;
 }
 

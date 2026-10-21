@@ -2460,3 +2460,30 @@ body.dark .follow-stat-divider{background:#30394d}
     .follow-stat-item strong{font-size:19px}
     .follow-stat-item span{font-size:12px}
 }
+
+
+/* Follow statistics: fixed in the profile markup, visible on owner and public profiles */
+.profile-identity .identity-main > .profile-follow-stats{
+    position:relative;
+    display:flex;
+    width:100%;
+    max-width:100%;
+    min-height:68px;
+    margin:14px 0 0;
+    flex:0 0 auto;
+    visibility:visible;
+    opacity:1;
+}
+.profile-identity .identity-main > .profile-follow-stats[hidden]{display:none!important}
+@media(max-width:700px){
+    .profile-identity .identity-main > .profile-follow-stats{
+        width:100%;
+        max-width:100%;
+        min-height:62px;
+        margin-top:12px;
+        padding:8px 7px;
+        border-radius:17px;
+    }
+    .profile-identity .identity-main > .profile-follow-stats .follow-stat-item strong{font-size:19px}
+    .profile-identity .identity-main > .profile-follow-stats .follow-stat-item span{font-size:12px}
+}
