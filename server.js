@@ -3578,6 +3578,75 @@ app.get("/api/users/:uid/medals", async (req,res)=>{
     }
 });
 
+
+// ======================================
+// User Follow API — persistent Supabase storage
+// Requires table user_follows (see user_follows.sql)
+// ======================================
+app.get("/api/users/:uid/follow-stats", async (req,res)=>{
+    try{
+        const targetUID=String(req.params.uid || "").trim();
+        if(!targetUID) return res.status(400).json({success:false,message:"UID غير صالح"});
+        const [{count:followers,error:followersError},{count:following,error:followingError}] = await Promise.all([
+            supabase.from("user_follows").select("follower_id",{count:"exact",head:true}).eq("followed_id",targetUID),
+            supabase.from("user_follows").select("followed_id",{count:"exact",head:true}).eq("follower_id",targetUID)
+        ]);
+        if(followersError) throw followersError;
+        if(followingError) throw followingError;
+        const viewer=await getAuthenticatedUser(req);
+        let isFollowing=false;
+        if(viewer && String(viewer.id)!==targetUID){
+            const {data,error}=await supabase.from("user_follows").select("follower_id")
+                .eq("follower_id",String(viewer.id)).eq("followed_id",targetUID).maybeSingle();
+            if(error) throw error;
+            isFollowing=Boolean(data);
+        }
+        return res.json({success:true,user_id:targetUID,followers:Number(followers||0),following:Number(following||0),is_following:isFollowing});
+    }catch(error){
+        console.error("FOLLOW STATS ERROR:",error.message);
+        return res.status(500).json({success:false,message:"تعذر تحميل إحصائيات المتابعة"});
+    }
+});
+
+app.post("/api/users/:uid/follow", async (req,res)=>{
+    try{
+        const user=await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+        const targetUID=String(req.params.uid || "").trim();
+        if(!targetUID) return res.status(400).json({success:false,message:"UID غير صالح"});
+        if(String(user.id)===targetUID) return res.status(400).json({success:false,message:"لا يمكنك متابعة حسابك الشخصي"});
+        const {data:target,error:targetError}=await supabase.auth.admin.getUserById(targetUID);
+        if(targetError || !target?.user) return res.status(404).json({success:false,message:"الحساب غير موجود"});
+
+        const {data:existing,error:readError}=await supabase.from("user_follows").select("follower_id")
+            .eq("follower_id",String(user.id)).eq("followed_id",targetUID).maybeSingle();
+        if(readError) throw readError;
+
+        let followingNow;
+        if(existing){
+            const {error}=await supabase.from("user_follows").delete()
+                .eq("follower_id",String(user.id)).eq("followed_id",targetUID);
+            if(error) throw error;
+            followingNow=false;
+        }else{
+            const {error}=await supabase.from("user_follows").insert({follower_id:String(user.id),followed_id:targetUID});
+            if(error && error.code!=="23505") throw error;
+            followingNow=true;
+        }
+
+        const [{count:followers,error:followersError},{count:following,error:followingError}] = await Promise.all([
+            supabase.from("user_follows").select("follower_id",{count:"exact",head:true}).eq("followed_id",targetUID),
+            supabase.from("user_follows").select("followed_id",{count:"exact",head:true}).eq("follower_id",targetUID)
+        ]);
+        if(followersError) throw followersError;
+        if(followingError) throw followingError;
+        return res.json({success:true,is_following:followingNow,followers:Number(followers||0),following:Number(following||0)});
+    }catch(error){
+        console.error("FOLLOW TOGGLE ERROR:",error.message);
+        return res.status(500).json({success:false,message:"تعذرت معالجة المتابعة. تأكد من إعداد جدول user_follows."});
+    }
+});
+
 // ======================================
 // Public User Profile API
 // UID -> profiles / Auth metadata

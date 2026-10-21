@@ -706,6 +706,8 @@ async function loadPublicProfile(uid){
             return;
         }
 
+        void loadFollowStats(targetUID);
+
         const verified = await loadVerifiedStatus(
             targetUID,
             profile.is_verified
@@ -965,6 +967,7 @@ function updateLoginState(user){
 supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
+    if(!isPublicProfile && user?.id) void loadFollowStats(String(user.id));
     void refreshProfilePoints();
     // لا نربط إحصائية الإعجابات بتحميل البروفايل أو الخلفيات.
     void refreshLikeStats();
@@ -1467,20 +1470,145 @@ const publicProfileActions = document.getElementById("publicProfileActions");
 const followProfileBtn = document.getElementById("followProfileBtn");
 const messageProfileBtn = document.getElementById("messageProfileBtn");
 
+// ======================================
+// Follow system — server-backed and session-verified
+// ======================================
+let followStatsTarget = "";
+let followStatsState = { followers:0, following:0, is_following:false };
+let followStatsRow = null;
+
+function ensureFollowStatsUI(){
+    if(followStatsRow) return followStatsRow;
+    const actions = document.getElementById("publicProfileActions");
+    const identity = document.querySelector(".identity-main");
+    if(!identity) return null;
+
+    followStatsRow = document.createElement("div");
+    followStatsRow.className = "profile-follow-stats";
+    followStatsRow.id = "profileFollowStats";
+    followStatsRow.dir = "rtl";
+    followStatsRow.innerHTML = `
+      <button type="button" class="follow-stat-item" data-follow-list="followers">
+        <strong data-follow-count="followers">0</strong>
+        <span data-follow-label="followers">يتابعونك</span>
+      </button>
+      <span class="follow-stat-divider" aria-hidden="true"></span>
+      <button type="button" class="follow-stat-item" data-follow-list="following">
+        <strong data-follow-count="following">0</strong>
+        <span data-follow-label="following">تتابعهم</span>
+      </button>`;
+    if(actions && actions.parentElement === identity){
+        actions.insertAdjacentElement("afterend", followStatsRow);
+    }else if(actions){
+        actions.insertAdjacentElement("afterend", followStatsRow);
+    }else{
+        identity.appendChild(followStatsRow);
+    }
+
+    followStatsRow.querySelectorAll("[data-follow-list]").forEach(button=>{
+        button.addEventListener("click",()=>{
+            const type=button.dataset.followList;
+            // The list UI can be connected to a dedicated members page later.
+            window.dispatchEvent(new CustomEvent("wallpaperhub:follow-list-request",{
+                detail:{type,userId:followStatsTarget}
+            }));
+            alert(type==="followers" ? "سيتم فتح قائمة المتابعين هنا عند إضافة صفحة القائمة." : "سيتم فتح قائمة الحسابات التي يتابعها المستخدم عند إضافة صفحة القائمة.");
+        });
+    });
+    return followStatsRow;
+}
+
+function renderFollowStats(){
+    const row=ensureFollowStatsUI();
+    if(!row) return;
+    const own = !isPublicProfile || isOwnProfile();
+    const followersLabel = row.querySelector('[data-follow-label="followers"]');
+    const followingLabel = row.querySelector('[data-follow-label="following"]');
+    const followersCount = row.querySelector('[data-follow-count="followers"]');
+    const followingCount = row.querySelector('[data-follow-count="following"]');
+    if(followersCount) followersCount.textContent=Number(followStatsState.followers||0).toLocaleString("en-US");
+    if(followingCount) followingCount.textContent=Number(followStatsState.following||0).toLocaleString("en-US");
+    if(followersLabel) followersLabel.textContent=own ? "يتابعونك" : "يتابعونه";
+    if(followingLabel) followingLabel.textContent=own ? "تتابعهم" : "يتابعهم";
+    row.hidden=false;
+
+    if(followProfileBtn){
+        followProfileBtn.classList.toggle("is-following",Boolean(followStatsState.is_following));
+        followProfileBtn.innerHTML = followStatsState.is_following
+          ? '<span class="material-icons">how_to_reg</span><span>تتابعه</span>'
+          : '<span class="material-icons">person_add</span><span>متابعة</span>';
+        followProfileBtn.setAttribute("aria-pressed",String(Boolean(followStatsState.is_following)));
+        followProfileBtn.disabled=own;
+        if(own) followProfileBtn.style.display="none";
+        else followProfileBtn.style.display="";
+    }
+}
+
+async function loadFollowStats(uid){
+    const target=String(uid||"").trim();
+    if(!target) return;
+    followStatsTarget=target;
+    try{
+        const {data:sessionData}=await supabase.auth.getSession();
+        const token=sessionData?.session?.access_token;
+        const headers={Accept:"application/json"};
+        if(token) headers.Authorization=`Bearer ${token}`;
+        const response=await fetch(`/api/users/${encodeURIComponent(target)}/follow-stats`,{
+            method:"GET",headers,cache:"no-store"
+        });
+        const payload=await response.json().catch(()=>({}));
+        if(!response.ok || payload.success!==true) throw new Error(payload.message||"تعذر تحميل المتابعات");
+        if(followStatsTarget!==target) return;
+        followStatsState={
+            followers:Number(payload.followers||0),
+            following:Number(payload.following||0),
+            is_following:Boolean(payload.is_following)
+        };
+        renderFollowStats();
+    }catch(error){
+        console.warn("FOLLOW STATS LOAD ERROR:",error.message);
+        renderFollowStats();
+    }
+}
+
 if(followProfileBtn){
-    followProfileBtn.addEventListener("click", async () => {
+    followProfileBtn.addEventListener("click", async()=>{
         if(!currentUser){
             alert("سجّل الدخول أولاً حتى تتمكن من متابعة الأعضاء.");
             return;
         }
         if(!profileTargetUID || isOwnProfile()) return;
-        // حدث موحّد لربط واجهة المتابعة لاحقاً بطبقة الخادم/قاعدة البيانات.
-        window.dispatchEvent(new CustomEvent("wallpaperhub:follow-request", {
-            detail:{ followerId:currentUser.id, followedId:profileTargetUID }
-        }));
-        alert("واجهة المتابعة جاهزة. لحفظ المتابعة بشكل دائم، يلزم ربطها بجدول المتابعات في قاعدة البيانات.");
+        if(followProfileBtn.disabled) return;
+        followProfileBtn.disabled=true;
+        try{
+            const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+            if(sessionError) throw sessionError;
+            const token=sessionData?.session?.access_token;
+            if(!token) throw new Error("انتهت الجلسة. سجّل الدخول مجدداً.");
+            const response=await fetch(`/api/users/${encodeURIComponent(profileTargetUID)}/follow`,{
+                method:"POST",
+                headers:{Authorization:`Bearer ${token}`,Accept:"application/json","Content-Type":"application/json"},
+                body:"{}"
+            });
+            const payload=await response.json().catch(()=>({}));
+            if(!response.ok || payload.success!==true) throw new Error(payload.message||"تعذرت المتابعة");
+            followStatsState={
+                followers:Number(payload.followers||0),
+                following:followStatsState.following,
+                is_following:Boolean(payload.is_following)
+            };
+            renderFollowStats();
+            window.dispatchEvent(new CustomEvent("wallpaperhub:follow-changed",{
+                detail:{userId:profileTargetUID,isFollowing:followStatsState.is_following,followers:followStatsState.followers}
+            }));
+        }catch(error){
+            alert(error.message||"وقع خطأ أثناء المتابعة");
+        }finally{
+            followProfileBtn.disabled=false;
+        }
     });
 }
+
 if(messageProfileBtn){
     messageProfileBtn.addEventListener("click", () => {
         if(!currentUser){
