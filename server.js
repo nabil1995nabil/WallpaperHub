@@ -2498,7 +2498,7 @@ const GITHUB_STATIC_BASE =
 
 
 const STATIC_EXTENSIONS = new Set([
-    ".css", ".js", ".mjs", ".json", ".xml", ".map",
+    ".css", ".js", ".mjs", ".json", ".xml", ".txt", ".map",
     ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico",
     ".avif", ".bmp", ".webm", ".mp4", ".mov", ".m4v",
     ".woff", ".woff2", ".ttf", ".otf", ".eot"
