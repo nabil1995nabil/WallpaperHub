@@ -1289,7 +1289,7 @@ function memberElement(member){
 
   const followButton = document.createElement('button');
   followButton.type = 'button';
-  followButton.className = 'member-follow-button hidden';
+  followButton.className = 'member-follow-button';
   followButton.textContent = '+ متابعة';
   followButton.setAttribute('aria-label', `متابعة ${member.name || 'العضو'}`);
   followButton.dataset.followUserId = String(member.id || '');
@@ -1308,7 +1308,7 @@ function memberElement(member){
         body:JSON.stringify({})
       });
       const isFollowing = Boolean(result.is_following);
-      memberFollowState.set(uid, isFollowing);
+      memberFollowState.set(uid, {isFollowing, isFollower:Boolean(memberFollowState.get(uid)?.isFollower)});
       updateMemberFollowButton(followButton, uid);
       showToast(isFollowing ? `أصبحت تتابع ${member.name || 'هذا العضو'}` : 'تم إلغاء المتابعة');
     }catch(error){
@@ -1344,10 +1344,12 @@ function memberElement(member){
 function updateMemberFollowButton(button, uid){
   if(!button) return;
   const ownAccount = !currentUser || String(currentUser.id) === String(uid);
-  const isFollowing = memberFollowState.get(String(uid));
-  // لا نعرض زر المتابعة للحساب الشخصي أو لمن نتابعه بالفعل.
-  button.classList.toggle('hidden', ownAccount || isFollowing === true);
-  button.classList.toggle('is-following', isFollowing === true);
+  const state = memberFollowState.get(String(uid));
+  const isFollowing = typeof state === 'object' ? Boolean(state.isFollowing) : state === true;
+  const isFollower = typeof state === 'object' ? Boolean(state.isFollower) : false;
+  // الزر يظهر مباشرة، ويختفي فقط للحساب الشخصي أو عند وجود متابعة بأي اتجاه.
+  button.classList.toggle('hidden', ownAccount || isFollowing || isFollower);
+  button.classList.toggle('is-following', isFollowing);
   button.textContent = '+ متابعة';
   button.disabled = false;
 }
@@ -1370,7 +1372,7 @@ async function refreshMemberFollowStates(){
         const uid = String(member.id);
         try{
           const result = await fetchJson(`/api/users/${encodeURIComponent(uid)}/follow-stats`, {headers:await authHeaders()});
-          memberFollowState.set(uid, Boolean(result.is_following));
+          memberFollowState.set(uid, {isFollowing:Boolean(result.is_following), isFollower:Boolean(result.is_follower)});
         }catch(error){
           // لا نخفي الزر بناءً على تخمين إذا تعذر تحميل الحالة.
           console.warn('MEMBER FOLLOW STATE ERROR:', error?.message || error);
@@ -1385,6 +1387,18 @@ async function refreshMemberFollowStates(){
   try{ await memberFollowRefreshPromise; }
   finally{ memberFollowRefreshPromise = null; }
 }
+
+
+
+// حدّث حالة أزرار المتابعة عند الرجوع إلى المجتمع من صفحة أخرى.
+window.addEventListener('pageshow', () => {
+  if(currentUser && membersCache.length) refreshMemberFollowStates().catch(()=>{});
+});
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && currentUser && membersCache.length){
+    refreshMemberFollowStates().catch(()=>{});
+  }
+});
 
 async function loadMembers(){
   const preview = $('#membersPreview');
