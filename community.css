@@ -2420,3 +2420,219 @@ body.video-call-open .topbar{position:relative}
   body.video-call-open .main{padding:0 10px 8px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+
+/* =========================================================
+   WallpaperHub — Responsive voice room card
+   Keep all six participant slots visible on phones and desktop.
+   ========================================================= */
+.community-hero-switch.is-voice{
+  height:390px;
+  min-height:390px;
+  padding:0;
+  overflow:hidden;
+}
+.community-hero-switch.is-voice .voice-mode{
+  height:100%;
+  min-height:100%;
+  position:relative;
+}
+.community-hero-switch.is-voice .voice-copy{
+  padding:16px 16px 0;
+}
+.community-hero-switch.is-voice .voice-live{
+  padding:5px 10px;
+  font-size:9px;
+}
+.community-hero-switch.is-voice .voice-heading{
+  margin-top:6px;
+}
+.community-hero-switch.is-voice .voice-heading h1{
+  font-size:clamp(22px,3vw,30px);
+  margin:4px 0;
+}
+.community-hero-switch.is-voice .voice-heading p{
+  font-size:11px;
+}
+.community-hero-switch.is-voice .voice-stats{
+  margin-top:7px;
+}
+.community-hero-switch.is-voice .voice-stats span{
+  min-height:27px;
+  padding:5px 9px;
+  font-size:9px;
+}
+.community-hero-switch.is-voice .voice-actions{
+  margin-top:8px;
+  gap:8px;
+}
+.community-hero-switch.is-voice .voice-actions .hero-cta{
+  min-height:35px;
+  padding:8px 12px;
+  font-size:10px;
+  border-radius:11px;
+}
+.community-hero-switch.is-voice .voice-background-rings{
+  top:73%;
+  width:210px;
+  height:210px;
+}
+.community-hero-switch.is-voice .voice-mic{
+  top:73%;
+  width:62px;
+  height:62px;
+  border-width:4px;
+}
+.community-hero-switch.is-voice .voice-mic .material-icons-round{
+  font-size:30px;
+}
+.community-hero-switch.is-voice .voice-person{
+  width:50px;
+  height:50px;
+}
+.community-hero-switch.is-voice .voice-person .avatar-placeholder{
+  font-size:13px;
+}
+.community-hero-switch.is-voice .voice-empty-avatar .material-icons-round{
+  font-size:17px;
+}
+.community-hero-switch.is-voice .person-1{left:8%;top:53%}
+.community-hero-switch.is-voice .person-2{right:8%;top:53%}
+.community-hero-switch.is-voice .person-3{left:20%;top:76%}
+.community-hero-switch.is-voice .person-4{right:20%;top:76%}
+.community-hero-switch.is-voice .person-5{left:37%;top:58%}
+.community-hero-switch.is-voice .person-6{right:37%;top:58%}
+.community-hero-switch.is-voice .voice-room-label{
+  bottom:7px;
+  min-height:25px;
+  padding:5px 10px;
+  font-size:8px;
+}
+
+@media(max-width:760px){
+  .community-hero-switch.is-voice{
+    height:355px!important;
+    min-height:355px!important;
+    padding:0!important;
+    border-radius:20px;
+  }
+  .community-hero-switch.is-voice .voice-mode{
+    height:355px;
+    min-height:355px;
+  }
+  .community-hero-switch.is-voice .voice-copy{
+    padding:12px 8px 0;
+  }
+  .community-hero-switch.is-voice .voice-live{
+    padding:4px 9px;
+    font-size:8px;
+  }
+  .community-hero-switch.is-voice .voice-heading{
+    margin-top:5px;
+  }
+  .community-hero-switch.is-voice .voice-heading .eyebrow{
+    font-size:6px;
+    letter-spacing:2px;
+  }
+  .community-hero-switch.is-voice .voice-heading h1{
+    font-size:clamp(19px,5.4vw,25px);
+    line-height:1.25;
+    margin:3px 0;
+  }
+  .community-hero-switch.is-voice .voice-heading p{
+    font-size:8px;
+  }
+  .community-hero-switch.is-voice .voice-stats{
+    margin-top:6px;
+    gap:4px;
+  }
+  .community-hero-switch.is-voice .voice-stats span{
+    min-height:24px;
+    padding:4px 7px;
+    font-size:7px;
+    border-radius:9px;
+  }
+  .community-hero-switch.is-voice .voice-stats b{
+    font-size:8px;
+  }
+  .community-hero-switch.is-voice .voice-actions{
+    margin-top:6px;
+    gap:5px;
+    padding:0 3px;
+  }
+  .community-hero-switch.is-voice .voice-actions .hero-cta{
+    min-width:0;
+    min-height:30px;
+    padding:6px 7px;
+    gap:4px;
+    font-size:7px;
+    line-height:1.2;
+    white-space:normal;
+  }
+  .community-hero-switch.is-voice .voice-actions .material-icons-round{
+    font-size:14px;
+    flex:0 0 auto;
+  }
+  .community-hero-switch.is-voice .voice-background-rings{
+    top:76%;
+    width:154px;
+    height:154px;
+  }
+  .community-hero-switch.is-voice .voice-background-rings span:nth-child(2){inset:22px}
+  .community-hero-switch.is-voice .voice-background-rings span:nth-child(3){inset:45px}
+  .community-hero-switch.is-voice .voice-background-rings span:nth-child(4){inset:66px}
+  .community-hero-switch.is-voice .voice-mic{
+    top:76%;
+    width:48px;
+    height:48px;
+    border-width:3px;
+  }
+  .community-hero-switch.is-voice .voice-mic .material-icons-round{font-size:23px}
+  .community-hero-switch.is-voice .voice-person{
+    width:38px;
+    height:38px;
+  }
+  .community-hero-switch.is-voice .voice-person .avatar-placeholder{
+    font-size:10px;
+    border-width:1px;
+  }
+  .community-hero-switch.is-voice .voice-empty-avatar .material-icons-round{font-size:15px}
+  .community-hero-switch.is-voice .voice-online-dot{
+    width:9px;
+    height:9px;
+    border-width:2px;
+  }
+  .community-hero-switch.is-voice .voice-speaking-wave{display:none}
+  .community-hero-switch.is-voice .person-1{left:5%;top:57%}
+  .community-hero-switch.is-voice .person-2{right:5%;top:57%}
+  .community-hero-switch.is-voice .person-3{left:17%;top:78%}
+  .community-hero-switch.is-voice .person-4{right:17%;top:78%}
+  .community-hero-switch.is-voice .person-5{left:35%;top:61%}
+  .community-hero-switch.is-voice .person-6{right:35%;top:61%}
+  .community-hero-switch.is-voice .voice-room-label{
+    bottom:5px;
+    min-height:21px;
+    padding:3px 8px;
+    font-size:7px;
+  }
+}
+@media(max-width:380px){
+  .community-hero-switch.is-voice{
+    height:340px!important;
+    min-height:340px!important;
+  }
+  .community-hero-switch.is-voice .voice-mode{
+    height:340px;
+    min-height:340px;
+  }
+  .community-hero-switch.is-voice .voice-person{
+    width:34px;
+    height:34px;
+  }
+  .community-hero-switch.is-voice .person-1{left:4%;top:58%}
+  .community-hero-switch.is-voice .person-2{right:4%;top:58%}
+  .community-hero-switch.is-voice .person-3{left:15%;top:78%}
+  .community-hero-switch.is-voice .person-4{right:15%;top:78%}
+  .community-hero-switch.is-voice .person-5{left:34%;top:62%}
+  .community-hero-switch.is-voice .person-6{right:34%;top:62%}
+}
