@@ -378,17 +378,8 @@ async function generateAITags(file){
     }
 }
 
-// ============================
-// Cloudinary
-// ============================
-
-
-const CLOUDINARY_CLOUD_NAME =
-"ls9wdurp";
-
-
-const CLOUDINARY_UPLOAD_PRESET =
-"wallpaperhub_upload";
+// ImageKit endpoint؛ المفتاح السري محفوظ في Vercel فقط.
+const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/2xcgjj3oe";
 
 
 
@@ -990,253 +981,41 @@ renderSelectedFiles();
 // ==========================================
 
 function uploadToCloudinaryResumable(file, onProgress){
-    return new Promise((resolve, reject)=>{
-        const resourceType = file.type.startsWith("video/") ? "video" : "image";
-        const total = file.size;
-        const uploadId = createUploadId();
-
-        uploadCurrentState = {
-            file,
-            uploadId,
-            resourceType,
-            offset: 0,
-            total,
-            secureUrl: "",
-            done: false
-        };
-
-        uploadPausedByUser = false;
-        uploadWaitingForNetwork = navigator.onLine === false;
-
-        if(uploadOfflineNotice) uploadOfflineNotice.hidden = !uploadWaitingForNetwork;
-
-        const fail = error => {
-            if(uploadCurrentState?.uploadId === uploadId){
-                uploadCurrentState = null;
-            }
-            activeUploadXHR = null;
-            setUploadControls();
-            reject(error);
-        };
-
-        const complete = url => {
-            if(uploadCurrentState?.uploadId === uploadId){
-                uploadCurrentState.done = true;
-                uploadCurrentState.secureUrl = url;
-            }
-            activeUploadXHR = null;
-            uploadCurrentState = null;
-            setUploadControls();
-            setUploadRetryInfo("");
-            if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
-            setUploadNetworkStatus("● اكتمل رفع الملف", "is-online");
-            resolve(url);
-        };
-
-        const updateProgress = offset => {
-            const percent = total > 0
-                ? Math.min(100, Math.round((offset / total) * 100))
-                : 100;
-            if(onProgress) onProgress(percent, offset, total);
-        };
-
-        const waitUntilReady = async()=>{
-            while(uploadPausedByUser || uploadWaitingForNetwork || navigator.onLine === false){
-                if(uploadWaitingForNetwork || navigator.onLine === false){
-                    uploadWaitingForNetwork = true;
-                    setUploadNetworkStatus("● لا يوجد اتصال", "is-offline");
-                    if(uploadOfflineNotice) uploadOfflineNotice.hidden = false;
-                }else{
-                    setUploadNetworkStatus("⏸ متوقف مؤقتًا", "is-paused");
-                }
-                setUploadControls();
-                await sleep(400);
-            }
-            setUploadNetworkStatus("● متصل — جاري الرفع", "is-online");
-            setUploadControls();
-        };
-
-        const uploadChunk = async()=>{
-            if(!uploadCurrentState || uploadCurrentState.uploadId !== uploadId) return;
-
-            await waitUntilReady();
-
-            let retries = 0;
-
-            while(uploadCurrentState && uploadCurrentState.uploadId === uploadId){
-                if(uploadPausedByUser || uploadWaitingForNetwork || navigator.onLine === false){
-                    await waitUntilReady();
-                    retries = 0;
-                }
-
-                const startOffset = uploadCurrentState.offset;
-                if(startOffset >= total){
-                    fail(new Error("Cloudinary لم يعُد رابط الملف النهائي."));
-                    return;
-                }
-
-                const endOffset = Math.min(startOffset + UPLOAD_CHUNK_SIZE, total);
-                const chunk = file.slice(startOffset, endOffset);
-
-                try{
-                    setUploadRetryInfo(
-                        retries > 0
-                            ? `إعادة المحاولة ${retries}/${UPLOAD_RETRY_LIMIT} — نفس الجزء محفوظ`
-                            : `رفع الجزء ${Math.ceil(endOffset / UPLOAD_CHUNK_SIZE)}`
-                    );
-
-                    const result = await new Promise((resolveChunk, rejectChunk)=>{
-                        const xhr = new XMLHttpRequest();
-                        activeUploadXHR = xhr;
-
-                        const url =
-                            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
-
-                        xhr.open("POST", url, true);
-                        xhr.timeout = 0;
-                        xhr.setRequestHeader(
-                            "X-Unique-Upload-Id",
-                            uploadId
-                        );
-                        xhr.setRequestHeader(
-                            "Content-Range",
-                            `bytes ${startOffset}-${endOffset - 1}/${total}`
-                        );
-
-                        xhr.upload.onprogress = event=>{
-                            if(event.lengthComputable){
-                                const current = startOffset + event.loaded;
-                                updateProgress(current);
-                            }
-                        };
-
-                        xhr.onload = ()=>{
-                            activeUploadXHR = null;
-
-                            let data = {};
-                            try{
-                                data = JSON.parse(xhr.responseText || "{}");
-                            }catch{}
-
-                            if(xhr.status >= 200 && xhr.status < 300){
-                                resolveChunk(data);
-                            }else{
-                                rejectChunk(
-                                    new Error(
-                                        data?.error?.message ||
-                                        `Cloudinary HTTP ${xhr.status}`
-                                    )
-                                );
-                            }
-                        };
-
-                        xhr.onerror = ()=>{
-                            activeUploadXHR = null;
-                            rejectChunk(new Error("انقطع الاتصال أثناء رفع الجزء"));
-                        };
-
-                        xhr.ontimeout = ()=>{
-                            activeUploadXHR = null;
-                            rejectChunk(new Error("انتهت مهلة رفع الجزء"));
-                        };
-
-                        xhr.onabort = ()=>{
-                            activeUploadXHR = null;
-                            if(uploadAbortReason === "user"){
-                                rejectChunk(Object.assign(
-                                    new Error("UPLOAD_PAUSED"),
-                                    {code:"UPLOAD_PAUSED"}
-                                ));
-                            }else if(uploadAbortReason === "offline"){
-                                rejectChunk(Object.assign(
-                                    new Error("UPLOAD_OFFLINE"),
-                                    {code:"UPLOAD_OFFLINE"}
-                                ));
-                            }else{
-                                rejectChunk(Object.assign(
-                                    new Error("UPLOAD_ABORTED"),
-                                    {code:"UPLOAD_ABORTED"}
-                                ));
-                            }
-                            uploadAbortReason = "";
-                        };
-
-                        const formData = new FormData();
-                        formData.append("file", chunk, file.name);
-                        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-                        xhr.send(formData);
-                    });
-
-                    const secureUrl = result?.secure_url || result?.url || "";
-                    const nextOffset = endOffset;
-
-                    uploadCurrentState.offset = nextOffset;
-                    updateProgress(nextOffset);
-
-                    if(secureUrl){
-                        complete(secureUrl);
-                        return;
-                    }
-
-                    if(nextOffset >= total){
-                        fail(new Error("اكتمل الرفع لكن Cloudinary لم يرجع الرابط."));
-                        return;
-                    }
-
-                    retries = 0;
-                    setUploadRetryInfo("");
-                    await sleep(30);
-                    break;
-
-                }catch(error){
-                    if(error?.code === "UPLOAD_PAUSED"){
-                        setUploadNetworkStatus("⏸ متوقف مؤقتًا", "is-paused");
-                        setUploadRetryInfo("اضغط «متابعة الرفع» للاستكمال من نفس الموضع.");
-                        setUploadControls();
-                        return;
-                    }
-
-                    if(error?.code === "UPLOAD_OFFLINE" || navigator.onLine === false){
-                        uploadWaitingForNetwork = true;
-                        setUploadNetworkStatus("● لا يوجد اتصال", "is-offline");
-                        if(uploadOfflineNotice) uploadOfflineNotice.hidden = false;
-                        setUploadRetryInfo("تم الاحتفاظ بموضع الجزء الحالي. سيُستأنف تلقائيًا.");
-                        setUploadControls();
-
-                        // لا نعيد الملف من البداية؛ نبقى داخل نفس دورة الرفع
-                        // وننتظر عودة الاتصال ثم نعيد نفس الـ chunk.
-                        await waitUntilReady();
-                        retries = 0;
-                        continue;
-                    }
-
-                    retries++;
-
-                    if(retries > UPLOAD_RETRY_LIMIT){
-                        fail(error);
-                        return;
-                    }
-
-                    const delay = Math.min(12000, 800 * (2 ** (retries - 1)));
-                    setUploadRetryInfo(
-                        `فشل الجزء مؤقتًا — إعادة المحاولة ${retries}/${UPLOAD_RETRY_LIMIT} بعد ${Math.ceil(delay/1000)} ث`
-                    );
-                    await sleep(delay);
-                }
-            }
-
-            if(uploadCurrentState?.uploadId === uploadId){
-                uploadChunk();
-            }
-        };
-
-        setUploadControls();
-        updateProgress(0);
-        uploadChunk();
+    return new Promise(async (resolve,reject)=>{
+        try{
+            await getCurrentUser();
+            if(!currentSession?.access_token) throw new Error("سجّل الدخول أولاً.");
+            const allowed=["image/jpeg","image/png","image/webp","image/avif","video/mp4","video/webm","video/quicktime"];
+            if(!allowed.includes(String(file.type||"").toLowerCase())) throw new Error("صيغة الصورة غير مدعومة لرفع الخلفيات.");
+            const authResponse=await fetch("/api/publish/media-signature",{
+                method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${currentSession.access_token}`},
+                body:JSON.stringify({mimeType:file.type})
+            });
+            const auth=await authResponse.json().catch(()=>({}));
+            if(!authResponse.ok||!auth.success) throw new Error(auth.message||"تعذر تجهيز الرفع من السيرفر.");
+            const total=file.size;
+            uploadCurrentState={file,uploadId:auth.token,resourceType:"image",offset:0,total,secureUrl:"",done:false};
+            uploadPausedByUser=false;uploadWaitingForNetwork=navigator.onLine===false;
+            if(uploadOfflineNotice) uploadOfflineNotice.hidden=!uploadWaitingForNetwork;
+            setUploadNetworkStatus("● جارٍ رفع الملف إلى ImageKit","is-online");setUploadControls();
+            const formData=new FormData();
+            formData.append("file",file,file.name);formData.append("fileName",file.name);
+            formData.append("publicKey",auth.publicKey);formData.append("signature",auth.signature);
+            formData.append("expire",String(auth.expire));formData.append("token",auth.token);formData.append("useUniqueFileName","true");
+            const xhr=new XMLHttpRequest();activeUploadXHR=xhr;
+            xhr.open("POST","https://upload.imagekit.io/api/v1/files/upload",true);
+            xhr.upload.onprogress=event=>{if(event.lengthComputable){uploadCurrentState.offset=event.loaded;if(onProgress)onProgress(Math.min(100,Math.round(event.loaded/total*100)),event.loaded,total);}};
+            xhr.onload=()=>{activeUploadXHR=null;let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
+                uploadCurrentState=null;setUploadControls();
+                if(xhr.status>=200&&xhr.status<300&&data.url){if(onProgress)onProgress(100,total,total);setUploadRetryInfo("");if(uploadOfflineNotice)uploadOfflineNotice.hidden=true;setUploadNetworkStatus("● اكتمل رفع الملف","is-online");resolve(data.url);}
+                else reject(new Error(data?.message||data?.help||`ImageKit HTTP ${xhr.status}`));
+            };
+            xhr.onerror=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("انقطع الاتصال أثناء رفع الملف إلى ImageKit."));};
+            xhr.onabort=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("تم إلغاء الرفع. عند الاستئناف سيبدأ الملف من جديد."));};
+            xhr.send(formData);
+        }catch(error){uploadCurrentState=null;activeUploadXHR=null;setUploadControls();reject(error);}
     });
 }
-
 // ==========================================
 // معلومات الملف
 // ==========================================
