@@ -2855,6 +2855,67 @@ async function joinRealVoiceRoom(){
   }
 }
 
+// واجهة مكالمة الفيديو — مرحلة التصميم فقط، دون اتصال شبكي حتى ربط السيرفر لاحقًا.
+const videoCallScreen = $('#videoCallScreen');
+let videoMicMuted = false;
+let videoCameraOff = false;
+function openVideoCallDesign(){
+  if(!videoCallScreen) return;
+  // لا نُبقي مكالمة الصوت مفتوحة بالتزامن مع واجهة الفيديو.
+  if(voiceJoined) leaveVoiceRoom().catch(()=>{});
+  showCommunityHero();
+  $$('.room-tab').forEach(button => button.setAttribute('aria-selected','false'));
+  $('#communityHero')?.classList.add('hidden');
+  $('.room-tabs')?.classList.add('hidden');
+  $('.content-layout')?.classList.add('hidden');
+  $$('.secondary-panel').forEach(panel => panel.classList.add('hidden'));
+  videoCallScreen.classList.remove('hidden');
+  videoCallScreen.setAttribute('aria-hidden','false');
+  document.body.classList.add('video-call-open');
+  const profile = currentVoiceProfile();
+  const name = $('#videoSelfName');
+  const avatar = $('#videoSelfAvatar');
+  if(name) name.textContent = profile.name || 'أنت';
+  if(avatar){
+    avatar.textContent = initials(profile.name);
+    if(profile.avatarUrl) avatar.style.backgroundImage = `url("${String(profile.avatarUrl).replace(/["\\]/g,'')}")`;
+    else avatar.style.backgroundImage = '';
+  }
+  videoMicMuted = false; videoCameraOff = false;
+  $('#videoMicToggle')?.classList.remove('is-off');
+  $('#videoCameraToggle')?.classList.remove('is-off');
+  $('#videoMicToggle .material-icons-round')?.replaceChildren(document.createTextNode('mic'));
+  $('#videoCameraToggle .material-icons-round')?.replaceChildren(document.createTextNode('videocam'));
+  $('#videoDesignNote').textContent='واجهة التصميم فقط — سيتم تفعيل الاتصال المرئي المباشر في المرحلة التالية';
+}
+function closeVideoCallDesign(){
+  videoCallScreen?.classList.add('hidden');
+  videoCallScreen?.setAttribute('aria-hidden','true');
+  document.body.classList.remove('video-call-open');
+  $('#communityHero')?.classList.remove('hidden');
+  $('.room-tabs')?.classList.remove('hidden');
+  $('.content-layout')?.classList.remove('hidden');
+  showTab('general');
+}
+$('#voiceShortcut')?.addEventListener('click',openVideoCallDesign);
+$('#videoClose')?.addEventListener('click',closeVideoCallDesign);
+$('#videoLeave')?.addEventListener('click',closeVideoCallDesign);
+$('#videoMicToggle')?.addEventListener('click',()=>{
+  videoMicMuted=!videoMicMuted;
+  $('#videoMicToggle')?.classList.toggle('is-off',videoMicMuted);
+  const icon=$('#videoMicToggle .material-icons-round'); if(icon) icon.textContent=videoMicMuted?'mic_off':'mic';
+  $('#videoMicToggle')?.setAttribute('aria-label',videoMicMuted?'تشغيل الميكروفون':'كتم الميكروفون');
+});
+$('#videoCameraToggle')?.addEventListener('click',()=>{
+  videoCameraOff=!videoCameraOff;
+  $('#videoCameraToggle')?.classList.toggle('is-off',videoCameraOff);
+  const icon=$('#videoCameraToggle .material-icons-round'); if(icon) icon.textContent=videoCameraOff?'videocam_off':'videocam';
+  $('#videoCameraToggle')?.setAttribute('aria-label',videoCameraOff?'تشغيل الكاميرا':'إيقاف الكاميرا');
+  $('#videoDesignNote').textContent=videoCameraOff?'الكاميرا متوقفة في معاينة التصميم':'واجهة التصميم فقط — سيتم تفعيل الاتصال المرئي المباشر في المرحلة التالية';
+});
+$('#videoShareToggle')?.addEventListener('click',()=>showToast('مشاركة الشاشة ستُفعّل عند ربط نظام الاتصال'));
+$('#videoMoreToggle')?.addEventListener('click',()=>showToast('إعدادات إضافية ستُضاف عند ربط نظام الاتصال'));
+
 $('#voiceShortcut')?.addEventListener('click',showVoiceHero);
 $('#voiceBackToChat')?.addEventListener('click',async () => {
   await leaveVoiceRoom();
