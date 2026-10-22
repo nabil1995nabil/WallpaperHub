@@ -2886,7 +2886,7 @@ function openVideoCallDesign(){
   $('#videoCameraToggle')?.classList.remove('is-off');
   $('#videoMicToggle .material-icons-round')?.replaceChildren(document.createTextNode('mic'));
   $('#videoCameraToggle .material-icons-round')?.replaceChildren(document.createTextNode('videocam'));
-  $('#videoDesignNote').textContent='واجهة التصميم فقط — سيتم تفعيل الاتصال المرئي المباشر في المرحلة التالية';
+  $('#videoDesignNote').textContent='معاينة تصميم المكالمة';
 }
 function closeVideoCallDesign(){
   videoCallScreen?.classList.add('hidden');
@@ -2911,12 +2911,12 @@ $('#videoCameraToggle')?.addEventListener('click',()=>{
   $('#videoCameraToggle')?.classList.toggle('is-off',videoCameraOff);
   const icon=$('#videoCameraToggle .material-icons-round'); if(icon) icon.textContent=videoCameraOff?'videocam_off':'videocam';
   $('#videoCameraToggle')?.setAttribute('aria-label',videoCameraOff?'تشغيل الكاميرا':'إيقاف الكاميرا');
-  $('#videoDesignNote').textContent=videoCameraOff?'الكاميرا متوقفة في معاينة التصميم':'واجهة التصميم فقط — سيتم تفعيل الاتصال المرئي المباشر في المرحلة التالية';
+  $('#videoDesignNote').textContent=videoCameraOff?'الكاميرا متوقفة':'معاينة تصميم المكالمة';
 });
 $('#videoShareToggle')?.addEventListener('click',()=>showToast('مشاركة الشاشة ستُفعّل عند ربط نظام الاتصال'));
 $('#videoMoreToggle')?.addEventListener('click',()=>showToast('إعدادات إضافية ستُضاف عند ربط نظام الاتصال'));
 
-$('#voiceShortcut')?.addEventListener('click',showVoiceHero);
+$('#voiceRoomShortcut')?.addEventListener('click',showVoiceHero);
 $('#voiceBackToChat')?.addEventListener('click',async () => {
   await leaveVoiceRoom();
   showCommunityHero();
@@ -3122,24 +3122,11 @@ $('#fileInput').addEventListener('change', async event => {
 
 $('#removeAttachment').addEventListener('click',clearPendingImage);
 
-$('.theme-button').addEventListener('click',() => {
-  const enabled = document.body.classList.toggle('community-dark');
-  $('.theme-button .material-icons-round').textContent = enabled ? 'light_mode' : 'dark_mode';
-  $('.theme-button').setAttribute('aria-label', enabled ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن');
-  try { localStorage.setItem('wallpaperhub-community-theme', enabled ? 'dark' : 'light'); } catch (_) {}
-});
 
 $('#profileButton').addEventListener('click',() => {
   window.location.href = currentUser ? '/profile' : '/login';
 });
 
-try {
-  if(localStorage.getItem('wallpaperhub-community-theme') === 'dark'){
-    document.body.classList.add('community-dark');
-    $('.theme-button .material-icons-round').textContent = 'light_mode';
-    $('.theme-button').setAttribute('aria-label', 'تفعيل الوضع الفاتح');
-  }
-} catch (_) {}
 
 (async function(){
   try{

@@ -2389,3 +2389,34 @@ body.video-call-open .main{width:calc(100% - 118px)}
   body.video-call-open .sidebar{display:none}
 }
 @media(max-width:380px){.video-call-grid{grid-template-rows:repeat(3,minmax(90px,1fr))}.video-tile{min-height:90px}.video-control{width:39px;height:39px}.video-control-leave{width:46px;height:44px}.video-call-controls{gap:7px}}
+
+
+/* Community polish: stable layout, compact top call actions, reduced motion. */
+.voice-shortcut{position:relative;border:1px solid rgba(101,116,255,.16)!important;color:#fff!important;background:linear-gradient(145deg,#657cff,#7651ed)!important;box-shadow:0 4px 12px rgba(89,92,240,.14)}
+.voice-shortcut .material-icons-round{color:#fff!important;font-size:22px}
+.top-actions{gap:9px}
+.video-call-screen{min-height:calc(100dvh - 100px);height:calc(100dvh - 100px);margin:0 0 8px;padding:12px;gap:10px;box-shadow:none;border-radius:20px}
+.video-call-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:8px;min-height:0;overflow:hidden}
+.video-tile{min-height:0;border-radius:15px;box-shadow:none}
+.video-tile-glow{opacity:.32;filter:none}
+.video-call-controls{gap:10px;padding:2px 0 0}
+.video-control{transition:none;box-shadow:none}
+.video-control:hover{transform:none}
+.video-design-note{display:none}
+body.video-call-open{overflow:hidden}
+body.video-call-open .topbar{position:relative}
+@media(min-width:1000px){.video-call-screen{height:calc(100dvh - 100px);min-height:0;padding:14px}.video-call-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));min-height:0}}
+@media(max-width:760px){
+  .topbar{gap:8px}
+  .top-actions{gap:7px}
+  .video-call-screen{height:calc(100dvh - 86px);min-height:calc(100dvh - 86px);margin:0 -5px;padding:9px;border-radius:16px;gap:8px}
+  .video-call-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:7px}
+  .video-tile{min-height:0;border-radius:12px}
+  .video-tile-name{max-width:calc(100% - 42px);font-size:9px;padding:5px 7px}
+  .video-tile-mic{width:23px;height:23px;left:5px;bottom:5px}
+  .video-call-controls{gap:8px;padding-top:2px}
+  .video-control{width:40px;height:40px;border-radius:13px}
+  .video-control-leave{width:47px;height:43px}
+  body.video-call-open .main{padding:0 10px 8px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
