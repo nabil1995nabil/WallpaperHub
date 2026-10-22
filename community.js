@@ -48,6 +48,8 @@ let voiceLocalStream = null;
 let voicePeers = new Map();
 let voiceIceQueues = new Map();
 let voiceJoined = false;
+let activeVoiceCallId = null;
+let activeVoiceCallPeak = 1;
 let voiceMuted = false;
 let voiceReadyPromise = null;
 let voiceAudioContext = null;
@@ -737,7 +739,120 @@ function updateMentionSuggestions(){
   box.classList.remove('hidden');
 }
 
+const VOICE_EVENT_PREFIX = '[[WH_VOICE_CALL_EVENT]]';
+
+function parseVoiceCallEvent(message){
+  const text = String(message?.text || message?.content || '');
+  if(!text.startsWith(VOICE_EVENT_PREFIX)) return null;
+  try{
+    const event = JSON.parse(text.slice(VOICE_EVENT_PREFIX.length));
+    return event && ['start','end'].includes(event.type) && event.callId ? event : null;
+  }catch(_error){ return null; }
+}
+
+function voiceCallState(callId){
+  const events = communityMessagesCache
+    .map(message => ({message,event:parseVoiceCallEvent(message)}))
+    .filter(item => item.event && String(item.event.callId) === String(callId));
+  const start = events.find(item => item.event.type === 'start');
+  const end = events.filter(item => item.event.type === 'end').at(-1);
+  return {start:start?.event || null, ended:Boolean(end), end:end?.event || null};
+}
+
+function latestActiveVoiceCall(){
+  for(let i=communityMessagesCache.length-1;i>=0;i--){
+    const event = parseVoiceCallEvent(communityMessagesCache[i]);
+    if(event?.type !== 'start') continue;
+    if(!voiceCallState(event.callId).ended) return event;
+  }
+  return null;
+}
+
+async function postVoiceCallEvent(type,callId,participants){
+  if(!currentUser || !callId) return;
+  const profile = currentVoiceProfile();
+  const content = VOICE_EVENT_PREFIX + JSON.stringify({
+    type, callId:String(callId), hostName:profile.name,
+    participants:Math.max(1,Number(participants)||1), endedAt:type === 'end' ? new Date().toISOString() : null
+  });
+  const result = await fetchJson('/api/community/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json',...(await authHeaders())},
+    body:JSON.stringify({content})
+  });
+  if(result?.message) addRealtimeMessage(result.message);
+}
+
+function renderVoiceCallMessage(message,event){
+  const row = document.createElement('article');
+  row.className = 'message-row voice-call-message';
+  row.dataset.id = String(message.id);
+  const user = message.user || {};
+  row.innerHTML = avatarMarkup(user);
+  const stack = document.createElement('div');
+  stack.className = 'message-stack';
+  const card = document.createElement('div');
+  card.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;border:1px solid #dce5f7;border-radius:18px;background:linear-gradient(135deg,#f7f9ff,#fff);max-width:100%;box-sizing:border-box;';
+  const icon = document.createElement('span');
+  icon.textContent = '🎙️';
+  icon.style.cssText = 'font-size:24px;';
+  const copy = document.createElement('div');
+  copy.style.cssText = 'flex:1;min-width:130px;';
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight:700;color:#202b43;';
+  const state = voiceCallState(event.callId);
+  const liveCount = !state.ended && voiceChannel ? voicePresenceProfiles().length : 0;
+  const count = Math.min(VOICE_MAX_PARTICIPANTS,Math.max(1,liveCount || Number(event.participants)||1));
+  title.textContent = state.ended
+    ? `انتهت المحادثة الصوتية · شارك فيها ${Math.max(count,Number(state.end?.participants)||count)} ${'أشخاص'}`
+    : `${event.hostName || user.name || 'أحد الأعضاء'} بدأ محادثة صوتية`;
+  const subtitle = document.createElement('div');
+  subtitle.style.cssText = 'margin-top:5px;font-size:13px;color:#68758c;';
+  if(state.ended){
+    subtitle.textContent = `انتهت المحادثة · ${new Date(state.end?.endedAt || message.createdAt || Date.now()).toLocaleTimeString('ar-MA',{hour:'2-digit',minute:'2-digit'})}`;
+  }else{
+    subtitle.innerHTML = '<span style="color:#15966a;font-weight:700">● يجري محادثة صوتية</span>';
+    subtitle.style.color = '#15966a';
+  }
+  copy.append(title,subtitle);
+  card.append(icon,copy);
+  if(!state.ended){
+    const join = document.createElement('button');
+    join.type = 'button';
+    join.textContent = '＋ انضم';
+    join.style.cssText = 'border:0;border-radius:12px;padding:10px 14px;background:#3156d8;color:#fff;font-weight:700;cursor:pointer;';
+    join.disabled = !currentUser;
+    join.title = currentUser ? 'الانضمام إلى المحادثة الصوتية' : 'سجّل الدخول أولاً';
+    join.addEventListener('click',async()=>{
+      try{
+        const latest = latestActiveVoiceCall();
+        if(!latest || String(latest.callId)!==String(event.callId)){
+          showToast('انتهت هذه المحادثة الصوتية');
+          return;
+        }
+        await showVoiceHero();
+        await joinRealVoiceRoom();
+      }catch(error){showToast(error?.message || 'تعذر الانضمام للمحادثة');}
+    });
+    card.appendChild(join);
+  }
+  stack.appendChild(card);
+  row.appendChild(stack);
+  return row;
+}
+
+function refreshVoiceCallMessages(){
+  communityMessagesCache.forEach(message=>{
+    const event=parseVoiceCallEvent(message);
+    if(!event) return;
+    const existing=feed.querySelector(`[data-id="${CSS.escape(String(message.id))}"]`);
+    if(existing) existing.replaceWith(renderVoiceCallMessage(message,event));
+  });
+}
+
 function renderMessage(message){
+  const voiceEvent = parseVoiceCallEvent(message);
+  if(voiceEvent) return renderVoiceCallMessage(message,voiceEvent);
   const row = document.createElement('article');
   const mine = Boolean(currentUser && message.userId === currentUser.id);
 
@@ -872,6 +987,7 @@ function addRealtimeMessage(message){
 
   communityMessagesCache.push(message);
   feed.appendChild(renderMessage(message));
+  refreshVoiceCallMessages();
   feed.scrollTop = feed.scrollHeight;
   updateMessageCount();
   refreshMemberFollowStates().catch(()=>{});
@@ -907,6 +1023,7 @@ async function loadMessages(){
   }
 
   messages.forEach(message => feed.appendChild(renderMessage(message)));
+  refreshVoiceCallMessages();
   feed.scrollTop = feed.scrollHeight;
   updateMessageCount();
   refreshMemberFollowStates().catch(()=>{});
@@ -2174,6 +2291,7 @@ function syncVoiceSlots(){
 
 function updateVoicePresenceUI(){
   syncVoiceSlots();
+  if(voiceJoined) activeVoiceCallPeak = Math.max(activeVoiceCallPeak,voicePresenceProfiles().length);
 
   const count = Math.min(voicePresenceProfiles().length,VOICE_MAX_PARTICIPANTS);
   const online = $('#voiceOnlineCount');
@@ -2496,10 +2614,12 @@ async function ensureVoicePresenceChannel(){
     .on('broadcast',{event:'voice-signal'},({payload}) => handleVoiceSignal(payload))
     .on('presence',{event:'sync'},() => {
       updateVoicePresenceUI();
+      refreshVoiceCallMessages();
       syncVoicePeers();
     })
     .on('presence',{event:'join'},() => {
       updateVoicePresenceUI();
+      refreshVoiceCallMessages();
       syncVoicePeers();
     })
     .on('presence',{event:'leave'},payload => {
@@ -2571,6 +2691,13 @@ async function ensureVoicePresenceChannel(){
 
 async function leaveVoiceRoom(){
   if(voiceChannel && currentUser && voiceJoined){
+    const leavingCallId = activeVoiceCallId || latestActiveVoiceCall()?.callId || null;
+    const countBeforeLeave = voicePresenceProfiles().length;
+    activeVoiceCallPeak = Math.max(activeVoiceCallPeak,countBeforeLeave || 1);
+    if(leavingCallId && countBeforeLeave <= 1){
+      try{ await postVoiceCallEvent('end',leavingCallId,activeVoiceCallPeak); }
+      catch(error){ console.warn('VOICE CALL END EVENT ERROR:',error?.message || error); }
+    }
     for(const peerId of voicePeers.keys()){
       voiceChannel.send({
         type:'broadcast',
@@ -2600,6 +2727,8 @@ async function leaveVoiceRoom(){
   voiceChannel = null;
   voiceReadyPromise = null;
   voiceJoined = false;
+  activeVoiceCallId = null;
+  activeVoiceCallPeak = 1;
   clearInterval(voiceModerationPollTimer);
   voiceModerationPollTimer=null;
   voiceMuted = false;
@@ -2656,6 +2785,7 @@ async function joinRealVoiceRoom(){
   }
 
   const currentCount = voicePresenceProfiles().length;
+  const shouldAnnounceCall = currentCount === 0 && !latestActiveVoiceCall();
   if(currentCount >= VOICE_MAX_PARTICIPANTS){
     updateVoicePresenceUI();
     showToast('الغرفة الصوتية ممتلئة حاليًا');
@@ -2693,6 +2823,13 @@ async function joinRealVoiceRoom(){
 
     voiceJoined = true;
     voiceMuted = false;
+    const existingCall = latestActiveVoiceCall();
+    activeVoiceCallId = existingCall?.callId || (shouldAnnounceCall ? `voice-${Date.now()}-${String(currentUser.id).slice(0,8)}` : null);
+    activeVoiceCallPeak = Math.max(1,voicePresenceProfiles().length);
+    if(shouldAnnounceCall && activeVoiceCallId){
+      try{ await postVoiceCallEvent('start',activeVoiceCallId,Math.max(1,voicePresenceProfiles().length)); }
+      catch(error){ console.warn('VOICE CALL START EVENT ERROR:',error?.message || error); }
+    }
     startVoiceModerationPolling();
     setVoiceButtonState(true);
     updateVoicePresenceUI();
