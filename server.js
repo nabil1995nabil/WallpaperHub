@@ -22,6 +22,20 @@ process.env.SUPABASE_URL,
 SUPABASE_SERVER_KEY
 );
 
+// Validate image URLs accepted by wallpaper publishing routes.
+// Keep existing Cloudinary assets working while allowing new ImageKit uploads.
+function isAllowedWallpaperImageUrl(value){
+    try{
+        const url = new URL(String(value || "").trim());
+        if(url.protocol !== "https:") return false;
+        const host = url.hostname.toLowerCase();
+        return host === "res.cloudinary.com" ||
+               host === "ik.imagekit.io";
+    }catch(_error){
+        return false;
+    }
+}
+
 // ======================================
 // Profile Medals
 // المصدر الدائم للميداليات: Supabase
@@ -4950,9 +4964,15 @@ app.get("/api/publish/session", async (req,res)=>{
         const user = await getAuthenticatedUser(req);
         if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
         const metadata = user.user_metadata || {};
-        // تعتمد لوحة النشر على جدول user_profile_sync الموجود فعلياً.
-        // لا نستعلم من public.profiles لأنه غير موجود في قاعدة البيانات الحالية.
-        const profile = null;
+        let profile = null;
+        const {data:profileRow,error:profileError} = await supabase
+            .from("profiles")
+            .select("id,full_name,username,avatar_url")
+            .eq("id",String(user.id))
+            .maybeSingle();
+        if(profileError) console.warn("PUBLISH PROFILE LOOKUP:",profileError.message);
+        profile = profileRow || null;
+
         const syncResult = await supabase.from("user_profile_sync")
             .select("full_name,username,avatar_url")
             .eq("user_id",String(user.id)).maybeSingle();
