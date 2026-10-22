@@ -22,9 +22,8 @@ const MAX_FILES = 50;
 const MAX_FILE_SIZE = 150 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 
-// نفس إعدادات Cloudinary المستعملة في admin.js. الرفع عبر Upload Preset لا يحتاج api_key في المتصفح.
-const CLOUDINARY_CLOUD_NAME = "ls9wdurp";
-const CLOUDINARY_UPLOAD_PRESET = "wallpaperhub_upload";
+// ImageKit endpoint؛ المفتاح السري لا يوضع في المتصفح.
+const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/2xcgjj3oe";
 
 function notify(message) {
   toast.textContent = message;
@@ -383,39 +382,28 @@ async function loadPublisherPoints(){
 }
 
 async function uploadImageToCloudinary(file,job){
-  // نفس منطق admin.js: رفع غير موقّع باستعمال Upload Preset.
-  // لا نطلب media-signature ولا نرسل api_key؛ Cloudinary يحدد ذلك عبر preset.
+  const accessToken=await getAccessToken();
+  if(!accessToken) throw new Error("انتهت جلسة الدخول؛ سجّل الدخول من جديد.");
+  const authResponse=await fetch("/api/publish/media-signature",{
+    method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${accessToken}`},
+    body:JSON.stringify({mimeType:file.type})
+  });
+  const auth=await authResponse.json().catch(()=>({}));
+  if(!authResponse.ok||!auth.success) throw new Error(auth.message||"تعذر الحصول على تصريح الرفع.");
   return await new Promise((resolve,reject)=>{
-    const formData = new FormData();
-    formData.append("file", file, file.name);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-    const xhr = new XMLHttpRequest();
-    job.xhr = xhr;
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, true);
-    xhr.upload.onprogress = e=>{
-      if(e.lengthComputable){
-        job.progress = e.total ? e.loaded / e.total * 100 : 0;
-        job.uploaded = e.loaded;
-        renderUploadJobs();
-      }
+    const formData=new FormData();
+    formData.append("file",file,file.name);formData.append("fileName",file.name);
+    formData.append("publicKey",auth.publicKey);formData.append("signature",auth.signature);
+    formData.append("expire",String(auth.expire));formData.append("token",auth.token);formData.append("useUniqueFileName","true");
+    const xhr=new XMLHttpRequest();job.xhr=xhr;
+    xhr.open("POST","https://upload.imagekit.io/api/v1/files/upload",true);
+    xhr.upload.onprogress=e=>{if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;renderUploadJobs();}};
+    xhr.onload=()=>{let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
+      if(xhr.status>=200&&xhr.status<300&&data.url){job.progress=100;job.status="uploaded";job.uploaded=file.size;job.result=data;renderUploadJobs();resolve(data);}
+      else reject(new Error(data?.message||data?.help||`ImageKit رفض رفع الصورة (HTTP ${xhr.status})`));
     };
-    xhr.onload = ()=>{
-      let data = {};
-      try{ data = JSON.parse(xhr.responseText || "{}"); }catch{}
-      if(xhr.status >= 200 && xhr.status < 300 && data.secure_url){
-        job.progress = 100;
-        job.status = "uploaded";
-        job.uploaded = file.size;
-        job.result = data;
-        renderUploadJobs();
-        resolve(data);
-      }else{
-        reject(new Error(data?.error?.message || `Cloudinary رفض رفع الصورة (HTTP ${xhr.status})`));
-      }
-    };
-    xhr.onerror = ()=>reject(new Error("تعذر الاتصال بخدمة رفع الصور. تحقق من الإنترنت أو جرّب شبكة أخرى."));
-    xhr.onabort = ()=>reject(new Error("تم إلغاء الرفع"));
+    xhr.onerror=()=>reject(new Error("تعذر الاتصال بخدمة ImageKit."));
+    xhr.onabort=()=>reject(new Error("تم إلغاء الرفع"));
     xhr.send(formData);
   });
 }
@@ -454,8 +442,8 @@ form.addEventListener("submit",async e=>{
         title:selectedFiles.length>1?`${$("wallTitle").value.trim()} - ${file.name.replace(/\.[^.]+$/,"")}`:$("wallTitle").value.trim(),
         category:$("wallCategory").value,
         type:"image",
-        image:job.result.secure_url,
-        thumbnail:job.result.secure_url,
+        image:job.result.url,
+        thumbnail:job.result.url,
         resolution:metadataInfo.resolution,
         size:metadataInfo.size,
         tags,colors,

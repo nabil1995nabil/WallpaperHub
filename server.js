@@ -1581,47 +1581,24 @@ app.get("/api/supabase/config", (req, res) => {
 app.post("/api/publish/media-signature", async (req, res) => {
     try {
         const user = await getAuthenticatedUser(req);
-        if (!user) {
-            return res.status(401).json({ success:false, message:"سجّل الدخول أولاً" });
-        }
-
-        // قراءة الإعدادات وقت الطلب؛ لا يوجد فحص مسبق يوقف المسار برسالة إعدادات ناقصة.
-        // يدعم readCloudinaryConfig القيم القياسية وأيضاً CLOUDINARY_URL الملصوق بالخطأ داخل قيمة متغير آخر.
-        const { cloudName, apiKey, apiSecret } = readCloudinaryConfig();
-
-        const mimeType = String(req.body?.mimeType || "").trim().toLowerCase();
-        if (!["image/jpeg", "image/png", "image/webp", "image/avif"].includes(mimeType)) {
-            return res.status(400).json({ success:false, message:"صيغة الصورة غير مدعومة" });
-        }
-
-        const timestamp = Math.floor(Date.now() / 1000);
-        const folder = `wallpaperhub/wallpapers/${String(user.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
-        const publicId = `wallpaper-${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
-        const signature = sha1(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`);
-
-        return res.json({
-            success:true,
-            cloudName,
-            apiKey,
-            api_key:apiKey,
-            timestamp,
-            folder,
-            publicId,
-            public_id:publicId,
-            signature
-        });
-    } catch (error) {
-        console.error("PUBLISH MEDIA SIGNATURE ERROR:", error?.stack || error?.message || error);
-        return res.status(500).json({ success:false, message:"تعذر تجهيز توقيع Cloudinary على السيرفر." });
+        if (!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+        const publicKey=String(process.env.IMAGEKIT_PUBLIC_KEY || "public_RT5L53A/FLvRvHfxtbtcmrq4lTw=").trim();
+        const privateKey=String(process.env.IMAGEKIT_PRIVATE_KEY || "").trim();
+        const urlEndpoint=String(process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/2xcgjj3oe").trim().replace(/\/+$/,"");
+        if(!publicKey || !privateKey || !urlEndpoint) return res.status(503).json({success:false,message:"إعداد ImageKit ناقص في Vercel. أضف IMAGEKIT_PRIVATE_KEY وIMAGEKIT_PUBLIC_KEY وIMAGEKIT_URL_ENDPOINT."});
+        const mimeType=String(req.body?.mimeType||"").trim().toLowerCase();
+        if(!["image/jpeg","image/png","image/webp","image/avif","video/mp4","video/webm","video/quicktime"].includes(mimeType)) return res.status(400).json({success:false,message:"صيغة الملف غير مدعومة"});
+        const token=crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex");
+        const expire=Math.floor(Date.now()/1000)+10*60;
+        const signature=crypto.createHmac("sha1",privateKey).update(token+expire).digest("hex");
+        return res.json({success:true,publicKey,urlEndpoint,token,expire,signature});
+    }catch(error){
+        console.error("PUBLISH MEDIA SIGNATURE ERROR:",error?.stack||error?.message||error);
+        return res.status(500).json({success:false,message:"تعذر تجهيز توقيع ImageKit على السيرفر."});
     }
 });
 
 
-// ======================================
-// Social post media upload authorization
-// Server signs Cloudinary uploads; media remains on durable Cloudinary storage.
-// Stories intentionally continue using Supabase Storage from the browser.
-// ======================================
 app.post("/api/social/media-signature", async (req, res) => {
     try {
         const user = await getAuthenticatedUser(req);
@@ -5090,7 +5067,7 @@ app.post("/api/publish/submissions", async(req,res)=>{
         const body = req.body || {};
         const image = String(body.image || "").trim();
         const title = String(body.title || "").trim();
-        if(!image || !/^https:\/\/res\.cloudinary\.com\//i.test(image)){
+        if(!image || !isAllowedWallpaperImageUrl(image)){
             return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
         }
         if(!title) return res.status(400).json({success:false,message:"عنوان الخلفية مطلوب"});
@@ -5152,7 +5129,7 @@ app.post(
             const body = req.body || {};
             const image = String(body.image || "").trim();
             const title = String(body.title || "").trim();
-            if (!image || !/^https:\/\/res\.cloudinary\.com\//i.test(image)) {
+            if (!image || !isAllowedWallpaperImageUrl(image)) {
                 return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
             }
             if (!title) {
