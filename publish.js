@@ -204,12 +204,12 @@ function renderUploadJobs(){
     pause.disabled=["done","uploaded","cancelled","error"].includes(job.status);
     pause.addEventListener("click",()=>{
       if(job.status==="running"&&job.xhr){job.status="paused";job.xhr.abort();job.error="توقف الرفع؛ إعادة المتابعة تبدأ الملف من جديد";renderUploadJobs();}
-      else if(job.status==="paused"){job.progress=0;job.uploaded=0;job.status="queued";uploadImageToCloudinary(job.file,job).then(data=>{job.status="uploaded";job.result=data;renderUploadJobs();}).catch(()=>{if(job.status!=="cancelled"){job.status="error";renderUploadJobs();}});renderUploadJobs();}
+      else if(job.status==="paused"){job.progress=0;job.uploaded=0;job.status="queued";uploadImageToImageKit(job.file,job).then(data=>{job.status="uploaded";job.result=data;renderUploadJobs();}).catch(()=>{if(job.status!=="cancelled"){job.status="error";renderUploadJobs();}});renderUploadJobs();}
     });
     const retry=document.createElement("button");retry.type="button";retry.textContent="↻ إعادة";retry.disabled=!["error","cancelled","paused"].includes(job.status);
     retry.addEventListener("click",()=>{
       job.progress=0;job.uploaded=0;job.status="running";
-      uploadImageToCloudinary(job.file,job).then(data=>{job.status="uploaded";job.result=data;renderUploadJobs();}).catch(()=>{if(job.status!=="cancelled"){job.status="error";renderUploadJobs();}});
+      uploadImageToImageKit(job.file,job).then(data=>{job.status="uploaded";job.result=data;renderUploadJobs();}).catch(()=>{if(job.status!=="cancelled"){job.status="error";renderUploadJobs();}});
       renderUploadJobs();
     });
     const cancel=document.createElement("button");cancel.type="button";cancel.className="upload-cancel";cancel.textContent="إلغاء";
@@ -381,7 +381,7 @@ async function loadPublisherPoints(){
   }
 }
 
-async function uploadImageToCloudinary(file,job){
+async function uploadImageToImageKit(file,job){
   const accessToken=await getAccessToken();
   if(!accessToken) throw new Error("انتهت جلسة الدخول؛ سجّل الدخول من جديد.");
   const authResponse=await fetch("/api/publish/media-signature",{
@@ -402,7 +402,7 @@ async function uploadImageToCloudinary(file,job){
       if(xhr.status>=200&&xhr.status<300&&data.url){job.progress=100;job.status="uploaded";job.uploaded=file.size;job.result=data;renderUploadJobs();resolve(data);}
       else reject(new Error(data?.message||data?.help||`ImageKit رفض رفع الصورة (HTTP ${xhr.status})`));
     };
-    xhr.onerror=()=>reject(new Error("تعذر الاتصال بخدمة ImageKit."));
+    xhr.onerror=()=>reject(new Error("فشل الاتصال برفع ImageKit. تحقق من الإنترنت أو إعدادات الشبكة ثم أعد المحاولة."));
     xhr.onabort=()=>reject(new Error("تم إلغاء الرفع"));
     xhr.send(formData);
   });
@@ -410,7 +410,7 @@ async function uploadImageToCloudinary(file,job){
 function uploadOne(file){
   const job={file,url:URL.createObjectURL(file),progress:0,uploaded:0,status:"running",xhr:null};
   uploadJobs.set(fingerprint(file),job);renderUploadJobs();
-  return uploadImageToCloudinary(file,job).catch(error=>{
+  return uploadImageToImageKit(file,job).catch(error=>{
     if(job.status!=="paused"&&job.status!=="cancelled"){job.status="error";job.error=error.message;renderUploadJobs();}
     throw error;
   });
@@ -427,7 +427,7 @@ form.addEventListener("submit",async e=>{
   try{
     for(const file of selectedFiles){
       const job=uploadJobs.get(fingerprint(file));
-      if(job?.status==="uploaded"&&job.result?.secure_url)continue;
+      if(job?.status==="uploaded"&&job.result?.url)continue;
       await uploadOne(file);
     }
     const tags=$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean);
@@ -436,7 +436,7 @@ form.addEventListener("submit",async e=>{
     if(!token) throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
     for(const file of selectedFiles){
       const job=uploadJobs.get(fingerprint(file));
-      if(!job?.result?.secure_url)throw new Error(`لم يكتمل رفع ${file.name}`);
+      if(!job?.result?.url)throw new Error(`لم يكتمل رفع ${file.name} إلى ImageKit.`);
       const metadataInfo=await metadata(file);
       const payload={
         title:selectedFiles.length>1?`${$("wallTitle").value.trim()} - ${file.name.replace(/\.[^.]+$/,"")}`:$("wallTitle").value.trim(),
