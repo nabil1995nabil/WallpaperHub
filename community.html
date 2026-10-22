@@ -225,7 +225,7 @@
             <div class="chat-tools">
               <button class="small-icon" type="button" aria-label="تثبيت"><span class="material-icons-round">push_pin</span></button>
               <button class="small-icon" id="focusSearch" type="button" aria-label="بحث"><span class="material-icons-round">search</span></button>
-              <button class="small-icon" type="button" aria-label="المزيد"><span class="material-icons-round">more_vert</span></button>
+              <button class="small-icon" id="moreChatTools" type="button" aria-label="خيارات المحادثة"><span class="material-icons-round">more_vert</span></button>
             </div>
           </div>
 
@@ -543,6 +543,19 @@
               </button>
             </div>
           </form>
+        </div>
+      </section>
+
+
+      <section class="clear-community-modal hidden" id="clearCommunityModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="clearCommunityTitle">
+        <div class="clear-community-panel">
+          <div class="clear-community-icon"><span class="material-icons-round">cleaning_services</span></div>
+          <b id="clearCommunityTitle">إفراغ المحادثة؟</b>
+          <p>سيتم إخفاء الرسائل لديك فقط، ولن تُحذف عند باقي الأعضاء.</p>
+          <div class="clear-community-actions">
+            <button type="button" id="clearCommunityCancel">إلغاء</button>
+            <button type="button" id="clearCommunityConfirm">إفراغ لديّ</button>
+          </div>
         </div>
       </section>
 

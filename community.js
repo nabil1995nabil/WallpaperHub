@@ -16,6 +16,10 @@ let privateConversationId = null;
 let privateRealtimeChannel = null;
 let privateConversationsCache = [];
 let communityMessagesCache = [];
+// إفراغ محلي خاص بالمستخدم الحالي فقط؛ لا يحذف رسائل Supabase ولا يؤثر على الآخرين.
+function communityClearKey(){ return currentUser?.id ? `wh-community-clear:${currentUser.id}` : ''; }
+function getCommunityClearAt(){ try{ const key=communityClearKey(); return key ? Number(localStorage.getItem(key)||0) : 0; }catch(_){ return 0; } }
+function isVisibleAfterPersonalClear(message){ const at=getCommunityClearAt(); const created=Date.parse(message?.createdAt||''); return !at || !Number.isFinite(created) || created > at; }
 let pendingImageData = null;
 let pendingFileData = null;
 let pendingPrivateImageData = null;
@@ -1004,7 +1008,7 @@ function removeRealtimeMessage(id){
 
 async function loadMessages(){
   const result = await fetchJson('/api/community/messages?limit=100');
-  const messages = Array.isArray(result.messages) ? result.messages.slice().reverse() : [];
+  const messages = (Array.isArray(result.messages) ? result.messages : []).filter(isVisibleAfterPersonalClear).slice().reverse();
   communityMessagesCache = messages;
 
   feed.innerHTML = '';
@@ -1048,6 +1052,7 @@ function subscribeToMessages(){
     },async payload => {
       const row = payload?.new;
       if(!row?.id || hasMessage(row.id)) return;
+      if(!isVisibleAfterPersonalClear({createdAt:row.created_at})) return;
 
       try{
         const result = await fetchJson(
@@ -2879,6 +2884,37 @@ if(joinVoiceButton){
     await joinRealVoiceRoom();
   });
 }
+
+function openClearCommunityDialog(){
+  if(!currentUser){ showToast('سجّل الدخول أولًا'); return; }
+  const modal=$('#clearCommunityModal');
+  if(!modal) return;
+  modal.classList.remove('hidden');
+  requestAnimationFrame(()=>{modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');});
+}
+function closeClearCommunityDialog(){
+  const modal=$('#clearCommunityModal'); if(!modal)return;
+  modal.classList.remove('is-open'); modal.setAttribute('aria-hidden','true');
+  setTimeout(()=>{if(!modal.classList.contains('is-open'))modal.classList.add('hidden');},180);
+}
+function clearCommunityForMe(){
+  if(!currentUser){showToast('سجّل الدخول أولًا');return;}
+  try{localStorage.setItem(communityClearKey(),String(Date.now()));}
+  catch(_error){showToast('تعذر حفظ الإعداد على هذا الجهاز');return;}
+  closeClearCommunityDialog();
+  communityMessagesCache=[];
+  feed.innerHTML='';
+  const notice=document.createElement('article');
+  notice.className='community-cleared-note';
+  notice.textContent='تم إفراغ المحادثة لديك فقط';
+  feed.appendChild(notice);
+  updateMessageCount();
+  showToast('تم إفراغ المحادثة لديك فقط');
+}
+$('#moreChatTools')?.addEventListener('click',openClearCommunityDialog);
+$('#clearCommunityCancel')?.addEventListener('click',closeClearCommunityDialog);
+$('#clearCommunityConfirm')?.addEventListener('click',clearCommunityForMe);
+$('#clearCommunityModal')?.addEventListener('click',event=>{if(event.target.id==='clearCommunityModal')closeClearCommunityDialog();});
 
 $('#focusSearch').addEventListener('click',() => {
   $('#memberSearch').focus();
