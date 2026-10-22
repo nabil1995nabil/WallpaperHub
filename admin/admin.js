@@ -186,10 +186,8 @@ let videoThumbnail = "";
 
 let selectedWallpapers = new Set();
 
-/*
- * Resumable upload state.
- * Cloudinary receives the file in chunks so a lost connection only
- * retries the current chunk instead of restarting the whole file.
+/* ImageKit upload state.
+ * ImageKit browser uploads here use one request per file, not resumable chunks.
  */
 const UPLOAD_CHUNK_SIZE = 6 * 1024 * 1024;
 const UPLOAD_RETRY_LIMIT = 8;
@@ -244,18 +242,15 @@ function pauseCurrentUpload(){
     uploadPausedByUser = true;
     uploadWaitingForNetwork = false;
     abortActiveUpload("user");
-    setUploadNetworkStatus("⏸ متوقف مؤقتًا", "is-paused");
-    setUploadRetryInfo("تم حفظ موضع الرفع الحالي داخل هذه الجلسة.");
+    setUploadNetworkStatus("تم إلغاء طلب الرفع", "is-paused");
+    setUploadRetryInfo("ImageKit يرفع الملف في طلب واحد؛ لا يمكن استكماله من منتصف الملف. أعد اختيار الملف لرفعه من البداية.");
     setUploadControls();
 }
 
 function resumeCurrentUpload(){
     if(!uploadCurrentState || navigator.onLine === false) return;
-    uploadPausedByUser = false;
-    uploadWaitingForNetwork = false;
-    setUploadNetworkStatus("● متصل — جاري المتابعة", "is-online");
-    setUploadRetryInfo("");
-    setUploadControls();
+    setUploadRetryInfo("لا يدعم هذا الرفع الاستكمال من منتصف الملف. أعد المحاولة لرفع الملف من البداية.");
+    setUploadNetworkStatus("جاهز لإعادة المحاولة", "is-paused");
 }
 
 function handleOffline(){
@@ -285,13 +280,9 @@ function handleOnline(){
 window.addEventListener("offline", handleOffline);
 window.addEventListener("online", handleOnline);
 
-if(pauseUploadBtn){
-    pauseUploadBtn.addEventListener("click", pauseCurrentUpload);
-}
-
-if(resumeUploadBtn){
-    resumeUploadBtn.addEventListener("click", resumeCurrentUpload);
-}
+// ImageKit upload API used here is a single request; hide controls that imply chunk-resume.
+if(pauseUploadBtn) pauseUploadBtn.hidden = true;
+if(resumeUploadBtn) resumeUploadBtn.hidden = true;
 
 // ==========================================
 // AI Auto Tags
@@ -977,10 +968,10 @@ renderSelectedFiles();
 
 
 // ==========================================
-// رفع Cloudinary قابل للإيقاف والاستكمال
+// رفع ملف واحد إلى ImageKit (ليس رفعًا مجزأً قابلًا للاستكمال)
 // ==========================================
 
-function uploadToCloudinaryResumable(file, onProgress){
+function uploadToImageKit(file, onProgress){
     return new Promise(async (resolve,reject)=>{
         try{
             await getCurrentUser();
@@ -994,7 +985,7 @@ function uploadToCloudinaryResumable(file, onProgress){
             const auth=await authResponse.json().catch(()=>({}));
             if(!authResponse.ok||!auth.success) throw new Error(auth.message||"تعذر تجهيز الرفع من السيرفر.");
             const total=file.size;
-            uploadCurrentState={file,uploadId:auth.token,resourceType:"image",offset:0,total,secureUrl:"",done:false};
+            uploadCurrentState={file,uploadId:auth.token,resourceType:"imagekit",offset:0,total,url:"",done:false};
             uploadPausedByUser=false;uploadWaitingForNetwork=navigator.onLine===false;
             if(uploadOfflineNotice) uploadOfflineNotice.hidden=!uploadWaitingForNetwork;
             setUploadNetworkStatus("● جارٍ رفع الملف إلى ImageKit","is-online");setUploadControls();
@@ -1007,11 +998,11 @@ function uploadToCloudinaryResumable(file, onProgress){
             xhr.upload.onprogress=event=>{if(event.lengthComputable){uploadCurrentState.offset=event.loaded;if(onProgress)onProgress(Math.min(100,Math.round(event.loaded/total*100)),event.loaded,total);}};
             xhr.onload=()=>{activeUploadXHR=null;let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
                 uploadCurrentState=null;setUploadControls();
-                if(xhr.status>=200&&xhr.status<300&&data.url){if(onProgress)onProgress(100,total,total);setUploadRetryInfo("");if(uploadOfflineNotice)uploadOfflineNotice.hidden=true;setUploadNetworkStatus("● اكتمل رفع الملف","is-online");resolve(data.url);}
+                if(xhr.status>=200&&xhr.status<300&&data.url){if(onProgress)onProgress(100,total,total);setUploadRetryInfo("");if(uploadOfflineNotice)uploadOfflineNotice.hidden=true;setUploadNetworkStatus("● اكتمل رفع الملف إلى ImageKit","is-online");resolve(data.url);}
                 else reject(new Error(data?.message||data?.help||`ImageKit HTTP ${xhr.status}`));
             };
-            xhr.onerror=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("انقطع الاتصال أثناء رفع الملف إلى ImageKit."));};
-            xhr.onabort=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("تم إلغاء الرفع. عند الاستئناف سيبدأ الملف من جديد."));};
+            xhr.onerror=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("فشل الاتصال أثناء رفع الملف إلى ImageKit. تحقق من الإنترنت ثم أعد المحاولة."));};
+            xhr.onabort=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("تم إلغاء طلب الرفع. ImageKit لا يستكمل هذا الطلب من منتصف الملف؛ أعد المحاولة من البداية."));};
             xhr.send(formData);
         }catch(error){uploadCurrentState=null;activeUploadXHR=null;setUploadControls();reject(error);}
     });
@@ -1450,13 +1441,13 @@ await getFileInfo(file);
 
 
 
-// رفع Cloudinary
+// رفع ImageKit
 
 setUploadCurrentFile(
     `الملف ${i+1} من ${total}: ${file.name}`
 );
 
-const url = await uploadToCloudinaryResumable(
+const url = await uploadToImageKit(
     file,
     (percent, loaded, bytesTotal)=>{
         if(uploadProgressBar){
