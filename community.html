@@ -77,18 +77,13 @@
           <strong>Wallpaper<span>Hub</span></strong>
         </div>
 
-        <label class="search-box">
-          <span class="material-icons-round">search</span>
-          <input id="memberSearch" type="search" placeholder="ابحث عن أعضاء أو رسائل..." autocomplete="off">
-        </label>
-
         <div class="top-actions">
           <button class="icon-button theme-button" type="button" aria-label="المظهر">
             <span class="material-icons-round">dark_mode</span>
           </button>
-          <button class="icon-button notification-button" type="button" aria-label="الإشعارات">
-            <span class="material-icons-round">notifications_none</span>
-            <i></i>
+          <button class="icon-button voice-shortcut" id="voiceShortcut" type="button" aria-label="فتح المحادثة الصوتية" title="المحادثة الصوتية">
+            <span class="material-icons-round">mic</span>
+            <span class="voice-shortcut-pulse" aria-hidden="true"></span>
           </button>
           <button class="profile-button" id="profileButton" type="button" aria-label="الملف الشخصي">
             <span class="avatar-fallback">U</span>
@@ -104,17 +99,7 @@
             <span class="eyebrow">W A L L P A P E R H U B</span>
             <h1>مجتمع <em>WallpaperHub</em></h1>
             <p>شارك، ناقش، واكتشف مع عشاق الخلفيات من جميع أنحاء العالم.</p>
-            <div class="hero-actions">
-              <button class="hero-cta" id="joinChat" type="button">
-                انضم إلى النقاش الآن
-                <span class="material-icons-round">forum</span>
-              </button>
-              <button class="hero-cta hero-cta-secondary voice-open-button" id="openVoice" type="button">
-                انضم إلى المحادثة المباشرة
-                <span class="material-icons-round">mic</span>
-              </button>
-            </div>
-          </div>
+</div>
 
           <div class="hero-art" aria-hidden="true">
             <div class="hero-card hero-card-back"></div>
@@ -225,8 +210,7 @@
 
             <div class="chat-tools">
               <button class="small-icon" type="button" aria-label="تثبيت"><span class="material-icons-round">push_pin</span></button>
-              <button class="small-icon" id="focusSearch" type="button" aria-label="بحث"><span class="material-icons-round">search</span></button>
-              <button class="small-icon" id="moreChatTools" type="button" aria-label="خيارات المحادثة"><span class="material-icons-round">more_vert</span></button>
+<button class="small-icon" id="moreChatTools" type="button" aria-label="خيارات المحادثة"><span class="material-icons-round">more_vert</span></button>
             </div>
           </div>
 

@@ -2283,3 +2283,63 @@ body.community-dark .private-close,body.community-dark .panel-back,body.communit
 body.community-dark .clear-community-panel>b,body.community-dark .clear-community-panel>p{color:#e8edf9}
 
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* WallpaperHub mobile-first community polish: compact header and voice shortcut */
+.topbar{
+  height:72px;
+  gap:14px;
+  justify-content:flex-start;
+}
+.topbar .mobile-brand{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-inline-end:auto;
+}
+.top-actions{gap:9px;flex-shrink:0}
+.voice-shortcut{
+  position:relative;
+  overflow:visible;
+  color:#fff;
+  border:0;
+  background:linear-gradient(145deg,#536dff,#7645f5);
+  box-shadow:0 7px 18px rgba(89,92,240,.24);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.voice-shortcut:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(89,92,240,.3)}
+.voice-shortcut .material-icons-round{color:#fff;font-size:23px}
+.voice-shortcut-pulse{
+  position:absolute;
+  width:9px;height:9px;
+  inset-inline-start:-1px;bottom:0;
+  border-radius:50%;
+  background:#35d69a;
+  border:2px solid #fff;
+}
+.hero-actions{display:none!important}
+.community-hero:not(.is-voice){height:205px;min-height:205px;padding:25px 30px}
+.community-hero:not(.is-voice) .hero-copy{max-width:100%}
+.community-hero:not(.is-voice) .hero-copy h1{font-size:clamp(25px,4vw,38px);margin:5px 0}
+.community-hero:not(.is-voice) .hero-copy p{font-size:13px;max-width:440px}
+.community-hero:not(.is-voice) .hero-art{opacity:.7}
+.chat-tools .small-icon:hover{background:#f1f3ff;color:#5367e8}
+@media(max-width:760px){
+  .topbar{height:64px;gap:8px}
+  .topbar .mobile-brand{font-size:14px;gap:7px}
+  .topbar .mobile-brand .brand-mark{width:34px;height:34px}
+  .top-actions{gap:7px}
+  .icon-button,.profile-button{width:42px;height:42px}
+  .theme-button{display:grid}
+  .community-hero:not(.is-voice){height:190px;min-height:190px;padding:20px 18px;border-radius:22px}
+  .community-hero:not(.is-voice) .hero-copy h1{font-size:clamp(23px,6vw,31px)}
+  .community-hero:not(.is-voice) .hero-copy p{font-size:11px;max-width:72%}
+  .community-hero:not(.is-voice) .eyebrow{font-size:8px;letter-spacing:3px}
+  .hero-art{opacity:.38}
+}
+@media(max-width:380px){
+  .topbar .mobile-brand strong{font-size:12px}
+  .topbar .mobile-brand .brand-mark{width:31px;height:31px}
+  .icon-button,.profile-button{width:38px;height:38px}
+  .top-actions{gap:5px}
+}

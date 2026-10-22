@@ -2855,14 +2855,7 @@ async function joinRealVoiceRoom(){
   }
 }
 
-$('#joinChat').addEventListener('click',() => {
-  showCommunityHero();
-  showTab('general');
-  input.focus();
-  document.querySelector('.chat-card').scrollIntoView({behavior:'smooth',block:'start'});
-});
-
-$('#openVoice')?.addEventListener('click',showVoiceHero);
+$('#voiceShortcut')?.addEventListener('click',showVoiceHero);
 $('#voiceBackToChat')?.addEventListener('click',async () => {
   await leaveVoiceRoom();
   showCommunityHero();
@@ -2915,27 +2908,6 @@ $('#moreChatTools')?.addEventListener('click',openClearCommunityDialog);
 $('#clearCommunityCancel')?.addEventListener('click',closeClearCommunityDialog);
 $('#clearCommunityConfirm')?.addEventListener('click',clearCommunityForMe);
 $('#clearCommunityModal')?.addEventListener('click',event=>{if(event.target.id==='clearCommunityModal')closeClearCommunityDialog();});
-
-$('#focusSearch').addEventListener('click',() => {
-  $('#memberSearch').focus();
-});
-
-$('#memberSearch').addEventListener('input',event => {
-  const query = event.target.value.trim().toLowerCase();
-
-  if(activeTab === 'members'){
-    $$('.member-item', $('#allMembers')).forEach(item => {
-      item.style.display = !query || item.dataset.name.includes(query) ? '' : 'none';
-    });
-    return;
-  }
-
-  $$('.message-row', feed).forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = !query || text.includes(query) ? '' : 'none';
-  });
-});
-
 
 $('#pinnedMessageBanner')?.addEventListener('click',scrollToPinnedMessage);
 $('#messageActionPin')?.addEventListener('click',()=>{const target=messageActionTarget;if(target)togglePinnedMessage(target)});
@@ -3088,10 +3060,6 @@ $('#fileInput').addEventListener('change', async event => {
 });
 
 $('#removeAttachment').addEventListener('click',clearPendingImage);
-
-$('.notification-button').addEventListener('click',() => {
-  window.location.href = currentUser ? '/notifications' : '/login';
-});
 
 $('.theme-button').addEventListener('click',() => {
   const enabled = document.body.classList.toggle('community-dark');
