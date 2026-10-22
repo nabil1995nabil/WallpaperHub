@@ -4558,6 +4558,43 @@ app.post("/api/admin/review/:id", async (req, res) => {
 });
 
 // ======================================
+// Secure activity rewards: downloads, likes, and active time.
+// User identity is always derived from the verified Supabase access token.
+// ======================================
+async function awardWallpaperActionPoints(userId, wallpaperId, rewardType){
+    const uid = String(userId || "").trim();
+    const wid = Number(wallpaperId);
+    if(!uid || !Number.isSafeInteger(wid) || wid <= 0 || !["download","like"].includes(rewardType)){
+        throw new Error("بيانات مكافأة النشاط غير صالحة");
+    }
+    const {data,error} = await supabase.rpc("award_wallpaper_action_points",{
+        p_user_id:uid,
+        p_wallpaper_id:wid,
+        p_reward_type:rewardType
+    });
+    if(error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row || row.success !== true) throw new Error("تعذر تأكيد نقاط النشاط");
+    return {awarded:Boolean(row.awarded),points:Number(row.points || 0),total_points:Number(row.total_points || 0)};
+}
+
+app.post("/api/rewards/activity-heartbeat", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+        const {data,error} = await supabase.rpc("record_active_time_reward",{p_user_id:String(user.id)});
+        if(error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        if(!row || row.success !== true) throw new Error("تعذر تسجيل وقت النشاط");
+        res.set("Cache-Control","no-store");
+        return res.json({success:true,awarded:Number(row.awarded || 0),points:Number(row.points || 0),active_seconds:Number(row.active_seconds || 0),seconds_to_next_reward:Number(row.seconds_to_next_reward || 1200)});
+    }catch(error){
+        console.error("ACTIVE TIME REWARD ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تسجيل وقت النشاط"});
+    }
+});
+
+// ======================================
 // Wallpaper Downloads
 // ======================================
 // يسجل التحميل للخلفية ويضيفه إلى حساب المستخدم بدون لمس نظام المحفوظات أو الإعجابات.
@@ -4621,10 +4658,15 @@ app.post("/api/wallpapers/:id/download", async (req, res) => {
 
         if(syncError) throw syncError;
 
+        let reward = {awarded:false,points:0};
+        try{ reward = await awardWallpaperActionPoints(userId, wallpaperId, "download"); }
+        catch(rewardError){ console.error("DOWNLOAD POINT REWARD ERROR:",rewardError?.message || rewardError); }
+
         return res.json({
             success:true,
             wallpaperId,
-            downloads:Number(updatedWallpaper?.downloads ?? nextDownloads)
+            downloads:Number(updatedWallpaper?.downloads ?? nextDownloads),
+            reward
         });
     }catch(error){
         console.log("DOWNLOAD ERROR:", error);
@@ -4715,20 +4757,28 @@ app.post(
             const wall = await getWallpaperFromSupabase(wallpaperId);
             const wallpaperOwnerUID = String(wall?.ownerUID || wall?.userId || "").trim();
 
-            if(liked && !existingLike && userId !== wallpaperOwnerUID && wallpaperOwnerUID){
-                await createNotification({
-                    recipientUID: wallpaperOwnerUID,
-                    fromUser: userId,
-                    type: "wallpaper_like",
-                    wallpaperId,
-                    message: `${userName} أعجب بخلفيتك`
-                });
+            let reward = {awarded:false,points:0};
+            if(liked && !existingLike){
+                if(userId !== wallpaperOwnerUID){
+                    try{ reward = await awardWallpaperActionPoints(userId, wallpaperId, "like"); }
+                    catch(rewardError){ console.error("LIKE POINT REWARD ERROR:",rewardError?.message || rewardError); }
+                }
+                if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
+                    await createNotification({
+                        recipientUID: wallpaperOwnerUID,
+                        fromUser: userId,
+                        type: "wallpaper_like",
+                        wallpaperId,
+                        message: `${userName} أعجب بخلفيتك`
+                    });
+                }
             }
 
             return res.json({
                 success:true,
                 liked,
                 totalLikes,
+                reward,
                 data:actionData
             });
         }catch(error){

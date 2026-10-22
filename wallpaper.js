@@ -85,6 +85,55 @@ function isGifMedia(wallpaper){
 // API
 // ===============================
 const API = "/api/wallpapers";
+
+// مكافأة وقت الاستخدام: heartbeat كل 60 ثانية فقط عندما تكون الصفحة ظاهرة وفي الواجهة.
+// الخادم هو من يحسب الثواني ويمنح النقاط؛ لا نرسل مدة من المتصفح ولا نعتمد على ساعة الجهاز.
+(function startSecureActiveTimeRewards(){
+    if(window.__wallpaperHubActiveRewardTrackerStarted) return;
+    window.__wallpaperHubActiveRewardTrackerStarted = true;
+    let timer = null;
+    let requestInProgress = false;
+    const HEARTBEAT_MS = 60 * 1000;
+    function isActivelyViewing(){
+        return document.visibilityState === "visible" && document.hasFocus();
+    }
+    async function heartbeat(){
+        if(requestInProgress || !isActivelyViewing()) return;
+        try{
+            const {data,error} = await supabase.auth.getSession();
+            if(error || !data?.session?.access_token) return;
+            requestInProgress = true;
+            const response = await fetch("/api/rewards/activity-heartbeat",{
+                method:"POST",
+                headers:{Authorization:`Bearer ${data.session.access_token}`,"Content-Type":"application/json"},
+                body:"{}",
+                cache:"no-store"
+            });
+            const result = await response.json().catch(()=>({}));
+            if(response.ok && result.success && Number(result.awarded) > 0){
+                window.dispatchEvent(new CustomEvent("wallpaperHubPointsChanged",{detail:{source:"active_time",points:Number(result.points || 0)}}));
+                if(typeof window.showToast === "function"){
+                    window.showToast(`مبروك! حصلت على ${Number(result.points || 0).toFixed(1)} نقطة مقابل نشاطك.`);
+                }
+            }
+        }catch(error){
+            console.warn("ACTIVE TIME HEARTBEAT ERROR:",error?.message || error);
+        }finally{
+            requestInProgress = false;
+        }
+    }
+    function start(){
+        if(timer) clearInterval(timer);
+        if(isActivelyViewing()) heartbeat();
+        timer = setInterval(heartbeat,HEARTBEAT_MS);
+    }
+    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState === "visible") heartbeat(); });
+    window.addEventListener("focus",heartbeat);
+    window.addEventListener("blur",()=>{});
+    window.addEventListener("pageshow",start);
+    window.addEventListener("pagehide",()=>{if(timer){clearInterval(timer);timer=null;}});
+    start();
+})();
 // ===============================
 // Elements
 // ===============================
