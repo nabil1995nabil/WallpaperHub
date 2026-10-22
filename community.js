@@ -792,14 +792,14 @@ function renderVoiceCallMessage(message,event){
   const stack = document.createElement('div');
   stack.className = 'message-stack';
   const card = document.createElement('div');
-  card.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;border:1px solid #dce5f7;border-radius:18px;background:linear-gradient(135deg,#f7f9ff,#fff);max-width:100%;box-sizing:border-box;';
+  card.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:nowrap;padding:8px 10px;border:1px solid #e6eaf2;border-radius:14px;background:#fbfcff;max-width:min(330px,100%);width:fit-content;box-sizing:border-box;box-shadow:0 2px 7px rgba(36,55,95,.035);';
   const icon = document.createElement('span');
   icon.textContent = '🎙️';
-  icon.style.cssText = 'font-size:24px;';
+  icon.style.cssText = 'font-size:17px;line-height:1;flex:0 0 auto;';
   const copy = document.createElement('div');
-  copy.style.cssText = 'flex:1;min-width:130px;';
+  copy.style.cssText = 'flex:1;min-width:0;overflow:hidden;';
   const title = document.createElement('div');
-  title.style.cssText = 'font-weight:700;color:#202b43;';
+  title.style.cssText = 'font-size:12px;line-height:1.45;font-weight:700;color:#202b43;overflow-wrap:anywhere;';
   const state = voiceCallState(event.callId);
   const liveCount = !state.ended && voiceChannel ? voicePresenceProfiles().length : 0;
   const count = Math.min(VOICE_MAX_PARTICIPANTS,Math.max(1,liveCount || Number(event.participants)||1));
@@ -807,7 +807,7 @@ function renderVoiceCallMessage(message,event){
     ? `انتهت المحادثة الصوتية · شارك فيها ${Math.max(count,Number(state.end?.participants)||count)} ${'أشخاص'}`
     : `${event.hostName || user.name || 'أحد الأعضاء'} بدأ محادثة صوتية`;
   const subtitle = document.createElement('div');
-  subtitle.style.cssText = 'margin-top:5px;font-size:13px;color:#68758c;';
+  subtitle.style.cssText = 'margin-top:2px;font-size:10px;line-height:1.4;color:#68758c;';
   if(state.ended){
     subtitle.textContent = `انتهت المحادثة · ${new Date(state.end?.endedAt || message.createdAt || Date.now()).toLocaleTimeString('ar-MA',{hour:'2-digit',minute:'2-digit'})}`;
   }else{
@@ -820,7 +820,7 @@ function renderVoiceCallMessage(message,event){
     const join = document.createElement('button');
     join.type = 'button';
     join.textContent = '＋ انضم';
-    join.style.cssText = 'border:0;border-radius:12px;padding:10px 14px;background:#3156d8;color:#fff;font-weight:700;cursor:pointer;';
+    join.style.cssText = 'flex:0 0 auto;border:0;border-radius:9px;padding:6px 9px;background:#3156d8;color:#fff;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;';
     join.disabled = !currentUser;
     join.title = currentUser ? 'الانضمام إلى المحادثة الصوتية' : 'سجّل الدخول أولاً';
     join.addEventListener('click',async()=>{
