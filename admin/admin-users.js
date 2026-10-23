@@ -180,7 +180,7 @@ async function api(url, options = {}){
     Authorization:`Bearer ${token}`
   };
 
-  const response = await fetch(url, {...options, headers});
+  const response = await fetch(url, {...options, headers, cache:"no-store"});
 
   let data = {};
   try{ data = await response.json(); }catch{}
@@ -447,8 +447,14 @@ function fillDetail(detail){
   if(u?.id || u?.uid) loadModerationState(u.id || u.uid).catch(error=>console.warn("MODERATION STATE:",error));
 }
 
+let detailRequestVersion = 0;
+let moderationRequestVersion = 0;
+
 async function loadUserDetail(id){
-  const data = await api(`/api/admin/users/${encodeURIComponent(id)}`);
+  const requestedId = String(id);
+  const version = ++detailRequestVersion;
+  const data = await api(`/api/admin/users/${encodeURIComponent(requestedId)}`);
+  if(version !== detailRequestVersion || !selected || String(selected.id || selected.uid) !== requestedId) return data;
   selectedDetail = data;
   fillDetail(data);
   return data;
@@ -457,6 +463,9 @@ async function loadUserDetail(id){
 async function openDrawer(id){
   const u = users.find(x => String(x.id) === String(id));
   if(!u) return;
+  selected = u;
+  resetModerationInputs();
+  setModerationLoadingState();
 
   $("#userDrawer").classList.add("open");
   $("#drawerBackdrop").classList.add("open");
@@ -468,20 +477,18 @@ async function openDrawer(id){
     $("#loadState").textContent = "متصل بـ Supabase";
   }catch(error){
     console.error("ADMIN USER DETAIL:", error);
+    if(!selected || String(selected.id) !== String(id)) return;
     fillDetail({
-      user:u,
-      control:u,
-      stats:u.stats || {},
-      medals:[],
-      owned_medals:[],
-      audit_logs:[],
-      warnings:[]
+      user:u, control:u, stats:u.stats || {}, medals:[], owned_medals:[], audit_logs:[], warnings:[]
     });
+    setModerationErrorState("تعذر تحميل تفاصيل المستخدم");
     showToast(error.message || "تعذر تحميل تفاصيل المستخدم");
   }
 }
 
 function closeDrawer(){
+  detailRequestVersion++;
+  moderationRequestVersion++;
   $("#userDrawer").classList.remove("open");
   $("#drawerBackdrop").classList.remove("open");
   $("#userDrawer").setAttribute("aria-hidden","true");
@@ -824,51 +831,82 @@ function localModDateValue(value){
   const pad=n=>String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+function asBool(value){
+  if(typeof value === "string") return ["true","1","yes","active","banned","permanent"].includes(value.trim().toLowerCase());
+  return value === true || value === 1;
+}
+function resetModerationInputs(){
+  for(const key of Object.keys(MODERATION_KEYS)){
+    const durationEl=$(`#modDuration${key}`), untilEl=$(`#modUntil${key}`), reasonEl=$(`#modReason${key}`), wrap=$(`#modCustomWrap${key}`);
+    if(durationEl) durationEl.value="24h";
+    if(untilEl) untilEl.value="";
+    if(reasonEl) reasonEl.value="";
+    if(wrap) wrap.hidden=true;
+  }
+}
+function setModerationLoadingState(){
+  for(const key of Object.keys(MODERATION_KEYS)){
+    const state=$(`#modState${key}`), meta=$(`#modMeta${key}`);
+    if(state){state.textContent="جارٍ التحميل";state.className="badge";}
+    if(meta) meta.textContent="يتم تحميل حالة هذا القيد…";
+  }
+}
+function setModerationErrorState(message="تعذر تحميل حالة الحظر"){
+  for(const key of Object.keys(MODERATION_KEYS)){
+    const state=$(`#modState${key}`), meta=$(`#modMeta${key}`);
+    if(state){state.textContent="تعذر التحميل";state.className="badge banned";}
+    if(meta) meta.textContent=message;
+  }
+}
 function renderModerationState(control){
   for(const [key,fields] of Object.entries(MODERATION_KEYS)){
-    const active = Boolean(control?.[fields.active]);
+    const active = asBool(control?.[fields.active]);
     const until = control?.[fields.until] || null;
-    const permanent = Boolean(control?.[fields.permanent]);
-    const state = $(`#modState${key}`);
-    const meta = $(`#modMeta${key}`);
+    const permanent = asBool(control?.[fields.permanent]);
+    const state = $(`#modState${key}`), meta = $(`#modMeta${key}`);
     if(state){state.textContent=active?(permanent?"حظر دائم":"محظور حتى انتهاء المدة"):"غير محظور";state.className=`badge ${active?"banned":""}`;}
     if(meta){
       const reason=control?.[fields.reason] ? `السبب: ${control[fields.reason]}` : "بدون سبب مسجل";
       meta.textContent=active ? `${permanent?"لا ينتهي تلقائياً":`ينتهي: ${fmt(until)}`} · ${reason}` : "لا يوجد قيد نشط على هذه الوظيفة.";
     }
-    const durationEl=$(`#modDuration${key}`);
-    const untilEl=$(`#modUntil${key}`);
-    const reasonEl=$(`#modReason${key}`);
-    const wrap=$(`#modCustomWrap${key}`);
-    if(reasonEl && control?.[fields.reason]) reasonEl.value=control[fields.reason];
-    if(durationEl && active){
-      if(permanent) durationEl.value="permanent";
-      else if(until){durationEl.value="custom"; if(untilEl)untilEl.value=localModDateValue(until);}
+    const durationEl=$(`#modDuration${key}`), untilEl=$(`#modUntil${key}`), reasonEl=$(`#modReason${key}`), wrap=$(`#modCustomWrap${key}`);
+    if(reasonEl) reasonEl.value=control?.[fields.reason] || "";
+    if(durationEl){
+      if(active && permanent) durationEl.value="permanent";
+      else if(active && until){durationEl.value="custom"; if(untilEl)untilEl.value=localModDateValue(until);}
+      else if(!active) durationEl.value="24h";
     }
     if(wrap && durationEl) wrap.hidden=durationEl.value!=="custom";
   }
 }
 async function loadModerationState(uid){
-  const result=await api(`/api/community/admin-moderation/${encodeURIComponent(uid)}`);
-  const raw = result.moderation || {};
-  // Keep the UI tolerant of either camelCase or database-style snake_case responses.
-  const moderation = {...raw};
-  const aliases = {
-    videoChatBanned:["video_chat_ban","video_chat_banned"], videoChatBanUntil:["video_chat_ban_until"], videoChatBanPermanent:["video_chat_ban_permanent"], videoChatBanReason:["video_chat_ban_reason"],
-    publishBanned:["publish_ban","publish_banned"], publishBanUntil:["publish_ban_until"], publishBanPermanent:["publish_ban_permanent"], publishBanReason:["publish_ban_reason"],
-    commentsBanned:["comments_ban","comments_banned"], commentsBanUntil:["comments_ban_until"], commentsBanPermanent:["comments_ban_permanent"], commentsBanReason:["comments_ban_reason"]
-  };
-  for(const [target, sources] of Object.entries(aliases)){
-    if(moderation[target] === undefined){
-      const source = sources.find(key => raw[key] !== undefined);
-      if(source) moderation[target] = raw[source];
+  const requestedUid=String(uid);
+  const version=++moderationRequestVersion;
+  resetModerationInputs();
+  setModerationLoadingState();
+  try{
+    const result=await api(`/api/community/admin-moderation/${encodeURIComponent(requestedUid)}`);
+    if(version!==moderationRequestVersion || !selected || String(selected.id || selected.uid)!==requestedUid) return;
+    const raw=result.moderation || result.control || {};
+    const moderation={...raw};
+    const aliases={
+      communityBanned:["community_ban","community_banned"],communityBanUntil:["community_ban_until"],communityBanPermanent:["community_ban_permanent"],communityBanReason:["community_ban_reason"],
+      chatFrozen:["chat_freeze","chat_frozen","community_chat_freeze"],communityChatFreezeUntil:["community_chat_freeze_until"],communityChatFreezePermanent:["community_chat_freeze_permanent"],communityChatFreezeReason:["community_chat_freeze_reason"],
+      voiceFrozen:["voice_freeze","voice_frozen","community_voice_freeze"],communityVoiceFreezeUntil:["community_voice_freeze_until"],communityVoiceFreezePermanent:["community_voice_freeze_permanent"],communityVoiceFreezeReason:["community_voice_freeze_reason"],
+      videoChatBanned:["video_chat_ban","video_chat_banned"],videoChatBanUntil:["video_chat_ban_until"],videoChatBanPermanent:["video_chat_ban_permanent"],videoChatBanReason:["video_chat_ban_reason"],
+      publishBanned:["publish_ban","publish_banned"],publishBanUntil:["publish_ban_until"],publishBanPermanent:["publish_ban_permanent"],publishBanReason:["publish_ban_reason"],
+      commentsBanned:["comments_ban","comments_banned"],commentsBanUntil:["comments_ban_until"],commentsBanPermanent:["comments_ban_permanent"],commentsBanReason:["comments_ban_reason"]
+    };
+    for(const [target,sources] of Object.entries(aliases)) if(moderation[target]===undefined){const source=sources.find(k=>raw[k]!==undefined);if(source)moderation[target]=raw[source];}
+    for(const key of Object.keys(MODERATION_KEYS)){const f=MODERATION_KEYS[key]; if(moderation[f.active]!==undefined) moderation[f.active]=asBool(moderation[f.active]);if(moderation[f.permanent]!==undefined)moderation[f.permanent]=asBool(moderation[f.permanent]);}
+    renderModerationState(moderation);
+  }catch(error){
+    if(version===moderationRequestVersion && selected && String(selected.id || selected.uid)===requestedUid){
+      setModerationErrorState(error.message || "تعذر تحميل حالة الحظر");
+      console.error("MODERATION STATE LOAD:",error);
     }
+    throw error;
   }
-  // Normalize the booleans from the server response before rendering status labels.
-  for(const key of ["videoChatBanned","publishBanned","commentsBanned"]){
-    if(moderation[key] !== undefined) moderation[key] = Boolean(moderation[key]);
-  }
-  renderModerationState(moderation);
 }
 $$(".mod-duration").forEach(el=>{
   el.addEventListener("change",()=>{
@@ -880,6 +918,7 @@ $$(".mod-duration").forEach(el=>{
 $$(".mod-apply").forEach(button=>{
   button.addEventListener("click",async()=>{
     if(!selected)return;
+    const targetUid=String(selected.id || selected.uid || "");
     const key=button.dataset.key;
     const actionName=button.dataset.action;
     const duration=$(`#modDuration${key}`)?.value || "";
@@ -894,26 +933,30 @@ $$(".mod-apply").forEach(button=>{
       until=d.toISOString();
     }
     if(!confirm("تأكيد تطبيق هذا القيد فقط؟ القيود الأخرى لن تتغير."))return;
-    await runModerationAction(actionName,{duration,until,reason});
+    await runModerationAction(targetUid,actionName,{duration,until,reason});
   });
 });
 $$(".mod-clear").forEach(button=>{
   button.addEventListener("click",async()=>{
     if(!selected)return;
+    const targetUid=String(selected.id || selected.uid || "");
     if(!confirm("فك هذا القيد فقط؟ لن تتغير القيود الأخرى."))return;
-    await runModerationAction(button.dataset.action,{reason:""});
+    await runModerationAction(targetUid,button.dataset.action,{reason:""});
   });
 });
-async function runModerationAction(actionName,body){
-  if(!selected)return;
+async function runModerationAction(targetUid,actionName,body){
+  if(!targetUid)return;
   try{
-    await api(`/api/admin/community-moderation/${encodeURIComponent(selected.id)}`,{
-      method:"PATCH",body:JSON.stringify({action,...body})
+    await api(`/api/admin/community-moderation/${encodeURIComponent(targetUid)}`,{
+      method:"PATCH",body:JSON.stringify({action:actionName,...body})
     });
     showToast("تم تحديث القيد المحدد");
     await loadUsers();
-    if(selected) await loadUserDetail(selected.id);
-  }catch(error){showToast(error.message || "تعذر تحديث القيد");}
+    if(selected && String(selected.id || selected.uid)===targetUid){
+      await loadUserDetail(targetUid);
+      await loadModerationState(targetUid);
+    }
+  }catch(error){showToast(error.message || "تعذر تحديث القيد");console.error("MODERATION ACTION:",error);}
 }
 
 /* ---------- UI events ---------- */

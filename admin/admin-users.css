@@ -248,8 +248,6 @@ button{cursor:pointer}
 .moderation-card .action-row{margin-top:8px}
 .moderation-card .action-row button{flex:1}
 
-/* Independent moderation controls */
-.moderation-card{border:1px solid #e8edf4;border-radius:11px;padding:11px;margin-top:9px;background:#fff}.moderation-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}.mod-meta{font-size:10px;color:#727e92;margin:7px 0 0;line-height:1.6}.mod-reason-label{display:block;margin-top:8px;font-size:10px;color:#7c8799}.mod-reason-label input{display:block;width:100%;margin-top:4px;border:1px solid #dfe4ec;border-radius:9px;padding:8px;font:inherit;font-size:11px;background:#fff;color:var(--ink)}.mod-custom-wrap[hidden]{display:none!important}.moderation-card .action-row{margin-top:8px}.moderation-card .action-row button{flex:1}
 
 /* Moderation UI visibility fix — October 2026 */
 #detailModerationSection .moderation-card{display:block;position:relative;z-index:1}
@@ -258,3 +256,23 @@ button{cursor:pointer}
 #detailModerationSection .mod-meta{white-space:normal;overflow-wrap:anywhere}
 #detailModerationSection .moderation-card[data-moderation="publish_ban"],
 #detailModerationSection .moderation-card[data-moderation="comments_ban"]{border-color:#dce7f5;background:#fcfdff}
+
+/* Persistent independent moderation cards: visible on every selected user */
+#detailModerationSection{display:block!important;visibility:visible!important}
+#detailModerationSection .moderation-card{display:block!important;visibility:visible!important;opacity:1!important}
+.moderation-jump-links{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}
+.moderation-jump-links a{display:inline-flex;align-items:center;padding:7px 9px;border:1px solid #dfe8f5;border-radius:9px;background:#f4f8ff;color:#1769aa;text-decoration:none;font-size:10px;font-weight:700}
+#modPublishCard,#modCommentsCard,#modVideoCard{scroll-margin-top:12px}
+#detailModerationSection .moderation-card-head .badge{flex-shrink:0}
+@media(max-width:600px){
+ #detailModerationSection{padding:10px}
+ #detailModerationSection .moderation-card{padding:10px}
+ #detailModerationSection .form-grid{grid-template-columns:1fr}
+ #detailModerationSection .action-row{display:flex;gap:6px}
+ #detailModerationSection .action-row button{min-width:0}
+}
+
+/* Error and pending states for moderation controls */
+#detailModerationSection .badge.banned{background:#ffeded;color:#c62828}
+#detailModerationSection .mod-apply:disabled,#detailModerationSection .mod-clear:disabled{opacity:.55;cursor:wait}
+#detailModerationSection .mod-meta{min-height:1.4em}
