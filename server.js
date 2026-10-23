@@ -8735,6 +8735,26 @@ async function getCommunityModerationForUser(userId){
     return communityModerationState(control);
 }
 
+// Video call gate: authenticate every join/leave request and apply community voice restrictions.
+// Call signaling/presence uses Supabase Realtime and is intentionally not persisted in a database.
+app.post("/api/community/video-call/authorize", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+        const action = String(req.body?.action || "join").trim().toLowerCase();
+        if(!["join","leave"].includes(action)) return res.status(400).json({success:false,message:"طلب غير صالح"});
+        if(action === "join"){
+            const control = await getUserAdminControl(user.id);
+            const moderation = communityModerationState(control);
+            if(!moderation.canVoice) return res.status(403).json({success:false,message:moderation.communityBanned ? "تم استبعادك من المجتمع" : "المكالمات غير متاحة لحسابك حاليًا"});
+        }
+        return res.json({success:true,action,userId:String(user.id),ephemeral:true});
+    }catch(error){
+        console.log("COMMUNITY VIDEO CALL AUTH ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر التحقق من صلاحية مكالمة الفيديو"});
+    }
+});
+
 app.get("/api/community/moderation/me", async(req,res)=>{
     try{
         const user = await getAuthenticatedUser(req);

@@ -2636,3 +2636,10 @@ body.video-call-open .topbar{position:relative}
   .community-hero-switch.is-voice .person-5{left:34%;top:62%}
   .community-hero-switch.is-voice .person-6{right:34%;top:62%}
 }
+
+/* Live video elements */
+.video-stream{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#101a30;z-index:0}
+.video-person-avatar{z-index:1;pointer-events:none;background-color:#182341;background-size:cover;background-position:center}
+.video-person-avatar:after{display:none}
+.video-tile-name,.video-tile-mic{z-index:2}
+.video-tile:has(.video-stream[src]) .video-person-avatar{opacity:.0}

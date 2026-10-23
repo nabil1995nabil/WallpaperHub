@@ -180,14 +180,7 @@
           <div class="video-call-heading"><b>مكالمة المجتمع</b><small><span id="videoParticipantCount">1</span> / 6 مشاركين</small></div>
           <button class="video-icon-control" id="videoClose" type="button" aria-label="العودة للمجتمع" title="العودة للمجتمع"><span class="material-icons-round">close</span></button>
         </header>
-        <div class="video-call-grid" id="videoCallGrid">
-          <article class="video-tile video-tile-self"><div class="video-tile-glow glow-one"></div><div class="video-person-avatar avatar-self" id="videoSelfAvatar">N</div><span class="video-tile-name"><i class="material-icons-round">person</i><b id="videoSelfName">أنت</b></span><span class="video-tile-mic"><i class="material-icons-round">mic</i></span></article>
-          <article class="video-tile"><div class="video-tile-glow glow-two"></div><div class="video-empty-mark"><span class="material-icons-round">person_add</span></div><span class="video-tile-name"><b>مقعد متاح</b></span><span class="video-tile-mic muted"><i class="material-icons-round">mic_off</i></span></article>
-          <article class="video-tile"><div class="video-tile-glow glow-three"></div><div class="video-empty-mark"><span class="material-icons-round">person_add</span></div><span class="video-tile-name"><b>مقعد متاح</b></span><span class="video-tile-mic muted"><i class="material-icons-round">mic_off</i></span></article>
-          <article class="video-tile"><div class="video-tile-glow glow-four"></div><div class="video-empty-mark"><span class="material-icons-round">person_add</span></div><span class="video-tile-name"><b>مقعد متاح</b></span><span class="video-tile-mic muted"><i class="material-icons-round">mic_off</i></span></article>
-          <article class="video-tile"><div class="video-tile-glow glow-five"></div><div class="video-empty-mark"><span class="material-icons-round">person_add</span></div><span class="video-tile-name"><b>مقعد متاح</b></span><span class="video-tile-mic muted"><i class="material-icons-round">mic_off</i></span></article>
-          <article class="video-tile"><div class="video-tile-glow glow-six"></div><div class="video-empty-mark"><span class="material-icons-round">person_add</span></div><span class="video-tile-name"><b>مقعد متاح</b></span><span class="video-tile-mic muted"><i class="material-icons-round">mic_off</i></span></article>
-        </div>
+        <div class="video-call-grid" id="videoCallGrid" aria-live="polite"></div>
         <footer class="video-call-controls" aria-label="أدوات المكالمة">
           <button class="video-control" id="videoMicToggle" type="button" aria-label="كتم الميكروفون"><span class="material-icons-round">mic</span></button>
           <button class="video-control" id="videoCameraToggle" type="button" aria-label="إيقاف الكاميرا"><span class="material-icons-round">videocam</span></button>
@@ -195,7 +188,7 @@
           <button class="video-control video-control-leave" id="videoLeave" type="button" aria-label="إنهاء المكالمة"><span class="material-icons-round">call_end</span></button>
           <button class="video-control" id="videoMoreToggle" type="button" aria-label="المزيد"><span class="material-icons-round">more_horiz</span></button>
         </footer>
-        <p class="video-design-note" id="videoDesignNote">معاينة تصميم المكالمة</p>
+        
       </section>
 
       <section class="room-tabs" role="tablist" aria-label="أقسام المجتمع">

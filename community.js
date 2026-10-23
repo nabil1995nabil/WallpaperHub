@@ -59,6 +59,17 @@ let voiceReadyPromise = null;
 let voiceAudioContext = null;
 let voiceAudioMonitors = new Map();
 let voiceSlotByUser = new Map();
+// مكالمة الفيديو: بيانات مؤقتة داخل Supabase Realtime فقط، دون تخزين الوسائط أو سجل دائم.
+const VIDEO_MAX_PARTICIPANTS = 6;
+let videoChannel = null;
+let videoLocalStream = null;
+let videoPeers = new Map();
+let videoIceQueues = new Map();
+let videoJoined = false;
+let videoMicMuted = false;
+let videoCameraOff = false;
+let videoReadyPromise = null;
+let videoModerationPollTimer = null;
 let canManagePinnedMessage = false;
 let pinnedMessagePermissionLoaded = false;
 let pinnedMessageLoadPromise = null;
@@ -2855,67 +2866,142 @@ async function joinRealVoiceRoom(){
   }
 }
 
-// واجهة مكالمة الفيديو — مرحلة التصميم فقط، دون اتصال شبكي حتى ربط السيرفر لاحقًا.
+// مكالمة فيديو جماعية حقيقية عبر WebRTC + Supabase Realtime.
+// لا يتم حفظ الصوت/الفيديو أو إنشاء سجل دائم؛ الحضور والإشارات مؤقتة وتختفي بإزالة القناة.
 const videoCallScreen = $('#videoCallScreen');
-let videoMicMuted = false;
-let videoCameraOff = false;
-function openVideoCallDesign(){
-  if(!videoCallScreen) return;
-  // لا نُبقي مكالمة الصوت مفتوحة بالتزامن مع واجهة الفيديو.
-  if(voiceJoined) leaveVoiceRoom().catch(()=>{});
-  showCommunityHero();
-  $$('.room-tab').forEach(button => button.setAttribute('aria-selected','false'));
-  $('#communityHero')?.classList.add('hidden');
-  $('.room-tabs')?.classList.add('hidden');
-  $('.content-layout')?.classList.add('hidden');
-  $$('.secondary-panel').forEach(panel => panel.classList.add('hidden'));
-  videoCallScreen.classList.remove('hidden');
-  videoCallScreen.setAttribute('aria-hidden','false');
-  document.body.classList.add('video-call-open');
-  const profile = currentVoiceProfile();
-  const name = $('#videoSelfName');
-  const avatar = $('#videoSelfAvatar');
-  if(name) name.textContent = profile.name || 'أنت';
-  if(avatar){
-    avatar.textContent = initials(profile.name);
-    if(profile.avatarUrl) avatar.style.backgroundImage = `url("${String(profile.avatarUrl).replace(/["\\]/g,'')}")`;
-    else avatar.style.backgroundImage = '';
+function videoProfiles(){
+  const profiles=new Map();
+  const state=videoChannel?.presenceState?.()||{};
+  Object.entries(state).forEach(([key,list])=>{
+    const item=Array.isArray(list)?list[list.length-1]:list;
+    if(!item)return;
+    const id=String(item.user_id||key||'');if(!id)return;
+    profiles.set(id,{id,name:String(item.name||'عضو'),avatarUrl:String(item.avatarUrl||'')});
+  });
+  if(videoJoined&&currentUser){const me=currentVoiceProfile();profiles.set(me.id,me)}
+  return [...profiles.values()].slice(0,VIDEO_MAX_PARTICIPANTS);
+}
+function renderVideoTiles(){
+  const grid=$('#videoCallGrid');if(!grid)return;
+  const profiles=videoProfiles();
+  $('#videoParticipantCount').textContent=String(profiles.length||1);
+  grid.innerHTML='';
+  const me=currentVoiceProfile();
+  const all=profiles.length?profiles:[{...me}];
+  for(let i=0;i<VIDEO_MAX_PARTICIPANTS;i++){
+    const profile=all[i];
+    const tile=document.createElement('article');tile.className='video-tile'+(profile&&profile.id===me.id?' video-tile-self':'');
+    if(profile){
+      const video=document.createElement('video');video.className='video-stream';video.autoplay=true;video.playsInline=true;video.muted=profile.id===me.id;
+      video.dataset.userId=profile.id;
+      if(profile.id===me.id&&videoLocalStream)video.srcObject=videoLocalStream;
+      const avatar=document.createElement('div');avatar.className='video-person-avatar';avatar.textContent=initials(profile.name);
+      if(profile.avatarUrl){avatar.style.backgroundImage=`linear-gradient(rgba(8,14,30,.25),rgba(8,14,30,.5)),url("${profile.avatarUrl.replace(/["\\]/g,'')}")`;avatar.style.backgroundSize='cover';avatar.style.backgroundPosition='center'}
+      const name=document.createElement('span');name.className='video-tile-name';const b=document.createElement('b');b.textContent=profile.id===me.id?'أنت':profile.name;name.appendChild(b);
+      const mic=document.createElement('span');mic.className='video-tile-mic'+(profile.id===me.id&&videoMicMuted?' muted':'');const mi=document.createElement('i');mi.className='material-icons-round';mi.textContent=profile.id===me.id&&videoMicMuted?'mic_off':'mic';mic.appendChild(mi);
+      tile.append(video,avatar,name,mic);
+    }else{
+      const empty=document.createElement('div');empty.className='video-empty-mark';empty.innerHTML='<span class="material-icons-round">person_add</span>';
+      const name=document.createElement('span');name.className='video-tile-name';const b=document.createElement('b');b.textContent='مقعد متاح';name.appendChild(b);tile.append(empty,name);
+    }
+    grid.appendChild(tile);
   }
-  videoMicMuted = false; videoCameraOff = false;
-  $('#videoMicToggle')?.classList.remove('is-off');
-  $('#videoCameraToggle')?.classList.remove('is-off');
-  $('#videoMicToggle .material-icons-round')?.replaceChildren(document.createTextNode('mic'));
-  $('#videoCameraToggle .material-icons-round')?.replaceChildren(document.createTextNode('videocam'));
-  $('#videoDesignNote').textContent='معاينة تصميم المكالمة';
 }
-function closeVideoCallDesign(){
-  videoCallScreen?.classList.add('hidden');
-  videoCallScreen?.setAttribute('aria-hidden','true');
-  document.body.classList.remove('video-call-open');
-  $('#communityHero')?.classList.remove('hidden');
-  $('.room-tabs')?.classList.remove('hidden');
-  $('.content-layout')?.classList.remove('hidden');
-  showTab('general');
+function attachVideoStream(userId,stream){
+  const video=$(`#videoCallGrid video[data-user-id="${CSS.escape(String(userId))}"]`);
+  if(video){video.srcObject=stream;video.play().catch(()=>{});}
 }
-$('#voiceShortcut')?.addEventListener('click',openVideoCallDesign);
-$('#videoClose')?.addEventListener('click',closeVideoCallDesign);
-$('#videoLeave')?.addEventListener('click',closeVideoCallDesign);
-$('#videoMicToggle')?.addEventListener('click',()=>{
-  videoMicMuted=!videoMicMuted;
-  $('#videoMicToggle')?.classList.toggle('is-off',videoMicMuted);
-  const icon=$('#videoMicToggle .material-icons-round'); if(icon) icon.textContent=videoMicMuted?'mic_off':'mic';
-  $('#videoMicToggle')?.setAttribute('aria-label',videoMicMuted?'تشغيل الميكروفون':'كتم الميكروفون');
-});
-$('#videoCameraToggle')?.addEventListener('click',()=>{
-  videoCameraOff=!videoCameraOff;
-  $('#videoCameraToggle')?.classList.toggle('is-off',videoCameraOff);
-  const icon=$('#videoCameraToggle .material-icons-round'); if(icon) icon.textContent=videoCameraOff?'videocam_off':'videocam';
-  $('#videoCameraToggle')?.setAttribute('aria-label',videoCameraOff?'تشغيل الكاميرا':'إيقاف الكاميرا');
-  $('#videoDesignNote').textContent=videoCameraOff?'الكاميرا متوقفة':'معاينة تصميم المكالمة';
-});
-$('#videoShareToggle')?.addEventListener('click',()=>showToast('مشاركة الشاشة ستُفعّل عند ربط نظام الاتصال'));
-$('#videoMoreToggle')?.addEventListener('click',()=>showToast('إعدادات إضافية ستُضاف عند ربط نظام الاتصال'));
-
+function closeVideoPeer(peerId){
+  const id=String(peerId||''),entry=videoPeers.get(id);
+  if(entry){try{entry.pc.close()}catch(_){} }
+  videoPeers.delete(id);videoIceQueues.delete(id);
+}
+function createVideoPeer(peerId,initiator){
+  peerId=String(peerId);
+  if(!videoLocalStream||!videoChannel||!peerId)return null;
+  const existing=videoPeers.get(peerId);if(existing)return existing.pc;
+  const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
+  videoLocalStream.getTracks().forEach(track=>pc.addTrack(track,videoLocalStream));
+  const entry={pc,remoteDescription:false};videoPeers.set(peerId,entry);videoIceQueues.set(peerId,[]);
+  pc.onicecandidate=e=>{if(e.candidate)videoChannel?.send({type:'broadcast',event:'video-signal',payload:{type:'candidate',from:String(currentUser.id),to:peerId,candidate:e.candidate.toJSON?e.candidate.toJSON():e.candidate}}).catch(()=>{});};
+  pc.ontrack=e=>{const stream=e.streams?.[0];if(stream)attachVideoStream(peerId,stream)};
+  pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState))closeVideoPeer(peerId)};
+  if(initiator){pc.createOffer().then(o=>pc.setLocalDescription(o).then(()=>o)).then(o=>videoChannel?.send({type:'broadcast',event:'video-signal',payload:{type:'offer',from:String(currentUser.id),to:peerId,description:o}})).catch(()=>showToast('تعذر إنشاء اتصال فيديو مع أحد الأعضاء'));}
+  return pc;
+}
+async function flushVideoIce(peerId){const entry=videoPeers.get(String(peerId)),queue=videoIceQueues.get(String(peerId))||[];if(!entry?.remoteDescription)return;while(queue.length){try{await entry.pc.addIceCandidate(queue.shift())}catch(_){}}}
+async function handleVideoSignal(payload){
+  if(!videoJoined||!payload||!currentUser)return;
+  const from=String(payload.from||''),to=String(payload.to||'');if(!from||to!==String(currentUser.id)||from===String(currentUser.id))return;
+  if(payload.type==='bye'){closeVideoPeer(from);return}
+  let pc=videoPeers.get(from)?.pc;if(!pc)pc=createVideoPeer(from,false);const entry=videoPeers.get(from);if(!entry)return;
+  try{
+    if(payload.type==='offer'){
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.description));entry.remoteDescription=true;await flushVideoIce(from);
+      const answer=await pc.createAnswer();await pc.setLocalDescription(answer);
+      await videoChannel?.send({type:'broadcast',event:'video-signal',payload:{type:'answer',from:String(currentUser.id),to:from,description:answer}});
+    }else if(payload.type==='answer'){
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.description));entry.remoteDescription=true;await flushVideoIce(from);
+    }else if(payload.type==='candidate'){
+      const c=new RTCIceCandidate(payload.candidate);if(entry.remoteDescription)await pc.addIceCandidate(c);else videoIceQueues.get(from)?.push(c);
+    }
+  }catch(_){closeVideoPeer(from)}
+}
+async function syncVideoPeers(){
+  renderVideoTiles();if(!videoJoined||!videoChannel||!currentUser)return;
+  for(const profile of videoProfiles()){
+    if(profile.id===String(currentUser.id)||videoPeers.has(profile.id))continue;
+    createVideoPeer(profile.id,String(currentUser.id)<String(profile.id));
+  }
+  for(const id of [...videoPeers.keys()])if(!videoProfiles().some(p=>p.id===id))closeVideoPeer(id);
+}
+async function ensureVideoChannel(){
+  if(videoChannel)return videoChannel;if(videoReadyPromise)return videoReadyPromise;if(!supabaseClient)throw new Error('تعذر تجهيز الاتصال');
+  videoChannel=supabaseClient.channel('wallpaperhub-public-video-call',{config:{broadcast:{ack:true},presence:{key:String(currentUser.id)}}});
+  videoChannel.on('broadcast',{event:'video-signal'},({payload})=>handleVideoSignal(payload))
+    .on('presence',{event:'sync'},syncVideoPeers)
+    .on('presence',{event:'join'},syncVideoPeers)
+    .on('presence',{event:'leave'},({key,leftPresences})=>{const ids=new Set([String(key||''),...(leftPresences||[]).map(p=>String(p.user_id||''))]);ids.forEach(id=>closeVideoPeer(id));syncVideoPeers()});
+  videoReadyPromise=new Promise((resolve,reject)=>{let settled=false;const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('تعذر الاتصال بغرفة الفيديو'))}},8000);videoChannel.subscribe(status=>{if(settled)return;if(status==='SUBSCRIBED'){settled=true;clearTimeout(timer);resolve(videoChannel)}else if(['CHANNEL_ERROR','TIMED_OUT'].includes(status)){settled=true;clearTimeout(timer);reject(new Error('تعذر الاتصال بغرفة الفيديو'))}})});
+  try{return await videoReadyPromise}catch(e){if(videoChannel&&supabaseClient)await supabaseClient.removeChannel(videoChannel).catch(()=>{});videoChannel=null;throw e}finally{videoReadyPromise=null}
+}
+async function openVideoCall(){
+  if(!currentUser){showToast('سجّل الدخول أولاً لبدء مكالمة الفيديو');return}
+  if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection){showToast('المتصفح لا يدعم مكالمة الفيديو');return}
+  try{
+    await fetchJson('/api/community/video-call/authorize',{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({action:'join'})});
+    const moderation=await loadCommunityModeration({silent:true});if(!moderation||!ensureCommunityPermission('voice'))return;
+    if(voiceJoined)await leaveVoiceRoom();
+    const channel=await ensureVideoChannel();
+    if(videoProfiles().length>=VIDEO_MAX_PARTICIPANTS){showToast('مكالمة الفيديو ممتلئة حالياً');return}
+    videoLocalStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}});
+    const profile=currentVoiceProfile();await channel.track({user_id:profile.id,name:profile.name,avatarUrl:profile.avatarUrl,joined_at:Date.now()});
+    videoJoined=true;videoMicMuted=false;videoCameraOff=false;
+    communityHero?.classList.add('hidden');$('.room-tabs')?.classList.add('hidden');$('.content-layout')?.classList.add('hidden');$$('.secondary-panel').forEach(p=>p.classList.add('hidden'));
+    videoCallScreen?.classList.remove('hidden');videoCallScreen?.setAttribute('aria-hidden','false');document.body.classList.add('video-call-open');
+    $('#videoMicToggle')?.classList.remove('is-off');$('#videoCameraToggle')?.classList.remove('is-off');
+    $('#videoMicToggle .material-icons-round').textContent='mic';$('#videoCameraToggle .material-icons-round').textContent='videocam';
+    renderVideoTiles();await syncVideoPeers();startVideoModerationPolling();
+  }catch(error){await leaveVideoCall();showToast(error.message||'تعذر بدء مكالمة الفيديو')}
+}
+async function leaveVideoCall(){
+  if(videoChannel&&videoJoined&&currentUser){for(const id of videoPeers.keys())videoChannel.send({type:'broadcast',event:'video-signal',payload:{type:'bye',from:String(currentUser.id),to:String(id)}}).catch(()=>{});}
+  for(const id of [...videoPeers.keys()])closeVideoPeer(id);
+  if(videoLocalStream){videoLocalStream.getTracks().forEach(track=>track.stop());videoLocalStream=null}
+  if(videoChannel&&supabaseClient){try{await videoChannel.untrack()}catch(_){}try{await supabaseClient.removeChannel(videoChannel)}catch(_){}}
+  videoChannel=null;videoReadyPromise=null;videoJoined=false;clearInterval(videoModerationPollTimer);videoModerationPollTimer=null;
+  await fetchJson('/api/community/video-call/authorize',{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({action:'leave'})}).catch(()=>{});
+  videoCallScreen?.classList.add('hidden');videoCallScreen?.setAttribute('aria-hidden','true');document.body.classList.remove('video-call-open');
+  communityHero?.classList.remove('hidden');$('.room-tabs')?.classList.remove('hidden');$('.content-layout')?.classList.remove('hidden');showTab('general');renderVideoTiles();
+}
+function startVideoModerationPolling(){clearInterval(videoModerationPollTimer);videoModerationPollTimer=setInterval(async()=>{if(!videoJoined)return;const state=await loadCommunityModeration({silent:true});if(state&&!state.canVoice){await leaveVideoCall();showToast('تم إخراجك من المكالمة بسبب قيود المجتمع')}} ,15000)}
+$('#voiceShortcut')?.addEventListener('click',openVideoCall);
+$('#videoClose')?.addEventListener('click',leaveVideoCall);
+$('#videoLeave')?.addEventListener('click',leaveVideoCall);
+$('#videoMicToggle')?.addEventListener('click',()=>{if(!videoLocalStream)return;videoMicMuted=!videoMicMuted;videoLocalStream.getAudioTracks().forEach(t=>t.enabled=!videoMicMuted);$('#videoMicToggle')?.classList.toggle('is-off',videoMicMuted);$('#videoMicToggle .material-icons-round').textContent=videoMicMuted?'mic_off':'mic';renderVideoTiles()});
+$('#videoCameraToggle')?.addEventListener('click',()=>{if(!videoLocalStream)return;videoCameraOff=!videoCameraOff;videoLocalStream.getVideoTracks().forEach(t=>t.enabled=!videoCameraOff);$('#videoCameraToggle')?.classList.toggle('is-off',videoCameraOff);$('#videoCameraToggle .material-icons-round').textContent=videoCameraOff?'videocam_off':'videocam';renderVideoTiles()});
+$('#videoShareToggle')?.addEventListener('click',()=>showToast('مشاركة الشاشة غير مفعّلة في هذه النسخة'));
+$('#videoMoreToggle')?.addEventListener('click',()=>showToast('المكالمة تدعم حتى 6 أعضاء'));
 $('#voiceRoomShortcut')?.addEventListener('click',showVoiceHero);
 $('#voiceBackToChat')?.addEventListener('click',async () => {
   await leaveVoiceRoom();
