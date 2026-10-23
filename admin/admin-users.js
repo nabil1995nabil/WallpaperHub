@@ -864,6 +864,10 @@ async function loadModerationState(uid){
       if(source) moderation[target] = raw[source];
     }
   }
+  // Normalize the booleans from the server response before rendering status labels.
+  for(const key of ["videoChatBanned","publishBanned","commentsBanned"]){
+    if(moderation[key] !== undefined) moderation[key] = Boolean(moderation[key]);
+  }
   renderModerationState(moderation);
 }
 $$(".mod-duration").forEach(el=>{
