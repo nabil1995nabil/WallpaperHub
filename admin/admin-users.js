@@ -813,7 +813,10 @@ function openWarningModal(user){
 const MODERATION_KEYS = {
   Community: {until:"communityBanUntil", permanent:"communityBanPermanent", reason:"communityBanReason", active:"communityBanned"},
   Chat: {until:"communityChatFreezeUntil", permanent:"communityChatFreezePermanent", reason:"communityChatFreezeReason", active:"chatFrozen"},
-  Voice: {until:"communityVoiceFreezeUntil", permanent:"communityVoiceFreezePermanent", reason:"communityVoiceFreezeReason", active:"voiceFrozen"}
+  Voice: {until:"communityVoiceFreezeUntil", permanent:"communityVoiceFreezePermanent", reason:"communityVoiceFreezeReason", active:"voiceFrozen"},
+  Video: {until:"videoChatBanUntil", permanent:"videoChatBanPermanent", reason:"videoChatBanReason", active:"videoChatBanned"},
+  Publish: {until:"publishBanUntil", permanent:"publishBanPermanent", reason:"publishBanReason", active:"publishBanned"},
+  Comments: {until:"commentsBanUntil", permanent:"commentsBanPermanent", reason:"commentsBanReason", active:"commentsBanned"}
 };
 function localModDateValue(value){
   const d = new Date(value);
