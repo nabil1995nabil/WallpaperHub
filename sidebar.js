@@ -313,6 +313,151 @@ function(e){
 
 }
 
+
+// Publishing shortcut: show a subtle red X when the signed-in user is banned.
+(function(){
+  const STATUS_API = "/api/publish/moderation/me";
+  let requestId = 0;
+  let lastToken = "";
+
+  function getSessionToken(){
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i)||"";
+        if(!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
+        const raw=localStorage.getItem(key);
+        if(!raw) continue;
+        const session=JSON.parse(raw);
+        const token=String(session?.access_token || session?.currentSession?.access_token || "").trim();
+        if(token) return token;
+      }
+    }catch(error){ console.warn("PUBLISH BAN SESSION ERROR:",error); }
+    return "";
+  }
+
+  function formatUntil(value){
+    const date = new Date(value);
+    if(!Number.isFinite(date.getTime())) return "";
+    try{
+      return new Intl.DateTimeFormat("ar-MA",{
+        year:"numeric",month:"2-digit",day:"2-digit",
+        hour:"2-digit",minute:"2-digit",second:"2-digit",
+        hour12:false
+      }).format(date);
+    }catch(_){ return date.toLocaleString(); }
+  }
+
+  function getBubble(link){
+    let bubble = link.querySelector(".publish-ban-bubble");
+    if(!bubble){
+      bubble = document.createElement("span");
+      bubble.className = "publish-ban-bubble";
+      bubble.setAttribute("role","status");
+      bubble.setAttribute("aria-live","polite");
+      link.appendChild(bubble);
+    }
+    return bubble;
+  }
+
+  function render(link, state){
+    if(!link) return;
+    const banned = Boolean(state?.banned);
+    link.classList.toggle("is-publish-banned", banned);
+    link.dataset.publishBanned = banned ? "true" : "false";
+    const svg = link.querySelector("svg");
+    if(svg){
+      if(banned){
+        svg.innerHTML = '<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>';
+        svg.setAttribute("viewBox","0 0 24 24");
+      }else{
+        svg.innerHTML = '<path d="M12 3v12"></path><path d="m7 8 5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>';
+        svg.setAttribute("viewBox","0 0 24 24");
+      }
+    }
+    link.setAttribute("aria-label", banned ? "أنت محظور من نشر الخلفيات؛ اضغط لمعرفة السبب" : "الانتقال إلى نشر الخلفيات");
+    link.title = banned ? "تم منعك من نشر الخلفيات" : "نشر الخلفيات";
+
+    const bubble = getBubble(link);
+    if(!banned){
+      bubble.classList.remove("is-visible");
+      bubble.textContent = "";
+      return;
+    }
+    let message = "تم حظرك من نشر الخلفيات";
+    if(state.permanent){
+      message += " — الحظر دائم";
+    }else if(state.until){
+      message += " حتى " + formatUntil(state.until);
+    }
+    if(state.reason) message += " · السبب: " + String(state.reason);
+    bubble.textContent = message;
+  }
+
+  async function refresh(){
+    const link = document.querySelector(".drawer-publish-link");
+    if(!link) return;
+    const token = getSessionToken();
+    if(!token){
+      lastToken = "";
+      render(link,{banned:false});
+      return;
+    }
+    if(token === lastToken && link.dataset.publishBanChecked === "true") return;
+    lastToken = token;
+    const currentRequest = ++requestId;
+    try{
+      const response = await fetch(STATUS_API,{
+        headers:{Authorization:"Bearer "+token},
+        cache:"no-store"
+      });
+      if(currentRequest !== requestId) return;
+      if(response.status === 401){
+        render(link,{banned:false});
+        link.dataset.publishBanChecked = "true";
+        return;
+      }
+      if(!response.ok) throw new Error("PUBLISH_BAN_STATUS_"+response.status);
+      const data = await response.json();
+      if(currentRequest !== requestId) return;
+      render(link,data);
+      link.dataset.publishBanChecked = "true";
+    }catch(error){
+      // Do not falsely mark the user as banned if the status service is temporarily unavailable.
+      console.warn("PUBLISH BAN STATUS ERROR:",error);
+    }
+  }
+
+  document.addEventListener("click",event=>{
+    const link = event.target.closest(".drawer-publish-link");
+    if(link && link.dataset.publishBanned === "true"){
+      event.preventDefault();
+      event.stopPropagation();
+      const bubble = getBubble(link);
+      bubble.classList.toggle("is-visible");
+      return;
+    }
+    document.querySelectorAll(".publish-ban-bubble.is-visible").forEach(bubble=>{
+      if(!bubble.closest(".drawer-publish-link")?.contains(event.target)){
+        bubble.classList.remove("is-visible");
+      }
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded",refresh);
+  window.addEventListener("focus",refresh);
+  window.addEventListener("storage",event=>{
+    if(!event.key || event.key.startsWith("sb-")) {
+      lastToken = "";
+      refresh();
+    }
+  });
+  new MutationObserver(()=>{
+    const link = document.querySelector(".drawer-publish-link");
+    if(link && link.dataset.publishBanChecked !== "true") refresh();
+  }).observe(document.documentElement,{childList:true,subtree:true});
+  window.refreshPublishBanShortcut = ()=>{ lastToken=""; return refresh(); };
+})();
+
 // Shared section badges: sidebar links + hamburger indicator.
 (function(){
   const SECTION_API = "/api/section-badges";

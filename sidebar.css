@@ -433,3 +433,47 @@ body.drawer-open .bottom-nav{
     stroke-linejoin:round;
     display:block;
 }
+
+
+/* Compact publishing-ban indicator and lightweight notification bubble */
+.drawer-header .drawer-publish-link.is-publish-banned{
+    color:#dc2626;
+    border-color:#fecaca;
+    background:#fff7f7;
+}
+.drawer-header .drawer-publish-link.is-publish-banned svg{
+    stroke:currentColor;
+}
+.drawer-header .drawer-publish-link .publish-ban-bubble{
+    position:absolute;
+    top:42px;
+    right:0;
+    width:max-content;
+    max-width:min(260px, calc(100vw - 44px));
+    padding:8px 10px;
+    border:1px solid rgba(220,38,38,.15);
+    border-radius:10px;
+    background:rgba(255,250,250,.98);
+    color:#8f2424;
+    box-shadow:0 5px 18px rgba(30,20,20,.09);
+    font-size:11px;
+    line-height:1.65;
+    font-weight:300;
+    white-space:normal;
+    text-align:right;
+    direction:rtl;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-3px);
+    transition:opacity .16s ease, transform .16s ease, visibility .16s ease;
+    z-index:10002;
+    pointer-events:none;
+}
+.drawer-header .drawer-publish-link .publish-ban-bubble.is-visible{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+}
+.drawer-header .drawer-publish-link.is-publish-banned:active{
+    transform:scale(.97);
+}

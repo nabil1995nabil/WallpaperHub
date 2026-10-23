@@ -5010,6 +5010,27 @@ async function getWallpaperPoints(userId){
 // Requires the SQL table described in publish-setup.sql.
 // ======================================
 
+// Current user's publishing restriction for the sidebar shortcut.
+app.get("/api/publish/moderation/me", async(req,res)=>{
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user){
+            return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+        }
+        const ban = await getActiveFeatureBan(user.id,"publish_ban");
+        return res.set("Cache-Control","no-store").json({
+            success:true,
+            banned:Boolean(ban.active),
+            permanent:Boolean(ban.permanent),
+            until:ban.until || null,
+            reason:ban.reason || null
+        });
+    }catch(error){
+        console.error("PUBLISH BAN STATUS ERROR:",error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر التحقق من حالة حظر النشر"});
+    }
+});
+
 app.get("/api/publish/session", async (req,res)=>{
     try{
         const user = await getAuthenticatedUser(req);
