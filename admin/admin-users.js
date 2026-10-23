@@ -444,6 +444,7 @@ function fillDetail(detail){
   renderMedals(detail);
   renderAudit(detail?.audit_logs || []);
   renderWarningHistory(detail?.warnings || []);
+  if(u?.id || u?.uid) loadModerationState(u.id || u.uid).catch(error=>console.warn("MODERATION STATE:",error));
 }
 
 async function loadUserDetail(id){
@@ -805,6 +806,93 @@ function openWarningModal(user){
       showToast(error.message || "تعذر إرسال التحذير");
     }
   };
+}
+
+
+/* ---------- Independent server-enforced moderation ---------- */
+const MODERATION_KEYS = {
+  Community: {until:"communityBanUntil", permanent:"communityBanPermanent", reason:"communityBanReason", active:"communityBanned"},
+  Chat: {until:"communityChatFreezeUntil", permanent:"communityChatFreezePermanent", reason:"communityChatFreezeReason", active:"chatFrozen"},
+  Voice: {until:"communityVoiceFreezeUntil", permanent:"communityVoiceFreezePermanent", reason:"communityVoiceFreezeReason", active:"voiceFrozen"}
+};
+function localModDateValue(value){
+  const d = new Date(value);
+  if(!Number.isFinite(d.getTime())) return "";
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function renderModerationState(control){
+  for(const [key,fields] of Object.entries(MODERATION_KEYS)){
+    const active = Boolean(control?.[fields.active]);
+    const until = control?.[fields.until] || null;
+    const permanent = Boolean(control?.[fields.permanent]);
+    const state = $(`#modState${key}`);
+    const meta = $(`#modMeta${key}`);
+    if(state){state.textContent=active?(permanent?"حظر دائم":"محظور حتى انتهاء المدة"):"غير محظور";state.className=`badge ${active?"banned":""}`;}
+    if(meta){
+      const reason=control?.[fields.reason] ? `السبب: ${control[fields.reason]}` : "بدون سبب مسجل";
+      meta.textContent=active ? `${permanent?"لا ينتهي تلقائياً":`ينتهي: ${fmt(until)}`} · ${reason}` : "لا يوجد قيد نشط على هذه الوظيفة.";
+    }
+    const durationEl=$(`#modDuration${key}`);
+    const untilEl=$(`#modUntil${key}`);
+    const reasonEl=$(`#modReason${key}`);
+    const wrap=$(`#modCustomWrap${key}`);
+    if(reasonEl && control?.[fields.reason]) reasonEl.value=control[fields.reason];
+    if(durationEl && active){
+      if(permanent) durationEl.value="permanent";
+      else if(until){durationEl.value="custom"; if(untilEl)untilEl.value=localModDateValue(until);}
+    }
+    if(wrap && durationEl) wrap.hidden=durationEl.value!=="custom";
+  }
+}
+async function loadModerationState(uid){
+  const result=await api(`/api/community/admin-moderation/${encodeURIComponent(uid)}`);
+  renderModerationState(result.moderation || {});
+}
+$$(".mod-duration").forEach(el=>{
+  el.addEventListener("change",()=>{
+    const key=el.id.replace("modDuration","");
+    const wrap=$(`#modCustomWrap${key}`);
+    if(wrap)wrap.hidden=el.value!=="custom";
+  });
+});
+$$(".mod-apply").forEach(button=>{
+  button.addEventListener("click",async()=>{
+    if(!selected)return;
+    const key=button.dataset.key;
+    const actionName=button.dataset.action;
+    const duration=$(`#modDuration${key}`)?.value || "";
+    const reason=$(`#modReason${key}`)?.value.trim() || "";
+    let until=null;
+    if(duration==="custom"){
+      const value=$(`#modUntil${key}`)?.value || "";
+      const d=new Date(value);
+      if(!value || !Number.isFinite(d.getTime()) || d.getTime()<=Date.now()){
+        showToast("حدد تاريخ ووقتًا مستقبليًا صالحًا");return;
+      }
+      until=d.toISOString();
+    }
+    if(!confirm("تأكيد تطبيق هذا القيد فقط؟ القيود الأخرى لن تتغير."))return;
+    await runModerationAction(actionName,{duration,until,reason});
+  });
+});
+$$(".mod-clear").forEach(button=>{
+  button.addEventListener("click",async()=>{
+    if(!selected)return;
+    if(!confirm("فك هذا القيد فقط؟ لن تتغير القيود الأخرى."))return;
+    await runModerationAction(button.dataset.action,{reason:""});
+  });
+});
+async function runModerationAction(actionName,body){
+  if(!selected)return;
+  try{
+    await api(`/api/admin/community-moderation/${encodeURIComponent(selected.id)}`,{
+      method:"PATCH",body:JSON.stringify({action,...body})
+    });
+    showToast("تم تحديث القيد المحدد");
+    await loadUsers();
+    if(selected) await loadUserDetail(selected.id);
+  }catch(error){showToast(error.message || "تعذر تحديث القيد");}
 }
 
 /* ---------- UI events ---------- */

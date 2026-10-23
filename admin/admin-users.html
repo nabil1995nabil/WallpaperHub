@@ -154,6 +154,57 @@
       </div>
     </section>
 
+
+    <section class="detail-section danger-section" id="detailModerationSection">
+      <div class="section-title"><span class="material-icons-round">gpp_maybe</span><h3>قيود الوظائف المستقلة</h3></div>
+      <p class="muted">كل قيد مستقل. فك قيد واحد لا يغيّر أي قيد آخر. التوقيت يُحسب على السيرفر.</p>
+      <div class="moderation-card" data-moderation="community_ban">
+        <div class="moderation-card-head"><strong>دخول المجتمع</strong><span id="modStateCommunity" class="badge">جارٍ التحميل</span></div>
+        <div class="form-grid">
+          <label>المدة
+            <select id="modDurationCommunity" class="mod-duration">
+              <option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h" selected>24 ساعة</option>
+              <option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option>
+              <option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option>
+            </select>
+          </label>
+          <label class="mod-custom-wrap" id="modCustomWrapCommunity" hidden>ينتهي في
+            <input type="datetime-local" id="modUntilCommunity">
+          </label>
+        </div>
+        <label class="mod-reason-label">السبب<input id="modReasonCommunity" placeholder="سبب منع دخول المجتمع"></label>
+        <p class="mod-meta" id="modMetaCommunity">—</p>
+        <div class="action-row"><button class="danger-btn mod-apply" data-action="community_ban" data-key="Community">تطبيق الحظر</button><button class="secondary-btn mod-clear" data-action="clear_community_ban" data-key="Community">فك هذا القيد</button></div>
+      </div>
+      <div class="moderation-card" data-moderation="chat_freeze">
+        <div class="moderation-card-head"><strong>الكتابة في المجتمع</strong><span id="modStateChat" class="badge">جارٍ التحميل</span></div>
+        <div class="form-grid">
+          <label>المدة<select id="modDurationChat" class="mod-duration"><option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h" selected>24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option></select></label>
+          <label class="mod-custom-wrap" id="modCustomWrapChat" hidden>ينتهي في<input type="datetime-local" id="modUntilChat"></label>
+        </div>
+        <label class="mod-reason-label">السبب<input id="modReasonChat" placeholder="سبب منع الكتابة"></label>
+        <p class="mod-meta" id="modMetaChat">—</p>
+        <div class="action-row"><button class="danger-btn mod-apply" data-action="chat_freeze" data-key="Chat">منع الكتابة</button><button class="secondary-btn mod-clear" data-action="clear_chat_freeze" data-key="Chat">فك هذا القيد</button></div>
+      </div>
+      <div class="moderation-card" data-moderation="voice_freeze">
+        <div class="moderation-card-head"><strong>المحادثة الصوتية</strong><span id="modStateVoice" class="badge">جارٍ التحميل</span></div>
+        <div class="form-grid">
+          <label>المدة<select id="modDurationVoice" class="mod-duration"><option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h" selected>24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option></select></label>
+          <label class="mod-custom-wrap" id="modCustomWrapVoice" hidden>ينتهي في<input type="datetime-local" id="modUntilVoice"></label>
+        </div>
+        <label class="mod-reason-label">السبب<input id="modReasonVoice" placeholder="سبب منع الصوت"></label>
+        <p class="mod-meta" id="modMetaVoice">—</p>
+        <div class="action-row"><button class="danger-btn mod-apply" data-action="voice_freeze" data-key="Voice">منع الصوت</button><button class="secondary-btn mod-clear" data-action="clear_voice_freeze" data-key="Voice">فك هذا القيد</button></div>
+      </div>
+    </section>
+
+      <div class="moderation-card"><div class="moderation-card-head"><strong>المحادثة المرئية</strong><span id="modStateVideo" class="badge">جارٍ التحميل</span></div>
+      <div class="form-grid"><label>المدة<select id="modDurationVideo" class="mod-duration"><option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h" selected>24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option></select></label><label class="mod-custom-wrap" id="modCustomWrapVideo" hidden>ينتهي في<input id="modUntilVideo" type="datetime-local"></label></div>
+      <label class="mod-reason-label">السبب<input id="modReasonVideo" placeholder="سبب القيد"></label><p class="mod-meta" id="modMetaVideo">—</p><div class="action-row"><button class="danger-btn mod-apply" data-action="video_chat_ban" data-key="Video">منع الفيديو</button><button class="secondary-btn mod-clear" data-action="clear_video_chat_ban" data-key="Video">فك هذا القيد</button></div></div>      <div class="moderation-card"><div class="moderation-card-head"><strong>نشر الخلفيات</strong><span id="modStatePublish" class="badge">جارٍ التحميل</span></div>
+      <div class="form-grid"><label>المدة<select id="modDurationPublish" class="mod-duration"><option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h" selected>24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option></select></label><label class="mod-custom-wrap" id="modCustomWrapPublish" hidden>ينتهي في<input id="modUntilPublish" type="datetime-local"></label></div>
+      <label class="mod-reason-label">السبب<input id="modReasonPublish" placeholder="سبب القيد"></label><p class="mod-meta" id="modMetaPublish">—</p><div class="action-row"><button class="danger-btn mod-apply" data-action="publish_ban" data-key="Publish">منع النشر</button><button class="secondary-btn mod-clear" data-action="clear_publish_ban" data-key="Publish">فك هذا القيد</button></div></div>      <div class="moderation-card"><div class="moderation-card-head"><strong>التعليقات على الخلفيات</strong><span id="modStateComments" class="badge">جارٍ التحميل</span></div>
+      <div class="form-grid"><label>المدة<select id="modDurationComments" class="mod-duration"><option value="1h">ساعة</option><option value="6h">6 ساعات</option><option value="24h" selected>24 ساعة</option><option value="3d">3 أيام</option><option value="7d">7 أيام</option><option value="30d">30 يومًا</option><option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option></select></label><label class="mod-custom-wrap" id="modCustomWrapComments" hidden>ينتهي في<input id="modUntilComments" type="datetime-local"></label></div>
+      <label class="mod-reason-label">السبب<input id="modReasonComments" placeholder="سبب القيد"></label><p class="mod-meta" id="modMetaComments">—</p><div class="action-row"><button class="danger-btn mod-apply" data-action="comments_ban" data-key="Comments">منع التعليقات</button><button class="secondary-btn mod-clear" data-action="clear_comments_ban" data-key="Comments">فك هذا القيد</button></div></div>
     <section class="detail-section">
       <div class="section-title"><span class="material-icons-round">sticky_note_2</span><h3>ملاحظات داخلية</h3></div>
       <textarea id="adminNotes" rows="4" placeholder="ملاحظات لا يراها المستخدم..."></textarea>
