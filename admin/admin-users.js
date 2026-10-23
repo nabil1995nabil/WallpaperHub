@@ -850,7 +850,21 @@ function renderModerationState(control){
 }
 async function loadModerationState(uid){
   const result=await api(`/api/community/admin-moderation/${encodeURIComponent(uid)}`);
-  renderModerationState(result.moderation || {});
+  const raw = result.moderation || {};
+  // Keep the UI tolerant of either camelCase or database-style snake_case responses.
+  const moderation = {...raw};
+  const aliases = {
+    videoChatBanned:["video_chat_ban","video_chat_banned"], videoChatBanUntil:["video_chat_ban_until"], videoChatBanPermanent:["video_chat_ban_permanent"], videoChatBanReason:["video_chat_ban_reason"],
+    publishBanned:["publish_ban","publish_banned"], publishBanUntil:["publish_ban_until"], publishBanPermanent:["publish_ban_permanent"], publishBanReason:["publish_ban_reason"],
+    commentsBanned:["comments_ban","comments_banned"], commentsBanUntil:["comments_ban_until"], commentsBanPermanent:["comments_ban_permanent"], commentsBanReason:["comments_ban_reason"]
+  };
+  for(const [target, sources] of Object.entries(aliases)){
+    if(moderation[target] === undefined){
+      const source = sources.find(key => raw[key] !== undefined);
+      if(source) moderation[target] = raw[source];
+    }
+  }
+  renderModerationState(moderation);
 }
 $$(".mod-duration").forEach(el=>{
   el.addEventListener("change",()=>{
