@@ -2894,7 +2894,11 @@ function renderVideoTiles(){
     if(profile){
       const video=document.createElement('video');video.className='video-stream';video.autoplay=true;video.playsInline=true;video.muted=profile.id===me.id;
       video.dataset.userId=profile.id;
-      if(profile.id===me.id&&videoLocalStream)video.srcObject=videoLocalStream;
+      if(profile.id===me.id&&videoLocalStream){
+        video.srcObject=videoLocalStream;
+        video.onloadedmetadata=()=>video.play().then(()=>{const a=video.closest('.video-tile')?.querySelector('.video-person-avatar');if(a)a.style.display='none';}).catch(()=>{});
+        video.play().then(()=>{video.style.opacity='1';}).catch(()=>{});
+      }
       const avatar=document.createElement('div');avatar.className='video-person-avatar';avatar.textContent=initials(profile.name);
       if(profile.avatarUrl){avatar.style.backgroundImage=`linear-gradient(rgba(8,14,30,.25),rgba(8,14,30,.5)),url("${profile.avatarUrl.replace(/["\\]/g,'')}")`;avatar.style.backgroundSize='cover';avatar.style.backgroundPosition='center'}
       const name=document.createElement('span');name.className='video-tile-name';const b=document.createElement('b');b.textContent=profile.id===me.id?'أنت':profile.name;name.appendChild(b);
@@ -2909,7 +2913,17 @@ function renderVideoTiles(){
 }
 function attachVideoStream(userId,stream){
   const video=$(`#videoCallGrid video[data-user-id="${CSS.escape(String(userId))}"]`);
-  if(video){video.srcObject=stream;video.play().catch(()=>{});}
+  if(!video)return;
+  video.srcObject=stream;
+  const tile=video.closest('.video-tile');
+  const avatar=tile?.querySelector('.video-person-avatar');
+  const showVideo=()=>{
+    if(avatar)avatar.style.display='none';
+    video.style.opacity='1';
+  };
+  video.onloadedmetadata=()=>video.play().then(showVideo).catch(()=>{});
+  video.play().then(showVideo).catch(()=>{});
+  if(stream.getVideoTracks().some(track=>track.readyState==='live'))showVideo();
 }
 function closeVideoPeer(peerId){
   const id=String(peerId||''),entry=videoPeers.get(id);
@@ -2967,22 +2981,53 @@ async function ensureVideoChannel(){
 }
 async function openVideoCall(){
   if(!currentUser){showToast('سجّل الدخول أولاً لبدء مكالمة الفيديو');return}
-  if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection){showToast('المتصفح لا يدعم مكالمة الفيديو');return}
+  if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection){
+    showToast('افتح الموقع عبر HTTPS ومتصفح يدعم الكاميرا');return;
+  }
+  if(videoJoined)return;
   try{
+    // اطلب إذن الكاميرا والميكروفون مباشرة من ضغطة المستخدم قبل طلبات الشبكة.
+    try{
+      videoLocalStream=await navigator.mediaDevices.getUserMedia({
+        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
+        video:{facingMode:{ideal:'user'},width:{ideal:640},height:{ideal:480}}
+      });
+    }catch(mediaError){
+      const name=mediaError?.name||'';
+      const message=name==='NotAllowedError'||name==='PermissionDeniedError'
+        ? 'اسمح للمتصفح باستخدام الكاميرا والميكروفون من إعدادات الموقع'
+        : name==='NotFoundError'||name==='DevicesNotFoundError'
+          ? 'لم يتم العثور على كاميرا أو ميكروفون في الجهاز'
+          : name==='NotReadableError'||name==='TrackStartError'
+            ? 'الكاميرا مشغولة بتطبيق آخر. أغلقه ثم حاول مجددًا'
+            : name==='OverconstrainedError'
+              ? 'تعذر تشغيل الكاميرا بالإعدادات الحالية'
+              : 'تعذر فتح الكاميرا. تحقق من أذونات الموقع وإعدادات الجهاز';
+      showToast(message);
+      if(videoLocalStream){videoLocalStream.getTracks().forEach(t=>t.stop());videoLocalStream=null}
+      return;
+    }
     await fetchJson('/api/community/video-call/authorize',{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({action:'join'})});
-    const moderation=await loadCommunityModeration({silent:true});if(!moderation||!ensureCommunityPermission('voice'))return;
+    const moderation=await loadCommunityModeration({silent:true});
+    if(!moderation||!ensureCommunityPermission('voice')){videoLocalStream?.getTracks().forEach(t=>t.stop());videoLocalStream=null;return}
     if(voiceJoined)await leaveVoiceRoom();
     const channel=await ensureVideoChannel();
-    if(videoProfiles().length>=VIDEO_MAX_PARTICIPANTS){showToast('مكالمة الفيديو ممتلئة حالياً');return}
-    videoLocalStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}});
-    const profile=currentVoiceProfile();await channel.track({user_id:profile.id,name:profile.name,avatarUrl:profile.avatarUrl,joined_at:Date.now()});
+    if(videoProfiles().length>=VIDEO_MAX_PARTICIPANTS){
+      videoLocalStream?.getTracks().forEach(t=>t.stop());videoLocalStream=null;
+      showToast('مكالمة الفيديو ممتلئة حالياً');return;
+    }
+    const profile=currentVoiceProfile();
+    await channel.track({user_id:profile.id,name:profile.name,avatarUrl:profile.avatarUrl,joined_at:Date.now()});
     videoJoined=true;videoMicMuted=false;videoCameraOff=false;
     communityHero?.classList.add('hidden');$('.room-tabs')?.classList.add('hidden');$('.content-layout')?.classList.add('hidden');$$('.secondary-panel').forEach(p=>p.classList.add('hidden'));
     videoCallScreen?.classList.remove('hidden');videoCallScreen?.setAttribute('aria-hidden','false');document.body.classList.add('video-call-open');
     $('#videoMicToggle')?.classList.remove('is-off');$('#videoCameraToggle')?.classList.remove('is-off');
     $('#videoMicToggle .material-icons-round').textContent='mic';$('#videoCameraToggle .material-icons-round').textContent='videocam';
     renderVideoTiles();await syncVideoPeers();startVideoModerationPolling();
-  }catch(error){await leaveVideoCall();showToast(error.message||'تعذر بدء مكالمة الفيديو')}
+  }catch(error){
+    await leaveVideoCall();
+    showToast(error.message||'تعذر بدء مكالمة الفيديو');
+  }
 }
 async function leaveVideoCall(){
   if(videoChannel&&videoJoined&&currentUser){for(const id of videoPeers.keys())videoChannel.send({type:'broadcast',event:'video-signal',payload:{type:'bye',from:String(currentUser.id),to:String(id)}}).catch(()=>{});}
