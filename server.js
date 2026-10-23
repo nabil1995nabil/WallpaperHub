@@ -8752,7 +8752,11 @@ function communityModerationState(control, nowMs = Date.now()){
         communityChatFreezeReason:control?.community_chat_freeze_reason || null,
         communityVoiceFreezeUntil:control?.community_voice_freeze_until || null,
         communityVoiceFreezePermanent:Boolean(control?.community_voice_freeze_permanent),
-        communityVoiceFreezeReason:control?.community_voice_freeze_reason || null
+        communityVoiceFreezeReason:control?.community_voice_freeze_reason || null,
+        videoChatBanned: Boolean(control?.video_chat_ban_permanent) || (Number.isFinite(control?.video_chat_ban_until ? new Date(control.video_chat_ban_until).getTime() : 0) && new Date(control?.video_chat_ban_until || 0).getTime() > nowMs),
+        videoChatBanUntil:control?.video_chat_ban_until || null,
+        videoChatBanPermanent:Boolean(control?.video_chat_ban_permanent),
+        videoChatBanReason:control?.video_chat_ban_reason || null
     };
 }
 
@@ -8808,7 +8812,10 @@ app.post("/api/community/video-call/authorize", async(req,res)=>{
         if(action === "join"){
             const control = await getUserAdminControl(user.id);
             const moderation = communityModerationState(control);
-            if(!moderation.canVoice) return res.status(403).json({success:false,message:moderation.communityBanned ? "تم استبعادك من المجتمع" : "المكالمات غير متاحة لحسابك حاليًا"});
+            if(moderation.communityBanned) return res.status(403).json({success:false,code:"COMMUNITY_BANNED",message:moderation.communityBanPermanent ? "تم استبعادك من المجتمع بشكل دائم" : `تم استبعادك من المجتمع حتى ${moderation.communityBanUntil ? new Date(moderation.communityBanUntil).toLocaleString("ar-MA") : "وقت غير محدد"}`});
+            const videoBan = await getActiveFeatureBan(user.id,"video_chat_ban");
+            if(videoBan.active) return res.status(403).json({success:false,code:"VIDEO_CHAT_BANNED",permanent:videoBan.permanent,until:videoBan.until,reason:videoBan.reason,message:videoBan.permanent ? "تم حظرك من مكالمات الفيديو من قبل الإدارة بشكل دائم" : `تم حظرك من مكالمات الفيديو من قبل الإدارة إلى تاريخ ${videoBan.until ? new Date(videoBan.until).toLocaleString("ar-MA") : "غير محدد"}`});
+            if(!moderation.canVoice) return res.status(403).json({success:false,code:"VOICE_FROZEN",message:"المحادثة الصوتية غير متاحة لحسابك حاليًا"});
         }
         return res.json({success:true,action,userId:String(user.id),ephemeral:true});
     }catch(error){

@@ -29,7 +29,8 @@ let communityModeration = {
   canRead:true, canWrite:true, canVoice:true,
   communityBanUntil:null, communityBanPermanent:false, communityBanReason:null,
   communityChatFreezeUntil:null, communityChatFreezePermanent:false, communityChatFreezeReason:null,
-  communityVoiceFreezeUntil:null, communityVoiceFreezePermanent:false, communityVoiceFreezeReason:null
+  communityVoiceFreezeUntil:null, communityVoiceFreezePermanent:false, communityVoiceFreezeReason:null,
+  videoChatBanned:false, videoChatBanUntil:null, videoChatBanPermanent:false, videoChatBanReason:null
 };
 let communityModerationTimer = null;
 let voiceModerationPollTimer = null;
@@ -217,14 +218,33 @@ function ensureCommunityPermission(kind){
     return false;
   }
   if(kind==='voice' && !communityModeration.canVoice){
-    showToast(communityModeration.communityBanned
-      ? 'تم استبعادك من المجتمع ولا يمكنك دخول الصوت'
-      : 'تم تجميد المحادثة الصوتية مؤقتًا');
+    if(communityModeration.communityBanned){
+      showToast(communityModeration.communityBanPermanent
+        ? 'تم استبعادك من المجتمع بشكل دائم.'
+        : `تم استبعادك من المجتمع إلى تاريخ ${timeOfDate(communityModeration.communityBanUntil)}.`);
+    }else{
+      showToast(communityModeration.communityVoiceFreezePermanent
+        ? 'تم حظرك من المحادثة الصوتية بشكل دائم.'
+        : `تم حظرك من المحادثة الصوتية إلى تاريخ ${timeOfDate(communityModeration.communityVoiceFreezeUntil)}.`);
+    }
     return false;
   }
   return true;
 }
 
+function showCallBanNotice(moderation, kind='video'){
+  const isVideo = kind === 'video';
+  const banned = isVideo ? moderation?.videoChatBanned : moderation?.voiceFrozen;
+  if(!banned) return false;
+  const permanent = isVideo ? moderation?.videoChatBanPermanent : moderation?.communityVoiceFreezePermanent;
+  const until = isVideo ? moderation?.videoChatBanUntil : moderation?.communityVoiceFreezeUntil;
+  const label = isVideo ? 'مكالمات الفيديو' : 'المحادثة الصوتية';
+  const message = permanent
+    ? `تم حظرك من ${label} من قبل الإدارة بشكل دائم.`
+    : `تم حظرك من ${label} من قبل الإدارة إلى تاريخ ${timeOfDate(until)}.`;
+  showToast(message);
+  return true;
+}
 
 // تسجيل زيارة المجتمع في نظام النقاط المشترك.
 // هذا يجعل الرسائل الجديدة تظهر كنقطة عند الأعضاء الآخرين، وتختفي عند دخولهم للمجتمع.
@@ -2985,6 +3005,10 @@ async function openVideoCall(){
     showToast('افتح الموقع عبر HTTPS ومتصفح يدعم الكاميرا');return;
   }
   if(videoJoined)return;
+  const moderation = await loadCommunityModeration({silent:true});
+  if(moderation?.communityBanned){ showToast(moderation.communityBanPermanent ? 'تم استبعادك من المجتمع بشكل دائم.' : `تم استبعادك من المجتمع إلى تاريخ ${timeOfDate(moderation.communityBanUntil)}.`); return; }
+  if(showCallBanNotice(moderation,'video')) return;
+  if(moderation && !moderation.canVoice){ showCallBanNotice(moderation,'voice'); return; }
   try{
     // اطلب إذن الكاميرا والميكروفون مباشرة من ضغطة المستخدم قبل طلبات الشبكة.
     try{
@@ -3039,7 +3063,7 @@ async function leaveVideoCall(){
   videoCallScreen?.classList.add('hidden');videoCallScreen?.setAttribute('aria-hidden','true');document.body.classList.remove('video-call-open');
   communityHero?.classList.remove('hidden');$('.room-tabs')?.classList.remove('hidden');$('.content-layout')?.classList.remove('hidden');showTab('general');renderVideoTiles();
 }
-function startVideoModerationPolling(){clearInterval(videoModerationPollTimer);videoModerationPollTimer=setInterval(async()=>{if(!videoJoined)return;const state=await loadCommunityModeration({silent:true});if(state&&!state.canVoice){await leaveVideoCall();showToast('تم إخراجك من المكالمة بسبب قيود المجتمع')}} ,15000)}
+function startVideoModerationPolling(){clearInterval(videoModerationPollTimer);videoModerationPollTimer=setInterval(async()=>{if(!videoJoined)return;const state=await loadCommunityModeration({silent:true});if(state&&(state.videoChatBanned||!state.canVoice)){await leaveVideoCall();showToast(state.videoChatBanned ? (state.videoChatBanPermanent ? 'تم حظرك من مكالمات الفيديو بشكل دائم.' : `تم حظرك من مكالمات الفيديو إلى تاريخ ${timeOfDate(state.videoChatBanUntil)}.`) : 'تم إخراجك من المكالمة بسبب قيود المجتمع')}} ,15000)}
 $('#voiceShortcut')?.addEventListener('click',openVideoCall);
 $('#videoClose')?.addEventListener('click',leaveVideoCall);
 $('#videoLeave')?.addEventListener('click',leaveVideoCall);
