@@ -242,6 +242,9 @@ async function getUserAdminControl(userId){
         community_voice_freeze_permanent:false,
         community_voice_freeze_reason:null,
         community_voice_freeze_by:null,
+        video_chat_ban_until:null, video_chat_ban_permanent:false, video_chat_ban_reason:null, video_chat_ban_by:null,
+        publish_ban_until:null, publish_ban_permanent:false, publish_ban_reason:null, publish_ban_by:null,
+        comments_ban_until:null, comments_ban_permanent:false, comments_ban_reason:null, comments_ban_by:null,
         created_at:null,
         updated_at:null
     };
@@ -357,7 +360,13 @@ function adminUserSummary(user, profile, control){
         community_voice_freeze_until:control?.community_voice_freeze_until || null,
         community_voice_freeze_permanent:Boolean(control?.community_voice_freeze_permanent),
         community_voice_freeze_reason:control?.community_voice_freeze_reason || null,
-        community_voice_freeze_by:control?.community_voice_freeze_by || null
+        community_voice_freeze_by:control?.community_voice_freeze_by || null,
+        video_chat_ban_until:control?.video_chat_ban_until || null,
+        video_chat_ban_permanent:Boolean(control?.video_chat_ban_permanent), video_chat_ban_reason:control?.video_chat_ban_reason || null,
+        publish_ban_until:control?.publish_ban_until || null,
+        publish_ban_permanent:Boolean(control?.publish_ban_permanent), publish_ban_reason:control?.publish_ban_reason || null,
+        comments_ban_until:control?.comments_ban_until || null,
+        comments_ban_permanent:Boolean(control?.comments_ban_permanent), comments_ban_reason:control?.comments_ban_reason || null
     };
 }
 
@@ -393,6 +402,13 @@ async function getCommunityMessageReactions(messageId,viewerId){
     if(error)throw error;const grouped=new Map();
     for(const row of data||[]){const emoji=String(row.emoji||"");if(!emoji)continue;const item=grouped.get(emoji)||{emoji,count:0,reacted:false};item.count++;if(viewerId&&String(row.user_id)===String(viewerId))item.reacted=true;grouped.set(emoji,item)}
     return [...grouped.values()].sort((a,b)=>b.count-a.count);
+}
+
+async function getActiveFeatureBan(userId, prefix){
+    const control=await getUserAdminControl(String(userId));
+    const permanent=Boolean(control?.[`${prefix}_permanent`]);
+    const until=control?.[`${prefix}_until`] ? new Date(control[`${prefix}_until`]).getTime() : 0;
+    return permanent || (Number.isFinite(until) && until>Date.now()) ? {active:true,permanent,until:control[`${prefix}_until`]||null,reason:control[`${prefix}_reason`]||null} : {active:false};
 }
 
 const app = express();
@@ -914,7 +930,13 @@ app.get("/api/community/admin-moderation/:uid", async(req,res)=>{
         const uid = String(req.params.uid || "").trim();
         if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
         const control = await getUserAdminControl(uid);
-        return res.json({success:true,moderation:communityModerationState(control)});
+        const now = Date.now();
+        const active = prefix => Boolean(control[`${prefix}_permanent`]) || (control[`${prefix}_until`] && new Date(control[`${prefix}_until`]).getTime() > now);
+        return res.json({success:true,moderation:{...communityModerationState(control),
+          videoChatBanned:active("video_chat_ban"), videoChatBanUntil:control.video_chat_ban_until || null, videoChatBanPermanent:Boolean(control.video_chat_ban_permanent), videoChatBanReason:control.video_chat_ban_reason || null,
+          publishBanned:active("publish_ban"), publishBanUntil:control.publish_ban_until || null, publishBanPermanent:Boolean(control.publish_ban_permanent), publishBanReason:control.publish_ban_reason || null,
+          commentsBanned:active("comments_ban"), commentsBanUntil:control.comments_ban_until || null, commentsBanPermanent:Boolean(control.comments_ban_permanent), commentsBanReason:control.comments_ban_reason || null
+        }});
     }catch(error){
         console.log("GET ADMIN COMMUNITY MODERATION STATE ERROR:",error);
         return res.status(500).json({success:false,message:"تعذر تحميل حالة قيود المجتمع"});
@@ -944,8 +966,8 @@ app.patch("/api/admin/community-moderation/:uid", async(req,res)=>{
         }
 
         const validActions = new Set([
-            "community_ban","chat_freeze","voice_freeze",
-            "clear_community_ban","clear_chat_freeze","clear_voice_freeze"
+            "community_ban","chat_freeze","voice_freeze","video_chat_ban","publish_ban","comments_ban",
+            "clear_community_ban","clear_chat_freeze","clear_voice_freeze","clear_video_chat_ban","clear_publish_ban","clear_comments_ban"
         ]);
         if(!validActions.has(action)){
             return res.status(400).json({success:false,message:"إجراء المجتمع غير صالح"});
@@ -972,7 +994,10 @@ app.patch("/api/admin/community-moderation/:uid", async(req,res)=>{
             community_voice_freeze_until:current.community_voice_freeze_until || null,
             community_voice_freeze_permanent:Boolean(current.community_voice_freeze_permanent),
             community_voice_freeze_reason:current.community_voice_freeze_reason || null,
-            community_voice_freeze_by:current.community_voice_freeze_by || null
+            community_voice_freeze_by:current.community_voice_freeze_by || null,
+            video_chat_ban_until:current.video_chat_ban_until || null, video_chat_ban_permanent:Boolean(current.video_chat_ban_permanent), video_chat_ban_reason:current.video_chat_ban_reason || null, video_chat_ban_by:current.video_chat_ban_by || null,
+            publish_ban_until:current.publish_ban_until || null, publish_ban_permanent:Boolean(current.publish_ban_permanent), publish_ban_reason:current.publish_ban_reason || null, publish_ban_by:current.publish_ban_by || null,
+            comments_ban_until:current.comments_ban_until || null, comments_ban_permanent:Boolean(current.comments_ban_permanent), comments_ban_reason:current.comments_ban_reason || null, comments_ban_by:current.comments_ban_by || null
         };
 
         const isClear = action.startsWith("clear_");
@@ -1013,10 +1038,11 @@ app.patch("/api/admin/community-moderation/:uid", async(req,res)=>{
             payload.community_chat_freeze_reason = null;
             payload.community_chat_freeze_by = null;
         }else if(action === "clear_voice_freeze"){
-            payload.community_voice_freeze_until = null;
-            payload.community_voice_freeze_permanent = false;
-            payload.community_voice_freeze_reason = null;
-            payload.community_voice_freeze_by = null;
+            payload.community_voice_freeze_until = null; payload.community_voice_freeze_permanent = false; payload.community_voice_freeze_reason = null; payload.community_voice_freeze_by = null;
+        }else if(["video_chat_ban","publish_ban","comments_ban"].includes(action)){
+            payload[`${action}_until`] = timed.until; payload[`${action}_permanent`] = Boolean(timed.permanent); payload[`${action}_reason`] = reason || null; payload[`${action}_by`] = String(admin.id);
+        }else if(["clear_video_chat_ban","clear_publish_ban","clear_comments_ban"].includes(action)){
+            const prefix=action.replace(/^clear_/,""); payload[`${prefix}_until`]=null; payload[`${prefix}_permanent`]=false; payload[`${prefix}_reason`]=null; payload[`${prefix}_by`]=null;
         }
 
         const {data:control,error} = await supabase
@@ -5103,6 +5129,8 @@ app.post("/api/publish/submissions", async(req,res)=>{
         if(isAdminUser(user) || isSiteOwnerUser(user)){
             return res.status(400).json({success:false,message:"حسابك يملك صلاحية النشر المباشر؛ استخدم مسار النشر المباشر"});
         }
+        const featureBan=await getActiveFeatureBan(user.id,"publish_ban");
+        if(featureBan.active) return res.status(403).json({success:false,code:"PUBLISH_RESTRICTED",message:"تم منعك من نشر الخلفيات",until:featureBan.until,reason:featureBan.reason});
         const body = req.body || {};
         const image = String(body.image || "").trim();
         const title = String(body.title || "").trim();
@@ -5165,6 +5193,8 @@ app.post(
                 });
             }
 
+            const featureBan=await getActiveFeatureBan(publisher.id,"publish_ban");
+            if(featureBan.active) return res.status(403).json({success:false,code:"PUBLISH_RESTRICTED",message:"تم منعك من نشر الخلفيات",until:featureBan.until,reason:featureBan.reason});
             const body = req.body || {};
             const image = String(body.image || "").trim();
             const title = String(body.title || "").trim();
@@ -7126,6 +7156,8 @@ app.post(
                 });
             }
 
+            const featureBan=await getActiveFeatureBan(authenticatedUser.id,"comments_ban");
+            if(featureBan.active) return res.status(403).json({success:false,code:"COMMENTS_RESTRICTED",message:"تم منعك من إضافة التعليقات",until:featureBan.until,reason:featureBan.reason});
             const commenterUID = String(authenticatedUser.id).trim();
             const commenterProfile = await getPublisherProfile(authenticatedUser);
             const commenterName = commenterProfile.fullName || "مستخدم";
@@ -8753,7 +8785,7 @@ function communityModerationActionLabel(action){
     return {
         community_ban:"استبعاد من المجتمع",
         chat_freeze:"تجميد الكتابة في المجتمع",
-        voice_freeze:"تجميد المحادثة الصوتية",
+        voice_freeze:"تجميد المحادثة الصوتية", video_chat_ban:"منع المحادثة المرئية", publish_ban:"منع نشر الخلفيات", comments_ban:"منع التعليقات", clear_video_chat_ban:"إلغاء منع الفيديو", clear_publish_ban:"إلغاء منع النشر", clear_comments_ban:"إلغاء منع التعليقات",
         clear_community_ban:"إلغاء استبعاد المجتمع",
         clear_chat_freeze:"إلغاء تجميد الكتابة",
         clear_voice_freeze:"إلغاء تجميد الصوت"
