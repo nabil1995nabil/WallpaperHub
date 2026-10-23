@@ -266,7 +266,7 @@ function(e){
 
     if(
 
-        !sideDrawer.classList.contains("show")
+        sideDrawer && !sideDrawer.classList.contains("show")
 
         &&
 
@@ -292,7 +292,7 @@ function(e){
 
     if(
 
-        sideDrawer.classList.contains("show")
+        sideDrawer && sideDrawer.classList.contains("show")
 
         &&
 
@@ -319,12 +319,14 @@ function(e){
   const STATUS_API = "/api/publish/moderation/me";
   let requestId = 0;
   let lastToken = "";
+  let refreshBusy = false;
 
   function getSessionToken(){
     // Supabase sessions are normally in localStorage; also check sessionStorage
     // for projects configured to keep sessions only for the current tab.
-    for (const storage of [window.localStorage, window.sessionStorage]) {
+    for (const storageName of ["localStorage", "sessionStorage"]) {
       try {
+        const storage = window[storageName];
         for(let i=0;i<storage.length;i++){
           const key=storage.key(i)||"";
           if(!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
@@ -418,6 +420,7 @@ function(e){
   }
 
   async function refresh(){
+    if(refreshBusy) return;
     const link = document.querySelector(".drawer-publish-link");
     if(!link) return;
     const token = getSessionToken();
@@ -435,6 +438,7 @@ function(e){
     if(token === lastToken && link.dataset.publishBanChecked === "true") return;
     lastToken = token;
     const currentRequest = ++requestId;
+    refreshBusy = true;
     try{
       const response = await fetch(STATUS_API,{
         headers:{Authorization:"Bearer "+token},
@@ -456,6 +460,8 @@ function(e){
     }catch(error){
       // Do not falsely mark the user as banned if the status service is temporarily unavailable.
       console.warn("PUBLISH BAN STATUS ERROR:",error);
+    }finally{
+      refreshBusy = false;
     }
   }
 
@@ -475,10 +481,14 @@ function(e){
     });
   });
 
-  document.addEventListener("DOMContentLoaded",refresh);
-  // Poll lightly so login/logout performed by another script in the same tab
-  // updates the shortcut even when the browser does not fire a storage event.
-  window.setInterval(refresh,4000);
+  function startPublishBanRefresh(){ refresh(); }
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded",startPublishBanRefresh,{once:true});
+  }else{
+    startPublishBanRefresh();
+  }
+  // Refresh modestly; auth/storage/focus events handle immediate changes.
+  window.setInterval(refresh,15000);
   window.addEventListener("focus",refresh);
   window.addEventListener("storage",event=>{
     if(!event.key || event.key.startsWith("sb-")) {
@@ -486,10 +496,16 @@ function(e){
       refresh();
     }
   });
-  new MutationObserver(()=>{
+  const publishLinkObserver = new MutationObserver(()=>{
     const link = document.querySelector(".drawer-publish-link");
-    if(link && link.dataset.publishBanChecked !== "true") refresh();
-  }).observe(document.documentElement,{childList:true,subtree:true});
+    if(link){
+      publishLinkObserver.disconnect();
+      refresh();
+    }
+  });
+  if(!document.querySelector(".drawer-publish-link")){
+    publishLinkObserver.observe(document.documentElement,{childList:true,subtree:true});
+  }
   window.refreshPublishBanShortcut = ()=>{ lastToken=""; return refresh(); };
 })();
 
@@ -602,13 +618,30 @@ function(e){
     if(page==="community-appeal.html") markSectionRead("contact");
   }
 
-  document.addEventListener("DOMContentLoaded",()=>{
+  function initializeSectionBadges(){
     ensureBadgeNodes();
     refreshSectionBadges();
     markCurrentSectionRead();
     if(refreshTimer) clearInterval(refreshTimer);
     refreshTimer=setInterval(refreshSectionBadges,30000);
-  });
+  }
+  let sectionBadgesInitialized = false;
+  function initializeSectionBadgesOnce(){
+    if(sectionBadgesInitialized) return;
+    if(!document.querySelector(".drawer-menu")) return;
+    sectionBadgesInitialized = true;
+    initializeSectionBadges();
+    sectionBadgeObserver.disconnect();
+  }
+  const sectionBadgeObserver = new MutationObserver(initializeSectionBadgesOnce);
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded",initializeSectionBadgesOnce,{once:true});
+  }else{
+    initializeSectionBadgesOnce();
+  }
+  if(!sectionBadgesInitialized){
+    sectionBadgeObserver.observe(document.documentElement,{childList:true,subtree:true});
+  }
   document.addEventListener("click",async event=>{
     const link=event.target.closest('.drawer-menu a[data-badge-section]');
     if(!link) return;
@@ -624,7 +657,5 @@ function(e){
   window.addEventListener("focus",refreshSectionBadges);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") refreshSectionBadges();});
   window.addEventListener("storage",e=>{if(e.key && e.key.startsWith("sb-")) refreshSectionBadges();});
-  // Sidebar HTML is injected asynchronously, so recreate badges after injection.
-  new MutationObserver(()=>{ensureBadgeNodes();}).observe(document.documentElement,{childList:true,subtree:true});
   window.refreshWallpaperHubSectionBadges=refreshSectionBadges;
 })(); 
