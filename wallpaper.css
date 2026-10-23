@@ -4098,3 +4098,40 @@ body.phone-preview-open{
 .download-confirm-btn:disabled{opacity:.55;cursor:wait}
 .download-confirm-btn .material-icons{font-size:17px}
 @media(max-width:420px){.download-options-dialog{width:min(100%,360px);border-radius:16px}.download-options-head{padding:15px 15px 12px}.download-options-body{padding:12px 15px 4px}.download-options-footer{padding:10px 15px 14px}}
+
+
+/* ===============================
+   حظر التعليقات — حالة واضحة للمستخدم
+   =============================== */
+.comment-ban-notice{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    margin:12px 0 16px;
+    padding:14px 16px;
+    border:1px solid #fecaca;
+    border-radius:16px;
+    background:#fff7f7;
+    color:#991b1b;
+}
+.comment-ban-notice[hidden],
+.add-comment-box[hidden]{
+    display:none !important;
+}
+.comment-ban-notice > .material-icons{
+    flex:0 0 auto;
+    margin-top:1px;
+    font-size:22px;
+}
+.comment-ban-notice strong{
+    display:block;
+    font-size:14px;
+    font-weight:800;
+}
+.comment-ban-notice p{
+    margin:4px 0 0;
+    color:#7f1d1d;
+    font-size:12px;
+    line-height:1.8;
+    overflow-wrap:anywhere;
+}

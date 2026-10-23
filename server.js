@@ -6975,6 +6975,27 @@ app.get("/api/status", async (req, res) => {
 // =========================
 
 
+// حالة حظر التعليقات للمستخدم الحالي؛ لا نثق في UID يرسله المتصفح.
+app.get("/api/comments/moderation/me", async (req, res) => {
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user){
+            return res.status(401).json({success:false, message:"يجب تسجيل الدخول"});
+        }
+        const ban = await getActiveFeatureBan(user.id, "comments_ban");
+        return res.set("Cache-Control", "no-store").json({
+            success:true,
+            banned:Boolean(ban.active),
+            permanent:Boolean(ban.permanent),
+            until:ban.until || null,
+            reason:ban.reason || null
+        });
+    }catch(error){
+        console.error("COMMENT BAN STATUS ERROR:", error?.message || error);
+        return res.status(500).json({success:false, message:"تعذر التحقق من حالة التعليقات"});
+    }
+});
+
 // جلب التعليقات
 app.get(
 "/api/wallpapers/:id/comments",
@@ -7157,7 +7178,7 @@ app.post(
             }
 
             const featureBan=await getActiveFeatureBan(authenticatedUser.id,"comments_ban");
-            if(featureBan.active) return res.status(403).json({success:false,code:"COMMENTS_RESTRICTED",message:"تم منعك من إضافة التعليقات",until:featureBan.until,reason:featureBan.reason});
+            if(featureBan.active) return res.status(403).json({success:false,code:"COMMENTS_RESTRICTED",message:"تم منعك من إضافة التعليقات",permanent:Boolean(featureBan.permanent),until:featureBan.until,reason:featureBan.reason});
             const commenterUID = String(authenticatedUser.id).trim();
             const commenterProfile = await getPublisherProfile(authenticatedUser);
             const commenterName = commenterProfile.fullName || "مستخدم";

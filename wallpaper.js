@@ -4662,12 +4662,76 @@ async function restoreWallpaperAuth(){
     }
 }
 
+let wallpaperCommentsBanned = false;
+let wallpaperCommentsBanInfo = null;
+let commentBanCheckSequence = 0;
+
+function renderCommentBanState(){
+    const notice = document.getElementById("commentBanNotice");
+    const details = document.getElementById("commentBanNoticeDetails");
+    const editorBox = document.getElementById("addCommentBox");
+    if(notice) notice.hidden = !wallpaperCommentsBanned;
+    if(editorBox) editorBox.hidden = wallpaperCommentsBanned;
+
+    if(details && wallpaperCommentsBanned){
+        const info = wallpaperCommentsBanInfo || {};
+        let message = "لا يمكنك إضافة تعليق على الخلفيات حاليًا.";
+        if(info.permanent){
+            message = "تم منعك من كتابة التعليقات بشكل دائم.";
+        }else if(info.until){
+            const untilDate = new Date(info.until);
+            if(Number.isFinite(untilDate.getTime())){
+                message = `تم منعك من كتابة التعليقات حتى ${untilDate.toLocaleString("ar-MA")}.`;
+            }
+        }
+        if(info.reason) message += ` السبب: ${String(info.reason)}`;
+        details.textContent = message;
+    }
+}
+
+async function refreshWallpaperCommentBan(){
+    const sequence = ++commentBanCheckSequence;
+    try{
+        const {data, error} = await supabase.auth.getSession();
+        if(error) throw error;
+        const session = data?.session;
+        currentAuthUser = session?.user || null;
+
+        if(!session?.access_token){
+            wallpaperCommentsBanned = false;
+            wallpaperCommentsBanInfo = null;
+            renderCommentBanState();
+            return;
+        }
+
+        const response = await fetch("/api/comments/moderation/me", {
+            headers:{Authorization:`Bearer ${session.access_token}`},
+            cache:"no-store"
+        });
+        const result = await response.json().catch(()=>({}));
+        if(sequence !== commentBanCheckSequence) return;
+        if(!response.ok) throw new Error(result.message || "تعذر تحميل حالة التعليقات");
+
+        wallpaperCommentsBanned = Boolean(result.banned);
+        wallpaperCommentsBanInfo = wallpaperCommentsBanned ? result : null;
+        renderCommentBanState();
+        if(wallpaperCommentsBanned){
+            if(commentInput) commentInput.innerHTML = "";
+            hideMentionSuggestions();
+        }
+    }catch(error){
+        console.warn("COMMENT BAN STATUS CHECK ERROR:", error?.message || error);
+        // لا نخفي محرر التعليقات عند تعذر التحقق؛ الخادم يمنع الإرسال دائمًا.
+    }
+}
+
 supabase.auth.onAuthStateChange((event, session) => {
     currentAuthUser = session?.user || null;
     console.log("Wallpaper Auth Changed:", currentAuthUser?.id || "guest");
+    refreshWallpaperCommentBan();
 });
 
-restoreWallpaperAuth();
+restoreWallpaperAuth().then(refreshWallpaperCommentBan);
 
 function getCurrentUserId(){
     if(currentAuthUser?.id){
@@ -5256,6 +5320,10 @@ async function loadComments(){
 // ===============================
 async function sendComment(){
     if(!currentWallpaper || !commentInput) return;
+    if(wallpaperCommentsBanned){
+        renderCommentBanState();
+        return;
+    }
 
     const text = getCommentText();
     if(!text) return;
@@ -5300,6 +5368,20 @@ async function sendComment(){
         );
 
         const data = await res.json();
+
+        if(res.status === 403 && data.code === "COMMENTS_RESTRICTED"){
+            wallpaperCommentsBanned = true;
+            wallpaperCommentsBanInfo = {
+                banned:true,
+                permanent:Boolean(data.permanent),
+                until:data.until || null,
+                reason:data.reason || null
+            };
+            renderCommentBanState();
+            if(commentInput) commentInput.innerHTML = "";
+            hideMentionSuggestions();
+            return;
+        }
 
         if(data.success){
             commentInput.innerHTML = "";

@@ -803,7 +803,15 @@ class="similar-grid"
 
 <!-- صندوق التعليقات -->
 
-<div class="add-comment-box">
+<div id="commentBanNotice" class="comment-ban-notice" role="status" aria-live="polite" hidden>
+    <span class="material-icons" aria-hidden="true">block</span>
+    <div>
+        <strong>تم منعك من كتابة التعليقات</strong>
+        <p id="commentBanNoticeDetails">لا يمكنك إضافة تعليق على الخلفيات حاليًا.</p>
+    </div>
+</div>
+
+<div class="add-comment-box" id="addCommentBox">
     <div id="replyingToBar" class="replying-to-bar" hidden></div>
 
 
