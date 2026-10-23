@@ -188,6 +188,29 @@ function adminRoleRank(role){
     return Object.prototype.hasOwnProperty.call(ranks, role) ? ranks[role] : 0;
 }
 
+
+// Expire temporary account bans against server time. This repairs the admin-control
+// record as well as Supabase Auth metadata when an expired account is next inspected.
+async function clearExpiredAccountBan(userId, control){
+    if(!control || String(control.status || "").toLowerCase() !== "banned" ||
+       String(control.ban_type || "").toLowerCase() !== "temporary" || !control.ban_until) return control;
+    const until = new Date(control.ban_until).getTime();
+    if(!Number.isFinite(until) || until > Date.now()) return control;
+    const {data,error} = await supabase.from("user_admin_controls")
+      .update({status:"active",ban_type:null,ban_reason:null,ban_until:null})
+      .eq("user_id",String(userId)).eq("status","banned").select("*").maybeSingle();
+    if(error) throw error;
+    try{
+      const target=await supabase.auth.admin.getUserById(String(userId));
+      if(target?.data?.user){
+        const meta={...(target.data.user.app_metadata||{}),account_status:"active"};
+        const {error:authError}=await supabase.auth.admin.updateUserById(String(userId),{app_metadata:meta,ban_duration:"none"});
+        if(authError) console.warn("AUTO UNBAN AUTH SYNC:",authError.message);
+      }
+    }catch(syncError){console.warn("AUTO UNBAN AUTH SYNC:",syncError?.message||syncError);}
+    return data || {...control,status:"active",ban_type:null,ban_reason:null,ban_until:null};
+}
+
 async function getUserAdminControl(userId){
     const { data, error } = await supabase
         .from("user_admin_controls")
@@ -196,8 +219,9 @@ async function getUserAdminControl(userId){
         .maybeSingle();
 
     if(error) throw error;
+    if(data) return await clearExpiredAccountBan(userId, data);
 
-    return data || {
+    return {
         user_id:userId,
         role:"user",
         status:"active",
@@ -422,7 +446,7 @@ app.get("/api/admin/users", async (req,res)=>{
                 : Promise.resolve({data:[],error:null}),
             ids.length
                 ? supabase.from("user_admin_controls")
-                    .select("user_id,role,status,warning_level,ban_type,ban_reason,ban_until,admin_notes")
+                    .select("user_id,role,status,warning_level,ban_type,ban_reason,ban_until,admin_notes,community_ban_until,community_ban_permanent,community_ban_reason,community_chat_freeze_until,community_chat_freeze_permanent,community_chat_freeze_reason,community_voice_freeze_until,community_voice_freeze_permanent,community_voice_freeze_reason")
                     .in("user_id", ids)
                 : Promise.resolve({data:[],error:null})
         ]);
@@ -778,11 +802,11 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
             let banDuration = "none";
             if(nextStatus === "banned"){
                 if(payload.ban_type === "temporary"){
-                    const hours = Math.max(
+                    const seconds = Math.max(
                         1,
-                        Math.ceil((new Date(payload.ban_until).getTime() - Date.now()) / 3600000)
+                        Math.ceil((new Date(payload.ban_until).getTime() - Date.now()) / 1000)
                     );
-                    banDuration = `${hours}h`;
+                    banDuration = `${seconds}s`;
                 }else{
                     banDuration = "876000h";
                 }
@@ -905,6 +929,7 @@ app.patch("/api/admin/community-moderation/:uid", async(req,res)=>{
         const uid = String(req.params.uid || "").trim();
         const action = String(req.body?.action || "").trim().toLowerCase();
         const duration = String(req.body?.duration || "").trim().toLowerCase();
+        const customUntil = req.body?.until || null;
         const reason = String(req.body?.reason || "").trim().slice(0,1000);
 
         if(!uid) return res.status(400).json({success:false,message:"UID غير صالح"});
@@ -954,7 +979,7 @@ app.patch("/api/admin/community-moderation/:uid", async(req,res)=>{
         const needsDuration = !isClear;
         let timed = null;
         if(needsDuration){
-            timed = communityModerationDuration(duration);
+            timed = communityModerationDuration(duration, customUntil);
             if(!timed){
                 return res.status(400).json({success:false,message:"مدة التقييد غير صالحة"});
             }
@@ -8699,9 +8724,14 @@ function communityModerationState(control, nowMs = Date.now()){
     };
 }
 
-function communityModerationDuration(value){
+function communityModerationDuration(value, customUntil = null){
     const raw = String(value || "").trim().toLowerCase();
     if(raw === "permanent") return {permanent:true,until:null};
+    if(raw === "custom"){
+        const timestamp = new Date(customUntil || "").getTime();
+        if(!Number.isFinite(timestamp) || timestamp <= Date.now()) return null;
+        return {permanent:false,until:new Date(timestamp).toISOString()};
+    }
 
     const map = {
         "1h":60*60*1000,
