@@ -321,18 +321,42 @@ function(e){
   let lastToken = "";
 
   function getSessionToken(){
-    try{
-      for(let i=0;i<localStorage.length;i++){
-        const key=localStorage.key(i)||"";
-        if(!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
-        const raw=localStorage.getItem(key);
-        if(!raw) continue;
-        const session=JSON.parse(raw);
-        const token=String(session?.access_token || session?.currentSession?.access_token || "").trim();
-        if(token) return token;
+    // Supabase sessions are normally in localStorage; also check sessionStorage
+    // for projects configured to keep sessions only for the current tab.
+    for (const storage of [window.localStorage, window.sessionStorage]) {
+      try {
+        for(let i=0;i<storage.length;i++){
+          const key=storage.key(i)||"";
+          if(!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
+          const raw=storage.getItem(key);
+          if(!raw) continue;
+          const session=JSON.parse(raw);
+          const token=String(session?.access_token || session?.currentSession?.access_token || "").trim();
+          if(token) return token;
+        }
+      } catch(error) {
+        console.warn("PUBLISH BAN SESSION ERROR:",error);
       }
-    }catch(error){ console.warn("PUBLISH BAN SESSION ERROR:",error); }
+    }
     return "";
+  }
+
+  function setPublishVisibility(link, signedIn){
+    if(!link) return;
+    // Inline display prevents sidebar CSS from accidentally overriding the hidden state.
+    link.style.display = signedIn ? "" : "none";
+    link.setAttribute("aria-hidden", signedIn ? "false" : "true");
+    link.tabIndex = signedIn ? 0 : -1;
+    if(!signedIn){
+      link.dataset.publishBanChecked = "false";
+      link.dataset.publishBanned = "false";
+      link.classList.remove("is-publish-banned");
+      const bubble=link.querySelector(".publish-ban-bubble");
+      if(bubble){
+        bubble.classList.remove("is-visible");
+        bubble.textContent="";
+      }
+    }
   }
 
   function formatUntil(value){
@@ -398,10 +422,16 @@ function(e){
     if(!link) return;
     const token = getSessionToken();
     if(!token){
+      requestId++;
       lastToken = "";
+      setPublishVisibility(link,false);
       render(link,{banned:false});
       return;
     }
+
+    // A signed-in visitor can see the shortcut; server status decides whether
+    // it behaves as a normal publish link or a red-X ban notice.
+    setPublishVisibility(link,true);
     if(token === lastToken && link.dataset.publishBanChecked === "true") return;
     lastToken = token;
     const currentRequest = ++requestId;
@@ -412,8 +442,10 @@ function(e){
       });
       if(currentRequest !== requestId) return;
       if(response.status === 401){
+        setPublishVisibility(link,false);
         render(link,{banned:false});
-        link.dataset.publishBanChecked = "true";
+        link.dataset.publishBanChecked = "false";
+        lastToken = "";
         return;
       }
       if(!response.ok) throw new Error("PUBLISH_BAN_STATUS_"+response.status);
@@ -444,6 +476,9 @@ function(e){
   });
 
   document.addEventListener("DOMContentLoaded",refresh);
+  // Poll lightly so login/logout performed by another script in the same tab
+  // updates the shortcut even when the browser does not fire a storage event.
+  window.setInterval(refresh,4000);
   window.addEventListener("focus",refresh);
   window.addEventListener("storage",event=>{
     if(!event.key || event.key.startsWith("sb-")) {
