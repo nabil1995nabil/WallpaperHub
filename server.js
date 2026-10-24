@@ -4720,6 +4720,33 @@ app.post("/api/wallpapers/:id/download", async (req, res) => {
 // Wallpaper Likes (Supabase)
 // =====================================// إضافة إعجاب//
 
+// جلب معرّفات الخلفيات التي أعجب بها المستخدم الحالي عبر السيرفر فقط.
+app.get("/api/wallpapers/liked-ids", async (req, res) => {
+    try {
+        const authenticatedUser = await getAuthenticatedUser(req);
+        if (!authenticatedUser) {
+            return res.status(401).json({ success:false, message:"يجب تسجيل الدخول", ids:[] });
+        }
+
+        const userId = String(authenticatedUser.id).trim();
+        const { data, error } = await supabase
+            .from("likes")
+            .select("wallpaper_id")
+            .eq("user_id", userId);
+        if (error) throw error;
+
+        const ids = [...new Set((Array.isArray(data) ? data : [])
+            .map(row => row?.wallpaper_id)
+            .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+            .map(id => String(id)))];
+
+        return res.set("Cache-Control", "no-store").json({ success:true, ids });
+    } catch (error) {
+        console.error("LIKED WALLPAPER IDS ERROR:", error?.message || error);
+        return res.status(500).json({ success:false, message:"تعذر تحميل الإعجابات حالياً", ids:[] });
+    }
+});
+
 app.post(
     "/api/wallpapers/:id/like",
     async(req,res)=>{
@@ -4749,6 +4776,7 @@ app.post(
 
             let liked = false;
             let actionData = null;
+            let newlyLiked = false;
 
             if(existingLike){
                 // الضغط على إعجاب موجود يلغي الإعجاب من Supabase.
@@ -4776,43 +4804,62 @@ app.post(
                     }
                 }else{
                     liked = true;
+                    newlyLiked = true;
                     actionData = data;
                 }
             }
 
-            // جدول likes هو المصدر الوحيد للحقيقة؛ حدّث عداد العرض من عدد صفوفه.
+            // جدول likes هو المصدر الوحيد للحقيقة؛ تحديث عداد العرض إجراء ثانوي.
+            // إذا تعذر تحديث عمود wallpapers.likes، لا نرجع فشلاً كاذباً بعد حفظ الإعجاب.
+
+            let totalLikes;
             const { count, error: countError } = await supabase
                 .from("likes")
                 .select("id", { count:"exact", head:true })
                 .eq("wallpaper_id", wallpaperId);
 
-            if(countError) throw countError;
+            if(countError) {
+                // الإعجاب نفسه حُفظ/حُذف؛ فشل إحصاء العداد لا يجب أن يعرض العملية كفاشلة.
+                console.error("WALLPAPER LIKE COUNT ERROR:", countError.message || countError);
+            } else {
+                totalLikes = Number(count || 0);
+                const { error: likesCountError } = await supabase
+                    .from("wallpapers")
+                    .update({ likes: totalLikes })
+                    .eq("id", wallpaperId);
 
-            const totalLikes = Number(count || 0);
-            const { error: likesCountError } = await supabase
-                .from("wallpapers")
-                .update({ likes: totalLikes })
-                .eq("id", wallpaperId);
+                if(likesCountError) {
+                    console.error("WALLPAPER LIKE COUNTER SYNC ERROR:", likesCountError.message || likesCountError);
+                }
+            }
 
-            if(likesCountError) throw likesCountError;
-
-            const wall = await getWallpaperFromSupabase(wallpaperId);
+            let wall = null;
+            try {
+                wall = await getWallpaperFromSupabase(wallpaperId);
+            } catch(wallLookupError) {
+                console.error("WALLPAPER OWNER LOOKUP ERROR:", wallLookupError?.message || wallLookupError);
+            }
             const wallpaperOwnerUID = String(wall?.ownerUID || wall?.userId || "").trim();
 
             let reward = {awarded:false,points:0};
-            if(liked && !existingLike){
+            if(newlyLiked){
                 if(userId !== wallpaperOwnerUID){
                     try{ reward = await awardWallpaperActionPoints(userId, wallpaperId, "like"); }
                     catch(rewardError){ console.error("LIKE POINT REWARD ERROR:",rewardError?.message || rewardError); }
                 }
                 if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
-                    await createNotification({
-                        recipientUID: wallpaperOwnerUID,
-                        fromUser: userId,
-                        type: "wallpaper_like",
-                        wallpaperId,
-                        message: `${userName} أعجب بخلفيتك`
-                    });
+                    try {
+                        await createNotification({
+                            recipientUID: wallpaperOwnerUID,
+                            fromUser: userId,
+                            type: "wallpaper_like",
+                            wallpaperId,
+                            message: `${userName} أعجب بخلفيتك`
+                        });
+                    } catch(notificationError) {
+                        // الإشعار لا ينبغي أن يحوّل إعجاباً محفوظاً إلى فشل في الواجهة.
+                        console.error("WALLPAPER LIKE NOTIFICATION ERROR:", notificationError?.message || notificationError);
+                    }
                 }
             }
 

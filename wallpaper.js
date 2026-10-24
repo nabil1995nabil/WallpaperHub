@@ -3956,7 +3956,7 @@ async function likeWallpaper(){
         const data = await response.json().catch(() => ({}));
 
         if(!response.ok){
-            throw new Error(data?.error || `LIKE HTTP ${response.status}`);
+            throw new Error(data?.message || data?.error || `LIKE HTTP ${response.status}`);
         }
 
         console.log("LIKE RESPONSE:", data);

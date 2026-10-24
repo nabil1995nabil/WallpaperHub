@@ -2121,25 +2121,31 @@ function getList(key){
 
 
 async function getActualLikedIds(){
-    // المصدر الوحيد للإعجابات هو جدول likes في Supabase.
-    // لا نعتمد على localStorage ولا على إحصائيات نظام آخر.
+    // كل عمليات قراءة الإعجابات تمر عبر server.js؛ لا قراءة مباشرة من العميل.
     if(!currentUser?.id) return [];
 
     try{
-        const { data, error } = await supabase
-            .from("likes")
-            .select("wallpaper_id")
-            .eq("user_id", currentUser.id);
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if(sessionError) throw sessionError;
+        const token = sessionData?.session?.access_token;
+        if(!token) throw new Error("جلسة تسجيل الدخول غير متاحة");
 
-        if(error) throw error;
+        const response = await fetch("/api/wallpapers/liked-ids", {
+            method: "GET",
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+            cache: "no-store"
+        });
+        const payload = await response.json().catch(() => ({}));
+        if(!response.ok || payload?.success !== true){
+            throw new Error(payload?.message || `تعذر تحميل الإعجابات (${response.status})`);
+        }
 
         const ids = normalizeActionList(
-            (Array.isArray(data) ? data : [])
-                .map(row => row?.wallpaper_id)
+            (Array.isArray(payload.ids) ? payload.ids : [])
                 .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
         );
 
-        // إزالة البيانات القديمة بشكل آمن؛ فشل التخزين لا يعطل الإحصائيات.
+        // تنظيف مفاتيح الإعجابات القديمة فقط؛ لا نعتمد عليها في القراءة أو الحفظ.
         try {
             localStorage.removeItem("likes");
             localStorage.removeItem("likedWallpapers");
