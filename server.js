@@ -435,7 +435,7 @@ app.use(express.urlencoded({
 
 // ======================================
 // Telegram WallpaperHub bot (webhook mode for Vercel)
-// Do not use long polling (bot.start) inside a Vercel Function.
+// Use a POST body for setup-key submission to avoid URL encoding issues.
 // ======================================
 if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_MINI_APP_URL) {
     const { createTelegramBot } = require("./src/bot");
@@ -445,59 +445,85 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_MINI_APP_URL) {
     });
 
     app.post("/api/telegram-webhook", (req, res, next) => {
-        const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-        const receivedSecret = req.get("X-Telegram-Bot-Api-Secret-Token");
+        const expectedSecret = String(process.env.TELEGRAM_WEBHOOK_SECRET || "");
+        const receivedSecret = String(req.get("X-Telegram-Bot-Api-Secret-Token") || "");
         if (!expectedSecret || receivedSecret !== expectedSecret) {
             return res.status(403).json({ ok: false, message: "Forbidden" });
         }
         return telegramWebhookHandler(req, res, next);
     });
 
-    // One-time protected endpoint to register Telegram's webhook.
-    // Remove TELEGRAM_WEBHOOK_SETUP_KEY from Vercel after setup succeeds.
-    app.get("/api/telegram-webhook/setup", async (req, res) => {
+    async function registerTelegramWebhook(res, suppliedKey) {
         const setupKey = String(process.env.TELEGRAM_WEBHOOK_SETUP_KEY || "").trim();
-        const receivedSetupKey = String(req.query.key || "").trim();
+        const receivedSetupKey = String(suppliedKey || "").trim();
 
-        // Distinguish missing Vercel configuration from an incorrect key
-        // without exposing either secret value.
         if (!setupKey) {
             return res.status(500).json({
                 ok: false,
                 code: "SETUP_KEY_NOT_CONFIGURED",
-                message: "TELEGRAM_WEBHOOK_SETUP_KEY is missing in this deployment's environment."
+                message: "TELEGRAM_WEBHOOK_SETUP_KEY is missing from this deployment's environment."
             });
         }
-
         if (!receivedSetupKey || receivedSetupKey !== setupKey) {
             return res.status(403).json({
                 ok: false,
                 code: "SETUP_KEY_MISMATCH",
-                message: "Setup key does not match. Check the Vercel value and URL encoding."
+                message: "The submitted key does not match this deployment. Use the setup form and paste the exact Production Value from Vercel. No secret value is shown in this response."
             });
         }
 
-        const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+        const secret = String(process.env.TELEGRAM_WEBHOOK_SECRET || "").trim();
         if (!secret || !/^[A-Za-z0-9_-]{1,256}$/.test(secret)) {
             return res.status(500).json({
                 ok: false,
+                code: "WEBHOOK_SECRET_INVALID",
                 message: "TELEGRAM_WEBHOOK_SECRET must contain 1-256 letters, numbers, underscores, or hyphens."
             });
         }
 
         try {
-            const webhookUrl = new URL("/api/telegram-webhook", process.env.TELEGRAM_MINI_APP_URL).toString();
+            const appUrl = new URL(process.env.TELEGRAM_MINI_APP_URL);
+            const webhookUrl = new URL("/api/telegram-webhook", appUrl.origin).toString();
             await telegramBot.api.setWebhook(webhookUrl, {
                 secret_token: secret,
                 allowed_updates: ["message"],
                 drop_pending_updates: false
             });
             const info = await telegramBot.api.getWebhookInfo();
-            return res.json({ ok: true, webhook_url: info.url, pending_update_count: info.pending_update_count });
+            return res.json({
+                ok: true,
+                webhook_url: info.url,
+                pending_update_count: info.pending_update_count
+            });
         } catch (error) {
             console.error("TELEGRAM WEBHOOK SETUP ERROR:", error?.message || error);
-            return res.status(500).json({ ok: false, message: "Webhook setup failed. Check Vercel function logs." });
+            return res.status(500).json({
+                ok: false,
+                code: "WEBHOOK_SETUP_FAILED",
+                message: "Webhook setup failed. Check Vercel function logs."
+            });
         }
+    }
+
+    // Friendly setup form: the key is sent in a POST JSON body, not in the URL.
+    app.get("/api/telegram-webhook/setup-page", (req, res) => {
+        res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+        res.type("html").send(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WallpaperHub Telegram Webhook Setup</title>
+<style>body{font-family:system-ui,sans-serif;max-width:560px;margin:36px auto;padding:0 18px;color:#202124}input,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border-radius:10px;font-size:16px}input{border:1px solid #bbb}button{border:0;background:#1677d2;color:white;font-weight:600}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f4f6;padding:12px;border-radius:8px}small{color:#555}</style></head>
+<body><h2>WallpaperHub Telegram Bot</h2><p>Paste the exact <code>TELEGRAM_WEBHOOK_SETUP_KEY</code> Production value from Vercel. The key is sent in the request body, not in the URL.</p>
+<form id="f"><input id="key" type="password" autocomplete="off" required placeholder="Paste setup key"><button type="submit">Register webhook</button></form><small>Do not share this key or the result URL.</small><pre id="out" hidden></pre>
+<script>document.getElementById('f').addEventListener('submit',async function(e){e.preventDefault();const out=document.getElementById('out');out.hidden=false;out.textContent='Working…';try{const r=await fetch('/api/telegram-webhook/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:document.getElementById('key').value})});const data=await r.json();out.textContent=JSON.stringify(data,null,2);}catch(err){out.textContent='Request failed: '+String(err);}});</script>
+</body></html>`);
+    });
+
+    // POST is preferred. GET remains for backward compatibility with plain keys.
+    app.post("/api/telegram-webhook/setup", async (req, res) => {
+        return registerTelegramWebhook(res, req.body?.key);
+    });
+    app.get("/api/telegram-webhook/setup", async (req, res) => {
+        return registerTelegramWebhook(res, req.query.key);
     });
 }
 
