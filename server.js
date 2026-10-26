@@ -432,6 +432,59 @@ app.use(express.urlencoded({
     extended:true
 }));
 
+
+// ======================================
+// Telegram WallpaperHub bot (webhook mode for Vercel)
+// Do not use long polling (bot.start) inside a Vercel Function.
+// ======================================
+if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_MINI_APP_URL) {
+    const { createTelegramBot } = require("./src/bot");
+    const { bot: telegramBot, webhookHandler: telegramWebhookHandler } = createTelegramBot({
+        token: process.env.TELEGRAM_BOT_TOKEN,
+        miniAppUrl: process.env.TELEGRAM_MINI_APP_URL
+    });
+
+    app.post("/api/telegram-webhook", (req, res, next) => {
+        const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+        const receivedSecret = req.get("X-Telegram-Bot-Api-Secret-Token");
+        if (!expectedSecret || receivedSecret !== expectedSecret) {
+            return res.status(403).json({ ok: false, message: "Forbidden" });
+        }
+        return telegramWebhookHandler(req, res, next);
+    });
+
+    // One-time protected endpoint to register Telegram's webhook.
+    // Remove TELEGRAM_WEBHOOK_SETUP_KEY from Vercel after setup succeeds.
+    app.get("/api/telegram-webhook/setup", async (req, res) => {
+        const setupKey = process.env.TELEGRAM_WEBHOOK_SETUP_KEY;
+        if (!setupKey || String(req.query.key || "") !== setupKey) {
+            return res.status(403).json({ ok: false, message: "Forbidden" });
+        }
+
+        const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+        if (!secret || !/^[A-Za-z0-9_-]{1,256}$/.test(secret)) {
+            return res.status(500).json({
+                ok: false,
+                message: "TELEGRAM_WEBHOOK_SECRET must contain 1-256 letters, numbers, underscores, or hyphens."
+            });
+        }
+
+        try {
+            const webhookUrl = new URL("/api/telegram-webhook", process.env.TELEGRAM_MINI_APP_URL).toString();
+            await telegramBot.api.setWebhook(webhookUrl, {
+                secret_token: secret,
+                allowed_updates: ["message"],
+                drop_pending_updates: false
+            });
+            const info = await telegramBot.api.getWebhookInfo();
+            return res.json({ ok: true, webhook_url: info.url, pending_update_count: info.pending_update_count });
+        } catch (error) {
+            console.error("TELEGRAM WEBHOOK SETUP ERROR:", error?.message || error);
+            return res.status(500).json({ ok: false, message: "Webhook setup failed. Check Vercel function logs." });
+        }
+    });
+}
+
 // منع كاش API
 app.use(
     "/api",
