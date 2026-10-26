@@ -456,9 +456,25 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_MINI_APP_URL) {
     // One-time protected endpoint to register Telegram's webhook.
     // Remove TELEGRAM_WEBHOOK_SETUP_KEY from Vercel after setup succeeds.
     app.get("/api/telegram-webhook/setup", async (req, res) => {
-        const setupKey = process.env.TELEGRAM_WEBHOOK_SETUP_KEY;
-        if (!setupKey || String(req.query.key || "") !== setupKey) {
-            return res.status(403).json({ ok: false, message: "Forbidden" });
+        const setupKey = String(process.env.TELEGRAM_WEBHOOK_SETUP_KEY || "").trim();
+        const receivedSetupKey = String(req.query.key || "").trim();
+
+        // Distinguish missing Vercel configuration from an incorrect key
+        // without exposing either secret value.
+        if (!setupKey) {
+            return res.status(500).json({
+                ok: false,
+                code: "SETUP_KEY_NOT_CONFIGURED",
+                message: "TELEGRAM_WEBHOOK_SETUP_KEY is missing in this deployment's environment."
+            });
+        }
+
+        if (!receivedSetupKey || receivedSetupKey !== setupKey) {
+            return res.status(403).json({
+                ok: false,
+                code: "SETUP_KEY_MISMATCH",
+                message: "Setup key does not match. Check the Vercel value and URL encoding."
+            });
         }
 
         const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
