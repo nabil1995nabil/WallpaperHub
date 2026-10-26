@@ -1,42 +1,38 @@
-require("dotenv").config();
-const { Bot, Keyboard } = require("grammy");
+const { Bot, Keyboard, webhookCallback } = require("grammy");
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const miniAppUrl = process.env.TELEGRAM_MINI_APP_URL;
+function createTelegramBot({ token, miniAppUrl }) {
+    if (!token) throw new Error("Missing TELEGRAM_BOT_TOKEN");
+    if (!miniAppUrl || !/^https:\/\/\S+$/i.test(miniAppUrl)) {
+        throw new Error("TELEGRAM_MINI_APP_URL must be an HTTPS URL");
+    }
 
-if (!token) {
-  console.error("Missing TELEGRAM_BOT_TOKEN in the hosting environment.");
-  process.exit(1);
+    const bot = new Bot(token);
+    const keyboard = new Keyboard()
+        .webApp("📤 نشر خلفية", miniAppUrl)
+        .resized();
+
+    bot.command("start", async (ctx) => {
+        await ctx.reply(
+            "مرحباً بك في WallpaperHub 🖼️\n\n" +
+            "اضغط على الزر أدناه لفتح لوحة نشر الخلفيات داخل Telegram.",
+            { reply_markup: keyboard }
+        );
+    });
+
+    bot.hears("📤 نشر خلفية", async (ctx) => {
+        await ctx.reply("افتح لوحة نشر الخلفيات من الزر أدناه.", {
+            reply_markup: keyboard
+        });
+    });
+
+    bot.catch((err) => {
+        console.error("Telegram bot update error:", err.error?.message || err.error || err);
+    });
+
+    return {
+        bot,
+        webhookHandler: webhookCallback(bot, "express")
+    };
 }
 
-if (!miniAppUrl || !/^https:\/\/\S+$/i.test(miniAppUrl)) {
-  console.error("Set TELEGRAM_MINI_APP_URL to the deployed HTTPS publish-telegram.html URL.");
-  process.exit(1);
-}
-
-const bot = new Bot(token);
-const keyboard = new Keyboard()
-  .webApp("📤 نشر خلفية", miniAppUrl)
-  .resized();
-
-bot.command("start", async (ctx) => {
-  await ctx.reply(
-    "مرحباً بك في WallpaperHub 🖼️\\n\\n" +
-    "اضغط على الزر أدناه لفتح لوحة نشر الخلفيات داخل Telegram.",
-    { reply_markup: keyboard }
-  );
-});
-
-bot.hears("📤 نشر خلفية", async (ctx) => {
-  await ctx.reply("اضغط على زر «📤 نشر خلفية» لفتح لوحة النشر.", {
-    reply_markup: keyboard
-  });
-});
-
-bot.catch((err) => {
-  console.error("Telegram bot error:", err.error);
-});
-
-bot.start({
-  onStart: (info) => console.log(`WallpaperHub bot started as @${info.username}`)
-});
+module.exports = { createTelegramBot };
