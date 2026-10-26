@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>WallpaperHub | نشر الخلفيات داخل Telegram</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="publish-telegram.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="WallpaperHub">
+      <span class="brand-mark">W</span><span>Wallpaper<span class="brand-accent">Hub</span><small>مركز نشر الخلفيات</small></span>
+    </a>
+    <div class="topbar-actions">
+      <span class="connection"><i></i> Telegram Mini App</span>
+      
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="intro">
+      <div>
+        <span class="eyebrow">PUBLISH STUDIO</span>
+        <h1>خلّي خلفيتك <span>تتكلم.</span></h1>
+        <p>نفس لوحة WallpaperHub: حضّر الخلفيات، راجع المعاينة، ومن بعد أرسلها للنشر أو للمراجعة حسب صلاحيات حسابك.</p>
+      </div>
+      <div class="intro-chip"><span class="spark">✦</span> استوديو نشر متكامل</div>
+    </section>
+
+    <div class="publisher-dashboard-row" id="publisherDashboardRow">
+      <section class="publisher-account-slot" id="publisherAccountSlot" aria-label="معلومات الحساب"></section>
+      <div class="notice" id="roleNotice">
+        <span class="notice-icon">ⓘ</span>
+        <div><strong id="roleTitle">جارٍ التحقق من صلاحيات النشر</strong><p id="roleDescription">صلاحية النشر المباشر يحددها السيرفر فقط؛ توثيق الحساب لا يمنحها تلقائياً.</p></div>
+      </div>
+    </div>
+
+    <form id="publishForm" novalidate>
+      <div class="workspace">
+        <section class="panel form-panel">
+          <div class="panel-heading">
+            <div><span class="step">01</span><h2>تفاصيل الخلفية</h2></div>
+            <span class="muted">المعلومات الأساسية</span>
+          </div>
+
+          <div class="field">
+            <label for="wallTitle">عنوان الخلفية <b>*</b></label>
+            <input id="wallTitle" name="title" maxlength="120" placeholder="مثال: Midnight Mountains" required>
+            <div class="field-foot"><span>عنوان واضح وسهل البحث</span><span id="titleCount">0 / 120</span></div>
+          </div>
+
+<div class="field-grid">
+            <div class="field">
+              <label for="wallCategory">القسم <b>*</b></label>
+              <select id="wallCategory" name="category" required>
+                <option value="nature">🌿 الطبيعة</option><option value="cars">🚗 السيارات</option>
+                <option value="games">🎮 الألعاب</option><option value="space">🌌 الفضاء</option>
+                <option value="ai">🤖 الذكاء الاصطناعي</option><option value="amoled">🖤 AMOLED</option>
+                <option value="animals">🐾 الحيوانات</option><option value="anime">🌀 الأنمي</option>
+                <option value="city">🏙️ المدن</option><option value="sports">⚽ الرياضة</option>
+                <option value="4k">💎 4K</option><option value="minimal">✨ Minimal</option>
+                <option value="rain">🌧️ المطر</option><option value="sunset">🌅 الغروب</option>
+                <option value="architecture">🏛️ العمارة</option><option value="other">📁 أخرى</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="wallType">نوع الملف</label>
+              <select id="wallType" name="type"><option value="auto">تلقائي حسب الملف</option><option value="image">صورة</option></select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="wallTags">وسوم البحث</label>
+            <input id="wallTags" name="tags" placeholder="nature, mountains, night, blue">
+            <div class="field-foot"><span>افصل بين الوسوم بفاصلة</span><button type="button" class="text-btn" id="suggestTagsBtn">✦ اقتراح وسوم</button></div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="wallColors">الألوان الرئيسية</label>
+              <input id="wallColors" name="colors" placeholder="#111827, #60a5fa">
+            </div>
+            <div class="field">
+              <label for="wallDevice">الجهاز المستهدف</label>
+              <select id="wallDevice" name="device"><option value="all">جميع الأجهزة</option><option value="phone">الهاتف</option><option value="desktop">الكمبيوتر</option><option value="tablet">الجهاز اللوحي</option></select>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field"><label for="wallResolution">الدقة</label><input id="wallResolution" readonly placeholder="تُستخرج تلقائياً"></div>
+            <div class="field"><label for="wallSize">الحجم</label><input id="wallSize" readonly placeholder="يُحسب تلقائياً"></div>
+          </div>
+
+          <div class="field">
+            <label for="scheduleAt">جدولة النشر <span class="optional">اختياري</span></label>
+            <input id="scheduleAt" type="datetime-local">
+            <p class="helper">يُحفظ وقت الجدولة في بيانات المسودة؛ النشر التلقائي يحتاج دعماً من السيرفر.</p>
+          </div>
+        </section>
+
+        <section class="panel media-panel">
+          <div class="panel-heading">
+            <div><span class="step">02</span><h2>الملفات والمعاينة</h2></div>
+            <span class="muted">حتى 50 صورة</span>
+          </div>
+
+          <label class="dropzone" id="dropzone" for="wallFiles">
+            <input id="wallFiles" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+            <span class="upload-icon">↑</span>
+            <strong>اختار الملفات أو جرّهم لهنا</strong>
+            <span>اختار حتى 50 صورة في الدفعة الواحدة</span>
+            <small>الصيغ المدعومة: JPG وPNG وWEBP وAVIF فقط — حتى 150MB للصورة</small>
+          </label>
+          <div class="file-toolbar"><span id="fileCount">ما تختار حتى ملف</span><button type="button" class="text-btn danger-text" id="clearFilesBtn">مسح الاختيار</button></div>
+          <div class="preview-grid" id="previewGrid"><div class="empty-preview"><span>▧</span><p>المعاينة غادي تظهر هنا</p></div></div>
+
+          <div class="preview-tools">
+            <button type="button" class="tool-btn" id="phonePreviewBtn" aria-pressed="false">▯ معاينة الهاتف</button>
+            <button type="button" class="tool-btn" id="cropBtn" aria-pressed="false">⌗ وضع القصّ</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel queue-panel">
+        <div class="panel-heading"><div><span class="step">04</span><h2>قائمة النشر</h2></div><span class="muted">تحقق قبل الإرسال</span></div>
+        <div class="queue-stats"><div><span id="queueTotal">0</span><small>ملفات مختارة</small></div><div><span id="queueValid">0</span><small>ملفات صالحة</small></div><div><span id="queueDuplicates">0</span><small>تنبيهات</small></div></div>
+        <div id="validationList" class="validation-list"><p class="muted">اختار ملفات باش نتحقق منها.</p></div>
+        <section class="upload-manager" id="uploadManager" hidden>
+          <div class="upload-manager-heading">
+            <div><h3>حالة رفع الملفات</h3><p>كل صورة عندها شريط تقدم وأزرار تحكم مستقلّة.</p></div>
+            <span id="uploadOverall">0 / 0 مكتملة</span>
+          </div>
+          <div id="uploadItems" class="upload-items"></div>
+        </section>
+        <div class="bottom-actions">
+          <button type="button" class="outline-btn" id="saveDraftBtn">حفظ كمسودة</button>
+          <div class="primary-actions"><button type="button" class="ghost-btn" id="resetBtn">إعادة تعيين</button><button type="submit" class="primary-btn" id="submitBtn">إرسال الخلفيات للمراجعة <span>↗</span></button></div>
+        </div>
+        <p class="secure-note">🔒 يحدد السيرفر صلاحيات حسابك. المستخدمون العاديون يرسلون للمراجعة؛ المالك والأدمن ينشران مباشرة.</p>
+      </section>
+    </form>
+    <footer>WallpaperHub Publish Studio <span>•</span> واجهة نشر مستقلة</footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script type="module" src="publish-telegram.js"></script>
+</body>
+</html>
