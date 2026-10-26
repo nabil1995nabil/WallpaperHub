@@ -2423,7 +2423,7 @@ app.get("/api/pixabay-wallpapers", async (req, res) => {
 // Keep this route BEFORE express.static and the GitHub static proxy.
 // ======================================
 app.get("/sitemap.xml", async (req, res) => {
-    const SITE_ORIGIN = "https://wallpaper-hub-7niz.vercel.app";
+    const SITE_ORIGIN = "https://wallpaperhub-morocco.vercel.app";
     const urls = new Set();
 
     const addUrl = (pathname) => {
