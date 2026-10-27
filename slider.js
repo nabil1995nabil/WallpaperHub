@@ -1,6 +1,8 @@
 // =======================================
-// WallpaperHub — Interactive Slider Pro
+// WallpaperHub — Cinematic Slider v2
 // =======================================
+
+const SLIDER_DURATION = 5000;
 
 let sliderIndex = 0;
 let sliderTimer = null;
@@ -8,6 +10,19 @@ let sliderItems = [];
 let sliderTouchStartX = 0;
 let sliderTouchStartY = 0;
 let sliderTouchActive = false;
+let sliderHovering = false;
+let sliderBound = false;
+
+
+// =======================================
+// أدوات مساعدة
+// =======================================
+
+function escHtml(value){
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    }[c]));
+}
 
 
 // =======================================
@@ -16,85 +31,63 @@ let sliderTouchActive = false;
 
 function initSlider(data){
 
-    const slider =
-        document.getElementById("sliderContent");
+    const slider = document.getElementById("sliderContent");
 
-    if(!slider)
+    if(!slider || !Array.isArray(data) || !data.length)
         return;
 
-
-    sliderItems =
-        data
-        .slice()
-        .reverse();
-
+    sliderItems = data.slice().reverse();
 
     slider.innerHTML = "";
 
+    sliderItems.forEach((wall, index) => {
 
-    sliderItems.forEach((wall,index)=>{
-
-        const slide =
-            document.createElement("div");
-
-        slide.className = "slide";
-
-        if(index === 0)
-            slide.classList.add("active");
-
+        const slide = document.createElement("div");
+        slide.className = "slide" + (index === 0 ? " active" : "");
 
         slide.innerHTML = `
-
-            <img
-                src="${wall.image}"
-                alt="${wall.title || "Wallpaper"}"
-                draggable="false">
-
+            <img src="${escHtml(wall.image)}"
+                 alt="${escHtml(wall.title || "Wallpaper")}"
+                 draggable="false"
+                 loading="${index < 2 ? "eager" : "lazy"}">
             <div class="slider-info">
-
-                <div class="slider-category">
-                    ${wall.category || ""}
-                </div>
-
-                <button
-                    type="button"
-                    class="slider-view-button">
-                    عرض الخلفية
-                </button>
-
+                <div class="slider-category">${escHtml(wall.category || "")}</div>
+                <h3 class="slider-title">${escHtml(wall.title || "")}</h3>
+                <button type="button" class="slider-view-button">عرض الخلفية</button>
             </div>
         `;
 
-
-        const viewButton =
-            slide.querySelector(".slider-view-button");
-
-
-        viewButton.onclick = (event)=>{
-
+        slide.querySelector(".slider-view-button").onclick = (event) => {
             event.stopPropagation();
-
             openWallpaper(wall.id);
-
         };
 
-
         slider.appendChild(slide);
-
     });
 
+    // العداد وشريط التقدم
+    const total = String(sliderItems.length).padStart(2, "0");
+    slider.insertAdjacentHTML("beforeend", `
+        <div class="slider-counter"><b>01</b><span>/ ${total}</span></div>
+        <div class="slider-progress"><span></span></div>
+    `);
+
+    const progress = slider.querySelector(".slider-progress");
+    if(progress)
+        progress.style.setProperty("--slider-duration", SLIDER_DURATION + "ms");
 
     createSliderDots();
-
-    showSlider(0, false);
-
+    createMiniCards();
     bindSliderArrows();
 
-    bindMainSliderSwipe();
+    if(!sliderBound){
+        bindMainSliderSwipe();
+        bindHoverPause();
+        sliderBound = true;
+    }
 
-
+    showSlider(0, false);
     startAutoSlider(sliderItems.length);
-
 }
 
 
@@ -104,71 +97,43 @@ function initSlider(data){
 
 function showSlider(index, restartTimer = true){
 
-    const slides =
-        document.querySelectorAll(
-            "#sliderContent .slide"
-        );
-
+    const slides = document.querySelectorAll("#sliderContent .slide");
 
     if(!slides.length)
         return;
 
+    const total = slides.length;
 
-    const total =
-        slides.length;
-
-
-    index =
-        ((index % total) + total) % total;
-
+    index = ((index % total) + total) % total;
 
     sliderIndex = index;
 
-
-    slides.forEach((slide,i)=>{
-
-        slide.classList.toggle(
-            "active",
-            i === index
-        );
-
+    slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === index);
     });
 
-
     updateSliderDots(index);
-
+    updateMiniCards(index);
+    updateCounter(index);
+    restartProgress();
 
     if(restartTimer)
         startAutoSlider(total);
-
 }
 
 
 // =======================================
-// الخلفية التالية
+// التنقل
 // =======================================
 
 function nextSlider(){
-
-    if(!sliderItems.length)
-        return;
-
+    if(!sliderItems.length) return;
     showSlider(sliderIndex + 1);
-
 }
 
-
-// =======================================
-// الخلفية السابقة
-// =======================================
-
 function prevSlider(){
-
-    if(!sliderItems.length)
-        return;
-
+    if(!sliderItems.length) return;
     showSlider(sliderIndex - 1);
-
 }
 
 
@@ -178,38 +143,22 @@ function prevSlider(){
 
 function bindSliderArrows(){
 
-    const prev =
-        document.getElementById("sliderPrev");
-
-    const next =
-        document.getElementById("sliderNext");
-
+    const prev = document.getElementById("sliderPrev");
+    const next = document.getElementById("sliderNext");
 
     if(prev){
-
-        prev.onclick = (event)=>{
-
+        prev.onclick = (event) => {
             event.preventDefault();
-
             prevSlider();
-
         };
-
     }
-
 
     if(next){
-
-        next.onclick = (event)=>{
-
+        next.onclick = (event) => {
             event.preventDefault();
-
             nextSlider();
-
         };
-
     }
-
 }
 
 
@@ -219,151 +168,174 @@ function bindSliderArrows(){
 
 function createSliderDots(){
 
-    const dots =
-        document.getElementById("sliderDots");
+    const dots = document.getElementById("sliderDots");
 
-
-    if(!dots)
-        return;
-
+    if(!dots) return;
 
     dots.innerHTML = "";
 
+    sliderItems.forEach((wall, index) => {
 
-    sliderItems.forEach((wall,index)=>{
-
-        const dot =
-            document.createElement("button");
-
+        const dot = document.createElement("button");
 
         dot.type = "button";
-
         dot.className = "slider-dot";
+        dot.setAttribute("aria-label", `الانتقال إلى الخلفية ${index + 1}`);
 
-        dot.setAttribute(
-            "aria-label",
-            `الانتقال إلى الخلفية ${index + 1}`
-        );
-
-
-        dot.onclick = ()=>{
-
-            showSlider(index);
-
-        };
-
+        dot.onclick = () => showSlider(index);
 
         dots.appendChild(dot);
-
     });
-
 }
-
 
 function updateSliderDots(index){
 
-    const dots =
-        document.querySelectorAll(
-            "#sliderDots .slider-dot"
-        );
-
-
-    dots.forEach((dot,i)=>{
-
-        dot.classList.toggle(
-            "active",
-            i === index
-        );
-
+    document.querySelectorAll("#sliderDots .slider-dot").forEach((dot, i) => {
+        dot.classList.toggle("active", i === index);
     });
-
 }
 
 
 // =======================================
-// سحب السلايدر الرئيسي
+// الخلفيات المصغرة
+// =======================================
+
+function createMiniCards(){
+
+    const wrap = document.getElementById("miniCards");
+
+    if(!wrap) return;
+
+    wrap.innerHTML = "";
+
+    sliderItems.forEach((wall, index) => {
+
+        const card = document.createElement("button");
+
+        card.type = "button";
+        card.className = "mini-card";
+        card.setAttribute("aria-label", `الخلفية ${index + 1}`);
+        card.innerHTML = `<img src="${escHtml(wall.image)}" alt="" loading="lazy" draggable="false">`;
+
+        card.onclick = () => showSlider(index);
+
+        wrap.appendChild(card);
+    });
+}
+
+function updateMiniCards(index){
+
+    const cards = document.querySelectorAll("#miniCards .mini-card");
+    const viewport = document.getElementById("miniViewport");
+
+    cards.forEach((card, i) => {
+        card.classList.toggle("active", i === index);
+    });
+
+    const active = cards[index];
+
+    if(!active || !viewport) return;
+
+    // تمركز البطاقة النشطة داخل الشريط (بدون تحريك الصفحة)
+    const target = active.offsetLeft - (viewport.clientWidth - active.offsetWidth) / 2;
+
+    viewport.scrollTo({ left: target, behavior: "smooth" });
+}
+
+
+// =======================================
+// العداد وشريط التقدم
+// =======================================
+
+function updateCounter(index){
+
+    const el = document.querySelector("#sliderContent .slider-counter b");
+
+    if(el)
+        el.textContent = String(index + 1).padStart(2, "0");
+}
+
+function restartProgress(){
+
+    const bar = document.querySelector("#sliderContent .slider-progress");
+
+    if(!bar) return;
+
+    bar.classList.remove("run", "paused");
+    void bar.offsetWidth; // إعادة تشغيل الأنيميشن
+    bar.classList.add("run");
+
+    if(sliderHovering)
+        bar.classList.add("paused");
+}
+
+
+// =======================================
+// إيقاف مؤقت عند مرور الماوس
+// =======================================
+
+function bindHoverPause(){
+
+    const frame = document.querySelector(".slider-frame");
+
+    if(!frame) return;
+
+    frame.addEventListener("mouseenter", () => {
+        sliderHovering = true;
+        clearInterval(sliderTimer);
+        document.querySelector("#sliderContent .slider-progress")
+            ?.classList.add("paused");
+    });
+
+    frame.addEventListener("mouseleave", () => {
+        sliderHovering = false;
+        restartProgress();
+        startAutoSlider(sliderItems.length);
+    });
+}
+
+
+// =======================================
+// سحب السلايدر (موبايل)
 // =======================================
 
 function bindMainSliderSwipe(){
 
-    const slider =
-        document.getElementById("sliderContent");
+    const slider = document.getElementById("sliderContent");
 
+    if(!slider) return;
 
-    if(!slider)
-        return;
+    slider.addEventListener("touchstart", (event) => {
 
+        if(!event.touches || !event.touches.length)
+            return;
 
-    slider.addEventListener(
-        "touchstart",
-        (event)=>{
+        sliderTouchStartX = event.touches[0].clientX;
+        sliderTouchStartY = event.touches[0].clientY;
+        sliderTouchActive = true;
 
-            if(
-                !event.touches ||
-                !event.touches.length
-            )
-                return;
+    }, { passive: true });
 
+    slider.addEventListener("touchend", (event) => {
 
-            sliderTouchStartX =
-                event.touches[0].clientX;
+        if(!sliderTouchActive || !event.changedTouches || !event.changedTouches.length)
+            return;
 
-            sliderTouchStartY =
-                event.touches[0].clientY;
+        sliderTouchActive = false;
 
-            sliderTouchActive = true;
+        const deltaX = event.changedTouches[0].clientX - sliderTouchStartX;
+        const deltaY = event.changedTouches[0].clientY - sliderTouchStartY;
 
-        },
-        {passive:true}
-    );
+        // نتجاهل السحب العمودي والسحب القصير
+        if(Math.abs(deltaX) < 45 || Math.abs(deltaX) <= Math.abs(deltaY))
+            return;
 
+        if(deltaX < 0)
+            nextSlider();
+        else
+            prevSlider();
 
-    slider.addEventListener(
-        "touchend",
-        (event)=>{
-
-            if(
-                !sliderTouchActive ||
-                !event.changedTouches ||
-                !event.changedTouches.length
-            )
-                return;
-
-
-            sliderTouchActive = false;
-
-
-            const endX =
-                event.changedTouches[0].clientX;
-
-            const endY =
-                event.changedTouches[0].clientY;
-
-
-            const deltaX =
-                endX - sliderTouchStartX;
-
-            const deltaY =
-                endY - sliderTouchStartY;
-
-
-            // نتجاهل السحب العمودي
-            if(
-                Math.abs(deltaX) < 45 ||
-                Math.abs(deltaX) <= Math.abs(deltaY)
-            )
-                return;
-
-
-            if(deltaX < 0)
-                nextSlider();
-            else
-                prevSlider();
-
-        },
-        {passive:true}
-    );
-
+    }, { passive: true });
 }
 
 
@@ -375,32 +347,10 @@ function startAutoSlider(length){
 
     clearInterval(sliderTimer);
 
-
-    if(!length || length < 2)
+    if(!length || length < 2 || sliderHovering)
         return;
 
-
-    sliderTimer =
-        setInterval(()=>{
-
-            nextSlider();
-
-        },5000);
-
+    sliderTimer = setInterval(() => {
+        nextSlider();
+    }, SLIDER_DURATION);
 }
-
-
-// =======================================
-// عند تحميل الصفحة
-// =======================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    ()=>{
-
-        // الأدوات تُربط داخل initSlider أيضاً.
-        // هذا السطر فقط يضمن عدم وجود أخطاء
-        // إذا لم يتم تحميل بيانات السلايدر.
-
-    }
-);
