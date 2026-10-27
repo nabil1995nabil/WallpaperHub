@@ -1196,7 +1196,11 @@ const TELEGRAM_LOGIN_BOT_USERNAME = "WallpaperHubPublishBot";
 const accountProviderSelection = { google:true, telegram:false };
 let googleClientIdPromise = null;
 let googleScriptPromise = null;
-let googleCredentialCallback = null;
+let googleIdentityInitPromise = null;
+let googleIdentityInitialized = false;
+let activeGoogleProviders = ["google"];
+let activeGoogleDirectLogin = false;
+let googleDirectPromptPending = false;
 let telegramWidgetReady = false;
 let accountChoiceMode = "login";
 
@@ -1301,6 +1305,54 @@ function showAccountChoiceStatus(message, type = "warning"){
     accountChoiceStatus.hidden = false;
 }
 
+// Lightweight non-modal feedback for the direct Google sign-in button.
+function showDirectGoogleToast(message, type = "info"){
+    let toast = document.getElementById("googleLoginToast");
+    if(!toast){
+        toast = document.createElement("div");
+        toast.id = "googleLoginToast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        Object.assign(toast.style, {
+            position:"fixed",
+            zIndex:"20001",
+            left:"14px",
+            right:"14px",
+            bottom:"calc(18px + env(safe-area-inset-bottom, 0px))",
+            maxWidth:"520px",
+            margin:"0 auto",
+            padding:"11px 14px",
+            border:"1px solid #d8e5f5",
+            borderRadius:"14px",
+            background:"#eff6ff",
+            color:"#315b8e",
+            boxShadow:"0 8px 28px rgba(15,30,60,.18)",
+            fontFamily:"inherit",
+            fontSize:"13px",
+            lineHeight:"1.55",
+            textAlign:"center"
+        });
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.background = type === "error" ? "#fff4df" : "#eff6ff";
+    toast.style.color = type === "error" ? "#76551a" : "#315b8e";
+    if(window._wphGoogleToastTimer) clearTimeout(window._wphGoogleToastTimer);
+    window._wphGoogleToastTimer = window.setTimeout(() => {
+        toast?.remove();
+    }, 4600);
+}
+
+function reportGooglePromptUnavailable(notification, direct = false){
+    if(!(notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.())) return;
+    const message = "Google ما عرضش نافذة اختيار الحساب. تأكد أنك داخل إلى Google في المتصفح، وجرّب السماح بتسجيل الدخول عبر Google ثم اضغط مرة أخرى.";
+    if(direct){
+        showDirectGoogleToast(message, "error");
+    }else{
+        showAccountChoiceStatus(message, "info");
+    }
+}
+
 accountChoiceClose?.addEventListener("click", closeAccountChoiceModal);
 accountChoiceModal?.addEventListener("click", event => {
     if(event.target === accountChoiceModal) closeAccountChoiceModal();
@@ -1395,6 +1447,93 @@ async function ensureGoogleIdentityApi(){
     return googleScriptPromise;
 }
 
+// Load and configure Google Identity Services before the user taps the login button.
+// This lets the button call prompt() directly from the click handler, avoiding the
+// extra WallpaperHub modal and reducing the chance that the browser suppresses it.
+async function prepareGoogleIdentityApi(){
+    if(googleIdentityInitialized) return true;
+    if(googleIdentityInitPromise) return googleIdentityInitPromise;
+
+    googleIdentityInitPromise = (async()=>{
+        const [clientId] = await Promise.all([
+            getGoogleClientId(),
+            ensureGoogleIdentityApi()
+        ]);
+
+        window.google.accounts.id.initialize({
+            client_id:clientId,
+            callback:response=>{
+                const providers = [...activeGoogleProviders];
+                const direct = activeGoogleDirectLogin;
+                void (async()=>{
+                    if(!response?.credential) throw new Error("لم يرجع Google بيانات التحقق.");
+                    await completeGoogleSignIn(response.credential, providers, { direct });
+                })().catch(error=>{
+                    console.error("GOOGLE IDENTITY SIGN-IN ERROR:", error);
+                    if(accountChoiceContinue) accountChoiceContinue.disabled = false;
+                    if(direct){
+                        showDirectGoogleToast(error.message || "تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.", "error");
+                    }else{
+                        showAccountChoiceStatus(error.message || "تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.");
+                    }
+                });
+            },
+            auto_select:false,
+            cancel_on_tap_outside:false,
+            use_fedcm_for_prompt:true
+        });
+
+        googleIdentityInitialized = true;
+        return true;
+    })().catch(error=>{
+        googleIdentityInitPromise = null;
+        throw error;
+    });
+
+    return googleIdentityInitPromise;
+}
+
+// Prepare in the background when profile.js loads, not after the user's click.
+void prepareGoogleIdentityApi().catch(error=>{
+    console.warn("GOOGLE IDENTITY PRELOAD:", error?.message || error);
+});
+
+function launchDirectGooglePrompt(){
+    activeGoogleProviders = ["google"];
+    activeGoogleDirectLogin = true;
+
+    const openPrompt = ()=>{
+        try{
+            // Google's own account chooser; no WallpaperHub modal is opened first.
+            window.google.accounts.id.prompt(notification=>{
+                reportGooglePromptUnavailable(notification, true);
+            });
+        }catch(error){
+            console.error("GOOGLE DIRECT PROMPT ERROR:", error);
+            showDirectGoogleToast(error.message || "تعذر فتح اختيار حساب Google.", "error");
+        }
+    };
+
+    if(!googleIdentityInitialized){
+        if(googleDirectPromptPending) return;
+        googleDirectPromptPending = true;
+        showDirectGoogleToast("جارٍ تجهيز نافذة اختيار حساب Google…");
+        void prepareGoogleIdentityApi().then(()=>{
+            googleDirectPromptPending = false;
+            // Do not open a sign-in prompt if a different auth action superseded this click.
+            if(activeGoogleDirectLogin && !currentUser) openPrompt();
+        }).catch(error=>{
+            googleDirectPromptPending = false;
+            console.error("GOOGLE IDENTITY PREPARE ERROR:", error);
+            showDirectGoogleToast(error.message || "تعذر تجهيز تسجيل الدخول عبر Google.", "error");
+        });
+        return;
+    }
+
+    // Normally GIS is already initialized on page load, so this runs in the tap handler.
+    openPrompt();
+}
+
 function renderGoogleAccountPreview(user){
     if(!googleAccountPreview || !user) return;
     const metadata = user.user_metadata || {};
@@ -1411,9 +1550,9 @@ function renderGoogleAccountPreview(user){
     googleAccountPreview.hidden = false;
 }
 
-async function completeGoogleSignIn(credential, providers){
+async function completeGoogleSignIn(credential, providers, options = {}){
     if(!credential) throw new Error("لم يصل رمز التحقق من Google.");
-    if(accountChoiceContinue) accountChoiceContinue.disabled = true;
+    if(accountChoiceContinue && !options.direct) accountChoiceContinue.disabled = true;
 
     const { data, error } = await supabase.auth.signInWithIdToken({
         provider:"google",
@@ -1435,6 +1574,9 @@ async function completeGoogleSignIn(credential, providers){
             accountChoiceContinue.disabled = true;
             accountChoiceContinue.textContent = "أكمل تأكيد Telegram أدناه";
         }
+    }else if(options.direct){
+        updateLoginState(user);
+        showDirectGoogleToast("تم تسجيل الدخول باستخدام Google بنجاح.");
     }else{
         showAccountChoiceStatus("تم تسجيل الدخول باستخدام Google بنجاح.", "success");
         updateLoginState(user);
@@ -1445,44 +1587,17 @@ async function completeGoogleSignIn(credential, providers){
 async function startGoogleIdentityFlow(providers){
     try{
         if(accountChoiceContinue) accountChoiceContinue.disabled = true;
-        showAccountChoiceStatus("جارٍ فتح اختيار حساب Google الآمن داخل الصفحة…", "info");
+        showAccountChoiceStatus("جارٍ فتح اختيار حساب Google الرسمي…", "info");
+        activeGoogleProviders = [...providers];
+        activeGoogleDirectLogin = false;
 
-        const clientId = await getGoogleClientId();
-        await ensureGoogleIdentityApi();
-
-        googleCredentialCallback = async response => {
-            try{
-                if(!response?.credential) throw new Error("لم يرجع Google بيانات التحقق.");
-                await completeGoogleSignIn(response.credential, providers);
-            }catch(error){
-                console.error("GOOGLE IDENTITY SIGN-IN ERROR:", error);
-                if(accountChoiceContinue) accountChoiceContinue.disabled = false;
-                showAccountChoiceStatus(error.message || "تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.");
-            }
-        };
-
-        window.google.accounts.id.initialize({
-            client_id:clientId,
-            callback:response=>{
-                if(typeof googleCredentialCallback === "function"){
-                    void googleCredentialCallback(response);
-                }
-            },
-            auto_select:false,
-            cancel_on_tap_outside:false,
-            use_fedcm_for_prompt:true
-        });
+        if(!googleIdentityInitialized){
+            await prepareGoogleIdentityApi();
+        }
 
         if(accountChoiceContinue) accountChoiceContinue.disabled = false;
         window.google.accounts.id.prompt(notification=>{
-            if(notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()){
-                // Keep the account chooser in Google's own browser-managed prompt.
-                // Do not inject an inline fallback button into the WallpaperHub modal.
-                showAccountChoiceStatus(
-                    "لم تظهر نافذة اختيار حساب Google. اضغط متابعة مرة أخرى، وتأكد من السماح بالنوافذ المنبثقة وتسجيل الدخول إلى Google في المتصفح.",
-                    "info"
-                );
-            }
+            reportGooglePromptUnavailable(notification, false);
         });
     }catch(error){
         console.error("GOOGLE IDENTITY INITIALIZATION ERROR:", error);
@@ -1634,7 +1749,10 @@ accountChoiceContinue?.addEventListener("click", async () => {
 
 if (loginBtn) {
     loginBtn.onclick = async () => {
-        if(!currentUser){ openAccountChoiceModal(); return; }
+        if(!currentUser){
+            launchDirectGooglePrompt();
+            return;
+        }
         try {
             if (currentUser) {
                 // ============================
@@ -1673,7 +1791,7 @@ if (loginBtn) {
                 return;
             }
 
-            openAccountChoiceModal();
+            launchDirectGooglePrompt();
 
         } catch (error) {
             console.error("AUTH ERROR", error);
