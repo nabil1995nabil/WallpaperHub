@@ -136,6 +136,115 @@ async function getAuthenticatedUser(req){
 }
 
 // ======================================
+// Telegram Mini App publisher sessions
+// Scope is deliberately limited to publishing APIs; a Telegram token must not
+// authenticate unrelated profile, social, admin, or account-management routes.
+// ======================================
+function telegramPublisherSigningKey(){
+    const configured = String(process.env.TELEGRAM_PUBLISH_SESSION_SECRET || "").trim();
+    if(configured) return crypto.createHash("sha256").update(configured).digest();
+    const botToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+    if(!botToken) return null;
+    // Domain-separated fallback so a new Vercel secret is optional.
+    return crypto.createHmac("sha256", botToken).update("WallpaperHub:TelegramPublisherSession:v1").digest();
+}
+
+function verifyTelegramMiniAppInitData(initData, botToken){
+    const raw = String(initData || "");
+    if(!raw || raw.length > 8192) return {ok:false, reason:"missing_or_too_large"};
+    let params;
+    try{ params = new URLSearchParams(raw); }catch(_error){ return {ok:false, reason:"invalid_query"}; }
+    const fields = [...params.entries()];
+    if(!fields.length) return {ok:false, reason:"empty"};
+    const values = new Map();
+    for(const [key,value] of fields){
+        if(values.has(key)) return {ok:false, reason:"duplicate_field"};
+        values.set(key,value);
+    }
+    const receivedHash = String(values.get("hash") || "").toLowerCase();
+    if(!/^[a-f0-9]{64}$/.test(receivedHash)) return {ok:false, reason:"missing_hash"};
+    const authDate = Number(values.get("auth_date"));
+    const now = Math.floor(Date.now()/1000);
+    if(!Number.isSafeInteger(authDate) || authDate <= 0 || authDate > now + 60 || now-authDate > 12*60*60){
+        return {ok:false, reason:"expired"};
+    }
+    const dataCheckString = fields
+        .filter(([key])=>key !== "hash")
+        .sort(([a],[b])=>a < b ? -1 : a > b ? 1 : 0)
+        .map(([key,value])=>`${key}=${value}`)
+        .join("\n");
+    const secretKey = crypto.createHmac("sha256", "WebAppData").update(botToken).digest();
+    const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest();
+    const actualHash = Buffer.from(receivedHash,"hex");
+    if(actualHash.length !== expectedHash.length || !crypto.timingSafeEqual(actualHash,expectedHash)){
+        return {ok:false, reason:"signature_invalid"};
+    }
+    let telegramUser;
+    try{ telegramUser = JSON.parse(String(values.get("user") || "")); }
+    catch(_error){ return {ok:false, reason:"invalid_user"}; }
+    const telegramId = String(telegramUser?.id || "").trim();
+    if(!/^\d{1,24}$/.test(telegramId)) return {ok:false, reason:"invalid_user_id"};
+    return {ok:true, telegramId, authDate, username:String(telegramUser.username || "").trim().slice(0,64) || null};
+}
+
+function signTelegramPublisherSession(userId, telegramId){
+    const key = telegramPublisherSigningKey();
+    if(!key) throw new Error("Telegram publisher session signing key is unavailable");
+    const now = Math.floor(Date.now()/1000);
+    const payload = {
+        sub:String(userId),
+        telegram_id:String(telegramId),
+        scope:"publisher",
+        iat:now,
+        exp:now + 45*60
+    };
+    const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
+    const signed = `whpub1.${encoded}`;
+    const signature = crypto.createHmac("sha256",key).update(signed).digest("hex");
+    return {token:`${signed}.${signature}`, expiresAt:payload.exp*1000};
+}
+
+function verifyTelegramPublisherSessionToken(token){
+    const match = /^whpub1\.([A-Za-z0-9_-]+)\.([a-f0-9]{64})$/.exec(String(token || ""));
+    if(!match) return null;
+    const key = telegramPublisherSigningKey();
+    if(!key) return null;
+    const signed = `whpub1.${match[1]}`;
+    const expected = crypto.createHmac("sha256",key).update(signed).digest();
+    const actual = Buffer.from(match[2],"hex");
+    if(actual.length !== expected.length || !crypto.timingSafeEqual(actual,expected)) return null;
+    try{
+        const payload = JSON.parse(Buffer.from(match[1],"base64url").toString("utf8"));
+        const now = Math.floor(Date.now()/1000);
+        if(payload?.scope !== "publisher" || !payload.sub || !/^\d{1,24}$/.test(String(payload.telegram_id || "")) ||
+           !Number.isSafeInteger(payload.iat) || !Number.isSafeInteger(payload.exp) ||
+           payload.iat > now+60 || payload.exp <= now || payload.exp-payload.iat > 45*60){
+            return null;
+        }
+        return payload;
+    }catch(_error){ return null; }
+}
+
+async function getPublisherAuthenticatedUser(req){
+    const header = String(req.headers.authorization || "").trim();
+    const token = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
+    if(!token.startsWith("whpub1.")) return getAuthenticatedUser(req);
+
+    const session = verifyTelegramPublisherSessionToken(token);
+    if(!session) return null;
+    try{
+        // Re-check the mapping for every publishing request so an unlinked Telegram
+        // account loses access immediately, even before the short session expires.
+        const {data:link,error:linkError} = await supabase.from("telegram_account_links")
+            .select("user_id,telegram_id").eq("telegram_id",String(session.telegram_id)).maybeSingle();
+        if(linkError || !link || String(link.user_id)!==String(session.sub)) return null;
+        const {data,error} = await supabase.auth.admin.getUserById(String(session.sub));
+        if(error || !data?.user) return null;
+        return data.user;
+    }catch(_error){ return null; }
+}
+
+// ======================================
 // Admin authorization
 // تصنيف الخلفيات لا يتغير إلا بواسطة الأدمن.
 // ضع UID الأدمن في متغير البيئة ADMIN_UIDS (يمكن فصل أكثر من UID بفاصلة).
@@ -719,7 +828,39 @@ app.post("/api/profile/link-telegram", async (req, res) => {
     }
 });
 
-
+// Verify Telegram Mini App initData, then exchange it for a short publisher-only session.
+// The browser never supplies a WallpaperHub user ID; it is resolved from the verified Telegram link.
+app.post("/api/telegram/publisher-session", async (req,res)=>{
+    try{
+        const botToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+        if(!botToken) return res.status(503).json({success:false,code:"TELEGRAM_NOT_CONFIGURED",message:"خدمة Telegram غير مهيأة في الخادم."});
+        const verified = verifyTelegramMiniAppInitData(req.body?.initData,botToken);
+        if(!verified.ok){
+            return res.status(401).json({success:false,code:verified.reason==="expired"?"TELEGRAM_INIT_DATA_EXPIRED":"TELEGRAM_INIT_DATA_INVALID",message:verified.reason==="expired"?"جلسة Telegram قديمة. سدّ لوحة النشر وعاود فتحها من البوت.":"تعذر التحقق من جلسة Telegram الرسمية. افتح لوحة النشر من داخل البوت."});
+        }
+        const {data:link,error:linkError} = await supabase.from("telegram_account_links")
+            .select("user_id,telegram_id,telegram_username").eq("telegram_id",verified.telegramId).maybeSingle();
+        if(linkError){
+            if(linkError.code==="42P01" || /telegram_account_links/i.test(linkError.message||"")){
+                return res.status(503).json({success:false,code:"TELEGRAM_LINK_TABLE_MISSING",message:"جدول ربط Telegram ناقص في Supabase. نفّذ telegram-account-links.sql أولاً."});
+            }
+            throw linkError;
+        }
+        if(!link){
+            return res.status(403).json({success:false,code:"TELEGRAM_NOT_LINKED",message:"خاصك تربط حساب Telegram بحساب WallpaperHub ديالك من صفحة البروفايل قبل استعمال النشر عبر البوت."});
+        }
+        const {data:authData,error:authError} = await supabase.auth.admin.getUserById(String(link.user_id));
+        if(authError || !authData?.user){
+            return res.status(403).json({success:false,code:"WALLPAPERHUB_USER_UNAVAILABLE",message:"حساب WallpaperHub المرتبط غير متاح. تواصل مع الدعم."});
+        }
+        const session = signTelegramPublisherSession(authData.user.id,verified.telegramId);
+        res.set("Cache-Control","no-store, no-cache, must-revalidate");
+        return res.json({success:true,accessToken:session.token,expiresAt:session.expiresAt,telegramUsername:link.telegram_username||verified.username||null});
+    }catch(error){
+        console.error("TELEGRAM PUBLISHER SESSION ERROR:",error?.message||error);
+        return res.status(500).json({success:false,message:"تعذر إنشاء جلسة النشر عبر Telegram حالياً."});
+    }
+});
 
 
 app.get("/api/admin/users", async (req,res)=>{
@@ -1921,7 +2062,7 @@ app.get("/api/supabase/config", (req, res) => {
 // ======================================
 app.post("/api/publish/media-signature", async (req, res) => {
     try {
-        const user = await getAuthenticatedUser(req);
+        const user = await getPublisherAuthenticatedUser(req);
         if (!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
         const publicKey=String(process.env.IMAGEKIT_PUBLIC_KEY || "public_RT5L53A/FLvRvHfxtbtcmrq4lTw=").trim();
         const privateKey=String(process.env.IMAGEKIT_PRIVATE_KEY || "").trim();
@@ -5356,7 +5497,7 @@ app.get("/api/publish/moderation/me", async(req,res)=>{
 
 app.get("/api/publish/session", async (req,res)=>{
     try{
-        const user = await getAuthenticatedUser(req);
+        const user = await getPublisherAuthenticatedUser(req);
         if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
         const metadata = user.user_metadata || {};
         let profile = null;
@@ -5455,7 +5596,7 @@ app.get("/api/points/me", async(req,res)=>{
 
 app.get("/api/publish/points", async(req,res)=>{
     try{
-        const user = await getAuthenticatedUser(req);
+        const user = await getPublisherAuthenticatedUser(req);
         if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
         const points = await getWallpaperPoints(user.id);
         res.set("Cache-Control", "no-store");
@@ -5468,7 +5609,7 @@ app.get("/api/publish/points", async(req,res)=>{
 
 app.post("/api/publish/submissions", async(req,res)=>{
     try{
-        const user = await getAuthenticatedUser(req);
+        const user = await getPublisherAuthenticatedUser(req);
         if(!user) return res.status(401).json({success:false,message:"سجّل الدخول لإرسال الخلفيات"});
         if(isAdminUser(user) || isSiteOwnerUser(user)){
             return res.status(400).json({success:false,message:"حسابك يملك صلاحية النشر المباشر؛ استخدم مسار النشر المباشر"});
@@ -5521,7 +5662,7 @@ app.post(
     "/api/wallpapers",
     async(req,res)=>{
         try{
-            const publisher = await getAuthenticatedUser(req);
+            const publisher = await getPublisherAuthenticatedUser(req);
 
             if(!publisher){
                 return res.status(401).json({

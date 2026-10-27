@@ -237,7 +237,38 @@ function beginDemoTransfers(){
   renderUploadJobs();startTicker();
 }
 let publisherSession = null;
+let telegramPublisherAccessToken = "";
+let telegramPublisherTokenExpiresAt = 0;
+function getTelegramWebApp(){
+  const app = window.Telegram?.WebApp;
+  return app && typeof app.initData === "string" && app.initData.length ? app : null;
+}
 async function getAccessToken(){
+  const telegramApp = getTelegramWebApp();
+  if(telegramApp){
+    telegramApp.ready?.();
+    telegramApp.expand?.();
+    if(telegramPublisherAccessToken && telegramPublisherTokenExpiresAt>Date.now()+60_000){
+      return telegramPublisherAccessToken;
+    }
+    const response = await fetch("/api/telegram/publisher-session",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({initData:telegramApp.initData}),
+      cache:"no-store"
+    });
+    const result = await response.json().catch(()=>({success:false,message:"ردّ السيرفر ماشي JSON صالح"}));
+    if(!response.ok || !result.success){
+      const error = new Error(result.message || "تعذر ربط جلسة Telegram بلوحة النشر.");
+      error.code = result.code || "TELEGRAM_SESSION_FAILED";
+      throw error;
+    }
+    telegramPublisherAccessToken = String(result.accessToken || "");
+    telegramPublisherTokenExpiresAt = Number(result.expiresAt || 0);
+    if(!telegramPublisherAccessToken) throw new Error("السيرفر ما رجعش جلسة نشر صالحة.");
+    return telegramPublisherAccessToken;
+  }
+
   const { data, error } = await supabase.auth.getSession();
   if(error) throw error;
   return data?.session?.access_token || "";
@@ -252,16 +283,24 @@ async function startGoogleLogin(){
 
 function setProfileGate(message,loggedIn=false){
   const notice=$("roleNotice");
+  const inTelegram = Boolean(getTelegramWebApp());
   notice.hidden=false;
-  $("roleTitle").textContent=loggedIn?"تم التحقق من حسابك":"تسجيل الدخول مطلوب";
+  $("roleTitle").textContent=loggedIn?"تم التحقق من حسابك":(inTelegram?"خاصك تربط حساب Telegram":"تسجيل الدخول مطلوب");
   $("roleDescription").textContent=message;
   if(!loggedIn){
     $("publishForm").hidden=true;
     let login=$("publishLoginGate");
     if(!login){
       login=document.createElement("div");login.id="publishLoginGate";login.className="panel";
-      login.innerHTML='<div class="panel-heading"><div><span class="step">!</span><h2>سجّل الدخول للمتابعة</h2></div></div><p class="muted">استعمل نفس حسابك في WallpaperHub. بعد تسجيل الدخول سنرجعك تلقائياً إلى لوحة النشر.</p><div class="publish-auth-actions"><button type="button" class="primary-btn" id="publishGoogleLogin">المتابعة باستخدام Google</button><a class="outline-btn" href="/profile.html">فتح البروفايل</a></div>';
+      login.innerHTML=inTelegram
+        ? '<div class="panel-heading"><div><span class="step">!</span><h2>ربط الحساب مطلوب</h2></div></div><p class="muted">خاصك تربط حساب Telegram بحساب WallpaperHub ديالك من البروفايل مرة واحدة، ومن بعد عاود افتح لوحة النشر من البوت.</p><div class="publish-auth-actions"><button type="button" class="primary-btn" id="openProfileToLinkTelegram">فتح البروفايل لربط الحساب</button><a class="outline-btn" href="/">العودة للموقع</a></div>'
+        : '<div class="panel-heading"><div><span class="step">!</span><h2>سجّل الدخول للمتابعة</h2></div></div><p class="muted">استعمل نفس حسابك في WallpaperHub. بعد تسجيل الدخول سنرجعك تلقائياً إلى لوحة النشر.</p><div class="publish-auth-actions"><button type="button" class="primary-btn" id="publishGoogleLogin">المتابعة باستخدام Google</button><a class="outline-btn" href="/profile.html">فتح البروفايل</a></div>';
       $("publishForm").before(login);
+      login.querySelector("#openProfileToLinkTelegram")?.addEventListener("click",()=>{
+        const url = new URL("/profile.html",window.location.origin).toString();
+        if(window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(url);
+        else window.open(url,"_blank","noopener,noreferrer");
+      });
       login.querySelector("#publishGoogleLogin")?.addEventListener("click",async()=>{
         const btn=login.querySelector("#publishGoogleLogin");
         btn.disabled=true;btn.textContent="جارٍ تحويلك لتسجيل الدخول...";
@@ -333,12 +372,17 @@ async function loadPublisherSession(){
       await loadPublisherPoints();
       return true;
     }catch(error){
-      console.error("PUBLISH SESSION NETWORK ERROR:",error);
-      const notice=$("roleNotice"); notice.hidden=false;
-      $("roleTitle").textContent="تعذر الاتصال بخدمة التحقق";
-      $("roleDescription").textContent="ما قدرناش نوصلو للسيرفر للتحقق من صلاحيات النشر. تحقق من الاتصال وحاول تحديث الصفحة؛ ماشي بالضرورة أن الجلسة سالات.";
-      $("publishForm").hidden=true;
-      const login=$("publishLoginGate"); if(login) login.hidden=true;
+      console.error("PUBLISH SESSION CHECK ERROR:",error?.message||error);
+      const inTelegram = Boolean(getTelegramWebApp());
+      if(inTelegram){
+        setProfileGate(error?.message || "تعذر التحقق من ربط Telegram. افتح البروفايل واربط حساب Telegram ثم عاود فتح البوت.");
+      }else{
+        const notice=$("roleNotice"); notice.hidden=false;
+        $("roleTitle").textContent="تعذر الاتصال بخدمة التحقق";
+        $("roleDescription").textContent=error?.message || "ما قدرناش نوصلو للسيرفر للتحقق من صلاحيات النشر. تحقق من الاتصال وحاول تحديث الصفحة؛ ماشي بالضرورة أن الجلسة سالات.";
+        $("publishForm").hidden=true;
+        const login=$("publishLoginGate"); if(login) login.hidden=true;
+      }
       return false;
     }finally{publisherSessionCheck=null;}
   })();
