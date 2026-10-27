@@ -1185,12 +1185,10 @@ const accountChoiceStatus = document.getElementById("accountChoiceStatus");
 const accountChoiceTitle = document.getElementById("accountChoiceTitle");
 const accountChoiceSubtitle = document.querySelector(".account-choice-subtitle");
 const linkAccountsBtn = document.getElementById("linkAccountsBtn");
-const googleAuthFallback = document.getElementById("googleAuthFallback");
 const googleAccountPreview = document.getElementById("googleAccountPreview");
 const googleAccountAvatar = document.getElementById("googleAccountAvatar");
 const googleAccountName = document.getElementById("googleAccountName");
 const googleAccountEmail = document.getElementById("googleAccountEmail");
-const googleAuthButtonSlot = document.getElementById("googleAuthButtonSlot");
 const telegramAuthStep = document.getElementById("telegramAuthStep");
 const telegramLoginWidget = document.getElementById("telegramLoginWidget");
 
@@ -1199,7 +1197,6 @@ const accountProviderSelection = { google:true, telegram:false };
 let googleClientIdPromise = null;
 let googleScriptPromise = null;
 let googleCredentialCallback = null;
-let googleFallbackRendered = false;
 let telegramWidgetReady = false;
 let accountChoiceMode = "login";
 
@@ -1258,15 +1255,12 @@ function resetAccountChoiceForm(mode = "login"){
             : "حدّد Google وTelegram معاً لربطهما بنفس حساب WallpaperHub.";
     }
 
-    if(googleAuthFallback) googleAuthFallback.hidden = true;
     if(googleAccountPreview) googleAccountPreview.hidden = true;
     if(googleAccountAvatar) googleAccountAvatar.removeAttribute("src");
     if(googleAccountName) googleAccountName.textContent = "حساب Google";
     if(googleAccountEmail) googleAccountEmail.textContent = "";
-    if(googleAuthButtonSlot) googleAuthButtonSlot.replaceChildren();
     if(telegramAuthStep) telegramAuthStep.hidden = true;
     if(telegramLoginWidget) telegramLoginWidget.replaceChildren();
-    googleFallbackRendered = false;
     telegramWidgetReady = false;
 
     if(mode === "link" && currentUser && hasGoogleIdentity){
@@ -1401,22 +1395,6 @@ async function ensureGoogleIdentityApi(){
     return googleScriptPromise;
 }
 
-function renderGoogleFallbackButton(){
-    if(googleFallbackRendered || !window.google?.accounts?.id || !googleAuthButtonSlot) return;
-    googleFallbackRendered = true;
-    if(googleAuthFallback) googleAuthFallback.hidden = false;
-    googleAuthButtonSlot.replaceChildren();
-    window.google.accounts.id.renderButton(googleAuthButtonSlot, {
-        type:"standard",
-        theme:"outline",
-        size:"large",
-        text:"continue_with",
-        shape:"pill",
-        logo_alignment:"left",
-        width:260
-    });
-}
-
 function renderGoogleAccountPreview(user){
     if(!googleAccountPreview || !user) return;
     const metadata = user.user_metadata || {};
@@ -1498,9 +1476,10 @@ async function startGoogleIdentityFlow(providers){
         if(accountChoiceContinue) accountChoiceContinue.disabled = false;
         window.google.accounts.id.prompt(notification=>{
             if(notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()){
-                renderGoogleFallbackButton();
+                // Keep the account chooser in Google's own browser-managed prompt.
+                // Do not inject an inline fallback button into the WallpaperHub modal.
                 showAccountChoiceStatus(
-                    "اختيار الحساب لم يظهر تلقائياً. استعمل زر Google الرسمي الظاهر داخل هذه النافذة.",
+                    "لم تظهر نافذة اختيار حساب Google. اضغط متابعة مرة أخرى، وتأكد من السماح بالنوافذ المنبثقة وتسجيل الدخول إلى Google في المتصفح.",
                     "info"
                 );
             }
