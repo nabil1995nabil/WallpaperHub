@@ -49,9 +49,6 @@ try {
 
 
 let currentUser = null;
-// Shared login-button state is declared before auth listeners can fire.
-let googleIdentityInitialized = false;
-let googleButtonRendered = false;
 
 
 /* ===================================================
@@ -924,9 +921,11 @@ document.getElementById(
 
 
 function updateLoginState(user){
+
     if(!loginBtn) return;
 
-    // Hide session controls while viewing somebody else's public profile.
+    // في البروفايل العام لشخص آخر لا نعرض زر تسجيل الدخول/الخروج.
+    // هذا الزر يخص صاحب الجلسة الحالية، وليس صاحب البروفايل الذي تتم مشاهدته.
     if(isPublicProfile && !isOwnProfile()){
         loginBtn.style.display = "none";
         loginBtn.setAttribute("aria-hidden", "true");
@@ -934,35 +933,28 @@ function updateLoginState(user){
         return;
     }
 
+    // في الحساب الشخصي نعيد إظهار الزر بشكل طبيعي.
     loginBtn.style.display = "";
     loginBtn.removeAttribute("aria-hidden");
-    loginBtn.setAttribute("role", "button");
-    loginBtn.setAttribute("tabindex", "0");
+    loginBtn.removeAttribute("tabindex");
 
     if(user){
-        googleButtonRendered = false;
-        loginBtn.classList.remove("google-gsi-active");
-        loginBtn.replaceChildren();
-        const icon = document.createElement("span");
-        icon.className = "material-icons";
-        icon.setAttribute("aria-hidden", "true");
-        icon.textContent = "logout";
-        loginBtn.appendChild(icon);
-        loginBtn.setAttribute("role", "button");
-        loginBtn.setAttribute("tabindex", "0");
-        loginBtn.setAttribute("aria-label", "تسجيل الخروج");
-        loginBtn.title = "تسجيل الخروج";
+        loginBtn.innerHTML = `
+            <span class="material-icons">
+                logout
+            </span>
+        `;
     }else{
-        loginBtn.setAttribute("aria-label", "تسجيل الدخول باستخدام Google");
-        loginBtn.title = "تسجيل الدخول باستخدام Google";
-        if(googleIdentityInitialized){
-            renderGoogleSignInButton();
-        }else if(!googleButtonRendered){
-            loginBtn.classList.remove("google-gsi-active");
-            loginBtn.innerHTML = '<span class="material-icons" aria-hidden="true">person</span>';
-        }
+        loginBtn.innerHTML = `
+            <span class="material-icons">
+                person
+            </span>
+        `;
     }
 }
+
+
+
 
 
 
@@ -1184,16 +1176,109 @@ function resetGuestProfile() {
    Login / Logout Button - FIXED
 ========================== */
 
+const accountChoiceModal = document.getElementById("accountChoiceModal");
+const accountChoiceClose = document.getElementById("accountChoiceClose");
+const googleProviderOption = document.getElementById("googleProviderOption");
+const telegramProviderOption = document.getElementById("telegramProviderOption");
+const accountChoiceContinue = document.getElementById("accountChoiceContinue");
+const accountChoiceStatus = document.getElementById("accountChoiceStatus");
+const accountChoiceTitle = document.getElementById("accountChoiceTitle");
+const accountChoiceSubtitle = document.querySelector(".account-choice-subtitle");
 const linkAccountsBtn = document.getElementById("linkAccountsBtn");
-const telegramAuthStep = document.getElementById("telegramLinkPanel");
+const googleAuthFallback = document.getElementById("googleAuthFallback");
+const googleAccountPreview = document.getElementById("googleAccountPreview");
+const googleAccountAvatar = document.getElementById("googleAccountAvatar");
+const googleAccountName = document.getElementById("googleAccountName");
+const googleAccountEmail = document.getElementById("googleAccountEmail");
+const googleAuthButtonSlot = document.getElementById("googleAuthButtonSlot");
+const telegramAuthStep = document.getElementById("telegramAuthStep");
 const telegramLoginWidget = document.getElementById("telegramLoginWidget");
-const telegramLinkStatus = document.getElementById("telegramLinkStatus");
 
 const TELEGRAM_LOGIN_BOT_USERNAME = "WallpaperHubPublishBot";
+const accountProviderSelection = { google:true, telegram:false };
 let googleClientIdPromise = null;
 let googleScriptPromise = null;
-let googleIdentityInitPromise = null;
+let googleCredentialCallback = null;
+let googleFallbackRendered = false;
 let telegramWidgetReady = false;
+let accountChoiceMode = "login";
+
+function selectedAccountProviders(){
+    return Object.keys(accountProviderSelection).filter(provider => accountProviderSelection[provider]);
+}
+
+function renderAccountProviderSelection(){
+    const googleSelected = Boolean(accountProviderSelection.google);
+    const telegramSelected = Boolean(accountProviderSelection.telegram);
+
+    googleProviderOption?.classList.toggle("selected", googleSelected);
+    telegramProviderOption?.classList.toggle("selected", telegramSelected);
+    googleProviderOption?.setAttribute("aria-pressed", String(googleSelected));
+    telegramProviderOption?.setAttribute("aria-pressed", String(telegramSelected));
+
+    if(accountChoiceContinue){
+        accountChoiceContinue.disabled = !googleSelected && !telegramSelected;
+        let label = "اختر طريقة للمتابعة";
+        if(googleSelected && telegramSelected) label = "ربط Google وTelegram معاً";
+        else if(googleSelected) label = accountChoiceMode === "link" && userHasGoogleIdentity(currentUser)
+            ? "استخدام حساب Google الحالي"
+            : accountChoiceMode === "link"
+                ? "متابعة الحساب الحالي وربط Google"
+                : "المتابعة باستخدام Google";
+        else if(telegramSelected) label = "ربط Telegram بالحساب";
+        accountChoiceContinue.innerHTML = `${label} <span class="account-choice-check" aria-hidden="true">✓</span>`;
+    }
+}
+
+function updateAccountProviderSelection(provider){
+    if(!Object.prototype.hasOwnProperty.call(accountProviderSelection, provider)) return;
+    // Google and Telegram are independent checkboxes. Toggling one never clears the other.
+    accountProviderSelection[provider] = !accountProviderSelection[provider];
+    renderAccountProviderSelection();
+
+    if(accountChoiceStatus){
+        accountChoiceStatus.hidden = true;
+        accountChoiceStatus.textContent = "";
+    }
+}
+
+function resetAccountChoiceForm(mode = "login"){
+    accountChoiceMode = mode;
+    const hasGoogleIdentity = Boolean(currentUser && userHasGoogleIdentity(currentUser));
+    accountProviderSelection.google = mode === "link" ? hasGoogleIdentity : true;
+    accountProviderSelection.telegram = false;
+    renderAccountProviderSelection();
+
+    if(accountChoiceTitle){
+        accountChoiceTitle.textContent = mode === "link" ? "ربط الحسابات" : "اختيار الحسابات";
+    }
+    if(accountChoiceSubtitle){
+        accountChoiceSubtitle.textContent = mode === "link"
+            ? "اربط Telegram بالحساب المسجل حالياً دون إنشاء حساب جديد."
+            : "حدّد Google وTelegram معاً لربطهما بنفس حساب WallpaperHub.";
+    }
+
+    if(googleAuthFallback) googleAuthFallback.hidden = true;
+    if(googleAccountPreview) googleAccountPreview.hidden = true;
+    if(googleAccountAvatar) googleAccountAvatar.removeAttribute("src");
+    if(googleAccountName) googleAccountName.textContent = "حساب Google";
+    if(googleAccountEmail) googleAccountEmail.textContent = "";
+    if(googleAuthButtonSlot) googleAuthButtonSlot.replaceChildren();
+    if(telegramAuthStep) telegramAuthStep.hidden = true;
+    if(telegramLoginWidget) telegramLoginWidget.replaceChildren();
+    googleFallbackRendered = false;
+    telegramWidgetReady = false;
+
+    if(mode === "link" && currentUser && hasGoogleIdentity){
+        renderGoogleAccountPreview(currentUser);
+    }
+
+    if(accountChoiceStatus){
+        accountChoiceStatus.hidden = true;
+        accountChoiceStatus.textContent = "";
+        delete accountChoiceStatus.dataset.type;
+    }
+}
 
 function userHasGoogleIdentity(user){
     if(!user) return false;
@@ -1202,50 +1287,54 @@ function userHasGoogleIdentity(user){
         user.identities.some(identity => String(identity?.provider || "").toLowerCase() === "google");
 }
 
-function showTelegramLinkStatus(message, type = "info"){
-    if(!telegramLinkStatus) return;
-    telegramLinkStatus.textContent = message;
-    telegramLinkStatus.dataset.type = type;
-    telegramLinkStatus.hidden = false;
+function openAccountChoiceModal(mode = "login"){
+    if(!accountChoiceModal) return;
+    resetAccountChoiceForm(mode);
+    accountChoiceModal.classList.add("show");
+    accountChoiceModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+function closeAccountChoiceModal(){
+    if(!accountChoiceModal) return;
+    accountChoiceModal.classList.remove("show");
+    accountChoiceModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+function showAccountChoiceStatus(message, type = "warning"){
+    if(!accountChoiceStatus) return;
+    accountChoiceStatus.textContent = message;
+    accountChoiceStatus.dataset.type = type;
+    accountChoiceStatus.hidden = false;
 }
 
-function hideTelegramLinkStatus(){
-    if(!telegramLinkStatus) return;
-    telegramLinkStatus.hidden = true;
-    telegramLinkStatus.textContent = "";
-    delete telegramLinkStatus.dataset.type;
-}
-
-linkAccountsBtn?.addEventListener("click", async () => {
-    if(!currentUser) return;
-    if(!telegramAuthStep) return;
-    if(!telegramAuthStep.hidden){
-        telegramAuthStep.hidden = true;
-        telegramLoginWidget?.replaceChildren();
-        hideTelegramLinkStatus();
-        return;
-    }
-    try{
-        await showTelegramLoginStep();
-        telegramAuthStep.scrollIntoView({behavior:"smooth", block:"nearest"});
-    }catch(error){
-        console.error("TELEGRAM LINK START ERROR:", error);
-        showTelegramLinkStatus(error.message || "تعذر بدء ربط Telegram.", "error");
-    }
+accountChoiceClose?.addEventListener("click", closeAccountChoiceModal);
+accountChoiceModal?.addEventListener("click", event => {
+    if(event.target === accountChoiceModal) closeAccountChoiceModal();
+});
+document.addEventListener("keydown", event => {
+    if(event.key === "Escape" && accountChoiceModal?.classList.contains("show")) closeAccountChoiceModal();
+});
+googleProviderOption?.addEventListener("click", () => {
+    updateAccountProviderSelection("google");
+    if(accountChoiceStatus){ accountChoiceStatus.hidden = true; accountChoiceStatus.textContent = ""; }
+});
+telegramProviderOption?.addEventListener("click", () => {
+    updateAccountProviderSelection("telegram");
+    if(accountChoiceStatus){ accountChoiceStatus.hidden = true; accountChoiceStatus.textContent = ""; }
 });
 
-function updateTelegramLinkButton(user){
-    if(linkAccountsBtn){
-        linkAccountsBtn.hidden = !user || (isPublicProfile && !isOwnProfile());
-    }
-}
-
+linkAccountsBtn?.addEventListener("click", () => openAccountChoiceModal("link"));
 supabase.auth.onAuthStateChange((_event, session) => {
-    updateTelegramLinkButton(session?.user || null);
+    if(linkAccountsBtn){
+        linkAccountsBtn.hidden = !session?.user || (isPublicProfile && !isOwnProfile());
+    }
 });
 void supabase.auth.getSession().then(({ data }) => {
-    updateTelegramLinkButton(data?.session?.user || null);
-}).catch(error => console.warn("TELEGRAM LINK BUTTON STATE:", error?.message || error));
+    if(linkAccountsBtn){
+        const user = data?.session?.user || null;
+        linkAccountsBtn.hidden = !user || (isPublicProfile && !isOwnProfile());
+    }
+}).catch(error => console.warn("ACCOUNT LINK BUTTON STATE:", error?.message || error));
 
 async function getGoogleClientId(){
     if(googleClientIdPromise) return googleClientIdPromise;
@@ -1253,7 +1342,7 @@ async function getGoogleClientId(){
         const response = await fetch("/api/auth/google-config", {
             method:"GET",
             cache:"no-store",
-            headers:{"Accept":"application/json"}
+            headers:{ "Accept":"application/json" }
         });
         if(!response.ok) throw new Error("تعذر قراءة إعدادات Google من الخادم.");
         const result = await response.json();
@@ -1282,8 +1371,9 @@ async function ensureGoogleIdentityApi(){
             script.defer = true;
             document.head.appendChild(script);
         }
+
         let settled = false;
-        const finish = error => {
+        const finish = (error)=>{
             if(settled) return;
             settled = true;
             clearTimeout(timeoutId);
@@ -1291,134 +1381,168 @@ async function ensureGoogleIdentityApi(){
             script.removeEventListener("error", onError);
             if(error) reject(error); else resolve();
         };
-        const onLoad = () => window.google?.accounts?.id
+        const onLoad = ()=> window.google?.accounts?.id
             ? finish()
             : finish(new Error("تعذر تحميل واجهة تسجيل الدخول الرسمية من Google."));
-        const onError = () => finish(new Error("تعذر الاتصال بخدمة Google."));
-        const timeoutId = setTimeout(() => {
+        const onError = ()=>finish(new Error("تعذر الاتصال بخدمة Google. تحقق من الاتصال بالإنترنت."));
+        const timeoutId = setTimeout(()=>{
             if(window.google?.accounts?.id) finish();
-            else finish(new Error("تأخر تحميل زر Google الرسمي."));
+            else finish(new Error("تأخر تحميل اختيار حساب Google. حاول مرة أخرى."));
         }, 10000);
-        script.addEventListener("load", onLoad, {once:true});
-        script.addEventListener("error", onError, {once:true});
+
+        script.addEventListener("load", onLoad, { once:true });
+        script.addEventListener("error", onError, { once:true });
         if(window.google?.accounts?.id) finish();
-    }).catch(error => {
+    }).catch(error=>{
         googleScriptPromise = null;
         throw error;
     });
+
     return googleScriptPromise;
 }
 
-function renderGoogleSignInButton(){
-    if(!loginBtn || !googleIdentityInitialized || currentUser) return;
-    if(isPublicProfile && !isOwnProfile()) return;
-    if(googleButtonRendered && loginBtn.querySelector("iframe")) return;
-
-    try{
-        loginBtn.replaceChildren();
-        loginBtn.classList.add("google-gsi-active");
-        window.google.accounts.id.renderButton(loginBtn, {
-            type:"icon",
-            theme:"outline",
-            size:"large",
-            shape:"circle"
-        });
-        // Focus the provider's real button, not the containing layout element.
-        loginBtn.setAttribute("role", "presentation");
-        loginBtn.setAttribute("tabindex", "-1");
-        googleButtonRendered = true;
-    }catch(error){
-        googleButtonRendered = false;
-        loginBtn.classList.remove("google-gsi-active");
-        loginBtn.innerHTML = '<span class="material-icons" aria-hidden="true">person</span>';
-        console.error("GOOGLE BUTTON RENDER ERROR:", error);
-    }
-}
-
-async function prepareGoogleIdentityApi(){
-    if(googleIdentityInitialized){
-        renderGoogleSignInButton();
-        return true;
-    }
-    if(googleIdentityInitPromise) return googleIdentityInitPromise;
-
-    googleIdentityInitPromise = (async()=>{
-        const [clientId] = await Promise.all([getGoogleClientId(), ensureGoogleIdentityApi()]);
-        window.google.accounts.id.initialize({
-            client_id:clientId,
-            callback: response => {
-                if(!response?.credential){
-                    console.error("GOOGLE SIGN-IN ERROR: Google did not return an ID token.");
-                    return;
-                }
-                void completeGoogleSignIn(response.credential).catch(error => {
-                    console.error("GOOGLE SIGN-IN ERROR:", error);
-                });
-            },
-            auto_select:false,
-            cancel_on_tap_outside:true,
-            use_fedcm_for_prompt:true
-        });
-        googleIdentityInitialized = true;
-        renderGoogleSignInButton();
-        return true;
-    })().catch(error=>{
-        googleIdentityInitPromise = null;
-        console.error("GOOGLE SIGN-IN INITIALIZATION ERROR:", error);
-        return false;
+function renderGoogleFallbackButton(){
+    if(googleFallbackRendered || !window.google?.accounts?.id || !googleAuthButtonSlot) return;
+    googleFallbackRendered = true;
+    if(googleAuthFallback) googleAuthFallback.hidden = false;
+    googleAuthButtonSlot.replaceChildren();
+    window.google.accounts.id.renderButton(googleAuthButtonSlot, {
+        type:"standard",
+        theme:"outline",
+        size:"large",
+        text:"continue_with",
+        shape:"pill",
+        logo_alignment:"left",
+        width:260
     });
-    return googleIdentityInitPromise;
 }
 
-async function completeGoogleSignIn(credential){
+function renderGoogleAccountPreview(user){
+    if(!googleAccountPreview || !user) return;
+    const metadata = user.user_metadata || {};
+    const name = String(metadata.full_name || metadata.name || user.email || "حساب Google").trim();
+    const email = String(user.email || "").trim();
+    const avatar = String(metadata.avatar_url || metadata.picture || "").trim();
+
+    if(googleAccountName) googleAccountName.textContent = name;
+    if(googleAccountEmail) googleAccountEmail.textContent = email;
+    if(googleAccountAvatar){
+        if(/^https:\/\//i.test(avatar)) googleAccountAvatar.src = avatar;
+        else googleAccountAvatar.removeAttribute("src");
+    }
+    googleAccountPreview.hidden = false;
+}
+
+async function completeGoogleSignIn(credential, providers){
     if(!credential) throw new Error("لم يصل رمز التحقق من Google.");
-    const {data, error} = await supabase.auth.signInWithIdToken({
+    if(accountChoiceContinue) accountChoiceContinue.disabled = true;
+
+    const { data, error } = await supabase.auth.signInWithIdToken({
         provider:"google",
         token:credential
     });
     if(error) throw error;
-    currentUser = data?.user || data?.session?.user || currentUser;
-    updateLoginState(currentUser);
-    updateTelegramLinkButton(currentUser);
+
+    const user = data?.user || data?.session?.user || null;
+    if(user) currentUser = user;
+    renderGoogleAccountPreview(user);
+
+    if(providers.includes("telegram")){
+        if(!user || !data?.session?.access_token){
+            throw new Error("تمت مصادقة Google، لكن جلسة WallpaperHub غير جاهزة. حاول تحديث الصفحة ثم أعد المحاولة.");
+        }
+        await showTelegramLoginStep();
+        showAccountChoiceStatus("تم تسجيل الدخول عبر Google. أكمل الآن تأكيد Telegram في النافذة نفسها لربط الحسابين.", "success");
+        if(accountChoiceContinue){
+            accountChoiceContinue.disabled = true;
+            accountChoiceContinue.textContent = "أكمل تأكيد Telegram أدناه";
+        }
+    }else{
+        showAccountChoiceStatus("تم تسجيل الدخول باستخدام Google بنجاح.", "success");
+        updateLoginState(user);
+        window.setTimeout(closeAccountChoiceModal, 700);
+    }
 }
 
-// Pre-render Google's official sign-in button so the actual tap, rather than
-// a programmatic One Tap prompt, opens Google's sign-in/account selection UX.
-void prepareGoogleIdentityApi().catch(error => {
-    console.error("GOOGLE SIGN-IN PRELOAD ERROR:", error?.message || error);
-});
+async function startGoogleIdentityFlow(providers){
+    try{
+        if(accountChoiceContinue) accountChoiceContinue.disabled = true;
+        showAccountChoiceStatus("جارٍ فتح اختيار حساب Google الآمن داخل الصفحة…", "info");
+
+        const clientId = await getGoogleClientId();
+        await ensureGoogleIdentityApi();
+
+        googleCredentialCallback = async response => {
+            try{
+                if(!response?.credential) throw new Error("لم يرجع Google بيانات التحقق.");
+                await completeGoogleSignIn(response.credential, providers);
+            }catch(error){
+                console.error("GOOGLE IDENTITY SIGN-IN ERROR:", error);
+                if(accountChoiceContinue) accountChoiceContinue.disabled = false;
+                showAccountChoiceStatus(error.message || "تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.");
+            }
+        };
+
+        window.google.accounts.id.initialize({
+            client_id:clientId,
+            callback:response=>{
+                if(typeof googleCredentialCallback === "function"){
+                    void googleCredentialCallback(response);
+                }
+            },
+            auto_select:false,
+            cancel_on_tap_outside:false,
+            use_fedcm_for_prompt:true
+        });
+
+        if(accountChoiceContinue) accountChoiceContinue.disabled = false;
+        window.google.accounts.id.prompt(notification=>{
+            if(notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()){
+                renderGoogleFallbackButton();
+                showAccountChoiceStatus(
+                    "اختيار الحساب لم يظهر تلقائياً. استعمل زر Google الرسمي الظاهر داخل هذه النافذة.",
+                    "info"
+                );
+            }
+        });
+    }catch(error){
+        console.error("GOOGLE IDENTITY INITIALIZATION ERROR:", error);
+        if(accountChoiceContinue) accountChoiceContinue.disabled = false;
+        showAccountChoiceStatus(
+            error.message || "تعذر تهيئة اختيار حساب Google. تأكد من إعداد GOOGLE_CLIENT_ID في Vercel.",
+            "warning"
+        );
+    }
+}
 
 async function showTelegramLoginStep(){
-    if(!telegramAuthStep || !telegramLoginWidget){
-        throw new Error("تعذر فتح لوحة ربط Telegram.");
-    }
-    if(!currentUser){
-        throw new Error("سجّل الدخول إلى WallpaperHub أولاً.");
+    if(!telegramAuthStep || !telegramLoginWidget) {
+        throw new Error("تعذر فتح خطوة Telegram في النافذة.");
     }
 
     telegramAuthStep.hidden = false;
     telegramLoginWidget.replaceChildren();
-    hideTelegramLinkStatus();
     telegramWidgetReady = true;
     const stepTitle = telegramAuthStep.querySelector(".telegram-auth-step-title");
     if(stepTitle){
         stepTitle.textContent = userHasGoogleIdentity(currentUser)
-            ? "أكد حساب Telegram لربطه بنفس حساب WallpaperHub/Google."
+            ? "تم تسجيل الدخول عبر Google. أكمل تأكيد Telegram لربط الحسابين."
             : "أكد حساب Telegram لربطه بحساب WallpaperHub المسجل حالياً.";
     }
 
-    // Telegram's official widget calls this named global after user authentication.
+    // Telegram callback is global because the official widget invokes it by name.
     window.onTelegramAuth = async telegramUser => {
         try{
             if(!telegramUser || !telegramUser.id || !telegramUser.hash || !telegramUser.auth_date){
                 throw new Error("بيانات Telegram غير مكتملة. أعد تأكيد الحساب.");
             }
-            const {data: sessionData, error: sessionError} = await supabase.auth.getSession();
+            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
             if(sessionError) throw sessionError;
             const session = sessionData?.session;
             if(!session?.access_token){
                 throw new Error("جلسة WallpaperHub غير موجودة. سجّل الدخول مجدداً.");
             }
+
             const response = await fetch("/api/profile/link-telegram", {
                 method:"POST",
                 headers:{
@@ -1429,16 +1553,32 @@ async function showTelegramLoginStep(){
                 body:JSON.stringify(telegramUser)
             });
             const result = await response.json().catch(()=>({}));
-            if(!response.ok) throw new Error(result.message || "تعذر ربط حساب Telegram. حاول مرة أخرى.");
+            if(!response.ok){
+                throw new Error(result.message || "تعذر ربط حساب Telegram. حاول مرة أخرى.");
+            }
 
-            const linkedMessage = `تم ربط Telegram بحساب WallpaperHub الحالي بنجاح${result.username ? ` (@${result.username})` : ""}.`;
-            showTelegramLinkStatus(linkedMessage, "success");
+            const linkedViaGoogle = userHasGoogleIdentity(currentUser);
+            const linkedMessage = linkedViaGoogle
+                ? `تم ربط حساب Google وTelegram بنجاح${result.username ? ` (@${result.username})` : ""}.`
+                : `تم ربط Telegram بحساب WallpaperHub الحالي بنجاح${result.username ? ` (@${result.username})` : ""}.`;
+            showAccountChoiceStatus(linkedMessage, "success");
+            if(accountChoiceContinue){
+                accountChoiceContinue.disabled = true;
+                accountChoiceContinue.innerHTML = 'تم ربط الحسابين <span class="account-choice-check" aria-hidden="true">✓</span>';
+            }
             const title = telegramAuthStep.querySelector(".telegram-auth-step-title");
             if(title) title.textContent = "تم التحقق من حساب Telegram وربطه بحساب WallpaperHub الحالي.";
             telegramLoginWidget.replaceChildren();
         }catch(error){
             console.error("TELEGRAM ACCOUNT LINK ERROR:", error);
-            showTelegramLinkStatus(error.message || "تعذر التحقق من Telegram. تحقق من إعدادات الخادم وجدول الربط.", "error");
+            if(accountChoiceContinue){
+                accountChoiceContinue.disabled = false;
+                accountChoiceContinue.textContent = "إعادة محاولة ربط Telegram";
+            }
+            showAccountChoiceStatus(
+                error.message || "تعذر التحقق من حساب Telegram. تأكد من إعدادات الخادم وجدول الربط.",
+                "warning"
+            );
         }
     };
 
@@ -1453,43 +1593,114 @@ async function showTelegramLoginStep(){
     telegramLoginWidget.appendChild(script);
 }
 
-if(loginBtn){
-    const signOutCurrentUser = async () => {
-        try{
-            const {error} = await supabase.auth.signOut({scope:"local"});
-            if(error) throw error;
-            currentUser = null;
-            resetGuestProfile();
-            const userKeys = [
-                "joinDate","lastLogin","profileBio","downloads","downloads-wallpapers",
-                "downloadedWallpapers","favorites","views","likes","likedWallpapers",
-                "profileSocialLinks","userName","username","userEmail","userAvatar","userCover",
-                COVER_HISTORY_LOCAL_KEY,"userData"
-            ];
-            userKeys.forEach(key => localStorage.removeItem(key));
-            location.reload();
-        }catch(error){
-            console.error("SIGN-OUT ERROR:", error);
+accountChoiceContinue?.addEventListener("click", async () => {
+    if(accountChoiceContinue.disabled) return;
+    const providers = selectedAccountProviders();
+
+    if(!providers.length){
+        showAccountChoiceStatus("اختار Google أو Telegram على الأقل.");
+        return;
+    }
+
+    // Existing signed-in account: keep its UID and link Telegram to that exact account.
+    // Never sign the person into a different Google account silently.
+    if(currentUser){
+        const hasGoogle = userHasGoogleIdentity(currentUser);
+        if(providers.includes("google") && !hasGoogle){
+            showAccountChoiceStatus(
+                "الحساب الحالي ليس مربوطاً بهوية Google. لإضافة Google كهوية ثانية يلزم مسار OAuth خاص؛ باش نحافظو على نفس الحساب، ألغِ اختيار Google واختار Telegram فقط.",
+                "warning"
+            );
+            return;
+        }
+
+        if(providers.includes("google") && hasGoogle){
+            renderGoogleAccountPreview(currentUser);
+        }
+
+        if(providers.includes("telegram")){
+            try{
+                accountChoiceContinue.disabled = true;
+                await showTelegramLoginStep();
+                showAccountChoiceStatus(
+                    hasGoogle
+                        ? "غادي نربط Telegram بنفس حساب WallpaperHub/Google المسجل حالياً. أكمل تأكيد Telegram أدناه."
+                        : "غادي نربط Telegram بنفس حساب WallpaperHub المسجل حالياً. أكمل التأكيد أدناه.",
+                    "info"
+                );
+                accountChoiceContinue.textContent = "أكمل تأكيد Telegram أدناه";
+                return;
+            }catch(error){
+                accountChoiceContinue.disabled = false;
+                showAccountChoiceStatus(error.message || "تعذر بدء ربط Telegram.");
+                return;
+            }
+        }
+
+        if(providers.includes("google") && hasGoogle){
+            showAccountChoiceStatus("حساب Google هذا مربوط مسبقاً بحساب WallpaperHub الحالي.", "success");
+            return;
+        }
+    }
+
+    if(providers.includes("google")){
+        await startGoogleIdentityFlow(providers);
+        return;
+    }
+
+    // Telegram cannot create a new WallpaperHub user. A logged-out visitor must also select Google.
+    showAccountChoiceStatus("Telegram كيرتبط بحساب WallpaperHub موجود فقط. حدّد Google أيضاً باش نسجلو الدخول أولاً ثم نربط Telegram بنفس الحساب.");
+});
+
+
+if (loginBtn) {
+    loginBtn.onclick = async () => {
+        if(!currentUser){ openAccountChoiceModal(); return; }
+        try {
+            if (currentUser) {
+                // ============================
+                // تسجيل الخروج من Supabase
+                // ============================
+                const { error } = await supabase.auth.signOut({ scope: "local" });
+
+                if (error) throw error;
+
+                resetGuestProfile();
+
+                const userKeys = [
+                    "joinDate",
+                    "lastLogin",
+                    "profileBio",
+                    "downloads",
+                    "downloads-wallpapers",
+                    "downloadedWallpapers",
+                    "favorites",
+                    "views",
+                    "likes",
+                    "likedWallpapers",
+                    "profileSocialLinks",
+                    "userName",
+                    "username",
+                    "userEmail",
+                    "userAvatar",
+                    "userCover",
+                    COVER_HISTORY_LOCAL_KEY,
+                    "userData"
+                ];
+
+                userKeys.forEach(key => localStorage.removeItem(key));
+
+                location.reload();
+                return;
+            }
+
+            openAccountChoiceModal();
+
+        } catch (error) {
+            console.error("AUTH ERROR", error);
+            alert("حدث خطأ في تسجيل الدخول");
         }
     };
-
-    loginBtn.addEventListener("click", () => {
-        if(currentUser){
-            void signOutCurrentUser();
-        }else if(!googleIdentityInitialized){
-            // If Google JS is still loading, prepare the official button; never open a custom modal/toast.
-            void prepareGoogleIdentityApi();
-        }
-    });
-    loginBtn.addEventListener("keydown", event => {
-        if(currentUser && (event.key === "Enter" || event.key === " ")){
-            event.preventDefault();
-            void signOutCurrentUser();
-        }else if(!currentUser && !googleIdentityInitialized && (event.key === "Enter" || event.key === " ")){
-            event.preventDefault();
-            void prepareGoogleIdentityApi();
-        }
-    });
 }
 
 /* ==========================

@@ -2489,6 +2489,150 @@ body.dark .follow-stat-divider{background:#30394d}
 }
 
 
+/* =========================================================
+   Unified Google + Telegram chooser
+   Providers are independently selectable; both may be selected.
+   ========================================================= */
+.account-choice-modal{
+    position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;
+    padding:12px;background:rgba(20,25,42,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+}
+.account-choice-modal.show{display:flex}
+.account-choice-card{
+    position:relative;width:min(100%,410px);max-height:calc(100dvh - 28px);overflow:auto;
+    padding:17px 15px 13px;border:1px solid rgba(255,255,255,.94);border-radius:24px;
+    background:#fff;color:#151a2c;box-shadow:0 18px 48px rgba(7,15,40,.25);
+    text-align:center;scrollbar-width:thin
+}
+.account-choice-close{
+    position:absolute;top:10px;left:10px;width:31px;height:31px;border-radius:50%;
+    display:grid;place-items:center;background:#f3f4f7;color:#667080;font-size:22px;font-weight:400;line-height:1;cursor:pointer
+}
+.account-choice-brand{
+    display:flex;align-items:center;justify-content:center;gap:8px;margin:1px 0 11px;
+    font-size:19px;font-weight:600;direction:ltr;color:#111a35
+}
+.account-choice-logo{display:grid;place-items:center;width:33px;height:33px}
+.account-choice-logo svg{width:100%;height:100%}
+.account-choice-card h2{font-size:clamp(18px,4.8vw,21px);line-height:1.35;font-weight:600;margin:0}
+.account-choice-subtitle{margin:4px 0 13px;color:#717787;font-size:12.5px;font-weight:400;line-height:1.5}
+.account-provider-option,.telegram-link-option{
+    width:100%;min-height:58px;display:flex;align-items:center;gap:9px;padding:9px 10px;
+    border:1px solid #d9dde5;border-radius:15px;background:#fff;text-align:right;cursor:pointer;color:#171b2b;
+    transition:border-color .15s ease,background .15s ease,box-shadow .15s ease
+}
+.account-provider-option.selected,.telegram-link-option.selected{
+    border-color:#2587f5;background:#eff6ff;box-shadow:0 0 0 1px rgba(37,135,255,.08)
+}
+.account-radio{
+    width:21px;height:21px;flex:0 0 21px;border:1.7px solid #9aa0ac;border-radius:50%;position:relative;
+    display:grid;place-items:center;color:#fff;font-size:13px;font-weight:600
+}
+.account-provider-option.selected .account-radio,
+.telegram-link-option.selected .account-radio{
+    border-color:#2587ff;background:#2587ff
+}
+.account-provider-option.selected .account-radio:after,
+.telegram-link-option.selected .account-radio:after{
+    content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:white;font-size:13px;font-weight:600
+}
+.account-provider-option .account-radio{order:0}
+.account-provider-option .account-provider-copy{order:1}
+.account-provider-option .google-mark-wrap{order:2}
+.account-provider-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.account-provider-copy strong{font-size:13.5px;font-weight:500;line-height:1.35}
+.account-provider-copy small{font-size:11.5px;font-weight:400;color:#777e8d;line-height:1.4}
+.google-mark-wrap{display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px}
+.google-mark{width:25px;height:25px;flex:0 0 25px}
+.google-auth-fallback{
+    margin-top:7px;padding:9px 10px;border:1px solid #e2e7ef;border-radius:12px;background:#fafcff;
+    text-align:center
+}
+.google-auth-fallback[hidden],.telegram-auth-step[hidden]{display:none!important}
+.google-account-preview{
+    display:flex;align-items:center;gap:9px;margin-top:7px;padding:7px 9px;border:1px solid #d8e8dc;
+    border-radius:12px;background:#f5fbf6;text-align:right
+}
+.google-account-preview[hidden]{display:none!important}
+.google-account-preview img{
+    width:34px;height:34px;flex:0 0 34px;border-radius:50%;object-fit:cover;background:#e6eaf1
+}
+.google-account-preview-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.google-account-preview-copy strong{font-size:12px;font-weight:500;color:#273548;overflow-wrap:anywhere}
+.google-account-preview-copy small{font-size:10.5px;color:#667080;overflow-wrap:anywhere}
+.google-account-preview-check{
+    display:grid;place-items:center;width:21px;height:21px;flex:0 0 21px;border-radius:50%;
+    background:#239b61;color:#fff;font-size:13px
+}
+.google-auth-fallback p{margin:0 0 7px;color:#707788;font-size:11px;line-height:1.45;font-weight:400}
+#googleAuthButtonSlot{display:flex;justify-content:center;min-height:36px}
+.account-choice-divider{display:flex;align-items:center;gap:9px;margin:12px 0 10px;color:#666e7d;font-size:12px;font-weight:400;white-space:nowrap}
+.account-choice-divider:before,.account-choice-divider:after{content:"";height:1px;flex:1;background:#d8dce4}
+.telegram-link-option{min-height:74px;gap:9px;padding:10px}
+.telegram-link-option .telegram-brand-icon{order:0}
+.telegram-link-option .telegram-link-copy{order:1}
+.telegram-link-option .telegram-radio{order:2}
+.telegram-brand-icon{
+    width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:50%;background:#20a5dd;color:#fff
+}
+.telegram-brand-icon svg{width:27px;height:27px}
+.telegram-link-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.telegram-link-copy strong{font-size:16px;font-weight:500;line-height:1.3;direction:ltr;text-align:right}
+.telegram-link-copy small{font-size:11.5px;font-weight:400;color:#667080;line-height:1.35}
+.telegram-link-copy span{margin-top:3px;font-size:10.5px;font-weight:400;line-height:1.45;color:#707788}
+.telegram-auth-step{margin-top:10px;padding:10px;border:1px solid #dce7f5;border-radius:13px;background:#f7faff}
+.telegram-auth-step-title{margin:0 0 8px;font-size:12px;font-weight:400;line-height:1.5;color:#3d4b63}
+.telegram-login-widget{display:flex;justify-content:center;align-items:center;min-height:42px}
+.account-choice-continue{
+    width:100%;min-height:44px;margin-top:12px;padding:9px 11px;display:flex;align-items:center;justify-content:center;gap:8px;
+    border-radius:13px;background:linear-gradient(135deg,#2789f5,#176bdf);color:#fff;font-size:13.5px;font-weight:500;
+    box-shadow:0 5px 14px rgba(28,113,226,.16);cursor:pointer;transition:opacity .15s ease
+}
+.account-choice-continue:active{transform:translateY(1px)}
+.account-choice-continue:disabled{opacity:.65;cursor:wait}
+.account-choice-check{font-size:17px;font-weight:500;line-height:1}
+.account-choice-security{margin:8px 0 0;color:#7b8190;font-size:10.5px;font-weight:400;line-height:1.45}
+.account-choice-security span{margin-left:4px}
+.account-choice-status{margin-top:9px;padding:8px 10px;border-radius:10px;background:#fff4df;color:#76551a;font-size:11.5px;font-weight:400;line-height:1.5;overflow-wrap:anywhere}
+.account-choice-status[hidden]{display:none}
+@media(max-width:420px){
+    .account-choice-modal{padding:8px}
+    .account-choice-card{width:min(100%,390px);max-height:calc(100dvh - 16px);padding:16px 12px 11px;border-radius:22px}
+    .account-choice-brand{margin-bottom:10px;font-size:18px}
+    .account-choice-logo{width:31px;height:31px}
+    .account-choice-card h2{font-size:19px;font-weight:500}
+    .account-choice-subtitle{margin-bottom:11px;font-size:12px}
+    .account-provider-option{min-height:54px;padding:8px}
+    .account-provider-copy strong{font-size:12.5px}
+    .account-provider-copy small{font-size:10.5px}
+    .account-choice-divider{margin:10px 0;font-size:11px}
+    .telegram-link-option{gap:7px;padding:9px 8px}
+    .telegram-brand-icon{width:38px;height:38px;flex-basis:38px}
+    .telegram-brand-icon svg{width:24px;height:24px}
+    .telegram-link-copy strong{font-size:15px}
+    .telegram-link-copy small{font-size:10.5px}
+    .telegram-link-copy span{font-size:10px;line-height:1.4}
+    .account-choice-continue{font-size:12.5px;min-height:42px;margin-top:10px}
+    .account-choice-security{font-size:10px;margin-top:7px}
+}
+@media(max-height:650px){
+    .account-choice-card{padding-top:12px;padding-bottom:10px}
+    .account-choice-brand{margin-bottom:7px}
+    .account-choice-subtitle{margin-bottom:8px}
+    .telegram-link-option{padding-top:7px;padding-bottom:7px}
+    .account-choice-divider{margin:8px 0}
+    .account-choice-continue{margin-top:8px}
+    .account-choice-security{margin-top:6px}
+}
+@media(prefers-reduced-motion:no-preference){
+    .account-choice-card{animation:accountChoiceIn .16s ease-out}
+    @keyframes accountChoiceIn{from{opacity:.55;transform:translateY(5px) scale(.995)}to{opacity:1;transform:none}}
+}
+
+
+.account-choice-status[data-type="success"]{background:#eaf8ef;color:#1c6a3b;border:1px solid #ccebd6}
+.account-choice-status[data-type="info"]{background:#eef5ff;color:#315b8e;border:1px solid #d6e7ff}
+
 /* Account linking entry for users already signed in */
 .profile-link-accounts-btn{
     width:100%;min-height:42px;margin:8px 0 12px;padding:9px 12px;
@@ -2501,54 +2645,3 @@ body.dark .follow-stat-divider{background:#30394d}
     width:22px;height:22px;display:grid;place-items:center;border-radius:50%;
     background:#e1edff;color:#2877d4;font-size:17px;font-weight:500
 }
-
-
-/* Google renders the actual sign-in control into #loginBtn. */
-.login-btn.google-gsi-active{
-    padding:0!important;
-    border:0!important;
-    background:transparent!important;
-    box-shadow:none!important;
-    backdrop-filter:none!important;
-    -webkit-backdrop-filter:none!important;
-    overflow:visible!important;
-}
-.login-btn.google-gsi-active > div{margin:0!important;}
-.login-btn.google-gsi-active iframe{display:block!important;}
-
-/* Telegram account linking is inline in the profile, never a popup/modal. */
-.telegram-link-inline-panel{
-    width:100%;
-    margin:8px 0 14px;
-    padding:13px;
-    border:1px solid #dce5f1;
-    border-radius:14px;
-    background:#fff;
-}
-.telegram-link-inline-panel[hidden]{display:none!important;}
-.telegram-link-inline-panel .telegram-auth-step-title{
-    margin:0 0 10px;
-    color:#566174;
-    font-size:13px;
-    line-height:1.6;
-    text-align:center;
-}
-.telegram-link-inline-panel .telegram-login-widget{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:42px;
-}
-.telegram-link-status{
-    margin:10px 0 0;
-    padding:9px 11px;
-    border-radius:10px;
-    background:#eef5ff;
-    color:#315b8e;
-    font-size:12px;
-    line-height:1.5;
-    overflow-wrap:anywhere;
-}
-.telegram-link-status[hidden]{display:none!important;}
-.telegram-link-status[data-type="success"]{background:#eaf8ef;color:#1c6a3b;border:1px solid #ccebd6;}
-.telegram-link-status[data-type="error"]{background:#fff1f0;color:#922b21;border:1px solid #f4d2cf;}

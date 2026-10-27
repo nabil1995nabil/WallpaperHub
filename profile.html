@@ -58,15 +58,15 @@ more_vert
 <div class="profile-actions">
 
 
-<div
- id="loginBtn"
- class="login-btn"
- role="button"
- tabindex="0"
- aria-label="تسجيل الدخول باستخدام Google"
- title="تسجيل الدخول باستخدام Google">
- <span class="material-icons" aria-hidden="true">person</span>
-</div>
+<button 
+id="loginBtn"
+class="login-btn">
+
+<span class="material-icons">
+login
+</span>
+
+</button>
 
 
 
@@ -397,13 +397,8 @@ alt="Avatar">
 
         <button id="linkAccountsBtn" class="profile-link-accounts-btn" type="button" hidden>
             <span class="profile-link-accounts-icon" aria-hidden="true">↔</span>
-            <span>ربط Telegram بحسابي</span>
+            <span>ربط حسابات Google وTelegram</span>
         </button>
-        <section id="telegramLinkPanel" class="telegram-link-inline-panel" hidden aria-label="ربط Telegram">
-            <p class="telegram-auth-step-title">أكد حساب Telegram لربطه بحساب WallpaperHub المسجل حالياً.</p>
-            <div id="telegramLoginWidget" class="telegram-login-widget"></div>
-            <p id="telegramLinkStatus" class="telegram-link-status" role="status" aria-live="polite" hidden></p>
-        </section>
 
         <section id="profileSocialCard" class="profile-social-card" aria-label="مواقع التواصل الاجتماعي" hidden>
             <div class="profile-social-head">
@@ -595,6 +590,87 @@ alt="Avatar">
 
 
 
+
+<!-- WallpaperHub unified Google + Telegram account link modal -->
+<div id="accountChoiceModal" class="account-choice-modal" aria-hidden="true">
+  <section class="account-choice-card" role="dialog" aria-modal="true" aria-labelledby="accountChoiceTitle" dir="rtl">
+    <button id="accountChoiceClose" class="account-choice-close" type="button" aria-label="إغلاق">×</button>
+
+    <div class="account-choice-brand">
+      <span class="account-choice-logo" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <rect x="5" y="7" width="38" height="34" rx="4" fill="#fff" stroke="#d59b39" stroke-width="3"/>
+          <circle cx="17" cy="17" r="4" fill="#f6c64e"/>
+          <path d="M9 35 20 22l7 8 6-7 7 12Z" fill="#2585d8"/>
+        </svg>
+      </span>
+      <strong>WallpaperHub</strong>
+    </div>
+
+    <h2 id="accountChoiceTitle">اختيار الحسابات</h2>
+    <p class="account-choice-subtitle">حدّد طريقة واحدة أو الطريقتين معاً لربطهما بنفس حساب WallpaperHub.</p>
+
+    <button type="button" class="account-provider-option selected" id="googleProviderOption"
+            aria-pressed="true" aria-controls="googleAuthFallback">
+      <span class="account-radio" aria-hidden="true"></span>
+      <span class="google-mark-wrap" aria-hidden="true">
+        <svg class="google-mark" viewBox="0 0 48 48">
+          <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.9 6.1-15Z"/>
+          <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44Z"/>
+          <path fill="#FBBC05" d="M12.6 27.7a12 12 0 0 1 0-7.4V15H5.8a20 20 0 0 0 0 18Z"/>
+          <path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4A20 20 0 0 0 5.8 15l6.8 5.3c1.6-4.8 6.1-8.4 11.4-8.4Z"/>
+        </svg>
+      </span>
+      <span class="account-provider-copy">
+        <strong id="googleProviderTitle">حسابات Google</strong>
+        <small id="googleProviderHint">اختيار حساب Google عبر نافذة Google الرسمية داخل الصفحة</small>
+      </span>
+    </button>
+
+    <div id="googleAccountPreview" class="google-account-preview" hidden>
+      <img id="googleAccountAvatar" alt="" src="" referrerpolicy="no-referrer">
+      <span class="google-account-preview-copy">
+        <strong id="googleAccountName">حساب Google</strong>
+        <small id="googleAccountEmail"></small>
+      </span>
+      <span class="google-account-preview-check" aria-hidden="true">✓</span>
+    </div>
+
+    <div id="googleAuthFallback" class="google-auth-fallback" hidden>
+      <p>اختيار حساب Google لم يظهر تلقائياً. استعمل زر Google الرسمي هنا للمتابعة دون مغادرة الصفحة.</p>
+      <div id="googleAuthButtonSlot"></div>
+    </div>
+
+    <div class="account-choice-divider"><span>ويمكنك ربط Telegram أيضاً</span></div>
+
+    <button type="button" class="telegram-link-option" id="telegramProviderOption"
+            aria-pressed="false" aria-controls="telegramAuthStep">
+      <span class="account-radio telegram-radio" aria-hidden="true"></span>
+      <span class="telegram-brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path fill="currentColor" d="M21.7 4.1 18.5 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.5l-4.9-1.6c-1.1-.3-1.1-1.1.2-1.6L20.4 2.8c.9-.3 1.7.2 1.3 1.3Z"/>
+        </svg>
+      </span>
+      <span class="telegram-link-copy">
+        <strong>Telegram</strong>
+        <small>ربط حساب Telegram بالملف الحالي</small>
+        <span>Telegram لا ينشئ حساب WallpaperHub؛ سيتم ربطه بنفس الحساب بعد التحقق من Google.</span>
+      </span>
+    </button>
+
+    <div id="telegramAuthStep" class="telegram-auth-step" hidden>
+      <p class="telegram-auth-step-title">تم التحقق من Google. أكمل تأكيد Telegram لربط الحسابين.</p>
+      <div id="telegramLoginWidget" class="telegram-login-widget"></div>
+    </div>
+
+    <button id="accountChoiceContinue" class="account-choice-continue" type="button">
+      المتابعة باستخدام Google <span class="account-choice-check" aria-hidden="true">✓</span>
+    </button>
+
+    <p class="account-choice-security"><span aria-hidden="true">🔒</span> لا نطلب كلمة مرور Google أو Telegram. تتم المصادقة عبر مزوّديهما الرسميين.</p>
+    <p id="accountChoiceStatus" class="account-choice-status" role="status" aria-live="polite" hidden></p>
+  </section>
+</div>
 
 <!-- ==========================
  Scripts
