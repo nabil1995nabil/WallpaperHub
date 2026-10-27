@@ -1176,8 +1176,80 @@ function resetGuestProfile() {
    Login / Logout Button - FIXED
 ========================== */
 
+const accountChoiceModal = document.getElementById("accountChoiceModal");
+const accountChoiceClose = document.getElementById("accountChoiceClose");
+const googleProviderOption = document.getElementById("googleProviderOption");
+const telegramProviderOption = document.getElementById("telegramProviderOption");
+const accountChoiceContinue = document.getElementById("accountChoiceContinue");
+const accountChoiceStatus = document.getElementById("accountChoiceStatus");
+let selectedAccountProvider = "telegram";
+
+function openAccountChoiceModal(){
+    if(!accountChoiceModal) return;
+    selectedAccountProvider = "telegram";
+    googleProviderOption?.classList.remove("selected");
+    telegramProviderOption?.setAttribute("aria-pressed", "true");
+    if(accountChoiceStatus){ accountChoiceStatus.hidden = true; accountChoiceStatus.textContent = ""; }
+    accountChoiceModal.classList.add("show");
+    accountChoiceModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+function closeAccountChoiceModal(){
+    if(!accountChoiceModal) return;
+    accountChoiceModal.classList.remove("show");
+    accountChoiceModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+function showAccountChoiceStatus(message){
+    if(!accountChoiceStatus) return;
+    accountChoiceStatus.textContent = message;
+    accountChoiceStatus.hidden = false;
+}
+accountChoiceClose?.addEventListener("click", closeAccountChoiceModal);
+accountChoiceModal?.addEventListener("click", event => {
+    if(event.target === accountChoiceModal) closeAccountChoiceModal();
+});
+document.addEventListener("keydown", event => {
+    if(event.key === "Escape" && accountChoiceModal?.classList.contains("show")) closeAccountChoiceModal();
+});
+googleProviderOption?.addEventListener("click", () => {
+    selectedAccountProvider = "google";
+    googleProviderOption.classList.add("selected");
+    telegramProviderOption?.setAttribute("aria-pressed", "false");
+    if(accountChoiceStatus) accountChoiceStatus.hidden = true;
+    if(accountChoiceContinue) accountChoiceContinue.innerHTML = 'المتابعة باستخدام Google <span aria-hidden="true">✓</span>';
+});
+telegramProviderOption?.addEventListener("click", () => {
+    selectedAccountProvider = "telegram";
+    googleProviderOption?.classList.remove("selected");
+    telegramProviderOption.setAttribute("aria-pressed", "true");
+    if(accountChoiceStatus) accountChoiceStatus.hidden = true;
+    if(accountChoiceContinue) accountChoiceContinue.innerHTML = 'اختيار Telegram وربط الحساب <span aria-hidden="true">✓</span>';
+});
+accountChoiceContinue?.addEventListener("click", async () => {
+    if(selectedAccountProvider === "google"){
+        try{
+            accountChoiceContinue.disabled = true;
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider:"google",
+                options:{ redirectTo:window.location.origin + "/profile.html" }
+            });
+            if(error) throw error;
+        }catch(error){
+            console.error("GOOGLE AUTH ERROR", error);
+            showAccountChoiceStatus("تعذر بدء تسجيل الدخول عبر Google. حاول مرة أخرى.");
+            accountChoiceContinue.disabled = false;
+        }
+        return;
+    }
+    // لا نربط حساب Telegram من الواجهة وحدها. يجب التحقق من توقيع Telegram
+    // في الخادم وربط الهوية بالمستخدم الحالي قبل حفظ أي تغيير.
+    showAccountChoiceStatus("واجهة الربط جاهزة. لإكمال الربط بأمان، خاص تفعيل نقطة تحقق Telegram في server.js أولاً؛ لم يتم ربط أي حساب بعد.");
+});
+
 if (loginBtn) {
     loginBtn.onclick = async () => {
+        if(!currentUser){ openAccountChoiceModal(); return; }
         try {
             if (currentUser) {
                 // ============================
@@ -1216,17 +1288,7 @@ if (loginBtn) {
                 return;
             }
 
-            // ============================
-            // تسجيل الدخول بواسطة Google عبر Supabase
-            // ============================
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: {
-                    redirectTo: window.location.origin + "/profile.html"
-                }
-            });
-
-            if (error) throw error;
+            openAccountChoiceModal();
 
         } catch (error) {
             console.error("AUTH ERROR", error);

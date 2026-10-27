@@ -586,6 +586,31 @@ alt="Avatar">
 
 
 
+<!-- WallpaperHub account linking / sign-in modal -->
+<div id="accountChoiceModal" class="account-choice-modal" aria-hidden="true">
+  <section class="account-choice-card" role="dialog" aria-modal="true" aria-labelledby="accountChoiceTitle" dir="rtl">
+    <button id="accountChoiceClose" class="account-choice-close" type="button" aria-label="إغلاق">×</button>
+    <div class="account-choice-brand"><span class="account-choice-logo" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="34" rx="4" fill="#fff" stroke="#d59b39" stroke-width="3"/><circle cx="17" cy="17" r="4" fill="#f6c64e"/><path d="M9 35 20 22l7 8 6-7 7 12Z" fill="#2585d8"/></svg></span><strong>WallpaperHub</strong></div>
+    <h2 id="accountChoiceTitle">اختيار طريقة تسجيل الدخول</h2>
+    <p class="account-choice-subtitle">اربط حسابك الحالي بسهولة</p>
+
+    <button type="button" class="account-provider-option selected" id="googleProviderOption">
+      <span class="account-radio" aria-hidden="true"></span>
+      <span class="account-provider-copy"><strong>المتابعة باستخدام Google</strong><small>تسجيل الدخول أو متابعة الحساب الحالي</small></span>
+      <svg class="google-mark" viewBox="0 0 48 48" aria-label="Google"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.9 6.1-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.6 27.7a12 12 0 0 1 0-7.4V15H5.8a20 20 0 0 0 0 18Z"/><path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4A20 20 0 0 0 5.8 15l6.8 5.3c1.6-4.8 6.1-8.4 11.4-8.4Z"/></svg>
+    </button>
+
+    <div class="account-choice-divider"><span>أو اربط حسابك عبر</span></div>
+    <button type="button" class="telegram-link-option" id="telegramProviderOption" aria-pressed="true">
+      <span class="telegram-brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M21.7 4.1 18.5 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.5l-4.9-1.6c-1.1-.3-1.1-1.1.2-1.6L20.4 2.8c.9-.3 1.7.2 1.3 1.3Z"/></svg></span>
+      <span class="telegram-link-copy"><strong>Telegram</strong><small>ربط حساب Telegram</small><span>لن يتم إنشاء حساب جديد؛ سيتم ربطه بحساب WallpaperHub المسجل حالياً.</span></span>
+    </button>
+    <button id="accountChoiceContinue" class="account-choice-continue" type="button">اختيار Telegram وربط الحساب <span aria-hidden="true">✓</span></button>
+    <p class="account-choice-security"><span aria-hidden="true">♙</span> ربط آمن — لن نطلب كلمة مرور Telegram</p>
+    <p id="accountChoiceStatus" class="account-choice-status" role="status" hidden></p>
+  </section>
+</div>
+
 <!-- ==========================
  Scripts
 ========================== -->
