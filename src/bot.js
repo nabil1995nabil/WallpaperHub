@@ -14,13 +14,28 @@ function createTelegramBot({ token, miniAppUrl }) {
     bot.command("start", async (ctx) => {
         await ctx.reply(
             "مرحباً بك في WallpaperHub 🖼️\n\n" +
-            "اضغط على الزر أدناه لفتح لوحة نشر الخلفيات داخل Telegram.",
+            "قبل أول نشر، اربط حساب Telegram بحساب WallpaperHub ديالك من صفحة البروفايل. " +
+            "من بعد اضغط على الزر لفتح لوحة النشر؛ غادي نتحققو من الحساب والصلاحيات تلقائياً.",
+            { reply_markup: keyboard }
+        );
+    });
+
+    bot.command("publish", async (ctx) => {
+        await ctx.reply("افتح لوحة النشر من الزر أدناه. خاص Telegram يكون مربوط بحساب WallpaperHub ديالك.", {
+            reply_markup: keyboard
+        });
+    });
+
+    bot.command("help", async (ctx) => {
+        await ctx.reply(
+            "طريقة الاستعمال:\n1) ربط حساب Telegram من بروفايل WallpaperHub.\n" +
+            "2) فتح لوحة النشر من الزر أدناه.\n3) رفع الخلفية وإرسالها للمراجعة أو النشر حسب صلاحيات حسابك.",
             { reply_markup: keyboard }
         );
     });
 
     bot.hears("📤 نشر خلفية", async (ctx) => {
-        await ctx.reply("افتح لوحة نشر الخلفيات من الزر أدناه.", {
+        await ctx.reply("افتح لوحة النشر من الزر أدناه. إذا ما ربطتيش Telegram بعد، افتح البروفايل واربط نفس الحساب أولاً.", {
             reply_markup: keyboard
         });
     });
