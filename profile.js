@@ -921,35 +921,31 @@ document.getElementById(
 
 
 function updateLoginState(user){
-
     if(!loginBtn) return;
 
-    // في البروفايل العام لشخص آخر لا نعرض زر تسجيل الدخول/الخروج.
-    // هذا الزر يخص صاحب الجلسة الحالية، وليس صاحب البروفايل الذي تتم مشاهدته.
+    const googleMount = document.getElementById("googleSignInButtonMount");
+
+    // A public profile belonging to somebody else must not expose auth actions.
     if(isPublicProfile && !isOwnProfile()){
         loginBtn.style.display = "none";
         loginBtn.setAttribute("aria-hidden", "true");
         loginBtn.setAttribute("tabindex", "-1");
+        if(googleMount) googleMount.style.display = "none";
         return;
     }
 
-    // في الحساب الشخصي نعيد إظهار الزر بشكل طبيعي.
-    loginBtn.style.display = "";
     loginBtn.removeAttribute("aria-hidden");
     loginBtn.removeAttribute("tabindex");
 
     if(user){
-        loginBtn.innerHTML = `
-            <span class="material-icons">
-                logout
-            </span>
-        `;
+        if(googleMount) googleMount.style.display = "none";
+        loginBtn.style.display = "";
+        loginBtn.innerHTML = '<span class="material-icons">logout</span>';
     }else{
-        loginBtn.innerHTML = `
-            <span class="material-icons">
-                person
-            </span>
-        `;
+        // The Google-rendered button replaces this placeholder when GIS is ready.
+        loginBtn.style.display = "";
+        loginBtn.innerHTML = '<span class="material-icons">person</span>';
+        void mountGoogleSignInButton();
     }
 }
 
@@ -1177,11 +1173,14 @@ function resetGuestProfile() {
 ========================== */
 
 
-// Google Identity Services: use Google's own account chooser only.
-// No custom WallpaperHub account modal and no Telegram account-link UI.
+// Google Identity Services: render Google's real sign-in button directly in the
+// profile header. Do not call id.prompt(): One Tap can be suppressed by the browser,
+// especially when it is called after asynchronous fetch/script loading.
 let googleClientIdPromise = null;
 let googleScriptPromise = null;
+let googleInitPromise = null;
 let googleSignInBusy = false;
+let googleButtonRendered = false;
 
 async function getGoogleClientId(){
     if(googleClientIdPromise) return googleClientIdPromise;
@@ -1208,21 +1207,32 @@ async function getGoogleClientId(){
 async function ensureGoogleIdentityApi(){
     if(window.google?.accounts?.id) return;
     if(googleScriptPromise) return googleScriptPromise;
+
     googleScriptPromise = new Promise((resolve,reject)=>{
         let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+        if(script?.dataset.whLoaded === "1" && window.google?.accounts?.id){
+            resolve();
+            return;
+        }
         if(!script){
             script = document.createElement("script");
             script.src = "https://accounts.google.com/gsi/client";
             script.async = true;
             script.defer = true;
-            document.head.appendChild(script);
         }
-        const onLoad = ()=> window.google?.accounts?.id
-            ? resolve()
-            : reject(new Error("تعذر تحميل تسجيل الدخول الرسمي من Google."));
+        const onLoad = ()=>{
+            if(window.google?.accounts?.id){
+                script.dataset.whLoaded = "1";
+                resolve();
+            }else{
+                reject(new Error("تعذر تحميل تسجيل الدخول الرسمي من Google."));
+            }
+        };
         const onError = ()=> reject(new Error("تعذر الاتصال بخدمة Google."));
-        script.addEventListener("load",onLoad,{once:true});
-        script.addEventListener("error",onError,{once:true});
+        script.addEventListener("load", onLoad, {once:true});
+        script.addEventListener("error", onError, {once:true});
+        if(!script.isConnected) document.head.appendChild(script);
+        // Handle an API script that finished loading before listeners were attached.
         if(window.google?.accounts?.id) resolve();
     }).catch(error=>{
         googleScriptPromise = null;
@@ -1231,106 +1241,121 @@ async function ensureGoogleIdentityApi(){
     return googleScriptPromise;
 }
 
-async function startGoogleIdentityFlow(){
-    if(googleSignInBusy) return;
-    googleSignInBusy = true;
+function getGoogleButtonMount(){
+    if(!loginBtn?.parentElement) return null;
+    let mount = document.getElementById("googleSignInButtonMount");
+    if(!mount){
+        mount = document.createElement("div");
+        mount.id = "googleSignInButtonMount";
+        mount.setAttribute("role", "group");
+        mount.setAttribute("aria-label", "تسجيل الدخول باستخدام Google");
+        mount.style.cssText = [
+            "width:50px", "height:50px", "min-width:50px", "max-width:50px",
+            "flex:0 0 50px", "display:none", "align-items:center",
+            "justify-content:center", "overflow:hidden", "position:relative"
+        ].join(";");
+        loginBtn.parentElement.insertBefore(mount, loginBtn);
+    }
+    return mount;
+}
+
+async function mountGoogleSignInButton(){
+    const mount = getGoogleButtonMount();
+    if(!mount || googleButtonRendered || currentUser || (isPublicProfile && !isOwnProfile())) return;
+
     try{
-        const clientId = await getGoogleClientId();
-        await ensureGoogleIdentityApi();
+        const [clientId] = await Promise.all([getGoogleClientId(), ensureGoogleIdentityApi()]);
+        if(currentUser || (isPublicProfile && !isOwnProfile())) return;
 
-        window.google.accounts.id.initialize({
-            client_id: clientId,
-            callback: async response => {
-                try{
-                    if(!response?.credential) throw new Error("لم يصل رمز التحقق من Google.");
-                    const { data, error } = await supabase.auth.signInWithIdToken({
-                        provider:"google",
-                        token:response.credential
-                    });
-                    if(error) throw error;
-                    currentUser = data?.user || data?.session?.user || null;
-                    if(!currentUser) throw new Error("لم يتم إنشاء جلسة WallpaperHub.");
-                    updateLoginState(currentUser);
-                    window.location.reload();
-                }catch(error){
-                    console.error("GOOGLE SIGN-IN ERROR:",error);
-                    alert(error?.message || "تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.");
-                }finally{
-                    googleSignInBusy = false;
-                }
-            },
-            auto_select:false,
-            cancel_on_tap_outside:true,
-            use_fedcm_for_prompt:true
-        });
+        if(!googleInitPromise){
+            googleInitPromise = Promise.resolve().then(()=>{
+                window.google.accounts.id.initialize({
+                    client_id: clientId,
+                    ux_mode: "popup",
+                    auto_select: false,
+                    callback: async response=>{
+                        if(googleSignInBusy) return;
+                        googleSignInBusy = true;
+                        mount.style.pointerEvents = "none";
+                        try{
+                            if(!response?.credential) throw new Error("لم يصل رمز التحقق من Google.");
+                            const {data, error} = await supabase.auth.signInWithIdToken({
+                                provider:"google",
+                                token:response.credential
+                            });
+                            if(error) throw error;
+                            currentUser = data?.user || data?.session?.user || null;
+                            if(!currentUser) throw new Error("لم يتم إنشاء جلسة WallpaperHub.");
+                            updateLoginState(currentUser);
+                            window.location.reload();
+                        }catch(error){
+                            console.error("GOOGLE SIGN-IN ERROR:", error);
+                            alert(error?.message || "تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.");
+                        }finally{
+                            googleSignInBusy = false;
+                            mount.style.pointerEvents = "";
+                        }
+                    }
+                });
+            }).catch(error=>{
+                googleInitPromise = null;
+                throw error;
+            });
+        }
+        await googleInitPromise;
+        if(googleButtonRendered || currentUser) return;
 
-        // This asks Google to show its own account chooser; no site-made dialog.
-        window.google.accounts.id.prompt(notification=>{
-            if(notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()){
-                console.info("Google account chooser was not displayed by the browser.");
-            }
-            googleSignInBusy = false;
+        mount.replaceChildren();
+        window.google.accounts.id.renderButton(mount, {
+            type:"icon",
+            theme:"outline",
+            size:"large",
+            shape:"circle",
+            logo_alignment:"center",
+            width:40,
+            locale:"en"
         });
+        googleButtonRendered = true;
+        mount.style.display = "flex";
+        // Show only the official Google button for guest login, never an extra site modal.
+        loginBtn.style.display = "none";
+        loginBtn.setAttribute("aria-hidden", "true");
+        loginBtn.setAttribute("tabindex", "-1");
     }catch(error){
-        console.error("GOOGLE IDENTITY INITIALIZATION ERROR:",error);
-        googleSignInBusy = false;
-        alert(error?.message || "تعذر فتح اختيار حساب Google.");
+        // Keep the original header control visible if the Google service/config is unavailable.
+        console.error("GOOGLE BUTTON INITIALIZATION ERROR:", error?.message || error);
+        mount.style.display = "none";
+        loginBtn.style.display = "";
+        loginBtn.removeAttribute("aria-hidden");
+        loginBtn.removeAttribute("tabindex");
     }
 }
 
+// Preload config and script early; the user can then tap Google's real button directly.
+void mountGoogleSignInButton();
 
-// Preload the official Google client and public client ID before the user taps login.
-void Promise.all([getGoogleClientId(), ensureGoogleIdentityApi()]).catch(error => {
-    console.info("Google sign-in preload deferred:", error?.message || error);
-});
-
-
-if (loginBtn) {
-    loginBtn.onclick = async () => {
-        if(!currentUser){ void startGoogleIdentityFlow(); return; }
-        try {
-            if (currentUser) {
-                // ============================
-                // تسجيل الخروج من Supabase
-                // ============================
-                const { error } = await supabase.auth.signOut({ scope: "local" });
-
-                if (error) throw error;
-
-                resetGuestProfile();
-
-                const userKeys = [
-                    "joinDate",
-                    "lastLogin",
-                    "profileBio",
-                    "downloads",
-                    "downloads-wallpapers",
-                    "downloadedWallpapers",
-                    "favorites",
-                    "views",
-                    "likes",
-                    "likedWallpapers",
-                    "profileSocialLinks",
-                    "userName",
-                    "username",
-                    "userEmail",
-                    "userAvatar",
-                    "userCover",
-                    COVER_HISTORY_LOCAL_KEY,
-                    "userData"
-                ];
-
-                userKeys.forEach(key => localStorage.removeItem(key));
-
-                location.reload();
-                return;
-            }
-
-            void startGoogleIdentityFlow();
-
-        } catch (error) {
+if(loginBtn){
+    loginBtn.onclick = async()=>{
+        if(!currentUser){
+            // Fallback only for slow/blocked Google loading; do not trigger One Tap.
+            void mountGoogleSignInButton();
+            return;
+        }
+        try{
+            const {error} = await supabase.auth.signOut({scope:"local"});
+            if(error) throw error;
+            resetGuestProfile();
+            const userKeys = [
+                "joinDate", "lastLogin", "profileBio", "downloads", "downloads-wallpapers",
+                "downloadedWallpapers", "favorites", "views", "likes", "likedWallpapers",
+                "profileSocialLinks", "userName", "username", "userEmail", "userAvatar",
+                "userCover", COVER_HISTORY_LOCAL_KEY, "userData"
+            ];
+            userKeys.forEach(key=>localStorage.removeItem(key));
+            location.reload();
+        }catch(error){
             console.error("AUTH ERROR", error);
-            alert("حدث خطأ في تسجيل الدخول");
+            alert("تعذر تسجيل الخروج. حاول مرة أخرى.");
         }
     };
 }
