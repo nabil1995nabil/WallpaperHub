@@ -541,6 +541,187 @@ app.use(
 
 
 
+// ======================================
+// Google Identity Services public config
+// The Web OAuth Client ID is public; never return a client secret here.
+// Set GOOGLE_CLIENT_ID in Vercel to the same Web client ID used by Supabase Google Auth.
+// ======================================
+app.get("/api/auth/google-config", (req, res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.json({
+        ok: true,
+        clientId: String(process.env.GOOGLE_CLIENT_ID || "").trim()
+    });
+});
+
+// ======================================
+// Secure Telegram account linking
+// Requires a valid Supabase bearer session and Telegram Login Widget signature.
+// A Telegram identity is linked to an existing WallpaperHub user; Telegram never creates a user here.
+// ======================================
+function verifyTelegramLoginPayload(payload, botToken) {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        return { ok:false, reason:"invalid_payload" };
+    }
+
+    const telegramId = String(payload.id || "").trim();
+    const hash = String(payload.hash || "").trim().toLowerCase();
+    const authDate = Number(payload.auth_date);
+
+    if (!/^\d{1,24}$/.test(telegramId) || !/^[a-f0-9]{64}$/.test(hash)) {
+        return { ok:false, reason:"invalid_fields" };
+    }
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (!Number.isSafeInteger(authDate) || authDate <= 0 ||
+        authDate > nowSeconds + 60 || nowSeconds - authDate > 10 * 60) {
+        return { ok:false, reason:"expired" };
+    }
+
+    const dataCheckString = Object.keys(payload)
+        .filter(key => key !== "hash" && payload[key] !== undefined &&
+            payload[key] !== null && typeof payload[key] !== "object")
+        .sort()
+        .map(key => `${key}=${String(payload[key])}`)
+        .join("\n");
+
+    const secretKey = crypto.createHash("sha256").update(botToken).digest();
+    const expectedHash = crypto.createHmac("sha256", secretKey)
+        .update(dataCheckString)
+        .digest();
+
+    const receivedHash = Buffer.from(hash, "hex");
+    if (receivedHash.length !== expectedHash.length ||
+        !crypto.timingSafeEqual(receivedHash, expectedHash)) {
+        return { ok:false, reason:"signature_invalid" };
+    }
+
+    return {
+        ok:true,
+        telegramId,
+        authDate,
+        username: String(payload.username || "").trim().slice(0, 64) || null,
+        firstName: String(payload.first_name || "").trim().slice(0, 128) || null,
+        lastName: String(payload.last_name || "").trim().slice(0, 128) || null,
+        photoUrl: String(payload.photo_url || "").trim().slice(0, 2048) || null
+    };
+}
+
+app.post("/api/profile/link-telegram", async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user) {
+            return res.status(401).json({
+                ok:false,
+                code:"AUTH_REQUIRED",
+                message:"سجّل الدخول بحساب WallpaperHub أولاً ثم أعد تأكيد Telegram."
+            });
+        }
+
+        const botToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+        if (!botToken) {
+            return res.status(503).json({
+                ok:false,
+                code:"TELEGRAM_NOT_CONFIGURED",
+                message:"TELEGRAM_BOT_TOKEN غير مضبوط في الخادم."
+            });
+        }
+
+        const verified = verifyTelegramLoginPayload(req.body, botToken);
+        if (!verified.ok) {
+            const expired = verified.reason === "expired";
+            return res.status(401).json({
+                ok:false,
+                code:expired ? "TELEGRAM_LOGIN_EXPIRED" : "TELEGRAM_LOGIN_INVALID",
+                message:expired
+                    ? "انتهت صلاحية تأكيد Telegram. اضغط زر Telegram وحاول مجدداً."
+                    : "تعذر التحقق من توقيع Telegram. أعد المحاولة من الزر الرسمي."
+            });
+        }
+
+        // Reject identity takeover or accidental account switching.
+        const { data: existingTelegram, error: telegramLookupError } = await supabase
+            .from("telegram_account_links")
+            .select("user_id")
+            .eq("telegram_id", verified.telegramId)
+            .maybeSingle();
+
+        if (telegramLookupError) {
+            if (telegramLookupError.code === "42P01" || /telegram_account_links/i.test(telegramLookupError.message || "")) {
+                return res.status(503).json({
+                    ok:false,
+                    code:"TELEGRAM_LINK_TABLE_MISSING",
+                    message:"جدول ربط Telegram غير مهيأ بعد في Supabase. نفّذ ملف telegram-account-links.sql المرفق ثم أعد المحاولة."
+                });
+            }
+            throw telegramLookupError;
+        }
+
+        if (existingTelegram && String(existingTelegram.user_id) !== String(user.id)) {
+            return res.status(409).json({
+                ok:false,
+                code:"TELEGRAM_ALREADY_LINKED",
+                message:"حساب Telegram هذا مربوط مسبقاً بحساب WallpaperHub آخر."
+            });
+        }
+
+        const { data: existingUserLink, error: userLinkLookupError } = await supabase
+            .from("telegram_account_links")
+            .select("telegram_id,linked_at")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        if (userLinkLookupError) throw userLinkLookupError;
+        if (existingUserLink && String(existingUserLink.telegram_id) !== verified.telegramId) {
+            return res.status(409).json({
+                ok:false,
+                code:"USER_HAS_TELEGRAM_LINK",
+                message:"هذا الحساب مربوط بحساب Telegram آخر. ألغِ الربط القديم أولاً قبل استبداله."
+            });
+        }
+
+        const now = new Date().toISOString();
+        const { error: saveError } = await supabase
+            .from("telegram_account_links")
+            .upsert({
+                user_id:user.id,
+                telegram_id:verified.telegramId,
+                telegram_username:verified.username,
+                first_name:verified.firstName,
+                last_name:verified.lastName,
+                photo_url:verified.photoUrl,
+                linked_at:existingUserLink?.linked_at || now,
+                updated_at:now
+            }, { onConflict:"user_id" });
+
+        if (saveError?.code === "23505") {
+            return res.status(409).json({
+                ok:false,
+                code:"TELEGRAM_ALREADY_LINKED",
+                message:"حساب Telegram هذا مربوط بحساب WallpaperHub آخر."
+            });
+        }
+        if (saveError) throw saveError;
+
+        return res.json({
+            ok:true,
+            linked:true,
+            telegram_id:verified.telegramId,
+            username:verified.username
+        });
+    } catch (error) {
+        console.error("TELEGRAM ACCOUNT LINK ERROR:", error?.message || error);
+        return res.status(500).json({
+            ok:false,
+            code:"TELEGRAM_LINK_FAILED",
+            message:"تعذر حفظ ربط Telegram حالياً. تحقق من إعدادات Supabase وسجلات الخادم."
+        });
+    }
+});
+
+
+
+
 app.get("/api/admin/users", async (req,res)=>{
     try{
         const admin = await requireAdmin(req,res);
