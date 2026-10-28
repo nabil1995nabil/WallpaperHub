@@ -216,6 +216,8 @@ function createMiniCards(){
         card.className = "mini-card";
         card.setAttribute("aria-label", `الخلفية ${index + 1}`);
         card.innerHTML = `<img src="${escHtml(wall.image)}" alt="" loading="lazy" draggable="false">`;
+        card.dataset.title = wall.title || "";
+        card.style.setProperty("--i", index);
 
         card.onclick = () => showSlider(index);
 
