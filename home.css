@@ -315,13 +315,13 @@ button:focus-visible{
     overflow: hidden;
     cursor: pointer;
     background: var(--surface);
-    box-shadow: 0 8px 22px rgba(33,38,70,.10);
+    box-shadow: none;
     scroll-snap-align: start;
     transition: transform .25s ease, box-shadow .25s ease;
 }
 
 .wall-card:hover{
-    box-shadow: 0 16px 34px rgba(33,38,70,.16);
+    box-shadow: none;
 }
 
 .wall-card:active{
@@ -395,13 +395,13 @@ button:focus-visible{
     border-radius: 28px;
     overflow: hidden;
     color: #fff;
-    box-shadow: 0 18px 40px rgba(20,25,70,.28);
+    box-shadow: none;
     transition: transform .25s ease, box-shadow .25s ease;
 }
 
 .photo-editor-card:hover{
     transform: translateY(-3px);
-    box-shadow: 0 24px 50px rgba(20,25,70,.34);
+    box-shadow: none;
 }
 
 .photo-editor-card:active{
@@ -513,7 +513,7 @@ button:focus-visible{
         radial-gradient(circle at 18% 80%, rgba(113,68,255,.42), transparent 34%),
         radial-gradient(circle at 58% 20%, rgba(0,190,255,.2), transparent 32%),
         linear-gradient(135deg, #111b55 0%, #182c77 48%, #10193e 100%);
-    box-shadow: 0 16px 35px rgba(22,34,103,.22);
+    box-shadow: none;
 }
 
 .community-section::before{
