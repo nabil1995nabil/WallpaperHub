@@ -1,72 +1,148 @@
 /* =========================================================
-   WallpaperHub Profile — Clean Root Design
-   Rebuilt from the supplied old mobile design.
-   No layered override patches.
+   WallpaperHub Profile — نسخة منظّفة ومتجاوبة
+   - نظام واحد متجاوب (clamp) بدل قواعد منفصلة لكل شاشة
+   - متغيرات للألوان: الوضع الداكن يغيّر المتغيرات فقط
+   - خطوط أنحف (400 / 500 / 600) وأحجام نصوص مقروءة
+   - بدون !important إلا في reduced-motion
+   - جميع أسماء الـ classes كما هي، فلا تحتاج لتعديل HTML/JS
+   ملاحظة: حمّل Cairo بالأوزان 300;400;500;600
    ========================================================= */
 
-*{
+/* ---------- المتغيرات ---------- */
+:root{
+    --maxw:1000px;
+    --pad:clamp(12px,2.6vw,22px);
+    --btn:clamp(40px,6vw,48px);
+    --hdr-x:clamp(10px,2.5vw,16px);
+    --hdr-top:calc(clamp(9px,1.6vw,12px) + env(safe-area-inset-top,0px));
+    --cover-h:clamp(250px,calc(24vw + 180px),432px);
+    --avatar:clamp(92px,calc(14vw + 54px),160px);
+    --side-w:clamp(128px,32vw,265px);
+
+    --fs-name:clamp(21px,calc(1.6vw + 15px),34px);
+    --fs-user:clamp(13px,calc(1.1vw + 9px),18px);
+    --fs-bio:clamp(12.5px,calc(.9vw + 9.5px),16px);
+    --fs-sm:clamp(11px,calc(.4vw + 9.5px),13px);
+    --fs-base:clamp(13px,calc(.6vw + 10px),16px);
+
+    --fw-regular:400;
+    --fw-medium:500;
+    --fw-semibold:600;
+
+    --primary:#5364ee;
+    --primary-soft:#eef2ff;
+    --bg:#f7f8fc;
+    --identity-bg:#fff;
+    --surface:#fff;
+    --surface-2:#eef2f8;
+    --surface-3:#f5f7fa;
+    --input-bg:#f7f8fb;
+    --line:#e6e9f0;
+    --line-input:#e1e5ed;
+    --text:#151a2a;
+    --text-strong:#121826;
+    --text-2:#70788b;
+    --text-3:#8b92a5;
+    --soft-grad:linear-gradient(180deg,#fbfcff,#f7f8fc);
+    --follow-grad:linear-gradient(135deg,#f8faff,#fff);
+    --shadow:0 5px 16px rgba(35,45,80,.04);
+    --social-chip:#f4f6fa;
+    --social-chip-line:#e4e8ef;
+    --tiktok:#111827;
+}
+
+body.dark{
+    --primary-soft:#1b2130;
+    --bg:#0b0e15;
+    --identity-bg:#0b0e15;
+    --surface:#141925;
+    --surface-2:#1b2130;
+    --surface-3:#202738;
+    --input-bg:#0d111a;
+    --line:#252c3c;
+    --line-input:#2a3142;
+    --text:#fff;
+    --text-strong:#fff;
+    --text-2:#9da6ba;
+    --text-3:#8f99ad;
+    --soft-grad:linear-gradient(180deg,#171d2a,#131824);
+    --follow-grad:linear-gradient(135deg,#141925,#141925);
+    --shadow:none;
+    --social-chip:#1b2130;
+    --social-chip-line:#2a3142;
+    --tiktok:#e5e7eb;
+}
+
+/* ---------- الأساسيات ---------- */
+*,*::before,*::after{
     box-sizing:border-box;
     margin:0;
     padding:0;
-    font-family:"Cairo",Arial,sans-serif;
 }
 
-html{scroll-behavior:smooth;}
+html{
+    scroll-behavior:smooth;
+    -webkit-text-size-adjust:100%;
+}
 
 body{
     width:100%;
     min-height:100vh;
+    min-height:100dvh;
     overflow-x:hidden;
-    padding-bottom:95px;
-    background:#f7f8fc;
-    color:#151a2a;
+    padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Cairo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+    font-size:var(--fs-base);
+    font-weight:var(--fw-regular);
+    line-height:1.5;
     -webkit-font-smoothing:antialiased;
 }
 
-button,input{font:inherit;}
-button{border:0;}
-button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
+button,input{font:inherit;color:inherit;}
+button{border:0;background:none;cursor:pointer;}
+img,svg{max-width:100%;}
 
-/* =========================================================
-   Header — single stable layout
-   The three controls are anchored to the header itself so
-   theme/mobile rules cannot move them vertically.
-   ========================================================= */
+:where(button,a,input):focus-visible{
+    outline:3px solid rgba(83,100,238,.28);
+    outline-offset:2px;
+}
 
+/* ---------- الهيدر ---------- */
 .profile-header{
     position:absolute;
     top:0;
     left:0;
     right:0;
     z-index:100;
-    height:74px;
-    padding:0;
-    display:block;
-    background:transparent;
+    height:calc(var(--hdr-top) + var(--btn) + 10px);
     direction:ltr;
 }
 
 .profile-header h2{
     position:absolute;
-    top:50%;
+    top:calc(var(--hdr-top) + var(--btn) / 2);
     left:50%;
-    margin:0;
+    z-index:2;
     transform:translate(-50%,-50%);
     color:#fff;
-    font-size:25px;
-    font-weight:800;
+    font-size:clamp(18px,calc(1.2vw + 14px),24px);
+    font-weight:var(--fw-semibold);
     line-height:1;
     white-space:nowrap;
     text-shadow:0 2px 10px rgba(0,0,0,.35);
     direction:rtl;
 }
 
-.profile-header-side{
+.profile-header-side,
+.profile-header > .menu-btn{
     position:absolute;
-    top:12px;
-    right:14px;
-    width:50px;
-    height:50px;
+    top:var(--hdr-top);
+    right:var(--hdr-x);
+    z-index:3;
+    width:var(--btn);
+    height:var(--btn);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -74,99 +150,51 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 
 .profile-actions{
     position:absolute;
-    top:12px;
-    left:14px;
+    top:var(--hdr-top);
+    left:var(--hdr-x);
+    z-index:3;
+    height:var(--btn);
     display:flex;
     align-items:center;
-    justify-content:flex-start;
-    gap:9px;
+    gap:clamp(6px,1.2vw,9px);
     direction:ltr;
-    height:50px;
 }
 
 .menu-btn,
 .settings-btn,
 .login-btn{
-    width:50px;
-    height:50px;
-    min-width:50px;
-    max-width:50px;
-    flex:0 0 50px;
+    width:var(--btn);
+    height:var(--btn);
+    flex:0 0 var(--btn);
     display:flex;
     align-items:center;
     justify-content:center;
-    padding:0;
-    margin:0;
     border-radius:50%;
     color:#fff;
     background:rgba(0,0,0,.30);
     border:1px solid rgba(255,255,255,.26);
     box-shadow:0 5px 16px rgba(0,0,0,.18);
-    backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);
-    cursor:pointer;
+    backdrop-filter:blur(10px);
 }
 
 .profile-header .material-icons{
-    font-size:27px;
+    font-size:calc(var(--btn) * .55);
     color:#fff;
 }
 
-/* =========================================================
-   Header controls — fixed positions for BOTH supported HTML
-   structures:
-   1) .profile-header-side > .menu-btn
-   2) .profile-header > .menu-btn (legacy/current variants)
-   ========================================================= */
-
-.profile-header > .menu-btn{
-    position:absolute;
-    top:12px;
-    right:14px;
-    z-index:3;
-}
-
-.profile-header > .profile-header-side{
-    z-index:3;
-}
-
-.profile-header > .profile-header-side .menu-btn{
-    position:static;
-}
-
-.profile-header > .profile-actions{
-    z-index:3;
-}
-
-.profile-header h2{
-    z-index:2;
-}
-
-.profile-header-side,
-.profile-actions,
-.profile-header-side .menu-btn,
-.profile-actions .login-btn,
-.profile-actions .settings-btn{
-    align-self:center;
-}
-/* Header positioning is intentionally structural, not a visual patch. */
-
-/* =========================================================
-   Cover
-   ========================================================= */
-
+/* ---------- الغلاف ---------- */
 .profile-cover{
     position:relative;
     width:100%;
-    height:432px;
-    overflow:visible;
-    background:#fff;
+    height:var(--cover-h);
+    background:var(--identity-bg);
 }
 
 .cover-stage{
     position:relative;
     width:100%;
-    height:432px;
+    height:100%;
     overflow:hidden;
     background:#101116;
 }
@@ -181,7 +209,7 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 
 .cover-image{
     width:100%;
-    height:432px;
+    height:100%;
     display:block;
     object-fit:cover;
     object-position:center;
@@ -192,8 +220,8 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     position:absolute;
     top:50%;
     z-index:25;
-    width:52px;
-    height:52px;
+    width:clamp(38px,8vw,52px);
+    height:clamp(38px,8vw,52px);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -203,36 +231,36 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     background:rgba(35,39,49,.70);
     color:#fff;
     box-shadow:0 8px 22px rgba(0,0,0,.18);
+    -webkit-backdrop-filter:blur(8px);
     backdrop-filter:blur(8px);
-    cursor:pointer;
 }
 
-.cover-nav-prev{right:18px;}
-.cover-nav-next{left:18px;}
-.cover-nav-btn .material-icons{font-size:35px;}
+.cover-nav-prev{right:clamp(9px,2.5vw,18px);}
+.cover-nav-next{left:clamp(9px,2.5vw,18px);}
+.cover-nav-btn .material-icons{font-size:clamp(26px,5vw,34px);}
 
+/* مخفي عمدًا (كان display:none !important في النسخة القديمة) */
 .cover-change-btn{
-    display:none !important;
+    display:none;
     position:absolute;
-    top:198px;
-    right:18px;
+    top:50%;
+    right:clamp(10px,2.5vw,18px);
     z-index:30;
-    height:48px;
-    padding:0 17px;
-    display:flex;
+    height:clamp(38px,6vw,48px);
+    padding:0 clamp(12px,2vw,17px);
     align-items:center;
     justify-content:center;
     gap:6px;
-    border-radius:24px;
+    border-radius:999px;
     background:rgba(48,45,49,.76);
     color:#fff;
-    font-size:15px;
-    font-weight:700;
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-medium);
+    -webkit-backdrop-filter:blur(8px);
     backdrop-filter:blur(8px);
-    cursor:pointer;
 }
 
-.cover-change-btn .material-icons{font-size:20px;}
+.cover-change-btn .material-icons{font-size:19px;}
 
 .cover-file-input{
     position:absolute;
@@ -245,18 +273,19 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 .cover-history-overlay{
     position:absolute;
     z-index:26;
-    left:20px;
-    bottom:18px;
+    left:clamp(10px,2.5vw,20px);
+    bottom:clamp(10px,2.5vw,18px);
     display:flex;
     align-items:center;
-    gap:8px;
-    padding:9px 13px;
-    border-radius:15px;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:12px;
     background:rgba(25,28,36,.70);
     border:1px solid rgba(255,255,255,.16);
     color:#fff;
-    font-size:12px;
-    font-weight:700;
+    font-size:11px;
+    font-weight:var(--fw-medium);
+    -webkit-backdrop-filter:blur(8px);
     backdrop-filter:blur(8px);
 }
 
@@ -269,100 +298,84 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     position:absolute;
     z-index:26;
     right:50%;
-    bottom:20px;
+    bottom:clamp(12px,2.5vw,20px);
     transform:translateX(50%);
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
+    gap:clamp(5px,1vw,8px);
 }
 
 .cover-history-dot{
-    width:9px;
-    height:9px;
+    width:clamp(6px,1.4vw,9px);
+    height:clamp(6px,1.4vw,9px);
     border-radius:50%;
     background:rgba(255,255,255,.55);
 }
+
 .cover-history-dot.active{
-    width:38px;
+    width:clamp(24px,5vw,38px);
     border-radius:8px;
     background:#fff;
 }
 
-/* =========================================================
-   Avatar
-   ========================================================= */
-
+/* ---------- الصورة الشخصية ---------- */
 .profile-avatar-box{
     position:absolute;
-    top:292px;
-    right:64px;
-    left:auto;
+    top:calc(var(--cover-h) - var(--avatar) * .85);
+    right:max(var(--pad), calc((100% - var(--maxw)) / 2 + var(--pad)));
     z-index:50;
-    width:166px;
-    height:166px;
-    overflow:visible;
+    width:var(--avatar);
+    height:var(--avatar);
 }
 
 .profile-avatar{
-    width:166px;
-    height:166px;
+    width:100%;
+    height:100%;
     display:block;
     object-fit:cover;
-    border:0;
     border-radius:50%;
-    background:transparent;
+    background:var(--surface-2);
     box-shadow:0 8px 25px rgba(35,45,80,.22);
 }
 
-/* Founder crown: hidden unless founder-crown.js grants .is-founder */
+/* تاج المؤسس: يظهر فقط مع .is-founder */
 .profile-avatar-crown{
-    display:none !important;
+    display:none;
     position:absolute;
-    left:7px;
+    left:2px;
     bottom:-2px;
-    width:42px;
-    height:42px;
+    width:calc(var(--avatar) * .27);
+    height:calc(var(--avatar) * .27);
     align-items:center;
     justify-content:center;
-    background:transparent;
-    border:0;
-    box-shadow:none;
     color:#d2a52c;
     pointer-events:none;
     z-index:60;
 }
 
-.profile-avatar-crown.is-founder{
-    display:flex !important;
-}
+.profile-avatar-crown.is-founder{display:flex;}
 
 .profile-avatar-crown .material-icons{
-    font-size:31px;
+    font-size:calc(var(--avatar) * .2);
     line-height:1;
     color:#d2a52c;
 }
 
-/* =========================================================
-   Identity — exact old two-column composition
-   Right: name / username / bio / edit
-   Left: premium / medals
-   ========================================================= */
-
+/* ---------- الهوية ---------- */
 .profile-identity{
     position:relative;
     z-index:35;
     width:100%;
-    max-width:1000px;
-    min-height:297px;
+    max-width:var(--maxw);
     margin:0 auto;
-    padding:47px 24px 24px;
+    padding:calc(var(--avatar) * .15 + 16px) var(--pad) var(--pad);
     display:grid;
-    grid-template-columns:minmax(0,1fr) 265px;
-    column-gap:30px;
+    grid-template-columns:minmax(0,1fr) var(--side-w);
+    column-gap:clamp(10px,3vw,30px);
     align-items:start;
     direction:rtl;
-    background:#fff;
+    background:var(--identity-bg);
 }
 
 .identity-main{
@@ -372,42 +385,41 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     flex-direction:column;
     align-items:flex-start;
     text-align:right;
-    direction:rtl;
 }
 
 .identity-name-row{
     width:100%;
+    min-width:0;
     display:flex;
     align-items:center;
-    justify-content:flex-start;
-    gap:8px;
-    direction:rtl;
+    gap:6px;
 }
 
 .identity-name-row h1{
-    color:#121826;
-    font-size:38px;
-    font-weight:800;
-    line-height:1.15;
+    min-width:0;
+    overflow:hidden;
+    color:var(--text-strong);
+    font-size:var(--fs-name);
+    font-weight:var(--fw-semibold);
+    line-height:1.25;
+    text-overflow:ellipsis;
     white-space:nowrap;
 }
 
 .verified-badge{
-    width:23px;
-    height:23px;
-    flex:0 0 23px;
+    width:clamp(18px,3vw,23px);
+    height:clamp(18px,3vw,23px);
+    flex:0 0 auto;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    border:0;
-    background:transparent;
-    box-shadow:none;
     line-height:0;
 }
 
-.verified-badge[hidden]{display:none !important;}
-.verified-badge svg{width:23px;height:23px;display:block;}
+.verified-badge[hidden]{display:none;}
+.verified-badge svg{width:100%;height:100%;display:block;}
 .verified-badge .verified-shape{fill:#168bf0;stroke:none;}
+
 .verified-badge .verified-check{
     fill:none;
     stroke:#fff;
@@ -417,79 +429,228 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 }
 
 .identity-username{
-    margin-top:7px;
-    color:#858b98;
-    font-size:19px;
-    line-height:1.35;
+    margin-top:2px;
+    color:var(--text-3);
+    font-size:var(--fs-user);
+    line-height:1.4;
     direction:ltr;
 }
 
 .identity-bio{
-    margin-top:8px;
-    color:#7b818e;
-    font-size:17px;
-    line-height:1.55;
+    margin-top:6px;
+    color:var(--text-2);
+    font-size:var(--fs-bio);
+    line-height:1.65;
+    overflow-wrap:anywhere;
 }
 
 .hero-edit-profile{
-    width:310px;
-    height:57px;
-    margin-top:14px;
-    padding:0 18px;
+    width:min(100%,310px);
+    height:clamp(40px,5.5vw,54px);
+    margin-top:12px;
+    padding:0 16px;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:9px;
-    border-radius:30px;
-    background:#fff;
-    color:#171c2a;
+    gap:8px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--surface);
+    color:var(--text-strong);
     box-shadow:0 8px 25px rgba(67,83,125,.10);
-    font-size:17px;
-    font-weight:800;
-    cursor:pointer;
+    font-size:clamp(12.5px,calc(.5vw + 10px),16px);
+    font-weight:var(--fw-medium);
 }
+
+body.dark .hero-edit-profile{box-shadow:none;}
 
 .hero-edit-profile .material-icons{
-    color:#596274;
-    font-size:25px;
+    color:var(--text-2);
+    font-size:clamp(18px,3vw,24px);
 }
 
+/* رابط النقاط تحت زر التعديل */
+#profilePointsBtn{
+    display:inline-flex;
+    align-items:center;
+    align-self:flex-start;
+    justify-content:flex-start;
+    gap:5px;
+    width:auto;
+    height:auto;
+    max-width:none;
+    min-height:0;
+    margin-top:4px;
+    padding:2px 0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+    color:var(--text-2);
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-regular);
+    line-height:1.4;
+    text-decoration:none;
+}
+
+#profilePointsBtn .material-icons{font-size:15px;color:#a88728;}
+
+#profilePointsValue{
+    color:var(--text);
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-semibold);
+}
+
+/* أزرار المتابعة (البروفايل العام) */
+.public-profile-actions{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    margin-top:12px;
+}
+
+.public-profile-actions[hidden]{display:none;}
+
+.follow-profile-btn{
+    min-width:clamp(120px,22vw,150px);
+    height:clamp(42px,6vw,48px);
+    padding:0 clamp(16px,3vw,22px);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border-radius:999px;
+    background:linear-gradient(135deg,#1764f5,#2858e8);
+    color:#fff;
+    font-size:clamp(13px,calc(.4vw + 11px),15px);
+    font-weight:var(--fw-semibold);
+    box-shadow:0 8px 20px rgba(37,99,235,.20);
+    transition:transform .18s ease,box-shadow .18s ease;
+}
+
+.follow-profile-btn:hover{box-shadow:0 10px 24px rgba(37,99,235,.28);}
+.follow-profile-btn:active{transform:scale(.97);}
+.follow-profile-btn:disabled{opacity:.72;cursor:wait;}
+.follow-profile-btn .material-icons{font-size:20px;}
+
+.follow-profile-btn.is-following{
+    background:#edf2ff;
+    border:1px solid #dbe5ff;
+    color:#3159d9;
+    box-shadow:none;
+}
+
+body.dark .follow-profile-btn.is-following{
+    background:rgba(83,100,238,.16);
+    border-color:rgba(83,100,238,.30);
+    color:#a9b4ff;
+}
+
+.message-profile-btn{
+    width:clamp(42px,6vw,48px);
+    height:clamp(42px,6vw,48px);
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:var(--surface);
+    color:var(--text-2);
+    box-shadow:0 6px 20px rgba(35,45,80,.10);
+}
+
+body.dark .message-profile-btn{box-shadow:none;}
+.message-profile-btn .material-icons{font-size:22px;}
+
+/* عدّاد المتابعين */
+.profile-follow-stats{
+    position:relative;
+    width:100%;
+    min-height:clamp(60px,9vw,70px);
+    margin-top:14px;
+    padding:8px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    gap:8px;
+    border:1px solid var(--line);
+    border-radius:clamp(16px,3vw,20px);
+    background:var(--follow-grad);
+    box-shadow:var(--shadow);
+}
+
+.profile-follow-stats[hidden]{display:none;}
+
+.follow-stat-item{
+    min-width:0;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    padding:3px 5px;
+    color:var(--text-2);
+}
+
+.follow-stat-item:active{transform:scale(.98);}
+
+.follow-stat-item strong{
+    color:var(--text-strong);
+    font-size:clamp(18px,calc(.7vw + 15px),21px);
+    font-weight:var(--fw-semibold);
+    line-height:1.2;
+}
+
+.follow-stat-item span{
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-regular);
+    white-space:nowrap;
+}
+
+.follow-stat-divider{
+    width:1px;
+    align-self:stretch;
+    background:var(--line);
+}
+
+/* العمود الجانبي: بريميوم + أوسمة */
 .identity-side-stack{
     grid-column:2;
+    min-width:0;
     display:flex;
     flex-direction:column;
     align-items:stretch;
-    gap:21px;
-    direction:rtl;
+    gap:clamp(8px,1.8vw,20px);
 }
 
-/* Premium */
 .identity-side-card{
     width:100%;
-    height:104px;
-    min-height:104px;
-    padding:13px 15px;
+    min-height:clamp(60px,10vw,104px);
+    padding:clamp(6px,1.2vw,13px) clamp(7px,1.4vw,15px);
     display:flex;
     align-items:center;
-    gap:11px;
-    border-radius:22px;
+    gap:clamp(5px,1vw,11px);
+    border-radius:clamp(13px,2.4vw,22px);
     background:linear-gradient(145deg,#795b50,#a9887a);
     color:#fff;
     box-shadow:0 8px 20px rgba(73,48,39,.12);
-    direction:rtl;
 }
 
 .premium-crown{
-    width:54px;
-    height:54px;
-    flex:0 0 54px;
+    width:clamp(32px,6vw,54px);
+    height:clamp(32px,6vw,54px);
+    flex:0 0 auto;
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:15px;
+    border-radius:clamp(9px,1.6vw,15px);
     background:rgba(255,255,255,.12);
     color:#ffe27a;
-    font-size:28px;
+    font-size:clamp(17px,3vw,28px);
 }
 
 .identity-side-content{
@@ -497,60 +658,67 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     flex:1;
     display:flex;
     flex-direction:column;
-    gap:2px;
     text-align:right;
 }
 
 .identity-side-content strong{
+    overflow:hidden;
     color:#fff;
-    font-size:16px;
-    font-weight:800;
+    font-size:clamp(12px,calc(.5vw + 10px),16px);
+    font-weight:var(--fw-semibold);
+    text-overflow:ellipsis;
     white-space:nowrap;
 }
 
 .identity-side-content small{
+    overflow:hidden;
     color:rgba(255,255,255,.80);
-    font-size:12px;
+    font-size:clamp(10.5px,calc(.3vw + 9px),12px);
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 
 .premium-arrow{
+    flex:0 0 auto;
     color:#fff;
-    font-size:30px;
+    font-size:clamp(20px,3.4vw,30px);
 }
 
-/* Medals */
+/* زر الأوسمة */
 .profile-medals-trigger{
     width:100%;
-    height:59px;
-    padding:0 14px;
+    height:clamp(36px,6vw,58px);
+    padding:0 clamp(7px,1.4vw,14px);
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
+    gap:clamp(4px,.9vw,8px);
+    overflow:hidden;
     border:1px solid #ead7a1;
-    border-radius:30px;
+    border-radius:999px;
     background:linear-gradient(180deg,#fffdf6,#fff8e4);
     color:#8b6b19;
     box-shadow:0 5px 15px rgba(176,139,42,.08);
-    font-size:14px;
-    font-weight:800;
-    cursor:pointer;
+    font-size:clamp(11px,calc(.5vw + 8.5px),14px);
+    font-weight:var(--fw-medium);
 }
 
+body.dark .profile-medals-trigger{box-shadow:none;}
+
 .medal-trigger-icon{
-    width:35px;
-    height:35px;
+    width:clamp(22px,4vw,35px);
+    height:clamp(22px,4vw,35px);
+    flex:0 0 auto;
     display:flex;
     align-items:center;
     justify-content:center;
-    flex:0 0 35px;
     border-radius:50%;
     background:#f4ce5e;
     color:#70540c;
-    font-size:18px;
+    font-size:clamp(11px,2vw,18px);
 }
 
-.profile-medals-trigger .material-icons{font-size:21px;}
+.profile-medals-trigger .material-icons{font-size:clamp(14px,2.4vw,21px);}
 
 .profile-medals-inline-panel{
     width:100%;
@@ -559,44 +727,40 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     opacity:0;
     padding:0;
     border:1px solid transparent;
-    border-radius:18px;
+    border-radius:clamp(12px,2vw,18px);
     background:#fffdf8;
     transition:max-height .25s ease,opacity .2s ease,padding .25s ease,border-color .25s ease;
 }
 
 .profile-medals-inline-panel.open{
-    max-height:220px;
+    max-height:200px;
     opacity:1;
-    padding:10px;
+    padding:clamp(7px,1.4vw,10px);
     border-color:#eadfbe;
 }
+
+body.dark .profile-medals-inline-panel{background:var(--surface);}
+body.dark .profile-medals-inline-panel.open{border-color:var(--line);}
 
 .profile-medals-inline-head{
     display:flex;
     align-items:center;
     justify-content:space-between;
+    margin-bottom:6px;
     color:#8b6b19;
     font-size:11px;
-    font-weight:800;
-    margin-bottom:8px;
+    font-weight:var(--fw-medium);
 }
 
-.profile-medals-viewport{
-    width:100%;
-    overflow:hidden;
-}
-
-.profile-medals-track{
-    display:flex;
-    width:100%;
-}
+.profile-medals-viewport{width:100%;overflow:hidden;}
+.profile-medals-track{display:flex;width:100%;}
 
 .profile-medals-page{
     width:100%;
     flex:0 0 100%;
     display:grid;
     grid-template-columns:repeat(4,1fr);
-    gap:7px;
+    gap:clamp(4px,.9vw,7px);
 }
 
 .profile-medal{
@@ -606,8 +770,9 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 }
 
 .profile-medal-badge{
-    width:38px;
-    height:38px;
+    width:100%;
+    max-width:38px;
+    aspect-ratio:1;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -616,13 +781,15 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     color:#a5a9b3;
 }
 
+body.dark .profile-medal-badge{background:var(--surface-2);}
+
 .profile-medal.unlocked .profile-medal-badge{
     background:linear-gradient(145deg,#f8dc79,#c99a1f);
     color:#70520b;
 }
 
 .profile-medal.locked{opacity:.42;}
-.profile-medal-badge .material-icons{font-size:20px;}
+.profile-medal-badge .material-icons{font-size:clamp(16px,2.6vw,20px);}
 
 .profile-medals-dots{
     display:flex;
@@ -641,47 +808,40 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 .profile-medal-dot.active{
     width:17px;
     border-radius:6px;
-    background:#5364ee;
+    background:var(--primary);
 }
 
-/* =========================================================
-   Statistics — old design
-   ========================================================= */
-
+/* ---------- الإحصائيات ---------- */
 .profile-stats{
     width:100%;
-    max-width:1000px;
+    max-width:var(--maxw);
     margin:0 auto;
-    padding:14px 15px;
+    padding:clamp(8px,1.6vw,14px) var(--pad);
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:11px;
-    border-radius:24px;
-    background:transparent;
+    gap:clamp(5px,1.2vw,11px);
 }
 
 .stat-card{
     min-width:0;
-    height:106px;
-    padding:10px 5px;
+    min-height:clamp(80px,13vw,106px);
+    padding:10px 4px;
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
     gap:4px;
-    border:1px solid #e3e7f0;
-    border-radius:20px;
-    background:#fff;
-    box-shadow:0 5px 14px rgba(35,45,80,.04);
+    border:1px solid var(--line);
+    border-radius:clamp(13px,2.4vw,20px);
+    background:var(--surface);
+    box-shadow:var(--shadow);
 }
 
 .stat-icon{
-    width:32px;
-    height:32px;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:29px;
+    font-size:clamp(22px,4vw,29px);
 }
 
 .download-icon{color:#0788e8;}
@@ -690,37 +850,37 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 .wallpaper-icon{color:#00b894;}
 
 .stat-card strong{
-    color:#151a27;
-    font-size:24px;
-    font-weight:800;
-    line-height:1;
+    color:var(--text-strong);
+    font-size:clamp(16px,calc(1.2vw + 12px),24px);
+    font-weight:var(--fw-semibold);
+    line-height:1.1;
 }
 
 .stat-card > span:last-child{
-    color:#70788b;
-    font-size:12px;
-    font-weight:700;
+    max-width:100%;
+    overflow:hidden;
+    color:var(--text-2);
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-regular);
+    text-overflow:ellipsis;
     white-space:nowrap;
 }
 
-/* =========================================================
-   Tabs
-   ========================================================= */
-
+/* ---------- التبويبات ---------- */
 .profile-tabs{
-    width:calc(100% - 42px);
-    max-width:1000px;
-    margin:14px auto 0;
-    padding:6px;
+    width:calc(100% - var(--pad) * 2);
+    max-width:var(--maxw);
+    margin:clamp(8px,1.6vw,14px) auto 0;
+    padding:clamp(4px,.8vw,6px);
     display:flex;
     align-items:center;
     gap:3px;
     overflow-x:auto;
     scrollbar-width:none;
-    border:1px solid #e5e8ef;
-    border-radius:21px;
-    background:#fff;
-    box-shadow:0 4px 14px rgba(35,45,80,.04);
+    border:1px solid var(--line);
+    border-radius:clamp(14px,2.4vw,21px);
+    background:var(--surface);
+    box-shadow:var(--shadow);
 }
 
 .profile-tabs::-webkit-scrollbar{display:none;}
@@ -729,121 +889,145 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     position:relative;
     flex:1 0 auto;
     min-width:0;
-    height:72px;
-    padding:0 13px;
+    height:clamp(54px,8vw,70px);
+    padding:0 clamp(8px,1.6vw,14px);
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:7px;
-    border-radius:17px;
-    background:transparent;
-    color:#767e8f;
-    font-size:15px;
-    font-weight:700;
+    gap:2px;
+    border-radius:clamp(10px,2vw,17px);
+    color:var(--text-2);
+    font-size:clamp(12px,calc(.6vw + 9.5px),15px);
+    font-weight:var(--fw-medium);
     white-space:nowrap;
-    cursor:pointer;
 }
 
-.profile-tab .material-icons{font-size:23px;}
+.profile-tab .material-icons{font-size:clamp(20px,3.4vw,23px);}
 
 .profile-tab.active{
-    background:#eef2ff;
-    color:#5364ee;
+    background:var(--primary-soft);
+    color:var(--primary);
 }
 
 .profile-tab.active::after{
     content:"";
     position:absolute;
-    right:22px;
-    left:22px;
-    bottom:5px;
-    height:4px;
-    border-radius:4px;
-    background:#5364ee;
+    right:clamp(10px,3vw,22px);
+    left:clamp(10px,3vw,22px);
+    bottom:3px;
+    height:3px;
+    border-radius:3px;
+    background:var(--primary);
 }
 
-/* =========================================================
-   Panels / Information
-   ========================================================= */
+/* من 560px وأكثر: الأيقونة بجانب النص */
+@media (min-width:560px){
+    .profile-tab{flex-direction:row;gap:7px;}
+}
 
+/* ---------- اللوحات ---------- */
 .profile-tab-content{
     width:100%;
-    max-width:1000px;
+    max-width:var(--maxw);
     margin:0 auto;
-    padding-top:12px;
+    padding-top:clamp(8px,1.6vw,12px);
 }
 
 .profile-panel{display:none;}
 .profile-panel.active{display:block;}
 
+/* المعلومات */
 .user-info{
     width:100%;
-    padding:0 21px 25px;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
+    padding:0 var(--pad) 24px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
+    gap:clamp(7px,1.4vw,12px);
 }
 
 .info-card{
-    min-height:92px;
-    padding:14px 17px;
+    min-height:clamp(64px,10vw,90px);
+    padding:clamp(8px,1.6vw,14px) clamp(10px,2vw,17px);
     display:flex;
     align-items:center;
-    gap:15px;
-    border:1px solid #e6e9f0;
-    border-radius:19px;
-    background:#fff;
-    box-shadow:0 5px 16px rgba(35,45,80,.04);
+    gap:clamp(9px,1.8vw,15px);
+    border:1px solid var(--line);
+    border-radius:clamp(13px,2.4vw,19px);
+    background:var(--surface);
+    box-shadow:var(--shadow);
 }
 
 .info-card > .material-icons{
-    width:54px;
-    height:54px;
-    flex:0 0 54px;
+    width:clamp(36px,7vw,54px);
+    height:clamp(36px,7vw,54px);
+    flex:0 0 auto;
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:15px;
-    background:#eef2f8;
-    color:#5364ee;
-    font-size:27px;
+    border-radius:clamp(10px,1.8vw,15px);
+    background:var(--surface-2);
+    color:var(--primary);
+    font-size:clamp(19px,3.6vw,26px);
 }
 
 .info-card h4{
-    color:#7c8391;
-    font-size:14px;
-    margin-bottom:4px;
+    margin-bottom:2px;
+    color:var(--text-3);
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-regular);
 }
 
 .info-card p{
-    color:#171c2a;
-    font-size:19px;
-    font-weight:600;
+    color:var(--text);
+    font-size:clamp(14px,calc(.8vw + 10px),18px);
+    font-weight:var(--fw-medium);
+    overflow-wrap:anywhere;
 }
 
 .uid-box{display:block;}
-.uid-title{margin-bottom:8px;text-align:center;color:#8b92a5;font-size:13px;}
-.uid-content{display:flex;align-items:center;gap:10px;direction:ltr;}
-#userUid{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-family:monospace;font-size:15px;}
+
+.uid-title{
+    margin-bottom:8px;
+    text-align:center;
+    color:var(--text-3);
+    font-size:var(--fs-sm);
+}
+
+.uid-content{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    direction:ltr;
+}
+
+#userUid{
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:var(--fs-sm);
+}
+
 .uid-content button{
     width:42px;
     height:42px;
     flex:0 0 42px;
     border-radius:12px;
-    background:#eef2f7;
-    color:#5364ee;
-    cursor:pointer;
+    background:var(--surface-2);
+    color:var(--primary);
 }
 
-/* Medal history */
+/* سجل الأوسمة */
 .profile-medal-history{
-    width:calc(100% - 42px);
-    margin:0 auto 25px;
-    padding:18px;
-    border:1px solid #e6e9f0;
-    border-radius:20px;
-    background:#fff;
-    box-shadow:0 5px 16px rgba(35,45,80,.04);
+    width:calc(100% - var(--pad) * 2);
+    margin:0 auto 24px;
+    padding:clamp(12px,2.4vw,18px);
+    border:1px solid var(--line);
+    border-radius:clamp(14px,2.4vw,20px);
+    background:var(--surface);
+    box-shadow:var(--shadow);
 }
 
 .profile-medal-history-head{
@@ -855,15 +1039,16 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
 
 .profile-medal-history-kicker{
     color:#a08a4c;
-    font-size:9px;
-    font-weight:800;
-    letter-spacing:.12em;
+    font-size:10px;
+    font-weight:var(--fw-medium);
+    letter-spacing:.1em;
 }
 
 .profile-medal-history-head h3{
-    margin-top:3px;
-    color:#252b3b;
-    font-size:18px;
+    margin-top:2px;
+    color:var(--text-strong);
+    font-size:clamp(14px,calc(.6vw + 11px),18px);
+    font-weight:var(--fw-semibold);
 }
 
 .profile-medal-history-head > .material-icons{
@@ -884,7 +1069,7 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     gap:10px;
     padding:8px;
     border-radius:14px;
-    background:#fafbfe;
+    background:var(--surface-2);
 }
 
 .profile-medal-history-badge{
@@ -898,52 +1083,174 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     color:#70520b;
 }
 
-.profile-medal-history-name{font-size:12px;font-weight:800;color:#353946;}
-.profile-medal-history-desc{margin-top:2px;font-size:9px;color:#989ca6;}
-.profile-medal-history-date{text-align:left;white-space:nowrap;color:#8f6e1e;font-size:9px;font-weight:700;}
-.profile-medal-history-date small{display:block;margin-bottom:2px;color:#a4a7af;font-size:7px;font-weight:500;}
+.profile-medal-history-name{
+    color:var(--text);
+    font-size:13px;
+    font-weight:var(--fw-semibold);
+}
 
-/* Wallpapers */
+.profile-medal-history-desc{
+    margin-top:1px;
+    color:var(--text-3);
+    font-size:11px;
+}
+
+.profile-medal-history-date{
+    text-align:left;
+    white-space:nowrap;
+    color:#8f6e1e;
+    font-size:11px;
+    font-weight:var(--fw-medium);
+}
+
+.profile-medal-history-date small{
+    display:block;
+    margin-bottom:1px;
+    color:var(--text-3);
+    font-size:10px;
+    font-weight:var(--fw-regular);
+}
+
+/* الخلفيات */
 .profile-content{
     width:100%;
-    padding:0 21px 25px;
+    padding:0 var(--pad) 24px;
 }
 
 .profile-grid{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:12px;
     width:100%;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr));
+    gap:clamp(7px,1.4vw,12px);
 }
 
 .profile-wall-card{
     min-width:0;
     overflow:hidden;
-    padding:4px;
-    border:1px solid #e6eaf2;
-    border-radius:17px;
-    background:#eef1f6;
-    box-shadow:0 5px 16px rgba(35,45,80,.04);
+    padding:clamp(3px,.6vw,4px);
+    border:1px solid var(--line);
+    border-radius:clamp(11px,2vw,17px);
+    background:var(--surface-2);
+    box-shadow:var(--shadow);
     cursor:pointer;
 }
 
 .profile-wall-card img{
     width:100%;
-    height:250px;
+    aspect-ratio:4 / 5;
+    height:auto;
     display:block;
     object-fit:cover;
-    border-radius:13px;
+    border-radius:clamp(8px,1.6vw,13px);
 }
 
-.profile-wall-info{padding:7px 4px 3px;}
-.profile-wall-info h3{overflow:hidden;color:#171c2a;font-size:13px;font-weight:700;text-overflow:ellipsis;white-space:nowrap;}
-.profile-wall-info p{margin-top:2px;color:#747c90;font-size:9px;}
-.empty-profile{grid-column:1/-1;padding:35px 10px;text-align:center;color:#8991a5;}
+.profile-wall-info{padding:6px 4px 3px;}
 
-/* =========================================================
-   Edit modal — compact modern profile editor
-   ========================================================= */
+.profile-wall-info h3{
+    overflow:hidden;
+    color:var(--text);
+    font-size:var(--fs-sm);
+    font-weight:var(--fw-medium);
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
 
+.profile-wall-info p{
+    margin-top:1px;
+    color:var(--text-2);
+    font-size:11px;
+}
+
+.empty-profile{
+    grid-column:1 / -1;
+    padding:36px 10px;
+    text-align:center;
+    color:var(--text-3);
+}
+
+/* ---------- مواقع التواصل (العرض العام) ---------- */
+.profile-social-card{
+    width:calc(100% - var(--pad) * 2);
+    margin:0 auto 14px;
+    padding:clamp(10px,2vw,13px) clamp(11px,2.2vw,15px);
+    border:1px solid var(--line);
+    border-radius:clamp(14px,2.4vw,19px);
+    background:var(--surface);
+    box-shadow:var(--shadow);
+}
+
+.profile-social-card[hidden]{display:none;}
+
+.profile-social-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.profile-social-head > div{min-width:0;}
+
+.profile-social-kicker{
+    display:block;
+    margin-bottom:2px;
+    color:var(--text-3);
+    font-size:10px;
+    font-weight:var(--fw-medium);
+    letter-spacing:.1em;
+    line-height:1.2;
+}
+
+.profile-social-head h3{
+    color:var(--text-strong);
+    font-size:clamp(13px,calc(.4vw + 11px),15px);
+    font-weight:var(--fw-semibold);
+}
+
+.profile-social-caption{
+    color:var(--text-3);
+    font-size:11px;
+}
+
+.profile-social-links{
+    min-height:34px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    direction:ltr;
+}
+
+.profile-social-link{
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--social-chip-line);
+    border-radius:10px;
+    background:var(--social-chip);
+    text-decoration:none;
+    box-shadow:0 3px 9px rgba(35,45,80,.05);
+    transition:transform .16s ease,box-shadow .16s ease;
+}
+
+.profile-social-link:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(35,45,80,.10);
+}
+
+.profile-social-link:active{transform:none;}
+.profile-social-link svg{width:18px;height:18px;display:block;fill:currentColor;}
+
+.profile-social-link.telegram{color:#229ed9;}
+.profile-social-link.facebook{color:#1877f2;}
+.profile-social-link.youtube{color:#e62117;}
+.profile-social-link.tiktok{color:var(--tiktok);}
+
+/* ---------- نافذة التعديل ---------- */
 .edit-modal{
     position:fixed;
     inset:0;
@@ -951,110 +1258,102 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     display:none;
     align-items:center;
     justify-content:center;
-    padding:14px;
+    padding:12px;
     background:rgba(8,12,22,.48);
-    backdrop-filter:blur(7px);
     -webkit-backdrop-filter:blur(7px);
+    backdrop-filter:blur(7px);
 }
 
-.edit-modal.show{
-    display:flex;
-}
+.edit-modal.show{display:flex;}
 
 .edit-box{
-    width:min(100%,380px);
-    max-height:min(88vh,620px);
+    width:min(100%,420px);
+    max-height:min(88vh,680px);
+    max-height:min(88dvh,680px);
     overflow:auto;
-    padding:16px;
-    border:1px solid rgba(255,255,255,.78);
-    border-radius:24px;
-    background:rgba(255,255,255,.98);
+    padding:clamp(12px,3vw,18px);
+    border:1px solid var(--line);
+    border-radius:clamp(18px,4vw,24px);
+    background:var(--surface);
     box-shadow:0 22px 60px rgba(12,18,35,.24);
     scrollbar-width:none;
+    overscroll-behavior:contain;
 }
 
-.edit-box::-webkit-scrollbar{
-    display:none;
-}
+.edit-box::-webkit-scrollbar{display:none;}
 
 .edit-modal-head{
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    margin-bottom:13px;
+    margin-bottom:12px;
 }
 
 .edit-modal-kicker{
     display:block;
     margin-bottom:1px;
-    color:#9ba2b1;
-    font-size:8px;
-    font-weight:900;
-    letter-spacing:.16em;
+    color:var(--text-3);
+    font-size:10px;
+    font-weight:var(--fw-medium);
+    letter-spacing:.14em;
 }
 
 .edit-modal-head h2{
-    margin:0;
-    color:#171c2a;
-    font-size:20px;
-    font-weight:900;
-    line-height:1.2;
+    color:var(--text-strong);
+    font-size:clamp(18px,3vw,20px);
+    font-weight:var(--fw-semibold);
+    line-height:1.25;
 }
 
 .edit-close-btn{
-    width:34px;
-    height:34px;
-    flex:0 0 34px;
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
     display:flex;
     align-items:center;
     justify-content:center;
-    border:1px solid #e6e9f0;
+    border:1px solid var(--line-input);
     border-radius:11px;
-    background:#f5f7fa;
-    color:#687184;
-    cursor:pointer;
+    background:var(--surface-3);
+    color:var(--text-2);
 }
 
-.edit-close-btn .material-icons{
-    font-size:19px;
-}
+.edit-close-btn .material-icons{font-size:19px;}
 
 .edit-media-grid{
     display:grid;
-    grid-template-columns:82px minmax(0,1fr);
+    grid-template-columns:clamp(70px,20vw,82px) minmax(0,1fr);
     align-items:center;
-    gap:12px;
-    margin-bottom:13px;
+    gap:clamp(10px,2.4vw,12px);
+    margin-bottom:12px;
 }
 
 .edit-avatar-card,
 .edit-cover-card{
     min-width:0;
-}
-
-.edit-avatar-card{
     display:flex;
     flex-direction:column;
-    align-items:center;
     gap:5px;
 }
 
+.edit-avatar-card{align-items:center;}
+
 .edit-avatar-card > span,
 .edit-cover-card > span{
-    color:#8a91a0;
-    font-size:9px;
-    font-weight:700;
+    color:var(--text-2);
+    font-size:11px;
+    font-weight:var(--fw-medium);
 }
 
 .edit-avatar-preview-wrap{
     position:relative;
-    width:70px;
-    height:70px;
+    width:clamp(58px,16vw,70px);
+    height:clamp(58px,16vw,70px);
     padding:3px;
-    border:2px solid #edf0f5;
+    border:2px solid var(--line);
     border-radius:50%;
-    background:#fff;
+    background:var(--surface);
     box-shadow:0 5px 16px rgba(35,45,80,.10);
 }
 
@@ -1064,44 +1363,35 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     display:block;
     object-fit:cover;
     border-radius:50%;
-    background:#eef1f6;
+    background:var(--surface-2);
 }
 
 .edit-media-change{
     position:absolute;
     right:-3px;
     bottom:-3px;
-    width:27px;
-    height:27px;
+    width:28px;
+    height:28px;
     display:flex;
     align-items:center;
     justify-content:center;
-    border:2px solid #fff;
+    border:2px solid var(--surface);
     border-radius:50%;
-    background:#5364ee;
+    background:var(--primary);
     color:#fff;
     box-shadow:0 4px 10px rgba(83,100,238,.28);
-    cursor:pointer;
 }
 
-.edit-media-change .material-icons{
-    font-size:14px;
-}
-
-.edit-cover-card{
-    display:flex;
-    flex-direction:column;
-    gap:5px;
-}
+.edit-media-change .material-icons{font-size:14px;}
 
 .edit-cover-preview-wrap{
     position:relative;
     width:100%;
-    height:76px;
+    height:clamp(62px,16vw,76px);
     overflow:hidden;
-    border:1px solid #e5e8ef;
+    border:1px solid var(--line);
     border-radius:15px;
-    background:#eef1f6;
+    background:var(--surface-2);
 }
 
 .edit-cover-preview{
@@ -1124,8 +1414,8 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     right:7px;
     bottom:7px;
     z-index:2;
-    height:29px;
-    padding:0 9px;
+    height:30px;
+    padding:0 10px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -1134,84 +1424,76 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     border-radius:10px;
     background:rgba(24,28,38,.72);
     color:#fff;
-    font-size:9px;
-    font-weight:800;
+    font-size:11px;
+    font-weight:var(--fw-medium);
+    -webkit-backdrop-filter:blur(7px);
     backdrop-filter:blur(7px);
-    cursor:pointer;
 }
 
-.edit-cover-change .material-icons{
-    font-size:14px;
-}
+.edit-cover-change .material-icons{font-size:14px;}
 
 .edit-fields{
     display:flex;
     flex-direction:column;
-    gap:9px;
-}
-
-.edit-input{
-    margin:0;
+    gap:10px;
 }
 
 .edit-input label{
     display:block;
-    margin:0 0 4px;
-    color:#747c8c;
-    font-size:10px;
-    font-weight:800;
+    margin-bottom:4px;
+    color:var(--text-2);
+    font-size:12px;
+    font-weight:var(--fw-medium);
 }
 
+/* 16px يمنع تكبير الصفحة تلقائيًا في iOS عند التركيز */
 .edit-input input{
     width:100%;
-    height:43px;
+    height:44px;
     padding:0 12px;
     outline:none;
-    border:1px solid #e1e5ed;
+    border:1px solid var(--line-input);
     border-radius:12px;
-    background:#f7f8fb;
-    color:#171c2a;
-    font-size:13px;
+    background:var(--input-bg);
+    color:var(--text);
+    font-size:16px;
     transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
 }
 
 .edit-input input:focus{
-    border-color:#5364ee;
-    background:#fff;
-    box-shadow:0 0 0 3px rgba(83,100,238,.09);
+    border-color:var(--primary);
+    background:var(--surface);
+    box-shadow:0 0 0 3px rgba(83,100,238,.10);
 }
 
-.edit-bio-input{
-    position:relative;
-}
+.edit-bio-input{position:relative;}
 
 .edit-input-hint{
     display:block;
     margin-top:3px;
-    color:#9aa1ae;
-    font-size:8px;
+    color:var(--text-3);
+    font-size:10px;
     text-align:left;
     direction:ltr;
 }
 
 .edit-buttons{
     display:grid;
-    grid-template-columns:92px minmax(0,1fr);
+    grid-template-columns:clamp(84px,24vw,96px) minmax(0,1fr);
     gap:8px;
-    margin-top:13px;
+    margin-top:14px;
 }
 
 .edit-buttons button{
-    height:42px;
+    height:44px;
     border-radius:12px;
-    cursor:pointer;
-    font-size:11px;
-    font-weight:800;
+    font-size:13px;
+    font-weight:var(--fw-semibold);
 }
 
 .edit-cancel-btn{
-    background:#eef1f6;
-    color:#5364ee;
+    background:var(--surface-3);
+    color:var(--primary);
 }
 
 .edit-save-btn{
@@ -1219,743 +1501,21 @@ button:focus-visible{outline:3px solid rgba(83,100,238,.25);outline-offset:2px;}
     align-items:center;
     justify-content:center;
     gap:5px;
-    background:#5364ee;
+    background:var(--primary);
     color:#fff;
     box-shadow:0 7px 16px rgba(83,100,238,.20);
 }
 
-.edit-save-btn .material-icons{
-    font-size:17px;
-}
+.edit-save-btn .material-icons{font-size:17px;}
+.edit-modal .cover-file-input{position:fixed;}
 
-.edit-modal .cover-file-input{
-    position:fixed;
-}
-
-body.dark .edit-box{
-    border-color:#252c3c;
-    background:#141925;
-}
-
-body.dark .edit-modal-head h2{
-    color:#fff;
-}
-
-body.dark .edit-close-btn{
-    border-color:#2a3142;
-    background:#202738;
-    color:#c3cad8;
-}
-
-body.dark .edit-input input{
-    background:#0d111a;
-    border-color:#2a3142;
-    color:#fff;
-}
-
-body.dark .edit-input input:focus{
-    background:#111722;
-}
-
-body.dark .edit-cancel-btn{
-    background:#202738;
-}
-
-@media(max-width:700px){
-    .edit-modal{
-        padding:12px;
-    }
-
-    .edit-box{
-        width:min(100%,360px);
-        padding:14px;
-        border-radius:22px;
-        max-height:86vh;
-    }
-
-    .edit-modal-head{
-        margin-bottom:11px;
-    }
-
-    .edit-modal-head h2{
-        font-size:19px;
-    }
-
-    .edit-media-grid{
-        grid-template-columns:76px minmax(0,1fr);
-        gap:10px;
-        margin-bottom:11px;
-    }
-
-    .edit-avatar-preview-wrap{
-        width:64px;
-        height:64px;
-    }
-
-    .edit-cover-preview-wrap{
-        height:68px;
-    }
-
-    .edit-input input{
-        height:41px;
-        font-size:12px;
-    }
-
-    .edit-buttons{
-        grid-template-columns:84px minmax(0,1fr);
-        margin-top:11px;
-    }
-
-    .edit-buttons button{
-        height:40px;
-        font-size:10px;
-    }
-}
-
-@media(max-width:380px){
-    .edit-box{
-        padding:12px;
-    }
-
-    .edit-media-grid{
-        grid-template-columns:70px minmax(0,1fr);
-    }
-
-    .edit-avatar-preview-wrap{
-        width:58px;
-        height:58px;
-    }
-
-    .edit-cover-preview-wrap{
-        height:62px;
-    }
-}
-
-/* =========================================================
-   Dark mode
-   ========================================================= */
-
-body.dark{background:#0b0e15;color:#fff;}
-body.dark .profile-identity{background:#0b0e15;}
-body.dark .profile-tabs,
-body.dark .info-card,
-body.dark .profile-medal-history,
-body.dark .edit-box{background:#141925;border-color:#252c3c;}
-body.dark .profile-stats{background:#0b0e15;}
-body.dark .stat-card{background:#141925;border-color:#252c3c;}
-body.dark .profile-tab.active{background:#1b2130;}
-body.dark .identity-name-row h1,
-body.dark .info-card p,
-body.dark .profile-medal-history-head h3,
-body.dark .profile-wall-info h3,
-body.dark .edit-box h2{color:#fff;}
-body.dark .identity-username,
-body.dark .identity-bio,
-body.dark .info-card h4,
-body.dark .stat-card > span:last-child,
-body.dark .profile-wall-info p{color:#9da6ba;}
-body.dark .profile-wall-card{background:#161c28;border-color:#252c3c;}
-body.dark .profile-medal-history-item{background:#1b2130;}
-body.dark .uid-content button{background:#1b2130;}
-body.dark .edit-input input{background:#0d111a;border-color:#2a3142;color:#fff;}
-body.dark #closeEditBtn{background:#202738;}
-
-/* =========================================================
-   Mobile — the supplied old design
-   ========================================================= */
-
-
-
-/* Narrow phones: preserve old composition without collapsing the two columns. */
-
-
-/* Very small phones */
-
-
-/* =========================================================
-   Accessibility / reduced motion
-   ========================================================= */
-
-@media(prefers-reduced-motion:reduce){
-    *{scroll-behavior:auto !important;transition:none !important;}
-}
-
-/* =========================================================
-   MOBILE — compact phone-first layout
-   One responsive system; no layered mobile overrides.
-   Designed for narrow phones around 360–430 CSS px.
-   ========================================================= */
-
-@media (max-width:700px){
-
-    body{
-        padding-bottom:82px;
-        background:#f7f8fc;
-    }
-
-    /* Header */
-    .profile-header{
-        height:58px;
-        padding:0;
-    }
-
-    .profile-header h2{
-        top:50%;
-        font-size:20px;
-    }
-
-    .profile-header-side{
-        top:9px;
-        right:10px;
-        width:40px;
-        height:40px;
-        z-index:3;
-    }
-
-    /* Also supports the legacy/current HTML where menu-btn is
-       a direct child of .profile-header. */
-    .profile-header > .menu-btn{
-        top:9px;
-        right:10px;
-        width:40px;
-        height:40px;
-        min-width:40px;
-        max-width:40px;
-        flex:0 0 40px;
-        z-index:3;
-    }
-
-    .profile-actions{
-        top:9px;
-        left:10px;
-        height:40px;
-        gap:6px;
-        z-index:3;
-    }
-
-    .menu-btn,
-    .login-btn,
-    .settings-btn{
-        width:40px;
-        height:40px;
-        min-width:40px;
-        max-width:40px;
-        flex-basis:40px;
-        border-radius:50%;
-    }
-
-    .profile-header .material-icons{
-        font-size:22px;
-    }
-
-    /* Cover */
-    .profile-cover{
-        height:270px;
-    }
-
-    .cover-stage,
-    .cover-image{
-        height:270px;
-    }
-
-    .cover-image{
-        object-position:center;
-    }
-
-    .cover-nav-btn{
-        width:38px;
-        height:38px;
-    }
-
-    .cover-nav-prev{right:9px;}
-    .cover-nav-next{left:9px;}
-
-    .cover-nav-btn .material-icons{
-        font-size:27px;
-    }
-
-    .cover-change-btn{
-        top:126px;
-        right:10px;
-        height:38px;
-        padding:0 12px;
-        border-radius:19px;
-        gap:4px;
-        font-size:11px;
-    }
-
-    .cover-change-btn .material-icons{
-        font-size:17px;
-    }
-
-    .cover-history-overlay{
-        left:10px;
-        bottom:10px;
-        gap:5px;
-        padding:6px 9px;
-        border-radius:11px;
-        font-size:8px;
-    }
-
-    .cover-history-dots{
-        bottom:12px;
-        gap:5px;
-    }
-
-    .cover-history-dot{
-        width:6px;
-        height:6px;
-    }
-
-    .cover-history-dot.active{
-        width:25px;
-    }
-
-    /* Avatar */
-    .profile-avatar-box{
-        top:184px;
-        right:25px;
-        width:104px;
-        height:104px;
-    }
-
-    .profile-avatar{
-        width:104px;
-        height:104px;
-        box-shadow:0 6px 18px rgba(35,45,80,.18);
-    }
-
-    .profile-avatar-crown{
-        left:2px;
-        bottom:-2px;
-        width:31px;
-        height:31px;
-    }
-
-    .profile-avatar-crown .material-icons{
-        font-size:23px;
-    }
-
-    /* Identity */
-    .profile-identity{
-        min-height:190px;
-        margin:0;
-        padding:27px 12px 12px;
-        grid-template-columns:minmax(0,1fr) 132px;
-        column-gap:10px;
-        row-gap:8px;
-    }
-
-    .identity-name-row{
-        gap:4px;
-    }
-
-    .identity-name-row h1{
-        max-width:100%;
-        overflow:hidden;
-        font-size:22px;
-        line-height:1.2;
-        text-overflow:ellipsis;
-    }
-
-    .verified-badge{
-        width:18px;
-        height:18px;
-        flex-basis:18px;
-    }
-
-    .verified-badge svg{
-        width:18px;
-        height:18px;
-    }
-
-    .identity-username{
-        margin-top:3px;
-        font-size:12px;
-    }
-
-    .identity-bio{
-        margin-top:4px;
-        font-size:10px;
-        line-height:1.45;
-    }
-
-    .hero-edit-profile{
-        width:100%;
-        max-width:190px;
-        height:39px;
-        margin-top:8px;
-        padding:0 10px;
-        border-radius:20px;
-        gap:5px;
-        font-size:11px;
-        box-shadow:0 5px 16px rgba(67,83,125,.08);
-    }
-
-    .hero-edit-profile .material-icons{
-        font-size:18px;
-    }
-
-    .identity-side-stack{
-        gap:8px;
-    }
-
-    .identity-side-card{
-        width:100%;
-        height:59px;
-        min-height:59px;
-        padding:6px 7px;
-        gap:5px;
-        border-radius:13px;
-    }
-
-    .premium-crown{
-        width:32px;
-        height:32px;
-        flex-basis:32px;
-        border-radius:9px;
-        font-size:17px;
-    }
-
-    .identity-side-content{
-        gap:0;
-    }
-
-    .identity-side-content strong{
-        font-size:9px;
-    }
-
-    .identity-side-content small{
-        font-size:7px;
-    }
-
-    .premium-arrow{
-        font-size:20px;
-    }
-
-    .profile-medals-trigger{
-        width:100%;
-        height:35px;
-        padding:0 7px;
-        gap:4px;
-        border-radius:18px;
-        font-size:8px;
-    }
-
-    .medal-trigger-icon{
-        width:22px;
-        height:22px;
-        flex-basis:22px;
-        font-size:11px;
-    }
-
-    .profile-medals-trigger .material-icons{
-        font-size:14px;
-    }
-
-    .profile-medals-inline-panel{
-        border-radius:12px;
-    }
-
-    .profile-medals-inline-panel.open{
-        max-height:160px;
-        padding:7px;
-    }
-
-    .profile-medals-inline-head{
-        font-size:8px;
-        margin-bottom:5px;
-    }
-
-    .profile-medals-page{
-        gap:4px;
-    }
-
-    .profile-medal-badge{
-        width:30px;
-        height:30px;
-    }
-
-    .profile-medal-badge .material-icons{
-        font-size:16px;
-    }
-
-    /* Statistics */
-    .profile-stats{
-        width:100%;
-        max-width:none;
-        margin:0;
-        padding:8px;
-        gap:5px;
-        border-radius:17px;
-        background:transparent;
-    }
-
-    .stat-card{
-        height:72px;
-        padding:5px 2px;
-        gap:2px;
-        border-radius:13px;
-    }
-
-    .stat-icon{
-        width:21px;
-        height:21px;
-        font-size:19px;
-    }
-
-    .stat-card strong{
-        font-size:16px;
-    }
-
-    .stat-card > span:last-child{
-        font-size:7px;
-    }
-
-    /* Tabs */
-    .profile-tabs{
-        width:calc(100% - 20px);
-        max-width:none;
-        margin:8px 10px 0;
-        padding:4px;
-        gap:2px;
-        border-radius:14px;
-    }
-
-    .profile-tab{
-        height:52px;
-        padding:0 5px;
-        gap:3px;
-        border-radius:10px;
-        font-size:9px;
-    }
-
-    .profile-tab .material-icons{
-        font-size:16px;
-    }
-
-    .profile-tab.active::after{
-        right:10px;
-        left:10px;
-        bottom:3px;
-        height:3px;
-    }
-
-    /* Content */
-    .profile-tab-content{
-        padding-top:8px;
-    }
-
-    .profile-content{
-        padding:0 10px 18px;
-    }
-
-    .profile-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:7px;
-    }
-
-    .profile-wall-card{
-        padding:3px;
-        border-radius:11px;
-    }
-
-    .profile-wall-card img{
-        height:180px;
-        border-radius:8px;
-    }
-
-    .profile-wall-info{
-        padding:4px 2px 2px;
-    }
-
-    .profile-wall-info h3{
-        font-size:9px;
-    }
-
-    .profile-wall-info p{
-        font-size:7px;
-    }
-
-    /* Info cards */
-    .user-info{
-        padding:0 10px 18px;
-        gap:7px;
-    }
-
-    .info-card{
-        min-height:64px;
-        padding:8px 10px;
-        gap:9px;
-        border-radius:13px;
-    }
-
-    .info-card > .material-icons{
-        width:35px;
-        height:35px;
-        flex-basis:35px;
-        border-radius:10px;
-        font-size:19px;
-    }
-
-    .info-card h4{
-        font-size:9px;
-        margin-bottom:2px;
-    }
-
-    .info-card p{
-        font-size:13px;
-    }
-
-    .profile-medal-history{
-        width:calc(100% - 20px);
-        margin:0 auto 18px;
-        padding:12px;
-        border-radius:14px;
-    }
-
-    .profile-medal-history-head h3{
-        font-size:14px;
-    }
-
-    /* Modal */
-    .edit-modal{
-        padding:12px;
-    }
-
-    .edit-box{
-        max-width:380px;
-        padding:18px;
-        border-radius:18px;
-    }
-
-    .edit-box h2{
-        font-size:19px;
-        margin-bottom:16px;
-    }
-
-    .edit-avatar-preview-wrap{
-        width:70px;
-        height:70px;
-    }
-}
-
-/* Extra-narrow phones */
-@media (max-width:380px){
-
-    .profile-cover,
-    .cover-stage,
-    .cover-image{
-        height:255px;
-    }
-
-    .cover-change-btn{
-        top:116px;
-    }
-
-    .profile-avatar-box{
-        top:173px;
-        right:20px;
-        width:94px;
-        height:94px;
-    }
-
-    .profile-avatar{
-        width:94px;
-        height:94px;
-    }
-
-    .profile-identity{
-        min-height:177px;
-        padding:24px 10px 10px;
-        grid-template-columns:minmax(0,1fr) 118px;
-        column-gap:8px;
-    }
-
-    .identity-name-row h1{
-        font-size:20px;
-    }
-
-    .identity-username{
-        font-size:11px;
-    }
-
-    .identity-bio{
-        font-size:9px;
-    }
-
-    .hero-edit-profile{
-        max-width:170px;
-        height:36px;
-        font-size:10px;
-    }
-
-    .identity-side-card{
-        height:54px;
-        min-height:54px;
-    }
-
-    .premium-crown{
-        width:29px;
-        height:29px;
-        flex-basis:29px;
-    }
-
-    .profile-medals-trigger{
-        height:32px;
-        font-size:7px;
-    }
-
-    .profile-stats{
-        padding:7px 6px;
-        gap:4px;
-    }
-
-    .stat-card{
-        height:66px;
-    }
-
-    .stat-icon{
-        font-size:18px;
-    }
-
-    .stat-card strong{
-        font-size:15px;
-    }
-
-    .stat-card > span:last-child{
-        font-size:6.5px;
-    }
-
-    .profile-tab{
-        height:48px;
-        font-size:8px;
-    }
-
-    .profile-tab .material-icons{
-        font-size:15px;
-    }
-}
-
-@media(prefers-reduced-motion:reduce){
-    *{
-        scroll-behavior:auto !important;
-        transition:none !important;
-    }
-}
-
-
-/* =========================================================
-   Social Links — polished editor
-   تحسين حقول مواقع التواصل داخل نافذة تعديل الحساب
-   ========================================================= */
-
+/* محرر مواقع التواصل داخل النافذة */
 .edit-social-section{
     margin-top:14px;
-    padding:13px;
-    border:1px solid #e7eaf1;
-    border-radius:17px;
-    background:linear-gradient(180deg,#fbfcff,#f7f8fc);
+    padding:clamp(11px,2.6vw,13px);
+    border:1px solid var(--line);
+    border-radius:clamp(15px,3vw,17px);
+    background:var(--soft-grad);
 }
 
 .edit-social-head{
@@ -1963,66 +1523,68 @@ body.dark #closeEditBtn{background:#202738;}
     align-items:center;
     justify-content:space-between;
     gap:10px;
-    margin-bottom:11px;
+    margin-bottom:10px;
 }
 
-.edit-social-head > div{
-    min-width:0;
-}
+.edit-social-head > div{min-width:0;}
 
 .edit-social-kicker{
     display:block;
     margin-bottom:2px;
-    color:#9aa1af;
-    font-size:7px;
-    font-weight:900;
-    letter-spacing:.16em;
-    line-height:1;
+    color:var(--text-3);
+    font-size:10px;
+    font-weight:var(--fw-medium);
+    letter-spacing:.14em;
+    line-height:1.2;
 }
 
 .edit-social-head strong{
     display:block;
-    color:#202638;
+    color:var(--text-strong);
     font-size:13px;
-    font-weight:900;
+    font-weight:var(--fw-semibold);
 }
 
 .edit-social-head > .material-icons{
     width:32px;
     height:32px;
+    flex:0 0 32px;
     display:flex;
     align-items:center;
     justify-content:center;
-    flex:0 0 32px;
     border-radius:10px;
-    background:#eef1ff;
-    color:#5364ee;
+    background:var(--primary-soft);
+    color:var(--primary);
     font-size:18px;
 }
+
+body.dark .edit-social-head > .material-icons{color:#9eabff;}
 
 .edit-social-grid{
     display:grid;
     grid-template-columns:1fr;
-    gap:7px;
+    gap:8px;
 }
 
 .edit-social-field{
     position:relative;
+    min-width:0;
+    height:44px;
+    padding:0 9px 0 10px;
     display:flex;
     align-items:center;
-    min-width:0;
-    height:43px;
-    padding:0 9px 0 10px;
-    border:1px solid #e0e4ec;
+    border:1px solid var(--line-input);
     border-radius:13px;
-    background:#fff;
+    background:var(--surface);
     box-shadow:0 3px 10px rgba(35,45,80,.035);
-    transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+    transition:border-color .18s ease,box-shadow .18s ease;
 }
 
+body.dark .edit-social-field{background:var(--input-bg);box-shadow:none;}
+
 .edit-social-field:focus-within{
-    border-color:#5364ee;
-    box-shadow:0 0 0 3px rgba(83,100,238,.08);
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(83,100,238,.10);
 }
 
 .edit-social-icon{
@@ -2037,10 +1599,7 @@ body.dark #closeEditBtn{background:#202738;}
     color:#fff;
 }
 
-.edit-social-icon .material-icons{
-    font-size:17px;
-}
-
+.edit-social-icon .material-icons{font-size:17px;}
 .edit-social-icon.telegram{background:#229ed9;}
 .edit-social-icon.facebook{background:#1877f2;}
 .edit-social-icon.youtube{background:#ff0033;}
@@ -2054,1346 +1613,32 @@ body.dark #closeEditBtn{background:#202738;}
     border:0;
     outline:0;
     background:transparent;
-    color:#202638;
-    font-size:12px;
+    color:var(--text);
+    font-size:16px;
     direction:ltr;
     text-align:left;
 }
 
-.edit-social-field input::placeholder{
-    color:#9ba2af;
-    opacity:1;
+.edit-social-field input:focus{border:0;box-shadow:none;background:transparent;}
+.edit-social-field input::placeholder{color:var(--text-3);opacity:1;}
+
+/* ---------- شاشات كبيرة ---------- */
+@media (min-width:1100px){
+    .profile-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));}
 }
 
-.edit-social-field input:focus{
-    border:0;
-    box-shadow:none;
-    background:transparent;
-}
-
-/* تحسين نافذة التعديل على الهاتف */
-@media(max-width:700px){
-    .edit-social-section{
-        margin-top:12px;
-        padding:11px;
-        border-radius:15px;
-    }
-
-    .edit-social-head{
-        margin-bottom:9px;
-    }
-
-    .edit-social-head strong{
-        font-size:12px;
-    }
-
-    .edit-social-head > .material-icons{
-        width:29px;
-        height:29px;
-        flex-basis:29px;
-        font-size:16px;
-        border-radius:9px;
-    }
-
-    .edit-social-field{
-        height:40px;
-        padding:0 8px;
-        border-radius:11px;
-    }
-
-    .edit-social-icon{
-        width:28px;
-        height:28px;
-        flex-basis:28px;
-        margin-inline-end:7px;
-        border-radius:8px;
-    }
-
-    .edit-social-icon .material-icons{
-        font-size:16px;
-    }
-
-    .edit-social-field input{
-        font-size:11px;
-    }
-}
-
-/* الوضع الداكن */
-body.dark .edit-social-section{
-    border-color:#2a3142;
-    background:linear-gradient(180deg,#171d2a,#131824);
-}
-
-body.dark .edit-social-head strong{
-    color:#fff;
-}
-
-body.dark .edit-social-head > .material-icons{
-    background:#20283a;
-    color:#9eabff;
-}
-
-body.dark .edit-social-field{
-    border-color:#2a3142;
-    background:#0d111a;
-}
-
-body.dark .edit-social-field input{
-    color:#fff;
-}
-
-body.dark .edit-social-field input::placeholder{
-    color:#7f899d;
-}
-
-
-/* =========================================================
-   Public Social Links — compact horizontal SVG icons
-   ========================================================= */
-
-.profile-social-card{
-    width:calc(100% - 42px);
-    margin:0 auto 14px;
-    padding:13px 15px;
-    border:1px solid #e6e9f0;
-    border-radius:19px;
-    background:#fff;
-    box-shadow:0 5px 16px rgba(35,45,80,.04);
-}
-
-.profile-social-card[hidden]{
-    display:none !important;
-}
-
-.profile-social-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:10px;
-}
-
-.profile-social-head > div{
-    min-width:0;
-}
-
-.profile-social-kicker{
-    display:block;
-    margin-bottom:2px;
-    color:#a0a7b5;
-    font-size:7px;
-    font-weight:900;
-    letter-spacing:.16em;
-    line-height:1;
-}
-
-.profile-social-head h3{
-    margin:0;
-    color:#252b3b;
-    font-size:14px;
-    font-weight:900;
-}
-
-.profile-social-caption{
-    color:#9aa1af;
-    font-size:9px;
-    font-weight:700;
-}
-
-.profile-social-links{
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:8px;
-    direction:ltr;
-    min-height:34px;
-}
-
-.profile-social-link{
-    width:34px;
-    height:34px;
-    flex:0 0 34px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-    text-decoration:none;
-    background:#f4f6fa;
-    border:1px solid #e4e8ef;
-    box-shadow:0 3px 9px rgba(35,45,80,.05);
-    transition:transform .16s ease,box-shadow .16s ease;
-}
-
-.profile-social-link:hover{
-    transform:translateY(-2px);
-    box-shadow:0 6px 14px rgba(35,45,80,.10);
-}
-
-.profile-social-link:active{
-    transform:translateY(0);
-}
-
-.profile-social-link svg{
-    width:18px;
-    height:18px;
-    display:block;
-    fill:currentColor;
-}
-
-.profile-social-link.telegram{color:#229ed9;}
-.profile-social-link.facebook{color:#1877f2;}
-.profile-social-link.youtube{color:#e62117;}
-.profile-social-link.tiktok{color:#111827;}
-
-body.dark .profile-social-card{
-    border-color:#252c3c;
-    background:#141925;
-}
-
-body.dark .profile-social-head h3{
-    color:#fff;
-}
-
-body.dark .profile-social-caption,
-body.dark .profile-social-kicker{
-    color:#8f99ad;
-}
-
-body.dark .profile-social-link{
-    background:#1b2130;
-    border-color:#2a3142;
-}
-
-@media(max-width:700px){
-    .profile-social-card{
-        width:calc(100% - 20px);
-        margin:0 auto 10px;
-        padding:10px 11px;
-        border-radius:14px;
-    }
-
-    .profile-social-head{
-        margin-bottom:8px;
-    }
-
-    .profile-social-kicker{
-        font-size:6px;
-    }
-
-    .profile-social-head h3{
-        font-size:12px;
-    }
-
-    .profile-social-caption{
-        font-size:8px;
-    }
-
-    .profile-social-links{
-        gap:7px;
-        min-height:32px;
-    }
-
-    .profile-social-link{
-        width:32px;
-        height:32px;
-        flex-basis:32px;
-        border-radius:9px;
-    }
-
-    .profile-social-link svg{
-        width:17px;
-        height:17px;
-    }
-}
-
-/* Points link — compact text style beneath the edit-profile button */
-#profilePointsBtn{
-    display:inline-flex !important;
-    align-self:flex-start;
-    justify-content:flex-start !important;
-    gap:5px !important;
-    width:auto !important;
-    min-height:0 !important;
-    margin-top:4px !important;
-    padding:2px 0 !important;
-    border:0 !important;
-    border-radius:0 !important;
-    background:transparent !important;
-    color:#596274 !important;
-    box-shadow:none !important;
-    font-size:12px !important;
-    font-weight:500 !important;
-    line-height:1.4;
-    text-decoration:none !important;
-}
-
-#profilePointsBtn .material-icons{
-    font-size:15px;
-    color:#a88728;
-}
-
-#profilePointsValue{
-    font-size:12px;
-    font-weight:700;
-    color:#343b4b;
-}
-
-@media(max-width:700px){
-    #profilePointsBtn{
-        gap:4px !important;
-        margin-top:3px !important;
-        padding:1px 0 !important;
-        font-size:10px !important;
-    }
-    #profilePointsBtn .material-icons{font-size:13px;}
-    #profilePointsValue{font-size:10px;}
-}
-
-
-/* Public profile follow actions */
-.public-profile-actions{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:10px;
-    margin-top:14px;
-    direction:rtl;
-}
-.public-profile-actions[hidden]{display:none!important}
-.follow-profile-btn{
-    min-width:150px;
-    height:48px;
-    padding:0 22px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    border-radius:28px;
-    background:linear-gradient(135deg,#1764f5,#2858e8);
-    color:#fff;
-    font-size:15px;
-    font-weight:800;
-    box-shadow:0 8px 20px rgba(37,99,235,.20);
-    cursor:pointer;
-    transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
-}
-.follow-profile-btn:active{transform:scale(.97)}
-.follow-profile-btn:hover{box-shadow:0 10px 24px rgba(37,99,235,.28)}
-.follow-profile-btn .material-icons{font-size:21px}
-.follow-profile-btn.is-following{
-    color:#3159d9;
-    background:#edf2ff;
-    border:1px solid #dbe5ff;
-    box-shadow:none;
-}
-.message-profile-btn{
-    width:48px;height:48px;flex:0 0 48px;
-    display:inline-flex;align-items:center;justify-content:center;
-    border-radius:50%;background:#fff;color:#596579;
-    box-shadow:0 6px 20px rgba(35,45,80,.10);
-    border:1px solid #edf0f6;cursor:pointer;
-}
-.message-profile-btn .material-icons{font-size:23px}
-@media(max-width:600px){
-    .public-profile-actions{margin-top:13px;gap:9px}
-    .follow-profile-btn{height:46px;min-width:132px;padding:0 18px;font-size:14px}
-    .message-profile-btn{width:46px;height:46px;flex-basis:46px}
-}
-
-
-/* Follow counts — profile identity section */
-.profile-follow-stats{
-    width:100%;
-    max-width:440px;
-    min-height:70px;
-    margin-top:16px;
-    padding:10px 12px;
-    display:flex;
-    align-items:center;
-    justify-content:space-around;
-    gap:8px;
-    border:1px solid #edf0f6;
-    border-radius:20px;
-    background:linear-gradient(135deg,#f8faff,#fff);
-    box-shadow:0 5px 18px rgba(35,45,80,.045);
-}
-.profile-follow-stats[hidden]{display:none!important}
-.follow-stat-item{
-    min-width:0;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:3px;
-    padding:3px 5px;
-    border:0;
-    background:transparent;
-    color:#5e687d;
-    cursor:pointer;
-}
-.follow-stat-item strong{
-    color:#172033;
-    font-size:21px;
-    line-height:1.15;
-    font-weight:800;
-}
-.follow-stat-item span{
-    font-size:13px;
-    font-weight:700;
-    white-space:nowrap;
-}
-.follow-stat-item:active{transform:scale(.98)}
-.follow-stat-divider{
-    width:1px;
-    align-self:stretch;
-    background:#dce2ee;
-}
-.follow-profile-btn:disabled{opacity:.72;cursor:wait}
-body.dark .profile-follow-stats{background:#141925;border-color:#252c3c}
-body.dark .follow-stat-item strong{color:#fff}
-body.dark .follow-stat-item{color:#aab3c6}
-body.dark .follow-stat-divider{background:#30394d}
-@media(max-width:600px){
-    .profile-follow-stats{margin-top:13px;min-height:64px;padding:8px 10px;border-radius:18px}
-    .follow-stat-item strong{font-size:19px}
-    .follow-stat-item span{font-size:12px}
-}
-
-
-/* Follow statistics: fixed in the profile markup, visible on owner and public profiles */
-.profile-identity .identity-main > .profile-follow-stats{
-    position:relative;
-    display:flex;
-    width:100%;
-    max-width:100%;
-    min-height:68px;
-    margin:14px 0 0;
-    flex:0 0 auto;
-    visibility:visible;
-    opacity:1;
-}
-.profile-identity .identity-main > .profile-follow-stats[hidden]{display:none!important}
-@media(max-width:700px){
-    .profile-identity .identity-main > .profile-follow-stats{
-        width:100%;
-        max-width:100%;
-        min-height:62px;
-        margin-top:12px;
-        padding:8px 7px;
-        border-radius:17px;
-    }
-    .profile-identity .identity-main > .profile-follow-stats .follow-stat-item strong{font-size:19px}
-    .profile-identity .identity-main > .profile-follow-stats .follow-stat-item span{font-size:12px}
-}
-
-
-
-
-/* =========================================================
-   RESPONSIVE COMPACT LAYER — v3
-   الهاتف: تصميم صغير ومرتب
-   التابلت والكمبيوتر: نفس اللغة البصرية بمساحة أوسع
-   (طبقة نهائية: تحدد التخطيط حسب حجم الشاشة)
-========================================================= */
-
-:root{
-    --pf-gutter: 12px;
-    --pf-cover-h: 180px;
-    --pf-avatar: 96px;
-    --pf-max: 100%;
-}
-
-/* ---------- الهاتف (حتى 599px) ---------- */
-@media (max-width: 599px){
-
-    body{
-        padding-bottom: 88px;
-        overflow-x: hidden;
-    }
-
-    /* الغلاف */
-    .profile-cover,
-    .cover-stage,
-    .cover-image{
-        height: var(--pf-cover-h) !important;
-    }
-
-    .profile-header{
-        height: 56px;
-    }
-
-    .profile-header h2{
-        font-size: 18px;
-    }
-
-    .profile-actions{
-        top: 8px;
-        left: 10px;
-        gap: 6px;
-    }
-
-    /* الصورة الشخصية: في وسط الغلاف وتتداخل معه قليلاً */
-    .profile-avatar-box{
-        top: calc(var(--pf-cover-h) - 46px) !important;
-        left: 50% !important;
-        right: auto !important;
-        width: var(--pf-avatar) !important;
-        height: var(--pf-avatar) !important;
-        transform: translateX(-50%);
-    }
-
-    .profile-avatar{
-        width: var(--pf-avatar) !important;
-        height: var(--pf-avatar) !important;
-        box-shadow: 0 4px 14px rgba(35,45,80,.18);
-    }
-
-    /* الهوية */
-    .profile-identity{
-        min-height: 0 !important;
-        max-width: 100%;
-        padding: calc(var(--pf-avatar) - 36px) var(--pf-gutter) 10px !important;
-        display: flex !important;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        text-align: center;
-    }
-
-    .identity-main{
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .identity-name-row h1{
-        font-size: 19px !important;
-        line-height: 1.2;
-    }
-
-    .identity-username{
-        font-size: 12px;
-    }
-
-    .identity-bio{
-        font-size: 12px;
-        line-height: 1.5;
-        max-width: 280px;
-    }
-
-    .public-profile-actions{
-        justify-content: center;
-    }
-
-    .profile-follow-stats{
-        width: 100%;
-    }
-
-    .identity-side-stack{
-        width: 100%;
-        display: grid !important;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .identity-side-card{
-        padding: 8px 10px;
-        border-radius: 14px;
-    }
-
-    .profile-medals-trigger{
-        min-height: 40px;
-        font-size: 12px;
-        border-radius: 14px;
-    }
-
-    .profile-medals-inline-panel{
-        grid-column: 1 / -1;
-    }
-
-    .hero-edit-profile{
-        min-height: 40px;
-        font-size: 13px;
-        padding: 0 14px;
-        border-radius: 999px;
-    }
-
-    /* الإحصائيات: 4 مربعات صغيرة */
-    .profile-stats{
-        display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 6px;
-        padding: 10px var(--pf-gutter) !important;
-        max-width: 100%;
-    }
-
-    .stat-card{
-        min-width: 0;
-        padding: 8px 4px !important;
-        border-radius: 14px;
-        gap: 2px;
-    }
-
-    .stat-card strong{
-        font-size: 15px !important;
-        line-height: 1.1;
-    }
-
-    .stat-card > span:not(.stat-icon){
-        font-size: 10px;
-    }
-
-    .stat-icon{
-        font-size: 16px !important;
-    }
-
-    /* التبويبات: شريط أفقي قابل للتمرير */
-    .profile-tabs{
-        margin: 0 var(--pf-gutter);
-        padding: 4px !important;
-        gap: 4px;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
-    .profile-tabs::-webkit-scrollbar{
-        display: none;
-    }
-
-    .profile-tab{
-        flex: 0 0 auto !important;
-        height: 40px !important;
-        padding: 0 12px !important;
-        gap: 5px;
-        font-size: 12px;
-        border-radius: 12px;
-        white-space: nowrap;
-    }
-
-    .profile-tab .material-icons{
-        font-size: 16px;
-    }
-
-    .profile-tab-content{
-        padding: 10px var(--pf-gutter) 24px !important;
-    }
-
-    /* بطاقات المعلومات: صفوف مضغوطة */
-    .user-info{
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 0 !important;
-    }
-
-    .info-card{
-        min-height: 0 !important;
-        padding: 10px 12px !important;
-        gap: 10px;
-        border-radius: 14px;
-    }
-
-    .info-card h4{
-        font-size: 11px !important;
-    }
-
-    .info-card p{
-        font-size: 13px !important;
-        overflow-wrap: anywhere;
-    }
-
-    .info-card .material-icons{
-        font-size: 20px;
-    }
-
-    /* شبكة الخلفيات */
-    .profile-grid{
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .profile-medal-history{
-        padding: 10px !important;
-        border-radius: 14px;
-    }
-}
-
-/* ---------- الهاتف الصغير جداً (حتى 360px) ---------- */
-@media (max-width: 360px){
-    :root{
-        --pf-cover-h: 160px;
-        --pf-avatar: 88px;
-    }
-
-    .stat-card > span:not(.stat-icon){
-        font-size: 9px;
-    }
-
-    .profile-grid{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-/* ---------- التابلت (600px – 1023px) ---------- */
-@media (min-width: 600px){
-    :root{
-        --pf-gutter: 20px;
-        --pf-cover-h: 240px;
-        --pf-avatar: 124px;
-    }
-
-    .profile-cover,
-    .cover-stage,
-    .cover-image{
-        height: var(--pf-cover-h) !important;
-    }
-
-    .profile-avatar-box{
-        top: calc(var(--pf-cover-h) - 62px) !important;
-        left: 50% !important;
-        right: auto !important;
-        width: var(--pf-avatar) !important;
-        height: var(--pf-avatar) !important;
-        transform: translateX(-50%);
-    }
-
-    .profile-avatar{
-        width: var(--pf-avatar) !important;
-        height: var(--pf-avatar) !important;
-    }
-
-    .profile-identity,
-    .profile-stats,
-    .profile-tabs,
-    .profile-tab-content{
-        max-width: 760px;
-        margin-inline: auto;
-    }
-
-    .profile-identity{
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column;
-        align-items: center;
-        gap: 14px;
-        text-align: center;
-        padding: calc(var(--pf-avatar) - 44px) var(--pf-gutter) 16px !important;
-    }
-
-    .identity-main{
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .identity-name-row h1{
-        font-size: 26px !important;
-    }
-
-    .identity-side-stack{
-        width: 100%;
-        display: grid !important;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .profile-medals-inline-panel{
-        grid-column: 1 / -1;
-    }
-
-    .profile-stats{
-        display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-        padding: 14px var(--pf-gutter) !important;
-    }
-
-    .profile-tabs{
-        margin: 0 auto;
-        padding: 6px !important;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
-    .profile-tabs::-webkit-scrollbar{
-        display: none;
-    }
-
-    .profile-tab{
-        flex: 1 0 auto !important;
-        height: 46px !important;
-        font-size: 13px;
-    }
-
-    .user-info{
-        display: grid !important;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .uid-box{
-        grid-column: 1 / -1;
-    }
-
-    .profile-grid{
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-    }
-}
-
-/* ---------- الكمبيوتر (1024px وأكثر) ---------- */
-@media (min-width: 1024px){
-    :root{
-        --pf-gutter: 24px;
-        --pf-cover-h: 300px;
-        --pf-avatar: 150px;
-    }
-
-    .profile-identity,
-    .profile-stats,
-    .profile-tabs,
-    .profile-tab-content{
-        max-width: 1040px;
-    }
-
-    .profile-identity{
-        flex-direction: row !important;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        text-align: right;
-        gap: 24px;
-        padding-top: calc(var(--pf-avatar) - 56px) !important;
-    }
-
-    .identity-main{
-        flex: 1 1 0;
-        align-items: flex-start;
-    }
-
-    .identity-side-stack{
-        flex: 0 0 280px;
-        display: flex !important;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .identity-name-row h1{
-        font-size: 32px !important;
-    }
-
-    .profile-stats{
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .user-info{
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .uid-box{
-        grid-column: auto;
-    }
-
-    .profile-grid{
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-}
-
-/* ---------- الشاشات الكبيرة (1440px وأكثر) ---------- */
-@media (min-width: 1440px){
-    .profile-identity,
-    .profile-stats,
-    .profile-tabs,
-    .profile-tab-content{
-        max-width: 1180px;
-    }
-
-    .profile-grid{
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
+/* ---------- شاشات صغيرة جدًا (≤360px) ---------- */
+@media (max-width:360px){
+    .profile-medal-history-item{grid-template-columns:36px minmax(0,1fr);}
+    .profile-medal-history-date{grid-column:2;text-align:right;}
+    .edit-buttons{grid-template-columns:78px minmax(0,1fr);}
 }
 
 /* ---------- تقليل الحركة ---------- */
-@media (prefers-reduced-motion: reduce){
-    .profile-avatar-box,
-    .profile-tab,
-    .stat-card{
-        transition: none !important;
-    }
-}
-
-/* ---------- ضبط الاسم وسجل الميداليات ---------- */
-@media (max-width: 599px){
-    .identity-name-row{
-        justify-content: center;
-    }
-
-    .profile-medal-history{
-        width: 100% !important;
-        margin: 0 0 8px !important;
-    }
-}
-
-@media (min-width: 600px) and (max-width: 1023px){
-    .identity-name-row{
-        justify-content: center;
-    }
-}
-
-@media (min-width: 1024px){
-    .profile-medal-history{
-        width: 100% !important;
-        margin: 0 0 16px !important;
-    }
-}
-
-
-/* =====================================================================
-   PREMIUM GLASS THEME — v4
-   ألوان: نيلي عميق · بنفسجي · سماوي · ذهبي مضيء
-   عناصر زجاجية على خلفية متدرجة بهالات ناعمة
-   ===================================================================== */
-
-:root{
-    --gl-ink: #151a2e;
-    --gl-muted: #6b7291;
-    --gl-indigo: #4f46e5;
-    --gl-violet: #8b5cf6;
-    --gl-cyan: #22d3ee;
-    --gl-gold: #f5c451;
-    --gl-gold-deep: #b7791f;
-    --gl-glass: rgba(255,255,255,.58);
-    --gl-glass-strong: rgba(255,255,255,.78);
-    --gl-line: rgba(255,255,255,.75);
-    --gl-shadow: 0 18px 50px rgba(55,48,140,.14);
-    --gl-grad: linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#22d3ee 130%);
-}
-
-/* ---------- الخلفية العامة مع هالات ملونة ثابتة ---------- */
-body{
-    position: relative;
-    color: var(--gl-ink);
-    background:
-        radial-gradient(900px 500px at 8% -5%, rgba(139,92,246,.22), transparent 60%),
-        radial-gradient(800px 480px at 100% 10%, rgba(34,211,238,.18), transparent 60%),
-        radial-gradient(900px 600px at 50% 100%, rgba(245,196,81,.10), transparent 60%),
-        linear-gradient(180deg,#f0f1ff 0%,#f8f6ff 45%,#f2f8ff 100%) !important;
-    background-attachment: fixed;
-}
-
-/* ---------- الهيدر: زجاجي شفاف ---------- */
-.profile-header h2{
-    color: #fff;
-    font-weight: 800;
-    letter-spacing: .3px;
-    text-shadow: 0 2px 18px rgba(20,10,60,.45);
-}
-
-.profile-header .menu-btn,
-.profile-header .login-btn,
-.profile-header .settings-btn,
-.profile-actions .login-btn,
-.profile-actions .settings-btn{
-    background: rgba(255,255,255,.16) !important;
-    border: 1px solid rgba(255,255,255,.28) !important;
-    backdrop-filter: blur(14px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
-    box-shadow: 0 8px 22px rgba(10,8,40,.25), inset 0 1px 0 rgba(255,255,255,.25) !important;
-    color: #fff !important;
-    transition: transform .25s ease, background .25s ease;
-}
-
-.profile-header .menu-btn:active,
-.profile-header .login-btn:active,
-.profile-header .settings-btn:active{
-    transform: scale(.92);
-}
-
-/* ---------- الغلاف: تدرج يندمج مع الصفحة ---------- */
-.cover-stage::after{
-    background:
-        linear-gradient(180deg, rgba(12,10,40,.25) 0%, rgba(12,10,40,0) 35%, rgba(240,241,255,.55) 80%, #f0f1ff 100%) !important;
-}
-
-.cover-history-overlay,
-.cover-history-dots{
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-.cover-history-overlay{
-    background: rgba(18,14,50,.35) !important;
-    border: 1px solid rgba(255,255,255,.25) !important;
-    border-radius: 999px;
-}
-
-/* ---------- الصورة الشخصية: إطار متدرج متحرك ---------- */
-.profile-avatar-box::before{
-    content: "";
-    position: absolute;
-    inset: -6px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, #4f46e5, #22d3ee, #a78bfa, #f5c451, #4f46e5);
-    z-index: -1;
-    animation: glSpin 9s linear infinite;
-}
-
-.profile-avatar{
-    border: 4px solid #fff !important;
-    box-shadow: 0 16px 36px rgba(40,30,120,.30) !important;
-}
-
-@keyframes glSpin{
-    to{ transform: rotate(360deg); }
-}
-
-/* ---------- بطاقة الهوية: زجاج عائم ---------- */
-.profile-identity{
-    border-radius: 32px;
-    background: var(--gl-glass-strong) !important;
-    border: 1px solid var(--gl-line);
-    box-shadow: var(--gl-shadow);
-    backdrop-filter: blur(22px) saturate(170%);
-    -webkit-backdrop-filter: blur(22px) saturate(170%);
-}
-
-.identity-name-row h1{
-    background: linear-gradient(90deg, #151a2e 30%, #4338ca 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
-}
-
-.identity-username{
-    display: inline-flex;
-    align-self: center;
-    padding: 3px 12px;
-    border-radius: 999px;
-    background: rgba(79,70,229,.08);
-    color: #4f46e5 !important;
-    font-weight: 700;
-}
-
-.identity-bio{
-    color: var(--gl-muted) !important;
-}
-
-/* متابعة: زجاجي */
-.profile-follow-stats{
-    border-radius: 22px;
-    background: rgba(255,255,255,.7);
-    border: 1px solid rgba(255,255,255,.9);
-    box-shadow: 0 8px 24px rgba(55,48,140,.07);
-}
-
-.follow-stat-item strong{
-    background: var(--gl-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
-}
-
-/* زر تعديل الملف: متدرج بوهج */
-.hero-edit-profile{
-    background: var(--gl-grad) !important;
-    color: #fff !important;
-    border: 0 !important;
-    box-shadow: 0 14px 30px rgba(79,70,229,.35) !important;
-    font-weight: 800;
-    transition: transform .25s ease, box-shadow .25s ease;
-}
-
-.hero-edit-profile:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 18px 38px rgba(79,70,229,.45) !important;
-}
-
-.hero-edit-profile .material-icons{
-    color: #fff !important;
-}
-
-/* نقاطك: شريحة ذهبية */
-#profilePointsBtn{
-    padding: 4px 12px !important;
-    border-radius: 999px !important;
-    background: rgba(245,196,81,.14) !important;
-    color: var(--gl-gold-deep) !important;
-}
-
-#profilePointsValue{
-    color: var(--gl-gold-deep) !important;
-}
-
-/* بطاقة المميز: داكنة بتوهج ذهبي */
-.identity-side-card.premium-card{
-    position: relative;
-    overflow: hidden;
-    border-radius: 22px !important;
-    background:
-        radial-gradient(120px 80px at 90% 0%, rgba(245,196,81,.45), transparent 70%),
-        linear-gradient(135deg, #1e1b4b 0%, #4c1d95 60%, #312e81 100%) !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
-    box-shadow: 0 16px 34px rgba(49,46,129,.35);
-}
-
-.premium-card strong{
-    color: #fff !important;
-}
-
-.premium-card small{
-    color: rgba(255,255,255,.7) !important;
-}
-
-.premium-crown{
-    color: var(--gl-gold) !important;
-    text-shadow: 0 0 14px rgba(245,196,81,.6);
-}
-
-/* الميداليات: زجاج ذهبي */
-.profile-medals-trigger{
-    background: linear-gradient(135deg, rgba(255,247,220,.9), rgba(255,236,190,.7)) !important;
-    border: 1px solid rgba(245,196,81,.55) !important;
-    color: var(--gl-gold-deep) !important;
-    box-shadow: 0 10px 24px rgba(245,196,81,.20) !important;
-    font-weight: 800;
-}
-
-.profile-medals-inline-panel{
-    background: var(--gl-glass-strong) !important;
-    border: 1px solid var(--gl-line) !important;
-    border-radius: 22px !important;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-}
-
-/* ---------- الإحصائيات: بطاقات زجاجية بأيقونات متدرجة ---------- */
-.profile-stats{
-    gap: 10px;
-}
-
-.stat-card{
-    position: relative;
-    overflow: hidden;
-    background: var(--gl-glass-strong) !important;
-    border: 1px solid var(--gl-line) !important;
-    border-radius: 22px !important;
-    box-shadow: 0 10px 28px rgba(55,48,140,.09);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-}
-
-.stat-card::after{
-    content: "";
-    position: absolute;
-    width: 70px;
-    height: 70px;
-    top: -30px;
-    left: -24px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(79,70,229,.22), transparent 70%);
-    pointer-events: none;
-}
-
-.stat-card strong{
-    background: linear-gradient(135deg,#1e1b4b,#4f46e5);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
-}
-
-.stat-icon{
-    width: 30px;
-    height: 30px;
-    margin: 0 auto 2px;
-    border-radius: 11px;
-    display: grid !important;
-    place-items: center;
-    font-size: 17px !important;
-    color: #fff !important;
-}
-
-.wallpaper-icon{ background: linear-gradient(135deg,#6366f1,#4f46e5) !important; }
-.view-icon{ background: linear-gradient(135deg,#22d3ee,#0ea5e9) !important; }
-.like-icon{ background: linear-gradient(135deg,#f472b6,#e11d48) !important; }
-.download-icon{ background: linear-gradient(135deg,#34d399,#059669) !important; }
-
-/* ---------- التبويبات: شريط زجاجي وتبويب نشط متدرج ---------- */
-.profile-tabs{
-    background: rgba(255,255,255,.6) !important;
-    border: 1px solid var(--gl-line) !important;
-    border-radius: 22px !important;
-    box-shadow: 0 10px 28px rgba(55,48,140,.08);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-}
-
-.profile-tab{
-    color: var(--gl-muted);
-    font-weight: 700;
-    border-radius: 16px !important;
-    transition: background .3s ease, color .3s ease, transform .2s ease;
-}
-
-.profile-tab:active{
-    transform: scale(.96);
-}
-
-.profile-tab.active{
-    background: var(--gl-grad) !important;
-    color: #fff !important;
-    box-shadow: 0 10px 22px rgba(79,70,229,.35);
-}
-
-.profile-tab.active::after{
-    display: none !important;
-}
-
-/* ---------- بطاقات المعلومات ---------- */
-.info-card{
-    background: var(--gl-glass-strong) !important;
-    border: 1px solid var(--gl-line) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 8px 22px rgba(55,48,140,.07);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
-
-.info-card > .material-icons{
-    flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    border-radius: 14px;
-    background: linear-gradient(135deg,#eef0ff,#f5eaff);
-    color: #4f46e5 !important;
-    font-size: 20px;
-}
-
-.info-card h4{
-    color: var(--gl-muted);
-    font-weight: 700;
-}
-
-.info-card p{
-    color: var(--gl-ink);
-    font-weight: 800;
-}
-
-.uid-box{
-    background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(238,240,255,.8)) !important;
-}
-
-/* ---------- سجل الميداليات والتواصل ---------- */
-.profile-medal-history,
-.profile-social-card{
-    background: var(--gl-glass-strong) !important;
-    border: 1px solid var(--gl-line) !important;
-    border-radius: 24px !important;
-    box-shadow: var(--gl-shadow);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-}
-
-.profile-medal-history-kicker,
-.profile-social-kicker{
-    background: var(--gl-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
-}
-
-/* ---------- شبكة الخلفيات ---------- */
-.profile-wall-card{
-    border-radius: 20px !important;
-    overflow: hidden;
-    box-shadow: 0 10px 26px rgba(55,48,140,.12);
-    transition: transform .3s ease, box-shadow .3s ease;
-}
-
-.profile-wall-card:hover{
-    transform: translateY(-3px);
-    box-shadow: 0 18px 36px rgba(55,48,140,.2);
-}
-
-/* ---------- Focus لطيف ---------- */
-button:focus-visible,
-a:focus-visible{
-    outline: 3px solid rgba(79,70,229,.35);
-    outline-offset: 3px;
-}
-
-/* ---------- الوضع الداكن ---------- */
-body.dark{
-    color: #e9ebf7;
-    background:
-        radial-gradient(900px 500px at 8% -5%, rgba(124,58,237,.28), transparent 60%),
-        radial-gradient(800px 480px at 100% 10%, rgba(34,211,238,.12), transparent 60%),
-        linear-gradient(180deg,#0a0c16 0%,#0d1020 50%,#0a0d18 100%) !important;
-}
-
-body.dark .profile-identity,
-body.dark .stat-card,
-body.dark .info-card,
-body.dark .profile-medal-history,
-body.dark .profile-social-card,
-body.dark .profile-tabs,
-body.dark .profile-medals-inline-panel{
-    background: rgba(22,26,44,.62) !important;
-    border-color: rgba(255,255,255,.08) !important;
-    box-shadow: 0 16px 40px rgba(0,0,0,.35);
-}
-
-body.dark .identity-name-row h1{
-    background: linear-gradient(90deg,#ffffff 30%,#c7d2fe 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-body.dark .info-card p,
-body.dark .stat-card strong{
-    color: #f4f5fc;
-    -webkit-text-fill-color: currentColor;
-}
-
-body.dark .info-card > .material-icons{
-    background: rgba(99,102,241,.18);
-    color: #a5b4fc !important;
-}
-
-body.dark .profile-tab.active{
-    background: var(--gl-grad) !important;
-}
-
-/* ---------- تقليل الحركة والأداء ---------- */
-@media (prefers-reduced-motion: reduce){
-    .profile-avatar-box::before{
-        animation: none;
-    }
-}
-
-@media (max-width: 599px){
-    .profile-identity{
-        width: auto !important;
-        max-width: none !important;
-        margin: 0 10px !important;
-        border-radius: 26px;
-    }
-
-    .profile-tabs{
-        border-radius: 18px !important;
+@media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+        scroll-behavior:auto !important;
+        transition:none !important;
+        animation:none !important;
     }
 }
