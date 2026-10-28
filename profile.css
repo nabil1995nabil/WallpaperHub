@@ -2489,3 +2489,911 @@ body.dark .follow-stat-divider{background:#30394d}
 }
 
 
+
+
+/* =========================================================
+   RESPONSIVE COMPACT LAYER — v3
+   الهاتف: تصميم صغير ومرتب
+   التابلت والكمبيوتر: نفس اللغة البصرية بمساحة أوسع
+   (طبقة نهائية: تحدد التخطيط حسب حجم الشاشة)
+========================================================= */
+
+:root{
+    --pf-gutter: 12px;
+    --pf-cover-h: 180px;
+    --pf-avatar: 96px;
+    --pf-max: 100%;
+}
+
+/* ---------- الهاتف (حتى 599px) ---------- */
+@media (max-width: 599px){
+
+    body{
+        padding-bottom: 88px;
+        overflow-x: hidden;
+    }
+
+    /* الغلاف */
+    .profile-cover,
+    .cover-stage,
+    .cover-image{
+        height: var(--pf-cover-h) !important;
+    }
+
+    .profile-header{
+        height: 56px;
+    }
+
+    .profile-header h2{
+        font-size: 18px;
+    }
+
+    .profile-actions{
+        top: 8px;
+        left: 10px;
+        gap: 6px;
+    }
+
+    /* الصورة الشخصية: في وسط الغلاف وتتداخل معه قليلاً */
+    .profile-avatar-box{
+        top: calc(var(--pf-cover-h) - 46px) !important;
+        left: 50% !important;
+        right: auto !important;
+        width: var(--pf-avatar) !important;
+        height: var(--pf-avatar) !important;
+        transform: translateX(-50%);
+    }
+
+    .profile-avatar{
+        width: var(--pf-avatar) !important;
+        height: var(--pf-avatar) !important;
+        box-shadow: 0 4px 14px rgba(35,45,80,.18);
+    }
+
+    /* الهوية */
+    .profile-identity{
+        min-height: 0 !important;
+        max-width: 100%;
+        padding: calc(var(--pf-avatar) - 36px) var(--pf-gutter) 10px !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .identity-main{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .identity-name-row h1{
+        font-size: 19px !important;
+        line-height: 1.2;
+    }
+
+    .identity-username{
+        font-size: 12px;
+    }
+
+    .identity-bio{
+        font-size: 12px;
+        line-height: 1.5;
+        max-width: 280px;
+    }
+
+    .public-profile-actions{
+        justify-content: center;
+    }
+
+    .profile-follow-stats{
+        width: 100%;
+    }
+
+    .identity-side-stack{
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .identity-side-card{
+        padding: 8px 10px;
+        border-radius: 14px;
+    }
+
+    .profile-medals-trigger{
+        min-height: 40px;
+        font-size: 12px;
+        border-radius: 14px;
+    }
+
+    .profile-medals-inline-panel{
+        grid-column: 1 / -1;
+    }
+
+    .hero-edit-profile{
+        min-height: 40px;
+        font-size: 13px;
+        padding: 0 14px;
+        border-radius: 999px;
+    }
+
+    /* الإحصائيات: 4 مربعات صغيرة */
+    .profile-stats{
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        padding: 10px var(--pf-gutter) !important;
+        max-width: 100%;
+    }
+
+    .stat-card{
+        min-width: 0;
+        padding: 8px 4px !important;
+        border-radius: 14px;
+        gap: 2px;
+    }
+
+    .stat-card strong{
+        font-size: 15px !important;
+        line-height: 1.1;
+    }
+
+    .stat-card > span:not(.stat-icon){
+        font-size: 10px;
+    }
+
+    .stat-icon{
+        font-size: 16px !important;
+    }
+
+    /* التبويبات: شريط أفقي قابل للتمرير */
+    .profile-tabs{
+        margin: 0 var(--pf-gutter);
+        padding: 4px !important;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .profile-tabs::-webkit-scrollbar{
+        display: none;
+    }
+
+    .profile-tab{
+        flex: 0 0 auto !important;
+        height: 40px !important;
+        padding: 0 12px !important;
+        gap: 5px;
+        font-size: 12px;
+        border-radius: 12px;
+        white-space: nowrap;
+    }
+
+    .profile-tab .material-icons{
+        font-size: 16px;
+    }
+
+    .profile-tab-content{
+        padding: 10px var(--pf-gutter) 24px !important;
+    }
+
+    /* بطاقات المعلومات: صفوف مضغوطة */
+    .user-info{
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 !important;
+    }
+
+    .info-card{
+        min-height: 0 !important;
+        padding: 10px 12px !important;
+        gap: 10px;
+        border-radius: 14px;
+    }
+
+    .info-card h4{
+        font-size: 11px !important;
+    }
+
+    .info-card p{
+        font-size: 13px !important;
+        overflow-wrap: anywhere;
+    }
+
+    .info-card .material-icons{
+        font-size: 20px;
+    }
+
+    /* شبكة الخلفيات */
+    .profile-grid{
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .profile-medal-history{
+        padding: 10px !important;
+        border-radius: 14px;
+    }
+}
+
+/* ---------- الهاتف الصغير جداً (حتى 360px) ---------- */
+@media (max-width: 360px){
+    :root{
+        --pf-cover-h: 160px;
+        --pf-avatar: 88px;
+    }
+
+    .stat-card > span:not(.stat-icon){
+        font-size: 9px;
+    }
+
+    .profile-grid{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ---------- التابلت (600px – 1023px) ---------- */
+@media (min-width: 600px){
+    :root{
+        --pf-gutter: 20px;
+        --pf-cover-h: 240px;
+        --pf-avatar: 124px;
+    }
+
+    .profile-cover,
+    .cover-stage,
+    .cover-image{
+        height: var(--pf-cover-h) !important;
+    }
+
+    .profile-avatar-box{
+        top: calc(var(--pf-cover-h) - 62px) !important;
+        left: 50% !important;
+        right: auto !important;
+        width: var(--pf-avatar) !important;
+        height: var(--pf-avatar) !important;
+        transform: translateX(-50%);
+    }
+
+    .profile-avatar{
+        width: var(--pf-avatar) !important;
+        height: var(--pf-avatar) !important;
+    }
+
+    .profile-identity,
+    .profile-stats,
+    .profile-tabs,
+    .profile-tab-content{
+        max-width: 760px;
+        margin-inline: auto;
+    }
+
+    .profile-identity{
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        text-align: center;
+        padding: calc(var(--pf-avatar) - 44px) var(--pf-gutter) 16px !important;
+    }
+
+    .identity-main{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .identity-name-row h1{
+        font-size: 26px !important;
+    }
+
+    .identity-side-stack{
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .profile-medals-inline-panel{
+        grid-column: 1 / -1;
+    }
+
+    .profile-stats{
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 14px var(--pf-gutter) !important;
+    }
+
+    .profile-tabs{
+        margin: 0 auto;
+        padding: 6px !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .profile-tabs::-webkit-scrollbar{
+        display: none;
+    }
+
+    .profile-tab{
+        flex: 1 0 auto !important;
+        height: 46px !important;
+        font-size: 13px;
+    }
+
+    .user-info{
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .uid-box{
+        grid-column: 1 / -1;
+    }
+
+    .profile-grid{
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
+/* ---------- الكمبيوتر (1024px وأكثر) ---------- */
+@media (min-width: 1024px){
+    :root{
+        --pf-gutter: 24px;
+        --pf-cover-h: 300px;
+        --pf-avatar: 150px;
+    }
+
+    .profile-identity,
+    .profile-stats,
+    .profile-tabs,
+    .profile-tab-content{
+        max-width: 1040px;
+    }
+
+    .profile-identity{
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        text-align: right;
+        gap: 24px;
+        padding-top: calc(var(--pf-avatar) - 56px) !important;
+    }
+
+    .identity-main{
+        flex: 1 1 0;
+        align-items: flex-start;
+    }
+
+    .identity-side-stack{
+        flex: 0 0 280px;
+        display: flex !important;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .identity-name-row h1{
+        font-size: 32px !important;
+    }
+
+    .profile-stats{
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .user-info{
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .uid-box{
+        grid-column: auto;
+    }
+
+    .profile-grid{
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* ---------- الشاشات الكبيرة (1440px وأكثر) ---------- */
+@media (min-width: 1440px){
+    .profile-identity,
+    .profile-stats,
+    .profile-tabs,
+    .profile-tab-content{
+        max-width: 1180px;
+    }
+
+    .profile-grid{
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+/* ---------- تقليل الحركة ---------- */
+@media (prefers-reduced-motion: reduce){
+    .profile-avatar-box,
+    .profile-tab,
+    .stat-card{
+        transition: none !important;
+    }
+}
+
+/* ---------- ضبط الاسم وسجل الميداليات ---------- */
+@media (max-width: 599px){
+    .identity-name-row{
+        justify-content: center;
+    }
+
+    .profile-medal-history{
+        width: 100% !important;
+        margin: 0 0 8px !important;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 1023px){
+    .identity-name-row{
+        justify-content: center;
+    }
+}
+
+@media (min-width: 1024px){
+    .profile-medal-history{
+        width: 100% !important;
+        margin: 0 0 16px !important;
+    }
+}
+
+
+/* =====================================================================
+   PREMIUM GLASS THEME — v4
+   ألوان: نيلي عميق · بنفسجي · سماوي · ذهبي مضيء
+   عناصر زجاجية على خلفية متدرجة بهالات ناعمة
+   ===================================================================== */
+
+:root{
+    --gl-ink: #151a2e;
+    --gl-muted: #6b7291;
+    --gl-indigo: #4f46e5;
+    --gl-violet: #8b5cf6;
+    --gl-cyan: #22d3ee;
+    --gl-gold: #f5c451;
+    --gl-gold-deep: #b7791f;
+    --gl-glass: rgba(255,255,255,.58);
+    --gl-glass-strong: rgba(255,255,255,.78);
+    --gl-line: rgba(255,255,255,.75);
+    --gl-shadow: 0 18px 50px rgba(55,48,140,.14);
+    --gl-grad: linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#22d3ee 130%);
+}
+
+/* ---------- الخلفية العامة مع هالات ملونة ثابتة ---------- */
+body{
+    position: relative;
+    color: var(--gl-ink);
+    background:
+        radial-gradient(900px 500px at 8% -5%, rgba(139,92,246,.22), transparent 60%),
+        radial-gradient(800px 480px at 100% 10%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(900px 600px at 50% 100%, rgba(245,196,81,.10), transparent 60%),
+        linear-gradient(180deg,#f0f1ff 0%,#f8f6ff 45%,#f2f8ff 100%) !important;
+    background-attachment: fixed;
+}
+
+/* ---------- الهيدر: زجاجي شفاف ---------- */
+.profile-header h2{
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: .3px;
+    text-shadow: 0 2px 18px rgba(20,10,60,.45);
+}
+
+.profile-header .menu-btn,
+.profile-header .login-btn,
+.profile-header .settings-btn,
+.profile-actions .login-btn,
+.profile-actions .settings-btn{
+    background: rgba(255,255,255,.16) !important;
+    border: 1px solid rgba(255,255,255,.28) !important;
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow: 0 8px 22px rgba(10,8,40,.25), inset 0 1px 0 rgba(255,255,255,.25) !important;
+    color: #fff !important;
+    transition: transform .25s ease, background .25s ease;
+}
+
+.profile-header .menu-btn:active,
+.profile-header .login-btn:active,
+.profile-header .settings-btn:active{
+    transform: scale(.92);
+}
+
+/* ---------- الغلاف: تدرج يندمج مع الصفحة ---------- */
+.cover-stage::after{
+    background:
+        linear-gradient(180deg, rgba(12,10,40,.25) 0%, rgba(12,10,40,0) 35%, rgba(240,241,255,.55) 80%, #f0f1ff 100%) !important;
+}
+
+.cover-history-overlay,
+.cover-history-dots{
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.cover-history-overlay{
+    background: rgba(18,14,50,.35) !important;
+    border: 1px solid rgba(255,255,255,.25) !important;
+    border-radius: 999px;
+}
+
+/* ---------- الصورة الشخصية: إطار متدرج متحرك ---------- */
+.profile-avatar-box::before{
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #4f46e5, #22d3ee, #a78bfa, #f5c451, #4f46e5);
+    z-index: -1;
+    animation: glSpin 9s linear infinite;
+}
+
+.profile-avatar{
+    border: 4px solid #fff !important;
+    box-shadow: 0 16px 36px rgba(40,30,120,.30) !important;
+}
+
+@keyframes glSpin{
+    to{ transform: rotate(360deg); }
+}
+
+/* ---------- بطاقة الهوية: زجاج عائم ---------- */
+.profile-identity{
+    border-radius: 32px;
+    background: var(--gl-glass-strong) !important;
+    border: 1px solid var(--gl-line);
+    box-shadow: var(--gl-shadow);
+    backdrop-filter: blur(22px) saturate(170%);
+    -webkit-backdrop-filter: blur(22px) saturate(170%);
+}
+
+.identity-name-row h1{
+    background: linear-gradient(90deg, #151a2e 30%, #4338ca 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+.identity-username{
+    display: inline-flex;
+    align-self: center;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: rgba(79,70,229,.08);
+    color: #4f46e5 !important;
+    font-weight: 700;
+}
+
+.identity-bio{
+    color: var(--gl-muted) !important;
+}
+
+/* متابعة: زجاجي */
+.profile-follow-stats{
+    border-radius: 22px;
+    background: rgba(255,255,255,.7);
+    border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 8px 24px rgba(55,48,140,.07);
+}
+
+.follow-stat-item strong{
+    background: var(--gl-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+/* زر تعديل الملف: متدرج بوهج */
+.hero-edit-profile{
+    background: var(--gl-grad) !important;
+    color: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 14px 30px rgba(79,70,229,.35) !important;
+    font-weight: 800;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.hero-edit-profile:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(79,70,229,.45) !important;
+}
+
+.hero-edit-profile .material-icons{
+    color: #fff !important;
+}
+
+/* نقاطك: شريحة ذهبية */
+#profilePointsBtn{
+    padding: 4px 12px !important;
+    border-radius: 999px !important;
+    background: rgba(245,196,81,.14) !important;
+    color: var(--gl-gold-deep) !important;
+}
+
+#profilePointsValue{
+    color: var(--gl-gold-deep) !important;
+}
+
+/* بطاقة المميز: داكنة بتوهج ذهبي */
+.identity-side-card.premium-card{
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px !important;
+    background:
+        radial-gradient(120px 80px at 90% 0%, rgba(245,196,81,.45), transparent 70%),
+        linear-gradient(135deg, #1e1b4b 0%, #4c1d95 60%, #312e81 100%) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    box-shadow: 0 16px 34px rgba(49,46,129,.35);
+}
+
+.premium-card strong{
+    color: #fff !important;
+}
+
+.premium-card small{
+    color: rgba(255,255,255,.7) !important;
+}
+
+.premium-crown{
+    color: var(--gl-gold) !important;
+    text-shadow: 0 0 14px rgba(245,196,81,.6);
+}
+
+/* الميداليات: زجاج ذهبي */
+.profile-medals-trigger{
+    background: linear-gradient(135deg, rgba(255,247,220,.9), rgba(255,236,190,.7)) !important;
+    border: 1px solid rgba(245,196,81,.55) !important;
+    color: var(--gl-gold-deep) !important;
+    box-shadow: 0 10px 24px rgba(245,196,81,.20) !important;
+    font-weight: 800;
+}
+
+.profile-medals-inline-panel{
+    background: var(--gl-glass-strong) !important;
+    border: 1px solid var(--gl-line) !important;
+    border-radius: 22px !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+/* ---------- الإحصائيات: بطاقات زجاجية بأيقونات متدرجة ---------- */
+.profile-stats{
+    gap: 10px;
+}
+
+.stat-card{
+    position: relative;
+    overflow: hidden;
+    background: var(--gl-glass-strong) !important;
+    border: 1px solid var(--gl-line) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 10px 28px rgba(55,48,140,.09);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+.stat-card::after{
+    content: "";
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    top: -30px;
+    left: -24px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,70,229,.22), transparent 70%);
+    pointer-events: none;
+}
+
+.stat-card strong{
+    background: linear-gradient(135deg,#1e1b4b,#4f46e5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+.stat-icon{
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 2px;
+    border-radius: 11px;
+    display: grid !important;
+    place-items: center;
+    font-size: 17px !important;
+    color: #fff !important;
+}
+
+.wallpaper-icon{ background: linear-gradient(135deg,#6366f1,#4f46e5) !important; }
+.view-icon{ background: linear-gradient(135deg,#22d3ee,#0ea5e9) !important; }
+.like-icon{ background: linear-gradient(135deg,#f472b6,#e11d48) !important; }
+.download-icon{ background: linear-gradient(135deg,#34d399,#059669) !important; }
+
+/* ---------- التبويبات: شريط زجاجي وتبويب نشط متدرج ---------- */
+.profile-tabs{
+    background: rgba(255,255,255,.6) !important;
+    border: 1px solid var(--gl-line) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 10px 28px rgba(55,48,140,.08);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+.profile-tab{
+    color: var(--gl-muted);
+    font-weight: 700;
+    border-radius: 16px !important;
+    transition: background .3s ease, color .3s ease, transform .2s ease;
+}
+
+.profile-tab:active{
+    transform: scale(.96);
+}
+
+.profile-tab.active{
+    background: var(--gl-grad) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 22px rgba(79,70,229,.35);
+}
+
+.profile-tab.active::after{
+    display: none !important;
+}
+
+/* ---------- بطاقات المعلومات ---------- */
+.info-card{
+    background: var(--gl-glass-strong) !important;
+    border: 1px solid var(--gl-line) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 22px rgba(55,48,140,.07);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.info-card > .material-icons{
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg,#eef0ff,#f5eaff);
+    color: #4f46e5 !important;
+    font-size: 20px;
+}
+
+.info-card h4{
+    color: var(--gl-muted);
+    font-weight: 700;
+}
+
+.info-card p{
+    color: var(--gl-ink);
+    font-weight: 800;
+}
+
+.uid-box{
+    background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(238,240,255,.8)) !important;
+}
+
+/* ---------- سجل الميداليات والتواصل ---------- */
+.profile-medal-history,
+.profile-social-card{
+    background: var(--gl-glass-strong) !important;
+    border: 1px solid var(--gl-line) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--gl-shadow);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+.profile-medal-history-kicker,
+.profile-social-kicker{
+    background: var(--gl-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+/* ---------- شبكة الخلفيات ---------- */
+.profile-wall-card{
+    border-radius: 20px !important;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(55,48,140,.12);
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.profile-wall-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 18px 36px rgba(55,48,140,.2);
+}
+
+/* ---------- Focus لطيف ---------- */
+button:focus-visible,
+a:focus-visible{
+    outline: 3px solid rgba(79,70,229,.35);
+    outline-offset: 3px;
+}
+
+/* ---------- الوضع الداكن ---------- */
+body.dark{
+    color: #e9ebf7;
+    background:
+        radial-gradient(900px 500px at 8% -5%, rgba(124,58,237,.28), transparent 60%),
+        radial-gradient(800px 480px at 100% 10%, rgba(34,211,238,.12), transparent 60%),
+        linear-gradient(180deg,#0a0c16 0%,#0d1020 50%,#0a0d18 100%) !important;
+}
+
+body.dark .profile-identity,
+body.dark .stat-card,
+body.dark .info-card,
+body.dark .profile-medal-history,
+body.dark .profile-social-card,
+body.dark .profile-tabs,
+body.dark .profile-medals-inline-panel{
+    background: rgba(22,26,44,.62) !important;
+    border-color: rgba(255,255,255,.08) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,.35);
+}
+
+body.dark .identity-name-row h1{
+    background: linear-gradient(90deg,#ffffff 30%,#c7d2fe 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.dark .info-card p,
+body.dark .stat-card strong{
+    color: #f4f5fc;
+    -webkit-text-fill-color: currentColor;
+}
+
+body.dark .info-card > .material-icons{
+    background: rgba(99,102,241,.18);
+    color: #a5b4fc !important;
+}
+
+body.dark .profile-tab.active{
+    background: var(--gl-grad) !important;
+}
+
+/* ---------- تقليل الحركة والأداء ---------- */
+@media (prefers-reduced-motion: reduce){
+    .profile-avatar-box::before{
+        animation: none;
+    }
+}
+
+@media (max-width: 599px){
+    .profile-identity{
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 10px !important;
+        border-radius: 26px;
+    }
+
+    .profile-tabs{
+        border-radius: 18px !important;
+    }
+}
