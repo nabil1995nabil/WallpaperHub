@@ -60,7 +60,7 @@ function applySetting(key){
 
 function bindSettings(){
     Object.keys(DEFAULT_SETTINGS).forEach(key => {
-        const input = $(key);
+        const input = $(key === "notifications" ? "notificationsEnabled" : key);
         if(!input) return;
 
         input.checked = !!settings[key];
@@ -70,21 +70,8 @@ function bindSettings(){
             applySetting(key);
             saveSettings();
 
-            if(key === "browserNotifications" && input.checked){
-                if(!("Notification" in window)){
-                    input.checked = false;
-                    settings.browserNotifications = false;
-                    saveSettings();
-                    alert("هذا المتصفح لا يدعم إشعارات النظام.");
-                    return;
-                }
-                const permission = await Notification.requestPermission();
-                if(permission !== "granted"){
-                    input.checked = false;
-                    settings.browserNotifications = false;
-                    saveSettings();
-                    alert("لم يتم السماح بإشعارات المتصفح.");
-                }
+            if(key === "browserNotifications"){
+                window.dispatchEvent(new CustomEvent("wallpaperhub:push-toggle",{detail:{enabled:input.checked}}));
             }
         });
     });

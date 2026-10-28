@@ -413,7 +413,72 @@ async function getActiveFeatureBan(userId, prefix){
 
 const app = express();
 
+
 const PORT = process.env.PORT || 3000;
+
+// Web Push: requires VAPID keys in the hosting environment.
+let webPush = null;
+try { webPush = require("web-push"); } catch (_) {}
+const PUSH_VAPID_PUBLIC_KEY = String(process.env.VAPID_PUBLIC_KEY || "").trim();
+const PUSH_VAPID_PRIVATE_KEY = String(process.env.VAPID_PRIVATE_KEY || "").trim();
+if (webPush && PUSH_VAPID_PUBLIC_KEY && PUSH_VAPID_PRIVATE_KEY) {
+    webPush.setVapidDetails(
+        String(process.env.VAPID_SUBJECT || "mailto:admin@wallpaperhub.example"),
+        PUSH_VAPID_PUBLIC_KEY, PUSH_VAPID_PRIVATE_KEY
+    );
+}
+function pushIsConfigured(){ return Boolean(webPush && PUSH_VAPID_PUBLIC_KEY && PUSH_VAPID_PRIVATE_KEY); }
+function cleanPushText(value,max=180){
+    return String(value||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim().slice(0,max);
+}
+async function sendPushToUser(userId,notification){
+    if(!pushIsConfigured()||!userId)return {sent:0};
+    try{
+        const {data:subscriptions,error}=await supabase.from("push_subscriptions").select("id,subscription").eq("user_id",String(userId));
+        if(error)throw error;
+        let sent=0;
+        for(const row of subscriptions||[]){
+            try{
+                await webPush.sendNotification(row.subscription,JSON.stringify({
+                    title:cleanPushText(notification?.title||"WallpaperHub",80),
+                    body:cleanPushText(notification?.body||"لديك إشعار جديد",180),
+                    icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",
+                    url:String(notification?.url||"/notifications.html"),tag:String(notification?.tag||"wallpaperhub-notification")
+                }));
+                sent++;
+            }catch(error){
+                if(error?.statusCode===404||error?.statusCode===410) await supabase.from("push_subscriptions").delete().eq("id",row.id);
+                else console.log("WEB PUSH SEND ERROR:",error?.message||error);
+            }
+        }
+        return {sent};
+    }catch(error){console.log("WEB PUSH USER ERROR:",error?.message||error);return {sent:0};}
+}
+async function sendPushToAll(notification,excludeUserId=""){
+    if(!pushIsConfigured())return {sent:0};
+    try{
+        const {data:subscriptions,error}=await supabase.from("push_subscriptions").select("user_id,subscription,id");
+        if(error)throw error;
+        let sent=0;
+        for(const row of subscriptions||[]){
+            if(excludeUserId&&String(row.user_id)===String(excludeUserId))continue;
+            try{
+                await webPush.sendNotification(row.subscription,JSON.stringify({
+                    title:cleanPushText(notification?.title||"WallpaperHub",80),
+                    body:cleanPushText(notification?.body||"لديك إشعار جديد",180),
+                    icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",
+                    url:String(notification?.url||"/notifications.html"),tag:String(notification?.tag||"wallpaperhub-notification")
+                }));
+                sent++;
+            }catch(error){
+                if(error?.statusCode===404||error?.statusCode===410) await supabase.from("push_subscriptions").delete().eq("id",row.id);
+                else console.log("WEB PUSH SEND ERROR:",error?.message||error);
+            }
+        }
+        return {sent};
+    }catch(error){console.log("WEB PUSH BROADCAST ERROR:",error?.message||error);return {sent:0};}
+}
+
 
 
 // ======================================
@@ -432,6 +497,38 @@ app.use(express.urlencoded({
     extended:true
 }));
 
+
+// ======================================
+// Web Push subscription API
+// ======================================
+app.get("/api/push/public-key",(req,res)=>{
+    if(!pushIsConfigured())return res.status(503).json({success:false,message:"إشعارات الهاتف غير مهيأة على الخادم."});
+    return res.json({success:true,publicKey:PUSH_VAPID_PUBLIC_KEY});
+});
+app.post("/api/push/subscribe",async(req,res)=>{
+    try{
+        const user=await getAuthenticatedUser(req);
+        if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولًا لتفعيل إشعارات الهاتف."});
+        if(!pushIsConfigured())return res.status(503).json({success:false,message:"إشعارات الهاتف غير مهيأة على الخادم."});
+        const subscription=req.body?.subscription;
+        if(!subscription||typeof subscription!=="object"||!subscription.endpoint||!subscription.keys?.p256dh||!subscription.keys?.auth)
+            return res.status(400).json({success:false,message:"بيانات اشتراك الإشعارات غير صالحة."});
+        const {error}=await supabase.from("push_subscriptions").upsert({user_id:String(user.id),endpoint:String(subscription.endpoint),subscription},{onConflict:"endpoint"});
+        if(error)throw error;
+        return res.json({success:true});
+    }catch(error){console.log("PUSH SUBSCRIBE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ اشتراك الإشعارات."});}
+});
+app.post("/api/push/unsubscribe",async(req,res)=>{
+    try{
+        const user=await getAuthenticatedUser(req);
+        if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولًا."});
+        const endpoint=String(req.body?.endpoint||"").trim();
+        if(!endpoint)return res.status(400).json({success:false,message:"عنوان الاشتراك غير صالح."});
+        const {error}=await supabase.from("push_subscriptions").delete().eq("user_id",String(user.id)).eq("endpoint",endpoint);
+        if(error)throw error;
+        return res.json({success:true});
+    }catch(error){console.log("PUSH UNSUBSCRIBE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر إيقاف إشعارات الهاتف."});}
+});
 
 // ======================================
 // Telegram WallpaperHub bot (webhook mode for Vercel)
@@ -3290,7 +3387,13 @@ async function notifyUsersAboutNewWallpaper({
             .insert(rows);
 
         if(error) throw error;
-
+        if(pushIsConfigured()){
+            const pushBody=`خلفية جديدة منشورة: ${String(wallpaperTitle||"خلفية جديدة").trim()}`;
+            Promise.all(recipients.map(recipientUID=>sendPushToUser(recipientUID,{
+                title:"خلفية جديدة على WallpaperHub",body:pushBody,
+                url:`/wallpaper.html?id=${encodeURIComponent(targetWallpaperId)}`,tag:`wh-wallpaper-${targetWallpaperId}`
+            }))).catch(()=>{});
+        }
         return { inserted: rows.length };
     }catch(error){
         // Notification delivery must not make a successfully published
@@ -3330,7 +3433,15 @@ async function createNotification({
         .single();
 
     if(error) throw error;
-    return notificationFromDb(data);
+    const saved = notificationFromDb(data);
+    const pushTitles = {new_follower:"متابع جديد",community_message_reply:"رد جديد في المجتمع",community_mention:"تمت الإشارة إليك",account_verified:"تم توثيق حسابك",account_unverified:"تحديث الحساب",new_wallpaper:"خلفية جديدة",comment:"تعليق جديد",like:"إعجاب جديد"};
+    sendPushToUser(recipientUID,{
+        title:pushTitles[String(type||"")]||"إشعار جديد في WallpaperHub",
+        body:message||"لديك إشعار جديد",
+        url:type==="new_wallpaper"&&wallpaperId?`/wallpaper.html?id=${encodeURIComponent(wallpaperId)}`:"/notifications.html",
+        tag:`wh-${String(type||"notification")}-${String(data?.id||Date.now())}`
+    }).catch(()=>{});
+    return saved;
 }
 
 // ======================================
@@ -7899,7 +8010,11 @@ if(error){
 throw error;
 }
 
-
+sendPushToAll({
+    title:cleanPushText(data?.title || "إعلان جديد من WallpaperHub",80),
+    body:cleanPushText(data?.content || "تم نشر إعلان جديد",180),
+    url:"/notifications.html",tag:`wh-announcement-${data?.id || Date.now()}`
+}).catch(()=>{});
 
 res.json({
 
@@ -9658,6 +9773,19 @@ app.post("/api/community/messages", async (req, res) => {
             }catch(notificationError){console.log("COMMUNITY REPLY NOTIFICATION ERROR:",notificationError?.message || notificationError)}
         }
         await notifyCommunityMentions(content,user,messageId);
+
+        let communityPushTitle = "رسالة جديدة في المجتمع";
+        let communityPushBody = content || (media?.imageUrl ? "📷 أرسل صورة في المجتمع" : fileMedia?.fileName ? `📎 أرسل ملفًا: ${fileMedia.fileName}` : "أرسل مرفقًا في المجتمع");
+        try{
+            const callEvent=String(content||"").match(/\[\[WH_VOICE_CALL_EVENT\]\]\s*(\{[\s\S]*\})/);
+            if(callEvent){
+                const event=JSON.parse(callEvent[1]);
+                const mode=String(event?.mode||event?.callType||"").toLowerCase();
+                communityPushTitle=mode.includes("video")||mode.includes("مرئي")?"مكالمة مرئية في المجتمع":"مكالمة صوتية في المجتمع";
+                communityPushBody=`${profile?.full_name||profile?.username||"عضو"} بدأ حدث مكالمة في المجتمع`;
+            }
+        }catch(_){}
+        sendPushToAll({title:communityPushTitle,body:communityPushBody,url:"/community.html",tag:`wh-community-${messageId}`},user.id).catch(()=>{});
 
         return res.status(201).json({
             success: true,
