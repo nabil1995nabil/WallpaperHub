@@ -1979,9 +1979,12 @@ function releaseSwipeCover(delay){
 function scheduleNeighborPreload(){
     const conn = navigator.connection || {};
     if(conn.saveData || /2g|3g/.test(conn.effectiveType || "")) return;
+    // محرك الأداء: 2 = السابقة والتالية (جهاز قوي)، 1 = التالية فقط، 0 = بدون تحميل مسبق
+    const budget = window.WallpaperPerformance?.limits?.preloadNeighbors ?? 2;
+    if(budget <= 0) return;
     const run = () => {
         neighborPreloads = [];
-        [1, -1].forEach(step => {
+        (budget >= 2 ? [1, -1] : [1]).forEach(step => {
             const index = getWrappedWallpaperIndex(currentWallpaperIndex + step);
             if(index < 0 || index === currentWallpaperIndex) return;
             const target = categoryWallpapers[index];
