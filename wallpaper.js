@@ -1948,6 +1948,96 @@ function renderExternalWallpaperDetails(){
     }
 }
 
+// ===============================
+// Stable hero image
+// - تُفك ترميز الصورة الجديدة خارج الشاشة ثم تُبدَّل دفعة واحدة (لا وميض ولا ظهور تدريجي)
+// - معاينة السحب تبقى فوق الصورة القديمة حتى تجهز الجديدة
+// - تحميل مسبق للخلفيتين المجاورتين ليظهرا فورًا عند السحب
+// ===============================
+var pendingSwipeCover = null;
+var pendingSwipeCoverTimer = 0;
+var neighborPreloads = [];
+
+function releaseSwipeCover(delay){
+    const run = () => {
+        const cover = pendingSwipeCover;
+        if(!cover) return;
+        pendingSwipeCover = null;
+        clearTimeout(pendingSwipeCoverTimer);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if(cover.tagName === "VIDEO"){
+                try{ cover.pause(); }catch(e){}
+                cover.removeAttribute("src");
+                try{ cover.load(); }catch(e){}
+            }
+            cover.remove();
+        }));
+    };
+    if(delay > 0) setTimeout(run, delay); else run();
+}
+
+function scheduleNeighborPreload(){
+    const conn = navigator.connection || {};
+    if(conn.saveData || /2g|3g/.test(conn.effectiveType || "")) return;
+    const run = () => {
+        neighborPreloads = [];
+        [1, -1].forEach(step => {
+            const index = getWrappedWallpaperIndex(currentWallpaperIndex + step);
+            if(index < 0 || index === currentWallpaperIndex) return;
+            const target = categoryWallpapers[index];
+            if(!target || isVideoMedia(target) || isGifMedia(target)) return;
+            const img = new Image();
+            img.decoding = "async";
+            img.src = getImageUrl(target.image || target.thumbnail);
+            if(typeof img.decode === "function") img.decode().catch(() => {});
+            neighborPreloads.push(img);
+        });
+    };
+    if("requestIdleCallback" in window) requestIdleCallback(run, {timeout:1500});
+    else setTimeout(run, 400);
+}
+
+function setHeroImage(imgEl, url){
+    if(!imgEl || !url) return;
+    const token = (imgEl.__heroToken = (imgEl.__heroToken || 0) + 1);
+    const isFirst = !imgEl.getAttribute("src");
+
+    if(imgEl.__heroUrl === url && imgEl.complete && imgEl.naturalWidth){
+        releaseSwipeCover(0);
+        return;
+    }
+
+    imgEl.fetchPriority = "high";
+    const probe = new Image();
+    probe.decoding = "async";
+    probe.fetchPriority = "high";
+    probe.src = url;
+
+    const apply = () => {
+        if(token !== imgEl.__heroToken) return;
+        imgEl.__heroUrl = url;
+        if(isFirst) imgEl.style.opacity = "0";
+        imgEl.src = url;
+        if(isFirst){
+            requestAnimationFrame(() => {
+                imgEl.style.transition = "opacity .3s ease";
+                imgEl.style.opacity = "1";
+                setTimeout(() => {
+                    if(String(imgEl.style.transition).indexOf("opacity") === 0)
+                        imgEl.style.transition = "";
+                }, 350);
+            });
+        }
+        releaseSwipeCover(0);
+        scheduleNeighborPreload();
+    };
+
+    const ready = typeof probe.decode === "function"
+        ? probe.decode()
+        : new Promise(res => { probe.onload = res; probe.onerror = res; });
+    ready.then(apply, apply);
+}
+
 function showWallpaper(){
 
 
@@ -1982,6 +2072,7 @@ if(isVideoMedia(currentWallpaper)){
 
 updateWallpaperSideBackground("", false);
 setupVideo(media);
+releaseSwipeCover(350);
 
 
 
@@ -2003,7 +2094,7 @@ if(wallImage){
     wallImage.decoding = "async";
     wallImage.loading = "eager";
     prepareWallpaperColorRendering(wallImage, currentWallpaper);
-    wallImage.src = originalImageUrl;
+    setHeroImage(wallImage, originalImageUrl);
 
     wallImage.style.display = "block";
 
@@ -2605,7 +2696,7 @@ function createSwipePreview(index, direction){
     media.style.width = "100%";
     media.style.height = "100%";
     media.style.objectFit = "cover";
-    media.style.borderRadius = "30px";
+    media.style.borderRadius = "0";
     media.style.display = "block";
     media.style.zIndex = "2";
     media.style.pointerEvents = "none";
@@ -2857,10 +2948,18 @@ if(wallpaperSwipeArea){
             }
 
             const targetIndex = swipeTargetIndex;
-
             setTimeout(()=>{
+                // أبقِ معاينة الخلفية التالية فوق الصورة القديمة حتى تُفك ترميز الجديدة (يمنع الوميض)
+                const cover = targetIndex >= 0 ? swipePreviewElement : null;
+                swipePreviewElement = null;
                 resetSwipeTransform();
-
+                if(cover){
+                    cover.style.transition = "none";
+                    cover.style.transform = "translate3d(0,0,0)";
+                    pendingSwipeCover = cover;
+                    clearTimeout(pendingSwipeCoverTimer);
+                    pendingSwipeCoverTimer = setTimeout(() => releaseSwipeCover(0), 1500);
+                }
                 if(targetIndex >= 0){
                     changeWallpaper(targetIndex);
                 }

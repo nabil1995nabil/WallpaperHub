@@ -9,6 +9,9 @@
 
 <title>WallpaperHub</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
 <link rel="stylesheet" href="wallpaper.css">
 <link rel="stylesheet" href="wallpaper-colors.css">
 <link rel="stylesheet" href="effects.css">
@@ -77,17 +80,7 @@ share
 
 
 
-<img
-
-id="wallImage"
-
-src=""
-
-alt="Wallpaper"
-
-decoding="async"
-
->
+<img id="wallImage" alt="Wallpaper" decoding="async" fetchpriority="high" draggable="false">
 <canvas id="panoramaCanvas" class="panorama-canvas" aria-label="عارض الخلفية 360 درجة"></canvas>
 
 
@@ -310,15 +303,7 @@ class="fullscreen-viewer"
 >
 
 
-<img
-
-id="fullscreenImage"
-
-src=""
-
-alt="Fullscreen Wallpaper"
-
->
+<img id="fullscreenImage" alt="Fullscreen Wallpaper" decoding="async" draggable="false">
 
 
 
@@ -901,7 +886,7 @@ class="similar-grid"
      aria-atomic="true"></div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
 <script type="module" src="wallpaper.js"></script>
 
 <script src="effects.js"></script>

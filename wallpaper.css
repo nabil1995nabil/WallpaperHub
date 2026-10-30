@@ -11,6 +11,10 @@ RESET
 
 html{
     scroll-behavior:smooth;
+    scrollbar-gutter:stable;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+    -webkit-tap-highlight-color:transparent;
 }
 
 body{
@@ -63,34 +67,103 @@ HEADER
 MAIN PREVIEW
 ========================= */
 
+/* ---- ارتفاع ثابت: لا يتغير مع شريط المتصفح ولا مع تحميل الصورة ---- */
+:root{
+    --vh-stable:1vh;
+    --topbar-h:68px;
+}
+@supports (height:1svh){
+    :root{--vh-stable:1svh;}
+}
+:root{--hero-h:calc(58 * var(--vh-stable) + var(--topbar-h));}
+@media (min-width:601px){
+    :root{--hero-h:clamp(520px, calc(58 * var(--vh-stable) + var(--topbar-h)), 900px);}
+}
+@media (min-width:901px){
+    :root{--hero-h:clamp(520px, 56.25vw, calc(92 * var(--vh-stable)));}
+}
+
+/* أيقونات Material: حجم محجوز قبل تحميل الخط (يمنع قفزة النص عند ظهور الأيقونة) */
+.material-icons{
+    width:1em;
+    height:1em;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
 .preview{
-    padding:18px;
+    width:100%;
+    margin:0;
+    padding:0;
 }
 
 .wallpaper-preview-wrapper{
-    /* هذا هو العارض الأصلي نفسه؛ جميع أنواع الوسائط تلتزم بنفس الأبعاد. */
     position:relative;
     isolation:isolate;
     width:100%;
-    height:65vh;
-    border-radius:30px;
+    height:var(--hero-h);
+    margin:0;
+    border-radius:0;
     overflow:hidden;
-    background:#f5f5f5;
+    background:#0b0d12;
     touch-action:pan-y;
+    contain:layout paint;
 }
 
+/* تدرج سفلي خفيف لوضوح أزرار التحميل والشاشة الكاملة فوق أي صورة */
+.wallpaper-preview-wrapper::after{
+    content:"";
+    position:absolute;
+    inset:auto 0 0 0;
+    height:30%;
+    z-index:3;
+    pointer-events:none;
+    background:linear-gradient(to top, rgba(0,0,0,.34), transparent);
+}
+
+/* الصورة تُعرض بدقتها الكاملة دون أي فلتر أو تحويل ثابت */
 .preview img,
 .preview video{
-    touch-action:pan-y;
     display:block;
     width:100%;
     height:100%;
-    max-width:100%;
+    max-width:none;
     object-fit:cover;
     object-position:center;
-    border-radius:inherit;
-    background:#111;
+    border-radius:0;
+    background:#0b0d12;
+    touch-action:pan-y;
+    image-rendering:auto;
+    image-orientation:from-image;
+    -webkit-user-drag:none;
+    user-select:none;
+    -webkit-user-select:none;
 }
+
+.preview img:not([src]){
+    visibility:hidden;
+}
+
+/* الطبقة الضبابية الجانبية كانت تفك ترميز نسخة ثانية 4K وتطبّق blur على كامل العارض
+   بينما الصورة تغطي المساحة كلها، فلا يظهر منها شيء. أُخفيت لتوفير الذاكرة والـGPU. */
+.wallpaper-ambient-background{
+    display:none;
+}
+
+/* لا قفزة عند التبديل بين التبويبات */
+.wallpaper-tab-content{
+    min-height:360px;
+}
+
+@media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+    }
+}
+
 
 #wallVideo{
     display:none;
@@ -134,9 +207,7 @@ MAIN PREVIEW
 }
 
 @media(max-width:600px){
-    .wallpaper-preview-wrapper{
-        height:58vh;
-    }
+    
 
     .panorama-canvas{
         height:100%;
@@ -156,21 +227,12 @@ MAIN PREVIEW
     will-change:transform;
 }
 
-.preview img,
-.preview video{
-    transform:translate3d(0,0,0);
-    backface-visibility:hidden;
-    -webkit-backface-visibility:hidden;
-}
 
 .wall-swipe-preview{
     pointer-events:none !important;
     object-fit:cover;
-    backface-visibility:hidden;
-    -webkit-backface-visibility:hidden;
     will-change:transform;
 }
-
 
 
 /* =========================
@@ -784,7 +846,6 @@ FULLSCREEN CLOSE
 ANIMATION
 ========================= */
 
-.wallpaper-preview-wrapper,
 .info,
 .tags,
 .similar{
@@ -801,15 +862,11 @@ ANIMATION
 
         opacity:0;
 
-        transform:translateY(15px);
-
     }
 
     to{
 
         opacity:1;
-
-        transform:translateY(0);
 
     }
 
@@ -821,18 +878,6 @@ MOBILE
 
 @media(max-width:600px){
 
-.preview{
-
-    padding:15px;
-
-}
-
-.preview img,
-.preview video{
-
-    height:58vh;
-
-}
 
 .info,
 .tags,
@@ -1629,7 +1674,6 @@ MOBILE
 }
 
 
-
 /* =========================================================
    WALLPAPER CONTENT TABS
    المعلومات / خلفيات مشابهة / التعليقات
@@ -1984,23 +2028,11 @@ MOBILE
         padding:0 4px;
     }
 
-    .preview{
-        padding:22px 0 0;
-    }
+    
 
-    .wallpaper-preview-wrapper{
-        width:100%;
-        border-radius:24px;
-    }
+    
 
-    .preview img,
-    .preview video{
-        height:auto;
-        aspect-ratio:16 / 9;
-        max-height:720px;
-        object-fit:cover;
-        border-radius:24px;
-    }
+    
 
     .wallpaper-header-info{
         margin-top:18px;
@@ -2357,28 +2389,6 @@ body{
     color:#ff2d55;
 }
 
-.preview{
-    width:100%;
-    margin:0;
-    padding:0;
-}
-
-.wallpaper-preview-wrapper{
-    width:100%;
-    margin:0;
-    border-radius:0;
-    overflow:hidden;
-}
-
-.preview img,
-.preview video{
-    width:100%;
-    height:calc(58vh + 68px);
-    min-height:520px;
-    max-height:900px;
-    border-radius:0;
-    object-fit:cover;
-}
 
 /* عناصر التحكم فوق الصورة */
 .quality-badge{
@@ -2413,26 +2423,11 @@ body{
         padding:0 28px;
     }
 
-    .preview{
-        width:100%;
-        max-width:none;
-        padding:0;
-    }
+    
 
-    .wallpaper-preview-wrapper{
-        width:100%;
-        border-radius:0;
-    }
+    
 
-    .preview img,
-    .preview video{
-        width:100%;
-        height:auto;
-        aspect-ratio:16 / 9;
-        max-height:none;
-        min-height:0;
-        border-radius:0;
-    }
+    
 
     .quality-badge{
         top:92px;
@@ -2455,12 +2450,7 @@ body{
         padding-top:env(safe-area-inset-top, 0px);
     }
 
-    .preview img,
-    .preview video{
-        height:calc(58vh + 68px);
-        min-height:0;
-        max-height:none;
-    }
+    
 
     .quality-badge{
         top:76px;
@@ -2480,7 +2470,6 @@ body{
         margin-top:16px;
     }
 }
-
 
 
 /* =========================================================
@@ -3085,7 +3074,6 @@ body{
         font-size:22px;
     }
 }
-
 
 
 /* =========================================================
