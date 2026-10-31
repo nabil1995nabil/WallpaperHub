@@ -1,0 +1,49 @@
+name: Cloudinary to ImageKit Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Choose a safe scan first, then apply the migration"
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install migration dependencies
+        run: npm install --no-save --ignore-scripts @supabase/supabase-js node-fetch@2
+
+      - name: Scan Cloudinary wallpaper URLs (no changes)
+        if: ${{ inputs.mode == 'dry-run' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/2xcgjj3oe
+        run: node migrate-cloudinary-to-imagekit.js
+
+      - name: Migrate Cloudinary wallpapers to ImageKit
+        if: ${{ inputs.mode == 'apply' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          IMAGEKIT_PRIVATE_KEY: ${{ secrets.IMAGEKIT_PRIVATE_KEY }}
+          IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/2xcgjj3oe
+        run: node migrate-cloudinary-to-imagekit.js --apply
