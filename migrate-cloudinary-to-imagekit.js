@@ -54,7 +54,17 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 
 const uploadedBySourceUrl = new Map();
-const stats = { rows: 0, cloudinaryUrls: 0, migratedRows: 0, failedRows: 0, skippedRows: 0 };
+const uniqueCloudinaryUrls = new Set();
+const failedItems = [];
+const stats = {
+  rows: 0,
+  cloudinaryUrls: 0,
+  uniqueCloudinaryUrls: 0,
+  duplicateUrlOccurrences: 0,
+  migratedRows: 0,
+  failedRows: 0,
+  skippedRows: 0
+};
 
 function isCloudinaryUrl(value) {
   try {
@@ -78,6 +88,13 @@ function extensionFromUrl(value) {
 
 function safeFilePart(value) {
   return String(value).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80) || "wallpaper";
+}
+
+function stableFileName(sourceUrl) {
+  // Stable names make retries overwrite the same ImageKit asset instead of
+  // creating a new file after an interrupted migration.
+  const hash = crypto.createHash("sha256").update(sourceUrl).digest("hex").slice(0, 24);
+  return `wallpaper-${hash}.${extensionFromUrl(sourceUrl)}`;
 }
 
 function multipart(fields, boundary) {
@@ -145,8 +162,7 @@ async function migrateUrl(sourceUrl, rowId, fieldName) {
   if (!isCloudinaryUrl(sourceUrl)) return sourceUrl;
   if (uploadedBySourceUrl.has(sourceUrl)) return uploadedBySourceUrl.get(sourceUrl);
 
-  const ext = extensionFromUrl(sourceUrl);
-  const fileName = `${safeFilePart(rowId)}-${fieldName}.${ext}`;
+  const fileName = stableFileName(sourceUrl);
   const newUrl = await uploadRemoteUrlToImageKit(sourceUrl, fileName);
   uploadedBySourceUrl.set(sourceUrl, newUrl);
   return newUrl;
@@ -180,7 +196,9 @@ async function main() {
         continue;
       }
 
-      stats.cloudinaryUrls += Number(imageNeeds) + Number(thumbNeeds);
+      const rowCloudinaryUrls = [imageNeeds ? imageOld : null, thumbNeeds ? thumbOld : null].filter(Boolean);
+      stats.cloudinaryUrls += rowCloudinaryUrls.length;
+      for (const sourceUrl of rowCloudinaryUrls) uniqueCloudinaryUrls.add(sourceUrl);
       console.log(`\n[${row.id}] Cloudinary fields: ${[
         imageNeeds ? "image" : null,
         thumbNeeds ? "thumbnail" : null
@@ -207,17 +225,25 @@ async function main() {
         if (imageNeeds) update.image = imageNew;
         if (thumbNeeds) update.thumbnail = thumbNew;
 
-        const { error: updateError } = await supabase
+        const { data: updatedRow, error: updateError } = await supabase
           .from(TABLE)
           .update(update)
-          .eq("id", row.id);
+          .eq("id", row.id)
+          .select("id")
+          .maybeSingle();
 
         if (updateError) throw new Error(`Supabase update failed: ${updateError.message}`);
+        if (!updatedRow) throw new Error("Supabase update matched no row; database record was not confirmed updated.");
 
         stats.migratedRows++;
         console.log("  OK: ImageKit upload(s) verified and Supabase row updated.");
       } catch (error) {
         stats.failedRows++;
+        failedItems.push({
+          id: row.id,
+          fields: [imageNeeds ? "image" : null, thumbNeeds ? "thumbnail" : null].filter(Boolean),
+          message: error.message
+        });
         console.error(`  FAILED: ${error.message}`);
         // Continue with other wallpapers; failed rows remain unchanged in Supabase.
       }
@@ -227,12 +253,23 @@ async function main() {
     offset += rows.length;
   }
 
+  stats.uniqueCloudinaryUrls = uniqueCloudinaryUrls.size;
+  stats.duplicateUrlOccurrences = stats.cloudinaryUrls - stats.uniqueCloudinaryUrls;
+
   console.log("\n========== MIGRATION SUMMARY ==========");
-  console.log(`Rows scanned:       ${stats.rows}`);
-  console.log(`Cloudinary URLs:    ${stats.cloudinaryUrls}`);
-  console.log(`Rows migrated:      ${stats.migratedRows}`);
-  console.log(`Rows skipped:       ${stats.skippedRows}`);
-  console.log(`Rows failed:        ${stats.failedRows}`);
+  console.log(`Rows scanned:              ${stats.rows}`);
+  console.log(`Cloudinary URL occurrences: ${stats.cloudinaryUrls}`);
+  console.log(`Unique Cloudinary URLs:     ${stats.uniqueCloudinaryUrls}`);
+  console.log(`Duplicate occurrences:      ${stats.duplicateUrlOccurrences}`);
+  console.log(`Rows migrated:              ${stats.migratedRows}`);
+  console.log(`Rows skipped:              ${stats.skippedRows}`);
+  console.log(`Rows failed:               ${stats.failedRows}`);
+  if (failedItems.length) {
+    console.log("\n========== FAILED ITEMS (safe to retry) ==========");
+    for (const item of failedItems) {
+      console.log(JSON.stringify(item));
+    }
+  }
   if (!APPLY) {
     console.log("\nNo files were uploaded and no database rows were changed.");
     console.log("After checking the count, run again with --apply to perform migration.");
