@@ -29,7 +29,7 @@ jobs:
           node-version: 20
 
       - name: Install migration dependencies
-        run: npm install --no-save --ignore-scripts @supabase/supabase-js node-fetch@2
+        run: npm install --no-save --ignore-scripts @supabase/supabase-js node-fetch@2 ws
 
       - name: Scan Cloudinary wallpaper URLs (no changes)
         if: ${{ inputs.mode == 'dry-run' }}
