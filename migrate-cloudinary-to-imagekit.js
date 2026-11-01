@@ -19,6 +19,7 @@
 
 const fetch = require("node-fetch");
 const { createClient } = require("@supabase/supabase-js");
+const WebSocket = require("ws");
 const crypto = require("crypto");
 
 const SUPABASE_URL = String(process.env.SUPABASE_URL || "").trim();
@@ -48,7 +49,8 @@ if (APPLY && !IMAGEKIT_PRIVATE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false }
+  auth: { persistSession: false, autoRefreshToken: false },
+  realtime: { transport: WebSocket }
 });
 
 const uploadedBySourceUrl = new Map();
