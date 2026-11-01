@@ -147,15 +147,65 @@ async function uploadRemoteUrlToImageKit(sourceUrl, fileName) {
     throw new Error(`ImageKit returned an unexpected URL: ${newUrl}`);
   }
 
-  // Verify the newly uploaded asset is reachable before updating Supabase.
-  const verify = await fetch(newUrl, { method: "GET", timeout: 30000 });
-  if (!verify.ok) {
-    throw new Error(`ImageKit URL verification failed (${verify.status}): ${newUrl}`);
+  // First confirm that ImageKit has actually stored the uploaded asset.
+  // The upload API's fileId lets us verify it through the authenticated API,
+  // independently from temporary CDN/cache delivery issues.
+  if (data.fileId) {
+    const detailsResponse = await fetch(
+      `https://api.imagekit.io/v1/files/${encodeURIComponent(data.fileId)}/details`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${IMAGEKIT_PRIVATE_KEY}:`).toString("base64")}`,
+          Accept: "application/json"
+        },
+        timeout: 30000
+      }
+    );
+    const detailsText = await detailsResponse.text();
+    if (!detailsResponse.ok) {
+      throw new Error(
+        `ImageKit asset verification failed (${detailsResponse.status}): ${detailsText.slice(0, 700)}`
+      );
+    }
+  } else {
+    throw new Error("ImageKit upload response did not include fileId; cannot verify stored asset.");
   }
-  // Consume the response stream to release the connection.
-  if (verify.body && typeof verify.body.destroy === "function") verify.body.destroy();
 
-  return newUrl;
+  // Verify CDN delivery separately. Retry transient failures and include the
+  // response body in the final error so a permanent 400 can be diagnosed.
+  let lastVerificationError = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const verify = await fetch(newUrl, {
+        method: "GET",
+        headers: {
+          "User-Agent": "WallpaperHub-Migration/1.0",
+          Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+        },
+        timeout: 30000,
+        redirect: "follow"
+      });
+      const verifyText = verify.ok ? "" : await verify.text();
+      if (verify.ok) {
+        if (verify.body && typeof verify.body.destroy === "function") verify.body.destroy();
+        return newUrl;
+      }
+      lastVerificationError = `HTTP ${verify.status}: ${verifyText.slice(0, 700)}`;
+    } catch (error) {
+      lastVerificationError = error.message || String(error);
+    }
+
+    if (attempt < 3) {
+      const delayMs = attempt * 2000;
+      console.warn(`  ImageKit CDN verification attempt ${attempt}/3 failed; retrying in ${delayMs}ms: ${lastVerificationError}`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw new Error(
+    `ImageKit asset exists (fileId ${data.fileId}) but CDN URL verification failed after 3 attempts: ${lastVerificationError}. URL: ${newUrl}`
+  );
 }
 
 async function migrateUrl(sourceUrl, rowId, fieldName) {
