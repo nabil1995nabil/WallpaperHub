@@ -191,7 +191,13 @@ async function uploadRemoteUrlToImageKit(sourceUrl, fileName) {
         if (verify.body && typeof verify.body.destroy === "function") verify.body.destroy();
         return newUrl;
       }
-      lastVerificationError = `HTTP ${verify.status}: ${verifyText.slice(0, 700)}`;
+      lastVerificationError = [
+        `HTTP ${verify.status} ${verify.statusText}`,
+        `ik-error=${verify.headers.get("ik-error") || "(not provided)"}`,
+        `content-type=${verify.headers.get("content-type") || "(not provided)"}`,
+        `request-id=${verify.headers.get("x-request-id") || verify.headers.get("x-amz-cf-id") || "(not provided)"}`,
+        `body=${verifyText.slice(0, 1200) || "(empty)"}`
+      ].join("; ");
     } catch (error) {
       lastVerificationError = error.message || String(error);
     }
