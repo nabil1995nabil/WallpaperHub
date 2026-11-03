@@ -211,6 +211,11 @@
           <span class="tab-icon"><span class="material-icons-round">add</span></span>
           <span><b>مواضيع أخرى</b><small>اقترح نقاشًا جديدًا</small></span>
         </button>
+
+        <button class="room-tab" data-tab="rooms" role="tab" aria-selected="false">
+          <span class="tab-icon"><span class="material-icons-round">forum</span></span>
+          <span><b>منتدياتي</b><small>أنشئ منتداك وأدر أعضاءه</small></span>
+        </button>
       </section>
 
       <section class="content-layout">
@@ -388,6 +393,83 @@
           <h2>مواضيع المجتمع</h2>
           <p>اختر موضوعًا رائجًا من الجانب أو ابدأ نقاشًا جديدًا من هنا.</p>
           <button class="hero-cta" data-back-general type="button">العودة للغرفة العامة</button>
+        </div>
+      </section>
+
+      <!-- منتديات الأعضاء الخاصة -->
+      <section class="secondary-panel hidden forums-panel" id="roomsPanel">
+        <div class="forum-panel-heading">
+          <div>
+            <span class="eyebrow">YOUR COMMUNITY SPACES</span>
+            <h2>منتديات المجتمع</h2>
+            <p>أنشئ مساحة نقاش خاصة بك، وادعُ الأعضاء، وتحكم في الرتب والإدارة.</p>
+          </div>
+          <div class="forum-heading-actions">
+            <button class="forum-secondary-button" id="joinRoomOpen" type="button"><span class="material-icons-round">vpn_key</span> الانضمام برمز</button>
+            <button class="forum-primary-button" id="createRoomOpen" type="button"><span class="material-icons-round">add</span> إنشاء منتدى</button>
+          </div>
+        </div>
+        <div class="forum-feature-strip">
+          <div><span class="material-icons-round">lock</span><span><b>خصوصية حقيقية</b><small>الأعضاء فقط يرون محتوى المنتدى الخاص</small></span></div>
+          <div><span class="material-icons-round">admin_panel_settings</span><span><b>إدارة كاملة</b><small>رتب، دعوات، وإزالة الأعضاء</small></span></div>
+          <div><span class="material-icons-round">forum</span><span><b>دردشة مباشرة</b><small>الرسائل تتحدث فور وصولها</small></span></div>
+        </div>
+        <div class="forum-list-heading"><div><h3>المنتديات المتاحة لك</h3><small id="roomListSubtitle">منتدياتك والمنتديات العامة</small></div><button class="forum-refresh" id="refreshRooms" type="button" aria-label="تحديث المنتديات"><span class="material-icons-round">refresh</span></button></div>
+        <div class="forum-room-grid" id="roomList" aria-live="polite"><div class="forum-empty-state">جاري تحميل المنتديات...</div></div>
+      </section>
+
+      <section class="secondary-panel hidden forum-chat-panel" id="roomChatPanel">
+        <div class="forum-chat-heading">
+          <button class="forum-back-button" id="backToRooms" type="button" aria-label="العودة إلى المنتديات"><span class="material-icons-round">arrow_forward</span></button>
+          <div class="forum-room-identity"><span class="forum-room-symbol"><span class="material-icons-round">forum</span></span><div><h2 id="forumRoomName">منتدى</h2><p id="forumRoomDescription">مساحة نقاش الأعضاء</p></div></div>
+          <div class="forum-room-actions"><button class="forum-secondary-button" id="forumLeaveRoom" type="button"><span class="material-icons-round">logout</span><span>مغادرة</span></button><button class="forum-primary-button hidden" id="forumSettingsOpen" type="button"><span class="material-icons-round">settings</span><span>إدارة</span></button></div>
+        </div>
+        <div class="forum-chat-layout">
+          <section class="forum-conversation-card">
+            <div class="forum-feed-toolbar"><span><i></i> <b id="forumMemberCount">مجتمع خاص</b></span><span class="forum-live-label"><i></i> دردشة مباشرة</span></div>
+            <div class="forum-feed" id="forumFeed" aria-live="polite"><div class="forum-empty-state">ابدأ أول نقاش في منتداك.</div></div>
+            <form class="forum-composer" id="forumComposer">
+              <textarea id="forumMessage" rows="2" maxlength="2000" placeholder="اكتب رسالة إلى أعضاء المنتدى..." aria-label="رسالة المنتدى"></textarea>
+              <div class="forum-composer-footer"><small>حتى 2000 حرف</small><button class="forum-primary-button" id="forumSend" type="submit"><span>إرسال</span><span class="material-icons-round">send</span></button></div>
+            </form>
+          </section>
+          <aside class="forum-members-card">
+            <div class="forum-members-heading"><div><h3>أعضاء المنتدى</h3><small>الأعضاء والرتب</small></div><span class="material-icons-round">groups</span></div>
+            <div class="forum-members-list" id="forumMembersList"><div class="forum-empty-state">جاري تحميل الأعضاء...</div></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="forum-modal hidden" id="roomCreateModal" aria-hidden="true">
+        <div class="forum-modal-card" role="dialog" aria-modal="true" aria-labelledby="roomCreateTitle">
+          <div class="forum-modal-head"><div><span class="forum-modal-icon"><span class="material-icons-round">add_comment</span></span><div><h3 id="roomCreateTitle">إنشاء منتدى جديد</h3><p>أنت ستكون مالك المنتدى وصاحب صلاحيات الإدارة الكاملة.</p></div></div><button type="button" class="forum-modal-close" data-close-forum-modal="roomCreateModal" aria-label="إغلاق"><span class="material-icons-round">close</span></button></div>
+          <form id="roomCreateForm" class="forum-form">
+            <label>اسم المنتدى<input id="roomCreateName" type="text" minlength="3" maxlength="48" required placeholder="مثلاً: عشاق خلفيات الطبيعة"></label>
+            <label>وصف المنتدى <small>(اختياري)</small><textarea id="roomCreateDescription" rows="3" maxlength="240" placeholder="ما الذي سيناقشه الأعضاء؟"></textarea></label>
+            <label class="forum-privacy-option"><input id="roomCreatePrivate" type="checkbox" checked><span><b>منتدى خاص</b><small>لا يظهر محتواه إلا للأعضاء، والانضمام يحتاج رمز دعوة.</small></span><span class="material-icons-round">lock</span></label>
+            <div class="forum-form-actions"><button type="button" class="forum-secondary-button" data-close-forum-modal="roomCreateModal">إلغاء</button><button type="submit" class="forum-primary-button" id="roomCreateSubmit">إنشاء المنتدى</button></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="forum-modal hidden" id="roomJoinModal" aria-hidden="true">
+        <div class="forum-modal-card forum-modal-card-small" role="dialog" aria-modal="true" aria-labelledby="roomJoinTitle">
+          <div class="forum-modal-head"><div><span class="forum-modal-icon"><span class="material-icons-round">vpn_key</span></span><div><h3 id="roomJoinTitle">الانضمام إلى منتدى</h3><p>أدخل رمز الدعوة الذي أرسله لك مالك المنتدى.</p></div></div><button type="button" class="forum-modal-close" data-close-forum-modal="roomJoinModal" aria-label="إغلاق"><span class="material-icons-round">close</span></button></div>
+          <form id="roomJoinForm" class="forum-form"><label>رمز الدعوة<input id="roomJoinCode" type="text" maxlength="80" required autocomplete="off" placeholder="ألصق رمز الدعوة هنا"></label><div class="forum-form-actions"><button type="button" class="forum-secondary-button" data-close-forum-modal="roomJoinModal">إلغاء</button><button type="submit" class="forum-primary-button" id="roomJoinSubmit">انضمام</button></div></form>
+        </div>
+      </section>
+
+      <section class="forum-modal hidden" id="roomSettingsModal" aria-hidden="true">
+        <div class="forum-modal-card forum-settings-card" role="dialog" aria-modal="true" aria-labelledby="roomSettingsTitle">
+          <div class="forum-modal-head"><div><span class="forum-modal-icon"><span class="material-icons-round">admin_panel_settings</span></span><div><h3 id="roomSettingsTitle">إدارة المنتدى</h3><p>تحكم في معلومات المنتدى، الدعوات، ورتب الأعضاء.</p></div></div><button type="button" class="forum-modal-close" data-close-forum-modal="roomSettingsModal" aria-label="إغلاق"><span class="material-icons-round">close</span></button></div>
+          <form id="roomSettingsForm" class="forum-form">
+            <label>اسم المنتدى<input id="roomSettingsName" type="text" minlength="3" maxlength="48" required></label>
+            <label>الوصف<textarea id="roomSettingsDescription" rows="2" maxlength="240"></textarea></label>
+            <label class="forum-privacy-option"><input id="roomSettingsPrivate" type="checkbox"><span><b>منتدى خاص</b><small>إيقاف الخيار يجعله ظاهرًا في قائمة المنتديات العامة.</small></span><span class="material-icons-round">lock</span></label>
+            <div class="forum-form-actions"><button type="button" class="forum-secondary-button" id="forumCopyInvite"><span class="material-icons-round">link</span> نسخ رابط الدعوة</button><button type="button" class="forum-secondary-button" id="forumRotateInvite"><span class="material-icons-round">autorenew</span> إنشاء رمز جديد</button><button type="submit" class="forum-primary-button" id="roomSettingsSave">حفظ التغييرات</button></div>
+          </form>
+          <div class="forum-manage-members"><div class="forum-list-heading"><div><h3>إدارة الأعضاء</h3><small>المالك فقط يستطيع تغيير الرتب الإدارية</small></div></div><div id="forumManageMembersList" class="forum-manage-members-list"></div></div>
+          <div class="forum-danger-zone"><div><b>حذف المنتدى</b><small>سيتم حذف الرسائل والعضويات المرتبطة به نهائيًا.</small></div><button type="button" id="forumDeleteRoom" class="forum-danger-button"><span class="material-icons-round">delete_outline</span> حذف المنتدى</button></div>
         </div>
       </section>
 

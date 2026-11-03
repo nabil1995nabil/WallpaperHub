@@ -282,6 +282,8 @@ async function initSupabase(){
     loadCommunityModeration({silent:true}).catch(()=>{});
     loadMembers().then(updateProfileCard).catch(()=>{});
     if(currentUser) loadPrivateConversations().catch(()=>{});
+    if(currentUser) processCommunityRoomInviteFromUrl().catch(()=>{});
+    else { clearRoomMessagesRealtime(); activeCommunityRoom=null; activeCommunityRoomRole='member'; }
   });
 
   await loadCommunityModeration({silent:true});
@@ -2101,8 +2103,452 @@ function renderSharedFiles(){
   target.appendChild(fragment);
 }
 
+// ================= Member-created community forums =================
+let communityRoomsCache = [];
+let communityRoomMemberships = new Map();
+let activeCommunityRoom = null;
+let activeCommunityRoomRole = 'member';
+let activeCommunityRoomMembers = [];
+let roomMessagesChannel = null;
+let roomMembersChannel = null;
+let roomMessageBusy = false;
+let processingRoomInvite = false;
+
+function forumIsOwner(){ return activeCommunityRoomRole === 'owner'; }
+function forumCanManage(){ return ['owner','admin'].includes(activeCommunityRoomRole); }
+function forumRoleLabel(role){
+  return ({owner:'مالك المنتدى',admin:'مشرف إداري',moderator:'مشرف',member:'عضو'})[role] || 'عضو';
+}
+function forumDate(value){
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('ar-MA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function forumModalOpen(id){
+  const modal = document.getElementById(id);
+  if(!modal) return;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden','false');
+  document.body.classList.add('forum-modal-open');
+  requestAnimationFrame(()=>modal.classList.add('is-open'));
+}
+function forumModalClose(id){
+  const modal = document.getElementById(id);
+  if(!modal) return;
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden','true');
+  setTimeout(()=>{
+    if(!modal.classList.contains('is-open')) modal.classList.add('hidden');
+    if(!document.querySelector('.forum-modal.is-open')) document.body.classList.remove('forum-modal-open');
+  },180);
+}
+function forumAuthRequired(){
+  if(!currentUser){showToast('سجّل الدخول أولًا لإنشاء المنتديات أو الانضمام إليها');return false;}
+  if(communityModeration && communityModeration.canRead===false){showToast('تم تقييد وصولك إلى المجتمع من قبل الإدارة');return false;}
+  return true;
+}
+async function forumRpc(name,args){
+  if(!supabaseClient) throw new Error('اتصال المجتمع غير جاهز');
+  const {data,error}=await supabaseClient.rpc(name,args);
+  if(error) throw new Error(error.message || 'تعذر تنفيذ العملية');
+  return data;
+}
+async function forumCopyText(value){
+  const text=String(value||'').trim();
+  if(!text) return false;
+  try{
+    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    else{
+      const field=document.createElement('textarea');
+      field.value=text;field.style.position='fixed';field.style.opacity='0';
+      document.body.appendChild(field);field.select();
+      const ok=document.execCommand('copy');field.remove();
+      if(!ok) throw new Error('copy failed');
+    }
+    showToast('تم نسخ رابط الدعوة');
+    return true;
+  }catch(_error){
+    showToast('تعذر النسخ تلقائيًا؛ حاول مرة أخرى');
+    return false;
+  }
+}
+function forumInviteUrl(code){
+  const url=new URL(window.location.href);
+  url.search='';url.hash='';url.searchParams.set('roomInvite',String(code));
+  return url.toString();
+}
+function clearRoomMessagesRealtime(){
+  if(roomMessagesChannel && supabaseClient) supabaseClient.removeChannel(roomMessagesChannel);
+  if(roomMembersChannel && supabaseClient) supabaseClient.removeChannel(roomMembersChannel);
+  roomMessagesChannel=null;roomMembersChannel=null;
+}
+function renderCommunityRoomCard(room){
+  const card=document.createElement('article');
+  card.className='forum-room-card';
+  const icon=document.createElement('div');
+  icon.className='forum-room-card-icon';
+  icon.innerHTML=`<span class="material-icons-round">${room.is_private?'lock':'forum'}</span>`;
+  const body=document.createElement('div');body.className='forum-room-card-body';
+  const top=document.createElement('div');top.className='forum-room-card-top';
+  const title=document.createElement('h3');title.textContent=room.name||'منتدى بدون اسم';
+  const privacy=document.createElement('span');privacy.className=`forum-privacy-badge ${room.is_private?'is-private':'is-public'}`;
+  privacy.textContent=room.is_private?'خاص':'عام';top.append(title,privacy);
+  const description=document.createElement('p');description.textContent=room.description||'لا يوجد وصف لهذا المنتدى بعد.';
+  const meta=document.createElement('div');meta.className='forum-room-meta';
+  const mine=String(room.owner_id)===String(currentUser?.id||'');
+  const membership=communityRoomMemberships.get(String(room.id));
+  const owner=document.createElement('span');owner.textContent=mine?'أنت المالك':(membership?forumRoleLabel(membership.role):'مساحة من المجتمع');
+  const date=document.createElement('span');date.textContent=forumDate(room.created_at);
+  meta.append(owner,date);body.append(top,description,meta);
+  const action=document.createElement('div');action.className='forum-room-card-action';
+  const button=document.createElement('button');button.type='button';
+  if(membership?.status==='active'){
+    button.className='forum-primary-button';button.innerHTML='<span>فتح المنتدى</span><span class="material-icons-round">arrow_back</span>';
+    button.addEventListener('click',()=>openCommunityRoom(room.id));
+  }else{
+    button.className='forum-secondary-button';button.disabled=Boolean(room.is_private);
+    button.textContent=room.is_private?'خاص بالدعوة':'انضمام';
+    if(!room.is_private) button.addEventListener('click',()=>joinPublicCommunityRoom(room.id));
+  }
+  action.appendChild(button);card.append(icon,body,action);return card;
+}
+async function loadCommunityRooms(){
+  const target=$('#roomList');if(!target || !supabaseClient) return;
+  target.innerHTML='<div class="forum-empty-state">جاري تحميل المنتديات...</div>';
+  try{
+    const {data:rooms,error:roomError}=await supabaseClient.from('community_rooms')
+      .select('id,name,description,is_private,owner_id,created_at,updated_at')
+      .order('updated_at',{ascending:false}).limit(100);
+    if(roomError) throw roomError;
+    let memberships=[];
+    if(currentUser){
+      const result=await supabaseClient.from('community_room_members')
+        .select('room_id,role,status').eq('user_id',currentUser.id);
+      if(result.error) throw result.error;
+      memberships=result.data||[];
+    }
+    communityRoomsCache=Array.isArray(rooms)?rooms:[];
+    communityRoomMemberships=new Map(memberships.map(row=>[String(row.room_id),row]));
+    target.replaceChildren();
+    if(!communityRoomsCache.length){
+      target.innerHTML='<div class="forum-empty-state forum-empty-large"><span class="material-icons-round">forum</span><b>لا توجد منتديات بعد</b><p>ابدأ بإنشاء منتداك الخاص أو اطلب رمز دعوة من أحد الأعضاء.</p></div>';
+      return;
+    }
+    communityRoomsCache.forEach(room=>target.appendChild(renderCommunityRoomCard(room)));
+    const count=$('#roomListSubtitle');if(count) count.textContent=`${communityRoomsCache.length} منتدى متاح لك`;
+  }catch(error){
+    target.replaceChildren();
+    const note=document.createElement('div');note.className='forum-empty-state forum-error-state';
+    note.textContent=error.message||'تعذر تحميل المنتديات. تأكد من تشغيل community-forums.sql في Supabase.';
+    target.appendChild(note);
+  }
+}
+async function joinPublicCommunityRoom(roomId){
+  if(!forumAuthRequired()) return;
+  try{
+    await forumRpc('join_community_room',{p_room_id:roomId,p_invite_code:null});
+    await loadCommunityRooms();
+    await openCommunityRoom(roomId);
+    showToast('أصبحت عضوًا في المنتدى');
+  }catch(error){showToast(error.message||'تعذر الانضمام إلى المنتدى');}
+}
+async function openCommunityRoom(roomId){
+  if(!forumAuthRequired()) return;
+  const membership=communityRoomMemberships.get(String(roomId));
+  if(!membership || membership.status!=='active'){
+    showToast('تحتاج إلى الانضمام لهذا المنتدى أولًا');return;
+  }
+  clearRoomMessagesRealtime();
+  try{
+    const {data:room,error}=await supabaseClient.from('community_rooms')
+      .select('id,name,description,is_private,owner_id,created_at').eq('id',roomId).single();
+    if(error) throw error;
+    activeCommunityRoom=room;
+    activeCommunityRoomRole=membership.role||'member';
+    $('#forumRoomName').textContent=room.name;
+    $('#forumRoomDescription').textContent=room.description|| (room.is_private?'منتدى خاص بالأعضاء':'منتدى عام');
+    $('#forumSettingsOpen').classList.toggle('hidden',!forumCanManage());
+    $('#forumLeaveRoom').classList.toggle('hidden',forumIsOwner());
+    $('#roomsPanel').classList.add('hidden');
+    $('#roomChatPanel').classList.remove('hidden');
+    $('#generalPanel').classList.add('hidden');
+    $('#membersPanel').classList.add('hidden');
+    $('#filesPanel').classList.add('hidden');
+    $('#topicsPanel').classList.add('hidden');
+    $$('.room-tab').forEach(button=>{
+      const active=button.dataset.tab==='rooms';button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));
+    });
+    $('#forumFeed').innerHTML='<div class="forum-empty-state">جاري تحميل الرسائل...</div>';
+    $('#forumMembersList').innerHTML='<div class="forum-empty-state">جاري تحميل الأعضاء...</div>';
+    await Promise.all([loadCommunityRoomMessages(),loadCommunityRoomMembers()]);
+    subscribeToCommunityRoomMessages(room.id);
+  }catch(error){showToast(error.message||'تعذر فتح المنتدى');}
+}
+async function loadCommunityRoomMessages(){
+  if(!activeCommunityRoom) return;
+  const target=$('#forumFeed');
+  const {data,error}=await supabaseClient.from('community_room_messages')
+    .select('id,room_id,user_id,content,sender_name,sender_avatar,created_at')
+    .eq('room_id',activeCommunityRoom.id).order('created_at',{ascending:true}).limit(150);
+  if(error) throw error;
+  target.replaceChildren();
+  if(!data?.length){
+    const empty=document.createElement('div');empty.className='forum-empty-state forum-empty-large';
+    empty.innerHTML='<span class="material-icons-round">forum</span><b>بداية مساحة جديدة</b><p>اكتب أول رسالة وابدأ النقاش مع أعضاء المنتدى.</p>';
+    target.appendChild(empty);return;
+  }
+  data.forEach(message=>target.appendChild(renderCommunityRoomMessage(message)));
+  target.scrollTop=target.scrollHeight;
+}
+function renderCommunityRoomMessage(message){
+  const mine=String(message.user_id)===String(currentUser?.id||'');
+  const row=document.createElement('article');row.className=`forum-message ${mine?'is-mine':''}`;row.dataset.id=String(message.id);
+  const avatar=document.createElement('div');avatar.className='forum-message-avatar';
+  const avatarUrl=safeAvatarUrl(message.sender_avatar);
+  if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';avatar.appendChild(img);}
+  else avatar.textContent=initials(message.sender_name);
+  const content=document.createElement('div');content.className='forum-message-content';
+  const meta=document.createElement('div');meta.className='forum-message-meta';
+  const author=document.createElement('b');author.textContent=message.sender_name||'عضو';
+  const time=document.createElement('time');time.textContent=forumDate(message.created_at);
+  meta.append(author,time);
+  const bubble=document.createElement('div');bubble.className='forum-message-bubble';bubble.textContent=message.content||'';
+  content.append(meta,bubble);
+  const canDelete=mine||['owner','admin','moderator'].includes(activeCommunityRoomRole);
+  if(canDelete){
+    const actions=document.createElement('div');actions.className='forum-message-actions';
+    const remove=document.createElement('button');remove.type='button';remove.textContent='حذف';remove.addEventListener('click',()=>deleteCommunityRoomMessage(message.id,row));
+    actions.appendChild(remove);content.appendChild(actions);
+  }
+  row.append(avatar,content);return row;
+}
+function addCommunityRoomRealtimeMessage(message){
+  if(!message?.id || !activeCommunityRoom || String(message.room_id)!==String(activeCommunityRoom.id)) return;
+  const target=$('#forumFeed');
+  if(target.querySelector(`[data-id="${CSS.escape(String(message.id))}"]`)) return;
+  target.querySelector('.forum-empty-state')?.remove();
+  target.appendChild(renderCommunityRoomMessage(message));target.scrollTop=target.scrollHeight;
+}
+function subscribeToCommunityRoomMessages(roomId){
+  clearRoomMessagesRealtime();
+  if(!supabaseClient || !roomId) return;
+  roomMessagesChannel=supabaseClient.channel(`community-room-${roomId}`)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'community_room_messages',filter:`room_id=eq.${roomId}`},payload=>addCommunityRoomRealtimeMessage(payload.new))
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'community_room_messages',filter:`room_id=eq.${roomId}`},payload=>{
+      const id=payload?.old?.id;if(id) $('#forumFeed')?.querySelector(`[data-id="${CSS.escape(String(id))}"]`)?.remove();
+    }).subscribe(status=>{
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') console.warn('Community forum realtime channel:',status);
+    });
+  roomMembersChannel=supabaseClient.channel(`community-room-members-${roomId}`)
+    .on('postgres_changes',{event:'*',schema:'public',table:'community_room_members',filter:`room_id=eq.${roomId}`},payload=>{
+      if(String(payload?.new?.user_id||'')===String(currentUser?.id||'') && payload?.new?.status && payload.new.status!=='active'){
+        showToast('تمت إزالتك من هذا المنتدى');closeCommunityRoomView();return;
+      }
+      loadCommunityRoomMembers().catch(error=>console.warn('Forum member refresh:',error?.message||error));
+    }).subscribe();
+}
+async function deleteCommunityRoomMessage(messageId,row){
+  if(!activeCommunityRoom) return;
+  try{
+    const {error}=await supabaseClient.from('community_room_messages').delete().eq('id',messageId);
+    if(error) throw error;row?.remove();showToast('تم حذف الرسالة');
+  }catch(error){showToast(error.message||'تعذر حذف الرسالة');}
+}
+async function loadCommunityRoomMembers(){
+  if(!activeCommunityRoom) return;
+  const {data,error}=await supabaseClient.from('community_room_members')
+    .select('room_id,user_id,role,status,display_name,avatar_url,joined_at')
+    .eq('room_id',activeCommunityRoom.id).eq('status','active').order('joined_at',{ascending:true});
+  if(error) throw error;
+  activeCommunityRoomMembers=data||[];
+  $('#forumMemberCount').textContent=`${activeCommunityRoomMembers.length} عضو`;
+  renderCommunityRoomMembers();
+  renderCommunityRoomManageMembers();
+}
+function forumMemberRow(member,manage=false){
+  const row=document.createElement('div');row.className='forum-member-row';
+  const avatar=document.createElement('div');avatar.className='forum-member-avatar';
+  const url=safeAvatarUrl(member.avatar_url);
+  if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';avatar.appendChild(img);}else avatar.textContent=initials(member.display_name);
+  const copy=document.createElement('div');copy.className='forum-member-copy';
+  const name=document.createElement('b');name.textContent=member.display_name||'عضو';
+  const role=document.createElement('small');role.textContent=forumRoleLabel(member.role);copy.append(name,role);
+  row.append(avatar,copy);
+  if(manage && String(member.user_id)!==String(currentUser?.id||'') && member.role!=='owner'){
+    if(forumIsOwner()){
+      const select=document.createElement('select');select.className='forum-role-select';select.setAttribute('aria-label',`رتبة ${member.display_name||'العضو'}`);select.dataset.userId=member.user_id;
+      [['admin','مشرف إداري'],['moderator','مشرف'],['member','عضو']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;option.selected=member.role===value;select.appendChild(option);});
+      select.addEventListener('change',async()=>{
+        select.disabled=true;
+        try{await forumRpc('set_community_room_member_role',{p_room_id:activeCommunityRoom.id,p_user_id:member.user_id,p_role:select.value});await loadCommunityRoomMembers();showToast('تم تحديث رتبة العضو');}
+        catch(error){showToast(error.message||'تعذر تغيير الرتبة');select.value=member.role;}
+        finally{select.disabled=false;}
+      });row.appendChild(select);
+    }
+    if(forumIsOwner() || (activeCommunityRoomRole==='admin' && member.role==='member')){
+      const remove=document.createElement('button');remove.type='button';remove.className='forum-member-remove';remove.textContent='إزالة';
+      remove.addEventListener('click',async()=>{
+        if(!window.confirm(`إزالة ${member.display_name||'هذا العضو'} من المنتدى؟`)) return;
+        remove.disabled=true;
+        try{await forumRpc('remove_community_room_member',{p_room_id:activeCommunityRoom.id,p_user_id:member.user_id});await loadCommunityRoomMembers();showToast('تمت إزالة العضو');}
+        catch(error){showToast(error.message||'تعذرت إزالة العضو');remove.disabled=false;}
+      });row.appendChild(remove);
+    }
+  }
+  return row;
+}
+function renderCommunityRoomMembers(){
+  const target=$('#forumMembersList');target.replaceChildren();
+  if(!activeCommunityRoomMembers.length){target.innerHTML='<div class="forum-empty-state">لا يوجد أعضاء بعد.</div>';return;}
+  activeCommunityRoomMembers.forEach(member=>target.appendChild(forumMemberRow(member,false)));
+}
+function renderCommunityRoomManageMembers(){
+  const target=$('#forumManageMembersList');if(!target)return;target.replaceChildren();
+  if(!activeCommunityRoomMembers.length){target.innerHTML='<div class="forum-empty-state">لا يوجد أعضاء بعد.</div>';return;}
+  activeCommunityRoomMembers.forEach(member=>target.appendChild(forumMemberRow(member,true)));
+}
+async function openCommunityRoomSettings(){
+  if(!activeCommunityRoom || !forumCanManage()) return;
+  $('#roomSettingsName').value=activeCommunityRoom.name||'';
+  $('#roomSettingsDescription').value=activeCommunityRoom.description||'';
+  $('#roomSettingsPrivate').checked=Boolean(activeCommunityRoom.is_private);
+  const owner=forumIsOwner();
+  ['roomSettingsName','roomSettingsDescription','roomSettingsPrivate'].forEach(id=>{const field=$(`#${id}`);if(field)field.disabled=!owner;});
+  $('#roomSettingsSave').classList.toggle('hidden',!owner);
+  $('#forumRotateInvite').classList.toggle('hidden',!owner);
+  $('#forumDeleteRoom').classList.toggle('hidden',!owner);
+  $('#forumDeleteRoom').parentElement.classList.toggle('hidden',!owner);
+  await loadCommunityRoomMembers();
+  forumModalOpen('roomSettingsModal');
+}
+async function getCommunityRoomInviteCode(){
+  if(!activeCommunityRoom || !forumCanManage()) throw new Error('ليس لديك صلاحية إدارة الدعوات');
+  const {data,error}=await supabaseClient.from('community_room_invites').select('invite_code')
+    .eq('room_id',activeCommunityRoom.id).is('revoked_at',null).order('created_at',{ascending:false}).limit(1).maybeSingle();
+  if(error) throw error;
+  if(!data?.invite_code) throw new Error('لا يوجد رمز دعوة نشط');
+  return data.invite_code;
+}
+async function processCommunityRoomInviteFromUrl(){
+  if(processingRoomInvite) return;
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get('roomInvite');
+  if(!code || !currentUser || !supabaseClient) return;
+  if(communityModeration && communityModeration.canRead===false){showToast('لا يمكنك فتح دعوة المنتدى لأن وصولك إلى المجتمع مقيّد');return;}
+  processingRoomInvite=true;
+  params.delete('roomInvite');
+  const query=params.toString();
+  history.replaceState({},'',window.location.pathname+(query?`?${query}`:'')+window.location.hash);
+  try{
+    const roomId=await forumRpc('join_community_room_by_code',{p_invite_code:code});
+    showTab('rooms');await loadCommunityRooms();await openCommunityRoom(roomId);
+    showToast('تم قبول الدعوة والانضمام إلى المنتدى');
+  }catch(error){showToast(error.message||'تعذر استخدام رابط الدعوة');}
+  finally{processingRoomInvite=false;}
+}
+async function closeCommunityRoomView(){
+  clearRoomMessagesRealtime();activeCommunityRoom=null;activeCommunityRoomRole='member';activeCommunityRoomMembers=[];
+  $('#roomChatPanel').classList.add('hidden');$('#roomsPanel').classList.remove('hidden');
+  await loadCommunityRooms();
+}
+
+$('#createRoomOpen')?.addEventListener('click',()=>{
+  if(!forumAuthRequired()) return;
+  $('#roomCreateForm').reset();$('#roomCreatePrivate').checked=true;forumModalOpen('roomCreateModal');$('#roomCreateName').focus();
+});
+$('#joinRoomOpen')?.addEventListener('click',()=>{
+  if(!forumAuthRequired()) return;
+  $('#roomJoinForm').reset();forumModalOpen('roomJoinModal');$('#roomJoinCode').focus();
+});
+$$('[data-close-forum-modal]').forEach(button=>button.addEventListener('click',()=>forumModalClose(button.dataset.closeForumModal)));
+$$('.forum-modal').forEach(modal=>modal.addEventListener('click',event=>{if(event.target===modal)forumModalClose(modal.id);}));
+$('#refreshRooms')?.addEventListener('click',loadCommunityRooms);
+$('#backToRooms')?.addEventListener('click',closeCommunityRoomView);
+$('#forumSettingsOpen')?.addEventListener('click',openCommunityRoomSettings);
+$('#forumLeaveRoom')?.addEventListener('click',async()=>{
+  if(!activeCommunityRoom || forumIsOwner()) return;
+  if(!window.confirm('هل تريد مغادرة هذا المنتدى؟')) return;
+  try{await forumRpc('leave_community_room',{p_room_id:activeCommunityRoom.id});forumModalClose('roomSettingsModal');await closeCommunityRoomView();showToast('غادرت المنتدى');}
+  catch(error){showToast(error.message||'تعذرت مغادرة المنتدى');}
+});
+$('#roomCreateForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(!forumAuthRequired())return;
+  const button=$('#roomCreateSubmit');button.disabled=true;
+  try{
+    const result=await forumRpc('create_community_room',{
+      p_name:$('#roomCreateName').value.trim(),
+      p_description:$('#roomCreateDescription').value.trim(),
+      p_is_private:$('#roomCreatePrivate').checked
+    });
+    forumModalClose('roomCreateModal');await loadCommunityRooms();
+    if(result?.invite_code) await forumCopyText(forumInviteUrl(result.invite_code));
+    if(result?.room?.id) await openCommunityRoom(result.room.id);
+    showToast('تم إنشاء المنتدى بنجاح');
+  }catch(error){showToast(error.message||'تعذر إنشاء المنتدى');}
+  finally{button.disabled=false;}
+});
+$('#roomJoinForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(!forumAuthRequired())return;
+  const button=$('#roomJoinSubmit');button.disabled=true;
+  try{
+    const id=await forumRpc('join_community_room_by_code',{p_invite_code:$('#roomJoinCode').value.trim()});
+    forumModalClose('roomJoinModal');await loadCommunityRooms();await openCommunityRoom(id);showToast('تم الانضمام إلى المنتدى');
+  }catch(error){showToast(error.message||'رمز الدعوة غير صالح');}
+  finally{button.disabled=false;}
+});
+$('#roomSettingsForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(!activeCommunityRoom || !forumIsOwner())return;
+  const button=$('#roomSettingsSave');button.disabled=true;
+  try{
+    const room=await forumRpc('update_community_room',{
+      p_room_id:activeCommunityRoom.id,p_name:$('#roomSettingsName').value.trim(),
+      p_description:$('#roomSettingsDescription').value.trim(),p_is_private:$('#roomSettingsPrivate').checked
+    });
+    activeCommunityRoom={...activeCommunityRoom,...room};
+    $('#forumRoomName').textContent=activeCommunityRoom.name;
+    $('#forumRoomDescription').textContent=activeCommunityRoom.description||'مساحة نقاش الأعضاء';
+    await loadCommunityRooms();showToast('تم حفظ إعدادات المنتدى');
+  }catch(error){showToast(error.message||'تعذر حفظ الإعدادات');}
+  finally{button.disabled=false;}
+});
+$('#forumCopyInvite')?.addEventListener('click',async()=>{
+  try{const code=await getCommunityRoomInviteCode();await forumCopyText(forumInviteUrl(code));}
+  catch(error){showToast(error.message||'تعذر الحصول على رابط الدعوة');}
+});
+$('#forumRotateInvite')?.addEventListener('click',async()=>{
+  if(!activeCommunityRoom || !forumIsOwner())return;
+  if(!window.confirm('إنشاء رمز جديد؟ ستتوقف جميع روابط الدعوة القديمة عن العمل.'))return;
+  try{const code=await forumRpc('rotate_community_room_invite',{p_room_id:activeCommunityRoom.id});await forumCopyText(forumInviteUrl(code));showToast('تم إبطال الرمز القديم وإنشاء رمز جديد');}
+  catch(error){showToast(error.message||'تعذر تجديد رمز الدعوة');}
+});
+$('#forumDeleteRoom')?.addEventListener('click',async()=>{
+  if(!activeCommunityRoom || !forumIsOwner())return;
+  if(!window.confirm(`حذف منتدى «${activeCommunityRoom.name}» وجميع رسائله؟ لا يمكن التراجع عن هذا الإجراء.`))return;
+  try{await forumRpc('delete_community_room',{p_room_id:activeCommunityRoom.id});forumModalClose('roomSettingsModal');await closeCommunityRoomView();showToast('تم حذف المنتدى');}
+  catch(error){showToast(error.message||'تعذر حذف المنتدى');}
+});
+$('#forumComposer')?.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const text=$('#forumMessage').value.trim();
+  if(!text || !activeCommunityRoom || !currentUser || roomMessageBusy)return;
+  if(!communityModeration.canWrite){showToast('الكتابة في المجتمع موقوفة لحسابك');return;}
+  roomMessageBusy=true;$('#forumSend').disabled=true;
+  try{
+    const {data,error}=await supabaseClient.from('community_room_messages')
+      .insert({room_id:activeCommunityRoom.id,user_id:currentUser.id,content:text})
+      .select('id,room_id,user_id,content,sender_name,sender_avatar,created_at').single();
+    if(error)throw error;
+    addCommunityRoomRealtimeMessage(data);$('#forumMessage').value='';$('#forumMessage').focus();
+  }catch(error){showToast(error.message||'تعذر إرسال الرسالة');}
+  finally{roomMessageBusy=false;$('#forumSend').disabled=false;}
+});
+
+
 function showTab(tab){
   activeTab = tab;
+  if(activeCommunityRoom){
+    clearRoomMessagesRealtime();
+    activeCommunityRoom=null;activeCommunityRoomRole='member';activeCommunityRoomMembers=[];
+  }
 
   $$('.room-tab').forEach(button => {
     const active = button.dataset.tab === tab;
@@ -2114,6 +2560,10 @@ function showTab(tab){
   $('#membersPanel').classList.toggle('hidden',tab !== 'members');
   $('#filesPanel').classList.toggle('hidden',tab !== 'files');
   $('#topicsPanel').classList.toggle('hidden',tab !== 'topics');
+  $('#roomsPanel').classList.toggle('hidden',tab !== 'rooms');
+  $('#roomChatPanel').classList.add('hidden');
+
+  if(tab === 'rooms') loadCommunityRooms();
 
   if(tab === 'members'){
     showAllMembers();
@@ -3295,6 +3745,7 @@ $('#profileButton').addEventListener('click',() => {
       loadPrivateConversations(),
       loadPinnedMessage()
     ]);
+    await processCommunityRoomInviteFromUrl();
     updateProfileCard();
     const requestedMessage = new URLSearchParams(location.search).get('message');
     if(requestedMessage){
@@ -3321,6 +3772,9 @@ window.addEventListener('focus', () => { refreshMemberFollowStates().catch(()=>{
 
 document.addEventListener('keydown',event => {
   if(event.key !== 'Escape') return;
+
+  const forumModal = $('.forum-modal.is-open');
+  if(forumModal){ forumModalClose(forumModal.id); return; }
 
   const reportModal = $('#messageReportModal');
   if(reportModal?.classList.contains('is-open')){
