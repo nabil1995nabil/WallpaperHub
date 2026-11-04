@@ -15,7 +15,7 @@
   };
   const toolLabels={wallpaper:'تصميم الخلفيات',theme:'ثيمات الهاتف',icons:'حزم الأيقونات',widget:'الودجات',lock:'شاشة القفل'};
   const presets=['aurora','mountain','waves','minimal','geometry','dots','stripes'];
-  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false};
+  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set()};
   const canvas=$('#designCanvas');
   const ctx=canvas?.getContext('2d');
   const toastNode=$('#studioToast');
@@ -39,7 +39,7 @@
     else{const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,p.a);g.addColorStop(.56,p.b);g.addColorStop(1,p.c);ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height)}
     drawGlow(780,420,530,p.c,state.glow/145);drawGlow(190,1000,470,p.accent,state.glow/230);
     if(state.preset==='aurora'){drawStars(p);ctx.globalAlpha=.2;for(let i=0;i<5;i++){ctx.beginPath();ctx.ellipse(540,1080,650-i*74,160+i*22,-.22,0,Math.PI*2);ctx.strokeStyle=p.accent;ctx.lineWidth=12-i;ctx.stroke()}ctx.globalAlpha=1}
-    if(state.preset==='mountain'||(!state.backgroundImage&&['wallpaper','lock','theme'].includes(state.tool)))drawMountains(p);
+    if(state.preset==='mountain')drawMountains(p);
     if(state.preset==='waves')drawWaves(p);
     if(state.preset==='minimal'){drawGlow(540,850,630,p.accent,.18);roundedRect(92,980,896,8,4,'rgba(255,255,255,.28)')}
     if(state.preset==='geometry')drawGeometry(p);
@@ -85,20 +85,116 @@
   function canvasBlob(){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('تعذر تجهيز صورة التصميم. جرّب إزالة الصورة وإضافتها مجدداً.')),'image/png',.95))}
   async function download(){try{readControls();const blob=await canvasBlob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.download=`wallpaperhub-${state.tool}-${Date.now()}.png`;link.href=url;link.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('تم تجهيز التصميم للتنزيل بجودة 1080 × 1920')}catch(error){toast(error.message||'تعذر تنزيل التصميم')}}
   function reset(){state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.savedId=null;$('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value='65';$('#showClock').checked=true;$('#paletteRow').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.palette==='violet'));$('#presetGrid').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.preset==='aurora'));loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB'});readControls();toast('تمت إعادة ضبط التصميم')}
-  function openPublishModal(){if(!state.user||!state.client){toast('سجّل الدخول أولاً لمشاركة تصميمك');location.href='/login';return}readControls();$('#publishCaption').value=state.subtitle||state.title;$('#publishDestinationsModal').classList.remove('hidden');$('#publishDestinationsModal').setAttribute('aria-hidden','false');requestAnimationFrame(()=>$('#publishDestinationsModal').classList.add('is-open'));$('#multiPublishStatus').classList.add('hidden');loadShareForums()}
+  function openPublishModal(){if(!state.user||!state.client){toast('سجّل الدخول أولاً لمشاركة تصميمك');location.href='/login';return}state.shareImageUrl=null;state.shareSaved=false;state.successfulDestinations=new Set();readControls();$('#publishCaption').value=state.subtitle||state.title;$('#publishDestinationsModal').classList.remove('hidden');$('#publishDestinationsModal').setAttribute('aria-hidden','false');requestAnimationFrame(()=>$('#publishDestinationsModal').classList.add('is-open'));$('#multiPublishStatus').classList.add('hidden');loadShareForums()}
   function closePublishModal(){const modal=$('#publishDestinationsModal');modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');setTimeout(()=>{if(!modal.classList.contains('is-open'))modal.classList.add('hidden')},200)}
   async function loadShareForums(){const target=$('#publishForumChoices'),all=$('#selectAllForums');target.innerHTML='<div class="forum-choice-empty">جاري تحميل منتدياتك...</div>';all.disabled=true;try{const {data:members,error:memberError}=await state.client.from('community_room_members').select('room_id,role,status').eq('user_id',state.user.id).eq('status','active');if(memberError)throw memberError;const ids=(members||[]).map(m=>m.room_id);if(!ids.length){state.forums=[];target.innerHTML='<div class="forum-choice-empty">لا تنتمي إلى أي منتدى بعد.<br><a href="/community.html">أنشئ منتدى أو انضم إلى منتدى من صفحة المجتمع</a></div>';return}const {data:rooms,error:roomError}=await state.client.from('community_rooms').select('id,name,is_private').in('id',ids).order('name');if(roomError)throw roomError;state.forums=rooms||[];target.replaceChildren();if(!state.forums.length){target.innerHTML='<div class="forum-choice-empty">لا توجد منتديات متاحة حالياً.</div>';return}state.forums.forEach(room=>{const label=document.createElement('label');label.className='publish-forum-choice';const input=document.createElement('input');input.type='checkbox';input.value=room.id;input.dataset.forumId=room.id;const name=document.createElement('span');name.textContent=`${room.is_private?'🔒 ':'🌐 '}${room.name}`;label.append(input,name);target.append(label)});all.disabled=false}catch(error){console.warn('STUDIO LOAD FORUMS:',error);state.forums=[];target.innerHTML='<div class="forum-choice-empty">تعذر تحميل المنتديات. تأكد أنك عضو في المنتدى وأن قاعدة بيانات المنتديات مفعّلة.</div>'}}
   function showPublishStatus(message,isError=false){const node=$('#multiPublishStatus');node.textContent=message;node.classList.toggle('is-error',isError);node.classList.remove('hidden')}
-  async function publishToSelectedDestinations(){if(state.publishing)return;if(!state.user||!state.client){toast('سجّل الدخول أولاً');return}const toPosts=$('#publishToPosts').checked;const toGeneral=$('#publishToGeneral').checked;const forumIds=$$('.publish-forum-choice input:checked').map(input=>input.value);if(!toPosts&&!toGeneral&&!forumIds.length){showPublishStatus('اختر وجهة واحدة على الأقل قبل النشر.',true);return}
-    state.publishing=true;const button=$('#confirmMultiPublish');button.disabled=true;button.innerHTML='<span class="material-icons-round">sync</span> جاري النشر...';showPublishStatus('يتم تجهيز صورة واحدة عالية الجودة لمشاركتها في وجهاتك المختارة...');
-    try{readControls();const blob=await canvasBlob();const imageUrl=await uploadToImageKit(blob,`studio-design-${Date.now()}.png`);await savePublishedDesign(imageUrl);const caption=$('#publishCaption').value.trim().slice(0,1800)||state.title;const jobs=[];
-      if(toPosts){jobs.push((async()=>{const {error}=await state.client.from('social_posts').insert({user_id:state.user.id,author_name:profileName(),author_avatar:profileAvatar(),body:caption,media_url:imageUrl,media_type:'image/png'});if(error)throw error;return 'منشورات المجتمع'})())}
-      if(toGeneral){jobs.push((async()=>{const token=await authToken();const response=await fetch('/api/community/messages',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({content:caption,imageUrl})});const result=await response.json().catch(()=>({}));if(!response.ok||result.success===false)throw new Error(result.message||'تعذر النشر في دردشة المجتمع');return 'دردشة المجتمع العامة'})())}
-      for(const roomId of forumIds){const room=state.forums.find(r=>String(r.id)===String(roomId));jobs.push((async()=>{const token=await authToken();const moderationResponse=await fetch('/api/community/moderation/me',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const moderationResult=await moderationResponse.json().catch(()=>({}));if(!moderationResponse.ok||moderationResult?.moderation?.canWrite===false)throw new Error(moderationResult?.message||'الكتابة في المنتديات موقوفة لحسابك حالياً');const {error}=await state.client.from('community_room_messages').insert({room_id:roomId,user_id:state.user.id,content:caption||`شارك ${state.title} من استوديو التخصيص`,image_url:imageUrl});if(error)throw error;return `منتدى ${room?.name||''}`})())}
-      const settled=await Promise.allSettled(jobs);const ok=settled.filter(x=>x.status==='fulfilled').map(x=>x.value);const failed=settled.filter(x=>x.status==='rejected').map(x=>x.reason?.message||'وجهة غير معروفة');await loadGallery();await loadDrafts();
-      const summary=ok.length?`تم النشر بنجاح في: ${ok.join('، ')}.`:'تم حفظ تصميمك في معرض الاستوديو فقط.';const suffix=failed.length?` تعذر النشر في ${failed.length} وجهة: ${failed.join('؛ ')}`:'';showPublishStatus(summary+suffix,failed.length>0);if(ok.length&&!failed.length){toast('تم نشر تصميمك في جميع الوجهات المختارة');setTimeout(closePublishModal,1200)}else if(ok.length){toast('تم النشر جزئياً؛ راجع تفاصيل الوجهات')}else toast('حُفظ التصميم في الاستوديو، لكن تعذر إرساله إلى الوجهات المختارة')
-    }catch(error){console.error('STUDIO MULTI PUBLISH:',error);showPublishStatus(error.message||'تعذر نشر التصميم. تحقق من إعداد ImageKit والاتصال.',true);toast(error.message||'تعذر نشر التصميم')}
-    finally{state.publishing=false;button.disabled=false;button.innerHTML='<span class="material-icons-round">send</span> نشر في الاختيارات'}
+  async function publishToSelectedDestinations(){
+    if(state.publishing)return;
+    if(!state.user||!state.client){toast('سجّل الدخول أولاً');return}
+    const selected=[];
+    if($('#publishToPosts').checked)selected.push({key:'posts',label:'منشورات المجتمع'});
+    if($('#publishToGeneral').checked)selected.push({key:'general',label:'دردشة المجتمع العامة'});
+    $$('.publish-forum-choice input:checked').forEach(input=>{
+      const room=state.forums.find(item=>String(item.id)===String(input.value));
+      selected.push({key:`forum:${input.value}`,label:`منتدى ${room?.name||''}`,roomId:input.value,room});
+    });
+    if(!selected.length){showPublishStatus('اختر وجهة واحدة على الأقل قبل النشر.',true);return}
+    const pending=selected.filter(item=>!state.successfulDestinations.has(item.key));
+    if(!pending.length){
+      showPublishStatus('تم النشر مسبقاً في جميع الوجهات المختارة.');
+      toast('هذا التصميم منشور بالفعل في الوجهات المحددة');
+      return;
+    }
+    state.publishing=true;
+    const button=$('#confirmMultiPublish');
+    button.disabled=true;
+    button.innerHTML='<span class="material-icons-round">sync</span> جاري النشر...';
+    showPublishStatus('يتم تجهيز التصميم ومشاركته في الوجهات التي لم يكتمل النشر فيها...');
+    try{
+      readControls();
+      if(!state.shareImageUrl){
+        const blob=await canvasBlob();
+        state.shareImageUrl=await uploadToImageKit(blob,`studio-design-${Date.now()}.png`);
+      }
+      if(!state.shareSaved){
+        await savePublishedDesign(state.shareImageUrl);
+        state.shareSaved=true;
+      }
+      const imageUrl=state.shareImageUrl;
+      const caption=$('#publishCaption').value.trim().slice(0,1800)||state.title;
+      const jobs=pending.map(item=>({
+        key:item.key,
+        label:item.label,
+        promise:(async()=>{
+          if(item.key==='posts'){
+            const {error}=await state.client.from('social_posts').insert({
+              user_id:state.user.id,author_name:profileName(),author_avatar:profileAvatar(),
+              body:caption,media_url:imageUrl,media_type:'image/png'
+            });
+            if(error)throw error;
+            return;
+          }
+          if(item.key==='general'){
+            const token=await authToken();
+            const response=await fetch('/api/community/messages',{
+              method:'POST',
+              headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
+              body:JSON.stringify({content:caption,imageUrl})
+            });
+            const result=await response.json().catch(()=>({}));
+            if(!response.ok||result.success===false)throw new Error(result.message||'تعذر النشر في دردشة المجتمع');
+            return;
+          }
+          const token=await authToken();
+          const moderationResponse=await fetch('/api/community/moderation/me',{
+            headers:{Authorization:`Bearer ${token}`},cache:'no-store'
+          });
+          const moderationResult=await moderationResponse.json().catch(()=>({}));
+          if(!moderationResponse.ok||moderationResult?.moderation?.canWrite===false){
+            throw new Error(moderationResult?.message||'الكتابة في المنتديات موقوفة لحسابك حالياً');
+          }
+          const {error}=await state.client.from('community_room_messages').insert({
+            room_id:item.roomId,user_id:state.user.id,
+            content:caption||`شارك ${state.title} من استوديو التخصيص`,image_url:imageUrl
+          });
+          if(error)throw error;
+        })()
+      }));
+      const settled=await Promise.allSettled(jobs.map(job=>job.promise));
+      const ok=[];
+      const failed=[];
+      settled.forEach((result,index)=>{
+        const job=jobs[index];
+        if(result.status==='fulfilled'){
+          state.successfulDestinations.add(job.key);
+          ok.push(job.label);
+        }else{
+          failed.push(`${job.label}: ${result.reason?.message||'تعذر النشر'}`);
+        }
+      });
+      await loadGallery();
+      await loadDrafts();
+      const summary=ok.length?`تم النشر بنجاح في: ${ok.join('، ')}.`:'لم تنجح أي وجهة في هذه المحاولة.';
+      const suffix=failed.length?` تعذر النشر في ${failed.length} وجهة: ${failed.join('؛ ')}. يمكنك إعادة المحاولة دون تكرار الوجهات الناجحة.`:'';
+      showPublishStatus(summary+suffix,failed.length>0);
+      if(!failed.length){
+        toast('تم نشر تصميمك في جميع الوجهات المختارة');
+        setTimeout(closePublishModal,1200);
+      }else if(ok.length){
+        toast('تم النشر جزئياً؛ يمكنك إعادة محاولة الوجهات الفاشلة فقط');
+      }else{
+        toast('تعذر النشر في الوجهات المختارة؛ يمكنك إعادة المحاولة');
+      }
+    }catch(error){
+      console.error('STUDIO MULTI PUBLISH:',error);
+      showPublishStatus(error.message||'تعذر نشر التصميم. تحقق من إعداد ImageKit والاتصال.',true);
+      toast(error.message||'تعذر نشر التصميم');
+    }finally{
+      state.publishing=false;
+      button.disabled=false;
+      button.innerHTML='<span class="material-icons-round">send</span> نشر في الاختيارات';
+    }
   }
   function profileName(){const m=state.user?.user_metadata||{};return m.full_name||m.name||m.user_name||state.user?.email?.split('@')[0]||'عضو WallpaperHub'}
   function profileAvatar(){const m=state.user?.user_metadata||{};return m.avatar_url||m.picture||''}
