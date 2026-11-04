@@ -16,7 +16,7 @@
   const toolLabels={wallpaper:'تصميم الخلفيات',theme:'ثيمات الهاتف',icons:'حزم الأيقونات',widget:'الودجات',lock:'شاشة القفل'};
   const presets=['aurora','mountain','waves','minimal','geometry','dots','stripes'];
   const appIcons=[['☎','phone','الهاتف'],['▧','photos','الصور'],['◉','camera','الكاميرا'],['♫','music','الموسيقى'],['✉','messages','الرسائل'],['◎','browser','المتصفح'],['⚙','settings','الإعدادات'],['◈','files','الملفات'],['✦','store','المتجر']];
-  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set()};
+  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set(),shareThemeUrl:null};
   const canvas=$('#designCanvas');
   const ctx=canvas?.getContext('2d');
   const toastNode=$('#studioToast');
@@ -110,7 +110,7 @@
   function updateTool(tool){if(!toolLabels[tool])return;state.tool=tool;if(tool==='lock')state.screenMode='lock';else if(['icons','theme','widget'].includes(tool))state.screenMode='home';else state.screenMode='lock';$$('.tool-card').forEach(b=>b.classList.toggle('is-active',b.dataset.tool===tool));$$('.screen-mode-button').forEach(b=>b.classList.toggle('is-active',b.dataset.screenMode===state.screenMode));$('#activeToolLabel').textContent=toolLabels[tool];render()}
   function readControls(){state.title=$('#designTitle').value.trim()||'تصميم جديد';state.subtitle=$('#designSubtitle').value.trim();state.glow=Number($('#glowStrength').value)||0;state.clock=$('#showClock').checked;state.clockStyle=$('#clockStyle').value;state.clockFormat=$('#clockFormat').value;state.clockSize=Number($('#clockSize').value)||112;state.clockColor=$('#clockColor').value;state.showDate=$('#showDate').checked;state.showStatusBar=$('#showStatusBar').checked;state.iconShape=$('#iconShape').value;state.iconScale=Number($('#iconScale').value)||100;state.showIconLabels=$('#showIconLabels').checked;$('#glowValue').textContent=`${state.glow}%`;$('#clockSizeValue').textContent=`${state.clockSize}%`;$('#iconScaleValue').textContent=`${state.iconScale}%`;render()}
   function designConfig(){return {tool:state.tool,palette:state.palette,preset:state.preset,title:state.title,subtitle:state.subtitle,glow:state.glow,clock:state.clock,clockStyle:state.clockStyle,clockFormat:state.clockFormat,clockSize:state.clockSize,clockColor:state.clockColor,showDate:state.showDate,showStatusBar:state.showStatusBar,screenMode:state.screenMode,iconShape:state.iconShape,iconScale:state.iconScale,showIconLabels:state.showIconLabels,clockX:state.clockX,clockY:state.clockY,appsX:state.appsX,appsY:state.appsY,subtitleX:state.subtitleX,subtitleY:state.subtitleY,backgroundUrl:state.backgroundUrl||null}}
-  function dataForSave(visibility,imageUrl=null){return {user_id:state.user.id,title:state.title,category:state.tool,visibility,config:designConfig(),image_url:imageUrl,updated_at:new Date().toISOString()}}
+  function dataForSave(visibility,imageUrl=null,themeUrl=null){return {user_id:state.user.id,title:state.title,category:state.tool,visibility,config:{...designConfig(),themeUrl:themeUrl||null},image_url:imageUrl,updated_at:new Date().toISOString()}}
   async function authToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;const token=data?.session?.access_token;if(!token)throw new Error('انتهت جلستك، سجّل الدخول من جديد');return token}
   async function uploadToImageKit(file,fileName){
     const token=await authToken();
@@ -133,8 +133,8 @@
   async function initSupabase(){try{const r=await fetch('/api/supabase/config',{cache:'no-store'});if(!r.ok)throw new Error('config');const cfg=await r.json();state.client=window.supabase.createClient(cfg.url,cfg.anonKey);const {data}=await state.client.auth.getSession();state.user=data?.session?.user||null;updateProfile();state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;updateProfile();loadDrafts()});loadGallery();loadDrafts()}catch(error){console.warn('STUDIO SUPABASE INIT:',error);updateProfile();loadGallery()}}
   function updateProfile(){const node=$('#studioAvatar');if(!node)return;const meta=state.user?.user_metadata||{};const avatar=meta.avatar_url||meta.avatarUrl||meta.picture||'';if(avatar){node.innerHTML='';const img=document.createElement('img');img.src=avatar;img.alt='';node.appendChild(img)}else node.textContent=(meta.full_name||meta.name||state.user?.email||'U').trim().slice(0,1).toUpperCase()}
   async function saveDesign(visibility){if(!state.user||!state.client){toast('سجّل الدخول أولاً لحفظ تصميمك');return}const button=visibility==='published'?$('#publishDesign'):$('#saveDraft');button.disabled=true;try{const payload=dataForSave(visibility,null);let query;if(state.savedId){query=await state.client.from('studio_designs').update(payload).eq('id',state.savedId).eq('user_id',state.user.id).select('id').single()}else{query=await state.client.from('studio_designs').insert(payload).select('id').single()}if(query.error)throw query.error;state.savedId=query.data.id;toast('تم حفظ التصميم في مسوداتك');loadDrafts()}catch(error){console.error('STUDIO SAVE:',error);toast(error.message?.includes('studio_designs')?'حدّث جدول الاستوديو بتشغيل ملف studio-designs.sql':'تعذر حفظ التصميم، تحقق من اتصالك ثم حاول مجدداً')}finally{button.disabled=false}}
-  async function savePublishedDesign(imageUrl){const payload=dataForSave('published',imageUrl);let query;if(state.savedId){query=await state.client.from('studio_designs').update(payload).eq('id',state.savedId).eq('user_id',state.user.id).select('id').single()}else{query=await state.client.from('studio_designs').insert(payload).select('id').single()}if(query.error)throw query.error;state.savedId=query.data.id}
-  async function loadGallery(){const target=$('#creationGrid');if(!target)return;if(!state.client){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">cloud_off</span><b>المعرض يحتاج اتصال قاعدة البيانات</b><small>يمكنك تجربة المصمم وتنزيل إبداعاتك الآن.</small></div>';return}try{const {data,error}=await state.client.from('studio_designs').select('id,title,category,config,image_url,created_at').eq('visibility','published').order('created_at',{ascending:false}).limit(12);if(error)throw error;target.replaceChildren();if(!data?.length){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">auto_awesome</span><b>كن أول من يشارك إبداعه</b><small>صمّم شيئاً جميلاً ثم انشره ليظهر هنا.</small></div>';return}data.forEach(item=>{const p=palettes[item.config?.palette]||palettes.violet;const card=document.createElement('article');card.className='creation-card';const art=document.createElement('div');art.className='creation-art';if(item.image_url){const image=document.createElement('img');image.src=item.image_url;image.alt=item.title||'تصميم من المجتمع';image.loading='lazy';art.appendChild(image)}else{art.style.setProperty('--art-bg',`linear-gradient(145deg,${p.a},${p.b},${p.c})`);const icon=document.createElement('span');icon.className='material-icons-round';icon.textContent=({wallpaper:'landscape',theme:'palette',icons:'apps',widget:'dashboard_customize',lock:'lock'})[item.category]||'auto_awesome';art.appendChild(icon)}const meta=document.createElement('div');meta.className='creation-meta';const title=document.createElement('b');title.textContent=item.title||'تصميم من المجتمع';const sub=document.createElement('small');sub.textContent=`${toolLabels[item.category]||'تصميم'} · ${new Date(item.created_at).toLocaleDateString('ar-MA')}`;meta.append(title,sub);card.append(art,meta);target.appendChild(card)})}catch(error){console.warn('STUDIO GALLERY:',error);target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">info</span><b>المعرض غير متاح حالياً</b><small>تأكد من تشغيل studio-designs.sql المحدّث في Supabase.</small></div>'}}
+  async function savePublishedDesign(imageUrl,themeUrl){const payload=dataForSave('published',imageUrl,themeUrl);let query;if(state.savedId){query=await state.client.from('studio_designs').update(payload).eq('id',state.savedId).eq('user_id',state.user.id).select('id').single()}else{query=await state.client.from('studio_designs').insert(payload).select('id').single()}if(query.error)throw query.error;state.savedId=query.data.id}
+  async function loadGallery(){const target=$('#creationGrid');if(!target)return;if(!state.client){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">cloud_off</span><b>المعرض يحتاج اتصال قاعدة البيانات</b><small>يمكنك تجربة المصمم وتنزيل إبداعاتك الآن.</small></div>';return}try{const {data,error}=await state.client.from('studio_designs').select('id,title,category,config,image_url,created_at').eq('visibility','published').order('created_at',{ascending:false}).limit(12);if(error)throw error;target.replaceChildren();if(!data?.length){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">auto_awesome</span><b>كن أول من يشارك إبداعه</b><small>صمّم شيئاً جميلاً ثم انشره ليظهر هنا.</small></div>';return}data.forEach(item=>{const p=palettes[item.config?.palette]||palettes.violet;const card=document.createElement('a');card.className='creation-card';card.href=`/community-creation.html?id=${encodeURIComponent(item.id)}`;card.setAttribute('aria-label',`عرض ${item.title||'إبداع المجتمع'}`);const art=document.createElement('div');art.className='creation-art';if(item.image_url){const image=document.createElement('img');image.src=item.image_url;image.alt=item.title||'تصميم من المجتمع';image.loading='lazy';art.appendChild(image)}else{art.style.setProperty('--art-bg',`linear-gradient(145deg,${p.a},${p.b},${p.c})`);const icon=document.createElement('span');icon.className='material-icons-round';icon.textContent=({wallpaper:'landscape',theme:'palette',icons:'apps',widget:'dashboard_customize',lock:'lock'})[item.category]||'auto_awesome';art.appendChild(icon)}const meta=document.createElement('div');meta.className='creation-meta';const title=document.createElement('b');title.textContent=item.title||'تصميم من المجتمع';const sub=document.createElement('small');sub.textContent=`${toolLabels[item.config?.tool||item.category]||'تصميم'} · ${new Date(item.created_at).toLocaleDateString('ar-MA')}`;meta.append(title,sub);if(item.config?.themeUrl){const pack=document.createElement('small');pack.className='creation-pack-badge';pack.textContent='ملف الثيم متاح';meta.appendChild(pack)}card.append(art,meta);target.appendChild(card)})}catch(error){console.warn('STUDIO GALLERY:',error);target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">info</span><b>المعرض غير متاح حالياً</b><small>تأكد من تشغيل studio-designs.sql المحدّث في Supabase.</small></div>'}}
   async function loadDraftIntoEditor(item){
     const c=item.config||{};state.savedId=item.id;
     state.tool=toolLabels[c.tool]?c.tool:'wallpaper';state.palette=palettes[c.palette]?c.palette:'violet';state.preset=presets.includes(c.preset)?c.preset:'aurora';
@@ -181,27 +181,68 @@
       iconCanvas.toBlob(blob=>blob?blob.arrayBuffer().then(buffer=>resolve(new Uint8Array(buffer))).catch(reject):reject(new Error('تعذر إنشاء إحدى صور الأيقونات')),'image/png');
     });
   }
-  async function downloadThemePack(){
-    const button=$('#downloadThemePack');if(button.disabled)return;button.disabled=true;const oldText=button.innerHTML;button.innerHTML='<span class="material-icons-round">sync</span> تجهيز الحزمة...';
+  async function buildThemePackBlob(){
+    readControls();
+    const previousMode=state.screenMode;
+    let wallpaper;
     try{
-      readControls();const previousMode=state.screenMode;let wallpaper;try{state.screenMode='wallpaper';render();wallpaper=await canvasBlob()}finally{state.screenMode=previousMode;render()}
-      const files=[{name:'wallpaper.png',data:new Uint8Array(await wallpaper.arrayBuffer())}],p=palettes[state.palette]||palettes.violet;
-      for(const [symbol,key] of appIcons)files.push({name:`icons/${key}.png`,data:await makeIconBlob(symbol,p)});
-      const manifest={name:state.title,createdAt:new Date().toISOString(),palette:state.palette,iconShape:state.iconShape,iconScale:state.iconScale,assets:{wallpaper:'wallpaper.png',icons:appIcons.map(([,key])=>`icons/${key}.png`)},note:'PNG assets for manual setup with a launcher that supports custom icons.'};
-      files.push({name:'manifest.json',data:new TextEncoder().encode(JSON.stringify(manifest,null,2))});
-      files.push({name:'اقرأني.txt',data:new TextEncoder().encode('حزمة تخصيص WallpaperHub\n\n- wallpaper.png: خلفية الهاتف بجودة عالية.\n- مجلد icons: تسع صور أيقونات PNG منفصلة.\n- manifest.json: معلومات الحزمة.\n\nطريقة الاستخدام: عيّن wallpaper.png كخلفية، ثم استخدم تطبيق Launcher يدعم تغيير أيقونات التطبيقات واختر صور PNG من مجلد icons.\n\nتنبيه: هذه ملفات صور وليست تطبيق APK، لذلك لا تثبّت الثيم تلقائياً على نظام الهاتف.')});
-      const zip=zipStored(files),url=URL.createObjectURL(zip),link=document.createElement('a');link.href=url;link.download=`wallpaperhub-theme-${Date.now()}.zip`;link.click();setTimeout(()=>URL.revokeObjectURL(url),2500);toast('تم تنزيل حزمة الخلفية و9 أيقونات منفصلة');
-    }catch(error){state.screenMode=state.screenMode||'lock';render();console.error('STUDIO THEME EXPORT:',error);toast(error.message||'تعذر إنشاء حزمة الثيم')}
-    finally{button.disabled=false;button.innerHTML=oldText}
+      state.screenMode='wallpaper';
+      render();
+      wallpaper=await canvasBlob();
+    }finally{
+      state.screenMode=previousMode;
+      render();
+    }
+    const files=[{name:'wallpaper.png',data:new Uint8Array(await wallpaper.arrayBuffer())}];
+    const p=palettes[state.palette]||palettes.violet;
+    for(const [symbol,key] of appIcons){
+      files.push({name:`icons/${key}.png`,data:await makeIconBlob(symbol,p)});
+    }
+    const manifest={
+      name:state.title,
+      createdAt:new Date().toISOString(),
+      palette:state.palette,
+      paletteColors:[p.a,p.b,p.c,p.accent,p.light],
+      preset:state.preset,
+      iconShape:state.iconShape,
+      iconScale:state.iconScale,
+      assets:{wallpaper:'wallpaper.png',icons:appIcons.map(([,key])=>`icons/${key}.png`)},
+      note:'PNG assets for manual setup with a launcher that supports custom icons.'
+    };
+    files.push({name:'manifest.json',data:new TextEncoder().encode(JSON.stringify(manifest,null,2))});
+    files.push({name:'اقرأني.txt',data:new TextEncoder().encode('حزمة تخصيص WallpaperHub\n\n- wallpaper.png: خلفية الهاتف بجودة عالية.\n- مجلد icons: تسع صور أيقونات PNG منفصلة.\n- manifest.json: معلومات الحزمة والألوان والنمط.\n\nطريقة الاستخدام: عيّن wallpaper.png كخلفية، ثم استخدم تطبيق Launcher يدعم تغيير أيقونات التطبيقات واختر صور PNG من مجلد icons.\n\nتنبيه: هذه ملفات صور وليست تطبيق APK، لذلك لا تثبّت الثيم تلقائياً على نظام الهاتف.')});
+    return zipStored(files);
   }
-  
+  async function downloadThemePack(){
+    const button=$('#downloadThemePack');if(button.disabled)return;
+    button.disabled=true;
+    const oldText=button.innerHTML;
+    button.innerHTML='<span class="material-icons-round">sync</span> تجهيز الحزمة...';
+    try{
+      const zip=await buildThemePackBlob();
+      const url=URL.createObjectURL(zip);
+      const link=document.createElement('a');
+      link.href=url;
+      link.download=`wallpaperhub-theme-${Date.now()}.zip`;
+      link.click();
+      setTimeout(()=>URL.revokeObjectURL(url),2500);
+      toast('تم تنزيل حزمة الخلفية و9 أيقونات منفصلة');
+    }catch(error){
+      console.error('STUDIO THEME EXPORT:',error);
+      toast(error.message||'تعذر إنشاء حزمة الثيم');
+    }finally{
+      button.disabled=false;
+      button.innerHTML=oldText;
+    }
+  }
+    
   function reset(){
     state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=100;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;
     $('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value='65';$('#showClock').checked=true;$('#clockStyle').value='digital';$('#clockFormat').value='24';$('#clockSize').value='112';$('#clockColor').value='auto';$('#showDate').checked=true;$('#showStatusBar').checked=true;$('#iconShape').value='rounded';$('#iconScale').value='100';$('#showIconLabels').checked=true;
     $$('.screen-mode-button').forEach(b=>b.classList.toggle('is-active',b.dataset.screenMode===state.screenMode));$('#paletteRow').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.palette==='violet'));$('#presetGrid').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.preset==='aurora'));
     loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB'});readControls();toast('تمت إعادة ضبط التصميم');
   }
-  function openPublishModal(){if(!state.user||!state.client){toast('سجّل الدخول أولاً لمشاركة تصميمك');location.href='/login';return}state.shareImageUrl=null;state.shareSaved=false;state.successfulDestinations=new Set();readControls();$('#publishCaption').value=state.subtitle||state.title;$('#publishDestinationsModal').classList.remove('hidden');$('#publishDestinationsModal').setAttribute('aria-hidden','false');requestAnimationFrame(()=>$('#publishDestinationsModal').classList.add('is-open'));$('#multiPublishStatus').classList.add('hidden');loadShareForums()}
+  function openPublishModal(){if(!state.user||!state.client){toast('سجّل الدخول أولاً لمشاركة تصميمك');location.href='/login';return}state.shareImageUrl=null;state.shareThemeUrl=null;state.shareSaved=false;state.successfulDestinations=new Set();readControls();$('#publishCaption').value=state.subtitle||state.title;$('#publishDestinationsModal').classList.remove('hidden');$('#publishDestinationsModal').setAttribute('aria-hidden','false');requestAnimationFrame(()=>$('#publishDestinationsModal').classList.add('is-open'));$('#multiPublishStatus').classList.add('hidden');loadShareForums()}
   function closePublishModal(){const modal=$('#publishDestinationsModal');modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');setTimeout(()=>{if(!modal.classList.contains('is-open'))modal.classList.add('hidden')},200)}
   async function loadShareForums(){const target=$('#publishForumChoices'),all=$('#selectAllForums');target.innerHTML='<div class="forum-choice-empty">جاري تحميل منتدياتك...</div>';all.disabled=true;try{const {data:members,error:memberError}=await state.client.from('community_room_members').select('room_id,role,status').eq('user_id',state.user.id).eq('status','active');if(memberError)throw memberError;const ids=(members||[]).map(m=>m.room_id);if(!ids.length){state.forums=[];target.innerHTML='<div class="forum-choice-empty">لا تنتمي إلى أي منتدى بعد.<br><a href="/community.html">أنشئ منتدى أو انضم إلى منتدى من صفحة المجتمع</a></div>';return}const {data:rooms,error:roomError}=await state.client.from('community_rooms').select('id,name,is_private').in('id',ids).order('name');if(roomError)throw roomError;state.forums=rooms||[];target.replaceChildren();if(!state.forums.length){target.innerHTML='<div class="forum-choice-empty">لا توجد منتديات متاحة حالياً.</div>';return}state.forums.forEach(room=>{const label=document.createElement('label');label.className='publish-forum-choice';const input=document.createElement('input');input.type='checkbox';input.value=room.id;input.dataset.forumId=room.id;const name=document.createElement('span');name.textContent=`${room.is_private?'🔒 ':'🌐 '}${room.name}`;label.append(input,name);target.append(label)});all.disabled=false}catch(error){console.warn('STUDIO LOAD FORUMS:',error);state.forums=[];target.innerHTML='<div class="forum-choice-empty">تعذر تحميل المنتديات. تأكد أنك عضو في المنتدى وأن قاعدة بيانات المنتديات مفعّلة.</div>'}}
   function showPublishStatus(message,isError=false){const node=$('#multiPublishStatus');node.textContent=message;node.classList.toggle('is-error',isError);node.classList.remove('hidden')}
@@ -233,12 +274,18 @@
         const blob=await canvasBlob();
         state.shareImageUrl=await uploadToImageKit(blob,`studio-design-${Date.now()}.png`);
       }
+      if(!state.shareThemeUrl){
+        const themeBlob=await buildThemePackBlob();
+        state.shareThemeUrl=await uploadToImageKit(themeBlob,`wallpaperhub-theme-${Date.now()}.zip`);
+      }
       if(!state.shareSaved){
-        await savePublishedDesign(state.shareImageUrl);
+        await savePublishedDesign(state.shareImageUrl,state.shareThemeUrl);
         state.shareSaved=true;
       }
       const imageUrl=state.shareImageUrl;
-      const caption=$('#publishCaption').value.trim().slice(0,1800)||state.title;
+      const themeUrl=state.shareThemeUrl;
+      const caption=$('#publishCaption').value.trim().slice(0,1550)||state.title;
+      const shareText=`${caption}\n\n📦 ملف الثيم ZIP: ${themeUrl}`;
       const jobs=pending.map(item=>({
         key:item.key,
         label:item.label,
@@ -246,7 +293,7 @@
           if(item.key==='posts'){
             const {error}=await state.client.from('social_posts').insert({
               user_id:state.user.id,author_name:profileName(),author_avatar:profileAvatar(),
-              body:caption,media_url:imageUrl,media_type:'image/png'
+              body:shareText,media_url:imageUrl,media_type:'image/png'
             });
             if(error)throw error;
             return;
@@ -256,7 +303,7 @@
             const response=await fetch('/api/community/messages',{
               method:'POST',
               headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
-              body:JSON.stringify({content:caption,imageUrl})
+              body:JSON.stringify({content:shareText,imageUrl})
             });
             const result=await response.json().catch(()=>({}));
             if(!response.ok||result.success===false)throw new Error(result.message||'تعذر النشر في دردشة المجتمع');
@@ -272,7 +319,7 @@
           }
           const {error}=await state.client.from('community_room_messages').insert({
             room_id:item.roomId,user_id:state.user.id,
-            content:caption||`شارك ${state.title} من استوديو التخصيص`,image_url:imageUrl
+            content:shareText,image_url:imageUrl
           });
           if(error)throw error;
         })()
