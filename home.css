@@ -1021,3 +1021,6 @@ button:focus-visible{
  .community-creation-card{flex-basis:clamp(135px,43vw,170px);border-radius:18px}
 }
 @media(prefers-reduced-motion:reduce){.community-creations-cta,.community-creation-card img,.community-creations-cta-arrow{transition:none}}
+
+.community-creation-pack{display:inline-flex;width:max-content;max-width:100%;padding:3px 7px;border-radius:7px;background:rgba(255,255,255,.18);color:#fff;font-size:8px}
+.community-creation-card{text-decoration:none}
