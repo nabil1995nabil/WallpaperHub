@@ -15,6 +15,7 @@
   };
   const toolLabels={wallpaper:'تصميم الخلفيات',theme:'ثيمات الهاتف',icons:'حزم الأيقونات',widget:'الودجات',lock:'شاشة القفل'};
   const presets=['aurora','mountain','waves','minimal','geometry','dots','stripes'];
+  const appIcons=[['☎','phone','الهاتف'],['▧','photos','الصور'],['◉','camera','الكاميرا'],['♫','music','الموسيقى'],['✉','messages','الرسائل'],['◎','browser','المتصفح'],['⚙','settings','الإعدادات'],['◈','files','الملفات'],['✦','store','المتجر']];
   const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:112,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set()};
   const canvas=$('#designCanvas');
   const ctx=canvas?.getContext('2d');
@@ -27,7 +28,7 @@
   function drawMountains(p){const layers=[{c:p.a,points:[[0,1430],[190,1080],[360,1320],[560,930],[760,1260],[930,1040],[1080,1370]]},{c:'#111638',points:[[0,1510],[190,1280],[390,1510],[620,1200],[840,1480],[1000,1280],[1080,1390]]}];for(const layer of layers){ctx.beginPath();ctx.moveTo(0,1920);ctx.lineTo(...layer.points[0]);layer.points.slice(1).forEach(pt=>ctx.lineTo(...pt));ctx.lineTo(1080,1920);ctx.closePath();ctx.fillStyle=layer.c;ctx.globalAlpha=.78;ctx.fill();ctx.globalAlpha=1}const floor=ctx.createLinearGradient(0,1450,0,1920);floor.addColorStop(0,'rgba(17,17,58,.1)');floor.addColorStop(1,'rgba(5,9,32,.85)');ctx.fillStyle=floor;ctx.fillRect(0,1450,1080,470)}
   function drawWaves(p){for(let j=0;j<7;j++){ctx.beginPath();for(let x=0;x<=1080;x+=12){const y=1160+j*90+Math.sin(x/100+j*.65)*32+Math.cos(x/180+j)*22;if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.strokeStyle=j%2?p.accent:p.c;ctx.globalAlpha=.12+j*.025;ctx.lineWidth=18-j;ctx.stroke()}ctx.globalAlpha=1}
   function drawIcons(p){
-    const items=[['☎','الهاتف'],['▧','الصور'],['◉','الكاميرا'],['♫','الموسيقى'],['✉','الرسائل'],['◎','المتصفح'],['⚙','الإعدادات'],['◈','الملفات'],['✦','المتجر']];
+    const items=appIcons.map(([symbol,key,label])=>[symbol,label]);
     const scale=state.iconScale/100,size=176*scale,gap=42*scale,cols=3;
     const startX=state.appsX-(cols*size+(cols-1)*gap)/2,startY=state.appsY;
     items.forEach(([symbol,label],i)=>{
@@ -152,6 +153,48 @@
   async function loadDrafts(){const section=$('#draftSection'),target=$('#draftGrid');if(!section||!target)return;section.classList.toggle('hidden',!state.user);if(!state.user||!state.client){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">bookmark_border</span><b>سجّل الدخول لحفظ مسوداتك</b><small>يمكنك تنزيل التصميم الآن أو تسجيل الدخول لحفظه.</small></div>';return}try{const {data,error}=await state.client.from('studio_designs').select('id,title,category,config,created_at').eq('visibility','draft').order('updated_at',{ascending:false}).limit(8);if(error)throw error;target.replaceChildren();if(!data?.length){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">bookmark_add</span><b>لا توجد مسودات بعد</b><small>احفظ أول تصميم لتكمل العمل عليه لاحقاً.</small></div>';return}data.forEach(item=>{const p=palettes[item.config?.palette]||palettes.violet;const button=document.createElement('button');button.type='button';button.className='draft-card';const art=document.createElement('span');art.className='draft-art';if(item.config?.backgroundUrl){art.style.backgroundImage=`url("${String(item.config.backgroundUrl).replace(/["\\]/g,'')}")`;art.style.backgroundSize='cover';art.style.backgroundPosition='center'}else art.style.setProperty('--art-bg',`linear-gradient(145deg,${p.a},${p.b},${p.c})`);art.innerHTML='<span class="material-icons-round">edit</span>';const copy=document.createElement('span');copy.className='draft-copy';const title=document.createElement('b');title.textContent=item.title||'تصميم بدون اسم';const meta=document.createElement('small');meta.textContent=toolLabels[item.category]||'تصميم';copy.append(title,meta);const action=document.createElement('span');action.className='material-icons-round draft-open';action.textContent='arrow_back';button.append(art,copy,action);button.addEventListener('click',()=>loadDraftIntoEditor(item));target.appendChild(button)})}catch(error){console.warn('STUDIO DRAFTS:',error);target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">info</span><b>تعذر تحميل المسودات</b><small>تأكد من تشغيل studio-designs.sql في Supabase.</small></div>'}}
   function canvasBlob(){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('تعذر تجهيز صورة التصميم. جرّب إزالة الصورة وإضافتها مجدداً.')),'image/png',.95))}
   async function download(){try{readControls();const blob=await canvasBlob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.download=`wallpaperhub-${state.tool}-${Date.now()}.png`;link.href=url;link.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('تم تجهيز التصميم للتنزيل بجودة 1080 × 1920')}catch(error){toast(error.message||'تعذر تنزيل التصميم')}}
+  function crc32(bytes){
+    let crc=0xffffffff;
+    for(let i=0;i<bytes.length;i++){crc^=bytes[i];for(let j=0;j<8;j++)crc=(crc>>>1)^((crc&1)?0xedb88320:0)}
+    return (crc^0xffffffff)>>>0;
+  }
+  function zipStored(files){
+    const encoder=new TextEncoder(),locals=[],centrals=[];let offset=0,totalCentral=0;
+    const now=new Date(),dosTime=(now.getHours()<<11)|(now.getMinutes()<<5)|(Math.floor(now.getSeconds()/2)),dosDate=((Math.max(1980,now.getFullYear())-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+    files.forEach(file=>{
+      const name=encoder.encode(file.name),data=file.data instanceof Uint8Array?file.data:new Uint8Array(file.data),crc=crc32(data),local=new Uint8Array(30+name.length+data.length),lv=new DataView(local.buffer);
+      lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x0800,true);lv.setUint16(8,0,true);lv.setUint16(10,dosTime,true);lv.setUint16(12,dosDate,true);lv.setUint32(14,crc,true);lv.setUint32(18,data.length,true);lv.setUint32(22,data.length,true);lv.setUint16(26,name.length,true);lv.setUint16(28,0,true);local.set(name,30);local.set(data,30+name.length);locals.push(local);
+      const central=new Uint8Array(46+name.length),cv=new DataView(central.buffer);cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x0800,true);cv.setUint16(10,0,true);cv.setUint16(12,dosTime,true);cv.setUint16(14,dosDate,true);cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint16(30,0,true);cv.setUint16(32,0,true);cv.setUint16(34,0,true);cv.setUint16(36,0,true);cv.setUint32(38,0,true);cv.setUint32(42,offset,true);central.set(name,46);centrals.push(central);offset+=local.length;totalCentral+=central.length;
+    });
+    const end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(4,0,true);ev.setUint16(6,0,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,totalCentral,true);ev.setUint32(16,offset,true);ev.setUint16(20,0,true);
+    return new Blob([...locals,...centrals,end],{type:'application/zip'});
+  }
+  function makeIconBlob(symbol,p,index){
+    return new Promise((resolve,reject)=>{
+      const iconCanvas=document.createElement('canvas');iconCanvas.width=512;iconCanvas.height=512;const c=iconCanvas.getContext('2d');
+      const gradient=c.createLinearGradient(30,30,482,482);gradient.addColorStop(0,p.a);gradient.addColorStop(.58,p.b);gradient.addColorStop(1,p.c);c.fillStyle=gradient;c.fillRect(0,0,512,512);
+      c.save();c.fillStyle='rgba(255,255,255,.18)';c.strokeStyle='rgba(255,255,255,.42)';c.lineWidth=5;
+      if(state.iconShape==='circle'){c.beginPath();c.arc(256,256,208,0,Math.PI*2);c.fill();c.stroke()}
+      else if(state.iconShape==='square'){c.fillRect(48,48,416,416);c.strokeRect(48,48,416,416)}
+      else{c.beginPath();c.roundRect(48,48,416,416,104);c.fill();c.stroke()}
+      c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.font='bold 220px Arial';c.shadowColor='rgba(0,0,0,.2)';c.shadowBlur=20;c.fillText(symbol,256,265);c.restore();
+      iconCanvas.toBlob(blob=>blob?blob.arrayBuffer().then(buffer=>resolve(new Uint8Array(buffer))).catch(reject):reject(new Error('تعذر إنشاء إحدى صور الأيقونات')),'image/png');
+    });
+  }
+  async function downloadThemePack(){
+    const button=$('#downloadThemePack');if(button.disabled)return;button.disabled=true;const oldText=button.innerHTML;button.innerHTML='<span class="material-icons-round">sync</span> تجهيز الحزمة...';
+    try{
+      readControls();const previousMode=state.screenMode;state.screenMode='wallpaper';render();const wallpaper=await canvasBlob();state.screenMode=previousMode;render();
+      const files=[{name:'wallpaper.png',data:new Uint8Array(await wallpaper.arrayBuffer())}],p=palettes[state.palette]||palettes.violet;
+      for(const [symbol,key] of appIcons)files.push({name:`icons/${key}.png`,data:await makeIconBlob(symbol,p)});
+      const manifest={name:state.title,createdAt:new Date().toISOString(),palette:state.palette,iconShape:state.iconShape,iconScale:state.iconScale,assets:{wallpaper:'wallpaper.png',icons:appIcons.map(([,key])=>`icons/${key}.png`)},note:'PNG assets for manual setup with a launcher that supports custom icons.'};
+      files.push({name:'manifest.json',data:new TextEncoder().encode(JSON.stringify(manifest,null,2))});
+      files.push({name:'اقرأني.txt',data:new TextEncoder().encode('حزمة تخصيص WallpaperHub\n\n- wallpaper.png: خلفية الهاتف بجودة عالية.\n- مجلد icons: تسع صور أيقونات PNG منفصلة.\n- manifest.json: معلومات الحزمة.\n\nطريقة الاستخدام: عيّن wallpaper.png كخلفية، ثم استخدم تطبيق Launcher يدعم تغيير أيقونات التطبيقات واختر صور PNG من مجلد icons.\n\nتنبيه: هذه ملفات صور وليست تطبيق APK، لذلك لا تثبّت الثيم تلقائياً على نظام الهاتف.')});
+      const zip=zipStored(files),url=URL.createObjectURL(zip),link=document.createElement('a');link.href=url;link.download=`wallpaperhub-theme-${Date.now()}.zip`;link.click();setTimeout(()=>URL.revokeObjectURL(url),2500);toast('تم تنزيل حزمة الخلفية و9 أيقونات منفصلة');
+    }catch(error){state.screenMode=state.screenMode||'lock';render();console.error('STUDIO THEME EXPORT:',error);toast(error.message||'تعذر إنشاء حزمة الثيم')}
+    finally{button.disabled=false;button.innerHTML=oldText}
+  }
+  
   function reset(){
     state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=112;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;
     $('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value='65';$('#showClock').checked=true;$('#clockStyle').value='digital';$('#clockFormat').value='24';$('#clockSize').value='112';$('#clockColor').value='auto';$('#showDate').checked=true;$('#showStatusBar').checked=true;$('#iconShape').value='rounded';$('#iconScale').value='100';$('#showIconLabels').checked=true;
@@ -298,7 +341,7 @@
   $('#chooseBackgroundImage').addEventListener('click',()=>{if(!state.user){toast('سجّل الدخول أولاً');location.href='/login';return}$('#backgroundImageInput').click()});
   $('#backgroundImageInput').addEventListener('change',event=>onChooseBackground(event.target.files?.[0]));
   $('#removeBackgroundImage').addEventListener('click',()=>{loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB';toast('تمت إزالة الصورة من التصميم')})});
-  $('#downloadDesign').addEventListener('click',download);$('#saveDraft').addEventListener('click',()=>saveDesign('draft'));$('#publishDesign').addEventListener('click',openPublishModal);$('#resetDesign').addEventListener('click',reset);$('#studioProfile').addEventListener('click',()=>{location.href=state.user?'/profile':'/login'});
+  $('#downloadDesign').addEventListener('click',download);$('#downloadThemePack').addEventListener('click',downloadThemePack);$('#saveDraft').addEventListener('click',()=>saveDesign('draft'));$('#publishDesign').addEventListener('click',openPublishModal);$('#resetDesign').addEventListener('click',reset);$('#studioProfile').addEventListener('click',()=>{location.href=state.user?'/profile':'/login'});
   $('#closePublishDestinations').addEventListener('click',closePublishModal);$('#publishDestinationsModal').addEventListener('click',event=>{if(event.target===$('#publishDestinationsModal'))closePublishModal()});$('#confirmMultiPublish').addEventListener('click',publishToSelectedDestinations);$('#selectAllForums').addEventListener('click',()=>{$$('#publishForumChoices input[type="checkbox"]').forEach(input=>input.checked=true)});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#publishDestinationsModal').classList.contains('hidden'))closePublishModal()});
   render();setInterval(render,1000);initSupabase();
