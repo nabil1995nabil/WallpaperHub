@@ -1107,3 +1107,113 @@ document.addEventListener(
     if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});
     else boot();
 })();
+
+
+/* =========================================================
+   Community Creations — reads published Studio designs
+========================================================= */
+(function(){
+    "use strict";
+    const lanes={
+        lock:document.getElementById("communityLockCreations"),
+        home:document.getElementById("communityHomeCreations"),
+        wallpaper:document.getElementById("communityWallpaperCreations")
+    };
+    if(!lanes.lock||!lanes.home||!lanes.wallpaper)return;
+
+    function showState(kind,message){
+        const lane=lanes[kind];if(!lane)return;
+        lane.replaceChildren();
+        const state=document.createElement("div");
+        state.className="community-creation-state";
+        state.textContent=message;
+        lane.appendChild(state);
+    }
+    function creationKind(item){
+        const config=item.config||{};
+        const mode=String(config.screenMode||"").toLowerCase();
+        if(["lock","home","wallpaper"].includes(mode))return mode;
+        const tool=String(config.tool||item.category||"").toLowerCase();
+        if(tool==="lock")return "lock";
+        if(["theme","icons","widget"].includes(tool))return "home";
+        return "wallpaper";
+    }
+    function safeImageUrl(value){
+        try{
+            const url=new URL(String(value||""),window.location.origin);
+            return ["https:","http:"].includes(url.protocol)?url.href:"";
+        }catch(_error){return ""}
+    }
+    function makeCard(item){
+        const href=safeImageUrl(item.image_url);
+        if(!href)return null;
+        const link=document.createElement("a");
+        link.className="community-creation-card";
+        link.href=href;
+        link.target="_blank";
+        link.rel="noopener noreferrer";
+        link.setAttribute("aria-label",(item.title||"إبداع من المجتمع")+" — فتح الصورة");
+        const img=document.createElement("img");
+        img.src=href;
+        img.alt=item.title||"إبداع من مجتمع WallpaperHub";
+        img.loading="lazy";
+        img.decoding="async";
+        img.referrerPolicy="no-referrer";
+        img.addEventListener("error",()=>link.remove(),{once:true});
+        const meta=document.createElement("span");
+        meta.className="community-creation-card-meta";
+        const title=document.createElement("strong");
+        title.textContent=item.title||"إبداع من المجتمع";
+        const date=document.createElement("small");
+        const parsed=item.created_at?new Date(item.created_at):null;
+        date.textContent=parsed&&!Number.isNaN(parsed.getTime())?parsed.toLocaleDateString("ar-MA"):"WallpaperHub";
+        meta.append(title,date);
+        link.append(img,meta);
+        return link;
+    }
+    function renderLane(kind,items){
+        const lane=lanes[kind],count=document.querySelector('[data-creation-count="'+kind+'"]');
+        const cards=items.map(makeCard).filter(Boolean).slice(0,10);
+        lane.replaceChildren();
+        if(count)count.textContent=String(cards.length)+" تصاميم";
+        if(!cards.length){
+            showState(kind,"لا توجد إبداعات منشورة في هذا القسم بعد. كن أول من يشارك تصميمه!");
+            return;
+        }
+        cards.forEach(card=>lane.appendChild(card));
+    }
+    async function loadCommunityCreations(){
+        try{
+            const configResponse=await fetch("/api/supabase/config",{cache:"no-store"});
+            if(!configResponse.ok)throw new Error("تعذر الاتصال بإعدادات المعرض");
+            const config=await configResponse.json();
+            const base=String(config.url||"").replace(/\/+$/,"");
+            const anonKey=String(config.anonKey||"");
+            if(!base||!anonKey)throw new Error("إعدادات قاعدة البيانات غير مكتملة");
+            const query=new URLSearchParams({
+                select:"id,title,category,config,image_url,created_at",
+                visibility:"eq.published",
+                order:"created_at.desc",
+                limit:"60"
+            });
+            const response=await fetch(base+"/rest/v1/studio_designs?"+query.toString(),{
+                method:"GET",
+                headers:{apikey:anonKey,Authorization:"Bearer "+anonKey,Accept:"application/json"},
+                cache:"no-store"
+            });
+            if(!response.ok)throw new Error("تعذر تحميل إبداعات المجتمع");
+            const records=await response.json();
+            const groups={lock:[],home:[],wallpaper:[]};
+            (Array.isArray(records)?records:[]).forEach(item=>{
+                const kind=creationKind(item);
+                if(groups[kind])groups[kind].push(item);
+            });
+            Object.keys(groups).forEach(kind=>renderLane(kind,groups[kind]));
+        }catch(error){
+            console.warn("COMMUNITY CREATIONS:",error);
+            Object.keys(lanes).forEach(kind=>showState(kind,"المعرض غير متاح مؤقتاً. حاول تحديث الصفحة بعد قليل."));
+        }
+    }
+    if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadCommunityCreations,{once:true});
+    else loadCommunityCreations();
+})();
