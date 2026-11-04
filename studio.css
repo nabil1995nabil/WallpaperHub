@@ -61,3 +61,6 @@
 
 .theme-pack-button{border:1px solid rgba(121,98,223,.22)!important;background:linear-gradient(105deg,rgba(255,255,255,.8),rgba(241,235,255,.9))!important;color:#6752bb!important}
 .theme-pack-button:disabled{opacity:.65;cursor:wait}
+
+.creation-card{text-decoration:none;color:inherit;display:block;cursor:pointer}
+.creation-card .creation-pack-badge{display:inline-flex;width:max-content;max-width:100%;padding:3px 7px;border-radius:7px;background:rgba(112,87,218,.1);color:#7560ce;font-size:8px}
