@@ -97,8 +97,10 @@
     if(state.screenMode==='home'){
       drawIcons(p);
       if(state.tool==='widget')drawWidget(p);
-    }else if(state.tool==='icons'||state.tool==='theme')drawIcons(p);
-    else if(state.tool==='widget')drawWidget(p);
+    }else if(state.screenMode==='lock'){
+      if(state.tool==='icons'||state.tool==='theme')drawIcons(p);
+      else if(state.tool==='widget')drawWidget(p);
+    }
     if(state.screenMode==='lock'&&state.clock)drawLiveClock(p,now);
     drawStatusBar(p,now);
     if(state.subtitle){ctx.save();ctx.fillStyle='rgba(255,255,255,.94)';ctx.textAlign='center';ctx.font='500 34px Cairo, sans-serif';ctx.fillText(state.subtitle.slice(0,48),state.subtitleX,state.subtitleY);ctx.restore()}
@@ -292,7 +294,7 @@
   canvas.addEventListener('pointerdown',onCanvasPointerDown);canvas.addEventListener('pointermove',onCanvasPointerMove);canvas.addEventListener('pointerup',onCanvasPointerUp);canvas.addEventListener('pointercancel',onCanvasPointerUp);
   $$('.palette-swatch').forEach(button=>button.addEventListener('click',()=>{state.palette=button.dataset.palette;$$('.palette-swatch').forEach(b=>b.classList.toggle('selected',b===button));render()}));
   $$('.preset-button').forEach(button=>button.addEventListener('click',()=>{state.preset=button.dataset.preset;$$('.preset-button').forEach(b=>b.classList.toggle('selected',b===button));render()}));
-  ['#designTitle','#designSubtitle','#glowStrength','#showClock'].forEach(selector=>$(selector).addEventListener('input',readControls));
+  ['#designTitle','#designSubtitle','#glowStrength','#showClock','#clockStyle','#clockFormat','#clockSize','#clockColor','#showDate','#showStatusBar','#iconShape','#iconScale','#showIconLabels'].forEach(selector=>{const node=$(selector);node.addEventListener('input',readControls);node.addEventListener('change',readControls)});
   $('#chooseBackgroundImage').addEventListener('click',()=>{if(!state.user){toast('سجّل الدخول أولاً');location.href='/login';return}$('#backgroundImageInput').click()});
   $('#backgroundImageInput').addEventListener('change',event=>onChooseBackground(event.target.files?.[0]));
   $('#removeBackgroundImage').addEventListener('click',()=>{loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB';toast('تمت إزالة الصورة من التصميم')})});
