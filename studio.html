@@ -107,16 +107,49 @@
             <input class="studio-input" id="designSubtitle" maxlength="48" value="اصنع لحظتك الخاصة" placeholder="أضف عبارة لتصميمك">
             <label class="range-label" for="glowStrength"><span>قوة التوهج</span><output id="glowValue">65%</output></label>
             <input type="range" id="glowStrength" min="0" max="100" value="65">
-            <label class="toggle-row"><span><b>إظهار الساعة</b><small>إضافة ساعة أنيقة للمعاينة</small></span><input id="showClock" type="checkbox" checked><i></i></label>
+            <label class="toggle-row"><span><b>إظهار الساعة</b><small>ساعة حقيقية تتحدّث حسب وقت جهازك</small></span><input id="showClock" type="checkbox" checked><i></i></label>
+            <details class="advanced-controls" open>
+              <summary>تحكم متقدم بالشاشة</summary>
+              <div class="advanced-control-grid">
+                <label class="field-label" for="clockStyle">نوع الساعة
+                  <select class="studio-input" id="clockStyle"><option value="digital">رقمية</option><option value="analog">عقارب</option></select>
+                </label>
+                <label class="field-label" for="clockFormat">تنسيق الوقت
+                  <select class="studio-input" id="clockFormat"><option value="24">24 ساعة</option><option value="12">12 ساعة</option></select>
+                </label>
+                <label class="field-label" for="clockColor">لون الساعة
+                  <select class="studio-input" id="clockColor"><option value="auto">متناسق مع الثيم</option><option value="white">أبيض</option><option value="dark">داكن</option><option value="gold">ذهبي</option></select>
+                </label>
+                <label class="field-label" for="clockSize">حجم الساعة <output id="clockSizeValue">112%</output>
+                  <input type="range" id="clockSize" min="70" max="150" value="112">
+                </label>
+                <label class="field-label" for="iconShape">شكل الأيقونات
+                  <select class="studio-input" id="iconShape"><option value="rounded">مستدير</option><option value="circle">دائري</option><option value="square">مربع</option></select>
+                </label>
+                <label class="field-label" for="iconScale">حجم الأيقونات <output id="iconScaleValue">100%</output>
+                  <input type="range" id="iconScale" min="75" max="125" value="100">
+                </label>
+              </div>
+              <label class="toggle-row compact-toggle"><span><b>إظهار التاريخ</b><small>تاريخ اليوم الفعلي</small></span><input id="showDate" type="checkbox" checked></label>
+              <label class="toggle-row compact-toggle"><span><b>أسماء التطبيقات</b><small>إظهار أسماء أسفل الأيقونات</small></span><input id="showIconLabels" type="checkbox" checked></label>
+              <label class="toggle-row compact-toggle"><span><b>الساعة أعلى الشاشة</b><small>عرض الوقت في شريط الحالة</small></span><input id="showStatusBar" type="checkbox" checked></label>
+            </details>
+            <p class="platform-limit-note">المعاينة تحاكي شاشة الهاتف. بعد التنزيل يمكنك تعيين الخلفية وتطبيق صور الأيقونات يدوياً من إعدادات هاتفك أو تطبيق Launcher.</p>
             <div class="control-actions"><button class="primary-button full-button" id="downloadDesign" type="button"><span class="material-icons-round">download</span> تنزيل التصميم PNG</button><button class="secondary-button full-button" id="saveDraft" type="button"><span class="material-icons-round">bookmark_add</span> حفظ كمسودة</button><button class="publish-button full-button" id="publishDesign" type="button"><span class="material-icons-round">public</span> مشاركة مع المجتمع</button></div>
             <p class="privacy-note"><span class="material-icons-round">lock</span> مسوداتك خاصة بحسابك، والمنشورات تظهر في معرض المجتمع.</p>
           </aside>
 
           <div class="preview-panel glass-surface">
             <div class="preview-head"><div><b>معاينة هاتفك</b><small>تجربة مرئية للتصميم</small></div><span class="preview-resolution">1080 × 1920</span></div>
-            <div class="phone-stage">
-              <div class="phone-frame"><div class="phone-camera"></div><canvas id="designCanvas" width="1080" height="1920" aria-label="معاينة التصميم الحالي"></canvas></div>
+            <div class="screen-mode-switch" id="screenModeSwitch" aria-label="وضع معاينة الهاتف">
+              <button type="button" class="screen-mode-button is-active" data-screen-mode="lock">شاشة القفل</button>
+              <button type="button" class="screen-mode-button" data-screen-mode="home">الرئيسية</button>
+              <button type="button" class="screen-mode-button" data-screen-mode="wallpaper">الخلفية فقط</button>
             </div>
+            <div class="phone-stage">
+              <div class="phone-frame"><div class="phone-camera"></div><canvas id="designCanvas" width="1080" height="1920" aria-label="معاينة تفاعلية للهاتف، اسحب الساعة والأيقونات لتغيير مكانها"></canvas></div>
+            </div>
+            <p class="preview-drag-hint"><span class="material-icons-round">open_with</span> اسحب الساعة أو الأيقونات أو العبارة داخل الشاشة لتغيير مكانها</p>
             <div class="preview-footer"><span><i></i> يتم تحديث المعاينة تلقائياً</span><button id="resetDesign" type="button"><span class="material-icons-round">restart_alt</span> إعادة ضبط</button></div>
           </div>
         </div>
