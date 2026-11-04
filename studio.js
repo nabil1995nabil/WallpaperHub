@@ -16,7 +16,7 @@
   const toolLabels={wallpaper:'تصميم الخلفيات',theme:'ثيمات الهاتف',icons:'حزم الأيقونات',widget:'الودجات',lock:'شاشة القفل'};
   const presets=['aurora','mountain','waves','minimal','geometry','dots','stripes'];
   const appIcons=[['☎','phone','الهاتف'],['▧','photos','الصور'],['◉','camera','الكاميرا'],['♫','music','الموسيقى'],['✉','messages','الرسائل'],['◎','browser','المتصفح'],['⚙','settings','الإعدادات'],['◈','files','الملفات'],['✦','store','المتجر']];
-  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:112,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set()};
+  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set()};
   const canvas=$('#designCanvas');
   const ctx=canvas?.getContext('2d');
   const toastNode=$('#studioToast');
@@ -40,13 +40,13 @@
   }
   function drawWidget(p){
     const now=new Date(),time=formatLiveTime(now),date=formatLiveDate(now);
-    roundedRect(105,970,870,330,45,'rgba(255,255,255,.16)','rgba(255,255,255,.36)');
-    ctx.fillStyle=p.light;ctx.textAlign='right';ctx.textBaseline='alphabetic';ctx.font='700 40px Cairo, sans-serif';ctx.fillText('الوقت والتاريخ',900,1055);
-    ctx.font='700 104px Cairo, sans-serif';ctx.fillText(time,900,1180);
-    ctx.font='34px Cairo, sans-serif';ctx.globalAlpha=.9;ctx.fillText(date,900,1240);ctx.globalAlpha=1;
-    roundedRect(105,1330,870,180,35,'rgba(255,255,255,.12)','rgba(255,255,255,.26)');
-    ctx.fillStyle=p.light;ctx.textAlign='center';ctx.font='600 38px Cairo, sans-serif';ctx.fillText('تقويم اليوم',540,1400);
-    ctx.font='32px Cairo, sans-serif';ctx.fillText(new Intl.DateTimeFormat('ar-MA',{day:'numeric',month:'long',year:'numeric'}).format(now),540,1460);
+    roundedRect(105,250,870,330,45,'rgba(255,255,255,.16)','rgba(255,255,255,.36)');
+    ctx.fillStyle=p.light;ctx.textAlign='right';ctx.textBaseline='alphabetic';ctx.font='700 40px Cairo, sans-serif';ctx.fillText('الوقت والتاريخ',900,335);
+    ctx.font='700 104px Cairo, sans-serif';ctx.fillText(time,900,460);
+    ctx.font='34px Cairo, sans-serif';ctx.globalAlpha=.9;ctx.fillText(date,900,520);ctx.globalAlpha=1;
+    roundedRect(105,610,870,190,35,'rgba(255,255,255,.12)','rgba(255,255,255,.26)');
+    ctx.fillStyle=p.light;ctx.textAlign='center';ctx.font='600 38px Cairo, sans-serif';ctx.fillText('تقويم اليوم',540,680);
+    ctx.font='32px Cairo, sans-serif';ctx.fillText(new Intl.DateTimeFormat('ar-MA',{day:'numeric',month:'long',year:'numeric'}).format(now),540,745);
   }
   function drawGeometry(p){ctx.save();ctx.globalAlpha=.22;for(let i=0;i<7;i++){ctx.strokeStyle=i%2?p.light:p.accent;ctx.lineWidth=12-i;ctx.beginPath();ctx.moveTo(-100+i*180,1250);ctx.lineTo(260+i*180,880);ctx.lineTo(620+i*180,1250);ctx.stroke()}ctx.restore()}
   function drawDots(p){ctx.save();ctx.fillStyle=p.light;for(let y=150;y<1500;y+=70)for(let x=45+(Math.floor(y/70)%2)*35;x<1080;x+=70){ctx.globalAlpha=.14+((x+y)%5)*.035;ctx.beginPath();ctx.arc(x,y,3+((x+y)%3),0,Math.PI*2);ctx.fill()}ctx.restore()}
@@ -64,17 +64,17 @@
   function drawLiveClock(p,now=new Date()){
     const color=clockInk(p);ctx.save();ctx.fillStyle=color;ctx.strokeStyle=color;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=18;
     if(state.clockStyle==='analog'){
-      const radius=Math.max(48,state.clockSize*.53),cx=state.clockX,cy=state.clockY;
+      const sizeScale=state.clockSize/100,radius=Math.max(42,60*sizeScale),cx=state.clockX,cy=state.clockY;
       ctx.lineWidth=7;ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();
       for(let i=0;i<12;i++){const a=i*Math.PI/6-Math.PI/2;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(radius-10),cy+Math.sin(a)*(radius-10));ctx.lineTo(cx+Math.cos(a)*(radius-20),cy+Math.sin(a)*(radius-20));ctx.lineWidth=i%3===0?6:3;ctx.stroke()}
       const minute=now.getMinutes()+now.getSeconds()/60,hour=(now.getHours()%12)+minute/60;
       const hands=[[hour/12*Math.PI*2-Math.PI/2,radius*.48,7],[minute/60*Math.PI*2-Math.PI/2,radius*.7,5],[now.getSeconds()/60*Math.PI*2-Math.PI/2,radius*.78,2]];
       hands.forEach(([angle,length,width],i)=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*length,cy+Math.sin(angle)*length);ctx.lineWidth=width;ctx.strokeStyle=i===2?'#ff7b9a':color;ctx.stroke()});
       ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);ctx.fill();
-      if(state.showDate){ctx.shadowBlur=8;ctx.font='34px Cairo, sans-serif';ctx.fillText(formatLiveDate(now),cx,cy+radius+62)}
+      if(state.showDate){ctx.shadowBlur=8;ctx.font=`${34*sizeScale}px Cairo, sans-serif`;ctx.fillText(formatLiveDate(now),cx,cy+radius+62*sizeScale)}
     }else{
-      ctx.font=`500 ${state.clockSize}px Cairo, sans-serif`;ctx.fillText(formatLiveTime(now),state.clockX,state.clockY);
-      if(state.showDate){ctx.shadowBlur=8;ctx.font='34px Cairo, sans-serif';ctx.fillText(formatLiveDate(now),state.clockX,state.clockY+62)}
+      ctx.font=`500 ${112*(state.clockSize/100)}px Cairo, sans-serif`;ctx.fillText(formatLiveTime(now),state.clockX,state.clockY);
+      if(state.showDate){ctx.shadowBlur=8;ctx.font=`${34*(state.clockSize/100)}px Cairo, sans-serif`;ctx.fillText(formatLiveDate(now),state.clockX,state.clockY+62*(state.clockSize/100))}
     }
     ctx.restore();
   }
@@ -139,7 +139,7 @@
     const c=item.config||{};state.savedId=item.id;
     state.tool=toolLabels[c.tool]?c.tool:'wallpaper';state.palette=palettes[c.palette]?c.palette:'violet';state.preset=presets.includes(c.preset)?c.preset:'aurora';
     state.title=String(item.title||c.title||'تصميم محفوظ');state.subtitle=String(c.subtitle||'');state.glow=Math.max(0,Math.min(100,Number(c.glow??65)));state.clock=c.clock!==false;
-    state.clockStyle=c.clockStyle==='analog'?'analog':'digital';state.clockFormat=c.clockFormat==='12'?'12':'24';state.clockSize=Math.max(70,Math.min(150,Number(c.clockSize)||112));state.clockColor=['auto','white','dark','gold'].includes(c.clockColor)?c.clockColor:'auto';state.showDate=c.showDate!==false;state.showStatusBar=c.showStatusBar!==false;
+    state.clockStyle=c.clockStyle==='analog'?'analog':'digital';state.clockFormat=c.clockFormat==='12'?'12':'24';state.clockSize=Math.max(70,Math.min(150,Number(c.clockSize)||100));state.clockColor=['auto','white','dark','gold'].includes(c.clockColor)?c.clockColor:'auto';state.showDate=c.showDate!==false;state.showStatusBar=c.showStatusBar!==false;
     state.screenMode=['lock','home','wallpaper'].includes(c.screenMode)?c.screenMode:(['icons','theme','widget'].includes(state.tool)?'home':'lock');state.iconShape=['rounded','circle','square'].includes(c.iconShape)?c.iconShape:'rounded';state.iconScale=Math.max(75,Math.min(125,Number(c.iconScale)||100));state.showIconLabels=c.showIconLabels!==false;
     state.clockX=Number(c.clockX)||540;state.clockY=Number(c.clockY)||400;state.appsX=Number(c.appsX)||540;state.appsY=Number(c.appsY)||1050;state.subtitleX=Number(c.subtitleX)||540;state.subtitleY=Number(c.subtitleY)||1740;
     $('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value=String(state.glow);$('#showClock').checked=state.clock;
@@ -184,7 +184,7 @@
   async function downloadThemePack(){
     const button=$('#downloadThemePack');if(button.disabled)return;button.disabled=true;const oldText=button.innerHTML;button.innerHTML='<span class="material-icons-round">sync</span> تجهيز الحزمة...';
     try{
-      readControls();const previousMode=state.screenMode;state.screenMode='wallpaper';render();const wallpaper=await canvasBlob();state.screenMode=previousMode;render();
+      readControls();const previousMode=state.screenMode;let wallpaper;try{state.screenMode='wallpaper';render();wallpaper=await canvasBlob()}finally{state.screenMode=previousMode;render()}
       const files=[{name:'wallpaper.png',data:new Uint8Array(await wallpaper.arrayBuffer())}],p=palettes[state.palette]||palettes.violet;
       for(const [symbol,key] of appIcons)files.push({name:`icons/${key}.png`,data:await makeIconBlob(symbol,p)});
       const manifest={name:state.title,createdAt:new Date().toISOString(),palette:state.palette,iconShape:state.iconShape,iconScale:state.iconScale,assets:{wallpaper:'wallpaper.png',icons:appIcons.map(([,key])=>`icons/${key}.png`)},note:'PNG assets for manual setup with a launcher that supports custom icons.'};
@@ -196,7 +196,7 @@
   }
   
   function reset(){
-    state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=112;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;
+    state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=100;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;
     $('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value='65';$('#showClock').checked=true;$('#clockStyle').value='digital';$('#clockFormat').value='24';$('#clockSize').value='112';$('#clockColor').value='auto';$('#showDate').checked=true;$('#showStatusBar').checked=true;$('#iconShape').value='rounded';$('#iconScale').value='100';$('#showIconLabels').checked=true;
     $$('.screen-mode-button').forEach(b=>b.classList.toggle('is-active',b.dataset.screenMode===state.screenMode));$('#paletteRow').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.palette==='violet'));$('#presetGrid').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.preset==='aurora'));
     loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB'});readControls();toast('تمت إعادة ضبط التصميم');
