@@ -103,9 +103,9 @@
       else if(state.tool==='widget')drawWidget(p);
     }
     if(state.screenMode==='lock'&&state.clock)drawLiveClock(p,now);
-    drawStatusBar(p,now);
-    if(state.subtitle){ctx.save();ctx.fillStyle='rgba(255,255,255,.94)';ctx.textAlign='center';ctx.font='500 34px Cairo, sans-serif';ctx.fillText(state.subtitle.slice(0,48),state.subtitleX,state.subtitleY);ctx.restore()}
-    ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.48)';ctx.font='600 22px Cairo, sans-serif';ctx.fillText('WALLPAPERHUB',540,1850);
+    if(state.screenMode!=='wallpaper')drawStatusBar(p,now);
+    if(state.screenMode!=='wallpaper'&&state.subtitle){ctx.save();ctx.fillStyle='rgba(255,255,255,.94)';ctx.textAlign='center';ctx.font='500 34px Cairo, sans-serif';ctx.fillText(state.subtitle.slice(0,48),state.subtitleX,state.subtitleY);ctx.restore()}
+    if(state.screenMode!=='wallpaper'){ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.48)';ctx.font='600 22px Cairo, sans-serif';ctx.fillText('WALLPAPERHUB',540,1850)}
   }
   function updateTool(tool){if(!toolLabels[tool])return;state.tool=tool;if(tool==='lock')state.screenMode='lock';else if(['icons','theme','widget'].includes(tool))state.screenMode='home';else state.screenMode='lock';$$('.tool-card').forEach(b=>b.classList.toggle('is-active',b.dataset.tool===tool));$$('.screen-mode-button').forEach(b=>b.classList.toggle('is-active',b.dataset.screenMode===state.screenMode));$('#activeToolLabel').textContent=toolLabels[tool];render()}
   function readControls(){state.title=$('#designTitle').value.trim()||'تصميم جديد';state.subtitle=$('#designSubtitle').value.trim();state.glow=Number($('#glowStrength').value)||0;state.clock=$('#showClock').checked;state.clockStyle=$('#clockStyle').value;state.clockFormat=$('#clockFormat').value;state.clockSize=Number($('#clockSize').value)||112;state.clockColor=$('#clockColor').value;state.showDate=$('#showDate').checked;state.showStatusBar=$('#showStatusBar').checked;state.iconShape=$('#iconShape').value;state.iconScale=Number($('#iconScale').value)||100;state.showIconLabels=$('#showIconLabels').checked;$('#glowValue').textContent=`${state.glow}%`;$('#clockSizeValue').textContent=`${state.clockSize}%`;$('#iconScaleValue').textContent=`${state.iconScale}%`;render()}
@@ -344,5 +344,5 @@
   $('#downloadDesign').addEventListener('click',download);$('#downloadThemePack').addEventListener('click',downloadThemePack);$('#saveDraft').addEventListener('click',()=>saveDesign('draft'));$('#publishDesign').addEventListener('click',openPublishModal);$('#resetDesign').addEventListener('click',reset);$('#studioProfile').addEventListener('click',()=>{location.href=state.user?'/profile':'/login'});
   $('#closePublishDestinations').addEventListener('click',closePublishModal);$('#publishDestinationsModal').addEventListener('click',event=>{if(event.target===$('#publishDestinationsModal'))closePublishModal()});$('#confirmMultiPublish').addEventListener('click',publishToSelectedDestinations);$('#selectAllForums').addEventListener('click',()=>{$$('#publishForumChoices input[type="checkbox"]').forEach(input=>input.checked=true)});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#publishDestinationsModal').classList.contains('hidden'))closePublishModal()});
-  render();setInterval(render,1000);initSupabase();
+  render();let lastLiveClockStamp='';setInterval(()=>{const now=new Date(),stamp=state.clockStyle==='analog'?`a-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`:`d-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}`;if(stamp!==lastLiveClockStamp){lastLiveClockStamp=stamp;render()}},1000);initSupabase();
 })();
