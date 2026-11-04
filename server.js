@@ -2025,7 +2025,7 @@ app.post("/api/publish/media-signature", async (req, res) => {
         const urlEndpoint=String(process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/2xcgjj3oe").trim().replace(/\/+$/,"");
         if(!publicKey || !privateKey || !urlEndpoint) return res.status(503).json({success:false,message:"إعداد ImageKit ناقص في Vercel. أضف IMAGEKIT_PRIVATE_KEY وIMAGEKIT_PUBLIC_KEY وIMAGEKIT_URL_ENDPOINT."});
         const mimeType=String(req.body?.mimeType||"").trim().toLowerCase();
-        if(!["image/jpeg","image/png","image/webp","image/avif","video/mp4","video/webm","video/quicktime"].includes(mimeType)) return res.status(400).json({success:false,message:"صيغة الملف غير مدعومة"});
+        if(!["image/jpeg","image/png","image/webp","image/avif","video/mp4","video/webm","video/quicktime","application/zip"].includes(mimeType)) return res.status(400).json({success:false,message:"صيغة الملف غير مدعومة"});
         const token=crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex");
         const expire=Math.floor(Date.now()/1000)+10*60;
         const signature=crypto.createHmac("sha1",privateKey).update(token+expire).digest("hex");
