@@ -2837,6 +2837,9 @@ app.get("/sitemap.xml", async (req, res) => {
         }
     }
 
+    const studioPagePath = path.join(STATIC_ROOT, "studio.html");
+    if (fs.existsSync(studioPagePath) && fs.statSync(studioPagePath).isFile()) addUrl("/studio");
+
     // The wallpapers table contains approved/published wallpapers; pending submissions
     // are stored separately and must never be exposed in the public sitemap.
     try {
@@ -3003,6 +3006,17 @@ app.get(
         res.sendFile(path.join(__dirname, "community", "community.html"));
     }
 );
+
+
+// Independent WallpaperHub Studio workspace.
+app.get("/studio", (req,res,next)=>{
+    const studioFile = path.join(__dirname, "studio.html");
+    if(!fs.existsSync(studioFile)) return next();
+    res.set("Cache-Control", "no-store");
+    return res.sendFile(studioFile, error=>{
+        if(error && !res.headersSent) next(error);
+    });
+});
 
 
 app.get(

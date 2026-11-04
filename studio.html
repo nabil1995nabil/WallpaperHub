@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f2ff">
+  <meta name="description" content="WallpaperHub Studio — صمّم خلفياتك وثيماتك وشارك إبداعك مع المجتمع.">
+  <title>WallpaperHub | استوديو التخصيص</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="studio.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="studio-shell">
+    <header class="studio-topbar glass-surface">
+      <a class="studio-brand" href="/" aria-label="WallpaperHub الرئيسية">
+        <span class="brand-mark"><span class="material-icons-round">wallpaper</span></span>
+        <span>Wallpaper<span>Hub</span><small>STUDIO</small></span>
+      </a>
+      <div class="topbar-center"><span class="topbar-status"><i></i> مساحة الإبداع</span></div>
+      <div class="topbar-actions">
+        <a class="back-community" href="/community"><span class="material-icons-round">groups</span><span>العودة للمجتمع</span></a>
+        <button class="studio-user" id="studioProfile" type="button" aria-label="الملف الشخصي"><span id="studioAvatar">U</span></button>
+      </div>
+    </header>
+
+    <main>
+      <section class="studio-hero">
+        <div class="hero-copy">
+          <span class="eyebrow"><i></i> WALLPAPERHUB CREATIVE SPACE</span>
+          <h1>خلّي هاتفك<br><em>يشبهك.</em></h1>
+          <p>اصنع مظهرك الخاص من أول خلفية إلى آخر أيقونة. جرّب، عدّل، وشاهد النتيجة مباشرة قبل أن تحفظ إبداعك.</p>
+          <div class="hero-actions">
+            <a href="#studioEditor" class="primary-button"><span class="material-icons-round">auto_awesome</span> ابدأ التصميم</a>
+            <a href="#communityCreations" class="secondary-button"><span class="material-icons-round">collections</span> معرض الإبداعات</a>
+          </div>
+          <div class="hero-note"><span class="material-icons-round">verified</span> أدوات سهلة · معاينة مباشرة · تصدير بجودة عالية</div>
+        </div>
+        <div class="hero-art" aria-label="معاينة هاتف بتصميم بنفسجي">
+          <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+          <div class="floating-glass glass-weather"><span class="material-icons-round">wb_sunny</span><b>22°</b><small>طقس اليوم</small></div>
+          <div class="hero-phone">
+            <div class="hero-phone-screen">
+              <div class="hero-phone-status"><span>9:41</span><span>● ● ▰</span></div>
+              <div class="hero-phone-clock">10:28</div><div class="hero-phone-date">الأحد، 3 يناير</div>
+              <div class="hero-phone-sun">✦</div>
+              <div class="hero-phone-mountains"></div>
+              <div class="hero-phone-dock"><i>◉</i><i>▣</i><i>✉</i><i>◎</i></div>
+            </div>
+          </div>
+          <div class="floating-glass glass-icons"><i>▣</i><i>◉</i><i>✉</i><i>⌂</i></div>
+          <span class="hero-spark spark-a">✦</span><span class="hero-spark spark-b">✧</span>
+        </div>
+        <div class="hero-glow"></div>
+      </section>
+
+      <section class="tool-section" aria-labelledby="toolsTitle">
+        <div class="section-heading"><div><span class="section-kicker">CREATE YOUR LOOK</span><h2 id="toolsTitle">أدوات التخصيص</h2><p>اختر نوع الإبداع الذي تريد البدء به.</p></div><span class="heading-mark material-icons-round">widgets</span></div>
+        <div class="tool-grid" id="toolGrid">
+          <button class="tool-card is-active" data-tool="wallpaper" type="button"><span class="tool-icon icon-wallpaper"><span class="material-icons-round">image</span></span><b>تصميم الخلفيات</b><small>خلفية فريدة لهاتفك</small><span class="tool-arrow material-icons-round">arrow_back</span></button>
+          <button class="tool-card" data-tool="theme" type="button"><span class="tool-icon icon-theme"><span class="material-icons-round">palette</span></span><b>ثيمات الهاتف</b><small>مظهر متكامل ومتناسق</small><span class="tool-arrow material-icons-round">arrow_back</span></button>
+          <button class="tool-card" data-tool="icons" type="button"><span class="tool-icon icon-icons"><span class="material-icons-round">apps</span></span><b>حزم الأيقونات</b><small>مجموعة أيقونات موحّدة</small><span class="tool-arrow material-icons-round">arrow_back</span></button>
+          <button class="tool-card" data-tool="widget" type="button"><span class="tool-icon icon-widget"><span class="material-icons-round">dashboard_customize</span></span><b>الودجات</b><small>عناصر عملية وجميلة</small><span class="tool-arrow material-icons-round">arrow_back</span></button>
+          <button class="tool-card" data-tool="lock" type="button"><span class="tool-icon icon-lock"><span class="material-icons-round">lock</span></span><b>شاشة القفل</b><small>تصميم أنيق لشاشة القفل</small><span class="tool-arrow material-icons-round">arrow_back</span></button>
+        </div>
+      </section>
+
+      <section class="editor-section" id="studioEditor" aria-labelledby="editorTitle">
+        <div class="section-heading editor-heading"><div><span class="section-kicker">LIVE DESIGNER</span><h2 id="editorTitle">مساحة التصميم</h2><p>كل تعديل يظهر مباشرة في معاينة هاتفك.</p></div><span class="live-pill"><i></i> معاينة مباشرة</span></div>
+        <div class="editor-layout">
+          <aside class="control-panel glass-surface">
+            <div class="panel-title"><span class="material-icons-round">tune</span><div><b>أدوات التصميم</b><small id="activeToolLabel">تصميم الخلفيات</small></div></div>
+            <label class="field-label" for="designTitle">اسم التصميم</label>
+            <input class="studio-input" id="designTitle" maxlength="60" value="لمسة بنفسجية" placeholder="اكتب اسم التصميم">
+            <label class="field-label">لوحة الألوان</label>
+            <div class="palette-row" id="paletteRow">
+              <button type="button" class="palette-swatch selected" data-palette="violet" aria-label="بنفسجي"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="ocean" aria-label="أزرق"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="sunset" aria-label="غروب"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="forest" aria-label="أخضر"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="mono" aria-label="هادئ"><i></i></button>
+            </div>
+            <label class="field-label">نمط الخلفية</label>
+            <div class="preset-grid" id="presetGrid">
+              <button type="button" class="preset-button selected" data-preset="aurora"><span class="preset-thumb preset-aurora"></span><small>الشفق</small></button>
+              <button type="button" class="preset-button" data-preset="mountain"><span class="preset-thumb preset-mountain"></span><small>الجبال</small></button>
+              <button type="button" class="preset-button" data-preset="waves"><span class="preset-thumb preset-waves"></span><small>الموج</small></button>
+              <button type="button" class="preset-button" data-preset="minimal"><span class="preset-thumb preset-minimal"></span><small>بسيط</small></button>
+            </div>
+            <label class="field-label" for="designSubtitle">عبارة صغيرة <span>(اختياري)</span></label>
+            <input class="studio-input" id="designSubtitle" maxlength="48" value="اصنع لحظتك الخاصة" placeholder="أضف عبارة لتصميمك">
+            <label class="range-label" for="glowStrength"><span>قوة التوهج</span><output id="glowValue">65%</output></label>
+            <input type="range" id="glowStrength" min="0" max="100" value="65">
+            <label class="toggle-row"><span><b>إظهار الساعة</b><small>إضافة ساعة أنيقة للمعاينة</small></span><input id="showClock" type="checkbox" checked><i></i></label>
+            <div class="control-actions"><button class="primary-button full-button" id="downloadDesign" type="button"><span class="material-icons-round">download</span> تنزيل التصميم PNG</button><button class="secondary-button full-button" id="saveDraft" type="button"><span class="material-icons-round">bookmark_add</span> حفظ كمسودة</button><button class="publish-button full-button" id="publishDesign" type="button"><span class="material-icons-round">public</span> مشاركة مع المجتمع</button></div>
+            <p class="privacy-note"><span class="material-icons-round">lock</span> مسوداتك خاصة بحسابك، والمنشورات تظهر في معرض المجتمع.</p>
+          </aside>
+
+          <div class="preview-panel glass-surface">
+            <div class="preview-head"><div><b>معاينة هاتفك</b><small>تجربة مرئية للتصميم</small></div><span class="preview-resolution">1080 × 1920</span></div>
+            <div class="phone-stage">
+              <div class="phone-frame"><div class="phone-camera"></div><canvas id="designCanvas" width="1080" height="1920" aria-label="معاينة التصميم الحالي"></canvas></div>
+            </div>
+            <div class="preview-footer"><span><i></i> يتم تحديث المعاينة تلقائياً</span><button id="resetDesign" type="button"><span class="material-icons-round">restart_alt</span> إعادة ضبط</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="draft-section" id="draftSection" aria-labelledby="draftTitle">
+        <div class="section-heading"><div><span class="section-kicker">YOUR WORKSPACE</span><h2 id="draftTitle">مسوداتك المحفوظة</h2><p>تصاميمك غير المنشورة، لا يراها غيرك.</p></div><span class="material-icons-round heading-mark">bookmark</span></div>
+        <div class="draft-grid" id="draftGrid"><div class="gallery-loading"><span class="material-icons-round">bookmark_border</span><b>سجّل الدخول لحفظ مسوداتك</b><small>يمكنك تنزيل التصميم الآن أو تسجيل الدخول لحفظه.</small></div></div>
+      </section>
+
+      <section class="gallery-section" id="communityCreations" aria-labelledby="galleryTitle">
+        <div class="section-heading gallery-heading"><div><span class="section-kicker">MADE BY THE COMMUNITY</span><h2 id="galleryTitle">إبداعات المجتمع</h2><p>أفكار صنعها أعضاء WallpaperHub وشاركوها مع الجميع.</p></div><a class="gallery-link" href="#communityCreations">أحدث التصاميم <span class="material-icons-round">arrow_back</span></a></div>
+        <div class="creation-grid" id="creationGrid"><div class="gallery-loading"><span class="material-icons-round">auto_awesome</span><b>اكتشف إبداعات المجتمع</b><small>ستظهر التصاميم المنشورة هنا.</small></div></div>
+      </section>
+
+      <footer class="studio-footer"><a href="/community">WallpaperHub Community</a><span>صُنع بشغف لعشاق التخصيص</span><a href="/">الرئيسية</a></footer>
+    </main>
+  </div>
+  <div class="studio-toast" id="studioToast" role="status" aria-live="polite"></div>
+  <script src="studio.js"></script>
+</body>
+</html>

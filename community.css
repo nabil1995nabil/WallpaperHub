@@ -2793,3 +2793,41 @@ body.community-dark .forum-modal-head p,body.community-dark .forum-privacy-optio
 body.community-dark .forum-modal-head,body.community-dark .forum-manage-members,body.community-dark .forum-danger-zone{border-color:#39445c}
 body.community-dark .forum-privacy-option{background:#16243a;border-color:#33415d}
 body.community-dark .forum-danger-zone{background:#2b1c2a;border-color:#633344}
+
+
+/* WallpaperHub Community — simplified full-width header + Studio entry */
+.sidebar{display:none!important}
+.page-shell{display:block!important;min-height:100vh}
+.main{width:min(100%,1560px)!important;margin:0 auto!important;padding:0 clamp(12px,2.2vw,30px) 42px!important}
+.topbar{height:72px!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:12px!important;padding:0 2px!important;background:rgba(247,248,255,.82)!important;border-bottom:1px solid rgba(112,126,196,.10)!important;backdrop-filter:blur(22px)!important}
+.topbar .mobile-brand{display:flex!important;align-items:center!important;gap:10px!important;margin-inline-end:auto!important;font-weight:800!important;color:#172033!important}
+.topbar .mobile-brand .brand-mark{width:38px;height:38px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,#6658f4,#9447e9);color:#fff;border:0;box-shadow:0 7px 18px rgba(102,88,244,.2)}
+.topbar .mobile-brand .brand-mark .material-icons-round{color:#fff}
+.top-actions{display:flex!important;align-items:center!important;gap:8px!important}
+.top-actions .video-shortcut,.top-actions .voice-shortcut,.top-actions .notification-button,.top-actions .search-box,#notificationButton,#notificationsButton,.notification-shortcut,.community-search,.search-box{display:none!important}
+.profile-button{width:42px!important;height:42px!important;border:1px solid rgba(112,102,240,.28)!important;background:rgba(255,255,255,.75)!important;box-shadow:0 5px 16px rgba(47,55,108,.08)!important}
+.studio-entry-card{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-height:94px;margin:16px 0 15px;padding:18px 22px;border:1px solid rgba(255,255,255,.82);border-radius:24px;overflow:hidden;background:linear-gradient(115deg,rgba(255,255,255,.82),rgba(241,239,255,.76) 55%,rgba(231,230,255,.78));box-shadow:0 14px 38px rgba(69,76,158,.08),inset 0 1px 0 rgba(255,255,255,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:transform .2s ease,box-shadow .2s ease}
+.studio-entry-card:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(69,76,158,.13)}
+.studio-entry-icon{position:relative;z-index:1;flex:0 0 52px;width:52px;height:52px;display:grid;place-items:center;border-radius:17px;color:#fff;background:linear-gradient(145deg,#6259f4,#a34fe9);box-shadow:0 8px 20px rgba(111,83,232,.23)}
+.studio-entry-icon .material-icons-round{font-size:27px}
+.studio-entry-copy{position:relative;z-index:1;display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.studio-entry-copy strong{font-size:16px;font-weight:800;color:#202449}
+.studio-entry-copy small{font-size:11px;line-height:1.7;color:#737b9b}
+.studio-entry-action{position:relative;z-index:1;display:inline-flex;align-items:center;gap:7px;padding:11px 15px;border-radius:13px;background:linear-gradient(110deg,#6159ed,#8b48e8);color:#fff;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 7px 18px rgba(101,83,225,.18)}
+.studio-entry-action .material-icons-round{font-size:17px}
+.studio-entry-glow{position:absolute;z-index:0;width:230px;height:230px;left:-90px;top:-155px;border-radius:50%;background:radial-gradient(circle,rgba(152,105,255,.2),transparent 68%);pointer-events:none}
+@media(max-width:600px){
+ .main{padding:0 11px 30px!important}
+ .topbar{height:61px!important}
+ .topbar .mobile-brand{font-size:13px!important;gap:7px!important}
+ .topbar .mobile-brand .brand-mark{width:34px;height:34px;border-radius:11px}
+ .profile-button{width:38px!important;height:38px!important}
+ .studio-entry-card{min-height:80px;margin:12px 0;padding:13px 12px;gap:10px;border-radius:19px}
+ .studio-entry-icon{width:42px;height:42px;flex-basis:42px;border-radius:14px}
+ .studio-entry-icon .material-icons-round{font-size:22px}
+ .studio-entry-copy strong{font-size:13px}
+ .studio-entry-copy small{font-size:9px;line-height:1.55}
+ .studio-entry-action{padding:9px 10px;font-size:9px;gap:3px}
+ .studio-entry-action .material-icons-round{font-size:14px}
+}
+@media(max-width:380px){.studio-entry-card{gap:8px;padding-inline:9px}.studio-entry-action{font-size:8px;padding:8px}.studio-entry-copy small{font-size:8px}}

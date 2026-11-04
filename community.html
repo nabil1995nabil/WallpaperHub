@@ -19,56 +19,7 @@
 <body>
   <div class="page-shell">
 
-    <aside class="sidebar" aria-label="التنقل الرئيسي">
-      <a class="brand" href="/" aria-label="WallpaperHub">
-        <span class="brand-mark"><span class="material-icons-round">wallpaper</span></span>
-        <span>Wallpaper<span>Hub</span></span>
-      </a>
 
-      <nav class="side-nav">
-        <a href="/" class="nav-item">
-          <span class="material-icons-round">home</span>
-          <span>الرئيسية</span>
-        </a>
-        <a href="/explore" class="nav-item">
-          <span class="material-icons-round">explore</span>
-          <span>استكشف</span>
-        </a>
-        <a href="/categories" class="nav-item">
-          <span class="material-icons-round">grid_view</span>
-          <span>الأقسام</span>
-        </a>
-        <a href="/favorites" class="nav-item">
-          <span class="material-icons-round">favorite_border</span>
-          <span>المفضلة</span>
-        </a>
-        <a href="/downloads" class="nav-item">
-          <span class="material-icons-round">download</span>
-          <span>التنزيلات</span>
-        </a>
-        <a href="/community" class="nav-item active">
-          <span class="material-icons-round">groups</span>
-          <span>المجتمع</span>
-        </a>
-        <a href="/premium" class="nav-item">
-          <span class="material-icons-round">workspace_premium</span>
-          <span>المميز</span>
-        </a>
-        <a href="/settings" class="nav-item">
-          <span class="material-icons-round">settings</span>
-          <span>الإعدادات</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-promo">
-        <div class="promo-glow"></div>
-        <span class="material-icons-round">landscape</span>
-        <b>خلفيات أجمل</b>
-        <small>لعالم أجمل</small>
-      </div>
-
-      <div class="sidebar-footer">© 2026 WallpaperHub</div>
-    </aside>
 
     <main class="main">
       <header class="topbar">
@@ -78,12 +29,6 @@
         </div>
 
         <div class="top-actions">
-          <button class="icon-button video-shortcut" id="voiceShortcut" type="button" aria-label="فتح مكالمة فيديو جماعية" title="مكالمة فيديو جماعية">
-            <span class="material-icons-round">videocam</span>
-          </button>
-          <button class="icon-button voice-shortcut" id="voiceRoomShortcut" type="button" aria-label="فتح المحادثة الصوتية" title="المحادثة الصوتية">
-            <span class="material-icons-round">mic</span>
-          </button>
           <button class="profile-button" id="profileButton" type="button" aria-label="الملف الشخصي">
             <span class="avatar-fallback">U</span>
             <span class="online-dot"></span>
@@ -173,6 +118,16 @@
           </div>
         </div>
       </section>
+
+      <a class="studio-entry-card" href="/studio" aria-label="افتح استوديو التخصيص">
+        <span class="studio-entry-icon"><span class="material-icons-round">auto_awesome</span></span>
+        <span class="studio-entry-copy">
+          <strong>استوديو التخصيص</strong>
+          <small>صمّم خلفياتك وثيماتك وأيقوناتك وشارك إبداعك مع المجتمع</small>
+        </span>
+        <span class="studio-entry-action">ابدأ التصميم <span class="material-icons-round">arrow_back</span></span>
+        <span class="studio-entry-glow" aria-hidden="true"></span>
+      </a>
 
       <section class="video-call-screen hidden" id="videoCallScreen" aria-label="مكالمة فيديو جماعية" aria-hidden="true">
         <header class="video-call-topline">
