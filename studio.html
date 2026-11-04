@@ -82,6 +82,16 @@
               <button type="button" class="palette-swatch" data-palette="sunset" aria-label="غروب"><i></i></button>
               <button type="button" class="palette-swatch" data-palette="forest" aria-label="أخضر"><i></i></button>
               <button type="button" class="palette-swatch" data-palette="mono" aria-label="هادئ"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="rose" aria-label="وردي"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="amber" aria-label="ذهبي"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="ice" aria-label="ثلجي"><i></i></button>
+              <button type="button" class="palette-swatch" data-palette="emerald" aria-label="زمردي"><i></i></button>
+            </div>
+            <div class="custom-image-tools">
+              <input id="backgroundImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+              <button class="custom-image-button" id="chooseBackgroundImage" type="button"><span class="material-icons-round">add_photo_alternate</span><span><b>اختر صورة من جهازك</b><small>حوّل صورتك إلى خلفية للتصميم</small></span><span class="material-icons-round image-pick-arrow">arrow_back</span></button>
+              <button class="remove-background-button hidden" id="removeBackgroundImage" type="button"><span class="material-icons-round">close</span> إزالة الصورة</button>
+              <small class="image-upload-hint" id="backgroundImageStatus">JPG · PNG · WEBP · AVIF — حتى 15MB</small>
             </div>
             <label class="field-label">نمط الخلفية</label>
             <div class="preset-grid" id="presetGrid">
@@ -89,6 +99,9 @@
               <button type="button" class="preset-button" data-preset="mountain"><span class="preset-thumb preset-mountain"></span><small>الجبال</small></button>
               <button type="button" class="preset-button" data-preset="waves"><span class="preset-thumb preset-waves"></span><small>الموج</small></button>
               <button type="button" class="preset-button" data-preset="minimal"><span class="preset-thumb preset-minimal"></span><small>بسيط</small></button>
+              <button type="button" class="preset-button" data-preset="geometry"><span class="preset-thumb preset-geometry"></span><small>هندسي</small></button>
+              <button type="button" class="preset-button" data-preset="dots"><span class="preset-thumb preset-dots"></span><small>نقاط</small></button>
+              <button type="button" class="preset-button" data-preset="stripes"><span class="preset-thumb preset-stripes"></span><small>خطوط</small></button>
             </div>
             <label class="field-label" for="designSubtitle">عبارة صغيرة <span>(اختياري)</span></label>
             <input class="studio-input" id="designSubtitle" maxlength="48" value="اصنع لحظتك الخاصة" placeholder="أضف عبارة لتصميمك">
@@ -121,6 +134,27 @@
 
       <footer class="studio-footer"><a href="/community">WallpaperHub Community</a><span>صُنع بشغف لعشاق التخصيص</span><a href="/">الرئيسية</a></footer>
     </main>
+  </div>
+  <div class="publish-destinations-backdrop hidden" id="publishDestinationsModal" aria-hidden="true">
+    <section class="publish-destinations-modal glass-surface" role="dialog" aria-modal="true" aria-labelledby="publishDestinationsTitle">
+      <header class="publish-modal-header">
+        <div class="publish-modal-mark"><span class="material-icons-round">share</span></div>
+        <div><h2 id="publishDestinationsTitle">أين تريد مشاركة إبداعك؟</h2><p>اختر مكاناً واحداً أو أكثر، وسيتم النشر في جميع اختياراتك بنفس الوقت.</p></div>
+        <button id="closePublishDestinations" type="button" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
+      </header>
+      <label class="field-label" for="publishCaption">وصف المشاركة <span>(اختياري)</span></label>
+      <textarea id="publishCaption" class="studio-input publish-caption" maxlength="1800" rows="3" placeholder="اكتب شيئاً عن تصميمك..."></textarea>
+      <div class="destination-list">
+        <label class="destination-option"><input type="checkbox" id="publishToPosts" checked><span class="destination-icon posts"><span class="material-icons-round">dynamic_feed</span></span><span><b>منشورات المجتمع</b><small>يظهر كمنشور مع صورة التصميم والإعجابات والتعليقات</small></span><i class="destination-check"></i></label>
+        <label class="destination-option"><input type="checkbox" id="publishToGeneral"><span class="destination-icon chat"><span class="material-icons-round">forum</span></span><span><b>دردشة المجتمع العامة</b><small>إرسال التصميم كرسالة داخل الغرفة العامة</small></span><i class="destination-check"></i></label>
+      </div>
+      <div class="forum-destinations">
+        <div class="forum-destinations-heading"><div><b>منتدياتي</b><small>يمكنك اختيار منتدى واحد أو عدة منتديات أنت عضو فيها</small></div><button id="selectAllForums" type="button" disabled>تحديد الكل</button></div>
+        <div id="publishForumChoices" class="publish-forum-choices"><div class="forum-choice-empty">جاري تحميل منتدياتك...</div></div>
+      </div>
+      <div class="publish-modal-footer"><span class="publish-gallery-note"><span class="material-icons-round">auto_awesome</span> سيظهر التصميم أيضاً في معرض إبداعات الاستوديو</span><button id="confirmMultiPublish" class="primary-button" type="button"><span class="material-icons-round">send</span> نشر في الاختيارات</button></div>
+      <div id="multiPublishStatus" class="multi-publish-status hidden" role="status" aria-live="polite"></div>
+    </section>
   </div>
   <div class="studio-toast" id="studioToast" role="status" aria-live="polite"></div>
   <script src="studio.js"></script>

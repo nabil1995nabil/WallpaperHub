@@ -2831,3 +2831,9 @@ body.community-dark .forum-danger-zone{background:#2b1c2a;border-color:#633344}
  .studio-entry-action .material-icons-round{font-size:14px}
 }
 @media(max-width:380px){.studio-entry-card{gap:8px;padding-inline:9px}.studio-entry-action{font-size:8px;padding:8px}.studio-entry-copy small{font-size:8px}}
+
+
+/* Studio cross-published artwork inside member-created forum conversations */
+.forum-message-image{display:block;width:min(100%,340px);max-height:420px;object-fit:contain;margin-top:9px;border-radius:13px;border:1px solid rgba(123,110,210,.18);background:#17152e;cursor:zoom-in}
+.forum-message-bubble:has(.forum-message-image){max-width:min(100%,380px)}
+@media(max-width:600px){.forum-message-image{width:100%;max-height:360px}}

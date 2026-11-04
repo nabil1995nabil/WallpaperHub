@@ -2287,7 +2287,7 @@ async function loadCommunityRoomMessages(){
   if(!activeCommunityRoom) return;
   const target=$('#forumFeed');
   const {data,error}=await supabaseClient.from('community_room_messages')
-    .select('id,room_id,user_id,content,sender_name,sender_avatar,created_at')
+    .select('id,room_id,user_id,content,image_url,sender_name,sender_avatar,created_at')
     .eq('room_id',activeCommunityRoom.id).order('created_at',{ascending:true}).limit(150);
   if(error) throw error;
   target.replaceChildren();
@@ -2311,7 +2311,17 @@ function renderCommunityRoomMessage(message){
   const author=document.createElement('b');author.textContent=message.sender_name||'عضو';
   const time=document.createElement('time');time.textContent=forumDate(message.created_at);
   meta.append(author,time);
-  const bubble=document.createElement('div');bubble.className='forum-message-bubble';bubble.textContent=message.content||'';
+  const bubble=document.createElement('div');bubble.className='forum-message-bubble';
+  if(message.content) bubble.textContent=message.content;
+  const imageUrl=String(message.image_url||'').trim();
+  if(imageUrl){
+    let parsed=null;try{parsed=new URL(imageUrl,window.location.origin)}catch(_error){}
+    if(parsed && parsed.protocol==='https:' && parsed.hostname.toLowerCase()==='ik.imagekit.io'){
+      const image=document.createElement('img');image.className='forum-message-image';image.src=parsed.href;image.alt='تصميم مشارك من استوديو التخصيص';image.loading='lazy';image.decoding='async';
+      image.addEventListener('click',()=>window.open(parsed.href,'_blank','noopener'));
+      bubble.appendChild(image);
+    }
+  }
   content.append(meta,bubble);
   const canDelete=mine||['owner','admin','moderator'].includes(activeCommunityRoomRole);
   if(canDelete){
@@ -2535,7 +2545,7 @@ $('#forumComposer')?.addEventListener('submit',async event=>{
   try{
     const {data,error}=await supabaseClient.from('community_room_messages')
       .insert({room_id:activeCommunityRoom.id,user_id:currentUser.id,content:text})
-      .select('id,room_id,user_id,content,sender_name,sender_avatar,created_at').single();
+      .select('id,room_id,user_id,content,image_url,sender_name,sender_avatar,created_at').single();
     if(error)throw error;
     addCommunityRoomRealtimeMessage(data);$('#forumMessage').value='';$('#forumMessage').focus();
   }catch(error){showToast(error.message||'تعذر إرسال الرسالة');}

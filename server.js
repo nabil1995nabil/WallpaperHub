@@ -9629,6 +9629,14 @@ app.post("/api/community/messages", async (req, res) => {
         ).trim();
 
         const imageData = String(req.body?.imageData || "").trim();
+        const externalImageUrl = String(req.body?.imageUrl || "").trim();
+        if(externalImageUrl){
+            let parsedImageUrl=null;
+            try{ parsedImageUrl=new URL(externalImageUrl); }catch(_error){}
+            if(!parsedImageUrl || parsedImageUrl.protocol!=="https:" || parsedImageUrl.hostname.toLowerCase()!=="ik.imagekit.io" || externalImageUrl.length>2048){
+                return res.status(400).json({success:false,message:"رابط الصورة غير صالح أو ليس من ImageKit"});
+            }
+        }
 
         const fileData = req.body?.fileData || null;
         const replyToIdRaw = String(
@@ -9638,7 +9646,7 @@ app.post("/api/community/messages", async (req, res) => {
         ).trim();
         const replyToId = replyToIdRaw || null;
 
-        if (!content && !imageData && !fileData) {
+        if (!content && !imageData && !externalImageUrl && !fileData) {
             return res.status(400).json({
                 success: false,
                 message: "اكتب رسالة أو اختر مرفقًا أولاً"
@@ -9699,7 +9707,7 @@ app.post("/api/community/messages", async (req, res) => {
                     id: messageId,
                     user_id: user.id,
                     content,
-                    image_url: media?.imageUrl || null,
+                    image_url: media?.imageUrl || externalImageUrl || null,
                     image_path: media?.imagePath || null,
                     file_url: fileMedia?.fileUrl || null,
                     file_path: fileMedia?.filePath || null,
@@ -9738,7 +9746,7 @@ app.post("/api/community/messages", async (req, res) => {
                 id: messageId,
                 user_id: user.id,
                 content,
-                image_url: media?.imageUrl || null,
+                image_url: media?.imageUrl || externalImageUrl || null,
                 image_path: media?.imagePath || null,
                 file_url: fileMedia?.fileUrl || null,
                 file_path: fileMedia?.filePath || null,
