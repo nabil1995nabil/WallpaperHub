@@ -1149,10 +1149,8 @@ document.addEventListener(
         if(!href)return null;
         const link=document.createElement("a");
         link.className="community-creation-card";
-        link.href=href;
-        link.target="_blank";
-        link.rel="noopener noreferrer";
-        link.setAttribute("aria-label",(item.title||"إبداع من المجتمع")+" — فتح الصورة");
+        link.href="community-creation.html?id="+encodeURIComponent(item.id);
+        link.setAttribute("aria-label",(item.title||"إبداع من المجتمع")+" — عرض التفاصيل وتحميل الثيم");
         const img=document.createElement("img");
         img.src=href;
         img.alt=item.title||"إبداع من مجتمع WallpaperHub";
@@ -1168,6 +1166,12 @@ document.addEventListener(
         const parsed=item.created_at?new Date(item.created_at):null;
         date.textContent=parsed&&!Number.isNaN(parsed.getTime())?parsed.toLocaleDateString("ar-MA"):"WallpaperHub";
         meta.append(title,date);
+        if(item.config?.themeUrl){
+            const pack=document.createElement("small");
+            pack.className="community-creation-pack";
+            pack.textContent="📦 ملف الثيم متاح";
+            meta.appendChild(pack);
+        }
         link.append(img,meta);
         return link;
     }
