@@ -58,3 +58,6 @@
 .preview-drag-hint .material-icons-round{font-size:14px;color:#8269e9}
 .phone-frame canvas{touch-action:none;cursor:grab}
 @media(max-width:720px){.advanced-control-grid{gap:3px 7px}.screen-mode-button{padding:8px 10px;font-size:8px}.preview-drag-hint{font-size:7px}}
+
+.theme-pack-button{border:1px solid rgba(121,98,223,.22)!important;background:linear-gradient(105deg,rgba(255,255,255,.8),rgba(241,235,255,.9))!important;color:#6752bb!important}
+.theme-pack-button:disabled{opacity:.65;cursor:wait}
