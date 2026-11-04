@@ -36,3 +36,25 @@
 .creation-art img{width:100%;height:100%;object-fit:cover;display:block}.creation-art{overflow:hidden}
 @media(max-width:600px){.publish-destinations-modal{padding:15px;border-radius:20px}.publish-forum-choices{grid-template-columns:1fr}.publish-modal-footer{align-items:stretch}.publish-modal-footer .primary-button{width:100%}.custom-image-tools{grid-template-columns:1fr}.remove-background-button{min-height:34px;justify-content:center}.image-upload-hint{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.publish-destinations-backdrop,.publish-destinations-modal{transition:none}}
+
+
+/* Live phone preview controls */
+.advanced-controls{margin:13px 0 15px;padding:11px 12px;border:1px solid rgba(124,119,181,.15);border-radius:14px;background:rgba(255,255,255,.36)}
+.advanced-controls>summary{cursor:pointer;color:#514b8e;font-size:10px;font-weight:900;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.advanced-controls>summary::-webkit-details-marker{display:none}
+.advanced-controls>summary:after{content:"＋";font-size:15px;color:#8870e9}
+.advanced-controls[open]>summary:after{content:"−"}
+.advanced-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 9px;margin-top:8px}
+.advanced-control-grid .field-label{margin:8px 0 4px}
+.advanced-control-grid .studio-input{margin-top:6px;height:36px;font-size:10px}
+.advanced-control-grid input[type=range]{display:block;margin-top:8px}
+.advanced-control-grid output{color:#8870e9;font-size:9px}
+.compact-toggle{margin:8px 0;padding:8px 9px}
+.platform-limit-note{margin:6px 2px 13px;padding:9px 10px;border-radius:11px;background:rgba(238,235,255,.72);color:#77739b;font-size:8px;line-height:1.9}
+.screen-mode-switch{display:flex;justify-content:center;gap:6px;margin:13px auto 0;padding:4px;border-radius:13px;width:max-content;max-width:100%;background:rgba(126,111,202,.08)}
+.screen-mode-button{border:0;border-radius:9px;padding:8px 13px;background:transparent;color:#79759a;font:700 9px Cairo,sans-serif;cursor:pointer}
+.screen-mode-button.is-active{background:#fff;color:#6953d0;box-shadow:0 4px 12px rgba(61,48,137,.1)}
+.preview-drag-hint{display:flex;justify-content:center;align-items:center;gap:5px;margin:0 0 10px;color:#8a86a8;font-size:8px;line-height:1.8;text-align:center}
+.preview-drag-hint .material-icons-round{font-size:14px;color:#8269e9}
+.phone-frame canvas{touch-action:none;cursor:grab}
+@media(max-width:720px){.advanced-control-grid{gap:3px 7px}.screen-mode-button{padding:8px 10px;font-size:8px}.preview-drag-hint{font-size:7px}}
