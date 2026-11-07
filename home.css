@@ -1024,3 +1024,32 @@ button:focus-visible{
 
 .community-creation-pack{display:inline-flex;width:max-content;max-width:100%;padding:3px 7px;border-radius:7px;background:rgba(255,255,255,.18);color:#fff;font-size:8px}
 .community-creation-card{text-decoration:none}
+
+
+/* =========================================================
+   WallpaperHub — light SVG page atmosphere
+   خلفية زخرفية خفيفة للرئيسية، بدون صور خارجية أو JavaScript.
+========================================================= */
+body{
+    background-color:var(--bg);
+    background-image:
+        radial-gradient(ellipse at 92% 4%, rgba(126,102,232,.075), transparent 34%),
+        radial-gradient(ellipse at 4% 42%, rgba(48,184,197,.045), transparent 30%),
+        url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20900%201400%22%20fill%3D%22none%22%3E%3Cg%20stroke%3D%22%238067e8%22%20stroke-opacity%3D%22.105%22%20stroke-width%3D%221.2%22%3E%3Cpath%20d%3D%22M-120%20190C80%2020%20190%20340%20390%20165S700%2015%201030%20170%22%2F%3E%3Cpath%20d%3D%22M-150%20230C70%2065%20205%20385%20415%20210S735%2065%201060%20215%22%2F%3E%3Cpath%20d%3D%22M-130%20890C70%20730%20210%201040%20430%20865S750%20735%201040%20900%22%2F%3E%3Cpath%20d%3D%22M-170%20930C65%20775%20235%201080%20450%20910S770%20780%201080%20940%22%2F%3E%3Ccircle%20cx%3D%22720%22%20cy%3D%22370%22%20r%3D%22118%22%2F%3E%3Ccircle%20cx%3D%22720%22%20cy%3D%22370%22%20r%3D%22158%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%221110%22%20r%3D%22105%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%221110%22%20r%3D%22145%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%238067e8%22%20fill-opacity%3D%22.16%22%3E%3Ccircle%20cx%3D%2295%22%20cy%3D%22120%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%22155%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%22790%22%20cy%3D%22250%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22835%22%20cy%3D%22310%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2280%22%20cy%3D%22780%22%20r%3D%222.5%22%2F%3E%3Ccircle%20cx%3D%22125%22%20cy%3D%22825%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%22790%22%20cy%3D%221040%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22840%22%20cy%3D%221100%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%2328b8c8%22%20fill-opacity%3D%22.09%22%3E%3Ccircle%20cx%3D%22830%22%20cy%3D%22720%22%20r%3D%2290%22%2F%3E%3Ccircle%20cx%3D%2270%22%20cy%3D%22440%22%20r%3D%2270%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    background-position:center top, left 42%, center top;
+    background-size:auto, auto, 100% 100%;
+    background-repeat:no-repeat,no-repeat,no-repeat;
+    background-attachment:fixed,fixed,fixed;
+}
+body.dark{
+    background-image:
+        radial-gradient(ellipse at 92% 4%, rgba(126,102,232,.12), transparent 34%),
+        radial-gradient(ellipse at 4% 42%, rgba(48,184,197,.055), transparent 30%),
+        url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20900%201400%22%20fill%3D%22none%22%3E%3Cg%20stroke%3D%22%238067e8%22%20stroke-opacity%3D%22.105%22%20stroke-width%3D%221.2%22%3E%3Cpath%20d%3D%22M-120%20190C80%2020%20190%20340%20390%20165S700%2015%201030%20170%22%2F%3E%3Cpath%20d%3D%22M-150%20230C70%2065%20205%20385%20415%20210S735%2065%201060%20215%22%2F%3E%3Cpath%20d%3D%22M-130%20890C70%20730%20210%201040%20430%20865S750%20735%201040%20900%22%2F%3E%3Cpath%20d%3D%22M-170%20930C65%20775%20235%201080%20450%20910S770%20780%201080%20940%22%2F%3E%3Ccircle%20cx%3D%22720%22%20cy%3D%22370%22%20r%3D%22118%22%2F%3E%3Ccircle%20cx%3D%22720%22%20cy%3D%22370%22%20r%3D%22158%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%221110%22%20r%3D%22105%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%221110%22%20r%3D%22145%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%238067e8%22%20fill-opacity%3D%22.16%22%3E%3Ccircle%20cx%3D%2295%22%20cy%3D%22120%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%22155%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%22790%22%20cy%3D%22250%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22835%22%20cy%3D%22310%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2280%22%20cy%3D%22780%22%20r%3D%222.5%22%2F%3E%3Ccircle%20cx%3D%22125%22%20cy%3D%22825%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%22790%22%20cy%3D%221040%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22840%22%20cy%3D%221100%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%2328b8c8%22%20fill-opacity%3D%22.09%22%3E%3Ccircle%20cx%3D%22830%22%20cy%3D%22720%22%20r%3D%2290%22%2F%3E%3Ccircle%20cx%3D%2270%22%20cy%3D%22440%22%20r%3D%2270%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+@media(max-width:600px){
+    body{
+        background-size:auto,auto,100% 100%;
+        background-attachment:scroll,scroll,scroll;
+    }
+}
