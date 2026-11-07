@@ -14,21 +14,23 @@ fetch("bottom-nav.html")
 
 bottomNav.innerHTML = html;
 
-
-document.querySelectorAll(".nav-item")
-.forEach(item=>{
-
-item.onclick=()=>{
-
-const page = item.dataset.page;
-
-if(page){
-location.href = page;
+// Initialize the active item after the asynchronous component is mounted.
+// Keep native anchors so keyboard, long-press and open-in-new-tab keep working.
+if (window.initBottomNavigation) {
+    window.initBottomNavigation(bottomNav);
+} else {
+    const currentParts = location.pathname.split("/").filter(Boolean);
+    const current = (currentParts.pop() || "home.html").toLowerCase();
+    bottomNav.querySelectorAll(".nav-item").forEach(item => {
+        const targetParts = (item.dataset.page || "").split(/[?#]/)[0].split("/").filter(Boolean);
+        const target = (targetParts.pop() || "").toLowerCase();
+        const active = target === current || (current === "index.html" && target === "home.html");
+        item.classList.toggle("active", active);
+        if (active) item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+    });
 }
-
-};
-
-});
+document.body.classList.add("has-bottom-nav");
 
 });
 
