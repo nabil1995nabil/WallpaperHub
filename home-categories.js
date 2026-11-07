@@ -185,11 +185,71 @@ function getCategoryGrid() {
         document.querySelector(".home-category-grid");
 }
 
+function createCategoriesDirectoryCard() {
+    const card = document.createElement("a");
+    card.className = "home-category home-category-directory";
+    card.href = "categories.html";
+    card.dataset.category = "categories";
+    card.setAttribute("role", "listitem");
+    card.setAttribute("aria-label", "الأقسام — اكتشف جميع تصنيفات الخلفيات");
+
+    card.innerHTML = `
+        <span class="directory-card-art" aria-hidden="true">
+            <svg viewBox="0 0 240 300" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                    <linearGradient id="directoryBg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#17133f"/>
+                        <stop offset="52%" stop-color="#5140a0"/>
+                        <stop offset="100%" stop-color="#a34fd0"/>
+                    </linearGradient>
+                    <radialGradient id="directoryGlow">
+                        <stop offset="0%" stop-color="#b9a5ff" stop-opacity=".75"/>
+                        <stop offset="100%" stop-color="#b9a5ff" stop-opacity="0"/>
+                    </radialGradient>
+                    <filter id="directoryBlur"><feGaussianBlur stdDeviation="18"/></filter>
+                </defs>
+                <rect width="240" height="300" fill="url(#directoryBg)"/>
+                <circle cx="190" cy="48" r="95" fill="url(#directoryGlow)" filter="url(#directoryBlur)"/>
+                <circle cx="24" cy="270" r="90" fill="#36c9d6" opacity=".16" filter="url(#directoryBlur)"/>
+                <g transform="translate(35 54)" fill="none" stroke="#fff" stroke-width="2.5">
+                    <rect x="0" y="0" width="72" height="72" rx="14" fill="#fff" fill-opacity=".13" stroke-opacity=".85"/>
+                    <rect x="91" y="0" width="72" height="72" rx="14" fill="#fff" fill-opacity=".09" stroke-opacity=".58"/>
+                    <rect x="0" y="91" width="72" height="72" rx="14" fill="#fff" fill-opacity=".09" stroke-opacity=".58"/>
+                    <rect x="91" y="91" width="72" height="72" rx="14" fill="#fff" fill-opacity=".13" stroke-opacity=".85"/>
+                    <path d="M14 48l15-19 13 13 12-15 10 12v18H14Z" fill="#a9f0db" fill-opacity=".8" stroke="none"/>
+                    <circle cx="48" cy="20" r="7" fill="#ffd58d" stroke="none"/>
+                    <path d="M104 49l16-22 13 15 12-12 9 11v17h-50Z" fill="#b4b8ff" fill-opacity=".85" stroke="none"/>
+                    <circle cx="139" cy="19" r="7" fill="#ffd58d" stroke="none"/>
+                    <path d="M14 140l15-18 14 14 12-16 9 11v18H14Z" fill="#8fe2ed" fill-opacity=".8" stroke="none"/>
+                    <circle cx="48" cy="112" r="7" fill="#ffc0d9" stroke="none"/>
+                    <path d="M105 141l14-20 14 13 13-17 8 12v20h-49Z" fill="#d7b7ff" fill-opacity=".9" stroke="none"/>
+                    <circle cx="139" cy="111" r="7" fill="#ffd58d" stroke="none"/>
+                </g>
+                <path d="M-15 248C48 206 98 289 155 237s82-35 112-5" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2"/>
+                <path d="M-20 269C47 227 99 310 164 258s77-31 110-4" fill="none" stroke="#8de8ec" stroke-opacity=".25" stroke-width="2"/>
+                <g fill="#fff" opacity=".8"><circle cx="28" cy="35" r="2"/><circle cx="205" cy="112" r="2"/><circle cx="190" cy="230" r="1.7"/></g>
+            </svg>
+        </span>
+        <span class="home-category-overlay" aria-hidden="true"></span>
+        <span class="home-category-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </span>
+        <span class="home-category-bottom">
+            <span class="home-cat-title">الأقسام</span>
+            <span class="home-cat-count">Categories</span>
+        </span>
+        <span class="directory-card-sparkle" aria-hidden="true">✦</span>
+    `;
+    return card;
+}
+
 function renderHomeCategories(wallpapers) {
     const container = getCategoryGrid();
     if (!container) return;
 
     container.innerHTML = "";
+    // بطاقة دليل الأقسام تظهر أولاً (يمين الشريط في اتجاه RTL)، قبل All.
+    container.appendChild(createCategoriesDirectoryCard());
     buildCategoryData(wallpapers).forEach(item => {
         container.appendChild(createCategoryCard(item));
     });
