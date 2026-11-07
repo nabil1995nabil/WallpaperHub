@@ -39,8 +39,7 @@ body.dark .container,
 body.dark .card,
 body.dark .settings-card,
 body.dark .info-card,
-body.dark .profile-cover,
-body.dark .bottom-nav{
+body.dark .profile-cover{
 
     background:#111;
 
@@ -107,14 +106,24 @@ body.dark img{
 
 
 
-/* bottom nav */
-
+/* Bottom navigation — matching glass dock in dark mode */
 body.dark .bottom-nav{
-
-    background:#111;
-
-    border-top:1px solid #333;
-
+    background:rgba(18,22,38,.94);
+    border:1px solid rgba(150,158,196,.20);
+    box-shadow:0 14px 42px rgba(0,0,0,.38),0 2px 8px rgba(0,0,0,.22);
+    color:#d8d9ec;
+}
+body.dark .bottom-nav .nav-item{
+    color:#aeb5ca;
+    background:transparent;
+}
+body.dark .bottom-nav .nav-item>p{color:inherit}
+body.dark .bottom-nav .nav-item.active{
+    color:#c2b6ff;
+    background:transparent;
+}
+body.dark .bottom-nav .nav-item.active::before{
+    background:rgba(151,129,255,.18);
 }
 
 
