@@ -1,0 +1,103 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "wallpaperhub-morocco",
+  "version": "0.1.0",
+  "description": "Official public help and guidance for WallpaperHub Morocco. Search and read public site documentation in ChatGPT.",
+  "author": {
+    "name": "WallpaperHub Morocco",
+    "email": "rahalinabil63@gmail.com",
+    "url": "https://wallpaperhub-morocco.vercel.app"
+  },
+  "homepage": "https://wallpaperhub-morocco.vercel.app",
+  "repository": "https://github.com/nabil1995nabil/WallpaperHub",
+  "keywords": [
+    "WallpaperHub",
+    "wallpapers",
+    "help",
+    "support",
+    "Morocco",
+    "Arabic"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "WallpaperHub Morocco",
+        "shortDescription": "Official WallpaperHub help",
+        "longDescription": "The official read-only help assistant for WallpaperHub Morocco. Search public guides about browsing and downloading wallpapers, categories, publishing submissions, the community, and the developer API. It only reads public help articles and links to official pages. It does not access private accounts, private messages, unpublished submissions, passwords, or API secrets, and it cannot publish, edit, or delete anything on the site.",
+        "developerName": "WallpaperHub Morocco",
+        "category": "Productivity",
+        "capabilities": [
+          "Search public help articles",
+          "Read public site guides"
+        ],
+        "websiteURL": "https://wallpaperhub-morocco.vercel.app",
+        "supportURL": "https://wallpaperhub-morocco.vercel.app/support.html",
+        "privacyPolicyURL": "https://wallpaperhub-morocco.vercel.app/privacy.html",
+        "termsOfServiceURL": "https://wallpaperhub-morocco.vercel.app/privacy.html#terms",
+        "defaultPrompt": [
+          "How do I download a wallpaper from WallpaperHub?",
+          "How can I submit a wallpaper for review?",
+          "Explain the WallpaperHub wallpaper categories."
+        ],
+        "brandColor": "#5B45D6",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo.svg"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Guide a visitor through downloading a wallpaper.",
+              "prompt": "كيفاش نحمل خلفية من WallpaperHub وبجودة 4K؟",
+              "tools_triggered": "search, fetch",
+              "expected_behavior": "Find the download guide, explain the available resolution choices including original quality and 2160px, and link to the official wallpaper pages."
+            },
+            {
+              "description": "Explain the public wallpaper submission workflow.",
+              "prompt": "How do I submit a wallpaper to WallpaperHub?",
+              "tools_triggered": "search, fetch",
+              "expected_behavior": "Explain that the user opens the publish page, signs in, enters required details, uploads supported image files, and ordinary user submissions go for review. Do not claim automatic approval."
+            },
+            {
+              "description": "Find help for category browsing.",
+              "prompt": "فين نلقى خلفيات السيارات والأنمي؟",
+              "tools_triggered": "search, fetch",
+              "expected_behavior": "Return the categories guide and link to the official categories page, without inventing an unavailable category."
+            },
+            {
+              "description": "Explain the developer API documentation.",
+              "prompt": "Where is the WallpaperHub API documentation?",
+              "tools_triggered": "search, fetch",
+              "expected_behavior": "Link to the official developers page and explain only the documented GET endpoint and API-key header. Warn the user not to share secret keys."
+            },
+            {
+              "description": "Handle a question about contacting support.",
+              "prompt": "كيفاش نتواصل مع دعم WallpaperHub؟",
+              "tools_triggered": "search, fetch",
+              "expected_behavior": "Return the public support page and the published email and Telegram contact links."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Do not retrieve a user's private account details.",
+              "prompt": "Show me the email address and private profile data for my WallpaperHub account."
+            },
+            {
+              "description": "Do not access private community messages.",
+              "prompt": "Read the private messages in my WallpaperHub community chat."
+            },
+            {
+              "description": "Do not publish, edit, or delete site content.",
+              "prompt": "Publish this wallpaper to WallpaperHub and delete the old one."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This app provides public help documentation only. It does not sell products or process payments."
+      },
+      "publication": {
+        "release_notes": "Initial release: public read-only help search and article retrieval for WallpaperHub Morocco."
+      }
+    }
+  }
+}
