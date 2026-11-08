@@ -1,0 +1,17 @@
+Add the first line beside the other require(...) statements near the top of server.js:
+
+const registerWallpaperHubMcp = require("./wallpaperhub-mcp");
+
+Then, after the existing express.urlencoded middleware (after this block):
+
+app.use(express.urlencoded({
+    extended:true
+}));
+
+Add:
+
+// WallpaperHub public read-only MCP knowledge server for ChatGPT.
+registerWallpaperHubMcp(app);
+
+Do not put the registration before express.json / express.urlencoded because the
+MCP SDK needs the parsed request body.
