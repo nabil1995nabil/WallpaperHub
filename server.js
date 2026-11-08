@@ -4,6 +4,7 @@
 // ======================================
 
 const exifParser = require("exif-parser");
+const registerWallpaperHubMcp = require("./wallpaperhub-mcp");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -496,6 +497,9 @@ app.use(express.json({
 app.use(express.urlencoded({
     extended:true
 }));
+
+// WallpaperHub public read-only MCP knowledge server for ChatGPT.
+registerWallpaperHubMcp(app);
 
 
 // ======================================
