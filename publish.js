@@ -2,7 +2,7 @@ import { supabase } from "./supabase.js";
 
 /*
  * WallpaperHub Publish Studio
- * UI queue is implemented per file. Real cloud upload requires the project's upload endpoint.
+ * Batch upload progress is aggregated into one shared tracker.
  */
 const $ = (id) => document.getElementById(id);
 const form = $("publishForm");
@@ -17,7 +17,8 @@ let panoOffset = 50;
 let gyroHandler = null;
 let duplicateFingerprints = new Set();
 let uploadJobs = new Map();
-let uploadTicker = null;
+let previewObjectUrls = [];
+let batchBusy = false;
 const MAX_FILES = 50;
 const MAX_FILE_SIZE = 150 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
@@ -41,6 +42,17 @@ function fileType(file) {
   return ALLOWED.has(file.type) ? "image" : "unknown";
 }
 function fingerprint(file){return `${file.name.toLowerCase()}|${file.size}|${file.lastModified}|${file.type}`;}
+function clearUploadJobs(){
+  for(const job of uploadJobs.values()){
+    if(job.xhr && job.xhr.readyState!==4) job.xhr.abort();
+    if(job.url) URL.revokeObjectURL(job.url);
+  }
+  uploadJobs.clear();
+}
+function clearPreviewUrls(){
+  for(const url of previewObjectUrls) URL.revokeObjectURL(url);
+  previewObjectUrls=[];
+}
 function validate(file){
   const errors=[];
   if(!ALLOWED.has(file.type))errors.push("صيغة غير مدعومة؛ GIF غير مسموح");
@@ -50,19 +62,21 @@ function validate(file){
 }
 async function metadata(file){
   const info={size:bytes(file.size),resolution:"غير متاحة"};
+  let url="";
   if(file.type.startsWith("image/")){
     try{
-      const url=URL.createObjectURL(file);
-      const dims=await new Promise((resolve,reject)=>{
+      url=URL.createObjectURL(file);
+      info.resolution=await new Promise((resolve,reject)=>{
         const img=new Image();img.onload=()=>resolve(`${img.naturalWidth}×${img.naturalHeight}`);
         img.onerror=reject;img.src=url;
       });
-      URL.revokeObjectURL(url);info.resolution=dims;
     }catch{}
+    finally{if(url)URL.revokeObjectURL(url);}
   }
   return info;
 }
 async function addFiles(fileList){
+  if(batchBusy)return;
   const incoming=Array.from(fileList||[]);
   const imageFiles=incoming.filter(f=>ALLOWED.has(f.type));
   const rejected=incoming.length-imageFiles.length;
@@ -79,15 +93,18 @@ async function addFiles(fileList){
   await renderFiles();
 }
 function removeFile(index){
+  if(batchBusy)return;
   const file=selectedFiles[index];
   if(file){
     const job=uploadJobs.get(fingerprint(file));
     if(job&&job.status==="running")job.status="cancelled";
+    if(job?.url)URL.revokeObjectURL(job.url);
     uploadJobs.delete(fingerprint(file));
   }
   selectedFiles.splice(index,1);renderFiles();renderUploadJobs();
 }
 async function renderFiles(){
+  clearPreviewUrls();
   previewGrid.innerHTML="";
   $("fileCount").textContent=selectedFiles.length?`${selectedFiles.length} / ${MAX_FILES} صورة`:"ما تختار حتى صورة";
   $("queueTotal").textContent=selectedFiles.length;
@@ -102,6 +119,7 @@ async function renderFiles(){
   const fragment=document.createDocumentFragment();
   for(let i=0;i<selectedFiles.length;i++){
     const file=selectedFiles[i],errors=validate(file),url=URL.createObjectURL(file);
+    previewObjectUrls.push(url);
     const card=document.createElement("div");card.className="preview-card";
     const img=document.createElement("img");img.src=url;img.alt=file.name;img.loading="lazy";card.appendChild(img);
     if(i===0){
@@ -122,14 +140,17 @@ async function renderFiles(){
     validationList.appendChild(row);if(!errors.length)validCount++;
   }
   previewGrid.appendChild(fragment);$("queueValid").textContent=validCount;
-  const info=await metadata(selectedFiles[0]);$("wallResolution").value=info.resolution;$("wallSize").value=info.size;
+  const firstFile=selectedFiles[0];
+  const info=await metadata(firstFile);
+  if(selectedFiles[0]===firstFile){$("wallResolution").value=info.resolution;$("wallSize").value=info.size;}
 }
 filesInput.addEventListener("change",()=>addFiles(filesInput.files));
 ["dragenter","dragover"].forEach(n=>dropzone.addEventListener(n,e=>{e.preventDefault();dropzone.classList.add("dragover");}));
 ["dragleave","drop"].forEach(n=>dropzone.addEventListener(n,e=>{e.preventDefault();dropzone.classList.remove("dragover");}));
 dropzone.addEventListener("drop",e=>addFiles(e.dataTransfer.files));
 $("clearFilesBtn").addEventListener("click",()=>{
-  selectedFiles=[];duplicateFingerprints.clear();uploadJobs.clear();renderFiles();renderUploadJobs();
+  if(batchBusy)return;
+  selectedFiles=[];duplicateFingerprints.clear();clearUploadJobs();renderFiles();renderUploadJobs();
 });
 $("wallType").value="auto";
 $("wallType").addEventListener("change",()=>{$("wallType").value="image";});
@@ -174,68 +195,111 @@ $("saveDraftBtn").addEventListener("click",()=>{
   try{localStorage.setItem("wallpaperhub-publish-draft",JSON.stringify({...data,savedAt:new Date().toISOString()}));notify("تم حفظ بيانات المسودة محلياً؛ الملفات نفسها لم تُرفع.");}catch{notify("تعذر حفظ المسودة في المتصفح.");}
 });
 $("resetBtn").addEventListener("click",()=>{
+  if(batchBusy)return;
   if(!confirm("واش متأكد بغيتي تمسح البيانات والصور المختارة؟"))return;
-  form.reset();selectedFiles=[];duplicateFingerprints.clear();uploadJobs.clear();$("titleCount").textContent="0 / 120";renderFiles();renderUploadJobs();
+  form.reset();selectedFiles=[];duplicateFingerprints.clear();clearUploadJobs();$("titleCount").textContent="0 / 120";renderFiles();renderUploadJobs();
 });
+function uploadStatusText(status){
+  return ({
+    queued:"في الانتظار",
+    running:"جارٍ الرفع",
+    uploaded:"تم الرفع",
+    publishing:"جارٍ النشر",
+    done:"تم النشر",
+    error:"تعذر الإكمال"
+  })[status]||status;
+}
+function updateBatchProgress(){
+  const jobs=Array.from(uploadJobs.values());
+  if(!jobs.length)return;
+  const totalBytes=jobs.reduce((sum,job)=>sum+Math.max(0,job.file.size||0),0);
+  let completedWeight=0,uploadedBytes=0;
+  for(const job of jobs){
+    const size=Math.max(0,job.file.size||0);
+    uploadedBytes+=Math.min(size,Math.max(0,job.uploaded||0));
+    let ratio=0;
+    if(job.status==="done")ratio=1;
+    else if(job.result?.url||job.status==="uploaded"||job.status==="publishing")ratio=.9;
+    else ratio=Math.max(0,Math.min(1,(job.progress||0)/100))*.9;
+    completedWeight+=size*ratio;
+  }
+  const percent=totalBytes?Math.min(100,completedWeight/totalBytes*100):0;
+  const rounded=Math.round(percent);
+  const done=jobs.filter(job=>job.status==="done").length;
+  const errors=jobs.filter(job=>job.status==="error").length;
+  const active=jobs.some(job=>job.status==="running"||job.status==="publishing");
+  const allDone=done===jobs.length;
+  const allTerminal=jobs.every(job=>["done","error"].includes(job.status));
+  $("batchPercent").textContent=`${rounded}%`;
+  $("batchProgressFill").style.width=`${percent}%`;
+  $("batchProgressTrack").setAttribute("aria-valuenow",String(rounded));
+  $("batchFileSummary").textContent=`${done} من ${jobs.length} خلفية منشورة`;
+  $("batchBytes").textContent=`${bytes(uploadedBytes)} / ${bytes(totalBytes)}`;
+  $("uploadOverall").textContent=`${done} / ${jobs.length} مكتملة`;
+  $("dismissUploadManagerBtn").hidden=!allTerminal;
+  if(allDone){
+    $("uploadManagerTitle").textContent="اكتمل نشر الدفعة";
+    $("uploadStageText").textContent="تم رفع الخلفيات وإرسالها بنجاح.";
+  }else if(errors){
+    $("uploadManagerTitle").textContent="توقفت العملية عند وجود خطأ";
+    $("uploadStageText").textContent="بعض الخلفيات لم تكتمل. صحّح المشكلة ثم أعد المحاولة؛ الخلفيات المكتملة لن تُرسل مرة ثانية.";
+  }else if(active){
+    $("uploadManagerTitle").textContent="جارٍ تجهيز الخلفيات";
+    $("uploadStageText").textContent=jobs.some(job=>job.status==="publishing")?"اكتمل رفع الملفات، جارٍ حفظ الخلفيات في الموقع.":"يتم رفع الصور بالتتابع، ويُحسب التقدم للدفعة كلها.";
+  }else if(jobs.some(job=>job.status==="uploaded")){
+    $("uploadManagerTitle").textContent="تم رفع الصور";
+    $("uploadStageText").textContent="جارٍ الانتقال إلى مرحلة النشر في الموقع.";
+  }
+  if(batchBusy){
+    const button=$("submitBtn");
+    button.textContent=allDone?"اكتمل النشر ✓":`جارٍ العمل ${rounded}%`;
+  }
+}
 function renderUploadJobs(){
   const manager=$("uploadManager"),container=$("uploadItems");
   const jobs=Array.from(uploadJobs.values());
-  manager.hidden=jobs.length===0;container.innerHTML="";
-  const done=jobs.filter(j=>j.status==="done"||j.status==="uploaded").length;
-  $("uploadOverall").textContent=`${done} / ${jobs.length} مكتملة`;
-  if(!jobs.length)return;
+  container.innerHTML="";
+  if(!jobs.length){manager.hidden=true;return;}
+  manager.hidden=false;
+  const fragment=document.createDocumentFragment();
   jobs.forEach(job=>{
-    const item=document.createElement("article");item.className="upload-item";
+    const item=document.createElement("article");item.className=`upload-item ${job.status}`;
     const thumb=document.createElement("div");thumb.className="upload-thumb";
-    const img=document.createElement("img");img.src=job.url;img.alt="";thumb.appendChild(img);
+    if(job.url){const img=document.createElement("img");img.src=job.url;img.alt="";thumb.appendChild(img);}
     const main=document.createElement("div");main.className="upload-main";
     const head=document.createElement("div");head.className="upload-file-head";
     const name=document.createElement("div");name.className="upload-file-name";name.textContent=job.file.name;name.title=job.file.name;
-    const status=document.createElement("span");status.className=`upload-file-status ${job.status}`;status.textContent=({queued:"في الانتظار",running:"جارٍ الرفع",paused:"متوقف مؤقتاً",uploaded:"تم الرفع",done:"تم الإرسال",cancelled:"ملغى",error:"خطأ"}[job.status]||job.status);
+    const status=document.createElement("span");status.className=`upload-file-status ${job.status}`;status.textContent=uploadStatusText(job.status);
     head.append(name,status);
-    const meta=document.createElement("div");meta.className="upload-meta";meta.innerHTML=`<span>الحجم: ${bytes(job.file.size)}</span><span>المرفوع: ${bytes(Math.round(job.file.size*job.progress/100))}</span>`;
-    const track=document.createElement("div");track.className="upload-progress-track";const fill=document.createElement("span");fill.style.width=`${job.progress}%`;track.appendChild(fill);
-    const progressRow=document.createElement("div");progressRow.className="upload-progress-row";
-    const percent=document.createElement("span");percent.textContent=`${Math.round(job.progress)}%`;
-    const detail=document.createElement("span");detail.textContent=job.status==="done"?"تم الإرسال":job.status==="uploaded"?"تم رفع الملف":job.status==="running"?"جارٍ الرفع الفعلي":"تقدم الملف";
-    progressRow.append(percent,detail);
-    const controls=document.createElement("div");controls.className="upload-controls";
-    const pause=document.createElement("button");pause.type="button";pause.className="upload-action";pause.textContent=job.status==="paused"?"▶ متابعة":"⏸ إيقاف";
-    pause.disabled=["done","uploaded","cancelled","error"].includes(job.status);
-    pause.addEventListener("click",()=>{
-      if(job.status==="running"&&job.xhr){job.status="paused";job.xhr.abort();job.error="توقف الرفع؛ إعادة المتابعة تبدأ الملف من جديد";renderUploadJobs();}
-      else if(job.status==="paused"){job.progress=0;job.uploaded=0;job.status="queued";uploadImageToImageKit(job.file,job).then(data=>{job.status="uploaded";job.result=data;renderUploadJobs();}).catch(()=>{if(job.status!=="cancelled"){job.status="error";renderUploadJobs();}});renderUploadJobs();}
-    });
-    const retry=document.createElement("button");retry.type="button";retry.textContent="↻ إعادة";retry.disabled=!["error","cancelled","paused"].includes(job.status);
-    retry.addEventListener("click",()=>{
-      job.progress=0;job.uploaded=0;job.status="running";
-      uploadImageToImageKit(job.file,job).then(data=>{job.status="uploaded";job.result=data;renderUploadJobs();}).catch(()=>{if(job.status!=="cancelled"){job.status="error";renderUploadJobs();}});
-      renderUploadJobs();
-    });
-    const cancel=document.createElement("button");cancel.type="button";cancel.className="upload-cancel";cancel.textContent="إلغاء";
-    cancel.disabled=["done","uploaded","cancelled"].includes(job.status);
-    cancel.addEventListener("click",()=>{job.status="cancelled";if(job.xhr)job.xhr.abort();renderUploadJobs();});
-    controls.append(pause,retry,cancel);main.append(head,meta,track,progressRow,controls);item.append(thumb,main);container.appendChild(item);
+    const meta=document.createElement("div");meta.className="upload-meta";meta.textContent=`حجم الصورة: ${bytes(job.file.size)}`;
+    main.append(head,meta);
+    if(job.error){const error=document.createElement("small");error.className="upload-error";error.textContent=job.error;main.appendChild(error);}
+    const state=document.createElement("span");state.className="upload-item-state";state.textContent=job.status==="done"?"✓":job.status==="error"?"!":job.status==="running"||job.status==="publishing"?"…":job.status==="uploaded"?"↑":"·";
+    item.append(thumb,main,state);fragment.appendChild(item);
   });
+  container.appendChild(fragment);
+  updateBatchProgress();
 }
-function startTicker(){
-  if(uploadTicker)return;
-  uploadTicker=setInterval(()=>{
-    let active=false;
-    for(const job of uploadJobs.values()){
-      if(job.status!=="running")continue;
-      active=true;job.progress=Math.min(100,job.progress+Math.max(1,Math.random()*5));
-      if(job.progress>=100){job.progress=100;job.status="done";}
+$("dismissUploadManagerBtn").addEventListener("click",()=>{$("uploadManager").hidden=true;});
+function setPublishBusy(busy){
+  batchBusy=busy;
+  form.setAttribute("aria-busy",String(busy));
+  dropzone.classList.toggle("is-busy",busy);
+  form.querySelectorAll("input,select,textarea,button").forEach(control=>{
+    if(control.id!=="submitBtn")control.disabled=busy;
+  });
+  $("submitBtn").disabled=busy;
+}
+function prepareUploadJobs(files){
+  for(const file of files){
+    const key=fingerprint(file);
+    if(!uploadJobs.has(key)){
+      uploadJobs.set(key,{file,url:URL.createObjectURL(file),progress:0,uploaded:0,status:"queued",xhr:null,result:null,error:""});
     }
-    renderUploadJobs();
-    if(!active){clearInterval(uploadTicker);uploadTicker=null;}
-  },350);
+  }
+  renderUploadJobs();
 }
-function beginDemoTransfers(){
-  uploadJobs.clear();
-  selectedFiles.forEach(file=>uploadJobs.set(fingerprint(file),{file,url:URL.createObjectURL(file),progress:0,status:"running"}));
-  renderUploadJobs();startTicker();
-}
+
 let publisherSession = null;
 let telegramPublisherAccessToken = "";
 let telegramPublisherTokenExpiresAt = 0;
@@ -441,72 +505,113 @@ async function uploadImageToImageKit(file,job){
     formData.append("expire",String(auth.expire));formData.append("token",auth.token);formData.append("useUniqueFileName","true");
     const xhr=new XMLHttpRequest();job.xhr=xhr;
     xhr.open("POST","https://upload.imagekit.io/api/v1/files/upload",true);
-    xhr.upload.onprogress=e=>{if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;renderUploadJobs();}};
-    xhr.onload=()=>{let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
-      if(xhr.status>=200&&xhr.status<300&&data.url){job.progress=100;job.status="uploaded";job.uploaded=file.size;job.result=data;renderUploadJobs();resolve(data);}
-      else reject(new Error(data?.message||data?.help||`ImageKit رفض رفع الصورة (HTTP ${xhr.status})`));
+    xhr.upload.onprogress=e=>{
+      if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;updateBatchProgress();}
     };
-    xhr.onerror=()=>reject(new Error("فشل الاتصال برفع ImageKit. تحقق من الإنترنت أو إعدادات الشبكة ثم أعد المحاولة."));
-    xhr.onabort=()=>reject(new Error("تم إلغاء الرفع"));
+    xhr.onload=()=>{
+      let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
+      job.xhr=null;
+      if(xhr.status>=200&&xhr.status<300&&data.url){
+        job.progress=100;job.uploaded=file.size;job.result=data;resolve(data);
+      }else reject(new Error(data?.message||data?.help||`ImageKit رفض رفع الصورة (HTTP ${xhr.status})`));
+    };
+    xhr.onerror=()=>{job.xhr=null;reject(new Error("فشل الاتصال برفع ImageKit. تحقق من الإنترنت أو إعدادات الشبكة ثم أعد المحاولة."));};
+    xhr.onabort=()=>{job.xhr=null;reject(new Error("تم إلغاء الرفع"));};
     xhr.send(formData);
   });
 }
-function uploadOne(file){
-  const job={file,url:URL.createObjectURL(file),progress:0,uploaded:0,status:"running",xhr:null};
-  uploadJobs.set(fingerprint(file),job);renderUploadJobs();
-  return uploadImageToImageKit(file,job).catch(error=>{
-    if(job.status!=="paused"&&job.status!=="cancelled"){job.status="error";job.error=error.message;renderUploadJobs();}
+async function uploadOne(file){
+  const key=fingerprint(file);
+  let job=uploadJobs.get(key);
+  if(!job){
+    job={file,url:URL.createObjectURL(file),progress:0,uploaded:0,status:"queued",xhr:null,result:null,error:""};
+    uploadJobs.set(key,job);
+  }
+  if(["done","uploaded"].includes(job.status)&&job.result?.url)return job;
+  job.progress=0;job.uploaded=0;job.status="running";job.error="";job.result=null;
+  renderUploadJobs();
+  try{
+    const result=await uploadImageToImageKit(file,job);
+    job.result=result;job.status="uploaded";job.progress=100;job.uploaded=file.size;job.xhr=null;
+    renderUploadJobs();
+    return job;
+  }catch(error){
+    job.xhr=null;job.status="error";job.error=error?.message||"تعذر رفع هذه الصورة.";
+    renderUploadJobs();
     throw error;
-  });
+  }
+}
+function lockPublishForm(locked){
+  setPublishBusy(locked);
+  if(locked){
+    $("uploadManager").hidden=false;
+    $("uploadManagerTitle").textContent="يتم تجهيز دفعة الخلفيات";
+    $("uploadStageText").textContent="حافظ على الصفحة مفتوحة حتى ينتهي الرفع والنشر.";
+  }
 }
 form.addEventListener("submit",async e=>{
   e.preventDefault();
+  if(batchBusy)return;
   if(!publisherSession){notify("يجب تسجيل الدخول أولاً.");return;}
   if(!$("wallTitle").value.trim()){notify("كتب عنوان الخلفية أولاً.");$("wallTitle").focus();return;}
   if(!selectedFiles.length){notify("اختار صورة واحدة على الأقل.");return;}
-  const bad=selectedFiles.filter(file=>validate(file).length);
+  const files=selectedFiles.slice();
+  const bad=files.filter(file=>validate(file).length);
   if(bad.length){notify(`كاينين ${bad.length} صور غير صالحة. راجع قائمة التحقق.`);return;}
-  const submit=$("submitBtn");submit.disabled=true;
-  const originalText=submit.textContent;
+  lockPublishForm(true);
   try{
-    for(const file of selectedFiles){
+    prepareUploadJobs(files);
+    // Upload only files that have not already reached ImageKit.
+    for(const file of files){
       const job=uploadJobs.get(fingerprint(file));
-      if(job?.status==="uploaded"&&job.result?.url)continue;
+      if(job?.result?.url){
+        if(job.status==="error")job.status="uploaded";
+        continue;
+      }
       await uploadOne(file);
     }
     const tags=$("wallTags").value.split(",").map(x=>x.trim()).filter(Boolean);
-    const colors=$("wallColors").value.split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);
+    const colors=$("wallColors").value.split(/[ ,]+/).map(x=>x.trim()).filter(Boolean);
     const token=await getAccessToken();
-    if(!token) throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
-    for(const file of selectedFiles){
+    if(!token)throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
+    // Publish only unfinished items, preventing already published wallpapers from being sent twice.
+    for(const file of files){
       const job=uploadJobs.get(fingerprint(file));
+      if(job?.status==="done")continue;
       if(!job?.result?.url)throw new Error(`لم يكتمل رفع ${file.name} إلى ImageKit.`);
-      const metadataInfo=await metadata(file);
-      const payload={
-        title:selectedFiles.length>1?`${$("wallTitle").value.trim()} - ${file.name.replace(/\.[^.]+$/,"")}`:$("wallTitle").value.trim(),
-        category:$("wallCategory").value,
-        type:"image",
-        image:job.result.url,
-        thumbnail:job.result.url,
-        resolution:metadataInfo.resolution,
-        size:metadataInfo.size,
-        tags,colors,
-        device:$("wallDevice").value,
-        is360:$("is360").checked,
-        scheduledAt:$("scheduleAt").value||null
-      };
-      const endpoint=publisherSession.permissions.canPublishDirectly?"/api/wallpapers":"/api/publish/submissions";
-      const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},body:JSON.stringify(payload)});
-      const result=await response.json();
-      if(!response.ok||!result.success)throw new Error(result.message||`تعذر إرسال ${file.name}`);
-      job.status="done";job.progress=100;job.uploaded=file.size;renderUploadJobs();
+      job.status="publishing";job.error="";renderUploadJobs();
+      try{
+        const metadataInfo=await metadata(file);
+        const payload={
+          title:files.length>1?`${$("wallTitle").value.trim()} - ${file.name.replace(/\.[^.]+$/ ,"")}`:$("wallTitle").value.trim(),
+          category:$("wallCategory").value,
+          type:"image",
+          image:job.result.url,
+          thumbnail:job.result.url,
+          resolution:metadataInfo.resolution,
+          size:metadataInfo.size,
+          tags,colors,
+          device:$("wallDevice").value,
+          is360:$("is360").checked,
+          scheduledAt:$("scheduleAt").value||null
+        };
+        const endpoint=publisherSession.permissions.canPublishDirectly?"/api/wallpapers":"/api/publish/submissions";
+        const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},body:JSON.stringify(payload)});
+        const result=await response.json().catch(()=>({success:false,message:"ردّ السيرفر غير صالح."}));
+        if(!response.ok||!result.success)throw new Error(result.message||`تعذر إرسال ${file.name}`);
+        job.status="done";job.progress=100;job.uploaded=file.size;job.error="";renderUploadJobs();
+      }catch(error){
+        job.status="error";job.error=error?.message||`تعذر نشر ${file.name}`;renderUploadJobs();
+        throw error;
+      }
     }
     notify(publisherSession.permissions.canPublishDirectly?"تم نشر الخلفيات واحتساب النقاط.":"تم إرسال الخلفيات للمراجعة. ستُحتسب 0.1 نقطة عن كل خلفية بعد قبولها ونشرها.");
     await loadPublisherPoints();
   }catch(error){
     notify(error.message||"وقع خطأ أثناء الرفع أو الإرسال.");
   }finally{
-    submit.disabled=false;submit.innerHTML=publisherSession?.permissions.canPublishDirectly?"نشر الخلفيات مباشرة <span>↗</span>":"إرسال الخلفيات للمراجعة <span>↗</span>";
+    lockPublishForm(false);
+    $("submitBtn").innerHTML=publisherSession?.permissions.canPublishDirectly?"نشر الخلفيات مباشرة <span>↗</span>":"إرسال الخلفيات للمراجعة <span>↗</span>";
   }
 });
 $("submitBtn").textContent="التحقق من الحساب...";

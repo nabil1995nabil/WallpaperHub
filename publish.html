@@ -146,12 +146,34 @@
         <div class="panel-heading"><div><span class="step">04</span><h2>قائمة النشر</h2></div><span class="muted">تحقق قبل الإرسال</span></div>
         <div class="queue-stats"><div><span id="queueTotal">0</span><small>ملفات مختارة</small></div><div><span id="queueValid">0</span><small>ملفات صالحة</small></div><div><span id="queueDuplicates">0</span><small>تنبيهات</small></div></div>
         <div id="validationList" class="validation-list"><p class="muted">اختار ملفات باش نتحقق منها.</p></div>
-        <section class="upload-manager" id="uploadManager" hidden>
+        <section class="upload-manager" id="uploadManager" hidden aria-live="polite" aria-label="تقدم نشر الخلفيات">
           <div class="upload-manager-heading">
-            <div><h3>حالة رفع الملفات</h3><p>كل صورة عندها شريط تقدم وأزرار تحكم مستقلّة.</p></div>
-            <span id="uploadOverall">0 / 0 مكتملة</span>
+            <div class="upload-manager-title-wrap">
+              <span class="upload-live-dot" aria-hidden="true"></span>
+              <div>
+                <h3 id="uploadManagerTitle">تقدم نشر الخلفيات</h3>
+                <p id="uploadStageText">سيظهر تقدم الدفعة هنا أثناء الرفع والنشر.</p>
+              </div>
+            </div>
+            <div class="upload-manager-actions">
+              <span id="uploadOverall">0 / 0 مكتملة</span>
+              <button type="button" id="dismissUploadManagerBtn" class="upload-dismiss" aria-label="إخفاء حالة الرفع" hidden>×</button>
+            </div>
           </div>
-          <div id="uploadItems" class="upload-items"></div>
+          <div class="upload-batch-progress">
+            <div class="upload-batch-progress-head">
+              <span>التقدم الإجمالي للدفعة</span>
+              <strong id="batchPercent">0%</strong>
+            </div>
+            <div class="upload-progress-track" id="batchProgressTrack" role="progressbar" aria-label="التقدم الإجمالي" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <span id="batchProgressFill"></span>
+            </div>
+            <div class="upload-batch-progress-foot">
+              <span id="batchFileSummary">0 من 0 خلفية</span>
+              <span id="batchBytes">0 B / 0 B</span>
+            </div>
+          </div>
+          <div id="uploadItems" class="upload-items" aria-label="حالة كل خلفية"></div>
         </section>
         <div class="bottom-actions">
           <button type="button" class="outline-btn" id="saveDraftBtn">حفظ كمسودة</button>
