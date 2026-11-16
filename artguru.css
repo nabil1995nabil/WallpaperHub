@@ -248,11 +248,13 @@ button{ -webkit-tap-highlight-color:transparent }
 }
 
 .upload-zone:hover,
-.upload-zone:focus-visible{
-    border-color:rgba(139,92,246,.6);
-    background-color:rgba(139,92,246,.035);
+.upload-zone:focus-visible,
+.upload-zone.drag-active{
+    border-color:rgba(139,92,246,.65);
+    background-color:rgba(139,92,246,.055);
     outline:none;
 }
+.upload-zone.drag-active{transform:scale(1.005);}
 
 .upload-empty{
     min-height:290px;
@@ -446,13 +448,14 @@ button{ -webkit-tap-highlight-color:transparent }
 
 .after-layer{
     position:absolute;
-    inset:0 auto 0 0;
-    width:50%;
+    inset:0;
+    width:100%;
     overflow:hidden;
-    border-right:1px solid rgba(255,255,255,.6);
+    clip-path:inset(0 50% 0 0);
 }
 .after-layer .compare-image{
     width:100%;
+    height:100%;
     max-width:none;
 }
 
