@@ -1926,6 +1926,7 @@ async function artguruRequest(url, options = {}){
 
     const response = await fetch(url, {
         ...options,
+        timeout:30000,
         headers:{
             ...(options.headers || {}),
             "x-api-key": ARTGURU_API_KEY,
@@ -7406,12 +7407,25 @@ app.get("/api/artguru/status", async (req, res) => {
         // A lightweight authenticated request validates the key without starting a paid task.
         const response = await fetch(`${ARTGURU_API_BASE}/api/v1/tasks/ENHANCE/__status_check__`, {
             method:"GET",
+            timeout:10000,
             headers:{"x-api-key":ARTGURU_API_KEY,"Accept":"application/json"}
         });
 
-        // 404 is expected for a fake task id and still proves the endpoint/key path is reachable.
-        if(response.status === 401){
-            return res.status(502).json({success:false,provider:"artguru",configured:true,status:"invalid_key"});
+        // A 404 for the intentionally fake task ID is expected and confirms API access.
+        if(response.status === 401 || response.status === 403){
+            return res.status(502).json({
+                success:false,provider:"artguru",configured:true,status:"invalid_key"
+            });
+        }
+        if(response.status === 429){
+            return res.status(503).json({
+                success:false,provider:"artguru",configured:true,status:"rate_limited"
+            });
+        }
+        if(response.status >= 500 || (!response.ok && response.status !== 404)){
+            return res.status(503).json({
+                success:false,provider:"artguru",configured:true,status:"unreachable"
+            });
         }
 
         return res.json({
@@ -7422,8 +7436,8 @@ app.get("/api/artguru/status", async (req, res) => {
             serverTime:new Date().toISOString()
         });
     }catch(error){
-        return res.json({
-            success:true,
+        return res.status(503).json({
+            success:false,
             provider:"artguru",
             configured:true,
             status:"unreachable",
