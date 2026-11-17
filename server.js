@@ -416,8 +416,8 @@ const app = express();
 
 function injectWallpaperHubLanguageRuntime(source){
     if(typeof source!=="string" || source.includes("data-wh-language-runtime")) return source;
-    const styleTag='<link rel="stylesheet" href="/language.css?v=20261117" data-wh-language-runtime="1">';
-    const scriptTag='<script defer src="/language.js?v=20261117" data-wh-language-runtime="1"></script>';
+    const styleTag='<link rel="stylesheet" href="/language.css?v=20261117-mymemory" data-wh-language-runtime="1">';
+    const scriptTag='<script defer src="/language.js?v=20261117-mymemory" data-wh-language-runtime="1"></script>';
     let html=source;
     if(/<\/head\s*>/i.test(html)) html=html.replace(/<\/head\s*>/i,styleTag+"\n</head>");
     else html=styleTag+"\n"+html;
@@ -541,63 +541,139 @@ registerWallpaperHubMcp(app);
 // ======================================
 
 // ======================================
-// WallpaperHub automatic website translation
-// Configure GOOGLE_TRANSLATE_API_KEY in Vercel. Keep it server-side only.
 // ======================================
-const GOOGLE_TRANSLATE_API_KEY=String(process.env.GOOGLE_TRANSLATE_API_KEY||"").trim();
+// WallpaperHub automatic website translation
+// Free MyMemory API: no API key, payment card, or billing setup.
+// Anonymous allowance: 5,000 characters/day. A valid contact email is optional.
+// ======================================
+const MYMEMORY_CONTACT_EMAIL=String(process.env.MYMEMORY_CONTACT_EMAIL||"").trim();
 const whTranslationRate=new Map();
-const whLanguageListCache=new Map();
+const whTranslationCache=new Map();
+
 function whTranslationRateAllowed(req){
     const now=Date.now();
     const forwarded=String(req.headers["x-forwarded-for"]||"").split(",")[0].trim();
     const ip=String(req.ip||forwarded||req.socket?.remoteAddress||"unknown");
     const item=whTranslationRate.get(ip);
-    if(!item || now-item.startedAt>60000){whTranslationRate.set(ip,{startedAt:now,count:1});return true;}
-    item.count+=1;return item.count<=60;
-}
-function whValidLanguageCode(value){return /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(String(value||""));}
-app.get("/api/translate/languages",async(req,res)=>{
-    if(!GOOGLE_TRANSLATE_API_KEY) return res.status(503).json({success:false,code:"TRANSLATION_NOT_CONFIGURED",message:"أضف GOOGLE_TRANSLATE_API_KEY إلى متغيرات Vercel لتفعيل الترجمة."});
-    const target=String(req.query.target||"ar").trim();
-    if(!whValidLanguageCode(target)) return res.status(400).json({success:false,message:"رمز اللغة غير صالح."});
-    const cached=whLanguageListCache.get(target);
-    if(cached && cached.expiresAt>Date.now()) return res.json({success:true,languages:cached.languages});
-    try{
-        const url="https://translation.googleapis.com/language/translate/v2/languages?"+new URLSearchParams({key:GOOGLE_TRANSLATE_API_KEY,target}).toString();
-        const upstream=await fetch(url,{headers:{Accept:"application/json"}});
-        const payload=await upstream.json().catch(()=>({}));
-        if(!upstream.ok) throw new Error(payload?.error?.message||"تعذر تحميل قائمة اللغات من Google.");
-        const languages=(payload?.data?.languages||[]).map(item=>({code:String(item.language||""),name:String(item.name||item.language||"")})).filter(item=>whValidLanguageCode(item.code));
-        whLanguageListCache.set(target,{languages,expiresAt:Date.now()+12*60*60*1000});
-        res.set("Cache-Control","public, s-maxage=3600, stale-while-revalidate=7200");
-        return res.json({success:true,languages});
-    }catch(error){
-        console.error("LANGUAGE LIST ERROR:",error?.message||error);
-        return res.status(502).json({success:false,message:"تعذر تحميل قائمة اللغات حالياً."});
+    if(!item || now-item.startedAt>60000){
+        whTranslationRate.set(ip,{startedAt:now,count:1});
+        return true;
     }
-});
+    item.count+=1;
+    return item.count<=60;
+}
+
+function whValidLanguageCode(value){
+    return /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(String(value||""));
+}
+
+// MyMemory accepts at most 500 UTF-8 bytes per segment.
+// Split long text nodes without cutting a multi-byte character.
+function whSplitTranslationText(value,maxBytes=450){
+    const chars=Array.from(String(value||""));
+    const parts=[];
+    let current="";
+    for(const character of chars){
+        if(current && Buffer.byteLength(current+character,"utf8")>maxBytes){
+            const breakAt=current.lastIndexOf(" ");
+            if(breakAt>current.length*0.55){
+                parts.push(current.slice(0,breakAt+1));
+                current=current.slice(breakAt+1);
+            }else{
+                parts.push(current);
+                current="";
+            }
+        }
+        current+=character;
+    }
+    if(current)parts.push(current);
+    return parts.length?parts:[""];
+}
+
+async function whTranslateMyMemorySegment(text,source,target){
+    if(!text || source===target)return text;
+    const cacheKey=source+"|"+target+"|"+text;
+    if(whTranslationCache.has(cacheKey))return whTranslationCache.get(cacheKey);
+
+    const params=new URLSearchParams({
+        q:text,
+        langpair:source+"|"+target,
+        mt:"1"
+    });
+    if(MYMEMORY_CONTACT_EMAIL)params.set("de",MYMEMORY_CONTACT_EMAIL);
+
+    const upstream=await fetch("https://api.mymemory.translated.net/get?"+params.toString(),{
+        headers:{Accept:"application/json"},
+        timeout:15000
+    });
+    const payload=await upstream.json().catch(()=>({}));
+    const status=Number(payload?.responseStatus||0);
+    const details=String(payload?.responseDetails||"");
+    const translated=String(payload?.responseData?.translatedText||"");
+
+    if(!upstream.ok || status!==200 ||
+       /PLEASE SELECT TWO DISTINCT LANGUAGES|INVALID SOURCE LANGUAGE|INVALID TARGET LANGUAGE|NO QUERY SPECIFIED|QUOTA.*EXCEEDED|DAILY.*LIMIT/i.test(translated+" "+details)){
+        const error=new Error(details||translated||"MyMemory translation request failed.");
+        error.upstreamStatus=upstream.status||status;
+        throw error;
+    }
+
+    if(whTranslationCache.size>=3000){
+        const oldest=whTranslationCache.keys().next().value;
+        if(oldest)whTranslationCache.delete(oldest);
+    }
+    whTranslationCache.set(cacheKey,translated);
+    return translated;
+}
+
+async function whTranslateMyMemoryText(text,source,target){
+    const parts=whSplitTranslationText(text);
+    const translated=[];
+    for(const part of parts){
+        translated.push(await whTranslateMyMemorySegment(part,source,target));
+    }
+    return translated.join("");
+}
+
 app.post("/api/translate",async(req,res)=>{
-    if(!GOOGLE_TRANSLATE_API_KEY) return res.status(503).json({success:false,code:"TRANSLATION_NOT_CONFIGURED",message:"خدمة الترجمة غير مفعّلة بعد. أضف GOOGLE_TRANSLATE_API_KEY في Vercel."});
-    if(!whTranslationRateAllowed(req)) return res.status(429).json({success:false,message:"طلبات الترجمة كثيرة. انتظر دقيقة ثم حاول مجدداً."});
+    if(!whTranslationRateAllowed(req)){
+        return res.status(429).json({success:false,message:"طلبات الترجمة كثيرة. حاول مجدداً بعد دقيقة."});
+    }
+
     const target=String(req.body?.target||"").trim();
     const texts=req.body?.texts;
-    if(!whValidLanguageCode(target) || !Array.isArray(texts) || !texts.length || texts.length>50 || !texts.every(value=>typeof value==="string" && value.length<=5000)){
+    const sources=req.body?.sources;
+    if(!whValidLanguageCode(target) ||
+       !Array.isArray(texts) || !texts.length || texts.length>12 ||
+       !texts.every(value=>typeof value==="string" && value.length<=5000) ||
+       !Array.isArray(sources) || sources.length!==texts.length ||
+       !sources.every(value=>value==="ar"||value==="en")){
         return res.status(400).json({success:false,message:"طلب الترجمة غير صالح."});
     }
+
     const totalLength=texts.reduce((sum,value)=>sum+value.length,0);
-    if(totalLength>25000) return res.status(413).json({success:false,message:"حجم مجموعة النصوص كبير جداً."});
+    if(totalLength>8000){
+        return res.status(413).json({success:false,message:"حجم النصوص المطلوب ترجمتها كبير جداً."});
+    }
+
     try{
-        const url="https://translation.googleapis.com/language/translate/v2?key="+encodeURIComponent(GOOGLE_TRANSLATE_API_KEY);
-        const upstream=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json; charset=utf-8",Accept:"application/json"},body:JSON.stringify({target:target,format:"text",q:texts})});
-        const payload=await upstream.json().catch(()=>({}));
-        if(!upstream.ok) throw new Error(payload?.error?.message||"Google Translation request failed.");
-        const translations=(payload?.data?.translations||[]).map(item=>String(item.translatedText||""));
-        if(translations.length!==texts.length) throw new Error("Unexpected translation response.");
+        const translations=[];
+        for(let index=0;index<texts.length;index++){
+            const source=sources[index];
+            translations.push(await whTranslateMyMemoryText(texts[index],source,target));
+        }
         res.set("Cache-Control","no-store");
         return res.json({success:true,translations});
     }catch(error){
-        console.error("SITE TRANSLATION ERROR:",error?.message||error);
-        return res.status(502).json({success:false,message:"تعذر ترجمة النصوص الآن. تحقق من مفتاح Google Cloud Translation."});
+        const details=String(error?.message||"");
+        const quotaExceeded=/quota|daily|limit.*(exceed|reach)|403/i.test(details)||Number(error?.upstreamStatus)===403;
+        console.error("MYMEMORY TRANSLATION ERROR:",details);
+        return res.status(quotaExceeded?429:502).json({
+            success:false,
+            message:quotaExceeded
+                ?"وصل الموقع إلى الحد المجاني اليومي للترجمة. جرّب من جديد غداً."
+                :"تعذرت ترجمة بعض النصوص بهذه اللغة حالياً. جرّب لغة أخرى أو أعد المحاولة لاحقاً."
+        });
     }
 });
 
