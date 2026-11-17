@@ -416,8 +416,8 @@ const app = express();
 
 function injectWallpaperHubLanguageRuntime(source){
     if(typeof source!=="string" || source.includes("data-wh-language-runtime")) return source;
-    const styleTag='<link rel="stylesheet" href="/language.css?v=20261117-mymemory" data-wh-language-runtime="1">';
-    const scriptTag='<script defer src="/language.js?v=20261117-mymemory" data-wh-language-runtime="1"></script>';
+    const styleTag='<link rel="stylesheet" href="/language.css?v=20261117-byteplus-supabase" data-wh-language-runtime="1">';
+    const scriptTag='<script defer src="/language.js?v=20261117-byteplus-supabase" data-wh-language-runtime="1"></script>';
     let html=source;
     if(/<\/head\s*>/i.test(html)) html=html.replace(/<\/head\s*>/i,styleTag+"\n</head>");
     else html=styleTag+"\n"+html;
@@ -542,13 +542,27 @@ registerWallpaperHubMcp(app);
 
 // ======================================
 // ======================================
-// WallpaperHub automatic website translation
-// Free MyMemory API: no API key, payment card, or billing setup.
-// Anonymous allowance: 5,000 characters/day. A valid contact email is optional.
 // ======================================
-const MYMEMORY_CONTACT_EMAIL=String(process.env.MYMEMORY_CONTACT_EMAIL||"").trim();
-const whTranslationRate=new Map();
-const whTranslationCache=new Map();
+// WallpaperHub translation service
+// BytePlus Text Translation + shared Supabase cache.
+// The local monthly reservation cap is intentionally below the 2M free quota.
+// ======================================
+const BYTEPLUS_ACCESS_KEY_ID = String(process.env.BYTEPLUS_ACCESS_KEY_ID || "").trim();
+const BYTEPLUS_SECRET_ACCESS_KEY = String(process.env.BYTEPLUS_SECRET_ACCESS_KEY || "").trim();
+const BYTEPLUS_REGION = String(process.env.BYTEPLUS_REGION || "ap-singapore-1").trim();
+const WH_TRANSLATION_CACHE_TABLE = "wallpaperhub_translation_cache";
+const WH_TRANSLATION_MONTHLY_CAP = (() => {
+    const configured = Number.parseInt(process.env.BYTEPLUS_MONTHLY_CHAR_CAP || "1900000", 10);
+    return Number.isFinite(configured) && configured > 0
+        ? Math.min(configured, 1900000)
+        : 1900000;
+})();
+const WH_SUPPORTED_TRANSLATION_LANGUAGES = new Set([
+    "en","zh","hi","es","ar","fr","bn","pt","id","ur","ru","de","ja",
+    "tr","ko","vi","th","fa","ms","it","sw","tl","pl","nl","zh-Hant","ta","uk"
+]);
+const whTranslationRate = new Map();
+const whTranslationCache = new Map();
 
 function whTranslationRateAllowed(req){
     const now=Date.now();
@@ -564,75 +578,189 @@ function whTranslationRateAllowed(req){
 }
 
 function whValidLanguageCode(value){
-    return /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(String(value||""));
+    return WH_SUPPORTED_TRANSLATION_LANGUAGES.has(String(value||"").trim());
 }
 
-// MyMemory accepts at most 500 UTF-8 bytes per segment.
-// Split long text nodes without cutting a multi-byte character.
-function whSplitTranslationText(value,maxBytes=450){
-    const chars=Array.from(String(value||""));
-    const parts=[];
-    let current="";
-    for(const character of chars){
-        if(current && Buffer.byteLength(current+character,"utf8")>maxBytes){
-            const breakAt=current.lastIndexOf(" ");
-            if(breakAt>current.length*0.55){
-                parts.push(current.slice(0,breakAt+1));
-                current=current.slice(breakAt+1);
-            }else{
-                parts.push(current);
-                current="";
-            }
-        }
-        current+=character;
+function whTranslationCacheKey(text,target){
+    return crypto.createHash("sha256")
+        .update("auto\\0"+target+"\\0"+String(text),"utf8")
+        .digest("hex");
+}
+
+function whTranslationCharacterCount(value){
+    return Array.from(String(value||"")).length;
+}
+
+function whBytePlusHmac(key,value,encoding){
+    const digest=crypto.createHmac("sha256",key).update(value,"utf8").digest();
+    return encoding==="hex" ? digest.toString("hex") : digest;
+}
+
+// BytePlus OpenAPI v4 signing for TranslateText.
+// SourceLanguage is omitted intentionally so BytePlus detects each source language.
+function whBytePlusSignedHeaders(body,params){
+    const datetime=new Date().toISOString().replace(/[:-]|\\.\\d{3}/g,"");
+    const date=datetime.slice(0,8);
+    const queryString=Object.keys(params).sort()
+        .map(key=>encodeURIComponent(key)+"="+encodeURIComponent(String(params[key])))
+        .join("&");
+    const bodyHash=crypto.createHash("sha256").update(body,"utf8").digest("hex");
+    const signedHeaders="x-content-sha256;x-date";
+    const canonicalHeaders="x-content-sha256:"+bodyHash+"\\nx-date:"+datetime;
+    const canonicalRequest=[
+        "POST",
+        "/",
+        queryString,
+        canonicalHeaders+"\\n",
+        signedHeaders,
+        bodyHash
+    ].join("\\n");
+    const scope=date+"/"+BYTEPLUS_REGION+"/translate/request";
+    const stringToSign=[
+        "HMAC-SHA256",
+        datetime,
+        scope,
+        crypto.createHash("sha256").update(canonicalRequest,"utf8").digest("hex")
+    ].join("\\n");
+
+    const kDate=whBytePlusHmac(BYTEPLUS_SECRET_ACCESS_KEY,date);
+    const kRegion=whBytePlusHmac(kDate,BYTEPLUS_REGION);
+    const kService=whBytePlusHmac(kRegion,"translate");
+    const kSigning=whBytePlusHmac(kService,"request");
+    const signature=whBytePlusHmac(kSigning,stringToSign,"hex");
+
+    return {
+        "Accept":"application/json",
+        "Content-Type":"application/json",
+        "X-Date":datetime,
+        "X-Content-Sha256":bodyHash,
+        "Authorization":"HMAC-SHA256 Credential="+BYTEPLUS_ACCESS_KEY_ID+"/"+scope+
+            ", SignedHeaders="+signedHeaders+", Signature="+signature
+    };
+}
+
+async function whBytePlusTranslateBatch(texts,target){
+    if(!BYTEPLUS_ACCESS_KEY_ID || !BYTEPLUS_SECRET_ACCESS_KEY){
+        const error=new Error("BytePlus API credentials are not configured.");
+        error.code="WH_BYTEPLUS_NOT_CONFIGURED";
+        throw error;
     }
-    if(current)parts.push(current);
-    return parts.length?parts:[""];
-}
-
-async function whTranslateMyMemorySegment(text,source,target){
-    if(!text || source===target)return text;
-    const cacheKey=source+"|"+target+"|"+text;
-    if(whTranslationCache.has(cacheKey))return whTranslationCache.get(cacheKey);
-
-    const params=new URLSearchParams({
-        q:text,
-        langpair:source+"|"+target,
-        mt:"1"
+    const params={Action:"TranslateText",Version:"2020-06-01"};
+    const body=JSON.stringify({
+        TargetLanguage:target,
+        TextList:texts
     });
-    if(MYMEMORY_CONTACT_EMAIL)params.set("de",MYMEMORY_CONTACT_EMAIL);
-
-    const upstream=await fetch("https://api.mymemory.translated.net/get?"+params.toString(),{
-        headers:{Accept:"application/json"},
-        timeout:15000
+    const query=new URLSearchParams(params).toString();
+    const upstream=await fetch("https://open.byteplusapi.com/?"+query,{
+        method:"POST",
+        headers:whBytePlusSignedHeaders(body,params),
+        body,
+        timeout:20000
     });
     const payload=await upstream.json().catch(()=>({}));
-    const status=Number(payload?.responseStatus||0);
-    const details=String(payload?.responseDetails||"");
-    const translated=String(payload?.responseData?.translatedText||"");
+    const apiError=payload?.ResponseMetadata?.Error;
+    if(!upstream.ok || (apiError && (apiError.Code || apiError.Message))){
+        const error=new Error(String(apiError?.Message||apiError?.Code||"BytePlus translation request failed."));
+        error.upstreamStatus=upstream.status;
+        error.byteplusCode=apiError?.Code||"";
+        throw error;
+    }
+    if(!Array.isArray(payload?.TranslationList) || payload.TranslationList.length!==texts.length){
+        const error=new Error("BytePlus returned an incomplete translation response.");
+        error.upstreamStatus=upstream.status;
+        throw error;
+    }
+    return payload.TranslationList.map((item,index)=>{
+        const translated=typeof item==="string" ? item : item?.Translation;
+        if(typeof translated!=="string"){
+            throw new Error("BytePlus returned an invalid translation at item "+index+".");
+        }
+        return translated;
+    });
+}
 
-    if(!upstream.ok || status!==200 ||
-       /PLEASE SELECT TWO DISTINCT LANGUAGES|INVALID SOURCE LANGUAGE|INVALID TARGET LANGUAGE|NO QUERY SPECIFIED|QUOTA.*EXCEEDED|DAILY.*LIMIT/i.test(translated+" "+details)){
-        const error=new Error(details||translated||"MyMemory translation request failed.");
-        error.upstreamStatus=upstream.status||status;
+async function whTranslateWithSupabaseCache(texts,target){
+    const translations=new Array(texts.length);
+    const keys=texts.map(text=>whTranslationCacheKey(text,target));
+    const missingByKey=new Map();
+
+    texts.forEach((text,index)=>{
+        const key=keys[index];
+        if(whTranslationCache.has(key)){
+            translations[index]=whTranslationCache.get(key);
+            return;
+        }
+        const indexes=missingByKey.get(key)||[];
+        indexes.push(index);
+        missingByKey.set(key,indexes);
+    });
+
+    if(!missingByKey.size)return translations;
+
+    const missingKeys=[...missingByKey.keys()];
+    const {data:cachedRows,error:cacheReadError}=await supabase
+        .from(WH_TRANSLATION_CACHE_TABLE)
+        .select("cache_key,translated_text")
+        .in("cache_key",missingKeys);
+    if(cacheReadError)throw cacheReadError;
+
+    const cachedMap=new Map((cachedRows||[]).map(row=>[
+        String(row.cache_key),String(row.translated_text||"")
+    ]));
+    const trulyMissing=[];
+    missingByKey.forEach((indexes,key)=>{
+        if(cachedMap.has(key)){
+            const value=cachedMap.get(key);
+            whTranslationCache.set(key,value);
+            indexes.forEach(index=>{translations[index]=value;});
+        }else{
+            trulyMissing.push({key,indexes,text:texts[indexes[0]]});
+        }
+    });
+
+    if(!trulyMissing.length)return translations;
+
+    const uniqueTexts=trulyMissing.map(item=>item.text);
+    const characters=uniqueTexts.reduce((sum,text)=>sum+whTranslationCharacterCount(text),0);
+    const {data:reserved,error:reserveError}=await supabase.rpc(
+        "reserve_wallpaperhub_translation_chars",
+        {p_chars:characters,p_monthly_limit:WH_TRANSLATION_MONTHLY_CAP}
+    );
+    if(reserveError)throw reserveError;
+    if(reserved!==true){
+        const error=new Error("WallpaperHub reached its safe monthly free-translation limit.");
+        error.code="WH_TRANSLATION_MONTHLY_CAP";
         throw error;
     }
 
-    if(whTranslationCache.size>=3000){
-        const oldest=whTranslationCache.keys().next().value;
-        if(oldest)whTranslationCache.delete(oldest);
-    }
-    whTranslationCache.set(cacheKey,translated);
-    return translated;
-}
+    // The browser sends at most eight strings per request, matching BytePlus TextList limits.
+    const translatedTexts=await whBytePlusTranslateBatch(uniqueTexts,target);
+    const timestamp=new Date().toISOString();
+    const rows=trulyMissing.map((item,index)=>({
+        cache_key:item.key,
+        source_language:"auto",
+        target_language:target,
+        source_text:item.text,
+        translated_text:translatedTexts[index],
+        provider:"byteplus",
+        character_count:whTranslationCharacterCount(item.text),
+        updated_at:timestamp
+    }));
 
-async function whTranslateMyMemoryText(text,source,target){
-    const parts=whSplitTranslationText(text);
-    const translated=[];
-    for(const part of parts){
-        translated.push(await whTranslateMyMemorySegment(part,source,target));
+    const {error:cacheWriteError}=await supabase
+        .from(WH_TRANSLATION_CACHE_TABLE)
+        .upsert(rows,{onConflict:"cache_key"});
+    if(cacheWriteError)throw cacheWriteError;
+
+    rows.forEach((row,index)=>{
+        const value=String(row.translated_text);
+        whTranslationCache.set(row.cache_key,value);
+        trulyMissing[index].indexes.forEach(itemIndex=>{translations[itemIndex]=value;});
+    });
+    while(whTranslationCache.size>5000){
+        whTranslationCache.delete(whTranslationCache.keys().next().value);
     }
-    return translated.join("");
+    return translations;
 }
 
 app.post("/api/translate",async(req,res)=>{
@@ -642,13 +770,10 @@ app.post("/api/translate",async(req,res)=>{
 
     const target=String(req.body?.target||"").trim();
     const texts=req.body?.texts;
-    const sources=req.body?.sources;
     if(!whValidLanguageCode(target) ||
-       !Array.isArray(texts) || !texts.length || texts.length>12 ||
-       !texts.every(value=>typeof value==="string" && value.length<=5000) ||
-       !Array.isArray(sources) || sources.length!==texts.length ||
-       !sources.every(value=>value==="ar"||value==="en")){
-        return res.status(400).json({success:false,message:"طلب الترجمة غير صالح."});
+       !Array.isArray(texts) || !texts.length || texts.length>8 ||
+       !texts.every(value=>typeof value==="string" && value.length<=5000)){
+        return res.status(400).json({success:false,message:"طلب الترجمة غير صالح أو اللغة غير مدعومة."});
     }
 
     const totalLength=texts.reduce((sum,value)=>sum+value.length,0);
@@ -657,22 +782,25 @@ app.post("/api/translate",async(req,res)=>{
     }
 
     try{
-        const translations=[];
-        for(let index=0;index<texts.length;index++){
-            const source=sources[index];
-            translations.push(await whTranslateMyMemoryText(texts[index],source,target));
-        }
+        const translations=await whTranslateWithSupabaseCache(texts,target);
         res.set("Cache-Control","no-store");
-        return res.json({success:true,translations});
+        return res.json({success:true,translations,cache:"supabase"});
     }catch(error){
         const details=String(error?.message||"");
-        const quotaExceeded=/quota|daily|limit.*(exceed|reach)|403/i.test(details)||Number(error?.upstreamStatus)===403;
-        console.error("MYMEMORY TRANSLATION ERROR:",details);
-        return res.status(quotaExceeded?429:502).json({
+        const schemaMissing=/PGRST202|PGRST205|42P01|schema cache|does not exist|Could not find the table|Could not find the function/i.test(details+" "+String(error?.code||""));
+        console.error("WALLPAPERHUB TRANSLATION ERROR:",details,String(error?.code||""));
+        if(error?.code==="WH_TRANSLATION_MONTHLY_CAP"){
+            return res.status(429).json({success:false,message:"وصل الموقع إلى الحد الآمن المجاني لهذا الشهر. ستعود الترجمة عند تجدد الحصة الشهرية."});
+        }
+        if(error?.code==="WH_BYTEPLUS_NOT_CONFIGURED"){
+            return res.status(503).json({success:false,message:"خدمة BytePlus لم تُفعّل بعد. أضف مفاتيح BytePlus في إعدادات Vercel."});
+        }
+        if(schemaMissing){
+            return res.status(503).json({success:false,message:"خاص تهيّأ جدول ترجمة WallpaperHub ودوال الحصة في Supabase باستعمال ملف SQL المرفق بالمشروع."});
+        }
+        return res.status(502).json({
             success:false,
-            message:quotaExceeded
-                ?"وصل الموقع إلى الحد المجاني اليومي للترجمة. جرّب من جديد غداً."
-                :"تعذرت ترجمة بعض النصوص بهذه اللغة حالياً. جرّب لغة أخرى أو أعد المحاولة لاحقاً."
+            message:"تعذرت الترجمة عبر BytePlus حالياً. تحقق من مفاتيح الخدمة أو أعد المحاولة لاحقاً."
         });
     }
 });
