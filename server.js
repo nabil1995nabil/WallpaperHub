@@ -599,22 +599,22 @@ function whBytePlusHmac(key,value,encoding){
 // BytePlus OpenAPI v4 signing for TranslateText.
 // SourceLanguage is omitted intentionally so BytePlus detects each source language.
 function whBytePlusSignedHeaders(body,params){
-    const datetime=new Date().toISOString().replace(/[:-]|\\.\\d{3}/g,"");
+    const datetime=new Date().toISOString().replace(/[:-]|\.\d{3}/g,"");
     const date=datetime.slice(0,8);
     const queryString=Object.keys(params).sort()
         .map(key=>encodeURIComponent(key)+"="+encodeURIComponent(String(params[key])))
         .join("&");
     const bodyHash=crypto.createHash("sha256").update(body,"utf8").digest("hex");
     const signedHeaders="x-content-sha256;x-date";
-    const canonicalHeaders="x-content-sha256:"+bodyHash+"\\nx-date:"+datetime;
+    const canonicalHeaders="x-content-sha256:"+bodyHash+"\nx-date:"+datetime;
     const canonicalRequest=[
         "POST",
         "/",
         queryString,
-        canonicalHeaders+"\\n",
+        canonicalHeaders+"\n",
         signedHeaders,
         bodyHash
-    ].join("\\n");
+    ].join("\n");
     const scope=date+"/"+BYTEPLUS_REGION+"/translate/request";
     const stringToSign=[
         "HMAC-SHA256",
@@ -719,6 +719,12 @@ async function whTranslateWithSupabaseCache(texts,target){
     });
 
     if(!trulyMissing.length)return translations;
+
+    if(!BYTEPLUS_ACCESS_KEY_ID || !BYTEPLUS_SECRET_ACCESS_KEY){
+        const error=new Error("BytePlus API credentials are not configured.");
+        error.code="WH_BYTEPLUS_NOT_CONFIGURED";
+        throw error;
+    }
 
     const uniqueTexts=trulyMissing.map(item=>item.text);
     const characters=uniqueTexts.reduce((sum,text)=>sum+whTranslationCharacterCount(text),0);
