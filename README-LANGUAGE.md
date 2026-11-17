@@ -1,24 +1,37 @@
 # WallpaperHub — Automatic site languages
 
-## Required Vercel environment variable
+## Translation provider
 
-Add `GOOGLE_TRANSLATE_API_KEY` in Vercel → Project → Settings → Environment Variables.
+WallpaperHub uses the **MyMemory Translation API** in its free anonymous mode.
 
-Create or select a Google Cloud project, enable **Cloud Translation API**, create an API key, restrict it to Cloud Translation API, and keep it server-side. Never add the key to browser JavaScript.
+- No API key is needed.
+- No Google Cloud project, billing account, payment card, or paid plan is needed.
+- The anonymous free allowance is 5,000 characters per day.
+- Optionally, set a valid contact email in `MYMEMORY_CONTACT_EMAIL` to raise the documented free allowance to 50,000 characters per day. This is optional and is not a payment method.
+- MyMemory accepts up to 500 UTF-8 bytes per translation segment. The server safely splits longer text nodes and sends segments sequentially.
 
-Redeploy after adding the variable.
+## Vercel setup
+
+No environment variable is required for the default anonymous free mode.
+
+Optional:
+1. Open Vercel → Project → Settings → Environment Variables.
+2. Add `MYMEMORY_CONTACT_EMAIL` with a valid contact email address.
+3. Redeploy.
+
+Do not add `GOOGLE_TRANSLATE_API_KEY`; the site no longer uses Google Cloud Translation.
 
 ## Behaviour
 
 - The language picker is in Settings → System → Language.
 - The selected language is stored in the browser and applied across full pages and dynamically inserted components.
-- The list is fetched from Google Cloud Translation and reflects the languages supported by the provider.
-- Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish and Divehi use RTL direction.
-- Translation is machine-generated and may not preserve every specialised term perfectly.
-- Translation requests pass through `/api/translate`; the Google key is never sent to the browser.
+- The language list is bundled with the browser runtime, so no paid language-list API is needed.
+- Arabic and other right-to-left languages automatically use RTL direction.
+- Browser-side translation caching reduces repeat API calls.
+- Machine translation quality and supported language pairs can vary. The service may temporarily stop translating after its daily free allowance is reached; the site will show a clear notice and can try again when the allowance resets.
 
-## Cost and limits
+## Official provider documentation
 
-Cloud Translation is a metered Google Cloud service. Enable billing and configure budgets/quotas in Google Cloud. The server batches text, limits request sizes, and applies a basic per-IP rate limit.
-
-Official docs: https://cloud.google.com/translate/docs
+- API specification: https://mymemory.translated.net/doc/spec.php
+- Usage limits: https://mymemory.translated.net/doc/usagelimits.php
+- Terms: https://mymemory.translated.net/terms-and-conditions
