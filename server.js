@@ -587,11 +587,8 @@ app.post("/api/translate",async(req,res)=>{
     const totalLength=texts.reduce((sum,value)=>sum+value.length,0);
     if(totalLength>25000) return res.status(413).json({success:false,message:"حجم مجموعة النصوص كبير جداً."});
     try{
-        const form=new URLSearchParams();
-        form.append("target",target);form.append("format","text");
-        texts.forEach(value=>form.append("q",value));
         const url="https://translation.googleapis.com/language/translate/v2?key="+encodeURIComponent(GOOGLE_TRANSLATE_API_KEY);
-        const upstream=await fetch(url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded",Accept:"application/json"},body:form.toString()});
+        const upstream=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json; charset=utf-8",Accept:"application/json"},body:JSON.stringify({target:target,format:"text",q:texts})});
         const payload=await upstream.json().catch(()=>({}));
         if(!upstream.ok) throw new Error(payload?.error?.message||"Google Translation request failed.");
         const translations=(payload?.data?.translations||[]).map(item=>String(item.translatedText||""));
