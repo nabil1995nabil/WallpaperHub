@@ -74,9 +74,9 @@ return found;
 function cacheKey(text,target){return (target||currentLanguage)+"|"+text;}
 async function translateBatch(items,requestGeneration,target){
 var texts=items.map(function(item){return item.original;});
-var response=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({target:target,texts:texts})});
+var response=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({target:target,texts:texts,sources:texts.map(function(text){return /[\u0600-\u06FF]/.test(text)?"ar":"en";})})});
 var data=await response.json().catch(function(){return{};});
-if(!response.ok||!data.success||!Array.isArray(data.translations))throw new Error(data.message||"تعذر الاتصال بخدمة الترجمة.");
+if(!response.ok||!data.success||!Array.isArray(data.translations))throw new Error(data.message||"تعذر الاتصال بخدمة الترجمة المجانية.");
 if(requestGeneration!==generation)return;
 items.forEach(function(item,index){
 var translated=String(data.translations[index]===undefined?item.original:data.translations[index]);
@@ -103,7 +103,7 @@ else if(item.element&&item.element.isConnected&&item.element.getAttribute(item.a
 }else pending.push(item);
 });
 var batches=[],batch=[],chars=0;
-pending.forEach(function(item){var length=item.original.length;if(batch.length>=35||chars+length>7500){batches.push(batch);batch=[];chars=0;}batch.push(item);chars+=length;});
+pending.forEach(function(item){var length=item.original.length;if(batch.length>=8||chars+length>1800){batches.push(batch);batch=[];chars=0;}batch.push(item);chars+=length;});
 if(batch.length)batches.push(batch);
 for(var i=0;i<batches.length;i+=2){
 if(requestGeneration!==generation)break;
@@ -143,7 +143,7 @@ overlay.innerHTML='<section class="wh-language-dialog" role="dialog" aria-modal=
 '<label class="wh-language-search"><span class="material-icons">search</span><input id="whLanguageSearch" type="search" placeholder="ابحث عن لغة أو رمزها" autocomplete="off"></label>'+
 '<div class="wh-language-meta"><span id="whLanguageCount">جاري تحميل اللغات...</span><button type="button" id="whLanguageOriginal">اللغة الأصلية: العربية</button></div>'+
 '<div class="wh-language-list" id="wh-language-list" data-no-translate></div><p class="wh-language-status" id="whLanguageStatus" role="status" aria-live="polite"></p>'+
-'<p class="wh-language-footnote">الترجمة آلية وقد تختلف دقتها حسب اللغة والسياق.</p></section>';
+'<p class="wh-language-footnote">الترجمة آلية وقد تختلف دقتها، وتخضع للحد المجاني اليومي.</p></section>';
 document.body.appendChild(overlay);
 var notice=document.createElement("div");notice.id="whLanguageNotice";notice.className="wh-language-toast";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");document.body.appendChild(notice);
 currentModal=overlay;modalStatus=overlay.querySelector("#whLanguageStatus");languageListNode=overlay.querySelector("#wh-language-list");searchNode=overlay.querySelector("#whLanguageSearch");
@@ -171,17 +171,11 @@ if(!filtered.length){var empty=document.createElement("p");empty.className="wh-l
 }
 async function loadLanguageList(){
 if(languageList.length&&languageListTarget===currentLanguage)return;
-setStatus("جاري تحميل قائمة اللغات المدعومة...",false);
-try{
-var response=await fetch("/api/translate/languages?target="+encodeURIComponent(currentLanguage),{credentials:"same-origin",cache:"no-store"});
-var data=await response.json().catch(function(){return{};});
-if(!response.ok||!data.success||!Array.isArray(data.languages))throw new Error(data.message||"تعذر تحميل القائمة الرسمية.");
-languageList=data.languages;languageListTarget=currentLanguage;
-}catch(error){
-languageList=FALLBACK_LANGUAGES.slice();languageListTarget=currentLanguage;
-setStatus((error.message||"خدمة الترجمة غير مهيأة.")+" اللائحة الاحتياطية معروضة، لكن الترجمة تحتاج تفعيل مفتاح Google Cloud في Vercel.",true);
-}
-languageList.sort(function(a,b){return new Intl.Collator(currentLanguage).compare(a.name,b.name);});renderLanguageList();
+setStatus("جاري تحميل قائمة اللغات...",false);
+languageList=FALLBACK_LANGUAGES.slice();
+languageListTarget=currentLanguage;
+languageList.sort(function(a,b){return new Intl.Collator(currentLanguage).compare(a.name,b.name);});
+renderLanguageList();
 }
 function openPicker(){ensureModal();currentModal.hidden=false;searchNode.value="";renderLanguageList();searchNode.focus();loadLanguageList();}
 function init(){
