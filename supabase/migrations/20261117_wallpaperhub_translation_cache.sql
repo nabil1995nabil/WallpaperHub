@@ -69,6 +69,33 @@ $$;
 revoke all on function public.reserve_wallpaperhub_translation_chars(integer, integer) from public, anon, authenticated;
 grant execute on function public.reserve_wallpaperhub_translation_chars(integer, integer) to service_role;
 
+-- Return reservations for explicit provider rejections (invalid credentials,
+-- unsupported language pair, rate limit, etc.). Network timeouts are not refunded.
+create or replace function public.release_wallpaperhub_translation_chars(
+    p_chars integer
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+    v_month date := date_trunc('month', now() at time zone 'UTC')::date;
+begin
+    if p_chars is null or p_chars <= 0 then
+        return;
+    end if;
+
+    update public.wallpaperhub_translation_usage
+       set character_count = greatest(character_count - p_chars, 0),
+           updated_at = now()
+     where billing_month = v_month;
+end;
+$;
+
+revoke all on function public.release_wallpaperhub_translation_chars(integer) from public, anon, authenticated;
+grant execute on function public.release_wallpaperhub_translation_chars(integer) to service_role;
+
 comment on table public.wallpaperhub_translation_cache is
     'Shared translations used by WallpaperHub; server service_role only.';
 comment on table public.wallpaperhub_translation_usage is
