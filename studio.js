@@ -16,7 +16,7 @@
   const toolLabels={wallpaper:'تصميم الخلفيات',theme:'ثيمات الهاتف',icons:'حزم الأيقونات',widget:'الودجات',lock:'شاشة القفل'};
   const presets=['aurora','mountain','waves','minimal','geometry','dots','stripes'];
   const appIcons=[['☎','phone','الهاتف'],['▧','photos','الصور'],['◉','camera','الكاميرا'],['♫','music','الموسيقى'],['✉','messages','الرسائل'],['◎','browser','المتصفح'],['⚙','settings','الإعدادات'],['◈','files','الملفات'],['✦','store','المتجر']];
-  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set(),shareThemeUrl:null};
+  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set(),shareThemeUrl:null,shareConfigKey:null};
   const canvas=$('#designCanvas');
   const ctx=canvas?.getContext('2d');
   const toastNode=$('#studioToast');
@@ -237,12 +237,29 @@
   }
     
   function reset(){
-    state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=100;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;
+    state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=100;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;state.shareImageUrl=null;state.shareThemeUrl=null;state.shareSaved=false;state.shareConfigKey=null;state.successfulDestinations=new Set();
     $('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value='65';$('#showClock').checked=true;$('#clockStyle').value='digital';$('#clockFormat').value='24';$('#clockSize').value='112';$('#clockColor').value='auto';$('#showDate').checked=true;$('#showStatusBar').checked=true;$('#iconShape').value='rounded';$('#iconScale').value='100';$('#showIconLabels').checked=true;
     $$('.screen-mode-button').forEach(b=>b.classList.toggle('is-active',b.dataset.screenMode===state.screenMode));$('#paletteRow').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.palette==='violet'));$('#presetGrid').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.preset==='aurora'));
     loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB'});readControls();toast('تمت إعادة ضبط التصميم');
   }
-  function openPublishModal(){if(!state.user||!state.client){toast('سجّل الدخول أولاً لمشاركة تصميمك');location.href='/login';return}state.shareImageUrl=null;state.shareThemeUrl=null;state.shareSaved=false;state.successfulDestinations=new Set();readControls();$('#publishCaption').value=state.subtitle||state.title;$('#publishDestinationsModal').classList.remove('hidden');$('#publishDestinationsModal').setAttribute('aria-hidden','false');requestAnimationFrame(()=>$('#publishDestinationsModal').classList.add('is-open'));$('#multiPublishStatus').classList.add('hidden');loadShareForums()}
+  function openPublishModal(){
+    if(!state.user||!state.client){toast('سجّل الدخول أولاً لمشاركة تصميمك');location.href='/login';return}
+    readControls();
+    const configKey=JSON.stringify(designConfig());
+    if(state.shareConfigKey!==configKey){
+      state.shareConfigKey=configKey;
+      state.shareImageUrl=null;
+      state.shareThemeUrl=null;
+      state.shareSaved=false;
+      state.successfulDestinations=new Set();
+    }
+    $('#publishCaption').value=state.subtitle||state.title;
+    $('#publishDestinationsModal').classList.remove('hidden');
+    $('#publishDestinationsModal').setAttribute('aria-hidden','false');
+    requestAnimationFrame(()=>$('#publishDestinationsModal').classList.add('is-open'));
+    $('#multiPublishStatus').classList.add('hidden');
+    loadShareForums();
+  }
   function closePublishModal(){const modal=$('#publishDestinationsModal');modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');setTimeout(()=>{if(!modal.classList.contains('is-open'))modal.classList.add('hidden')},200)}
   async function loadShareForums(){const target=$('#publishForumChoices'),all=$('#selectAllForums');target.innerHTML='<div class="forum-choice-empty">جاري تحميل منتدياتك...</div>';all.disabled=true;try{const {data:members,error:memberError}=await state.client.from('community_room_members').select('room_id,role,status').eq('user_id',state.user.id).eq('status','active');if(memberError)throw memberError;const ids=(members||[]).map(m=>m.room_id);if(!ids.length){state.forums=[];target.innerHTML='<div class="forum-choice-empty">لا تنتمي إلى أي منتدى بعد.<br><a href="/community.html">أنشئ منتدى أو انضم إلى منتدى من صفحة المجتمع</a></div>';return}const {data:rooms,error:roomError}=await state.client.from('community_rooms').select('id,name,is_private').in('id',ids).order('name');if(roomError)throw roomError;state.forums=rooms||[];target.replaceChildren();if(!state.forums.length){target.innerHTML='<div class="forum-choice-empty">لا توجد منتديات متاحة حالياً.</div>';return}state.forums.forEach(room=>{const label=document.createElement('label');label.className='publish-forum-choice';const input=document.createElement('input');input.type='checkbox';input.value=room.id;input.dataset.forumId=room.id;const name=document.createElement('span');name.textContent=`${room.is_private?'🔒 ':'🌐 '}${room.name}`;label.append(input,name);target.append(label)});all.disabled=false}catch(error){console.warn('STUDIO LOAD FORUMS:',error);state.forums=[];target.innerHTML='<div class="forum-choice-empty">تعذر تحميل المنتديات. تأكد أنك عضو في المنتدى وأن قاعدة بيانات المنتديات مفعّلة.</div>'}}
   function showPublishStatus(message,isError=false){const node=$('#multiPublishStatus');node.textContent=message;node.classList.toggle('is-error',isError);node.classList.remove('hidden')}
