@@ -621,7 +621,7 @@ function whBytePlusSignedHeaders(body,params){
         datetime,
         scope,
         crypto.createHash("sha256").update(canonicalRequest,"utf8").digest("hex")
-    ].join("\\n");
+    ].join("\n");
 
     const kDate=whBytePlusHmac(BYTEPLUS_SECRET_ACCESS_KEY,date);
     const kRegion=whBytePlusHmac(kDate,BYTEPLUS_REGION);
