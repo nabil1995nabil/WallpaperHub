@@ -64,3 +64,7 @@
 
 .creation-card{text-decoration:none;color:inherit;display:block;cursor:pointer}
 .creation-card .creation-pack-badge{display:inline-flex;width:max-content;max-width:100%;padding:3px 7px;border-radius:7px;background:rgba(112,87,218,.1);color:#7560ce;font-size:8px}
+
+
+/* Shared utility: hide elements marked hidden across the studio UI. */
+.hidden{display:none!important}
