@@ -740,7 +740,21 @@ async function whTranslateWithSupabaseCache(texts,target){
     }
 
     // The browser sends at most eight strings per request, matching BytePlus TextList limits.
-    const translatedTexts=await whBytePlusTranslateBatch(uniqueTexts,target);
+    let translatedTexts;
+    try{
+        translatedTexts=await whBytePlusTranslateBatch(uniqueTexts,target);
+    }catch(translationError){
+        // Release only when BytePlus explicitly rejects the request. For a timeout
+        // or lost connection, keep the reservation because the provider may have processed it.
+        if(Number(translationError?.upstreamStatus)>=400 || translationError?.byteplusCode){
+            const {error:releaseError}=await supabase.rpc(
+                "release_wallpaperhub_translation_chars",
+                {p_chars:characters}
+            );
+            if(releaseError)console.warn("TRANSLATION USAGE RELEASE ERROR:",releaseError.message);
+        }
+        throw translationError;
+    }
     const timestamp=new Date().toISOString();
     const rows=trulyMissing.map((item,index)=>({
         cache_key:item.key,
