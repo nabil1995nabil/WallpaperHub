@@ -186,7 +186,10 @@ languageList.sort(function(a,b){return new Intl.Collator(currentLanguage).compar
 function openPicker(){ensureModal();currentModal.hidden=false;searchNode.value="";renderLanguageList();searchNode.focus();loadLanguageList();}
 function init(){
 ensureModal();applyDocumentLanguage();
-document.querySelectorAll("[data-wh-language-open]").forEach(function(node){node.addEventListener("click",openPicker);});
+document.querySelectorAll("[data-wh-language-open]").forEach(function(node){
+node.addEventListener("click",openPicker);
+node.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();openPicker();}});
+});
 if(currentLanguage!==DEFAULT_LANGUAGE)setTimeout(applyPendingTranslations,0);
 if(window.MutationObserver&&document.body){
 var observer=new MutationObserver(function(records){
