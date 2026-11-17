@@ -1,0 +1,43 @@
+
+.wh-language-overlay{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:16px;background:rgba(11,14,35,.58);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.wh-language-overlay[hidden]{display:none!important}
+.wh-language-dialog{width:min(620px,100%);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(255,255,255,.8);border-radius:24px;background:#fff;color:#18203a;box-shadow:0 26px 90px rgba(0,0,0,.28);font-family:inherit}
+.wh-language-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:22px 22px 15px;border-bottom:1px solid #edf0f7}
+.wh-language-kicker{font-size:9px;letter-spacing:2px;font-weight:900;color:#8272ea}
+.wh-language-header h2{margin:4px 0 2px;font-size:21px;font-weight:900}
+.wh-language-header p{margin:0;color:#7a849c;font-size:11px}
+.wh-language-close{flex:0 0 38px;width:38px;height:38px;border:0;border-radius:12px;background:#f3f4fb;color:#626d87;cursor:pointer;display:grid;place-items:center}
+.wh-language-close .material-icons{font-size:20px}
+.wh-language-search{height:46px;margin:15px 20px 10px;display:flex;align-items:center;gap:9px;padding:0 13px;border:1px solid #e3e7f1;border-radius:13px;background:#f8f9fd;color:#8790a7}
+.wh-language-search .material-icons{font-size:20px}
+.wh-language-search input{width:100%;height:100%;border:0;outline:0;background:transparent;color:#202842;font:inherit;font-size:12px}
+.wh-language-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 21px 10px;color:#8790a5;font-size:10px}
+.wh-language-meta button{border:0;background:transparent;color:#7968df;font:inherit;font-weight:800;cursor:pointer}
+.wh-language-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;overflow:auto;padding:3px 20px 14px;overscroll-behavior:contain}
+.wh-language-option{min-width:0;min-height:47px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #edf0f6;border-radius:12px;background:#fff;color:#28314e;text-align:start;cursor:pointer}
+.wh-language-option:hover{border-color:#bdb2ff;background:#faf9ff}
+.wh-language-option.is-selected{border-color:#8b7cf0;background:#f4f1ff}
+.wh-language-option-name{flex:1;min-width:0;font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wh-language-option small{color:#9aa2b5;font-size:9px;direction:ltr}
+.wh-language-option-check{width:17px;color:#755fe7;font-size:12px;font-weight:900;text-align:center}
+.wh-language-empty{grid-column:1/-1;padding:24px;text-align:center;color:#8b93a7;font-size:12px}
+.wh-language-status{min-height:16px;margin:0;padding:7px 21px 0;color:#6975a0;font-size:10px;line-height:1.7}
+.wh-language-status.is-error{color:#bf485c}
+.wh-language-footnote{margin:0;padding:9px 21px 15px;color:#a0a6b7;font-size:9px}
+.wh-language-toast{position:fixed;z-index:2147483001;bottom:24px;left:50%;max-width:calc(100vw - 28px);transform:translate(-50%,12px);padding:11px 15px;border:1px solid rgba(255,255,255,.8);border-radius:13px;background:rgba(31,34,72,.94);color:#fff;box-shadow:0 12px 34px rgba(0,0,0,.2);font-size:11px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.wh-language-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+.language-setting-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;border-bottom:1px solid var(--line);background:transparent;color:inherit;text-align:inherit;cursor:pointer;font:inherit}
+.language-setting-button:hover{background:rgba(88,101,242,.035)}
+.language-setting-value{flex:0 0 auto;max-width:40%;padding:6px 10px;border-radius:10px;background:var(--soft);color:var(--brand);font-size:10px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.language-setting-button .arrow{color:#98a0b2;font-size:20px}
+@media(max-width:520px){
+.wh-language-overlay{padding:9px;align-items:end}
+.wh-language-dialog{max-height:92dvh;border-radius:22px 22px 16px 16px}
+.wh-language-header{padding:18px 16px 12px}
+.wh-language-search{margin:12px 15px 9px}
+.wh-language-meta{padding-inline:16px}
+.wh-language-list{padding-inline:15px;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.wh-language-option{min-height:44px;padding:7px}
+.wh-language-option-name{font-size:10px}
+.wh-language-status,.wh-language-footnote{padding-inline:16px}
+}

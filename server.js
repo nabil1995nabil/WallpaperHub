@@ -414,6 +414,42 @@ async function getActiveFeatureBan(userId, prefix){
 
 const app = express();
 
+function injectWallpaperHubLanguageRuntime(source){
+    if(typeof source!=="string" || source.includes("data-wh-language-runtime")) return source;
+    const styleTag='<link rel="stylesheet" href="/language.css?v=20261117" data-wh-language-runtime="1">';
+    const scriptTag='<script defer src="/language.js?v=20261117" data-wh-language-runtime="1"></script>';
+    let html=source;
+    if(/<\/head\s*>/i.test(html)) html=html.replace(/<\/head\s*>/i,styleTag+"\n</head>");
+    else html=styleTag+"\n"+html;
+    if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,scriptTag+"\n</body>");
+    else html+="\n"+scriptTag;
+    return html;
+}
+app.use((req,res,next)=>{
+    const originalSend=res.send.bind(res);
+    res.send=function(body){
+        const type=String(res.getHeader("Content-Type")||"").toLowerCase();
+        if(typeof body==="string" && (type.includes("text/html") || /<\s*!doctype\s+html|<\s*html[\s>]/i.test(body))){
+            body=injectWallpaperHubLanguageRuntime(body);
+        }
+        return originalSend(body);
+    };
+    const originalSendFile=res.sendFile.bind(res);
+    res.sendFile=function(filePath,options,callback){
+        if(typeof options==="function"){ callback=options; options={}; }
+        if(!/\.html?$/i.test(String(filePath||""))) return originalSendFile(filePath,options,callback);
+        fs.readFile(filePath,"utf8",(error,html)=>{
+            if(error) return originalSendFile(filePath,options,callback);
+            if(options && options.headers) res.set(options.headers);
+            res.status(200).type("html").send(injectWallpaperHubLanguageRuntime(html));
+            if(typeof callback==="function") res.once("finish",()=>callback());
+        });
+        return res;
+    };
+    next();
+});
+
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -503,6 +539,71 @@ registerWallpaperHubMcp(app);
 
 
 // ======================================
+
+// ======================================
+// WallpaperHub automatic website translation
+// Configure GOOGLE_TRANSLATE_API_KEY in Vercel. Keep it server-side only.
+// ======================================
+const GOOGLE_TRANSLATE_API_KEY=String(process.env.GOOGLE_TRANSLATE_API_KEY||"").trim();
+const whTranslationRate=new Map();
+const whLanguageListCache=new Map();
+function whTranslationRateAllowed(req){
+    const now=Date.now();
+    const forwarded=String(req.headers["x-forwarded-for"]||"").split(",")[0].trim();
+    const ip=String(req.ip||forwarded||req.socket?.remoteAddress||"unknown");
+    const item=whTranslationRate.get(ip);
+    if(!item || now-item.startedAt>60000){whTranslationRate.set(ip,{startedAt:now,count:1});return true;}
+    item.count+=1;return item.count<=60;
+}
+function whValidLanguageCode(value){return /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(String(value||""));}
+app.get("/api/translate/languages",async(req,res)=>{
+    if(!GOOGLE_TRANSLATE_API_KEY) return res.status(503).json({success:false,code:"TRANSLATION_NOT_CONFIGURED",message:"أضف GOOGLE_TRANSLATE_API_KEY إلى متغيرات Vercel لتفعيل الترجمة."});
+    const target=String(req.query.target||"ar").trim();
+    if(!whValidLanguageCode(target)) return res.status(400).json({success:false,message:"رمز اللغة غير صالح."});
+    const cached=whLanguageListCache.get(target);
+    if(cached && cached.expiresAt>Date.now()) return res.json({success:true,languages:cached.languages});
+    try{
+        const url="https://translation.googleapis.com/language/translate/v2/languages?"+new URLSearchParams({key:GOOGLE_TRANSLATE_API_KEY,target}).toString();
+        const upstream=await fetch(url,{headers:{Accept:"application/json"}});
+        const payload=await upstream.json().catch(()=>({}));
+        if(!upstream.ok) throw new Error(payload?.error?.message||"تعذر تحميل قائمة اللغات من Google.");
+        const languages=(payload?.data?.languages||[]).map(item=>({code:String(item.language||""),name:String(item.name||item.language||"")})).filter(item=>whValidLanguageCode(item.code));
+        whLanguageListCache.set(target,{languages,expiresAt:Date.now()+12*60*60*1000});
+        res.set("Cache-Control","public, s-maxage=3600, stale-while-revalidate=7200");
+        return res.json({success:true,languages});
+    }catch(error){
+        console.error("LANGUAGE LIST ERROR:",error?.message||error);
+        return res.status(502).json({success:false,message:"تعذر تحميل قائمة اللغات حالياً."});
+    }
+});
+app.post("/api/translate",async(req,res)=>{
+    if(!GOOGLE_TRANSLATE_API_KEY) return res.status(503).json({success:false,code:"TRANSLATION_NOT_CONFIGURED",message:"خدمة الترجمة غير مفعّلة بعد. أضف GOOGLE_TRANSLATE_API_KEY في Vercel."});
+    if(!whTranslationRateAllowed(req)) return res.status(429).json({success:false,message:"طلبات الترجمة كثيرة. انتظر دقيقة ثم حاول مجدداً."});
+    const target=String(req.body?.target||"").trim();
+    const texts=req.body?.texts;
+    if(!whValidLanguageCode(target) || !Array.isArray(texts) || !texts.length || texts.length>50 || !texts.every(value=>typeof value==="string" && value.length<=5000)){
+        return res.status(400).json({success:false,message:"طلب الترجمة غير صالح."});
+    }
+    const totalLength=texts.reduce((sum,value)=>sum+value.length,0);
+    if(totalLength>25000) return res.status(413).json({success:false,message:"حجم مجموعة النصوص كبير جداً."});
+    try{
+        const form=new URLSearchParams();
+        form.append("target",target);form.append("format","text");
+        texts.forEach(value=>form.append("q",value));
+        const url="https://translation.googleapis.com/language/translate/v2?key="+encodeURIComponent(GOOGLE_TRANSLATE_API_KEY);
+        const upstream=await fetch(url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded",Accept:"application/json"},body:form.toString()});
+        const payload=await upstream.json().catch(()=>({}));
+        if(!upstream.ok) throw new Error(payload?.error?.message||"Google Translation request failed.");
+        const translations=(payload?.data?.translations||[]).map(item=>String(item.translatedText||""));
+        if(translations.length!==texts.length) throw new Error("Unexpected translation response.");
+        res.set("Cache-Control","no-store");
+        return res.json({success:true,translations});
+    }catch(error){
+        console.error("SITE TRANSLATION ERROR:",error?.message||error);
+        return res.status(502).json({success:false,message:"تعذر ترجمة النصوص الآن. تحقق من مفتاح Google Cloud Translation."});
+    }
+});
+
 // Web Push subscription API
 // ======================================
 app.get("/api/push/public-key",(req,res)=>{
@@ -2895,6 +2996,22 @@ app.get("/sitemap.xml", async (req, res) => {
 // ======================================
 // Static Files
 // ======================================
+
+// Transform full-page HTML files served directly from the static directory.
+app.use((req,res,next)=>{
+    if(req.method!=="GET" || !/\.html?$/i.test(String(req.path||""))) return next();
+    const requested=String(req.path||"").replace(/^\/+/, "");
+    if(requested.startsWith("components/") || ["bottom-nav.html","sidebar.html","notification-button.html"].includes(requested)) return next();
+    const safe=requested.split("/").filter(part=>part && part!=="." && part!=="..").join(path.sep);
+    const candidates=[path.join(STATIC_ROOT,safe),path.join(STATIC_DIR,safe)];
+    const filePath=candidates.find(candidate=>{try{return fs.existsSync(candidate)&&fs.statSync(candidate).isFile();}catch(_error){return false;}});
+    if(!filePath) return next();
+    fs.readFile(filePath,"utf8",(error,html)=>{
+        if(error) return next(error);
+        res.set("Cache-Control","no-store, no-cache, must-revalidate");
+        return res.type("html").send(injectWallpaperHubLanguageRuntime(html));
+    });
+});
 
 // Static frontend files — local + Vercel compatible
 const STATIC_ROOT = process.cwd();
