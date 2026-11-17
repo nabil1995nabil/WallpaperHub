@@ -1,34 +1,24 @@
 (function(){
 "use strict";
-var STORAGE_KEY="wh-site-language-v1",CACHE_KEY="wh-translation-cache-v1",DEFAULT_LANGUAGE="ar";
+var STORAGE_KEY="wh-site-language-v1",CACHE_KEY="wh-translation-cache-v2",DEFAULT_LANGUAGE="ar";
 var RTL_LANGUAGES=new Set(["ar","ar-SA","he","iw","fa","ur","ps","sd","ug","yi","dv"]);
 var FALLBACK_LANGUAGES=[
-{code:"af",name:"Afrikaans"},{code:"sq",name:"Shqip"},{code:"am",name:"አማርኛ"},{code:"ar",name:"العربية"},
-{code:"az",name:"Azərbaycan"},{code:"bn",name:"বাংলা"},{code:"bs",name:"Bosanski"},{code:"bg",name:"Български"},
-{code:"my",name:"မြန်မာ"},{code:"ca",name:"Català"},{code:"zh-CN",name:"简体中文"},{code:"zh-TW",name:"繁體中文"},
-{code:"hr",name:"Hrvatski"},{code:"cs",name:"Čeština"},{code:"da",name:"Dansk"},{code:"nl",name:"Nederlands"},
-{code:"en",name:"English"},{code:"et",name:"Eesti"},{code:"fil",name:"Filipino"},{code:"fi",name:"Suomi"},
-{code:"fr",name:"Français"},{code:"fy",name:"Frysk"},{code:"gl",name:"Galego"},{code:"ka",name:"ქართული"},
-{code:"de",name:"Deutsch"},{code:"el",name:"Ελληνικά"},{code:"gu",name:"ગુજરાતી"},{code:"ha",name:"Hausa"},
-{code:"he",name:"עברית"},{code:"hi",name:"हिन्दी"},{code:"hu",name:"Magyar"},{code:"is",name:"Íslenska"},
-{code:"id",name:"Bahasa Indonesia"},{code:"ga",name:"Gaeilge"},{code:"it",name:"Italiano"},{code:"ja",name:"日本語"},
-{code:"kn",name:"ಕನ್ನಡ"},{code:"km",name:"ខ្មែរ"},{code:"ko",name:"한국어"},{code:"lo",name:"ລາວ"},
-{code:"lv",name:"Latviešu"},{code:"lt",name:"Lietuvių"},{code:"mk",name:"Македонски"},{code:"ms",name:"Bahasa Melayu"},
-{code:"ml",name:"മലയാളം"},{code:"mt",name:"Malti"},{code:"mr",name:"मराठी"},{code:"mn",name:"Монгол"},
-{code:"ne",name:"नेपाली"},{code:"no",name:"Norsk"},{code:"fa",name:"فارسی"},{code:"pl",name:"Polski"},
-{code:"pt",name:"Português"},{code:"pa",name:"ਪੰਜਾਬੀ"},{code:"ro",name:"Română"},{code:"ru",name:"Русский"},
-{code:"sr",name:"Српски"},{code:"si",name:"සිංහල"},{code:"sk",name:"Slovenčina"},{code:"sl",name:"Slovenščina"},
-{code:"so",name:"Soomaali"},{code:"es",name:"Español"},{code:"sw",name:"Kiswahili"},{code:"sv",name:"Svenska"},
-{code:"ta",name:"தமிழ்"},{code:"te",name:"తెలుగు"},{code:"th",name:"ไทย"},{code:"tr",name:"Türkçe"},
-{code:"uk",name:"Українська"},{code:"ur",name:"اردو"},{code:"uz",name:"O‘zbek"},{code:"vi",name:"Tiếng Việt"},
-{code:"cy",name:"Cymraeg"},{code:"zu",name:"isiZulu"}
+{code:"en",name:"English"},{code:"zh",name:"简体中文"},{code:"hi",name:"हिन्दी"},
+{code:"es",name:"Español"},{code:"ar",name:"العربية"},{code:"fr",name:"Français"},
+{code:"bn",name:"বাংলা"},{code:"pt",name:"Português"},{code:"id",name:"Bahasa Indonesia"},
+{code:"ur",name:"اردو"},{code:"ru",name:"Русский"},{code:"de",name:"Deutsch"},
+{code:"ja",name:"日本語"},{code:"tr",name:"Türkçe"},{code:"ko",name:"한국어"},
+{code:"vi",name:"Tiếng Việt"},{code:"th",name:"ไทย"},{code:"fa",name:"فارسی"},
+{code:"ms",name:"Bahasa Melayu"},{code:"it",name:"Italiano"},{code:"sw",name:"Kiswahili"},
+{code:"tl",name:"Filipino"},{code:"pl",name:"Polski"},{code:"nl",name:"Nederlands"},
+{code:"zh-Hant",name:"繁體中文"},{code:"ta",name:"தமிழ்"},{code:"uk",name:"Українська"}
 ];
 var currentLanguage=readLanguage(),languageName=readStoredName(),generation=0;
 var textOriginals=new Map(),textTranslations=new Map(),attributeOriginals=new Map(),attributeTranslations=new Map();
 var translationCache=readCache(),currentModal=null,modalStatus=null,languageListNode=null,searchNode=null;
 var languageList=[],languageListTarget=null,translating=false,translationQueued=false;
-function readLanguage(){try{var v=localStorage.getItem(STORAGE_KEY)||DEFAULT_LANGUAGE;return /^[a-z]{2,3}(?:-[A-Za-z0-9-]{2,8})?$/.test(v)?v:DEFAULT_LANGUAGE;}catch(_e){return DEFAULT_LANGUAGE;}}
-function readStoredName(){try{return localStorage.getItem(STORAGE_KEY+":name")||"العربية";}catch(_e){return"العربية";}}
+function readLanguage(){try{var v=localStorage.getItem(STORAGE_KEY)||DEFAULT_LANGUAGE;return FALLBACK_LANGUAGES.some(function(item){return item.code===v;})?v:DEFAULT_LANGUAGE;}catch(_e){return DEFAULT_LANGUAGE;}}
+function readStoredName(){try{var code=localStorage.getItem(STORAGE_KEY)||DEFAULT_LANGUAGE;var match=FALLBACK_LANGUAGES.find(function(item){return item.code===code;});return match?match.name:"العربية";}catch(_e){return"العربية";}}
 function readCache(){try{return new Map(Object.entries(JSON.parse(localStorage.getItem(CACHE_KEY)||"{}")));}catch(_e){return new Map();}}
 function saveCache(){try{while(translationCache.size>900)translationCache.delete(translationCache.keys().next().value);localStorage.setItem(CACHE_KEY,JSON.stringify(Object.fromEntries(translationCache)));}catch(_e){}}
 function isUsefulText(value){return Boolean(value&&value.trim()&&/\p{L}/u.test(value)&&value.trim().length<=5000);}
@@ -74,7 +64,7 @@ return found;
 function cacheKey(text,target){return (target||currentLanguage)+"|"+text;}
 async function translateBatch(items,requestGeneration,target){
 var texts=items.map(function(item){return item.original;});
-var response=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({target:target,texts:texts,sources:texts.map(function(text){return /[\u0600-\u06FF]/.test(text)?"ar":"en";})})});
+var response=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({target:target,texts:texts})});
 var data=await response.json().catch(function(){return{};});
 if(!response.ok||!data.success||!Array.isArray(data.translations))throw new Error(data.message||"تعذر الاتصال بخدمة الترجمة المجانية.");
 if(requestGeneration!==generation)return;
@@ -143,7 +133,7 @@ overlay.innerHTML='<section class="wh-language-dialog" role="dialog" aria-modal=
 '<label class="wh-language-search"><span class="material-icons">search</span><input id="whLanguageSearch" type="search" placeholder="ابحث عن لغة أو رمزها" autocomplete="off"></label>'+
 '<div class="wh-language-meta"><span id="whLanguageCount">جاري تحميل اللغات...</span><button type="button" id="whLanguageOriginal">اللغة الأصلية: العربية</button></div>'+
 '<div class="wh-language-list" id="wh-language-list" data-no-translate></div><p class="wh-language-status" id="whLanguageStatus" role="status" aria-live="polite"></p>'+
-'<p class="wh-language-footnote">الترجمة آلية وقد تختلف دقتها، وتخضع للحد المجاني اليومي.</p></section>';
+'<p class="wh-language-footnote">الترجمة آلية، وتُحفظ نتائجها لاستخدامها لاحقاً دون إعادة ترجمتها.</p></section>';
 document.body.appendChild(overlay);
 var notice=document.createElement("div");notice.id="whLanguageNotice";notice.className="wh-language-toast";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");document.body.appendChild(notice);
 currentModal=overlay;modalStatus=overlay.querySelector("#whLanguageStatus");languageListNode=overlay.querySelector("#wh-language-list");searchNode=overlay.querySelector("#whLanguageSearch");
