@@ -78,7 +78,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
     v_month date := date_trunc('month', now() at time zone 'UTC')::date;
 begin
@@ -91,7 +91,7 @@ begin
            updated_at = now()
      where billing_month = v_month;
 end;
-$;
+$$;
 
 revoke all on function public.release_wallpaperhub_translation_chars(integer) from public, anon, authenticated;
 grant execute on function public.release_wallpaperhub_translation_chars(integer) to service_role;
