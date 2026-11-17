@@ -605,8 +605,11 @@ function whBytePlusSignedHeaders(body,params){
         .map(key=>encodeURIComponent(key)+"="+encodeURIComponent(String(params[key])))
         .join("&");
     const bodyHash=crypto.createHash("sha256").update(body,"utf8").digest("hex");
-    const signedHeaders="x-content-sha256;x-date";
-    const canonicalHeaders="x-content-sha256:"+bodyHash+"\nx-date:"+datetime;
+    // BytePlus OpenAPI requires the Host header to participate in the signature.
+    // node-fetch sends this same Host value automatically for this URL.
+    const host="open.byteplusapi.com";
+    const signedHeaders="host;x-content-sha256;x-date";
+    const canonicalHeaders="host:"+host+"\nx-content-sha256:"+bodyHash+"\nx-date:"+datetime;
     const canonicalRequest=[
         "POST",
         "/",
@@ -813,14 +816,27 @@ app.post("/api/translate",async(req,res)=>{
             return res.status(429).json({success:false,message:"وصل الموقع إلى الحد الآمن المجاني لهذا الشهر. ستعود الترجمة عند تجدد الحصة الشهرية."});
         }
         if(error?.code==="WH_BYTEPLUS_NOT_CONFIGURED"){
-            return res.status(503).json({success:false,message:"خدمة BytePlus لم تُفعّل بعد. أضف مفاتيح BytePlus في إعدادات Vercel."});
+            return res.status(503).json({success:false,message:"خدمة الترجمة غير مهيأة في الخادم بعد. تحقق من متغيرات BytePlus في Vercel."});
         }
         if(schemaMissing){
             return res.status(503).json({success:false,message:"خاص تهيّأ جدول ترجمة WallpaperHub ودوال الحصة في Supabase باستعمال ملف SQL المرفق بالمشروع."});
         }
-        return res.status(502).json({
+
+        const providerCode=String(error?.byteplusCode||"").toLowerCase();
+        const providerDetails=(details+" "+providerCode).toLowerCase();
+        let userMessage="تعذر إكمال الترجمة من BytePlus حالياً. حاول مجدداً لاحقاً.";
+        if(/100009|100010|invalidaccesskey|signaturedoesnotmatch|invalidaccesskeyid|invalid access key|signature.*match/.test(providerDetails)||Number(error?.upstreamStatus)===401){
+            userMessage="BytePlus رفض المصادقة على الطلب. تحقق من Access Key ID وSecret Access Key وأن المفتاحين نشيطان.";
+        }else if(/100012|100013|lackpolicy|accessdenied|operationdenied|unauthorizedoperation|resourceunavailable/.test(providerDetails)||Number(error?.upstreamStatus)===403){
+            userMessage="حساب BytePlus لا يملك صلاحية الترجمة بعد. فعّل Text Translation وتأكد من صلاحيات IAM وحالة التجربة المجانية.";
+        }else if(/-415|unsupported.*translat|translation not supported/.test(providerDetails)){
+            userMessage="BytePlus لا يدعم الترجمة لهذا الزوج اللغوي. اختر لغة أخرى أو راجع رمز اللغة.";
+        }else if(/-429|requestlimitexceeded|quota|limit/.test(providerDetails)||Number(error?.upstreamStatus)===429){
+            userMessage="وصلت خدمة BytePlus إلى حد الطلبات أو الحصة المتاحة حالياً. حاول لاحقاً أو بعد تجدد الحصة.";
+        }
+        return res.status(Number(error?.upstreamStatus)===403?403:502).json({
             success:false,
-            message:"تعذرت الترجمة عبر BytePlus حالياً. تحقق من مفاتيح الخدمة أو أعد المحاولة لاحقاً."
+            message:userMessage
         });
     }
 });
