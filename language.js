@@ -103,7 +103,7 @@ if(failed)throw failed.reason;
 }
 }while(translationQueued&&requestGeneration===generation);
 if(requestGeneration===generation)setStatus("تم تطبيق اللغة المختارة على واجهة الموقع.",false);
-}catch(error){if(requestGeneration===generation){console.warn("WallpaperHub translation error:",error);setStatus(error.message||"تعذر تطبيق الترجمة.",true);}}
+}catch(error){if(requestGeneration===generation){console.warn("WallpaperHub translation error:",error);setStatus("",false);}}
 finally{translating=false;if(translationQueued){translationQueued=false;applyPendingTranslations();}}
 }
 function restoreOriginalContent(){
