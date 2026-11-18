@@ -26,12 +26,8 @@ function skipElement(element){
 if(!element||element.nodeType!==1)return false;
 return Boolean(element.closest('script,style,noscript,svg,canvas,code,pre,textarea,[contenteditable="true"],.material-icons,.material-icons-round,.material-symbols-outlined,.notranslate,[translate="no"],[data-no-translate],#wh-language-list'));
 }
-function setStatus(message,isError){
-if(modalStatus){modalStatus.textContent=message||"";modalStatus.classList.toggle("is-error",Boolean(isError));}
-if(isError&&message){
-var notice=document.getElementById("whLanguageNotice");
-if(notice){notice.textContent=message;notice.classList.add("is-visible");clearTimeout(notice.timer);notice.timer=setTimeout(function(){notice.classList.remove("is-visible");},6500);}
-}
+function setStatus(){
+if(modalStatus)modalStatus.textContent="";
 }
 function originalForNode(node){
 if(textOriginals.has(node)){
@@ -98,8 +94,9 @@ if(batch.length)batches.push(batch);
 for(var i=0;i<batches.length;i+=2){
 if(requestGeneration!==generation)break;
 var results=await Promise.allSettled(batches.slice(i,i+2).map(function(items){return translateBatch(items,requestGeneration,target);}));
-var failed=results.find(function(result){return result.status==="rejected";});
-if(failed)throw failed.reason;
+results.forEach(function(result){
+if(result.status==="rejected")console.warn("WallpaperHub translation batch skipped:",result.reason);
+});
 }
 }while(translationQueued&&requestGeneration===generation);
 if(requestGeneration===generation)setStatus("تم تطبيق اللغة المختارة على واجهة الموقع.",false);
@@ -132,10 +129,9 @@ overlay.innerHTML='<section class="wh-language-dialog" role="dialog" aria-modal=
 '<header class="wh-language-header"><div><span class="wh-language-kicker">WALLPAPERHUB</span><h2 id="whLanguageTitle">اختر لغة الموقع</h2><p>سيتم تطبيق اختيارك على صفحات الموقع.</p></div><button type="button" class="wh-language-close" id="whLanguageClose" aria-label="إغلاق"><span class="material-icons">close</span></button></header>'+
 '<label class="wh-language-search"><span class="material-icons">search</span><input id="whLanguageSearch" type="search" placeholder="ابحث عن لغة أو رمزها" autocomplete="off"></label>'+
 '<div class="wh-language-meta"><span id="whLanguageCount">جاري تحميل اللغات...</span><button type="button" id="whLanguageOriginal">اللغة الأصلية: العربية</button></div>'+
-'<div class="wh-language-list" id="wh-language-list" data-no-translate></div><p class="wh-language-status" id="whLanguageStatus" role="status" aria-live="polite"></p>'+
+'<div class="wh-language-list" id="wh-language-list" data-no-translate></div>'+
 '<p class="wh-language-footnote">الترجمة آلية، وتُحفظ نتائجها لاستخدامها لاحقاً دون إعادة ترجمتها.</p></section>';
 document.body.appendChild(overlay);
-var notice=document.createElement("div");notice.id="whLanguageNotice";notice.className="wh-language-toast";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");document.body.appendChild(notice);
 currentModal=overlay;modalStatus=overlay.querySelector("#whLanguageStatus");languageListNode=overlay.querySelector("#wh-language-list");searchNode=overlay.querySelector("#whLanguageSearch");
 overlay.querySelector("#whLanguageClose").addEventListener("click",closePicker);
 overlay.querySelector("#whLanguageOriginal").addEventListener("click",function(){saveLanguage(DEFAULT_LANGUAGE,"العربية");closePicker();});
