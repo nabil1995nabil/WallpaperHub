@@ -259,6 +259,13 @@ textarea{min-height:86px;resize:vertical;line-height:1.8}
 .upload-file-status.queued{color:var(--muted)}
 .upload-meta{margin-top:3px;color:var(--muted);font-size:8px;line-height:1.5}
 .upload-error{display:block;margin-top:2px;color:var(--red);font-size:8px;line-height:1.5}
+.upload-remove-failed{
+  display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin-top:7px;padding:4px 9px;
+  border:1px solid #fecaca;border-radius:8px;background:#fff1f2;color:#b91c1c;
+  font:700 9px/1.4 inherit;cursor:pointer
+}
+.upload-remove-failed:hover{background:#fee2e2;border-color:#fca5a5}
+.upload-remove-failed:focus-visible{outline:3px solid #fca5a5;outline-offset:2px}
 .upload-item-state{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#f3f6fb;color:var(--muted);font-size:12px;font-weight:800}
 .upload-item.done .upload-item-state{background:#e8f7f0;color:var(--green)}
 .upload-item.error .upload-item-state{background:#fff0f1;color:var(--red)}
