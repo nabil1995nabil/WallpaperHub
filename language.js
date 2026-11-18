@@ -66,7 +66,7 @@ async function translateBatch(items,requestGeneration,target){
 var texts=items.map(function(item){return item.original;});
 var response=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({target:target,texts:texts})});
 var data=await response.json().catch(function(){return{};});
-if(!response.ok||!data.success||!Array.isArray(data.translations))throw new Error(data.message||"تعذر الاتصال بخدمة الترجمة المجانية.");
+if(!response.ok||!data.success||!Array.isArray(data.translations)){var message=data.message||"تعذر الاتصال بخدمة الترجمة.";if(data.diagnostic)message+=" ["+data.diagnostic+"]";throw new Error(message);}
 if(requestGeneration!==generation)return;
 items.forEach(function(item,index){
 var translated=String(data.translations[index]===undefined?item.original:data.translations[index]);
