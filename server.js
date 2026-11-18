@@ -416,8 +416,8 @@ const app = express();
 
 function injectWallpaperHubLanguageRuntime(source){
     if(typeof source!=="string" || source.includes("data-wh-language-runtime")) return source;
-    const styleTag='<link rel="stylesheet" href="/language.css?v=20261117-byteplus-supabase" data-wh-language-runtime="1">';
-    const scriptTag='<script defer src="/language.js?v=20261117-byteplus-supabase" data-wh-language-runtime="1"></script>';
+    const styleTag='<link rel="stylesheet" href="/language.css?v=20261118-silent-translation" data-wh-language-runtime="1">';
+    const scriptTag='<script defer src="/language.js?v=20261118-silent-translation" data-wh-language-runtime="1"></script>';
     let html=source;
     if(/<\/head\s*>/i.test(html)) html=html.replace(/<\/head\s*>/i,styleTag+"\n</head>");
     else html=styleTag+"\n"+html;
@@ -817,26 +817,26 @@ app.post("/api/translate",async(req,res)=>{
         const schemaMissing=/PGRST202|PGRST205|42P01|schema cache|does not exist|Could not find the table|Could not find the function/i.test(details+" "+String(error?.code||""));
         console.error("WALLPAPERHUB TRANSLATION ERROR:",details,String(error?.code||""),String(error?.byteplusCode||""),Number(error?.upstreamStatus||0),String(error?.requestId||""));
         if(error?.code==="WH_TRANSLATION_MONTHLY_CAP"){
-            return res.status(429).json({success:false,message:"وصل الموقع إلى الحد الآمن المجاني لهذا الشهر. ستعود الترجمة عند تجدد الحصة الشهرية."});
+            return res.status(429).json({success:false,message:""});
         }
         if(error?.code==="WH_BYTEPLUS_NOT_CONFIGURED"){
-            return res.status(503).json({success:false,message:"خدمة الترجمة غير مهيأة في الخادم بعد. تحقق من متغيرات BytePlus في Vercel."});
+            return res.status(503).json({success:false,message:""});
         }
         if(schemaMissing){
-            return res.status(503).json({success:false,message:"خاص تهيّأ جدول ترجمة WallpaperHub ودوال الحصة في Supabase باستعمال ملف SQL المرفق بالمشروع."});
+            return res.status(503).json({success:false,message:""});
         }
 
         const providerCode=String(error?.byteplusCode||"").toLowerCase();
         const providerDetails=(details+" "+providerCode).toLowerCase();
-        let userMessage="تعذر إكمال الترجمة من BytePlus حالياً. حاول مجدداً لاحقاً.";
+        let userMessage="";
         if(/100009|100010|invalidaccesskey|signaturedoesnotmatch|invalidaccesskeyid|invalid access key|signature.*match/.test(providerDetails)||Number(error?.upstreamStatus)===401){
-            userMessage="BytePlus رفض المصادقة على الطلب. تحقق من Access Key ID وSecret Access Key وأن المفتاحين نشيطان.";
+            userMessage="";
         }else if(/100012|100013|lackpolicy|accessdenied|operationdenied|unauthorizedoperation|resourceunavailable/.test(providerDetails)||Number(error?.upstreamStatus)===403){
-            userMessage="حساب BytePlus لا يملك صلاحية الترجمة بعد. فعّل Text Translation وتأكد من صلاحيات IAM وحالة التجربة المجانية.";
+            userMessage="";
         }else if(/-415|unsupported.*translat|translation not supported/.test(providerDetails)){
-            userMessage="BytePlus لا يدعم الترجمة لهذا الزوج اللغوي. اختر لغة أخرى أو راجع رمز اللغة.";
+            userMessage="";
         }else if(/-429|requestlimitexceeded|quota|limit/.test(providerDetails)||Number(error?.upstreamStatus)===429){
-            userMessage="وصلت خدمة BytePlus إلى حد الطلبات أو الحصة المتاحة حالياً. حاول لاحقاً أو بعد تجدد الحصة.";
+            userMessage="";
         }
         const diagnostic=error?.byteplusCode
             ? "BytePlus "+String(error.byteplusCode)+(error.upstreamStatus?" | HTTP "+error.upstreamStatus:"")+(error.requestId?" | RequestId "+error.requestId:"")
