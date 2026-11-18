@@ -661,16 +661,20 @@ async function whBytePlusTranslateBatch(texts,target){
         timeout:20000
     });
     const payload=await upstream.json().catch(()=>({}));
-    const apiError=payload?.ResponseMetadata?.Error;
+    const metadata=payload?.ResponseMetadata||{};
+    const apiError=metadata?.Error;
     if(!upstream.ok || (apiError && (apiError.Code || apiError.Message))){
         const error=new Error(String(apiError?.Message||apiError?.Code||"BytePlus translation request failed."));
         error.upstreamStatus=upstream.status;
         error.byteplusCode=apiError?.Code||"";
+        error.requestId=metadata?.RequestId||"";
         throw error;
     }
     if(!Array.isArray(payload?.TranslationList) || payload.TranslationList.length!==texts.length){
         const error=new Error("BytePlus returned an incomplete translation response.");
         error.upstreamStatus=upstream.status;
+        error.requestId=metadata?.RequestId||"";
+        error.byteplusCode="INVALID_TRANSLATION_RESPONSE";
         throw error;
     }
     return payload.TranslationList.map((item,index)=>{
@@ -811,7 +815,7 @@ app.post("/api/translate",async(req,res)=>{
     }catch(error){
         const details=String(error?.message||"");
         const schemaMissing=/PGRST202|PGRST205|42P01|schema cache|does not exist|Could not find the table|Could not find the function/i.test(details+" "+String(error?.code||""));
-        console.error("WALLPAPERHUB TRANSLATION ERROR:",details,String(error?.code||""));
+        console.error("WALLPAPERHUB TRANSLATION ERROR:",details,String(error?.code||""),String(error?.byteplusCode||""),Number(error?.upstreamStatus||0),String(error?.requestId||""));
         if(error?.code==="WH_TRANSLATION_MONTHLY_CAP"){
             return res.status(429).json({success:false,message:"وصل الموقع إلى الحد الآمن المجاني لهذا الشهر. ستعود الترجمة عند تجدد الحصة الشهرية."});
         }
@@ -834,11 +838,48 @@ app.post("/api/translate",async(req,res)=>{
         }else if(/-429|requestlimitexceeded|quota|limit/.test(providerDetails)||Number(error?.upstreamStatus)===429){
             userMessage="وصلت خدمة BytePlus إلى حد الطلبات أو الحصة المتاحة حالياً. حاول لاحقاً أو بعد تجدد الحصة.";
         }
+        const diagnostic=error?.byteplusCode
+            ? "BytePlus "+String(error.byteplusCode)+(error.upstreamStatus?" | HTTP "+error.upstreamStatus:"")+(error.requestId?" | RequestId "+error.requestId:"")
+            : error?.code
+                ? "Server/Supabase "+String(error.code)
+                : String(error?.name||"ServerError")+(error?.errno?" | "+String(error.errno):"");
         return res.status(Number(error?.upstreamStatus)===403?403:502).json({
             success:false,
-            message:userMessage
+            message:userMessage,
+            diagnostic
         });
     }
+});
+
+// Safe translation diagnostics: returns readiness flags and error codes only.
+// It never returns API keys, Secret Access Keys, or Supabase credentials.
+app.get("/api/translate/diagnostics",async(req,res)=>{
+    const result={
+        byteplusKeysConfigured:Boolean(BYTEPLUS_ACCESS_KEY_ID&&BYTEPLUS_SECRET_ACCESS_KEY),
+        byteplusRegion:BYTEPLUS_REGION,
+        supabaseUrlConfigured:Boolean(process.env.SUPABASE_URL),
+        supabaseServerKeyConfigured:Boolean(SUPABASE_SERVER_KEY),
+        translationCacheTableReady:false,
+        monthlyQuotaFunctionReady:false
+    };
+    try{
+        const {error}=await supabase.from(WH_TRANSLATION_CACHE_TABLE).select("cache_key").limit(1);
+        if(error)result.translationCacheError=String(error.code||"DATABASE_ERROR");
+        else result.translationCacheTableReady=true;
+    }catch(error){
+        result.translationCacheError=String(error?.code||error?.name||"DATABASE_ERROR");
+    }
+    try{
+        const {data,error}=await supabase.rpc(
+            "reserve_wallpaperhub_translation_chars",
+            {p_chars:0,p_monthly_limit:WH_TRANSLATION_MONTHLY_CAP}
+        );
+        if(error)result.monthlyQuotaFunctionError=String(error.code||"RPC_ERROR");
+        else result.monthlyQuotaFunctionReady=data===true;
+    }catch(error){
+        result.monthlyQuotaFunctionError=String(error?.code||error?.name||"RPC_ERROR");
+    }
+    return res.json({success:true,checks:result});
 });
 
 // Web Push subscription API
