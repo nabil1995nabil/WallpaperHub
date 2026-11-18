@@ -256,15 +256,19 @@ function updateBatchProgress(){
   const rounded=Math.round(percent);
   const done=jobs.filter(job=>job.status==="done").length;
   const errors=jobs.filter(job=>job.status==="error").length;
-  const active=jobs.some(job=>job.status==="running"||job.status==="publishing");
+  const active=jobs.some(job=>job.status==="running"||job.status==="publishing"||job.status==="queued");
   const allDone=done===jobs.length;
   const allTerminal=jobs.every(job=>["done","error"].includes(job.status));
   $("batchPercent").textContent=`${rounded}%`;
   $("batchProgressFill").style.width=`${percent}%`;
   $("batchProgressTrack").setAttribute("aria-valuenow",String(rounded));
-  $("batchFileSummary").textContent=`${done} من ${jobs.length} خلفية منشورة`;
+  $("batchFileSummary").textContent=errors
+    ? `${done} منشورة · ${errors} فشلت · ${jobs.length} إجمالاً`
+    : `${done} من ${jobs.length} خلفية منشورة`;
   $("batchBytes").textContent=`${bytes(uploadedBytes)} / ${bytes(totalBytes)}`;
-  $("uploadOverall").textContent=`${done} / ${jobs.length} مكتملة`;
+  $("uploadOverall").textContent=errors
+    ? `${done} ناجحة · ${errors} أخطاء`
+    : `${done} / ${jobs.length} مكتملة`;
   $("dismissUploadManagerBtn").hidden=!allTerminal;
   if(batchPaused){
     $("uploadManagerTitle").textContent="الرفع متوقف مؤقتاً";
@@ -275,12 +279,15 @@ function updateBatchProgress(){
   }else if(allDone){
     $("uploadManagerTitle").textContent="اكتمل نشر الدفعة";
     $("uploadStageText").textContent="تم رفع الخلفيات وإرسالها بنجاح.";
-  }else if(errors){
-    $("uploadManagerTitle").textContent="توقفت العملية عند وجود خطأ";
-    $("uploadStageText").textContent="بعض الخلفيات لم تكتمل. صحّح المشكلة ثم أعد المحاولة؛ الخلفيات المكتملة لن تُرسل مرة ثانية.";
+  }else if(active&&errors){
+    $("uploadManagerTitle").textContent="مستمر رغم تعذر بعض الصور";
+    $("uploadStageText").textContent=`تم تجاوز ${errors} صورة فاشلة. الرفع والنشر مستمران للصور المتبقية.`;
   }else if(active){
     $("uploadManagerTitle").textContent="جارٍ تجهيز الخلفيات";
     $("uploadStageText").textContent=jobs.some(job=>job.status==="publishing")?"اكتمل رفع الملفات، جارٍ حفظ الخلفيات في الموقع.":"يتم رفع الصور بالتتابع، ويُحسب التقدم للدفعة كلها.";
+  }else if(errors){
+    $("uploadManagerTitle").textContent="اكتملت الدفعة مع بعض الأخطاء";
+    $("uploadStageText").textContent=`${done} صورة نجحت و${errors} فشلت. يمكنك إزالة الصور الفاشلة من هذه القائمة أو إعادة المحاولة.`;
   }else if(jobs.some(job=>job.status==="uploaded")){
     $("uploadManagerTitle").textContent="تم رفع الصور";
     $("uploadStageText").textContent="جارٍ الانتقال إلى مرحلة النشر في الموقع.";
@@ -310,6 +317,15 @@ function renderUploadJobs(){
     const meta=document.createElement("div");meta.className="upload-meta";meta.textContent=`حجم الصورة: ${bytes(job.file.size)}`;
     main.append(head,meta);
     if(job.error){const error=document.createElement("small");error.className="upload-error";error.textContent=job.error;main.appendChild(error);}
+    if(job.status==="error"){
+      const removeFailed=document.createElement("button");
+      removeFailed.type="button";
+      removeFailed.className="upload-remove-failed";
+      removeFailed.textContent="حذف من القائمة";
+      removeFailed.setAttribute("aria-label",`إزالة ${job.file.name} من قائمة الرفع`);
+      removeFailed.addEventListener("click",()=>removeFailedUploadJob(fingerprint(job.file)));
+      main.appendChild(removeFailed);
+    }
     const state=document.createElement("span");state.className="upload-item-state";state.textContent=job.status==="done"?"✓":job.status==="error"?"!":job.status==="running"||job.status==="publishing"?"…":job.status==="uploaded"?"↑":"·";
     item.append(thumb,main,state);fragment.appendChild(item);
   });
@@ -317,6 +333,19 @@ function renderUploadJobs(){
   updateBatchProgress();
 }
 $("dismissUploadManagerBtn").addEventListener("click",()=>{$("uploadManager").hidden=true;});
+
+function removeFailedUploadJob(key){
+  const job=uploadJobs.get(key);
+  if(!job||job.status!=="error")return;
+  if(job.xhr&&job.xhr.readyState!==4)return;
+  selectedFiles=selectedFiles.filter(file=>fingerprint(file)!==key);
+  duplicateFingerprints.delete(key);
+  if(job.url)URL.revokeObjectURL(job.url);
+  uploadJobs.delete(key);
+  renderFiles();
+  renderUploadJobs();
+  notify("تمت إزالة الصورة الفاشلة من قائمة النشر؛ باقي الصور تواصل المعالجة.");
+}
 
 function updateUploadControls(){
   const controls=$("uploadControls");
@@ -663,15 +692,21 @@ form.addEventListener("submit",async e=>{
   lockPublishForm(true);
   try{
     prepareUploadJobs(files);
-    // Upload only files that have not already reached ImageKit.
+    // Upload every file independently; a failed item must not stop the batch.
     for(const file of files){
       await pauseAtSafePoint();
       const job=uploadJobs.get(fingerprint(file));
-      if(job?.result?.url){
+      if(!job)continue; // The user may have removed a failed item from the queue.
+      if(job.result?.url){
         if(job.status==="error")job.status="uploaded";
         continue;
       }
-      await uploadOne(file);
+      try{
+        await uploadOne(file);
+      }catch(error){
+        console.warn("PUBLISH IMAGE UPLOAD FAILED:",file.name,error?.message||error);
+        // Keep this item marked as failed and continue to the next image.
+      }
       await pauseAtSafePoint();
     }
     await pauseAtSafePoint();
@@ -679,12 +714,12 @@ form.addEventListener("submit",async e=>{
     const colors=$("wallColors").value.split(/[ ,]+/).map(x=>x.trim()).filter(Boolean);
     const token=await getAccessToken();
     if(!token)throw new Error("انتهت جلسة الدخول. سجّل الدخول من جديد.");
-    // Publish only unfinished items, preventing already published wallpapers from being sent twice.
+    // Publish each successfully uploaded image independently.
     for(const file of files){
       await pauseAtSafePoint();
       const job=uploadJobs.get(fingerprint(file));
-      if(job?.status==="done")continue;
-      if(!job?.result?.url)throw new Error(`لم يكتمل رفع ${file.name} إلى ImageKit.`);
+      if(!job||job.status==="done")continue;
+      if(!job.result?.url)continue; // Upload already failed; move on to the next image.
       job.status="publishing";job.error="";renderUploadJobs();
       try{
         const metadataInfo=await metadata(file);
@@ -706,14 +741,27 @@ form.addEventListener("submit",async e=>{
         const result=await response.json().catch(()=>({success:false,message:"ردّ السيرفر غير صالح."}));
         if(!response.ok||!result.success)throw new Error(result.message||`تعذر إرسال ${file.name}`);
         job.status="done";job.progress=100;job.uploaded=file.size;job.error="";renderUploadJobs();
-        await pauseAtSafePoint();
       }catch(error){
-        job.status="error";job.error=error?.message||`تعذر نشر ${file.name}`;renderUploadJobs();
-        throw error;
+        job.status="error";job.error=error?.message||`تعذر نشر ${file.name}`;
+        console.warn("PUBLISH IMAGE SAVE FAILED:",file.name,job.error);
+        renderUploadJobs();
       }
+      // Keep processing the rest of the queue even when saving this image fails.
+      await pauseAtSafePoint();
     }
-    notify(publisherSession.permissions.canPublishDirectly?"تم نشر الخلفيات واحتساب النقاط.":"تم إرسال الخلفيات للمراجعة. ستُحتسب 0.1 نقطة عن كل خلفية بعد قبولها ونشرها.");
-    await loadPublisherPoints();
+    const finalJobs=Array.from(uploadJobs.values());
+    const successCount=finalJobs.filter(job=>job.status==="done").length;
+    const failedCount=finalJobs.filter(job=>job.status==="error").length;
+    if(failedCount){
+      notify(successCount
+        ? `اكتمل نشر ${successCount} صورة؛ ${failedCount} صور فشلت. يمكنك حذف الفاشلة من شريط الرفع.`
+        : `تعذر نشر الصور المختارة. ${failedCount} صور فشلت؛ يمكنك حذفها من شريط الرفع أو إعادة المحاولة.`);
+    }else if(successCount){
+      notify(publisherSession.permissions.canPublishDirectly
+        ?"تم نشر الخلفيات واحتساب النقاط."
+        :"تم إرسال الخلفيات للمراجعة. ستُحتسب 0.1 نقطة عن كل خلفية بعد قبولها ونشرها.");
+    }
+    if(successCount)await loadPublisherPoints();
   }catch(error){
     notify(error.message||"وقع خطأ أثناء الرفع أو الإرسال.");
   }finally{
