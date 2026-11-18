@@ -233,7 +233,16 @@ textarea{min-height:86px;resize:vertical;line-height:1.8}
   border:1px solid #e5eaf4;border-radius:12px;background:#fafbfe
 }
 .upload-controls[hidden]{display:none}
-.upload-controls .upload-control-btn{min-height:36px;padding:0 12px;font-size:10px}
+.upload-controls button[hidden]{display:none}
+.upload-controls .upload-control-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 13px;
+  border:1px solid #dbe3ee;border-radius:10px;background:#fff;color:var(--ink);
+  font-family:inherit;font-size:10px;font-weight:800;cursor:pointer;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease
+}
+.upload-controls .upload-control-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.08)}
+.upload-controls .upload-pause-btn{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8}
+.upload-controls .upload-resume-btn{border-color:#bbf7d0;background:#f0fdf4;color:#15803d}
 #uploadControlHint{flex:1 1 160px;color:var(--muted);font-size:9px;line-height:1.6}
 .upload-items{display:grid;gap:6px;max-height:172px;overflow:auto;padding:1px 2px 1px 0;overscroll-behavior:contain}
 .upload-item{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:9px;min-width:0;padding:7px 8px;border:1px solid #edf0f6;border-radius:11px;background:#fff}
