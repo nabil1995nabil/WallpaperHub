@@ -262,7 +262,7 @@ textarea{min-height:86px;resize:vertical;line-height:1.8}
 .upload-remove-failed{
   display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin-top:7px;padding:4px 9px;
   border:1px solid #fecaca;border-radius:8px;background:#fff1f2;color:#b91c1c;
-  font:700 9px/1.4 inherit;cursor:pointer
+  font-family:inherit;font-size:9px;font-weight:700;line-height:1.4;cursor:pointer
 }
 .upload-remove-failed:hover{background:#fee2e2;border-color:#fca5a5}
 .upload-remove-failed:focus-visible{outline:3px solid #fca5a5;outline-offset:2px}
