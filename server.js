@@ -2496,7 +2496,10 @@ app.post("/api/publish/dbbyte-upload-url", async (req, res) => {
             "image/jpeg":"jpg",
             "image/png":"png",
             "image/webp":"webp",
-            "image/avif":"avif"
+            "image/avif":"avif",
+            "video/mp4":"mp4",
+            "video/webm":"webm",
+            "video/quicktime":"mov"
         };
         if (!extensions[mimeType]) {
             return res.status(400).json({success:false,message:"صيغة الصورة غير مدعومة."});
