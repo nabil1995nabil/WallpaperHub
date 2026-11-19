@@ -138,6 +138,12 @@ textarea{min-height:86px;resize:vertical;line-height:1.8}
 .empty-preview p{margin:5px 0 0;font-size:10px}
 .preview-card{position:relative;min-width:0;aspect-ratio:3/5;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#f1f4f9}
 .preview-card img{display:block;width:100%;height:100%;object-fit:cover}
+.preview-card.preview-load-error{background:linear-gradient(135deg,#f1f5f9,#e2e8f0)}
+.preview-image-error{
+  position:absolute;top:50%;right:4px;left:4px;transform:translateY(-50%);
+  padding:7px 5px;border-radius:8px;background:#ffffffde;color:#b91c1c;
+  font-size:9px;font-weight:800;text-align:center;pointer-events:none
+}
 .preview-card .file-label{
   position:absolute;right:4px;bottom:4px;left:4px;overflow:hidden;padding:4px 5px;
   border-radius:7px;background:rgba(17,24,39,.78);color:#fff;font-size:8px;line-height:1.5;
