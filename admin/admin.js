@@ -1473,7 +1473,7 @@ await getFileInfo(file);
 
 
 
-// رفع ImageKit
+// رفع DBByte
 
 setUploadCurrentFile(
     `الملف ${i+1} من ${total}: ${file.name}`
