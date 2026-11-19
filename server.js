@@ -23,15 +23,15 @@ process.env.SUPABASE_URL,
 SUPABASE_SERVER_KEY
 );
 
-// Validate image URLs accepted by wallpaper publishing routes.
-// Keep existing Cloudinary assets working while allowing new ImageKit uploads.
+// Validate wallpaper URLs from legacy providers and the new DBByte CDN.
 function isAllowedWallpaperImageUrl(value){
     try{
         const url = new URL(String(value || "").trim());
         if(url.protocol !== "https:") return false;
         const host = url.hostname.toLowerCase();
         return host === "res.cloudinary.com" ||
-               host === "ik.imagekit.io";
+               host === "ik.imagekit.io" ||
+               host === "cdn.dbbyte.com";
     }catch(_error){
         return false;
     }
@@ -2396,9 +2396,140 @@ app.get("/api/supabase/config", (req, res) => {
 });
 
 
+
 // ======================================
-// Wallpaper publishing media signature
-// لا نكشف سر Cloudinary للمتصفح؛ التوقيع يتم على الخادم.
+// DBByte wallpaper upload URL
+// The browser uploads directly to DBByte using a short-lived signed PUT URL.
+// Required Vercel variables:
+// DBBYTE_ACCESS_KEY_ID, DBBYTE_SECRET_ACCESS_KEY,
+// DBBYTE_BUCKET, DBBYTE_CDN_PUBLIC_TOKEN
+// ======================================
+function dbbyteAwsEncode(value){
+    return encodeURIComponent(String(value)).replace(/[!'()*]/g, character =>
+        "%" + character.charCodeAt(0).toString(16).toUpperCase()
+    );
+}
+
+function dbbyteHmac(key, value, encoding){
+    return crypto.createHmac("sha256", key).update(value, "utf8").digest(encoding);
+}
+
+function createDbbytePresignedPutUrl({bucket, key, accessKeyId, secretAccessKey}){
+    const host = "s3.dbbyte.com";
+    const region = "auto";
+    const service = "s3";
+    const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
+    const dateStamp = amzDate.slice(0, 8);
+    const scope = dateStamp + "/" + region + "/" + service + "/aws4_request";
+    const canonicalUri = "/" + dbbyteAwsEncode(bucket) + "/" +
+        key.split("/").map(dbbyteAwsEncode).join("/");
+    const signedHeaders = "host";
+    const query = [
+        ["X-Amz-Algorithm", "AWS4-HMAC-SHA256"],
+        ["X-Amz-Credential", accessKeyId + "/" + scope],
+        ["X-Amz-Date", amzDate],
+        ["X-Amz-Expires", "300"],
+        ["X-Amz-SignedHeaders", signedHeaders]
+    ].map(([name, value]) => [dbbyteAwsEncode(name), dbbyteAwsEncode(value)])
+     .sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)
+     .map(([name, value]) => name + "=" + value)
+     .join("&");
+
+    const canonicalHeaders = "host:" + host + "\n";
+    const canonicalRequest = [
+        "PUT",
+        canonicalUri,
+        query,
+        canonicalHeaders,
+        signedHeaders,
+        "UNSIGNED-PAYLOAD"
+    ].join("\n");
+    const stringToSign = [
+        "AWS4-HMAC-SHA256",
+        amzDate,
+        scope,
+        crypto.createHash("sha256").update(canonicalRequest, "utf8").digest("hex")
+    ].join("\n");
+
+    const dateKey = dbbyteHmac("AWS4" + secretAccessKey, dateStamp);
+    const regionKey = dbbyteHmac(dateKey, region);
+    const serviceKey = dbbyteHmac(regionKey, service);
+    const signingKey = dbbyteHmac(serviceKey, "aws4_request");
+    const signature = dbbyteHmac(signingKey, stringToSign, "hex");
+
+    return "https://" + host + canonicalUri + "?" + query + "&X-Amz-Signature=" + signature;
+}
+
+app.post("/api/publish/dbbyte-upload-url", async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+
+        const featureBan = await getActiveFeatureBan(user.id, "publish_ban");
+        if (featureBan.active) {
+            return res.status(403).json({
+                success:false,code:"PUBLISH_RESTRICTED",
+                message:"تم منعك من نشر الخلفيات",until:featureBan.until,reason:featureBan.reason
+            });
+        }
+
+        const accessKeyId = String(process.env.DBBYTE_ACCESS_KEY_ID || "").trim();
+        const secretAccessKey = String(process.env.DBBYTE_SECRET_ACCESS_KEY || "").trim();
+        const bucket = String(process.env.DBBYTE_BUCKET || "").trim();
+        const publicToken = String(process.env.DBBYTE_CDN_PUBLIC_TOKEN || "").trim();
+
+        if (!accessKeyId || !secretAccessKey || !bucket || !publicToken) {
+            return res.status(503).json({
+                success:false,
+                code:"DBBYTE_NOT_CONFIGURED",
+                message:"إعداد DBByte غير مكتمل في Vercel. أضف مفاتيح DBByte واسم Bucket وPublic CDN Token."
+            });
+        }
+        if (!/^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/.test(bucket)) {
+            return res.status(503).json({success:false,message:"قيمة DBBYTE_BUCKET غير صالحة."});
+        }
+
+        const body = req.body || {};
+        const mimeType = String(body.mimeType || "").trim().toLowerCase();
+        const size = Number(body.size || 0);
+        const extensions = {
+            "image/jpeg":"jpg",
+            "image/png":"png",
+            "image/webp":"webp",
+            "image/avif":"avif"
+        };
+        if (!extensions[mimeType]) {
+            return res.status(400).json({success:false,message:"صيغة الصورة غير مدعومة."});
+        }
+        if (!Number.isFinite(size) || size <= 0 || size > 100 * 1024 * 1024) {
+            return res.status(400).json({success:false,message:"حجم الصورة يجب أن يكون أقل من 100 MB."});
+        }
+
+        const key = "wallpapers/" + Date.now() + "-" +
+            crypto.randomBytes(10).toString("hex") + "." + extensions[mimeType];
+        const uploadUrl = createDbbytePresignedPutUrl({
+            bucket,key,accessKeyId,secretAccessKey
+        });
+        const publicUrl = "https://cdn.dbbyte.com/" + encodeURIComponent(publicToken) + "/" +
+            encodeURIComponent(bucket) + "/" + key.split("/").map(encodeURIComponent).join("/");
+
+        return res.json({
+            success:true,
+            provider:"dbbyte",
+            method:"PUT",
+            key,
+            uploadUrl,
+            publicUrl,
+            expiresIn:300
+        });
+    } catch (error) {
+        console.error("DBBYTE PUBLISH SIGNING ERROR:", error?.stack || error?.message || error);
+        return res.status(500).json({success:false,message:"تعذر تجهيز رابط الرفع من DBByte."});
+    }
+});
+
+// ======================================
+// Legacy ImageKit upload signature (kept for existing workflows).
 // ======================================
 app.post("/api/publish/media-signature", async (req, res) => {
     try {
