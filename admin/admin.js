@@ -186,8 +186,8 @@ let videoThumbnail = "";
 
 let selectedWallpapers = new Set();
 
-/* ImageKit upload state.
- * ImageKit browser uploads here use one request per file, not resumable chunks.
+/* DBByte upload state.
+ * Direct browser PUT uploads are single requests, not resumable chunks.
  */
 const UPLOAD_CHUNK_SIZE = 6 * 1024 * 1024;
 const UPLOAD_RETRY_LIMIT = 8;
@@ -243,7 +243,7 @@ function pauseCurrentUpload(){
     uploadWaitingForNetwork = false;
     abortActiveUpload("user");
     setUploadNetworkStatus("تم إلغاء طلب الرفع", "is-paused");
-    setUploadRetryInfo("ImageKit يرفع الملف في طلب واحد؛ لا يمكن استكماله من منتصف الملف. أعد اختيار الملف لرفعه من البداية.");
+    setUploadRetryInfo("DBByte يرفع الملف في طلب واحد؛ لا يمكن استكماله من منتصف الملف. أعد اختيار الملف لرفعه من البداية.");
     setUploadControls();
 }
 
@@ -280,7 +280,7 @@ function handleOnline(){
 window.addEventListener("offline", handleOffline);
 window.addEventListener("online", handleOnline);
 
-// ImageKit upload API used here is a single request; hide controls that imply chunk-resume.
+// DBByte uploads use a single signed PUT request; hide controls that imply chunk-resume.
 if(pauseUploadBtn) pauseUploadBtn.hidden = true;
 if(resumeUploadBtn) resumeUploadBtn.hidden = true;
 
@@ -369,8 +369,7 @@ async function generateAITags(file){
     }
 }
 
-// ImageKit endpoint؛ المفتاح السري محفوظ في Vercel فقط.
-const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/2xcgjj3oe";
+// DBByte credentials remain server-side in Vercel environment variables.
 
 
 
@@ -968,43 +967,76 @@ renderSelectedFiles();
 
 
 // ==========================================
-// رفع ملف واحد إلى ImageKit (ليس رفعًا مجزأً قابلًا للاستكمال)
+// Upload one wallpaper or video directly to DBByte.
 // ==========================================
-
-function uploadToImageKit(file, onProgress){
+function uploadToDBByte(file, onProgress){
     return new Promise(async (resolve,reject)=>{
         try{
             await getCurrentUser();
             if(!currentSession?.access_token) throw new Error("سجّل الدخول أولاً.");
             const allowed=["image/jpeg","image/png","image/webp","image/avif","video/mp4","video/webm","video/quicktime"];
-            if(!allowed.includes(String(file.type||"").toLowerCase())) throw new Error("صيغة الصورة غير مدعومة لرفع الخلفيات.");
-            const authResponse=await fetch("/api/publish/media-signature",{
-                method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${currentSession.access_token}`},
-                body:JSON.stringify({mimeType:file.type})
+            if(!allowed.includes(String(file.type||"").toLowerCase())) throw new Error("صيغة الصورة أو الفيديو غير مدعومة.");
+            if(file.size>100*1024*1024) throw new Error("حجم الملف يتجاوز حد DBByte البالغ 100 MB.");
+            const authResponse=await fetch("/api/publish/dbbyte-upload-url",{
+                method:"POST",
+                headers:{"Content-Type":"application/json",Authorization:`Bearer ${currentSession.access_token}`},
+                body:JSON.stringify({fileName:file.name,mimeType:file.type,size:file.size})
             });
             const auth=await authResponse.json().catch(()=>({}));
-            if(!authResponse.ok||!auth.success) throw new Error(auth.message||"تعذر تجهيز الرفع من السيرفر.");
+            if(!authResponse.ok||!auth.success||!auth.uploadUrl||!auth.publicUrl){
+                throw new Error(auth.message||"تعذر تجهيز الرفع من DBByte.");
+            }
             const total=file.size;
-            uploadCurrentState={file,uploadId:auth.token,resourceType:"imagekit",offset:0,total,url:"",done:false};
+            uploadCurrentState={file,uploadId:auth.key,resourceType:"dbbyte",offset:0,total,url:auth.publicUrl,done:false};
             uploadPausedByUser=false;uploadWaitingForNetwork=navigator.onLine===false;
             if(uploadOfflineNotice) uploadOfflineNotice.hidden=!uploadWaitingForNetwork;
-            setUploadNetworkStatus("● جارٍ رفع الملف إلى ImageKit","is-online");setUploadControls();
-            const formData=new FormData();
-            formData.append("file",file,file.name);formData.append("fileName",file.name);
-            formData.append("publicKey",auth.publicKey);formData.append("signature",auth.signature);
-            formData.append("expire",String(auth.expire));formData.append("token",auth.token);formData.append("useUniqueFileName","true");
+            setUploadNetworkStatus("● جارٍ رفع الملف إلى DBByte","is-online");
+            setUploadControls();
             const xhr=new XMLHttpRequest();activeUploadXHR=xhr;
-            xhr.open("POST","https://upload.imagekit.io/api/v1/files/upload",true);
-            xhr.upload.onprogress=event=>{if(event.lengthComputable){uploadCurrentState.offset=event.loaded;if(onProgress)onProgress(Math.min(100,Math.round(event.loaded/total*100)),event.loaded,total);}};
-            xhr.onload=()=>{activeUploadXHR=null;let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
-                uploadCurrentState=null;setUploadControls();
-                if(xhr.status>=200&&xhr.status<300&&data.url){if(onProgress)onProgress(100,total,total);setUploadRetryInfo("");if(uploadOfflineNotice)uploadOfflineNotice.hidden=true;setUploadNetworkStatus("● اكتمل رفع الملف إلى ImageKit","is-online");resolve(data.url);}
-                else reject(new Error(data?.message||data?.help||`ImageKit HTTP ${xhr.status}`));
+            xhr.open("PUT",auth.uploadUrl,true);
+            xhr.timeout=120000;
+            xhr.setRequestHeader("Content-Type",file.type);
+            xhr.upload.onprogress=event=>{
+                if(event.lengthComputable){
+                    uploadCurrentState.offset=event.loaded;
+                    if(onProgress)onProgress(Math.min(100,Math.round(event.loaded/total*100)),event.loaded,total);
+                }
             };
-            xhr.onerror=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("فشل الاتصال أثناء رفع الملف إلى ImageKit. تحقق من الإنترنت ثم أعد المحاولة."));};
-            xhr.onabort=()=>{activeUploadXHR=null;uploadCurrentState=null;setUploadControls();reject(new Error("تم إلغاء طلب الرفع. ImageKit لا يستكمل هذا الطلب من منتصف الملف؛ أعد المحاولة من البداية."));};
-            xhr.send(formData);
-        }catch(error){uploadCurrentState=null;activeUploadXHR=null;setUploadControls();reject(error);}
+            xhr.onload=()=>{
+                activeUploadXHR=null;
+                uploadCurrentState=null;
+                setUploadControls();
+                if(xhr.status>=200&&xhr.status<300){
+                    if(onProgress)onProgress(100,total,total);
+                    setUploadRetryInfo("");
+                    if(uploadOfflineNotice)uploadOfflineNotice.hidden=true;
+                    setUploadNetworkStatus("● اكتمل رفع الملف إلى DBByte","is-online");
+                    resolve(auth.publicUrl);
+                }else{
+                    let detail="";
+                    try{
+                        const body=JSON.parse(xhr.responseText||"{}");
+                        detail=String(body.message||body.error||"");
+                    }catch{}
+                    reject(new Error(detail||`DBByte HTTP ${xhr.status}. تحقق من صلاحيات المفتاح وإعداد CORS.`));
+                }
+            };
+            xhr.onerror=()=>{
+                activeUploadXHR=null;uploadCurrentState=null;setUploadControls();
+                reject(new Error("فشل الاتصال بـ DBByte. تحقق من إعداد CORS والسماح بـ PUT لنطاق الموقع."));
+            };
+            xhr.ontimeout=()=>{
+                activeUploadXHR=null;uploadCurrentState=null;setUploadControls();
+                reject(new Error("انتهت مهلة رفع DBByte بعد دقيقتين."));
+            };
+            xhr.onabort=()=>{
+                activeUploadXHR=null;uploadCurrentState=null;setUploadControls();
+                reject(new Error("تم إلغاء رفع DBByte. هذا الرفع لا يستكمل من منتصف الملف؛ أعد المحاولة من البداية."));
+            };
+            xhr.send(file);
+        }catch(error){
+            uploadCurrentState=null;activeUploadXHR=null;setUploadControls();reject(error);
+        }
     });
 }
 // ==========================================
@@ -1447,7 +1479,7 @@ setUploadCurrentFile(
     `الملف ${i+1} من ${total}: ${file.name}`
 );
 
-const url = await uploadToImageKit(
+const url = await uploadToDBByte(
     file,
     (percent, loaded, bytesTotal)=>{
         if(uploadProgressBar){
