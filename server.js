@@ -2401,8 +2401,8 @@ app.get("/api/supabase/config", (req, res) => {
 // DBByte wallpaper upload URL
 // The browser uploads directly to DBByte using a short-lived signed PUT URL.
 // Required Vercel variables:
-// DBBYTE_ACCESS_KEY_ID, DBBYTE_SECRET_ACCESS_KEY,
-// DBBYTE_BUCKET, DBBYTE_CDN_PUBLIC_TOKEN
+// DBBYTE_ACCESS_KEY_ID, DBBYTE_SECRET_ACCESS_KEY, DBBYTE_CDN_PUBLIC_TOKEN
+// DBBYTE_BUCKET is optional and defaults to "wallpaperhub-assets".
 // ======================================
 function dbbyteAwsEncode(value){
     return encodeURIComponent(String(value)).replace(/[!'()*]/g, character =>
@@ -2475,14 +2475,14 @@ app.post("/api/publish/dbbyte-upload-url", async (req, res) => {
 
         const accessKeyId = String(process.env.DBBYTE_ACCESS_KEY_ID || "").trim();
         const secretAccessKey = String(process.env.DBBYTE_SECRET_ACCESS_KEY || "").trim();
-        const bucket = String(process.env.DBBYTE_BUCKET || "").trim();
+        const bucket = String(process.env.DBBYTE_BUCKET || "wallpaperhub-assets").trim();
         const publicToken = String(process.env.DBBYTE_CDN_PUBLIC_TOKEN || "").trim();
 
-        if (!accessKeyId || !secretAccessKey || !bucket || !publicToken) {
+        if (!accessKeyId || !secretAccessKey || !publicToken) {
             return res.status(503).json({
                 success:false,
                 code:"DBBYTE_NOT_CONFIGURED",
-                message:"إعداد DBByte غير مكتمل في Vercel. أضف مفاتيح DBByte واسم Bucket وPublic CDN Token."
+                message:"إعداد DBByte غير مكتمل في Vercel. أضف Access Key ID وSecret Access Key وPublic CDN Token."
             });
         }
         if (!/^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/.test(bucket)) {
