@@ -52,6 +52,15 @@ function getMimeType(file) {
 function isAllowedImage(file) {
   return Boolean(getMimeType(file));
 }
+function createLocalImageUrl(file) {
+  const mimeType=getMimeType(file);
+  const previewBlob=file.type===mimeType?file:file.slice(0,file.size,mimeType||"application/octet-stream");
+  return URL.createObjectURL(previewBlob);
+}
+function getUploadBlob(file) {
+  const mimeType=getMimeType(file);
+  return file.type===mimeType?file:file.slice(0,file.size,mimeType||"application/octet-stream");
+}
 function fingerprint(file){return `${file.name.toLowerCase()}|${file.size}|${file.lastModified}|${getMimeType(file)}`;}
 function clearUploadJobs(){
   for(const job of uploadJobs.values()){
@@ -76,7 +85,7 @@ async function metadata(file){
   let url="";
   if(isAllowedImage(file)){
     try{
-      url=URL.createObjectURL(file);
+      url=createLocalImageUrl(file);
       info.resolution=await new Promise((resolve,reject)=>{
         const img=new Image();img.onload=()=>resolve(`${img.naturalWidth}×${img.naturalHeight}`);
         img.onerror=reject;img.src=url;
@@ -145,10 +154,17 @@ async function renderFiles(){
   validationList.innerHTML="";let validCount=0;
   const fragment=document.createDocumentFragment();
   for(let i=0;i<selectedFiles.length;i++){
-    const file=selectedFiles[i],errors=validate(file),url=URL.createObjectURL(file);
+    const file=selectedFiles[i],errors=validate(file),url=createLocalImageUrl(file);
     previewObjectUrls.push(url);
     const card=document.createElement("div");card.className="preview-card";
     const img=document.createElement("img");img.src=url;img.alt=file.name;img.loading="lazy";card.appendChild(img);
+    img.onerror=()=>{
+      card.classList.add("preview-load-error");
+      const warning=document.createElement("span");
+      warning.className="preview-image-error";
+      warning.textContent="تعذّر عرض الصورة";
+      card.appendChild(warning);
+    };
     if(i===0){
       $("panoramaPreview").style.backgroundImage=`linear-gradient(#11182733,#11182733),url("${url}")`;
       $("panoramaPreview").style.backgroundPosition=`${panoOffset}% center`;
@@ -425,7 +441,7 @@ function prepareUploadJobs(files){
   for(const file of files){
     const key=fingerprint(file);
     if(!uploadJobs.has(key)){
-      uploadJobs.set(key,{file,url:URL.createObjectURL(file),progress:0,uploaded:0,status:"queued",xhr:null,result:null,error:""});
+      uploadJobs.set(key,{file,url:createLocalImageUrl(file),progress:0,uploaded:0,status:"queued",xhr:null,result:null,error:""});
     }
   }
   renderUploadJobs();
@@ -631,11 +647,15 @@ async function uploadImageToImageKit(file,job){
   if(!authResponse.ok||!auth.success) throw new Error(auth.message||"تعذر الحصول على تصريح الرفع.");
   return await new Promise((resolve,reject)=>{
     const formData=new FormData();
-    formData.append("file",file,file.name);formData.append("fileName",file.name);
+    const uploadBlob=getUploadBlob(file);
+    formData.append("file",uploadBlob,file.name);
+    formData.append("fileName",file.name);
     formData.append("publicKey",auth.publicKey);formData.append("signature",auth.signature);
     formData.append("expire",String(auth.expire));formData.append("token",auth.token);formData.append("useUniqueFileName","true");
     const xhr=new XMLHttpRequest();job.xhr=xhr;
     xhr.open("POST","https://upload.imagekit.io/api/v1/files/upload",true);
+    xhr.timeout=120000;
+    xhr.setRequestHeader("Accept","application/json");
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;updateBatchProgress();}
     };
@@ -646,7 +666,8 @@ async function uploadImageToImageKit(file,job){
         job.progress=100;job.uploaded=file.size;job.result=data;resolve(data);
       }else reject(new Error(data?.message||data?.help||`ImageKit رفض رفع الصورة (HTTP ${xhr.status})`));
     };
-    xhr.onerror=()=>{job.xhr=null;reject(new Error("فشل الاتصال برفع ImageKit. تحقق من الإنترنت أو إعدادات الشبكة ثم أعد المحاولة."));};
+    xhr.onerror=()=>{job.xhr=null;reject(new Error("تعذر الاتصال بخادم رفع ImageKit من المتصفح. قد يكون الاتصال أو DNS أو مانع الإعلانات يحجب upload.imagekit.io. لم يتم تأكيد رفع هذه الصورة."));};
+    xhr.ontimeout=()=>{job.xhr=null;reject(new Error("انتهت مهلة رفع ImageKit بعد دقيقتين. تحقق من الاتصال وحاول إعادة رفع هذه الصورة."));};
     xhr.onabort=()=>{job.xhr=null;reject(new Error("تم إلغاء الرفع"));};
     xhr.send(formData);
   });
@@ -655,7 +676,7 @@ async function uploadOne(file){
   const key=fingerprint(file);
   let job=uploadJobs.get(key);
   if(!job){
-    job={file,url:URL.createObjectURL(file),progress:0,uploaded:0,status:"queued",xhr:null,result:null,error:""};
+    job={file,url:createLocalImageUrl(file),progress:0,uploaded:0,status:"queued",xhr:null,result:null,error:""};
     uploadJobs.set(key,job);
   }
   if(["done","uploaded"].includes(job.status)&&job.result?.url)return job;
