@@ -23,11 +23,10 @@ let pauseRequested = false;
 let batchPaused = false;
 let resumeBatch = null;
 const MAX_FILES = 50;
-const MAX_FILE_SIZE = 150 * 1024 * 1024;
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 
-// ImageKit endpoint؛ المفتاح السري لا يوضع في المتصفح.
-const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/2xcgjj3oe";
+// New wallpaper uploads use DBByte. Existing ImageKit URLs remain valid.
 
 function notify(message) {
   toast.textContent = message;
@@ -76,7 +75,7 @@ function clearPreviewUrls(){
 function validate(file){
   const errors=[];
   if(!isAllowedImage(file))errors.push("صيغة غير مدعومة؛ GIF غير مسموح");
-  if(file.size>MAX_FILE_SIZE)errors.push("أكبر من 150 MB");
+  if(file.size>MAX_FILE_SIZE)errors.push("أكبر من 100 MB");
   if(!file.size)errors.push("ملف فارغ");
   return errors;
 }
@@ -636,40 +635,52 @@ async function loadPublisherPoints(){
   }
 }
 
-async function uploadImageToImageKit(file,job){
+async function uploadImageToDBByte(file,job){
   const accessToken=await getAccessToken();
   if(!accessToken) throw new Error("انتهت جلسة الدخول؛ سجّل الدخول من جديد.");
-  const authResponse=await fetch("/api/publish/media-signature",{
-    method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${accessToken}`},
-    body:JSON.stringify({mimeType:getMimeType(file)})
+  const mimeType=getMimeType(file);
+  const uploadBlob=getUploadBlob(file);
+  const authResponse=await fetch("/api/publish/dbbyte-upload-url",{
+    method:"POST",
+    headers:{"Content-Type":"application/json",Authorization:`Bearer ${accessToken}`},
+    body:JSON.stringify({fileName:file.name,mimeType,size:file.size})
   });
   const auth=await authResponse.json().catch(()=>({}));
-  if(!authResponse.ok||!auth.success) throw new Error(auth.message||"تعذر الحصول على تصريح الرفع.");
+  if(!authResponse.ok||!auth.success||!auth.uploadUrl||!auth.publicUrl){
+    throw new Error(auth.message||"تعذر الحصول على رابط الرفع من DBByte.");
+  }
   return await new Promise((resolve,reject)=>{
-    const formData=new FormData();
-    const uploadBlob=getUploadBlob(file);
-    formData.append("file",uploadBlob,file.name);
-    formData.append("fileName",file.name);
-    formData.append("publicKey",auth.publicKey);formData.append("signature",auth.signature);
-    formData.append("expire",String(auth.expire));formData.append("token",auth.token);formData.append("useUniqueFileName","true");
     const xhr=new XMLHttpRequest();job.xhr=xhr;
-    xhr.open("POST","https://upload.imagekit.io/api/v1/files/upload",true);
+    xhr.open("PUT",auth.uploadUrl,true);
     xhr.timeout=120000;
-    xhr.setRequestHeader("Accept","application/json");
+    xhr.setRequestHeader("Content-Type",mimeType);
     xhr.upload.onprogress=e=>{
-      if(e.lengthComputable){job.progress=e.total?e.loaded/e.total*100:0;job.uploaded=e.loaded;updateBatchProgress();}
+      if(e.lengthComputable){
+        job.progress=e.total?e.loaded/e.total*100:0;
+        job.uploaded=e.loaded;
+        updateBatchProgress();
+      }
     };
     xhr.onload=()=>{
-      let data={};try{data=JSON.parse(xhr.responseText||"{}");}catch{}
       job.xhr=null;
-      if(xhr.status>=200&&xhr.status<300&&data.url){
-        job.progress=100;job.uploaded=file.size;job.result=data;resolve(data);
-      }else reject(new Error(data?.message||data?.help||`ImageKit رفض رفع الصورة (HTTP ${xhr.status})`));
+      if(xhr.status>=200&&xhr.status<300){
+        job.progress=100;
+        job.uploaded=file.size;
+        job.result={url:auth.publicUrl,key:auth.key,provider:"dbbyte"};
+        resolve(job.result);
+      }else{
+        let detail="";
+        try{
+          const body=JSON.parse(xhr.responseText||"{}");
+          detail=String(body.message||body.error||"");
+        }catch{}
+        reject(new Error(detail||`DBByte رفض رفع الصورة (HTTP ${xhr.status}). تحقق من صلاحيات المفتاح وإعداد CORS للـBucket.`));
+      }
     };
-    xhr.onerror=()=>{job.xhr=null;reject(new Error("تعذر الاتصال بخادم رفع ImageKit من المتصفح. قد يكون الاتصال أو DNS أو مانع الإعلانات يحجب upload.imagekit.io. لم يتم تأكيد رفع هذه الصورة."));};
-    xhr.ontimeout=()=>{job.xhr=null;reject(new Error("انتهت مهلة رفع ImageKit بعد دقيقتين. تحقق من الاتصال وحاول إعادة رفع هذه الصورة."));};
+    xhr.onerror=()=>{job.xhr=null;reject(new Error("تعذر الاتصال برفع DBByte. تحقق من إعداد CORS في Bucket وأن PUT مسموح لنطاق الموقع."));};
+    xhr.ontimeout=()=>{job.xhr=null;reject(new Error("انتهت مهلة رفع DBByte بعد دقيقتين. أعد المحاولة لهذه الصورة."));};
     xhr.onabort=()=>{job.xhr=null;reject(new Error("تم إلغاء الرفع"));};
-    xhr.send(formData);
+    xhr.send(uploadBlob);
   });
 }
 async function uploadOne(file){
@@ -683,7 +694,7 @@ async function uploadOne(file){
   job.progress=0;job.uploaded=0;job.status="running";job.error="";job.result=null;
   renderUploadJobs();
   try{
-    const result=await uploadImageToImageKit(file,job);
+    const result=await uploadImageToDBByte(file,job);
     job.result=result;job.status="uploaded";job.progress=100;job.uploaded=file.size;job.xhr=null;
     renderUploadJobs();
     return job;
