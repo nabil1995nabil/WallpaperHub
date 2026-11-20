@@ -601,31 +601,16 @@ function getPremiumProfileUrl(){
 }
 
 if(premiumProfileCard){
-    // Owner access is permanent; other accounts need every active medal.
     premiumProfileCard.addEventListener("click", event => {
-        const total = profileMedals.filter(m => m.key).length;
-        const earned = profileMedals.filter(m => m.key && isMedalOwned(m.key)).length;
-        const unlocked = isFounderProfile() || (total > 0 && earned === total);
-
-        if(!unlocked){
+        if(premiumProfileCard.disabled || !hasPremiumProfileAccess()){
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             return;
         }
-
-        if(
-            event.button !== 0 ||
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-        ) return;
-
         event.preventDefault();
         window.location.assign(getPremiumProfileUrl());
     });
-}
-function isOwnProfile(){
+}function isOwnProfile(){
     if(!isPublicProfile) return true;
     return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
 }
@@ -3396,8 +3381,20 @@ function updateProfileMedalCount(){
 // افتح صفحة Premium فقط عند امتلاك جميع الشارات النشطة في الكتالوج.
 function isFounderProfile(){
     const founderUID=String(window.WallpaperHubFounderUID || "").trim().toLowerCase();
-    const viewedUID=String(profileTargetUID || currentUser?.id || "").trim().toLowerCase();
+    const storedUID=String(
+        localStorage.getItem("userId") ||
+        localStorage.getItem("uid") ||
+        localStorage.getItem("userUID") ||
+        ""
+    ).trim().toLowerCase();
+    const viewedUID=String(profileTargetUID || currentUser?.id || storedUID || "").trim().toLowerCase();
     return Boolean(founderUID && viewedUID && viewedUID===founderUID);
+}
+
+function hasPremiumProfileAccess(){
+    const total=profileMedals.filter(m=>m.key).length;
+    const earned=profileMedals.filter(m=>m.key && isMedalOwned(m.key)).length;
+    return isFounderProfile() || (total>0 && earned===total);
 }
 
 function updatePremiumAccessState(){
@@ -3410,36 +3407,29 @@ function updatePremiumAccessState(){
     const progress=premiumProfileCard.querySelector("[data-premium-progress]");
     const arrow=premiumProfileCard.querySelector(".premium-arrow");
 
+    premiumProfileCard.disabled=!unlocked;
     premiumProfileCard.classList.toggle("is-locked",!unlocked);
     premiumProfileCard.classList.toggle("is-unlocked",unlocked);
     premiumProfileCard.classList.toggle("is-owner",isOwner);
+    premiumProfileCard.setAttribute("aria-disabled",String(!unlocked));
 
     if(unlocked){
-        premiumProfileCard.href=getPremiumProfileUrl();
-        premiumProfileCard.removeAttribute("aria-disabled");
-        premiumProfileCard.removeAttribute("tabindex");
-
-        if(isOwner){
-            premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة لمالك الموقع");
-            premiumProfileCard.title="مالك الموقع · وصول دائم إلى صفحة المستخدم المميز";
-            if(progress) progress.textContent="مالك الموقع · وصول دائم";
-            if(arrow) arrow.textContent="workspace_premium";
-        }else{
-            premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة بعد اكتمال الشارات");
-            premiumProfileCard.title="اكتملت جميع الشارات — افتح صفحة المستخدم المميز";
-            if(progress) progress.textContent="مفتوح · جميع الشارات مكتملة";
-            if(arrow) arrow.textContent="chevron_left";
-        }
+        premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة");
+        premiumProfileCard.title=isOwner
+            ? "مالك الموقع · وصول دائم إلى صفحة المستخدم المميز"
+            : "اكتملت جميع الشارات — افتح صفحة المستخدم المميز";
+        if(progress) progress.textContent="مفتوح";
+        if(arrow) arrow.textContent=isOwner ? "workspace_premium" : "chevron_left";
     }else{
-        premiumProfileCard.removeAttribute("href");
-        premiumProfileCard.setAttribute("aria-disabled","true");
-        premiumProfileCard.setAttribute("tabindex","-1");
         premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مقفولة · "+earned+" من "+total+" شارات");
         premiumProfileCard.title="تحتاج إلى جميع الشارات لفتح الصفحة · "+earned+"/"+total;
         if(progress) progress.textContent="مقفول · "+earned+" من "+total+" شارات";
         if(arrow) arrow.textContent="lock";
     }
 }
+
+// Initial owner-aware state: owner opens immediately; all others start locked.
+updatePremiumAccessState();
 
 function applyProfileMedalData(payload){
     const catalog=Array.isArray(payload?.medals) ? payload.medals : [];
