@@ -601,12 +601,18 @@ function getPremiumProfileUrl(){
 }
 
 if(premiumProfileCard){
-    premiumProfileCard.href = getPremiumProfileUrl();
-    premiumProfileCard.setAttribute("aria-label", "فتح صفحة المستخدم المميز");
-
-    // Explicit navigation fallback for mobile browsers/webviews that fail to
-    // follow a dynamically updated anchor after touch interaction.
+    // Keep the card inert until every active catalog medal is awarded.
     premiumProfileCard.addEventListener("click", event => {
+        const total = profileMedals.length;
+        const earned = profileMedals.filter(m => isMedalOwned(m.key)).length;
+        const unlocked = total > 0 && earned === total;
+
+        if(!unlocked){
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
         if(
             event.button !== 0 ||
             event.metaKey ||
@@ -3383,8 +3389,41 @@ function renderProfileMedalHistory(){
 function updateProfileMedalCount(){
     const count=profileMedals.filter(m=>isMedalOwned(m.key)).length;
     document.querySelectorAll(".premium-medals-count").forEach(el=>{
-        el.textContent=`${count} / ${profileMedals.length}`;
+        el.textContent=count+" / "+profileMedals.length;
     });
+    updatePremiumAccessState();
+}
+
+// افتح صفحة Premium فقط عند امتلاك جميع الشارات النشطة في الكتالوج.
+function updatePremiumAccessState(){
+    if(!premiumProfileCard) return;
+
+    const total=profileMedals.filter(m=>m.key).length;
+    const earned=profileMedals.filter(m=>m.key && isMedalOwned(m.key)).length;
+    const unlocked=total>0 && earned===total;
+    const progress=premiumProfileCard.querySelector("[data-premium-progress]");
+    const arrow=premiumProfileCard.querySelector(".premium-arrow");
+
+    premiumProfileCard.classList.toggle("is-locked",!unlocked);
+    premiumProfileCard.classList.toggle("is-unlocked",unlocked);
+
+    if(unlocked){
+        premiumProfileCard.href=getPremiumProfileUrl();
+        premiumProfileCard.removeAttribute("aria-disabled");
+        premiumProfileCard.removeAttribute("tabindex");
+        premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة");
+        premiumProfileCard.title="اكتملت جميع الشارات — افتح صفحة المستخدم المميز";
+        if(progress) progress.textContent="مفتوح · جميع الشارات مكتملة";
+        if(arrow) arrow.textContent="chevron_left";
+    }else{
+        premiumProfileCard.removeAttribute("href");
+        premiumProfileCard.setAttribute("aria-disabled","true");
+        premiumProfileCard.setAttribute("tabindex","-1");
+        premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مقفولة · "+earned+" من "+total+" شارات");
+        premiumProfileCard.title="تحتاج إلى جميع الشارات لفتح الصفحة · "+earned+"/"+total;
+        if(progress) progress.textContent="مقفول · "+earned+" من "+total+" شارات";
+        if(arrow) arrow.textContent="lock";
+    }
 }
 
 function applyProfileMedalData(payload){
@@ -3474,6 +3513,7 @@ async function loadProfileMedals(uid=null){
         renderProfileMedals();
         renderProfileMedalHistory();
         updateProfileMedalCount();
+        updatePremiumAccessState();
 
         return null;
     }
@@ -3485,7 +3525,15 @@ function resetProfileMedals(){
     renderProfileMedals();
     renderProfileMedalHistory();
     updateProfileMedalCount();
+    updatePremiumAccessState();
 }
+
+// Refresh badge state when returning from the admin panel or another tab.
+document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState!=="visible") return;
+    const uid=String(profileTargetUID || currentUser?.id || "").trim();
+    if(uid) void loadProfileMedals(uid);
+});
 
 function toggleProfileMedals(){
     if(!profileMedalsPanel || !profileMedalsBtn)return;
