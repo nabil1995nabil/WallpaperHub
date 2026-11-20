@@ -113,3 +113,31 @@ a{color:inherit}
  .rank-badge-copy strong{font-size:11px}.rank-badge-copy small{font-size:9px}
  .rank-current-tag{font-size:8px;padding:3px 5px}
 }
+
+
+/* Points earning overview and navigation */
+.points-earn-cta{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 15px;border-radius:15px;background:linear-gradient(120deg,#1764ff,#7547f6);color:#fff;text-decoration:none;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 8px 20px #1764ff22}
+.points-earn-cta .material-icons{font-size:19px}
+.earning-overview{padding:22px;border:1px solid var(--line);border-radius:26px;background:#ffffffde;box-shadow:0 14px 36px #243b7a0a}
+.earning-overview-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
+.earning-overview-head h2{margin:3px 0 0;font-size:22px;font-weight:900}
+.earning-overview-head p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.earning-overview-head>a{display:inline-flex;align-items:center;gap:4px;color:#315ff0;text-decoration:none;font-size:12px;font-weight:900;white-space:nowrap}
+.earning-overview-head>a .material-icons{font-size:18px}
+.earning-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.earning-mini-card{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:15px;border:1px solid #e8ecf8;border-radius:19px;background:#fbfcff}
+.earning-mini-card>.material-icons{font-size:23px;color:#5d56e8}
+.earning-mini-card strong{font-size:24px;line-height:1.15;font-weight:900;color:#1764ff;direction:ltr}
+.earning-mini-card small{font-size:11px;line-height:1.6;color:var(--muted)}
+.earning-ad-card{background:linear-gradient(145deg,#fffaf0,#fff);border-color:#f2e5c4}
+.earning-ad-card>.material-icons,.earning-ad-card strong{color:#b78316}
+@media(max-width:650px){
+ .points-header{flex-wrap:wrap}
+ .points-earn-cta{margin-inline-start:auto;padding:9px 11px;font-size:11px}
+ .earning-overview{padding:17px 13px;border-radius:22px}
+ .earning-overview-head h2{font-size:19px}
+ .earning-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .earning-mini-card{padding:13px;border-radius:16px}
+ .earning-mini-card strong{font-size:22px}
+ .earning-mini-card small{font-size:10px}
+}
