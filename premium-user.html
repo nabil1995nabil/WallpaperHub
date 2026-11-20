@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="premium-user.css?v=20261120-premium-clean">
+  <link rel="stylesheet" href="premium-user.css?v=20261120-premium-gatefix">
 </head>
 <body class="premium-page">
   <header class="premium-header">
@@ -25,7 +25,7 @@
     </button>
   </header>
 
-  <main class="premium-main">
+  <main class="premium-main" id="premiumMain" hidden>
     <section class="premium-hero">
       <div class="hero-orbit hero-orbit-a"></div>
       <div class="hero-orbit hero-orbit-b"></div>
@@ -109,7 +109,19 @@
     </section>
   </main>
 
+  <main class="premium-access-gate" id="premiumLockedState" role="status" aria-live="polite">
+    <div class="premium-gate-icon"><span class="material-icons" aria-hidden="true">lock</span></div>
+    <span class="premium-gate-kicker">PREMIUM ACCESS</span>
+    <h1 id="premiumGateTitle">نتحقق من حالة الشارات</h1>
+    <p id="premiumGateMessage">يتم التأكد من استحقاق فتح صفحة المستخدم المميز.</p>
+    <div class="premium-gate-progress" id="premiumGateProgress"></div>
+    <a class="premium-gate-back" id="premiumGateBack" href="profile.html">
+      <span class="material-icons" aria-hidden="true">arrow_forward</span>
+      العودة إلى الملف الشخصي
+    </a>
+  </main>
+
   <div class="premium-toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="premium-user.js?v=20261120-premium-clean"></script>
+  <script type="module" src="premium-user.js?v=20261120-premium-gatefix"></script>
 </body>
 </html>
