@@ -271,32 +271,36 @@ function drawActivityChart(events, rangeKey, scoreNow) {
   const now = Date.now();
   const rangeMs = ACTIVITY_RANGES[rangeKey] || ACTIVITY_RANGES["7d"];
   const start = now - rangeMs;
-  const samples = 100;
   const times = new Set();
-  for (let i = 0; i <= samples; i++) times.add(start + rangeMs * i / samples);
-  events.forEach(eventTime => {
+  for (let i = 0; i <= 72; i++) times.add(start + rangeMs * i / 72);
+  for (const eventTime of events) {
     if (eventTime > start && eventTime <= now) {
       times.add(Math.max(start, eventTime - 1));
       times.add(eventTime);
     }
+  }
+  const coords = [...times].sort((a, b) => a - b).map(timestamp => {
+    const x = ((timestamp - start) / rangeMs) * 320;
+    const y = 130 - activityScoreAt(timestamp, events) * 1.2;
+    return {x, y};
   });
-  const ordered = [...times].sort((a, b) => a - b);
-  const coords = ordered.map(timestamp => {
-    const x = 52 + ((timestamp - start) / rangeMs) * 652;
-    const value = activityScoreAt(timestamp, events);
-    const y = 180 - value * 1.6;
-    return { x, y };
-  });
-  const path = coords.map((p, index) => `${index ? "L" : "M"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
-  const first = coords[0] || {x:24,y:180};
-  const last = coords[coords.length - 1] || {x:700,y:180};
-  line.setAttribute("d", path);
-  area.setAttribute("d", `${path} L${last.x.toFixed(2)} 180 L${first.x.toFixed(2)} 180 Z`);
+  const path = coords.map((p, index) =>
+    `${index ? "L" : "M"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`
+  ).join(" ");
+  const first = coords[0] || {x:0,y:130};
+  const last = coords[coords.length - 1] || {x:320,y:130};
+  const safePath = path || "M0 130 L320 130";
+
+  line.setAttribute("d", safePath);
+  area.setAttribute("d", `${safePath} L${last.x.toFixed(2)} 130 L${first.x.toFixed(2)} 130 Z`);
   point.setAttribute("cx", last.x.toFixed(2));
   point.setAttribute("cy", last.y.toFixed(2));
   svg.classList.toggle("is-down", scoreNow < 50);
-  document.getElementById("activityRangeStart").textContent =
-    rangeKey === "24h" ? "قبل 24 ساعة" : rangeKey === "30d" ? "قبل 30 يوماً" : "قبل 7 أيام";
+
+  const rangeLabel = document.getElementById("activityRangeStart");
+  if (rangeLabel) rangeLabel.textContent =
+    rangeKey === "24h" ? "قبل 24 ساعة" :
+    rangeKey === "30d" ? "قبل 30 يوماً" : "قبل 7 أيام";
 }
 
 function renderActivityIndicator(entries) {
@@ -320,7 +324,8 @@ function renderActivityIndicator(entries) {
     const rising = trend > 0.5;
     const falling = trend < -0.5;
     chip.classList.toggle("trend-up", rising);
-    chip.classList.toggle("trend-down", !rising);
+    chip.classList.toggle("trend-down", falling || (!rising && currentScore === 0));
+    chip.classList.toggle("trend-flat", !rising && !falling && currentScore > 0);
     const icon = chip.querySelector(".material-icons");
     if (icon) icon.textContent = rising ? "trending_up" : falling ? "trending_down" : "trending_flat";
     chipText.textContent = rising ? "ارتفاع حديث" : falling ? "انخفاض تدريجي" : currentScore > 0 ? "مستقر حالياً" : "بانتظار النشاط";
