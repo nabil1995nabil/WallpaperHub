@@ -589,6 +589,12 @@ const profileTargetUID = String(
 const isPublicProfile = Boolean(profileTargetUID);
 let publicProfileLoaded = false;
 
+// Keep the Premium page connected to the exact profile currently being viewed.
+const premiumProfileCard = document.querySelector(".premium-card");
+if (premiumProfileCard) {
+    premiumProfileCard.href = `premium-user.html${profileTargetUID ? `?uid=${encodeURIComponent(profileTargetUID)}` : ""}`;
+}
+
 function isOwnProfile(){
     if(!isPublicProfile) return true;
     return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
