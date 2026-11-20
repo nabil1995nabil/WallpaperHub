@@ -1,29 +1,50 @@
 import { supabase } from "./supabase.js";
 
-const totalEl = document.getElementById("pointsTotal");
-const statusEl = document.getElementById("pointsStatus");
-const ledgerEl = document.getElementById("pointsLedger");
-const filterButtons = [...document.querySelectorAll("[data-filter]")];
-let allEntries = [];
-let activeFilter = "all";
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-document.getElementById("pointsBackBtn")?.addEventListener("click", (event) => {
-  if (window.history.length > 1) {
-    event.preventDefault();
-    window.history.back();
-  }
-});
+const page = {
+  total: $("#pointsTotal"),
+  status: $("#pointsStatus"),
+  ledger: $("#pointsLedger"),
+  filters: $$("[data-filter]")
+};
+
+const state = {
+  entries: [],
+  filter: "all",
+  activityRange: "7d",
+  loadRequest: 0
+};
+
+const RANKS = [
+  {key:"beginner",name:"مبتدئ",threshold:0,icon:"star",color:"beginner"},
+  {key:"bronze",name:"برونزي",threshold:30,icon:"workspace_premium",color:"bronze"},
+  {key:"silver",name:"فضي",threshold:75,icon:"military_tech",color:"silver"},
+  {key:"gold",name:"ذهبي",threshold:150,icon:"emoji_events",color:"gold"},
+  {key:"expert",name:"خبير",threshold:300,icon:"diamond",color:"expert"},
+  {key:"master",name:"ماستر",threshold:500,icon:"stars",color:"master"}
+];
+
+const ACTIVITY_DECAY_MS = 7 * 24 * 60 * 60 * 1000;
+const ACTIVITY_RANGES = {
+  "24h":24 * 60 * 60 * 1000,
+  "7d":7 * 24 * 60 * 60 * 1000,
+  "30d":30 * 24 * 60 * 60 * 1000
+};
 
 function formatPoints(value) {
   const number = Number(value || 0);
-  return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return number.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+
 function formatDate(value) {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ar-MA", { dateStyle: "medium", timeStyle: "short" }).format(date);
+  return new Intl.DateTimeFormat("ar-MA",{dateStyle:"medium",timeStyle:"short"}).format(date);
 }
+
 function labelForReason(reason) {
   const value = String(reason || "").toLowerCase();
   if (value.includes("wallpaper_like")) return "إعجاب جديد بخلفية";
@@ -31,365 +52,377 @@ function labelForReason(reason) {
   if (value.includes("active_time")) return "نشاط فعلي لمدة 10 دقائق";
   if (value.includes("daily")) return "المكافأة اليومية";
   if (value.includes("goal")) return "مكافأة إكمال الهدف";
-  if (value.includes("upload") || value.includes("wallpaper") || value.includes("publish")) return "نشر خلفية جديدة";
-  if (value.includes("download")) return "تحميل";
+  if (value.includes("download")) return "تحميل خلفية";
   if (value.includes("redeem") || value.includes("redemption")) return "استبدال النقاط";
   if (value.includes("release")) return "إرجاع نقاط محجوزة";
-  return String(reason || "إضافة نقاط").replaceAll("_", " ");
+  if (value.includes("upload") || value.includes("wallpaper") || value.includes("publish")) return "نشر خلفية جديدة";
+  return String(reason || "إضافة نقاط").replaceAll("_"," ");
 }
-function filterForEntry(entry) {
+
+function categoryFor(entry) {
   const reason = String(entry.reason || "").toLowerCase();
-  if (reason.includes("wallpaper_like") || reason.includes("wallpaper_comment") || reason.includes("active_time") || reason.includes("daily") || reason.includes("goal") || reason.includes("reward") || reason.includes("redeem")) return "reward";
-  if (reason.includes("upload") || reason.includes("wallpaper") || reason.includes("publish")) return "publish";
+  if (reason.includes("wallpaper_like") || reason.includes("wallpaper_comment") ||
+      reason.includes("active_time") || reason.includes("daily") ||
+      reason.includes("goal") || reason.includes("reward") || reason.includes("redeem")) return "reward";
   if (reason.includes("download")) return "download";
+  if (reason.includes("upload") || reason.includes("wallpaper") || reason.includes("publish")) return "publish";
   return "other";
 }
+
 function renderStats(total, entries) {
-  document.getElementById("statTotal").textContent = formatPoints(total);
-  document.getElementById("statOperations").textContent = String(entries.length);
-  document.getElementById("statWallpapers").textContent = String(entries.filter(e => filterForEntry(e) === "publish").length);
-  const best = entries.reduce((max, e) => Math.max(max, Number(e.points || 0)), 0);
-  document.getElementById("statBest").textContent = formatPoints(best);
+  $("#statTotal").textContent = formatPoints(total);
+  $("#statOperations").textContent = String(entries.length);
+  $("#statWallpapers").textContent = String(entries.filter(entry => categoryFor(entry) === "publish").length);
+  $("#statBest").textContent = formatPoints(entries.reduce((best,entry) => Math.max(best,Number(entry.points || 0)),0));
 }
-function renderEntries() {
-  ledgerEl.replaceChildren();
-  const entries = activeFilter === "all" ? allEntries : allEntries.filter(entry => filterForEntry(entry) === activeFilter);
+
+function renderLedger() {
+  page.ledger.replaceChildren();
+  const entries = state.filter === "all"
+    ? state.entries
+    : state.entries.filter(entry => categoryFor(entry) === state.filter);
+
   if (!entries.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent = allEntries.length ? "ما كايناش عمليات فهاد القسم دابا." : "مازال ما عندك حتى عملية مسجلة فالسجل.";
-    ledgerEl.append(empty);
-    statusEl.textContent = allEntries.length ? "اختار قسماً آخر لعرض العمليات." : "سجل النقاط فارغ حالياً.";
+    empty.textContent = state.entries.length
+      ? "ما كايناش عمليات في هاد القسم حالياً."
+      : "مازال ما عندك حتى عملية مسجلة في السجل.";
+    page.ledger.append(empty);
+    page.status.textContent = state.entries.length ? "اختار تصنيفاً آخر لعرض العمليات." : "سجل النقاط فارغ حالياً.";
     return;
   }
-  statusEl.textContent = "آخر العمليات المسجلة";
-  entries.forEach(entry => {
+
+  page.status.textContent = "آخر العمليات المسجلة";
+  const fragment = document.createDocumentFragment();
+  for (const entry of entries) {
+    const category = categoryFor(entry);
     const row = document.createElement("article");
     row.className = "ledger-row";
+
     const icon = document.createElement("span");
     icon.className = "material-icons ledger-icon";
-    const category = filterForEntry(entry);
-    icon.textContent = category === "publish" ? "cloud_upload" : category === "download" ? "download" : category === "reward" ? "emoji_events" : "stars";
-    icon.setAttribute("aria-hidden", "true");
-    const copy = document.createElement("div");
-    copy.className = "ledger-copy";
-    const title = document.createElement("div");
+    icon.textContent = category === "publish" ? "cloud_upload" :
+      category === "download" ? "download" :
+      category === "reward" ? "redeem" : "stars";
+    icon.setAttribute("aria-hidden","true");
+
+    const details = document.createElement("div");
+    details.className = "ledger-copy";
+    const title = document.createElement("strong");
     title.className = "ledger-title";
     title.textContent = labelForReason(entry.reason);
-    const date = document.createElement("div");
+    const date = document.createElement("time");
     date.className = "ledger-date";
+    date.dateTime = entry.created_at || "";
     date.textContent = formatDate(entry.created_at);
-    copy.append(title, date);
-    const points = document.createElement("strong");
-    points.className = "ledger-points";
-    const amount = Number(entry.points || 0);
-    points.textContent = `${amount > 0 ? "+" : ""}${formatPoints(amount)}`;
-    if (amount < 0) points.classList.add("negative");
-    row.append(icon, copy, points);
-    ledgerEl.append(row);
-  });
+    details.append(title,date);
+
+    const amount = document.createElement("strong");
+    amount.className = "ledger-points";
+    const points = Number(entry.points || 0);
+    amount.textContent = `${points > 0 ? "+" : ""}${formatPoints(points)}`;
+    if (points < 0) amount.classList.add("negative");
+
+    row.append(icon,details,amount);
+    fragment.append(row);
+  }
+  page.ledger.append(fragment);
 }
-filterButtons.forEach(button => button.addEventListener("click", () => {
-  activeFilter = button.dataset.filter || "all";
-  filterButtons.forEach(item => {
-    const selected = item === button;
-    item.classList.toggle("active", selected);
-    item.setAttribute("aria-pressed", String(selected));
-  });
-  renderEntries();
-}));
 
+function updateGoalProgress(total, currentRank, nextRank) {
+  const goal = nextRank ? nextRank.threshold : currentRank.threshold;
+  const start = currentRank.threshold;
+  const span = goal - start;
+  const progress = nextRank ? Math.max(0,Math.min(100,((total-start)/span)*100)) : 100;
+  const label = `${formatPoints(total)} / ${formatPoints(goal)}`;
 
-const RANKS = [
-  { key:"beginner", name:"مبتدئ", threshold:0, icon:"star", color:"beginner" },
-  { key:"bronze", name:"برونزي", threshold:30, icon:"workspace_premium", color:"bronze" },
-  { key:"silver", name:"فضي", threshold:75, icon:"military_tech", color:"silver" },
-  { key:"gold", name:"ذهبي", threshold:150, icon:"emoji_events", color:"gold" },
-  { key:"expert", name:"خبير", threshold:300, icon:"diamond", color:"expert" },
-  { key:"master", name:"ماستر", threshold:500, icon:"stars", color:"master" }
-];
+  $("#goalCurrent").textContent = label;
+  $("#levelProgressText").textContent = label;
+  $("#goalProgress").style.width = `${progress}%`;
+  $("#levelProgress").style.width = `${progress}%`;
+  $(".goal-label strong").textContent = formatPoints(goal);
+  $(".goal-progress .progress-track").setAttribute("aria-valuenow",String(Math.round(progress)));
+  $(".level-progress-track").setAttribute("aria-valuenow",String(Math.round(progress)));
+}
 
 function getRankDates(entries) {
-  const ordered = [...entries].filter(e => Number(e.points || 0) > 0 && e.created_at)
+  const ordered = [...entries]
+    .filter(entry => Number(entry.points || 0) > 0 && entry.created_at)
     .sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-  const dates = { beginner: null };
+  const dates = {};
   let cumulative = 0;
   for (const entry of ordered) {
     const before = cumulative;
     cumulative += Number(entry.points || 0);
     for (const rank of RANKS) {
-      if (rank.threshold > 0 && before < rank.threshold && cumulative >= rank.threshold && !dates[rank.key]) dates[rank.key] = entry.created_at;
+      if (rank.threshold > 0 && before < rank.threshold && cumulative >= rank.threshold && !dates[rank.key]) {
+        dates[rank.key] = entry.created_at;
+      }
     }
   }
   return dates;
 }
 
-function renderRankPath(total, entries) {
-  const container = document.getElementById("rankPathList");
-  if (!container) return;
+function renderRanks(total, entries) {
+  const container = $("#rankPathList");
   container.replaceChildren();
-  const dates = getRankDates(entries);
-  let currentIndex = 0;
-  RANKS.forEach((rank, index) => { if (total >= rank.threshold) currentIndex = index; });
-  const nextRank = RANKS[currentIndex + 1] || null;
 
-  RANKS.forEach((rank, index) => {
-    const next = RANKS[index + 1] || null;
+  let currentIndex = 0;
+  RANKS.forEach((rank,index) => {
+    if (total >= rank.threshold) currentIndex = index;
+  });
+
+  const dates = getRankDates(entries);
+  RANKS.forEach((rank,index) => {
+    const next = RANKS[index+1] || null;
+    const earned = total >= rank.threshold;
+    const current = index === currentIndex;
     const row = document.createElement("article");
-    row.className = "rank-step" + (index === currentIndex ? " is-current" : "") + (total >= rank.threshold ? " is-earned" : " is-locked");
+    row.className = `rank-step${current ? " is-current" : ""}${earned ? " is-earned" : " is-locked"}`;
     row.dataset.rank = rank.color;
 
-    const pointsSide = document.createElement("div");
-    pointsSide.className = "rank-points-side";
-    const pointValue = document.createElement("strong");
-    pointValue.textContent = `${formatPoints(total)} / ${formatPoints(next ? next.threshold : rank.threshold)}`;
-    const pointCaption = document.createElement("small");
-    pointCaption.textContent = index === currentIndex && next ? "نقاطك / الهدف التالي" : "نقاط المستوى";
-    pointsSide.append(pointValue, pointCaption);
+    const badge = document.createElement("div");
+    badge.className = "rank-badge-side";
+    const icon = document.createElement("span");
+    icon.className = "rank-medal material-icons";
+    icon.textContent = rank.icon;
+    const badgeText = document.createElement("div");
+    badgeText.className = "rank-badge-copy";
+    const name = document.createElement("strong");
+    name.textContent = rank.name;
+    const threshold = document.createElement("small");
+    threshold.textContent = rank.threshold === 0 ? "من البداية" : `${formatPoints(rank.threshold)} نقطة`;
+    badgeText.append(name,threshold);
+    if (current) {
+      const tag = document.createElement("span");
+      tag.className = "rank-current-tag";
+      tag.textContent = "مستواك الحالي";
+      badgeText.append(tag);
+    }
+    badge.append(icon,badgeText);
 
-    const progressSide = document.createElement("div");
-    progressSide.className = "rank-progress-side";
+    const progress = document.createElement("div");
+    progress.className = "rank-progress-side";
     const date = document.createElement("div");
     date.className = "rank-date";
     const dateIcon = document.createElement("span");
     dateIcon.className = "material-icons";
-    dateIcon.textContent = "event_available";
+    dateIcon.textContent = earned ? "event_available" : "lock";
     const dateText = document.createElement("span");
-    if (total >= rank.threshold) dateText.textContent = rank.threshold === 0 ? "بداية المسار" : (dates[rank.key] ? `تاريخ بلوغ المستوى: ${formatDate(dates[rank.key])}` : "تم بلوغ المستوى");
-    else dateText.textContent = `باقي ${formatPoints(Math.max(0, rank.threshold-total))} نقطة لفتح الشارة`;
-    date.append(dateIcon, dateText);
-
+    dateText.textContent = earned
+      ? (rank.threshold === 0 ? "بداية المسار" : dates[rank.key] ? `تم بلوغ المستوى · ${formatDate(dates[rank.key])}` : "تم فتح المستوى")
+      : `باقي ${formatPoints(Math.max(0,rank.threshold-total))} نقطة`;
+    date.append(dateIcon,dateText);
     const track = document.createElement("div");
     track.className = "rank-track";
     const fill = document.createElement("span");
-    let progress = 0;
-    if (total >= rank.threshold) progress = !next ? 100 : Math.max(0, Math.min(100, ((total-rank.threshold)/(next.threshold-rank.threshold))*100));
-    fill.style.width = `${progress}%`;
+    const start = rank.threshold;
+    const end = next ? next.threshold : rank.threshold;
+    const width = total < start ? 0 : next ? Math.max(0,Math.min(100,((total-start)/(end-start))*100)) : 100;
+    fill.style.width = `${width}%`;
     track.append(fill);
-    progressSide.append(date, track);
+    progress.append(date,track);
 
-    const badgeSide = document.createElement("div");
-    badgeSide.className = "rank-badge-side";
-    const medal = document.createElement("span");
-    medal.className = "rank-medal material-icons";
-    medal.textContent = rank.icon;
-    const badgeCopy = document.createElement("div");
-    badgeCopy.className = "rank-badge-copy";
-    const name = document.createElement("strong"); name.textContent = rank.name;
-    const threshold = document.createElement("small");
-    threshold.textContent = rank.threshold === 0 ? "من البداية" : `${formatPoints(rank.threshold)} نقطة`;
-    badgeCopy.append(name, threshold);
-    if (index === currentIndex) {
-      const tag = document.createElement("span"); tag.className = "rank-current-tag"; tag.textContent = "مستواك الحالي"; badgeCopy.append(tag);
-    }
-    badgeSide.append(medal, badgeCopy);
-    row.append(pointsSide, progressSide, badgeSide);
+    const pointSide = document.createElement("div");
+    pointSide.className = "rank-points-side";
+    const amount = document.createElement("strong");
+    amount.textContent = current && next
+      ? `${formatPoints(total)} / ${formatPoints(next.threshold)}`
+      : `${formatPoints(rank.threshold)} نقطة`;
+    pointSide.append(amount);
+
+    row.append(badge,progress,pointSide);
     container.append(row);
   });
 
-  const current = RANKS[currentIndex];
-  const goal = nextRank ? nextRank.threshold : current.threshold;
-  const currentLabel = document.querySelector(".level-name strong");
-  if (currentLabel) {
-    const label = document.createElement("span"); label.className = "material-icons"; label.textContent = "chevron_right";
-    currentLabel.replaceChildren(document.createTextNode(current.name + " "), label);
-  }
-  const medal = document.querySelector(".level-medal .material-icons");
-  if (medal) medal.textContent = current.icon;
-  const labelText = `${formatPoints(total)} / ${formatPoints(goal)}`;
-  document.getElementById("levelProgressText").textContent = labelText;
-  document.getElementById("goalCurrent").textContent = labelText;
-  const percent = nextRank ? Math.max(0, Math.min(100, ((total - current.threshold) / (goal - current.threshold)) * 100)) : 100;
-  document.getElementById("levelProgress").style.width = `${percent}%`;
-  document.getElementById("goalProgress").style.width = `${percent}%`;
-  const goalStrong = document.querySelector(".goal-label strong");
-  if (goalStrong) goalStrong.textContent = formatPoints(goal);
+  const currentRank = RANKS[currentIndex];
+  const nextRank = RANKS[currentIndex+1] || null;
+  const title = $(".level-name strong");
+  title.replaceChildren(document.createTextNode(currentRank.name));
+  const arrow = document.createElement("span");
+  arrow.className = "material-icons";
+  arrow.textContent = "chevron_left";
+  title.append(arrow);
+  $(".level-medal .material-icons").textContent = currentRank.icon;
+  updateGoalProgress(total,currentRank,nextRank);
 }
-
-
-
-const ACTIVITY_DECAY_MS = 7 * 24 * 60 * 60 * 1000;
-const ACTIVITY_RANGES = { "24h": 24 * 60 * 60 * 1000, "7d": 7 * 24 * 60 * 60 * 1000, "30d": 30 * 24 * 60 * 60 * 1000 };
-let activityRange = "7d";
-let activityEventsCache = [];
 
 function isQualifyingActivity(entry) {
   const reason = String(entry.reason || "").toLowerCase();
   const type = String(entry.reward_type || "").toLowerCase();
-  if (["like", "comment"].includes(type)) return true;
+  if (type === "like" || type === "comment") return true;
   if (/(like|comment)/.test(reason)) return true;
   if (/(download|redeem|redemption|delete|refund)/.test(reason)) return false;
   if (/(publish|published|upload|submission)/.test(reason)) return true;
-  // Legacy publish rewards are tied to wallpaper_id even if their reason label is older.
   return Boolean(entry.wallpaper_id) && Number(entry.points || 0) > 0;
 }
 
-function getActivityEvents(entries) {
-  return (entries || [])
-    .filter(isQualifyingActivity)
+function activityEvents(entries) {
+  return entries.filter(isQualifyingActivity)
     .map(entry => new Date(entry.created_at).getTime())
-    .filter(Number.isFinite)
-    .sort((a, b) => a - b);
+    .filter(Number.isFinite).sort((a,b) => a-b);
 }
 
-function activityScoreAt(timestamp, events) {
-  let lastAction = 0;
-  for (let i = events.length - 1; i >= 0; i--) {
-    if (events[i] <= timestamp) { lastAction = events[i]; break; }
+function activityScoreAt(timestamp,events) {
+  let last = 0;
+  for (let i=events.length-1;i>=0;i--) {
+    if (events[i] <= timestamp) { last=events[i]; break; }
   }
-  if (!lastAction) return 0;
-  return Math.max(0, Math.min(100, 100 * (1 - (timestamp - lastAction) / ACTIVITY_DECAY_MS)));
+  return last ? Math.max(0,Math.min(100,100*(1-(timestamp-last)/ACTIVITY_DECAY_MS))) : 0;
 }
 
-function relativeActivityTime(timestamp) {
+function relativeTime(timestamp) {
   if (!timestamp) return "لا يوجد نشاط مؤهل بعد";
-  const diff = Math.max(0, Date.now() - timestamp);
-  const minutes = Math.floor(diff / 60000);
+  const minutes = Math.floor(Math.max(0,Date.now()-timestamp)/60000);
   if (minutes < 1) return "الآن";
   if (minutes < 60) return `منذ ${minutes} دقيقة`;
-  const hours = Math.floor(minutes / 60);
+  const hours = Math.floor(minutes/60);
   if (hours < 24) return `منذ ${hours} ساعة`;
-  const days = Math.floor(hours / 24);
-  return `منذ ${days} يوم`;
+  return `منذ ${Math.floor(hours/24)} يوم`;
 }
 
-function drawActivityChart(events, rangeKey, scoreNow) {
-  const svg = document.getElementById("activityChart");
-  const area = document.getElementById("activityChartArea");
-  const line = document.getElementById("activityChartLine");
-  const point = document.getElementById("activityChartPoint");
+function drawActivityChart(events,range,score) {
+  const svg = $("#activityChart");
+  const area = $("#activityChartArea");
+  const line = $("#activityChartLine");
+  const point = $("#activityChartPoint");
   if (!svg || !area || !line || !point) return;
 
   const now = Date.now();
-  const rangeMs = ACTIVITY_RANGES[rangeKey] || ACTIVITY_RANGES["7d"];
-  const start = now - rangeMs;
-  const sampleTimes = new Set();
-
-  for (let index = 0; index <= 80; index++) {
-    sampleTimes.add(start + (rangeMs * index) / 80);
-  }
-  for (const eventTime of events) {
+  const duration = ACTIVITY_RANGES[range] || ACTIVITY_RANGES["7d"];
+  const start = now-duration;
+  const times = new Set();
+  for (let i=0;i<=80;i++) times.add(start+duration*i/80);
+  events.forEach(eventTime => {
     if (eventTime > start && eventTime <= now) {
-      sampleTimes.add(Math.max(start, eventTime - 1));
-      sampleTimes.add(eventTime);
+      times.add(Math.max(start,eventTime-1));
+      times.add(eventTime);
     }
-  }
-
-  const coords = [...sampleTimes].sort((a, b) => a - b).map(timestamp => ({
-    x: ((timestamp - start) / rangeMs) * 320,
-    y: 130 - activityScoreAt(timestamp, events) * 1.2
-  }));
-  const linePath = coords.map((point, index) =>
-    `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`
-  ).join(" ");
-  const first = coords[0] || {x:0,y:130};
-  const last = coords[coords.length - 1] || {x:320,y:130};
-  const safePath = linePath || "M0 130 L320 130";
-
-  line.setAttribute("d", safePath);
-  area.setAttribute("d", `${safePath} L${last.x.toFixed(2)} 130 L${first.x.toFixed(2)} 130 Z`);
-  point.setAttribute("cx", last.x.toFixed(2));
-  point.setAttribute("cy", last.y.toFixed(2));
-  svg.classList.toggle("wh-ai-down", scoreNow < 50);
-
-  const startLabel = document.getElementById("activityRangeStart");
-  if (startLabel) {
-    startLabel.textContent = rangeKey === "24h" ? "قبل 24 ساعة" :
-      rangeKey === "30d" ? "قبل 30 يوماً" : "قبل 7 أيام";
-  }
-}
-
-function renderActivityIndicator(entries) {
-  activityEventsCache = getActivityEvents(entries);
-  const now = Date.now();
-  const currentScore = activityScoreAt(now, activityEventsCache);
-  const previousScore = activityScoreAt(now - 60 * 60 * 1000, activityEventsCache);
-  const trend = currentScore - previousScore;
-  const lastAction = activityEventsCache.length ? activityEventsCache[activityEventsCache.length - 1] : 0;
-
-  const valueEl = document.getElementById("activityIndexValue");
-  const statusEl = document.getElementById("activityIndexStatus");
-  const lastEl = document.getElementById("activityLastAction");
-  const chip = document.getElementById("activityTrendChip");
-  const chipText = document.getElementById("activityTrendText");
-  if (valueEl) valueEl.textContent = String(Math.round(currentScore));
-  if (statusEl) statusEl.textContent = `${Math.round(currentScore)} من 100`;
-  if (lastEl) lastEl.textContent = relativeActivityTime(lastAction);
-
-  if (chip && chipText) {
-    const rising = trend > 0.5;
-    const falling = trend < -0.5;
-    chip.classList.toggle("wh-ai-trend-up", rising);
-    chip.classList.toggle("wh-ai-trend-down", falling || (!rising && currentScore === 0));
-    chip.classList.toggle("wh-ai-trend-flat", !rising && !falling && currentScore > 0);
-    const icon = chip.querySelector(".material-icons");
-    if (icon) icon.textContent = rising ? "trending_up" : falling ? "trending_down" : "trending_flat";
-    chipText.textContent = rising ? "ارتفاع حديث" : falling ? "انخفاض تدريجي" : currentScore > 0 ? "مستقر حالياً" : "بانتظار النشاط";
-  }
-
-  drawActivityChart(activityEventsCache, activityRange, currentScore);
-}
-
-document.querySelectorAll("[data-activity-range]").forEach(button => {
-  button.addEventListener("click", () => {
-    activityRange = button.dataset.activityRange || "7d";
-    document.querySelectorAll("[data-activity-range]").forEach(item => {
-      const selected = item === button;
-      item.classList.toggle("is-selected", selected);
-      item.setAttribute("aria-pressed", String(selected));
-    });
-    renderActivityIndicator(allEntries);
   });
-});
+
+  const points = [...times].sort((a,b)=>a-b).map(time => ({
+    x:((time-start)/duration)*320,
+    y:130-activityScoreAt(time,events)*1.2
+  }));
+  const path = points.map((item,index)=>`${index ? "L":"M"}${item.x.toFixed(2)} ${item.y.toFixed(2)}`).join(" ");
+  const first = points[0] || {x:0,y:130};
+  const last = points[points.length-1] || {x:320,y:130};
+  const safePath = path || "M0 130 L320 130";
+
+  line.setAttribute("d",safePath);
+  area.setAttribute("d",`${safePath} L${last.x.toFixed(2)} 130 L${first.x.toFixed(2)} 130 Z`);
+  point.setAttribute("cx",last.x.toFixed(2));
+  point.setAttribute("cy",last.y.toFixed(2));
+  svg.classList.toggle("is-down",score<50);
+  $("#activityRangeStart").textContent = range === "24h" ? "قبل 24 ساعة" : range === "30d" ? "قبل 30 يوماً" : "قبل 7 أيام";
+}
+
+function renderActivity(entries) {
+  const events = activityEvents(entries);
+  const now = Date.now();
+  const score = activityScoreAt(now,events);
+  const previous = activityScoreAt(now-60*60*1000,events);
+  const trend = score-previous;
+  const lastAction = events[events.length-1] || 0;
+
+  $("#activityIndexValue").textContent = String(Math.round(score));
+  $("#activityIndexStatus").textContent = `${Math.round(score)} من 100`;
+  $("#activityLastAction").textContent = relativeTime(lastAction);
+
+  const chip = $("#activityTrendChip");
+  const rising = trend > .5;
+  const falling = trend < -.5;
+  chip.classList.toggle("trend-up",rising);
+  chip.classList.toggle("trend-down",falling || (!rising && score===0));
+  chip.classList.toggle("trend-flat",!rising && !falling && score>0);
+  $(".material-icons",chip).textContent = rising ? "trending_up" : falling ? "trending_down" : "trending_flat";
+  $("#activityTrendText").textContent = rising ? "ارتفاع حديث" : falling ? "انخفاض تدريجي" : score>0 ? "مستقر حالياً" : "بانتظار النشاط";
+
+  drawActivityChart(events,state.activityRange,score);
+}
+
+function bindControls() {
+  $("#pointsBackBtn")?.addEventListener("click",event => {
+    if (window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
+  });
+
+  page.filters.forEach(button => button.addEventListener("click",() => {
+    state.filter = button.dataset.filter || "all";
+    page.filters.forEach(item => {
+      const selected = item === button;
+      item.classList.toggle("active",selected);
+      item.setAttribute("aria-pressed",String(selected));
+    });
+    renderLedger();
+  }));
+
+  $$("[data-activity-range]").forEach(button => button.addEventListener("click",() => {
+    state.activityRange = button.dataset.activityRange || "7d";
+    $$("[data-activity-range]").forEach(item => {
+      const selected = item === button;
+      item.classList.toggle("is-selected",selected);
+      item.setAttribute("aria-pressed",String(selected));
+    });
+    renderActivity(state.entries);
+  }));
+}
 
 async function loadPoints() {
+  const request = ++state.loadRequest;
   try {
-    const { data, error } = await supabase.auth.getSession();
+    const {data,error} = await supabase.auth.getSession();
     if (error) throw error;
     const token = data?.session?.access_token;
     if (!token) {
-      totalEl.textContent = "—";
-      statusEl.textContent = "سجّل الدخول باش تشوف نقاطك.";
-      ledgerEl.replaceChildren();
+      page.total.textContent = "—";
+      page.status.textContent = "سجّل الدخول باش تشوف نقاطك.";
+      page.ledger.replaceChildren();
       const link = document.createElement("a");
       link.href = "profile.html";
-      link.textContent = "الرجوع إلى حسابي وتسجيل الدخول";
       link.className = "empty-state";
-      ledgerEl.append(link);
+      link.textContent = "العودة إلى الحساب وتسجيل الدخول";
+      page.ledger.append(link);
       return;
     }
-    const response = await fetch("/api/points/me", {
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-      cache: "no-store"
+
+    const response = await fetch("/api/points/me",{
+      headers:{Authorization:`Bearer ${token}`,Accept:"application/json"},
+      cache:"no-store"
     });
-    const payload = await response.json().catch(() => ({}));
+    const payload = await response.json().catch(()=>({}));
     if (!response.ok || payload?.success !== true) throw new Error(payload?.message || "تعذر تحميل النقاط");
+    if (request !== state.loadRequest) return;
+
     const total = Number(payload.total);
-    if (!Number.isFinite(total) || total < 0) throw new Error("الرصيد المستلم غير صالح");
-    allEntries = Array.isArray(payload.entries) ? payload.entries : [];
-    totalEl.textContent = formatPoints(total);
-    renderActivityIndicator(allEntries);
-    renderStats(total, allEntries);
-    renderRankPath(total, allEntries);
-    renderEntries();
+    if (!Number.isFinite(total) || total<0) throw new Error("الرصيد المستلم غير صالح");
+    state.entries = Array.isArray(payload.entries) ? payload.entries : [];
+
+    page.total.textContent = formatPoints(total);
+    renderActivity(state.entries);
+    renderStats(total,state.entries);
+    renderRanks(total,state.entries);
+    renderLedger();
+
     if (payload.engagementHistoryWarning) {
-      statusEl.className = "points-status warning";
-      statusEl.textContent = payload.engagementHistoryWarning;
+      page.status.className = "points-status warning";
+      page.status.textContent = payload.engagementHistoryWarning;
     } else {
-      statusEl.className = "points-status";
+      page.status.className = "points-status";
     }
   } catch (error) {
-    console.error("POINTS PAGE LOAD:", error);
-    totalEl.textContent = "—";
-    statusEl.className = "points-status error";
-    statusEl.textContent = error.message || "تعذر تحميل النقاط حالياً.";
+    if (request !== state.loadRequest) return;
+    console.error("POINTS PAGE LOAD:",error);
+    page.total.textContent = "—";
+    page.status.className = "points-status error";
+    page.status.textContent = error.message || "تعذر تحميل النقاط حالياً.";
   }
 }
+
+bindControls();
 loadPoints();
-
-window.addEventListener("wallpaperHubPointsChanged",()=>{
-  loadPoints();
-});
-
-// Keep the inactivity indicator current while the points page stays open.
-setInterval(() => renderActivityIndicator(allEntries), 60 * 1000);
+window.addEventListener("wallpaperHubPointsChanged",loadPoints);
+setInterval(() => renderActivity(state.entries),60*1000);
