@@ -113,7 +113,7 @@ const API = "/api/wallpapers";
             if(response.ok && result.success && Number(result.awarded) > 0){
                 window.dispatchEvent(new CustomEvent("wallpaperHubPointsChanged",{detail:{source:"active_time",points:Number(result.points || 0)}}));
                 if(typeof window.showToast === "function"){
-                    window.showToast(`مبروك! حصلت على ${Number(result.points || 0).toFixed(1)} نقطة مقابل نشاطك.`);
+                    window.showToast(`مبروك! حصلت على ${Number(result.points || 0).toFixed(2)} نقطة مقابل نشاطك.`);
                 }
             }
         }catch(error){
@@ -4103,6 +4103,16 @@ async function likeWallpaper(){
                 detail:{ type:"likes", id:String(wallpaperLikeId), liked:Boolean(data.liked) }
             }));
 
+            if(data.liked && data.reward?.awarded){
+                const earned = Number(data.reward.points || 0);
+                window.dispatchEvent(new CustomEvent("wallpaperHubPointsChanged",{
+                    detail:{source:"like",points:earned}
+                }));
+                if(typeof window.showToast === "function"){
+                    window.showToast("حصلت على +" + earned.toFixed(2) + " نقطة مقابل الإعجاب.");
+                }
+            }
+
         }else{
 
             console.error(
@@ -5489,6 +5499,18 @@ async function sendComment(){
             commentInput.innerHTML = "";
             hideMentionSuggestions();
             clearReplyTarget();
+
+            if(data.reward?.awarded){
+                const earned = Number(data.reward.points || 0);
+                window.dispatchEvent(new CustomEvent("wallpaperHubPointsChanged",{
+                    detail:{source:"comment",points:earned}
+                }));
+                if(typeof window.showToast === "function"){
+                    window.showToast("حصلت على +" + earned.toFixed(2) + " نقطة مقابل التعليق.");
+                }
+            }else if(data.reward?.daily_limit && typeof window.showToast === "function"){
+                window.showToast("وصلت للحد اليومي لمكافآت التعليقات. يمكنك متابعة التعليق دون نقاط إضافية اليوم.");
+            }
 
             if(data.comment?.parentId){
                 expandedReplyThreads.add(Number(data.comment.parentId));
