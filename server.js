@@ -3613,12 +3613,13 @@ app.get("/wallpaper.html", async (req, res, next) => {
         const titleLooksLikeFileName = !/[A-Za-z\u0600-\u06FF]/.test(rawTitle) ||
             /^\d[\d _.-]*$/.test(rawTitle) ||
             /^(?:img|image|dsc|pxl|whatsapp)[-_ ]?\d+/i.test(rawTitle);
-
-        let seoTitle = titleLooksLikeFileName || rawTitle.length < 3
-            ? "خلفية " + categoryLabel + (tagSummary ? ": " + tagSummary : "") +
-                (resolution ? " بدقة " + resolution : "") + " | WallpaperHub"
-            : rawTitle + " | WallpaperHub";
-        seoTitle = cleanSeoText(seoTitle, 100);
+        const displayTitleBase = titleLooksLikeFileName || rawTitle.length < 3
+            ? "خلفية " + categoryLabel + (tagSummary ? " - " + tags.slice(0, 2).join("، ") : "") +
+                (resolution ? " (" + resolution + ")" : "")
+            : rawTitle;
+        const displayTitle = cleanSeoText(displayTitleBase, 82);
+        // Append a short stable identifier to avoid repeated result titles for file-named uploads.
+        const seoTitle = cleanSeoText(displayTitle + " | WallpaperHub #" + id.slice(-6), 110);
 
         const providedDescription = cleanSeoText(
             wallpaper.description || wallpaper.ai_description || "",
@@ -3652,13 +3653,13 @@ app.get("/wallpaper.html", async (req, res, next) => {
         html = html.replace(/<title>[\s\S]*?<\/title>/i, "<title>" + escapeSeoHtml(seoTitle) + "</title>");
         html = html.replace(/<meta\s+name=["\']robots["\'][^>]*>/i, '<meta name="robots" content="index,follow">');
         html = html.replace(/<h[12]\s+id=["']wallTitle2["'][^>]*>[\s\S]*?<\/h[12]>/i,
-            "<h1 id=\"wallTitle2\" class=\"wallpaper-page-title\" data-seo-title=\"" + escapeSeoHtml(seoTitle) + "\">" + escapeSeoHtml(seoTitle) + "</h1>");
+            "<h1 id=\"wallTitle2\" class=\"wallpaper-page-title\" data-seo-title=\"" + escapeSeoHtml(displayTitle) + "\">" + escapeSeoHtml(displayTitle) + "</h1>");
         html = html.replace(/<p\s+id=["']wallDescription["'][^>]*>[\s\S]*?<\/p>/i,
             "<p id=\"wallDescription\" data-seo-description=\"" + escapeSeoHtml(seoDescription) + "\">" + escapeSeoHtml(seoDescription) + "</p>");
         html = html.replace(/<img\s+id=["']wallImage["'][^>]*>/i, function () {
             return "<img id=\"wallImage\"" +
                 (imageUrl ? " src=\"" + escapeSeoHtml(imageUrl) + "\"" : "") +
-                " alt=\"" + escapeSeoHtml(seoTitle) + "\" decoding=\"async\" fetchpriority=\"high\" loading=\"eager\" draggable=\"false\">";
+                " alt=\"" + escapeSeoHtml(displayTitle) + "\" decoding=\"async\" fetchpriority=\"high\" loading=\"eager\" draggable=\"false\">";
         });
 
         const metaTags = [
