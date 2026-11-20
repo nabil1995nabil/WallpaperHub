@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f7ff">
   <title>نقاطي | WallpaperHub</title>
   <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="points.css?v=20261120-mobilechart-v2">
+  <link rel="stylesheet" href="points.css?v=20261120-points-clean-v3">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -68,11 +68,11 @@
       <div class="activity-indicator-head">
         <div class="activity-indicator-title">
           <span class="material-icons" aria-hidden="true">monitoring</span>
-          <div><h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2><p>يرتفع مع الإعجاب والتعليق والنشر، وينخفض تدريجياً مع الخمول</p></div>
+          <div><h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2><p>يرتفع مع النشر والإعجاب والتعليق، وينخفض مع الخمول</p></div>
         </div>
         <div class="activity-current-box">
           <strong id="activityIndexValue">0</strong><span>/100</span>
-          <small id="activityTrendChip" class="trend-chip trend-down"><span class="material-icons" aria-hidden="true">trending_down</span><span id="activityTrendText">مؤشر منخفض</span></small>
+          <small id="activityTrendChip" class="trend-chip trend-down"><span class="material-icons" aria-hidden="true">trending_down</span><span id="activityTrendText">بانتظار النشاط</span></small>
         </div>
       </div>
       <div class="activity-range-tabs" role="group" aria-label="الفترة الزمنية للمؤشر">
@@ -80,39 +80,28 @@
         <button type="button" class="activity-range active" data-activity-range="7d" aria-pressed="true">7 أيام</button>
         <button type="button" class="activity-range" data-activity-range="30d" aria-pressed="false">30 يوماً</button>
       </div>
-      <div class="activity-chart-frame">
-        <svg id="activityChart" class="activity-chart is-down" viewBox="0 0 720 220" preserveAspectRatio="none" role="img" aria-label="رسم بياني لمؤشر نشاط الحساب من صفر إلى مئة">
-          <defs>
-            <linearGradient id="activityChartFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="#18a978" stop-opacity=".25"/>
-              <stop offset="100%" stop-color="#18a978" stop-opacity=".015"/>
-            </linearGradient>
-          </defs>
-          <g class="activity-chart-grid">
-            <line x1="52" y1="20" x2="704" y2="20"/>
-            <line x1="52" y1="60" x2="704" y2="60"/>
-            <line x1="52" y1="100" x2="704" y2="100"/>
-            <line x1="52" y1="140" x2="704" y2="140"/>
-            <line x1="52" y1="180" x2="704" y2="180"/>
-          </g>
-          <g class="activity-chart-labels" aria-hidden="true">
-            <text x="40" y="24">100</text>
-            <text x="40" y="64">75</text>
-            <text x="40" y="104">50</text>
-            <text x="40" y="144">25</text>
-            <text x="40" y="184">0</text>
-          </g>
-          <path id="activityChartArea" class="activity-chart-area" d="M52 180 L704 180 L52 180 Z"></path>
-          <path id="activityChartLine" class="activity-chart-line" d="M52 180 L704 180"></path>
-          <circle id="activityChartPoint" class="activity-chart-point" cx="704" cy="180" r="5"></circle>
-        </svg>
+      <div class="activity-chart-layout">
+        <div class="activity-y-labels" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+        <div class="activity-chart-frame">
+          <svg id="activityChart" class="activity-chart is-down" viewBox="0 0 320 140" preserveAspectRatio="none" role="img" aria-label="رسم بياني يوضح تغير مؤشر النشاط">
+            <defs><linearGradient id="activityChartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#12a875" stop-opacity=".23"/><stop offset="100%" stop-color="#12a875" stop-opacity=".01"/></linearGradient></defs>
+            <g class="activity-chart-grid">
+              <line x1="0" y1="10" x2="320" y2="10"/><line x1="0" y1="40" x2="320" y2="40"/>
+              <line x1="0" y1="70" x2="320" y2="70"/><line x1="0" y1="100" x2="320" y2="100"/>
+              <line x1="0" y1="130" x2="320" y2="130"/>
+            </g>
+            <path id="activityChartArea" class="activity-chart-area" d="M0 130 L320 130 L0 130 Z"/>
+            <path id="activityChartLine" class="activity-chart-line" d="M0 130 L320 130"/>
+            <circle id="activityChartPoint" class="activity-chart-point" cx="320" cy="130" r="3.5"/>
+          </svg>
+        </div>
       </div>
       <div class="activity-chart-axis"><span id="activityRangeStart">قبل 7 أيام</span><span>الآن</span></div>
       <div class="activity-meta-grid">
         <div><small>آخر نشاط مؤهل</small><strong id="activityLastAction">لا يوجد نشاط بعد</strong></div>
-        <div><small>قيمة المؤشر الحالية</small><strong id="activityIndexStatus">0 من 100</strong></div>
+        <div><small>حالة المؤشر</small><strong id="activityIndexStatus">0 من 100</strong></div>
       </div>
-      <p class="activity-explainer" id="activityExplainer">كل إعجاب أو تعليق أو نشر يرفع المؤشر. إذا توقفت هذه الأنشطة، ينخفض تدريجياً إلى الصفر خلال 7 أيام. هذا مؤشر تشجيعي فقط ولا يخصم من رصيد نقاطك.</p>
+      <p class="activity-explainer" id="activityExplainer">النشاط يرفع المؤشر، والخمول يخفضه تدريجياً إلى الصفر خلال 7 أيام. المؤشر تشجيعي فقط ولا يخصم من رصيد نقاطك.</p>
     </section>
 
     <section class="level-card" aria-label="ملخص النقاط">
@@ -162,6 +151,6 @@
     </aside>
   </main>
 
-  <script type="module" src="points.js?v=20261120-mobilechart-v2"></script>
+  <script type="module" src="points.js?v=20261120-points-clean-v3"></script>
 </body>
 </html>
