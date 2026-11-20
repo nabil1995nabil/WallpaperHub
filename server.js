@@ -451,6 +451,13 @@ function injectWallpaperHubLanguageRuntime(source){
         if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,scriptTag+"\n</body>");
         else html+="\n"+scriptTag;
     }
+
+    // Start the authenticated active-time heartbeat on every full HTML page.
+    if(!html.includes("data-wh-points-activity")){
+        const activityTag='<script type="module" src="/points-activity.js?v=20261120-rewards" data-wh-points-activity="1"></script>';
+        if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,activityTag+"\n</body>");
+        else html+="\n"+activityTag;
+    }
     return html;
 }
 app.use((req,res,next)=>{
