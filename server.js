@@ -3650,6 +3650,7 @@ app.get("/wallpaper.html", async (req, res, next) => {
         let html = await fs.promises.readFile(htmlPath, "utf8");
 
         html = html.replace(/<title>[\s\S]*?<\/title>/i, "<title>" + escapeSeoHtml(seoTitle) + "</title>");
+        html = html.replace(/<meta\s+name=["\']robots["\'][^>]*>/i, '<meta name="robots" content="index,follow">');
         html = html.replace(/<h2\s+id=["']wallTitle2["'][^>]*>[\s\S]*?<\/h2>/i,
             "<h1 id=\"wallTitle2\" class=\"wallpaper-page-title\" data-seo-title=\"" + escapeSeoHtml(seoTitle) + "\">" + escapeSeoHtml(seoTitle) + "</h1>");
         html = html.replace(/<p\s+id=["']wallDescription["'][^>]*>[\s\S]*?<\/p>/i,
@@ -3662,7 +3663,6 @@ app.get("/wallpaper.html", async (req, res, next) => {
 
         const metaTags = [
             "<meta name=\"description\" content=\"" + escapeSeoHtml(seoDescription) + "\">",
-            "<meta name=\"robots\" content=\"index,follow\">",
             "<link rel=\"canonical\" href=\"" + escapeSeoHtml(canonicalUrl) + "\">",
             "<meta property=\"og:type\" content=\"website\">",
             "<meta property=\"og:title\" content=\"" + escapeSeoHtml(seoTitle) + "\">",
