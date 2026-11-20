@@ -491,6 +491,7 @@ function renderRecommended() {
 
 const categoryNames = {
 
+    religious: "🕌 الخلفيات الدينية",
     nature: "🌿 الطبيعة",
 
     cars: "🚗 السيارات",
@@ -572,6 +573,7 @@ function createDynamicSections() {
     dynamicSections.innerHTML = "";
 
     const categories = [
+        "religious",
         "nature",
         "cars",
         "games",
@@ -653,6 +655,7 @@ function renderCategory(category) {
 
         // 2. مطابقة الأقسام الخاصة والأسماء العربية/البديلة
         const aliasMap = {
+            "religious": ["ديني", "الدين", "الخلفيات الدينية", "اسلامي", "إسلامي", "قرآن", "قران", "quran", "islamic", "religion", "religious"],
             "nature": ["طبيعة", "الطبيعة"],
             "cars": ["سيارات", "السيارات"],
             "games": ["العاب", "الألعاب"],
