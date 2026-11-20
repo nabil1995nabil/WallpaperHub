@@ -5584,16 +5584,37 @@ async function awardWallpaperActionPoints(userId, wallpaperId, rewardType){
     return {awarded:Boolean(row.awarded),points:Number(row.points || 0),total_points:Number(row.total_points || 0)};
 }
 
+async function awardEngagementPoints(userId, rewardType, referenceId){
+    const uid = String(userId || "").trim();
+    const ref = String(referenceId || "").trim();
+    if(!uid || !ref || !["like","comment"].includes(rewardType)){
+        throw new Error("بيانات مكافأة التفاعل غير صالحة");
+    }
+    const {data,error} = await supabase.rpc("award_wallpaperhub_engagement_reward",{
+        p_user_id:uid,
+        p_reward_type:rewardType,
+        p_reference_id:ref
+    });
+    if(error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row || row.success !== true) throw new Error("تعذر تأكيد مكافأة التفاعل");
+    return {
+        awarded:Boolean(row.awarded),
+        points:Number(row.points || 0),
+        daily_limit:Boolean(row.daily_limit)
+    };
+}
+
 app.post("/api/rewards/activity-heartbeat", async(req,res)=>{
     try{
         const user = await getAuthenticatedUser(req);
         if(!user) return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
-        const {data,error} = await supabase.rpc("record_active_time_reward",{p_user_id:String(user.id)});
+        const {data,error} = await supabase.rpc("record_wallpaperhub_active_time_reward",{p_user_id:String(user.id)});
         if(error) throw error;
         const row = Array.isArray(data) ? data[0] : data;
         if(!row || row.success !== true) throw new Error("تعذر تسجيل وقت النشاط");
         res.set("Cache-Control","no-store");
-        return res.json({success:true,awarded:Number(row.awarded || 0),points:Number(row.points || 0),active_seconds:Number(row.active_seconds || 0),seconds_to_next_reward:Number(row.seconds_to_next_reward || 1200)});
+        return res.json({success:true,awarded:Number(row.awarded || 0),points:Number(row.points || 0),active_seconds:Number(row.active_seconds || 0),seconds_to_next_reward:Number(row.seconds_to_next_reward || 600)});
     }catch(error){
         console.error("ACTIVE TIME REWARD ERROR:",error?.message || error);
         return res.status(500).json({success:false,message:"تعذر تسجيل وقت النشاط"});
@@ -5808,7 +5829,7 @@ app.post(
             let reward = {awarded:false,points:0};
             if(newlyLiked){
                 if(userId !== wallpaperOwnerUID){
-                    try{ reward = await awardWallpaperActionPoints(userId, wallpaperId, "like"); }
+                    try{ reward = await awardEngagementPoints(userId, "like", String(wallpaperId)); }
                     catch(rewardError){ console.error("LIKE POINT REWARD ERROR:",rewardError?.message || rewardError); }
                 }
                 if(userId !== wallpaperOwnerUID && wallpaperOwnerUID){
@@ -6007,9 +6028,21 @@ async function getWallpaperPoints(userId){
     const row = Array.isArray(data) ? data[0] : data;
     if(!row || row.success !== true) throw new Error("تعذر قراءة سجل النقاط");
     const tenths = Number(row.points_tenths || 0);
+    let engagementPoints = 0;
+    const {data:engagementTotal,error:engagementError} = await supabase.rpc(
+        "get_wallpaperhub_reward_points_total",
+        {p_user_id:uid}
+    );
+    if(engagementError){
+        if(!["PGRST202","42883","42P01"].includes(String(engagementError.code || ""))) throw engagementError;
+        console.warn("WALLPAPERHUB REWARD TOTAL NOT INSTALLED YET:",engagementError.message || engagementError);
+    }else{
+        engagementPoints = Number(engagementTotal || 0);
+    }
     return {
         points_tenths: tenths,
-        points: Number((tenths / 10).toFixed(1)),
+        points: Number(((tenths / 10) + engagementPoints).toFixed(2)),
+        engagement_points: Number(engagementPoints.toFixed(2)),
         wallpapers_count: Number(row.wallpapers_count || 0),
         updated_at: row.updated_at || null
     };
@@ -6121,19 +6154,51 @@ app.get("/api/points/me", async(req,res)=>{
         const user = await getAuthenticatedUser(req);
         if(!user) return res.status(401).json({success:false,message:"سجّل الدخول لعرض نقاطك"});
 
+        const uid = String(user.id);
         const [{data:balance,error:balanceError},{data:ledger,error:ledgerError}] = await Promise.all([
-            supabase.from("user_points").select("total_points,updated_at").eq("user_id",String(user.id)).maybeSingle(),
-            supabase.from("wallpaper_points_ledger").select("wallpaper_id,points,reason,created_at").eq("user_id",String(user.id)).order("created_at",{ascending:false}).limit(100)
+            supabase.from("user_points").select("total_points,updated_at").eq("user_id",uid).maybeSingle(),
+            supabase.from("wallpaper_points_ledger").select("wallpaper_id,points,reason,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100)
         ]);
         if(balanceError) throw balanceError;
         if(ledgerError) throw ledgerError;
 
+        let engagementTotal = 0;
+        let engagementEntries = [];
+        const [totalResult, entriesResult] = await Promise.all([
+            supabase.rpc("get_wallpaperhub_reward_points_total",{p_user_id:uid}),
+            supabase.from("user_points_reward_events")
+                .select("points,reason,created_at,reward_type,reference_id")
+                .eq("user_id",uid)
+                .order("created_at",{ascending:false})
+                .limit(100)
+        ]);
+        if(totalResult.error){
+            if(!["PGRST202","42883","42P01"].includes(String(totalResult.error.code || ""))) throw totalResult.error;
+        }else{
+            engagementTotal = Number(totalResult.data || 0);
+        }
+        if(entriesResult.error){
+            if(!["PGRST205","42P01"].includes(String(entriesResult.error.code || ""))) throw entriesResult.error;
+        }else{
+            engagementEntries = (entriesResult.data || []).map(entry=>({
+                wallpaper_id:entry.reference_id || null,
+                points:Number(entry.points || 0),
+                reason:entry.reason || entry.reward_type || "engagement_reward",
+                created_at:entry.created_at
+            }));
+        }
+
+        const entries = [...(ledger || []),...engagementEntries]
+            .sort((a,b)=>new Date(b.created_at || 0)-new Date(a.created_at || 0))
+            .slice(0,100);
+        const legacyTotal = Number(balance?.total_points || 0);
+
         return res.set("Cache-Control","no-store").json({
             success:true,
-            userId:String(user.id),
-            total:Number(Number(balance?.total_points || 0).toFixed(1)),
+            userId:uid,
+            total:Number((legacyTotal + engagementTotal).toFixed(2)),
             perWallpaper:0.1,
-            entries:ledger || []
+            entries
         });
     }catch(error){
         console.error("GET USER POINTS ERROR:",error?.message || error);
@@ -8318,6 +8383,13 @@ app.post(
                 throw error;
             }
 
+            let commentReward = {awarded:false,points:0,daily_limit:false};
+            try{
+                commentReward = await awardEngagementPoints(commenterUID, "comment", String(data.id));
+            }catch(rewardError){
+                console.error("COMMENT POINT REWARD ERROR:",rewardError?.message || rewardError);
+            }
+
             // ======================================
             // إشعار الرد على تعليق
             // ======================================
@@ -8453,7 +8525,8 @@ app.post(
 
             return res.json({
                 success: true,
-                comment: commentFromDb(data)
+                comment: commentFromDb(data),
+                reward: commentReward
             });
 
         } catch (error) {
