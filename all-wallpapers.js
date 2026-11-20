@@ -58,6 +58,7 @@ let currentView = "grid";
 
 const categoryNames = {
     all:"جميع الخلفيات",
+    religious:"🕌 الخلفيات الدينية",
     nature:"🌿 خلفيات الطبيعة",
     cars:"🚗 خلفيات السيارات",
     games:"🎮 خلفيات الألعاب",
@@ -123,6 +124,7 @@ function categoryMatches(wallpaper, target){
     if(value === wanted) return true;
 
     const aliases = {
+        religious:["religious","religion","islamic","quran","ديني","الدين","الخلفيات الدينية","اسلامي","إسلامي","قرآن","قران","مساجد","أذكار","ادعية","أدعية"],
         space:["spaces","galaxy","astronomy","فضاء","الفضاء"],
         nature:["nature","natural","طبيعه","طبيعة","الطبيعة"],
         cars:["car","cars","vehicle","vehicles","سيارات","السيارات"],
@@ -591,6 +593,7 @@ const categoryGroups = [
         title:"🎨 التصنيفات",
         icon:"category",
         items:[
+            ["religious","الخلفيات الدينية","menu_book"],
             ["nature","طبيعة","park"], ["animals","حيوانات","pets"],
             ["cars","سيارات","directions_car"], ["bikes","دراجات","two_wheeler"],
             ["games","ألعاب","sports_esports"], ["anime","أنمي","animation"],
