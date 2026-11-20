@@ -215,6 +215,129 @@ function renderRankPath(total, entries) {
 }
 
 
+
+const ACTIVITY_DECAY_MS = 7 * 24 * 60 * 60 * 1000;
+const ACTIVITY_RANGES = { "24h": 24 * 60 * 60 * 1000, "7d": 7 * 24 * 60 * 60 * 1000, "30d": 30 * 24 * 60 * 60 * 1000 };
+let activityRange = "7d";
+let activityEventsCache = [];
+
+function isQualifyingActivity(entry) {
+  const reason = String(entry.reason || "").toLowerCase();
+  const type = String(entry.reward_type || "").toLowerCase();
+  if (["like", "comment"].includes(type)) return true;
+  if (reason.includes("wallpaper_like") || reason.includes("wallpaper_comment")) return true;
+  return /(publish|upload|submission)/.test(reason) && !/(download|delete)/.test(reason);
+}
+
+function getActivityEvents(entries) {
+  return (entries || [])
+    .filter(isQualifyingActivity)
+    .map(entry => new Date(entry.created_at).getTime())
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+}
+
+function activityScoreAt(timestamp, events) {
+  let lastAction = 0;
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (events[i] <= timestamp) { lastAction = events[i]; break; }
+  }
+  if (!lastAction) return 0;
+  return Math.max(0, Math.min(100, 100 * (1 - (timestamp - lastAction) / ACTIVITY_DECAY_MS)));
+}
+
+function relativeActivityTime(timestamp) {
+  if (!timestamp) return "لا يوجد نشاط مؤهل بعد";
+  const diff = Math.max(0, Date.now() - timestamp);
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "الآن";
+  if (minutes < 60) return `منذ ${minutes} دقيقة`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `منذ ${hours} ساعة`;
+  const days = Math.floor(hours / 24);
+  return `منذ ${days} يوم`;
+}
+
+function drawActivityChart(events, rangeKey, scoreNow) {
+  const svg = document.getElementById("activityChart");
+  const area = document.getElementById("activityChartArea");
+  const line = document.getElementById("activityChartLine");
+  const point = document.getElementById("activityChartPoint");
+  if (!svg || !area || !line || !point) return;
+
+  const now = Date.now();
+  const rangeMs = ACTIVITY_RANGES[rangeKey] || ACTIVITY_RANGES["7d"];
+  const start = now - rangeMs;
+  const samples = 100;
+  const times = new Set();
+  for (let i = 0; i <= samples; i++) times.add(start + rangeMs * i / samples);
+  events.forEach(eventTime => {
+    if (eventTime > start && eventTime <= now) {
+      times.add(Math.max(start, eventTime - 1));
+      times.add(eventTime);
+    }
+  });
+  const ordered = [...times].sort((a, b) => a - b);
+  const coords = ordered.map(timestamp => {
+    const x = 24 + ((timestamp - start) / rangeMs) * 676;
+    const value = activityScoreAt(timestamp, events);
+    const y = 180 - value * 1.6;
+    return { x, y };
+  });
+  const path = coords.map((p, index) => `${index ? "L" : "M"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+  const first = coords[0] || {x:24,y:180};
+  const last = coords[coords.length - 1] || {x:700,y:180};
+  line.setAttribute("d", path);
+  area.setAttribute("d", `${path} L${last.x.toFixed(2)} 180 L${first.x.toFixed(2)} 180 Z`);
+  point.setAttribute("cx", last.x.toFixed(2));
+  point.setAttribute("cy", last.y.toFixed(2));
+  svg.classList.toggle("is-down", scoreNow < 50);
+  document.getElementById("activityRangeStart").textContent =
+    rangeKey === "24h" ? "قبل 24 ساعة" : rangeKey === "30d" ? "قبل 30 يوماً" : "قبل 7 أيام";
+}
+
+function renderActivityIndicator(entries) {
+  activityEventsCache = getActivityEvents(entries);
+  const now = Date.now();
+  const currentScore = activityScoreAt(now, activityEventsCache);
+  const previousScore = activityScoreAt(now - 60 * 60 * 1000, activityEventsCache);
+  const trend = currentScore - previousScore;
+  const lastAction = activityEventsCache.length ? activityEventsCache[activityEventsCache.length - 1] : 0;
+
+  const valueEl = document.getElementById("activityIndexValue");
+  const statusEl = document.getElementById("activityIndexStatus");
+  const lastEl = document.getElementById("activityLastAction");
+  const chip = document.getElementById("activityTrendChip");
+  const chipText = document.getElementById("activityTrendText");
+  if (valueEl) valueEl.textContent = String(Math.round(currentScore));
+  if (statusEl) statusEl.textContent = `${Math.round(currentScore)} من 100`;
+  if (lastEl) lastEl.textContent = relativeActivityTime(lastAction);
+
+  if (chip && chipText) {
+    const rising = trend > 0.5;
+    const falling = trend < -0.5;
+    chip.classList.toggle("trend-up", rising);
+    chip.classList.toggle("trend-down", !rising);
+    const icon = chip.querySelector(".material-icons");
+    if (icon) icon.textContent = rising ? "trending_up" : falling ? "trending_down" : "trending_flat";
+    chipText.textContent = rising ? "ارتفاع حديث" : falling ? "انخفاض تدريجي" : currentScore > 0 ? "مستقر حالياً" : "بانتظار النشاط";
+  }
+
+  drawActivityChart(activityEventsCache, activityRange, currentScore);
+}
+
+document.querySelectorAll("[data-activity-range]").forEach(button => {
+  button.addEventListener("click", () => {
+    activityRange = button.dataset.activityRange || "7d";
+    document.querySelectorAll("[data-activity-range]").forEach(item => {
+      const selected = item === button;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-pressed", String(selected));
+    });
+    renderActivityIndicator(allEntries);
+  });
+});
+
 async function loadPoints() {
   try {
     const { data, error } = await supabase.auth.getSession();
@@ -241,10 +364,17 @@ async function loadPoints() {
     if (!Number.isFinite(total) || total < 0) throw new Error("الرصيد المستلم غير صالح");
     allEntries = Array.isArray(payload.entries) ? payload.entries : [];
     totalEl.textContent = formatPoints(total);
+    renderActivityIndicator(allEntries);
     setProgress(total);
     renderStats(total, allEntries);
     renderRankPath(total, allEntries);
     renderEntries();
+    if (payload.engagementHistoryWarning) {
+      statusEl.className = "points-status warning";
+      statusEl.textContent = payload.engagementHistoryWarning;
+    } else {
+      statusEl.className = "points-status";
+    }
   } catch (error) {
     console.error("POINTS PAGE LOAD:", error);
     totalEl.textContent = "—";
@@ -257,3 +387,6 @@ loadPoints();
 window.addEventListener("wallpaperHubPointsChanged",()=>{
   loadPoints();
 });
+
+// Keep the inactivity indicator current while the points page stays open.
+setInterval(() => renderActivityIndicator(allEntries), 60 * 1000);
