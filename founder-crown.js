@@ -5,6 +5,8 @@
 
 (() => {
     const FOUNDER_UID = "0bad1b2a-b993-45f2-992c-f18509d9fa34";
+    // Shared read-only identity marker for profile UI state (same founder UID).
+    window.WallpaperHubFounderUID = FOUNDER_UID;
 
     const normalize = value => String(value || "").trim().toLowerCase();
 
