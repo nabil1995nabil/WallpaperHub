@@ -199,7 +199,7 @@ function renderRankPath(total, entries) {
   const labelText = `${formatPoints(total)} / ${formatPoints(goal)}`;
   document.getElementById("levelProgressText").textContent = labelText;
   document.getElementById("goalCurrent").textContent = labelText;
-  const percent = nextRank ? Math.max(0, Math.min(100, total / goal * 100)) : 100;
+  const percent = nextRank ? Math.max(0, Math.min(100, ((total - current.threshold) / (goal - current.threshold)) * 100)) : 100;
   document.getElementById("levelProgress").style.width = `${percent}%`;
   document.getElementById("goalProgress").style.width = `${percent}%`;
   const goalStrong = document.querySelector(".goal-label strong");
@@ -369,7 +369,6 @@ async function loadPoints() {
     allEntries = Array.isArray(payload.entries) ? payload.entries : [];
     totalEl.textContent = formatPoints(total);
     renderActivityIndicator(allEntries);
-    setProgress(total);
     renderStats(total, allEntries);
     renderRankPath(total, allEntries);
     renderEntries();
