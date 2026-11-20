@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f7ff">
   <title>نقاطي | WallpaperHub</title>
   <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="points.css?v=20261120-trading-index">
+  <link rel="stylesheet" href="points.css?v=20261120-mobilechart-v2">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -76,20 +76,35 @@
         </div>
       </div>
       <div class="activity-range-tabs" role="group" aria-label="الفترة الزمنية للمؤشر">
-        <button type="button" class="activity-range active" data-activity-range="24h" aria-pressed="false">24 ساعة</button>
-        <button type="button" class="activity-range" data-activity-range="7d" aria-pressed="true">7 أيام</button>
+        <button type="button" class="activity-range" data-activity-range="24h" aria-pressed="false">24 ساعة</button>
+        <button type="button" class="activity-range active" data-activity-range="7d" aria-pressed="true">7 أيام</button>
         <button type="button" class="activity-range" data-activity-range="30d" aria-pressed="false">30 يوماً</button>
       </div>
       <div class="activity-chart-frame">
-        <div class="activity-y-labels" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
-        <svg id="activityChart" class="activity-chart is-down" viewBox="0 0 720 220" role="img" aria-label="رسم بياني لمؤشر نشاط الحساب من صفر إلى مئة">
-          <defs><linearGradient id="activityChartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#18a978" stop-opacity=".24"/><stop offset="100%" stop-color="#18a978" stop-opacity="0"/></linearGradient></defs>
+        <svg id="activityChart" class="activity-chart is-down" viewBox="0 0 720 220" preserveAspectRatio="none" role="img" aria-label="رسم بياني لمؤشر نشاط الحساب من صفر إلى مئة">
+          <defs>
+            <linearGradient id="activityChartFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#18a978" stop-opacity=".25"/>
+              <stop offset="100%" stop-color="#18a978" stop-opacity=".015"/>
+            </linearGradient>
+          </defs>
           <g class="activity-chart-grid">
-            <path d="M24 20H700 M24 60H700 M24 100H700 M24 140H700 M24 180H700"/>
+            <line x1="52" y1="20" x2="704" y2="20"/>
+            <line x1="52" y1="60" x2="704" y2="60"/>
+            <line x1="52" y1="100" x2="704" y2="100"/>
+            <line x1="52" y1="140" x2="704" y2="140"/>
+            <line x1="52" y1="180" x2="704" y2="180"/>
           </g>
-          <path id="activityChartArea" class="activity-chart-area" d="M24 180 L700 180"></path>
-          <path id="activityChartLine" class="activity-chart-line" d="M24 180 L700 180"></path>
-          <circle id="activityChartPoint" class="activity-chart-point" cx="700" cy="180" r="5"></circle>
+          <g class="activity-chart-labels" aria-hidden="true">
+            <text x="40" y="24">100</text>
+            <text x="40" y="64">75</text>
+            <text x="40" y="104">50</text>
+            <text x="40" y="144">25</text>
+            <text x="40" y="184">0</text>
+          </g>
+          <path id="activityChartArea" class="activity-chart-area" d="M52 180 L704 180 L52 180 Z"></path>
+          <path id="activityChartLine" class="activity-chart-line" d="M52 180 L704 180"></path>
+          <circle id="activityChartPoint" class="activity-chart-point" cx="704" cy="180" r="5"></circle>
         </svg>
       </div>
       <div class="activity-chart-axis"><span id="activityRangeStart">قبل 7 أيام</span><span>الآن</span></div>
@@ -147,6 +162,6 @@
     </aside>
   </main>
 
-  <script type="module" src="points.js?v=20261120-trading-index"></script>
+  <script type="module" src="points.js?v=20261120-mobilechart-v2"></script>
 </body>
 </html>
