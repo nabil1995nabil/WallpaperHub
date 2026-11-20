@@ -44,14 +44,6 @@ function filterForEntry(entry) {
   if (reason.includes("download")) return "download";
   return "other";
 }
-function setProgress(total) {
-  const progress = Math.max(0, Math.min(100, total / 1 * 100));
-  const label = `${formatPoints(total)} / 1.00`;
-  document.getElementById("goalCurrent").textContent = label;
-  document.getElementById("levelProgressText").textContent = label;
-  document.getElementById("goalProgress").style.width = `${progress}%`;
-  document.getElementById("levelProgress").style.width = `${progress}%`;
-}
 function renderStats(total, entries) {
   document.getElementById("statTotal").textContent = formatPoints(total);
   document.getElementById("statOperations").textContent = String(entries.length);
