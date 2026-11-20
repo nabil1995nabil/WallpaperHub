@@ -485,6 +485,10 @@ function createTodayAILogo(canvas) {
     const cy = size / 2;
     const TAU = Math.PI * 2;
     let t = 0;
+    let raf = 0;
+    let lastFrame = 0;
+    let visible = false;
+    const reduceMotion = Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
     const particles = Array.from({length: 34}, (_, i) => ({
         a: (TAU / 34) * i,
@@ -504,7 +508,12 @@ function createTodayAILogo(canvas) {
         ctx.fill();
     }
 
-    function drawOrb() {
+    function drawOrb(timestamp = 0, oneFrame = false) {
+        if(!oneFrame){
+            if(!visible || document.hidden){raf=0;return;}
+            if(timestamp-lastFrame<33){raf=requestAnimationFrame(drawOrb);return;}
+            lastFrame=timestamp;
+        }
         t += 0.018;
         ctx.clearRect(0, 0, size, size);
         ctx.globalCompositeOperation = "lighter";
@@ -603,11 +612,36 @@ function createTodayAILogo(canvas) {
         ctx.shadowBlur = 0;
 
         ctx.globalCompositeOperation = "source-over";
-        requestAnimationFrame(drawOrb);
+        if(!oneFrame) raf=requestAnimationFrame(drawOrb);
     }
 
     canvas.dataset.orbReady = "true";
-    drawOrb();
+
+    if(reduceMotion){
+        drawOrb(0,true);
+        return;
+    }
+
+    const syncOrbAnimation=()=>{
+        const shouldRun=visible && !document.hidden;
+        if(shouldRun && !raf) raf=requestAnimationFrame(drawOrb);
+        else if(!shouldRun && raf){cancelAnimationFrame(raf);raf=0;}
+    };
+
+    if("IntersectionObserver" in window){
+        const observer=new IntersectionObserver(entries=>{
+            visible=Boolean(entries[0] && entries[0].isIntersecting);
+            syncOrbAnimation();
+        },{threshold:0.01});
+        observer.observe(canvas);
+        window.addEventListener("pagehide",()=>observer.disconnect(),{once:true});
+    }else{
+        visible=true;
+    }
+
+    document.addEventListener("visibilitychange",syncOrbAnimation);
+    syncOrbAnimation();
+
 }
 
 function initTodayAiFab() {
