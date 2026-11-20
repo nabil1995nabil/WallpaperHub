@@ -1604,6 +1604,22 @@ body.dark .edit-social-field{background:var(--input-bg);}
 .edit-social-field input:focus{border:0;box-shadow:none;background:transparent;}
 .edit-social-field input::placeholder{color:var(--text-3);opacity:1;}
 
+/* Premium profile link: reliable tap target on touch screens. */
+.identity-side-stack{
+    position:relative;
+    z-index:80;
+}
+.identity-side-stack .premium-card{
+    position:relative;
+    z-index:81;
+    pointer-events:auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+}
+.identity-side-stack .premium-card > *{
+    pointer-events:none;
+}
+
 /* ---------- شاشات كبيرة ---------- */
 @media (min-width:1100px){
     .profile-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));}
