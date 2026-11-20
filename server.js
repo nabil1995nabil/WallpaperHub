@@ -3361,40 +3361,55 @@ app.get("/api/pixabay-wallpapers", async (req, res) => {
 });
 
 // ======================================
-// Dynamic XML Sitemap for Google Search
-// Includes public pages and published wallpapers from Supabase.
-// Keep this route BEFORE express.static and the GitHub static proxy.
-// ======================================
+// Search crawler policy. Keep private APIs and gated tools out of search crawling.
+app.get("/robots.txt", (req, res) => {
+    const body = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /api/",
+        "Disallow: /admin",
+        "Disallow: /premium-user.html",
+        "Disallow: /publish.html",
+        "Disallow: /publish-telegram.html",
+        "",
+        "Sitemap: https://wallpaperhub-morocco.vercel.app/sitemap.xml",
+        ""
+    ].join("\n");
+    res.status(200);
+    res.type("text/plain; charset=utf-8");
+    res.set("Cache-Control", "public, max-age=3600, s-maxage=3600");
+    return res.send(body);
+});
+
+// Dynamic XML Sitemap for Google Search.
+// Lists canonical, public pages and approved wallpaper detail URLs only.
 app.get("/sitemap.xml", async (req, res) => {
     const SITE_ORIGIN = "https://wallpaperhub-morocco.vercel.app";
-    const urls = new Set();
+    const entries = new Map();
 
-    const addUrl = (pathname) => {
+    const addUrl = (pathname, imageUrl, imageCaption) => {
         const clean = String(pathname || "").trim();
         if (!clean || clean.startsWith("/api/") || clean.includes("#")) return;
-        urls.add(`${SITE_ORIGIN}${clean.startsWith("/") ? clean : `/${clean}`}`);
+        const url = SITE_ORIGIN + (clean.startsWith("/") ? clean : "/" + clean);
+        if (!entries.has(url)) {
+            entries.set(url, {
+                url: url,
+                imageUrl: isAllowedWallpaperImageUrl(imageUrl) ? String(imageUrl).trim() : "",
+                imageCaption: String(imageCaption || "").replace(/\s+/g, " ").trim().slice(0, 300)
+            });
+        }
     };
 
-    // Only add root-level pages that actually exist in the deployed project.
-    // Do not include admin, authentication, private profile, or submission pages.
-    addUrl("/");
-    // الصفحات العامة الموجودة في المشروع فقط؛ استبعاد صفحات الإدارة والحسابات
-    // والملفات الجزئية التي تُضمَّن داخل صفحات أخرى.
+    // Keep only pages that contain public, useful content.
+    // Do not include splash aliases, partial sections, private tools, or gated pages.
     const publicPages = [
-        "index.html",
         "home.html",
         "about.html",
         "all-wallpapers.html",
         "categories.html",
-        "community.html",
-        "developers.html",
-        "notice.html",
-        "privacy.html",
-        "photo-editor.html",
-        "today.html",
-        "artguru.html",
-        "premium-user.html",
-        "wallpaper.html"
+        "social.html",
+        "support.html",
+        "privacy.html"
     ];
 
     for (const page of publicPages) {
@@ -3402,16 +3417,19 @@ app.get("/sitemap.xml", async (req, res) => {
         const serverPath = path.join(STATIC_DIR, page);
         if ((fs.existsSync(localPath) && fs.statSync(localPath).isFile()) ||
             (fs.existsSync(serverPath) && fs.statSync(serverPath).isFile())) {
-            // wallpaper.html is a template; only its ID-specific URLs are added below.
-            if (page !== "wallpaper.html") addUrl(`/${page}`);
+            addUrl("/" + page);
         }
     }
 
     const studioPagePath = path.join(STATIC_ROOT, "studio.html");
-    if (fs.existsSync(studioPagePath) && fs.statSync(studioPagePath).isFile()) addUrl("/studio");
+    const studioServerPath = path.join(STATIC_DIR, "studio.html");
+    if ((fs.existsSync(studioPagePath) && fs.statSync(studioPagePath).isFile()) ||
+        (fs.existsSync(studioServerPath) && fs.statSync(studioServerPath).isFile())) {
+        addUrl("/studio");
+    }
 
-    // The wallpapers table contains approved/published wallpapers; pending submissions
-    // are stored separately and must never be exposed in the public sitemap.
+    // The wallpapers table contains approved/published wallpapers.
+    // Each detail URL is unique and can be rendered server-side for search engines.
     try {
         let offset = 0;
         const pageSize = 1000;
@@ -3419,45 +3437,60 @@ app.get("/sitemap.xml", async (req, res) => {
 
         while (offset < maxUrls) {
             const end = Math.min(offset + pageSize - 1, maxUrls - 1);
-            const { data, error } = await supabase
+            const result = await supabase
                 .from("wallpapers")
-                .select("id")
+                .select("id,title,description,ai_description,category,resolution,tags,image,thumbnail,type")
                 .order("id", { ascending: true })
                 .range(offset, end);
 
-            if (error) throw error;
-            const rows = Array.isArray(data) ? data : [];
+            if (result.error) throw result.error;
+            const rows = Array.isArray(result.data) ? result.data : [];
 
             for (const row of rows) {
-                const id = String(row?.id ?? "").trim();
-                if (/^\d+$/.test(id)) {
-                    addUrl(`/wallpaper.html?id=${encodeURIComponent(id)}`);
-                }
+                const id = String(row && row.id != null ? row.id : "").trim();
+                if (!/^\\d+$/.test(id)) continue;
+
+                const isVideo = /video/i.test(String(row.type || "")) ||
+                    /\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(String(row.image || ""));
+                const imageUrl = !isVideo && isAllowedWallpaperImageUrl(row.image) ? row.image : "";
+                const caption = row.description || row.ai_description || row.title || "WallpaperHub wallpaper";
+                addUrl("/wallpaper.html?id=" + encodeURIComponent(id), imageUrl, caption);
             }
 
             if (rows.length < pageSize) break;
             offset += rows.length;
         }
     } catch (error) {
-        // Keep the sitemap of known public pages available even if Supabase is temporarily unavailable.
-        console.error("SITEMAP WALLPAPERS QUERY ERROR:", error?.message || error);
+        // Keep known public pages available if Supabase is temporarily unavailable.
+        console.error("SITEMAP WALLPAPERS QUERY ERROR:", error && error.message ? error.message : error);
     }
 
-    const xmlEscape = (value) => String(value)
+    const xmlEscape = (value) => String(value == null ? "" : value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&apos;");
 
-    const body = [...urls].map(url => `  <url><loc>${xmlEscape(url)}</loc></url>`).join("\n");
+    const body = Array.from(entries.values()).map(entry => {
+        const imageBlock = entry.imageUrl
+            ? "\n    <image:image><image:loc>" + xmlEscape(entry.imageUrl) + "</image:loc>" +
+                (entry.imageCaption ? "<image:caption>" + xmlEscape(entry.imageCaption) + "</image:caption>" : "") +
+                "</image:image>"
+            : "";
+        return "  <url><loc>" + xmlEscape(entry.url) + "</loc>" + imageBlock + "\n  </url>";
+    }).join("\n");
+
     res.status(200);
     res.set("Content-Type", "application/xml; charset=utf-8");
     res.set("Cache-Control", "public, max-age=300, s-maxage=300");
-    return res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`);
+    return res.send(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:image=\"http://www.google.com/schemas/sitemap-image/1.1\">\n" +
+        body + "\n</urlset>"
+    );
 });
 
-// ======================================
 // Static Files
 // ======================================
 
@@ -3491,6 +3524,184 @@ app.get("/premium-user.html", async(req,res)=>{
         console.error("PREMIUM PAGE SERVER GATE:",error);
         return res.status(503).type("html").send(
             "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><body style='font-family:Arial,sans-serif;padding:40px;text-align:center'><h2>تعذر التحقق من الشارات</h2><p>لم نتمكن من الاتصال بقاعدة البيانات. لم يتم فتح صفحة Premium.</p><a href='/profile.html'>العودة للبروفايل</a></body></html>"
+        );
+    }
+});
+
+// Server-render wallpaper detail metadata so search engines receive real content
+// before wallpaper.js hydrates the interactive experience.
+app.get("/wallpaper.html", async (req, res, next) => {
+    const rawId = String(req.query.id || "").trim();
+    const source = String(req.query.source || "").trim().toLowerCase();
+
+    // Session-only external search results and the empty template are not stable indexable pages.
+    if (source === "pixabay" || !rawId) {
+        res.set("X-Robots-Tag", "noindex, nofollow");
+        return next();
+    }
+
+    if (!/^\\d+$/.test(rawId)) {
+        res.set("X-Robots-Tag", "noindex, nofollow");
+        return res.status(404).type("html").send(
+            "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><title>الخلفية غير موجودة | WallpaperHub</title><meta name='robots' content='noindex,follow'><body><main><h1>الخلفية غير موجودة</h1><a href='/home.html'>العودة إلى WallpaperHub</a></main></body></html>"
+        );
+    }
+
+    const escapeSeoHtml = (value) => String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const cleanSeoText = (value, maxLength) => String(value == null ? "" : value)
+        .replace(/<[^>]*>/g, " ")
+        .replace(/[\u0000-\u001F\u007F]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, maxLength || 1000);
+
+    const categoryNames = {
+        nature: "الطبيعة",
+        cars: "السيارات",
+        anime: "الأنمي",
+        games: "الألعاب",
+        space: "الفضاء",
+        animals: "الحيوانات",
+        ai: "الذكاء الاصطناعي",
+        dark: "الخلفيات الداكنة",
+        snow: "الشتاء والثلج",
+        aurora: "الشفق القطبي",
+        cyberpunk: "سايبربانك",
+        gradients: "التدرجات اللونية",
+        minimal: "التصميم البسيط",
+        city: "المدن",
+        architecture: "الهندسة المعمارية",
+        religious: "الخلفيات الدينية",
+        "4k": "الخلفيات عالية الجودة",
+        amoled: "خلفيات AMOLED",
+        other: "الخلفيات المتنوعة"
+    };
+
+    try {
+        const numericId = Number(rawId);
+        const result = await supabase
+            .from("wallpapers")
+            .select("id,title,description,ai_description,category,resolution,size,tags,image,thumbnail,type,author,source,date,downloads,likes,views")
+            .eq("id", numericId)
+            .maybeSingle();
+
+        if (result.error) throw result.error;
+        const wallpaper = result.data;
+
+        if (!wallpaper) {
+            res.set("X-Robots-Tag", "noindex, follow");
+            return res.status(404).type("html").send(
+                "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><title>الخلفية غير موجودة | WallpaperHub</title><meta name='robots' content='noindex,follow'><body><main><h1>الخلفية غير موجودة</h1><p>قد تكون الخلفية حُذفت أو لم تعد متاحة.</p><a href='/home.html'>استكشف الخلفيات</a></main></body></html>"
+            );
+        }
+
+        const id = String(wallpaper.id);
+        const categoryKey = cleanSeoText(wallpaper.category, 60).toLowerCase();
+        const categoryLabel = categoryNames[categoryKey] || "الخلفيات";
+        const resolution = cleanSeoText(wallpaper.resolution, 60);
+        const rawTitle = cleanSeoText(wallpaper.title, 180);
+        const tags = Array.isArray(wallpaper.tags)
+            ? wallpaper.tags.map(tag => cleanSeoText(tag, 60)).filter(Boolean).slice(0, 8)
+            : [];
+        const tagSummary = tags.slice(0, 3).join("، ");
+        const titleLooksLikeFileName = !/[A-Za-z\u0600-\u06FF]/.test(rawTitle) ||
+            /^\d[\d _.-]*$/.test(rawTitle) ||
+            /^(?:img|image|dsc|pxl|whatsapp)[-_ ]?\d+/i.test(rawTitle);
+
+        let seoTitle = titleLooksLikeFileName || rawTitle.length < 3
+            ? "خلفية " + categoryLabel + (tagSummary ? ": " + tagSummary : "") +
+                (resolution ? " بدقة " + resolution : "") + " | WallpaperHub"
+            : rawTitle + " | WallpaperHub";
+        seoTitle = cleanSeoText(seoTitle, 100);
+
+        const providedDescription = cleanSeoText(
+            wallpaper.description || wallpaper.ai_description || "",
+            1000
+        );
+        const generatedDescription = [
+            tagSummary ? "تتضمن هذه الخلفية عناصر مثل " + tagSummary + "." : "اكتشف خلفية من فئة " + categoryLabel + " على WallpaperHub.",
+            resolution ? "الدقة المتاحة: " + resolution + "." : "",
+            "شاهد الصورة ومواصفاتها، ثم نزّل النسخة المتاحة من صفحة الخلفية."
+        ].filter(Boolean).join(" ");
+        const seoDescription = cleanSeoText(
+            providedDescription
+                ? providedDescription + (resolution ? " الدقة المتاحة: " + resolution + "." : "") + " شاهد التفاصيل وخيارات التنزيل على WallpaperHub."
+                : generatedDescription,
+            260
+        );
+
+        const isVideo = /video/i.test(String(wallpaper.type || "")) ||
+            /\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(String(wallpaper.image || ""));
+        const imageUrl = !isVideo && isAllowedWallpaperImageUrl(wallpaper.image)
+            ? String(wallpaper.image).trim()
+            : "";
+        const thumbnailUrl = !isVideo && isAllowedWallpaperImageUrl(wallpaper.thumbnail)
+            ? String(wallpaper.thumbnail).trim()
+            : imageUrl;
+        const canonicalUrl = "https://wallpaperhub-morocco.vercel.app/wallpaper.html?id=" + encodeURIComponent(id);
+
+        const htmlPath = path.join(__dirname, "wallpaper.html");
+        let html = await fs.promises.readFile(htmlPath, "utf8");
+
+        html = html.replace(/<title>[\s\S]*?<\/title>/i, "<title>" + escapeSeoHtml(seoTitle) + "</title>");
+        html = html.replace(/<h2\s+id=["']wallTitle2["'][^>]*>[\s\S]*?<\/h2>/i,
+            "<h1 id=\"wallTitle2\" class=\"wallpaper-page-title\" data-seo-title=\"" + escapeSeoHtml(seoTitle) + "\">" + escapeSeoHtml(seoTitle) + "</h1>");
+        html = html.replace(/<p\s+id=["']wallDescription["'][^>]*>[\s\S]*?<\/p>/i,
+            "<p id=\"wallDescription\" data-seo-description=\"" + escapeSeoHtml(seoDescription) + "\">" + escapeSeoHtml(seoDescription) + "</p>");
+        html = html.replace(/<img\s+id=["']wallImage["'][^>]*>/i, function () {
+            return "<img id=\"wallImage\"" +
+                (imageUrl ? " src=\"" + escapeSeoHtml(imageUrl) + "\"" : "") +
+                " alt=\"" + escapeSeoHtml(seoTitle) + "\" decoding=\"async\" fetchpriority=\"high\" loading=\"eager\" draggable=\"false\">";
+        });
+
+        const metaTags = [
+            "<meta name=\"description\" content=\"" + escapeSeoHtml(seoDescription) + "\">",
+            "<meta name=\"robots\" content=\"index,follow\">",
+            "<link rel=\"canonical\" href=\"" + escapeSeoHtml(canonicalUrl) + "\">",
+            "<meta property=\"og:type\" content=\"website\">",
+            "<meta property=\"og:title\" content=\"" + escapeSeoHtml(seoTitle) + "\">",
+            "<meta property=\"og:description\" content=\"" + escapeSeoHtml(seoDescription) + "\">",
+            "<meta property=\"og:url\" content=\"" + escapeSeoHtml(canonicalUrl) + "\">",
+            imageUrl ? "<meta property=\"og:image\" content=\"" + escapeSeoHtml(imageUrl) + "\">" : "",
+            imageUrl ? "<meta property=\"og:image:alt\" content=\"" + escapeSeoHtml(seoTitle) + "\">" : "",
+            "<meta name=\"twitter:card\" content=\"" + (imageUrl ? "summary_large_image" : "summary") + "\">",
+            "<meta name=\"twitter:title\" content=\"" + escapeSeoHtml(seoTitle) + "\">",
+            "<meta name=\"twitter:description\" content=\"" + escapeSeoHtml(seoDescription) + "\">",
+            imageUrl ? "<meta name=\"twitter:image\" content=\"" + escapeSeoHtml(imageUrl) + "\">" : ""
+        ].filter(Boolean).join("\n");
+
+        const structuredData = imageUrl ? {
+            "@context": "https://schema.org",
+            "@type": "ImageObject",
+            "name": seoTitle,
+            "description": seoDescription,
+            "contentUrl": imageUrl,
+            "thumbnailUrl": thumbnailUrl || imageUrl,
+            "url": canonicalUrl,
+            "representativeOfPage": true
+        } : null;
+
+        const structuredTag = structuredData
+            ? "<script type=\"application/ld+json\">" + JSON.stringify(structuredData).replace(/</g, "\\u003c") + "</script>"
+            : "";
+
+        html = html.replace(/<\/head\s*>/i, metaTags + "\n" + structuredTag + "\n</head>");
+
+        res.status(200);
+        res.type("html");
+        res.set("Cache-Control", "public, max-age=300, s-maxage=300");
+        return res.send(injectWallpaperHubLanguageRuntime(html));
+    } catch (error) {
+        console.error("WALLPAPER SEO PAGE ERROR:", error && error.message ? error.message : error);
+        res.set("Retry-After", "60");
+        return res.status(503).type("html").send(
+            "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><meta name='robots' content='noindex,follow'><title>تعذر تحميل الخلفية | WallpaperHub</title><body><main><h1>تعذر تحميل تفاصيل الخلفية حالياً</h1><p>حاول تحديث الصفحة بعد قليل.</p><a href='/home.html'>العودة إلى WallpaperHub</a></main></body></html>"
         );
     }
 });
