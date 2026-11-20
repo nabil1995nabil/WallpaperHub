@@ -141,3 +141,80 @@ a{color:inherit}
  .earning-mini-card strong{font-size:22px}
  .earning-mini-card small{font-size:10px}
 }
+
+
+/* Trading-style points shortcuts and activity index */
+.points-quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.points-action{display:flex;align-items:center;gap:11px;min-width:0;padding:15px 16px;border:1px solid var(--line);border-radius:20px;background:#fff;text-decoration:none;box-shadow:0 10px 24px #243b7a08;transition:transform .2s ease,box-shadow .2s ease}
+.points-action:active{transform:scale(.985)}
+.points-action>.material-icons:first-child{width:43px;height:43px;display:grid;place-items:center;border-radius:14px;background:#eff3ff;color:#315ff0;font-size:24px;flex:0 0 auto}
+.points-action span:nth-child(2){display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.points-action strong{font-size:13px;font-weight:900}
+.points-action small{font-size:10px;color:var(--muted);line-height:1.55}
+.points-action .action-arrow{font-size:18px;color:#9aa6c0;flex:0 0 auto}
+.points-action-chart>.material-icons:first-child{background:#eaf8f2;color:#0a9a68}
+.activity-indicator-card{padding:22px;border:1px solid var(--line);border-radius:27px;background:linear-gradient(145deg,#fff,#f8fbff);box-shadow:0 14px 36px #243b7a0a;scroll-margin-top:18px}
+.activity-indicator-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.activity-indicator-title{display:flex;align-items:center;gap:12px;min-width:0}
+.activity-indicator-title>.material-icons{width:49px;height:49px;display:grid;place-items:center;border-radius:17px;background:#eaf8f2;color:#079b68;font-size:28px;flex:0 0 auto}
+.activity-indicator-title h2{margin:0;font-size:21px;font-weight:900}
+.activity-indicator-title p{margin:5px 0 0;font-size:11px;color:var(--muted);line-height:1.7}
+.activity-current-box{display:grid;grid-template-columns:auto auto;align-items:baseline;justify-content:end;column-gap:3px;min-width:104px;text-align:left;direction:ltr}
+.activity-current-box>strong{font-size:42px;line-height:1;font-weight:900;color:#079b68;font-variant-numeric:tabular-nums}
+.activity-current-box>span{font-size:13px;color:var(--muted)}
+.trend-chip{grid-column:1/-1;display:inline-flex;align-items:center;justify-content:flex-start;gap:3px;margin-top:8px;padding:5px 8px;border-radius:99px;font-size:10px;font-weight:900;direction:rtl;white-space:nowrap}
+.trend-chip .material-icons{font-size:15px}
+.trend-chip.trend-up{background:#e8f8f0;color:#078b5e}
+.trend-chip.trend-down{background:#fff0f1;color:#d34b5b}
+.activity-range-tabs{display:flex;gap:7px;margin:20px 0 12px;padding:4px;border-radius:15px;background:#f0f3fa}
+.activity-range{flex:1;min-height:37px;padding:6px 8px;border:0;border-radius:11px;background:transparent;color:#72809d;font:inherit;font-size:11px;font-weight:800}
+.activity-range.active{background:#fff;color:#245de8;box-shadow:0 3px 10px #253b7a12}
+.activity-chart-frame{position:relative;display:flex;align-items:stretch;gap:9px;min-height:185px;padding:3px 0 0}
+.activity-y-labels{display:flex;flex-direction:column;justify-content:space-between;padding:5px 0 4px;color:#a1abc0;font-size:9px;font-variant-numeric:tabular-nums}
+.activity-chart{width:100%;height:190px;overflow:visible}
+.activity-chart-grid path{fill:none;stroke:#e8edf6;stroke-width:1;stroke-dasharray:4 6}
+.activity-chart-area{fill:url(#activityChartFill);stroke:none}
+.activity-chart-line{fill:none;stroke:#10a978;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.activity-chart-point{fill:#fff;stroke:#10a978;stroke-width:4;vector-effect:non-scaling-stroke}
+.activity-chart.is-down .activity-chart-line{stroke:#dc6570}
+.activity-chart.is-down .activity-chart-point{stroke:#dc6570}
+.activity-chart-axis{display:flex;justify-content:space-between;margin:-3px 0 16px 22px;color:#98a3b8;font-size:10px}
+.activity-meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.activity-meta-grid>div{display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-radius:16px;background:#f5f7fc;min-width:0}
+.activity-meta-grid small{color:var(--muted);font-size:10px}
+.activity-meta-grid strong{font-size:12px;font-weight:900;overflow-wrap:anywhere}
+.activity-explainer{margin:13px 0 0;padding:11px 13px;border-radius:14px;background:#f0f6ff;color:#5e6d8a;font-size:10px;line-height:1.85}
+.points-status.warning{color:#a46b10;background:#fff9e9;border-radius:12px;padding:10px 12px;margin:8px 0;border:1px solid #f2e4bd}
+@media(max-width:560px){
+ .points-quick-actions{gap:8px}
+ .points-action{gap:8px;padding:11px 9px;border-radius:16px}
+ .points-action>.material-icons:first-child{width:36px;height:36px;border-radius:12px;font-size:20px}
+ .points-action strong{font-size:11px}
+ .points-action small{font-size:9px}
+ .points-action .action-arrow{font-size:15px}
+ .activity-indicator-card{padding:16px 13px;border-radius:23px}
+ .activity-indicator-title{gap:8px}
+ .activity-indicator-title>.material-icons{width:40px;height:40px;border-radius:14px;font-size:23px}
+ .activity-indicator-title h2{font-size:17px}
+ .activity-indicator-title p{font-size:9px}
+ .activity-current-box{min-width:78px}
+ .activity-current-box>strong{font-size:34px}
+ .activity-current-box>span{font-size:11px}
+ .trend-chip{font-size:8px;padding:4px 6px;margin-top:6px}
+ .activity-range-tabs{margin-top:15px}
+ .activity-range{font-size:10px;min-height:34px}
+ .activity-chart{height:160px}
+ .activity-chart-frame{min-height:155px}
+ .activity-chart-axis{margin-bottom:12px;font-size:9px}
+ .activity-meta-grid{gap:7px}
+ .activity-meta-grid>div{padding:10px;border-radius:13px}
+ .activity-meta-grid small{font-size:9px}
+ .activity-meta-grid strong{font-size:10px}
+ .activity-explainer{font-size:9px;padding:10px}
+}
+@media(max-width:360px){
+ .points-quick-actions{grid-template-columns:1fr}
+ .activity-indicator-head{gap:7px}
+ .activity-indicator-title h2{font-size:15px}
+ .activity-current-box>strong{font-size:29px}
+}
