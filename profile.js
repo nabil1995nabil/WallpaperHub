@@ -592,29 +592,82 @@ let publicProfileLoaded = false;
 // Premium navigation: use a root-relative URL and preserve the viewed profile UID.
 const premiumProfileCard = document.querySelector("[data-premium-link]");
 
+function getPremiumProfileUID(){
+    return String(
+        profileTargetUID ||
+        currentUser?.id ||
+        window.WallpaperHubCurrentUserId ||
+        localStorage.getItem("userId") ||
+        localStorage.getItem("uid") ||
+        localStorage.getItem("userUID") ||
+        ""
+    ).trim();
+}
+
 function getPremiumProfileUrl(){
     const target = new URL("/premium-user.html", window.location.origin);
-    if(profileTargetUID){
-        target.searchParams.set("uid", profileTargetUID);
-    }
+    const uid = getPremiumProfileUID();
+    if(uid) target.searchParams.set("uid",uid);
     return target.pathname + target.search;
 }
 
+let premiumAccessFromServer = {
+    checked:false,
+    allowed:false,
+    isOwner:false,
+    earned:0,
+    total:0
+};
+
+async function refreshPremiumAccessFromServer(uid=getPremiumProfileUID()){
+    const targetUID=String(uid||"").trim();
+    premiumAccessFromServer={checked:false,allowed:false,isOwner:false,earned:0,total:0};
+    updatePremiumAccessState();
+
+    if(!targetUID) return premiumAccessFromServer;
+
+    try{
+        const response=await fetch(
+            `/api/users/${encodeURIComponent(targetUID)}/premium-access`,
+            {method:"GET",headers:{Accept:"application/json"},cache:"no-store"}
+        );
+        const payload=await response.json().catch(()=>({}));
+
+        if(!response.ok || payload?.success!==true ||
+           String(payload.userId||"")!==targetUID){
+            throw new Error(payload?.message||"تعذر التحقق من حالة الشارات من السيرفر");
+        }
+
+        premiumAccessFromServer={
+            checked:true,
+            allowed:payload.allowed===true,
+            isOwner:payload.isOwner===true,
+            earned:Number(payload.earned)||0,
+            total:Number(payload.total)||0
+        };
+    }catch(error){
+        console.error("PREMIUM ACCESS SERVER CHECK:",error);
+    }
+
+    updatePremiumAccessState();
+    return premiumAccessFromServer;
+}
+
 if(premiumProfileCard){
-    premiumProfileCard.addEventListener("click", event => {
-        if(premiumProfileCard.disabled || !hasPremiumProfileAccess()){
+    premiumProfileCard.addEventListener("click",event=>{
+        const allowed=isFounderProfile() ||
+            (premiumAccessFromServer.checked && premiumAccessFromServer.allowed===true);
+
+        if(premiumProfileCard.disabled || !allowed){
             event.preventDefault();
             event.stopImmediatePropagation();
             return;
         }
+
         event.preventDefault();
         window.location.assign(getPremiumProfileUrl());
     });
-}function isOwnProfile(){
-    if(!isPublicProfile) return true;
-    return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
 }
-
 function updatePublicProfileActions(){
     const actions = document.getElementById("publicProfileActions");
     const editButton = document.getElementById("heroEditProfileBtn");
@@ -3400,10 +3453,11 @@ function hasPremiumProfileAccess(){
 function updatePremiumAccessState(){
     if(!premiumProfileCard) return;
 
-    const total=profileMedals.filter(m=>m.key).length;
-    const earned=profileMedals.filter(m=>m.key && isMedalOwned(m.key)).length;
     const isOwner=isFounderProfile();
-    const unlocked=isOwner || (total>0 && earned===total);
+    const checked=premiumAccessFromServer.checked;
+    const unlocked=isOwner || (checked && premiumAccessFromServer.allowed===true);
+    const earned=premiumAccessFromServer.earned;
+    const total=premiumAccessFromServer.total;
     const progress=premiumProfileCard.querySelector("[data-premium-progress]");
     const arrow=premiumProfileCard.querySelector(".premium-arrow");
 
@@ -3421,9 +3475,14 @@ function updatePremiumAccessState(){
         if(progress) progress.textContent="مفتوح";
         if(arrow) arrow.textContent=isOwner ? "workspace_premium" : "chevron_left";
     }else{
-        premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مقفولة · "+earned+" من "+total+" شارات");
-        premiumProfileCard.title="تحتاج إلى جميع الشارات لفتح الصفحة · "+earned+"/"+total;
-        if(progress) progress.textContent="مقفول · "+earned+" من "+total+" شارات";
+        const status=checked
+            ? "مقفول · "+earned+" من "+total+" شارات"
+            : "جارٍ التحقق من الشارات…";
+        premiumProfileCard.setAttribute("aria-label",status);
+        premiumProfileCard.title=checked
+            ? "تحتاج إلى جميع الشارات لفتح الصفحة · "+earned+"/"+total
+            : "ينتظر تأكيد Supabase من السيرفر";
+        if(progress) progress.textContent=status;
         if(arrow) arrow.textContent="lock";
     }
 }
@@ -3468,8 +3527,9 @@ function applyProfileMedalData(payload){
 async function loadProfileMedals(uid=null){
     try{
         const targetUID = String(uid || currentUser?.id || "").trim();
-        // Apply owner bypass immediately; other accounts remain medal-gated.
-        updatePremiumAccessState();
+        // The button's final state comes from the server/Supabase, not stale
+        // local medal state or a browser-side guess.
+        await refreshPremiumAccessFromServer(targetUID);
         let url = "";
         const headers = { "Accept":"application/json" };
 
@@ -3538,7 +3598,7 @@ function resetProfileMedals(){
 // Refresh badge state when returning from the admin panel or another tab.
 document.addEventListener("visibilitychange",()=>{
     if(document.visibilityState!=="visible") return;
-    const uid=String(profileTargetUID || currentUser?.id || "").trim();
+    const uid=getPremiumProfileUID();
     if(uid) void loadProfileMedals(uid);
 });
 
