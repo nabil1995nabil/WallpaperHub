@@ -601,11 +601,11 @@ function getPremiumProfileUrl(){
 }
 
 if(premiumProfileCard){
-    // Keep the card inert until every active catalog medal is awarded.
+    // Owner access is permanent; other accounts need every active medal.
     premiumProfileCard.addEventListener("click", event => {
-        const total = profileMedals.length;
-        const earned = profileMedals.filter(m => isMedalOwned(m.key)).length;
-        const unlocked = total > 0 && earned === total;
+        const total = profileMedals.filter(m => m.key).length;
+        const earned = profileMedals.filter(m => m.key && isMedalOwned(m.key)).length;
+        const unlocked = isFounderProfile() || (total > 0 && earned === total);
 
         if(!unlocked){
             event.preventDefault();
@@ -625,7 +625,6 @@ if(premiumProfileCard){
         window.location.assign(getPremiumProfileUrl());
     });
 }
-
 function isOwnProfile(){
     if(!isPublicProfile) return true;
     return Boolean(currentUser?.id && String(currentUser.id) === profileTargetUID);
@@ -1000,6 +999,7 @@ function updateLoginState(user){
 supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
+    updatePremiumAccessState();
     if(!isPublicProfile && user?.id) void loadFollowStats(String(user.id));
     void refreshProfilePoints();
     // لا نربط إحصائية الإعجابات بتحميل البروفايل أو الخلفيات.
@@ -3395,26 +3395,42 @@ function updateProfileMedalCount(){
 }
 
 // افتح صفحة Premium فقط عند امتلاك جميع الشارات النشطة في الكتالوج.
+function isFounderProfile(){
+    const founderUID=String(window.WallpaperHubFounderUID || "").trim().toLowerCase();
+    const viewedUID=String(profileTargetUID || currentUser?.id || "").trim().toLowerCase();
+    return Boolean(founderUID && viewedUID && viewedUID===founderUID);
+}
+
 function updatePremiumAccessState(){
     if(!premiumProfileCard) return;
 
     const total=profileMedals.filter(m=>m.key).length;
     const earned=profileMedals.filter(m=>m.key && isMedalOwned(m.key)).length;
-    const unlocked=total>0 && earned===total;
+    const isOwner=isFounderProfile();
+    const unlocked=isOwner || (total>0 && earned===total);
     const progress=premiumProfileCard.querySelector("[data-premium-progress]");
     const arrow=premiumProfileCard.querySelector(".premium-arrow");
 
     premiumProfileCard.classList.toggle("is-locked",!unlocked);
     premiumProfileCard.classList.toggle("is-unlocked",unlocked);
+    premiumProfileCard.classList.toggle("is-owner",isOwner);
 
     if(unlocked){
         premiumProfileCard.href=getPremiumProfileUrl();
         premiumProfileCard.removeAttribute("aria-disabled");
         premiumProfileCard.removeAttribute("tabindex");
-        premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة");
-        premiumProfileCard.title="اكتملت جميع الشارات — افتح صفحة المستخدم المميز";
-        if(progress) progress.textContent="مفتوح · جميع الشارات مكتملة";
-        if(arrow) arrow.textContent="chevron_left";
+
+        if(isOwner){
+            premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة لمالك الموقع");
+            premiumProfileCard.title="مالك الموقع · وصول دائم إلى صفحة المستخدم المميز";
+            if(progress) progress.textContent="مالك الموقع · وصول دائم";
+            if(arrow) arrow.textContent="workspace_premium";
+        }else{
+            premiumProfileCard.setAttribute("aria-label","صفحة المستخدم المميز مفتوحة بعد اكتمال الشارات");
+            premiumProfileCard.title="اكتملت جميع الشارات — افتح صفحة المستخدم المميز";
+            if(progress) progress.textContent="مفتوح · جميع الشارات مكتملة";
+            if(arrow) arrow.textContent="chevron_left";
+        }
     }else{
         premiumProfileCard.removeAttribute("href");
         premiumProfileCard.setAttribute("aria-disabled","true");
