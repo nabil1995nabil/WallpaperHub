@@ -67,18 +67,51 @@ async function resolveProfileUID(){
   return String(data?.session?.user?.id || "").trim();
 }
 
+function showPremiumGate(title,message,progress=""){
+  $("#premiumMain").hidden=true;
+  $("#premiumLockedState").hidden=false;
+  $("#premiumGateTitle").textContent=title;
+  $("#premiumGateMessage").textContent=message;
+  $("#premiumGateProgress").textContent=progress;
+  $("#shareBtn").hidden=true;
+}
+
 async function loadPremiumProfile(){
   try{
     activeProfileUID = await resolveProfileUID();
     setProfileLinks(activeProfileUID);
+
     if(!activeProfileUID){
-      $("#memberName").textContent = "ملف المستخدم";
-      $("#memberUsername").textContent = "سجّل الدخول لعرض حسابك";
-      $("#memberBio").textContent = "يمكنك العودة إلى صفحة البروفايل أو تسجيل الدخول لمعاينة حسابك.";
-      $("#memberInitial").textContent = "W";
-      $("#previewStatus").textContent = "لم يتم تحديد مستخدم. افتح هذه الصفحة من بطاقة المستخدم المميز في البروفايل.";
+      showPremiumGate(
+        "سجّل الدخول أولاً",
+        "صفحة المستخدم المميز مرتبطة بحسابك، ويجب تسجيل الدخول للتحقق من الشارات."
+      );
       return;
     }
+
+    // The server is the source of truth. A manually typed URL cannot bypass
+    // the medal requirement because the page content stays hidden until allowed.
+    const accessResponse = await fetch(
+      `/api/users/${encodeURIComponent(activeProfileUID)}/premium-access`,
+      {method:"GET",headers:{Accept:"application/json"},cache:"no-store"}
+    );
+    const access = await accessResponse.json().catch(()=>({}));
+    if(!accessResponse.ok || access.success!==true){
+      throw new Error(access.message || "تعذر التحقق من صلاحية صفحة Premium");
+    }
+
+    if(access.allowed!==true){
+      showPremiumGate(
+        "صفحة المستخدم المميز مقفولة",
+        "خاصك تحصل على جميع الشارات التي يمنحها مالك الموقع قبل فتح هذه الصفحة.",
+        `الشارات المكتسبة: ${Number(access.earned||0)} من ${Number(access.total||0)}`
+      );
+      return;
+    }
+
+    $("#premiumLockedState").hidden=true;
+    $("#premiumMain").hidden=false;
+    $("#shareBtn").hidden=false;
 
     const response = await fetch(`/api/users/${encodeURIComponent(activeProfileUID)}/profile`,{
       method:"GET",headers:{Accept:"application/json"},cache:"no-store"
@@ -88,16 +121,17 @@ async function loadPremiumProfile(){
       throw new Error(payload?.message || "تعذر تحميل بيانات الملف الشخصي");
     }
     setMemberIdentity(payload.user);
-    $("#previewStatus").textContent = "تم جلب الاسم والصورة والنبذة وحالة التوثيق من ملف المستخدم.";
+    $("#previewStatus").textContent = access.isOwner
+      ? "مرحباً بمالك WallpaperHub — لديك وصول دائم."
+      : "تم فتح الصفحة بعد اكتمال جميع الشارات.";
   }catch(error){
-    console.warn("PREMIUM USER PROFILE:",error);
-    $("#memberName").textContent = "تعذر تحميل الحساب";
-    $("#memberUsername").textContent = "حاول فتح صفحة البروفايل من جديد";
-    $("#memberBio").textContent = "لم نتمكن من جلب بيانات المستخدم حالياً.";
-    $("#previewStatus").textContent = error.message || "تعذر تحميل بيانات الحساب.";
+    console.warn("PREMIUM USER ACCESS:",error);
+    showPremiumGate(
+      "تعذر التحقق من الوصول",
+      error.message || "تعذر التحقق من الشارات. ارجع إلى البروفايل وحاول مجدداً."
+    );
   }
 }
-
 $("#shareBtn")?.addEventListener("click",async()=>{
   const shareData = {title:"المستخدم المميز | WallpaperHub",text:"شاهد صفحة المستخدم المميز على WallpaperHub.",url:location.href};
   try{
