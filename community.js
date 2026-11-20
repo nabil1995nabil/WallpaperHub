@@ -2277,6 +2277,7 @@ async function openCommunityRoom(roomId){
     syncCommunityTabState('rooms');
     $('#roomsPanel').classList.add('hidden');
     $('#roomsPanel').setAttribute('aria-hidden','true');
+    $('#roomChatPanel').classList.remove('hidden');
     $('#roomChatPanel').setAttribute('aria-hidden','false');
     $('#forumFeed').innerHTML='<div class="forum-empty-state">جاري تحميل الرسائل...</div>';
     $('#forumMembersList').innerHTML='<div class="forum-empty-state">جاري تحميل الأعضاء...</div>';
