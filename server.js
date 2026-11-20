@@ -86,6 +86,23 @@ async function getUserMedals(userId){
     };
 }
 
+async function getPremiumAccessForUser(userId){
+    const uid=String(userId||"").trim();
+    if(!uid) return {allowed:false,isOwner:false,earned:0,total:0};
+
+    const founderUID="0bad1b2a-b993-45f2-992c-f18509d9fa34";
+    const isOwner=uid.toLowerCase()===founderUID.toLowerCase();
+    const result=await getUserMedals(uid);
+    const catalog=(Array.isArray(result.catalog)?result.catalog:[])
+        .filter(m=>String(m?.key||m?.medal_key||"").trim());
+    const ownedKeys=new Set((result.owned||[])
+        .map(m=>String(m?.key||m?.medal_key||"").trim())
+        .filter(Boolean));
+    const total=catalog.length;
+    const earned=catalog.filter(m=>ownedKeys.has(String(m.key||m.medal_key).trim())).length;
+    return {allowed:isOwner||(total>0&&earned===total),isOwner,earned,total};
+}
+
 async function seedLegacyAdminMedals(userId){
     const { data: existing, error: readError } = await supabase
         .from("user_medals")
@@ -3444,6 +3461,40 @@ app.get("/sitemap.xml", async (req, res) => {
 // Static Files
 // ======================================
 
+// Premium page hard gate: direct URL visits are checked before static HTML can be served.
+app.get("/premium-user.html", async(req,res)=>{
+    try{
+        let uid=String(req.query.uid||"").trim();
+        if(!uid){
+            const sessionUser=await getAuthenticatedUser(req);
+            uid=String(sessionUser?.id||"").trim();
+        }
+        if(!uid){
+            return res.status(401).type("html").send(
+                "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Premium</title><body style='font-family:Arial,sans-serif;padding:40px;text-align:center'><h2>سجّل الدخول أولاً</h2><p>افتح صفحة المستخدم المميز من البروفايل بعد تسجيل الدخول.</p><a href='/profile.html'>العودة للبروفايل</a></body></html>"
+            );
+        }
+
+        const access=await getPremiumAccessForUser(uid);
+        if(access.allowed!==true){
+            res.set("Cache-Control","no-store, no-cache, must-revalidate");
+            return res.status(403).type("html").send(
+                "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Premium مقفول</title><body style='font-family:Arial,sans-serif;padding:40px;text-align:center;background:#f4f6fa;color:#243047'><div style='max-width:480px;margin:10vh auto;background:white;padding:32px;border-radius:22px'><h2>صفحة المستخدم المميز مقفولة</h2><p>يجب الحصول على جميع الشارات التي يمنحها مالك الموقع.</p><strong>الشارات المكتسبة: "+access.earned+" من "+access.total+"</strong><p><a href='/profile.html?uid="+encodeURIComponent(uid)+"'>العودة إلى البروفايل</a></p></div></body></html>"
+            );
+        }
+
+        const premiumPath=path.join(__dirname,"premium-user.html");
+        const html=await fs.promises.readFile(premiumPath,"utf8");
+        res.set("Cache-Control","no-store, no-cache, must-revalidate");
+        return res.status(200).type("html").send(injectWallpaperHubLanguageRuntime(html));
+    }catch(error){
+        console.error("PREMIUM PAGE SERVER GATE:",error);
+        return res.status(503).type("html").send(
+            "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><body style='font-family:Arial,sans-serif;padding:40px;text-align:center'><h2>تعذر التحقق من الشارات</h2><p>لم نتمكن من الاتصال بقاعدة البيانات. لم يتم فتح صفحة Premium.</p><a href='/profile.html'>العودة للبروفايل</a></body></html>"
+        );
+    }
+});
+
 // Transform full-page HTML files served directly from the static directory.
 app.use((req,res,next)=>{
     if(req.method!=="GET" || !/\.html?$/i.test(String(req.path||""))) return next();
@@ -4592,39 +4643,18 @@ app.get("/api/users/:uid/medals", async (req,res)=>{
 });
 app.get("/api/users/:uid/premium-access", async (req,res)=>{
     try{
-        const uid=String(req.params.uid || "").trim();
-        if(!uid){
-            return res.status(400).json({success:false,message:"User UID is required"});
-        }
-
-        // Must stay aligned with founder-crown.js: this is the site's owner UID.
-        const founderUID="0bad1b2a-b993-45f2-992c-f18509d9fa34";
-        const isOwner=uid.toLowerCase()===founderUID.toLowerCase();
-        const result=await getUserMedals(uid);
-        const catalog=(Array.isArray(result.catalog)?result.catalog:[])
-            .filter(m=>String(m?.key || m?.medal_key || "").trim());
-        const ownedKeys=new Set((result.owned||[])
-            .map(m=>String(m?.key || m?.medal_key || "").trim())
-            .filter(Boolean));
-        const total=catalog.length;
-        const earned=catalog.filter(m=>ownedKeys.has(String(m.key || m.medal_key).trim())).length;
-        const allowed=isOwner || (total>0 && earned===total);
-
-        return res.json({
-            success:true,
-            userId:uid,
-            isOwner,
-            allowed,
-            total,
-            earned,
-            remaining:Math.max(0,total-earned)
+        const uid=String(req.params.uid||"").trim();
+        if(!uid) return res.status(400).json({success:false,message:"User UID is required"});
+        const access=await getPremiumAccessForUser(uid);
+        return res.set("Cache-Control","no-store").json({
+            success:true,userId:uid,...access,
+            remaining:Math.max(0,access.total-access.earned)
         });
     }catch(error){
-        console.log("PREMIUM ACCESS CHECK ERROR:",error);
+        console.error("PREMIUM ACCESS CHECK ERROR:",error);
         return res.status(500).json({
-            success:false,
-            allowed:false,
-            message:error?.message || "تعذر التحقق من استحقاق صفحة Premium"
+            success:false,allowed:false,
+            message:error?.message||"تعذر التحقق من استحقاق صفحة Premium"
         });
     }
 });
