@@ -1718,3 +1718,21 @@ body.dark .edit-social-field{background:var(--input-bg);}
     filter:saturate(1.08);
 }
 
+
+
+/* Premium gate button reset: native disabled state blocks navigation completely. */
+.identity-side-stack .premium-card{
+    appearance:none;
+    -webkit-appearance:none;
+    border:1px solid transparent;
+    font:inherit;
+    text-align:inherit;
+}
+.identity-side-stack .premium-card:disabled{
+    cursor:not-allowed;
+    opacity:.88;
+}
+.identity-side-stack .premium-card.is-locked:disabled{
+    transform:none;
+}
+
