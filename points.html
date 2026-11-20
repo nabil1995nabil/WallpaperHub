@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#f5f7ff">
   <title>نقاطي | WallpaperHub</title>
   <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="points.css?v=20261120-points-clean-v3">
+  <link rel="stylesheet" href="points.css?v=20261120-activity-redesign">
+  <link rel="stylesheet" href="points-activity.css?v=20261120-activity-redesign">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -64,44 +65,72 @@
       </div>
     </section>
 
-    <section class="activity-indicator-card" id="activity-indicator" aria-labelledby="activityIndicatorTitle">
-      <div class="activity-indicator-head">
-        <div class="activity-indicator-title">
-          <span class="material-icons" aria-hidden="true">monitoring</span>
-          <div><h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2><p>يرتفع مع النشر والإعجاب والتعليق، وينخفض مع الخمول</p></div>
+    <section id="activity-indicator" class="wh-ai-card" aria-labelledby="activityIndicatorTitle">
+      <div class="wh-ai-top">
+        <div class="wh-ai-heading">
+          <span class="material-icons wh-ai-icon" aria-hidden="true">monitoring</span>
+          <div class="wh-ai-heading-copy">
+            <h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2>
+            <p>نشاطك يرفع المؤشر والخمول يخفضه تدريجياً</p>
+          </div>
         </div>
-        <div class="activity-current-box">
-          <strong id="activityIndexValue">0</strong><span>/100</span>
-          <small id="activityTrendChip" class="trend-chip trend-down"><span class="material-icons" aria-hidden="true">trending_down</span><span id="activityTrendText">بانتظار النشاط</span></small>
+        <div class="wh-ai-score">
+          <div class="wh-ai-score-number"><strong id="activityIndexValue">0</strong><span>/100</span></div>
+          <div id="activityTrendChip" class="wh-ai-trend wh-ai-trend-down">
+            <span class="material-icons" aria-hidden="true">trending_down</span>
+            <span id="activityTrendText">بانتظار النشاط</span>
+          </div>
         </div>
       </div>
-      <div class="activity-range-tabs" role="group" aria-label="الفترة الزمنية للمؤشر">
-        <button type="button" class="activity-range" data-activity-range="24h" aria-pressed="false">24 ساعة</button>
-        <button type="button" class="activity-range active" data-activity-range="7d" aria-pressed="true">7 أيام</button>
-        <button type="button" class="activity-range" data-activity-range="30d" aria-pressed="false">30 يوماً</button>
+
+      <div class="wh-ai-periods" role="group" aria-label="الفترة الزمنية للمؤشر">
+        <button type="button" class="wh-ai-period" data-activity-range="24h" aria-pressed="false">24 ساعة</button>
+        <button type="button" class="wh-ai-period is-selected" data-activity-range="7d" aria-pressed="true">7 أيام</button>
+        <button type="button" class="wh-ai-period" data-activity-range="30d" aria-pressed="false">30 يوماً</button>
       </div>
-      <div class="activity-chart-layout">
-        <div class="activity-y-labels" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
-        <div class="activity-chart-frame">
-          <svg id="activityChart" class="activity-chart is-down" viewBox="0 0 320 140" preserveAspectRatio="none" role="img" aria-label="رسم بياني يوضح تغير مؤشر النشاط">
-            <defs><linearGradient id="activityChartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#12a875" stop-opacity=".23"/><stop offset="100%" stop-color="#12a875" stop-opacity=".01"/></linearGradient></defs>
-            <g class="activity-chart-grid">
-              <line x1="0" y1="10" x2="320" y2="10"/><line x1="0" y1="40" x2="320" y2="40"/>
-              <line x1="0" y1="70" x2="320" y2="70"/><line x1="0" y1="100" x2="320" y2="100"/>
+
+      <div class="wh-ai-chart-row">
+        <div class="wh-ai-y-axis" aria-hidden="true">
+          <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
+        </div>
+        <div class="wh-ai-graph-box">
+          <svg id="activityChart" class="wh-ai-graph wh-ai-down" viewBox="0 0 320 140" preserveAspectRatio="none" role="img" aria-label="منحنى تغير مؤشر نشاط الحساب">
+            <defs>
+              <linearGradient id="whAiFill" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#12a875" stop-opacity=".22"/>
+                <stop offset="100%" stop-color="#12a875" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <g class="wh-ai-grid">
+              <line x1="0" y1="10" x2="320" y2="10"/>
+              <line x1="0" y1="40" x2="320" y2="40"/>
+              <line x1="0" y1="70" x2="320" y2="70"/>
+              <line x1="0" y1="100" x2="320" y2="100"/>
               <line x1="0" y1="130" x2="320" y2="130"/>
             </g>
-            <path id="activityChartArea" class="activity-chart-area" d="M0 130 L320 130 L0 130 Z"/>
-            <path id="activityChartLine" class="activity-chart-line" d="M0 130 L320 130"/>
-            <circle id="activityChartPoint" class="activity-chart-point" cx="320" cy="130" r="3.5"/>
+            <path id="activityChartArea" class="wh-ai-area" d="M0 130 L320 130 L0 130 Z"/>
+            <path id="activityChartLine" class="wh-ai-line" d="M0 130 L320 130"/>
+            <circle id="activityChartPoint" class="wh-ai-point" cx="320" cy="130" r="3.5"/>
           </svg>
         </div>
       </div>
-      <div class="activity-chart-axis"><span id="activityRangeStart">قبل 7 أيام</span><span>الآن</span></div>
-      <div class="activity-meta-grid">
-        <div><small>آخر نشاط مؤهل</small><strong id="activityLastAction">لا يوجد نشاط بعد</strong></div>
-        <div><small>حالة المؤشر</small><strong id="activityIndexStatus">0 من 100</strong></div>
+
+      <div class="wh-ai-x-axis">
+        <span id="activityRangeStart">قبل 7 أيام</span>
+        <span>الآن</span>
       </div>
-      <p class="activity-explainer" id="activityExplainer">النشاط يرفع المؤشر، والخمول يخفضه تدريجياً إلى الصفر خلال 7 أيام. المؤشر تشجيعي فقط ولا يخصم من رصيد نقاطك.</p>
+
+      <div class="wh-ai-details">
+        <div class="wh-ai-detail">
+          <span class="material-icons" aria-hidden="true">schedule</span>
+          <div><small>آخر نشاط</small><strong id="activityLastAction">لا يوجد نشاط بعد</strong></div>
+        </div>
+        <div class="wh-ai-detail">
+          <span class="material-icons" aria-hidden="true">insights</span>
+          <div><small>قيمة المؤشر</small><strong id="activityIndexStatus">0 من 100</strong></div>
+        </div>
+      </div>
+      <p class="wh-ai-note">الإعجاب والتعليق والنشر ترفع المؤشر. دون نشاط، ينخفض تدريجياً إلى الصفر خلال 7 أيام. لا يتم خصم أي نقاط من رصيدك.</p>
     </section>
 
     <section class="level-card" aria-label="ملخص النقاط">
@@ -151,6 +180,6 @@
     </aside>
   </main>
 
-  <script type="module" src="points.js?v=20261120-points-clean-v3"></script>
+  <script type="module" src="points.js?v=20261120-activity-redesign"></script>
 </body>
 </html>
