@@ -2274,11 +2274,9 @@ async function openCommunityRoom(roomId){
     $('#membersPanel').classList.add('hidden');
     $('#filesPanel').classList.add('hidden');
     $('#topicsPanel').classList.add('hidden');
-    syncCommunityTabState('rooms');
-    $('#roomsPanel').classList.add('hidden');
-    $('#roomsPanel').setAttribute('aria-hidden','true');
-    $('#roomChatPanel').classList.remove('hidden');
-    $('#roomChatPanel').setAttribute('aria-hidden','false');
+    $$('.room-tab').forEach(button=>{
+      const active=button.dataset.tab==='rooms';button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));
+    });
     $('#forumFeed').innerHTML='<div class="forum-empty-state">جاري تحميل الرسائل...</div>';
     $('#forumMembersList').innerHTML='<div class="forum-empty-state">جاري تحميل الأعضاء...</div>';
     await Promise.all([loadCommunityRoomMessages(),loadCommunityRoomMembers()]);
@@ -2555,45 +2553,25 @@ $('#forumComposer')?.addEventListener('submit',async event=>{
 });
 
 
-const COMMUNITY_TAB_PANELS = {
-  general:'#generalPanel',
-  members:'#membersPanel',
-  files:'#filesPanel',
-  topics:'#topicsPanel',
-  rooms:'#roomsPanel'
-};
-
-function syncCommunityTabState(tab){
-  $('.room-tab').forEach(button => {
-    const active = button.dataset.tab === tab;
-    button.classList.toggle('active',active);
-    button.setAttribute('aria-selected',String(active));
-    button.tabIndex = active ? 0 : -1;
-  });
-
-  Object.entries(COMMUNITY_TAB_PANELS).forEach(([key,selector]) => {
-    const panel = $(selector);
-    if(!panel) return;
-    const hidden = key !== tab;
-    panel.classList.toggle('hidden',hidden);
-    panel.setAttribute('aria-hidden',String(hidden));
-  });
-  const forumPanel = $('#roomChatPanel');
-  if(forumPanel){
-    forumPanel.classList.add('hidden');
-    forumPanel.setAttribute('aria-hidden','true');
-  }
-}
-
 function showTab(tab){
-  if(!Object.prototype.hasOwnProperty.call(COMMUNITY_TAB_PANELS,tab)) return;
   activeTab = tab;
   if(activeCommunityRoom){
     clearRoomMessagesRealtime();
     activeCommunityRoom=null;activeCommunityRoomRole='member';activeCommunityRoomMembers=[];
   }
 
-  syncCommunityTabState(tab);
+  $$('.room-tab').forEach(button => {
+    const active = button.dataset.tab === tab;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-selected',String(active));
+  });
+
+  $('#generalPanel').classList.toggle('hidden',tab !== 'general');
+  $('#membersPanel').classList.toggle('hidden',tab !== 'members');
+  $('#filesPanel').classList.toggle('hidden',tab !== 'files');
+  $('#topicsPanel').classList.toggle('hidden',tab !== 'topics');
+  $('#roomsPanel').classList.toggle('hidden',tab !== 'rooms');
+  $('#roomChatPanel').classList.add('hidden');
 
   if(tab === 'rooms') loadCommunityRooms();
 
@@ -2607,22 +2585,8 @@ function showTab(tab){
   }
 }
 
-$('.room-tab').forEach(button => {
+$$('.room-tab').forEach(button => {
   button.addEventListener('click',() => showTab(button.dataset.tab));
-  button.addEventListener('keydown',event => {
-    const tabs = $('.room-tab');
-    const current = tabs.indexOf(button);
-    let nextIndex = current;
-    if(event.key === 'ArrowLeft') nextIndex = (current + 1) % tabs.length;
-    else if(event.key === 'ArrowRight') nextIndex = (current - 1 + tabs.length) % tabs.length;
-    else if(event.key === 'Home') nextIndex = 0;
-    else if(event.key === 'End') nextIndex = tabs.length - 1;
-    else return;
-    event.preventDefault();
-    const next = tabs[nextIndex];
-    next.focus();
-    showTab(next.dataset.tab);
-  });
 });
 
 $$('[data-back-general]').forEach(button => {
@@ -2938,12 +2902,6 @@ function setVoiceButtonState(active){
     button.removeAttribute('aria-pressed');
   }
 
-  const shortcut = $('#voiceRoomShortcut');
-  if(shortcut){
-    shortcut.classList.toggle('is-active',Boolean(active));
-    shortcut.setAttribute('aria-pressed',String(Boolean(active)));
-    shortcut.title = active ? 'أنت متصل بالغرفة الصوتية' : 'الغرفة الصوتية';
-  }
   updateVoicePresenceUI();
 }
 
@@ -3545,9 +3503,6 @@ async function openVideoCall(){
     const profile=currentVoiceProfile();
     await channel.track({user_id:profile.id,name:profile.name,avatarUrl:profile.avatarUrl,joined_at:Date.now()});
     videoJoined=true;videoMicMuted=false;videoCameraOff=false;
-    const videoShortcut=$('#videoCallShortcut');
-    videoShortcut?.classList.add('is-active');
-    videoShortcut?.setAttribute('aria-pressed','true');
     communityHero?.classList.add('hidden');$('.room-tabs')?.classList.add('hidden');$('.content-layout')?.classList.add('hidden');$$('.secondary-panel').forEach(p=>p.classList.add('hidden'));
     videoCallScreen?.classList.remove('hidden');videoCallScreen?.setAttribute('aria-hidden','false');document.body.classList.add('video-call-open');
     $('#videoMicToggle')?.classList.remove('is-off');$('#videoCameraToggle')?.classList.remove('is-off');
@@ -3564,15 +3519,12 @@ async function leaveVideoCall(){
   if(videoLocalStream){videoLocalStream.getTracks().forEach(track=>track.stop());videoLocalStream=null}
   if(videoChannel&&supabaseClient){try{await videoChannel.untrack()}catch(_){}try{await supabaseClient.removeChannel(videoChannel)}catch(_){}}
   videoChannel=null;videoReadyPromise=null;videoJoined=false;clearInterval(videoModerationPollTimer);videoModerationPollTimer=null;
-  const videoShortcut=$('#videoCallShortcut');
-  videoShortcut?.classList.remove('is-active');
-  videoShortcut?.setAttribute('aria-pressed','false');
   await fetchJson('/api/community/video-call/authorize',{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({action:'leave'})}).catch(()=>{});
   videoCallScreen?.classList.add('hidden');videoCallScreen?.setAttribute('aria-hidden','true');document.body.classList.remove('video-call-open');
   communityHero?.classList.remove('hidden');$('.room-tabs')?.classList.remove('hidden');$('.content-layout')?.classList.remove('hidden');showTab('general');renderVideoTiles();
 }
 function startVideoModerationPolling(){clearInterval(videoModerationPollTimer);videoModerationPollTimer=setInterval(async()=>{if(!videoJoined)return;const state=await loadCommunityModeration({silent:true});if(state&&(state.videoChatBanned||!state.canVoice)){await leaveVideoCall();showToast(state.videoChatBanned ? (state.videoChatBanPermanent ? 'تم حظرك من مكالمات الفيديو بشكل دائم.' : `تم حظرك من مكالمات الفيديو إلى تاريخ ${timeOfDate(state.videoChatBanUntil)}.`) : 'تم إخراجك من المكالمة بسبب قيود المجتمع')}} ,15000)}
-$('#videoCallShortcut')?.addEventListener('click',openVideoCall);
+$('#voiceShortcut')?.addEventListener('click',openVideoCall);
 $('#videoClose')?.addEventListener('click',leaveVideoCall);
 $('#videoLeave')?.addEventListener('click',leaveVideoCall);
 $('#videoMicToggle')?.addEventListener('click',()=>{if(!videoLocalStream)return;videoMicMuted=!videoMicMuted;videoLocalStream.getAudioTracks().forEach(t=>t.enabled=!videoMicMuted);$('#videoMicToggle')?.classList.toggle('is-off',videoMicMuted);$('#videoMicToggle .material-icons-round').textContent=videoMicMuted?'mic_off':'mic';renderVideoTiles()});
