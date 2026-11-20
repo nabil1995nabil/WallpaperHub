@@ -16,7 +16,7 @@ document.getElementById("pointsBackBtn")?.addEventListener("click", (event) => {
 
 function formatPoints(value) {
   const number = Number(value || 0);
-  return number.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function formatDate(value) {
   if (!value) return "";
@@ -26,6 +26,9 @@ function formatDate(value) {
 }
 function labelForReason(reason) {
   const value = String(reason || "").toLowerCase();
+  if (value.includes("wallpaper_like")) return "إعجاب جديد بخلفية";
+  if (value.includes("wallpaper_comment")) return "تعليق على خلفية";
+  if (value.includes("active_time")) return "نشاط فعلي لمدة 10 دقائق";
   if (value.includes("daily")) return "المكافأة اليومية";
   if (value.includes("goal")) return "مكافأة إكمال الهدف";
   if (value.includes("upload") || value.includes("wallpaper") || value.includes("publish")) return "نشر خلفية جديدة";
@@ -36,9 +39,9 @@ function labelForReason(reason) {
 }
 function filterForEntry(entry) {
   const reason = String(entry.reason || "").toLowerCase();
+  if (reason.includes("wallpaper_like") || reason.includes("wallpaper_comment") || reason.includes("active_time") || reason.includes("daily") || reason.includes("goal") || reason.includes("reward") || reason.includes("redeem")) return "reward";
   if (reason.includes("upload") || reason.includes("wallpaper") || reason.includes("publish")) return "publish";
   if (reason.includes("download")) return "download";
-  if (reason.includes("daily") || reason.includes("goal") || reason.includes("reward") || reason.includes("redeem")) return "reward";
   return "other";
 }
 function setProgress(total) {
@@ -250,3 +253,7 @@ async function loadPoints() {
   }
 }
 loadPoints();
+
+window.addEventListener("wallpaperHubPointsChanged",()=>{
+  loadPoints();
+});
