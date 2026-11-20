@@ -999,7 +999,6 @@ function updateLoginState(user){
 supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user ?? null;
     currentUser = user;
-    updatePremiumAccessState();
     if(!isPublicProfile && user?.id) void loadFollowStats(String(user.id));
     void refreshProfilePoints();
     // لا نربط إحصائية الإعجابات بتحميل البروفايل أو الخلفيات.
@@ -3479,6 +3478,8 @@ function applyProfileMedalData(payload){
 async function loadProfileMedals(uid=null){
     try{
         const targetUID = String(uid || currentUser?.id || "").trim();
+        // Apply owner bypass immediately; other accounts remain medal-gated.
+        updatePremiumAccessState();
         let url = "";
         const headers = { "Accept":"application/json" };
 
