@@ -60,7 +60,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
     -webkit-backdrop-filter:blur(18px);
 }
 .header-info{text-align:center;min-width:0}
-.header-info h2{
+.header-info h1, .header-info h2{
     color:var(--text);
     font-size:19px;
     line-height:1.2;
