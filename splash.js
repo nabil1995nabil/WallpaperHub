@@ -8,7 +8,7 @@
     }
 
     // Keep the splash brief; the skip link remains available as a fallback.
-    window.setTimeout(goHome, 1800);
+    window.setTimeout(goHome, 650);
 
     document.querySelector(".splash-skip")?.addEventListener("click", (event) => {
         event.preventDefault();
