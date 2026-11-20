@@ -3448,7 +3448,7 @@ app.get("/sitemap.xml", async (req, res) => {
 
             for (const row of rows) {
                 const id = String(row && row.id != null ? row.id : "").trim();
-                if (!/^\\d+$/.test(id)) continue;
+                if (!/^\d+$/.test(id)) continue;
 
                 const isVideo = /video/i.test(String(row.type || "")) ||
                     /\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(String(row.image || ""));
@@ -3540,7 +3540,7 @@ app.get("/wallpaper.html", async (req, res, next) => {
         return next();
     }
 
-    if (!/^\\d+$/.test(rawId)) {
+    if (!/^\d+$/.test(rawId)) {
         res.set("X-Robots-Tag", "noindex, nofollow");
         return res.status(404).type("html").send(
             "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'><title>الخلفية غير موجودة | WallpaperHub</title><meta name='robots' content='noindex,follow'><body><main><h1>الخلفية غير موجودة</h1><a href='/home.html'>العودة إلى WallpaperHub</a></main></body></html>"
