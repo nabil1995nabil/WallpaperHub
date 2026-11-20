@@ -2108,19 +2108,30 @@ if(wallImage){
 
 }
 
-if(wallDescription)
-
-wallDescription.textContent =
-
-currentWallpaper.description || "";
-
 const wallTitle2 =
 document.getElementById("wallTitle2");
 
+const seoFallbackTitle = wallTitle2?.dataset?.seoTitle || "";
+const rawWallpaperTitle = String(currentWallpaper.title || "").trim();
+const titleLooksLikeFileName = !/[A-Za-z\u0600-\u06FF]/.test(rawWallpaperTitle) ||
+    /^\d[\d _.-]*$/.test(rawWallpaperTitle) ||
+    /^(?:img|image|dsc|pxl|whatsapp)[-_ ]?\d+/i.test(rawWallpaperTitle);
+const displayWallpaperTitle = (!titleLooksLikeFileName && rawWallpaperTitle)
+    ? rawWallpaperTitle
+    : (seoFallbackTitle || rawWallpaperTitle || "خلفية من WallpaperHub");
+
+if(wallDescription){
+    wallDescription.textContent =
+        currentWallpaper.description ||
+        currentWallpaper.aiDescription ||
+        wallDescription.dataset.seoDescription ||
+        "خلفية معروضة داخل WallpaperHub.";
+}
+
 if(wallTitle2){
 
-wallTitle2.textContent =
-currentWallpaper.title || "بدون اسم";
+wallTitle2.textContent = displayWallpaperTitle;
+if(wallImage) wallImage.alt = displayWallpaperTitle;
 
 
 wallTitle2.classList.remove("scroll-title");
