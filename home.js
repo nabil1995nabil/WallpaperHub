@@ -1224,3 +1224,64 @@ document.addEventListener(
     if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadCommunityCreations,{once:true});
     else loadCommunityCreations();
 })();
+
+// Home header: hide on downward scroll and reveal on the first small upward movement.
+(function initSmartHomeHeader(){
+    const header = document.querySelector(".header");
+    if(!header) return;
+
+    let lastScrollY = Math.max(0, window.scrollY || 0);
+    let downwardDistance = 0;
+    let upwardDistance = 0;
+    let framePending = false;
+
+    const HIDE_AFTER_PX = 12;
+    const SHOW_AFTER_PX = 3;
+    const ALWAYS_SHOW_NEAR_TOP_PX = 16;
+
+    function showHeader(){
+        header.classList.remove("is-scroll-hidden");
+        upwardDistance = 0;
+        downwardDistance = 0;
+    }
+
+    function updateHeader(){
+        const currentY = Math.max(0, window.scrollY || 0);
+        const delta = currentY - lastScrollY;
+        lastScrollY = currentY;
+
+        if(currentY <= ALWAYS_SHOW_NEAR_TOP_PX){
+            showHeader();
+            return;
+        }
+
+        if(delta > 0){
+            downwardDistance += delta;
+            upwardDistance = 0;
+            if(downwardDistance >= HIDE_AFTER_PX){
+                header.classList.add("is-scroll-hidden");
+            }
+        }else if(delta < 0){
+            upwardDistance += Math.abs(delta);
+            downwardDistance = 0;
+            // Reveal quickly: a few pixels of upward movement are enough.
+            if(upwardDistance >= SHOW_AFTER_PX){
+                showHeader();
+            }
+        }
+    }
+
+    window.addEventListener("scroll", () => {
+        if(framePending) return;
+        framePending = true;
+        window.requestAnimationFrame(() => {
+            framePending = false;
+            updateHeader();
+        });
+    }, {passive:true});
+
+    window.addEventListener("pageshow", () => {
+        lastScrollY = Math.max(0, window.scrollY || 0);
+        showHeader();
+    }, {passive:true});
+})();
