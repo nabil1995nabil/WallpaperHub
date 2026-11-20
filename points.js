@@ -225,9 +225,11 @@ function isQualifyingActivity(entry) {
   const reason = String(entry.reason || "").toLowerCase();
   const type = String(entry.reward_type || "").toLowerCase();
   if (["like", "comment"].includes(type)) return true;
-  if (reason.includes("wallpaper_like") || reason.includes("wallpaper_comment")) return true;
-  if (/(publish|published|upload|submission)/.test(reason)) return !/(download|delete)/.test(reason);
-  return reason.includes("wallpaper") && !/(like|comment|download|delete)/.test(reason);
+  if (/(like|comment)/.test(reason)) return true;
+  if (/(download|redeem|redemption|delete|refund)/.test(reason)) return false;
+  if (/(publish|published|upload|submission)/.test(reason)) return true;
+  // Legacy publish rewards are tied to wallpaper_id even if their reason label is older.
+  return Boolean(entry.wallpaper_id) && Number(entry.points || 0) > 0;
 }
 
 function getActivityEvents(entries) {
@@ -280,7 +282,7 @@ function drawActivityChart(events, rangeKey, scoreNow) {
   });
   const ordered = [...times].sort((a, b) => a - b);
   const coords = ordered.map(timestamp => {
-    const x = 24 + ((timestamp - start) / rangeMs) * 676;
+    const x = 52 + ((timestamp - start) / rangeMs) * 652;
     const value = activityScoreAt(timestamp, events);
     const y = 180 - value * 1.6;
     return { x, y };
