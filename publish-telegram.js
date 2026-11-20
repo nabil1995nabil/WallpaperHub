@@ -22,7 +22,7 @@ let selectedFiles = [];
 let duplicateFingerprints = new Set();
 let uploadJobs = new Map();
 let uploadTicker = null;
-const MAX_FILES = 50;
+const MAX_FILES = 200;
 const MAX_FILE_SIZE = 150 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 
@@ -138,7 +138,7 @@ $("phonePreviewBtn").addEventListener("click",e=>{const on=previewGrid.classList
 $("cropBtn").addEventListener("click",e=>{const on=previewGrid.classList.toggle("crop-mode");e.currentTarget.setAttribute("aria-pressed",String(on));});
 function proposeTags(){
   const category=$("wallCategory").value,title=$("wallTitle").value||selectedFiles[0]?.name.replace(/\.[^.]+$/,"")||"";
-  const common={nature:["nature","landscape","scenery","outdoors"],cars:["cars","automotive","vehicle"],games:["gaming","game","digital art"],space:["space","galaxy","stars","cosmos"],ai:["ai","digital art","generative art"],amoled:["amoled","dark","black wallpaper"],animals:["animals","wildlife"],anime:["anime","illustration"],city:["city","urban","architecture"],sports:["sports","athlete"],"4k":["4k","high resolution"],minimal:["minimal","clean design"],rain:["rain","weather","moody"],sunset:["sunset","sky","golden hour"],architecture:["architecture","building"]};
+  const common={religious:["religious","islamic","quran","mosque","faith","spiritual","dua","dhikr"],nature:["nature","landscape","scenery","outdoors"],cars:["cars","automotive","vehicle"],games:["gaming","game","digital art"],space:["space","galaxy","stars","cosmos"],ai:["ai","digital art","generative art"],amoled:["amoled","dark","black wallpaper"],animals:["animals","wildlife"],anime:["anime","illustration"],city:["city","urban","architecture"],sports:["sports","athlete"],"4k":["4k","high resolution"],minimal:["minimal","clean design"],rain:["rain","weather","moody"],sunset:["sunset","sky","golden hour"],architecture:["architecture","building"]};
   const fromTitle=title.toLowerCase().split(/[\s_-]+/).filter(x=>x.length>2);
   $("wallTags").value=[...new Set([...(common[category]||[]),...fromTitle])].slice(0,15).join(", ");
 }
