@@ -4,6 +4,7 @@
 
 const HOME_CATEGORY_DEFINITIONS = [
     { key: "all", title: "All" },
+    { key: "religious", title: "الخلفيات الدينية" },
     { key: "nature", title: "Nature" },
     { key: "cars", title: "Cars" },
     { key: "anime", title: "Anime" },
@@ -24,6 +25,7 @@ const HOME_CATEGORY_DEFINITIONS = [
 ];
 
 const CATEGORY_ALIASES = {
+    religious: ["religious", "religion", "islamic", "quran", "ديني", "الدين", "الخلفيات الدينية", "إسلامي", "اسلامي", "قرآن", "قران"],
     nature: ["nature", "طبيعة", "الطبيعة"],
     cars: ["cars", "car", "سيارات", "السيارات"],
     anime: ["anime", "انمي", "الأنمي", "أنمي"],
@@ -113,6 +115,7 @@ function buildCategoryData(wallpapers) {
 }
 
 const CATEGORY_INLINE_SVGS = {
+    religious: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5A8.5 8.5 0 1 0 20.5 17A7 7 0 0 1 15.5 3.5Z"/><path d="m18.5 3 .6 1.3 1.4.2-1 .9.2 1.4-1.2-.7-1.2.7.2-1.4-1-.9 1.4-.2Z"/></svg>',
     all: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
     nature: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V11"/><path d="M12 15C5 15 3 10 4 5c5 0 9 2 8 10Z"/><path d="M12 17c0-6 4-9 8-9 1 5-2 9-8 9Z"/></svg>',
     cars: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 11 2-5h10l2 5 2 2v5h-2"/><path d="M5 18H3v-5l2-2"/><path d="M5 11h14"/><path d="M7 18h10"/><circle cx="7" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></svg>',
