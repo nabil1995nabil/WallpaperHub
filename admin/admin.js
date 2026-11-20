@@ -710,11 +710,11 @@ imageInput.files
 
 
 
-if(files.length > 100){
+if(files.length > 200){
 
 
 alert(
-"الحد الأقصى 100 ملف"
+"الحد الأقصى 200 ملف"
 );
 
 
