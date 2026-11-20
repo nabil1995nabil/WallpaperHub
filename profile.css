@@ -1731,6 +1731,7 @@ body.dark .edit-social-field{background:var(--input-bg);}
 .identity-side-stack .premium-card:disabled{
     cursor:not-allowed;
     opacity:.88;
+    pointer-events:none;
 }
 .identity-side-stack .premium-card.is-locked:disabled{
     transform:none;
