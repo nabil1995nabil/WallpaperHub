@@ -1685,7 +1685,7 @@ MOBILE
     padding:4px 0 0;
 }
 
-.wallpaper-header-info h2{
+.wallpaper-header-info h1, .wallpaper-header-info h2{
     text-align:right;
     font-size:22px;
     color:#111;
@@ -1845,7 +1845,7 @@ MOBILE
         padding-top:0;
     }
 
-    .wallpaper-header-info h2{
+    .wallpaper-header-info h1, .wallpaper-header-info h2{
         font-size:20px;
     }
 
@@ -1925,7 +1925,7 @@ MOBILE
     text-align:left;
 }
 
-.wallpaper-title-block h2{
+.wallpaper-title-block h1, .wallpaper-title-block h2{
     text-align:left;
     margin:0 0 8px;
 }
@@ -2044,7 +2044,7 @@ MOBILE
         gap:40px;
     }
 
-    .wallpaper-title-block h2{
+    .wallpaper-title-block h1, .wallpaper-title-block h2{
         font-size:22px;
         line-height:1.5;
     }
@@ -2085,7 +2085,7 @@ MOBILE
     }
 
     .wallpaper-title-block,
-    .wallpaper-title-block h2,
+    .wallpaper-title-block h1, .wallpaper-title-block h2,
     .wallpaper-title-block .description-box span,
     .wallpaper-title-block .description-box p{
         text-align:right;
@@ -2122,8 +2122,8 @@ MOBILE
     text-align:right;
 }
 
-.wallpaper-title-block h2,
-.wallpaper-header-info h2{
+.wallpaper-title-block h1, .wallpaper-title-block h2,
+.wallpaper-header-info h1, .wallpaper-header-info h2{
     margin:0 0 5px;
     padding:0;
     text-align:right;
@@ -2215,8 +2215,8 @@ MOBILE
         gap:14px;
     }
 
-    .wallpaper-title-block h2,
-    .wallpaper-header-info h2{
+    .wallpaper-title-block h1, .wallpaper-title-block h2,
+    .wallpaper-header-info h1, .wallpaper-header-info h2{
         font-size:19px;
         line-height:1.4;
         margin-bottom:4px;
@@ -2275,8 +2275,8 @@ MOBILE
         font-size:11px;
     }
 
-    .wallpaper-title-block h2,
-    .wallpaper-header-info h2{
+    .wallpaper-title-block h1, .wallpaper-title-block h2,
+    .wallpaper-header-info h1, .wallpaper-header-info h2{
         font-size:17px;
     }
 
@@ -2490,8 +2490,8 @@ body{
     direction:ltr !important;
 }
 
-.wallpaper-title-block h2,
-.wallpaper-header-info h2{
+.wallpaper-title-block h1, .wallpaper-title-block h2,
+.wallpaper-header-info h1, .wallpaper-header-info h2{
     width:100%;
     min-width:0;
     text-align:left !important;
@@ -2502,7 +2502,7 @@ body{
 }
 
 /* يضيفها JS فقط إذا كان اسم الخلفية أطول من المساحة */
-.wallpaper-title-block h2.scroll-title{
+.wallpaper-title-block h1.scroll-title, .wallpaper-title-block h2.scroll-title{
     display:block;
     overflow:visible;
     width:max-content;
@@ -2541,8 +2541,8 @@ body{
         text-align:left !important;
     }
 
-    .wallpaper-title-block h2,
-    .wallpaper-header-info h2{
+    .wallpaper-title-block h1, .wallpaper-title-block h2,
+    .wallpaper-header-info h1, .wallpaper-header-info h2{
         text-align:left !important;
         font-size:19px;
         line-height:1.4;
@@ -2581,8 +2581,8 @@ body{
         max-width:125px;
     }
 
-    .wallpaper-title-block h2,
-    .wallpaper-header-info h2{
+    .wallpaper-title-block h1, .wallpaper-title-block h2,
+    .wallpaper-header-info h1, .wallpaper-header-info h2{
         font-size:17px;
     }
 
