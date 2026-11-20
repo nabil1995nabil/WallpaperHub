@@ -2514,7 +2514,7 @@ app.post("/api/publish/dbbyte-upload-url", async (req, res) => {
             bucket,key,accessKeyId,secretAccessKey
         });
         const publicUrl = "https://cdn.dbbyte.com/" + encodeURIComponent(publicToken) + "/" +
-            encodeURIComponent(bucket) + "/" + key.split("/").map(encodeURIComponent).join("/");
+            encodeURIComponent(bucket) + "/" + encodeURIComponent(key);
 
         return res.json({
             success:true,
