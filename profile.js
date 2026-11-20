@@ -634,13 +634,13 @@ async function refreshPremiumAccessFromServer(uid=getPremiumProfileUID()){
         const payload=await response.json().catch(()=>({}));
 
         if(!response.ok || payload?.success!==true ||
-           String(payload.userId||"")!==targetUID){
+           String(payload.userId||"").trim().toLowerCase()!==targetUID.toLowerCase()){
             throw new Error(payload?.message||"تعذر التحقق من حالة الشارات من السيرفر");
         }
 
         premiumAccessFromServer={
             checked:true,
-            allowed:payload.allowed===true,
+            allowed:payload.allowed===true || payload.isOwner===true,
             isOwner:payload.isOwner===true,
             earned:Number(payload.earned)||0,
             total:Number(payload.total)||0
@@ -655,8 +655,9 @@ async function refreshPremiumAccessFromServer(uid=getPremiumProfileUID()){
 
 if(premiumProfileCard){
     premiumProfileCard.addEventListener("click",event=>{
-        const allowed=isFounderProfile() ||
-            (premiumAccessFromServer.checked && premiumAccessFromServer.allowed===true);
+        const allowed=(premiumAccessFromServer.checked &&
+            (premiumAccessFromServer.allowed===true || premiumAccessFromServer.isOwner===true)) ||
+            isFounderProfile();
 
         if(premiumProfileCard.disabled || !allowed){
             event.preventDefault();
@@ -3453,7 +3454,9 @@ function hasPremiumProfileAccess(){
 function updatePremiumAccessState(){
     if(!premiumProfileCard) return;
 
-    const isOwner=isFounderProfile();
+    // Prefer the authoritative server owner flag; keep the founder marker
+    // only as an immediate UI fallback while the first API check is pending.
+    const isOwner=(premiumAccessFromServer.checked && premiumAccessFromServer.isOwner===true) || isFounderProfile();
     const checked=premiumAccessFromServer.checked;
     const unlocked=isOwner || (checked && premiumAccessFromServer.allowed===true);
     const earned=premiumAccessFromServer.earned;
