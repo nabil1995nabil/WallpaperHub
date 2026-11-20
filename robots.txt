@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /premium-user.html
+Disallow: /publish.html
+Disallow: /publish-telegram.html
+
+Sitemap: https://wallpaperhub-morocco.vercel.app/sitemap.xml
