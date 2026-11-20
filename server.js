@@ -4967,6 +4967,8 @@ app.get(
 
             if(!hasPagination){
                 const wallpapers = await getWallpapersFromSupabase();
+                // The public wallpaper feed changes frequently; keep CDN cache short.
+                res.set("Cache-Control","public, max-age=0, s-maxage=15, stale-while-revalidate=45");
                 return res.json(wallpapers);
             }
 
@@ -4997,6 +4999,7 @@ app.get(
             res.set("X-Has-More", hasMore ? "1" : "0");
             res.set("X-Next-Offset", String(offset + pageRows.length));
             res.set("X-Page-Size", String(pageRows.length));
+            res.set("Cache-Control","public, max-age=0, s-maxage=15, stale-while-revalidate=45");
 
             return res.json(wallpapers);
         }catch(error){
