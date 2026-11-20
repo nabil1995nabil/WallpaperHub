@@ -32,6 +32,7 @@ alter table public.user_active_reward_state enable row level security;
 
 revoke all on public.user_points_reward_events from anon, authenticated;
 revoke all on public.user_active_reward_state from anon, authenticated;
+grant select on public.user_points_reward_events to service_role;
 
 create or replace function public.award_wallpaperhub_engagement_reward(
     p_user_id uuid,
