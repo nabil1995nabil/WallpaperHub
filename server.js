@@ -6164,33 +6164,39 @@ app.get("/api/points/me", async(req,res)=>{
         const uid = String(user.id);
         const [{data:balance,error:balanceError},{data:ledger,error:ledgerError}] = await Promise.all([
             supabase.from("user_points").select("total_points,updated_at").eq("user_id",uid).maybeSingle(),
-            supabase.from("wallpaper_points_ledger").select("wallpaper_id,points,reason,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100)
+            supabase.from("wallpaper_points_ledger").select("wallpaper_id,points,reason,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(500)
         ]);
         if(balanceError) throw balanceError;
         if(ledgerError) throw ledgerError;
 
         let engagementTotal = 0;
         let engagementEntries = [];
+        let engagementHistoryWarning = "";
         const [totalResult, entriesResult] = await Promise.all([
             supabase.rpc("get_wallpaperhub_reward_points_total",{p_user_id:uid}),
             supabase.from("user_points_reward_events")
                 .select("points,reason,created_at,reward_type,reference_id")
                 .eq("user_id",uid)
-                .order("created_at",{ascending:false})
-                .limit(100)
+                 .order("created_at",{ascending:false})
+                .limit(500)
         ]);
         if(totalResult.error){
+            console.error("ENGAGEMENT POINTS TOTAL LOAD ERROR:",totalResult.error.code,totalResult.error.message);
             if(!["PGRST202","42883","42P01"].includes(String(totalResult.error.code || ""))) throw totalResult.error;
+            engagementHistoryWarning = "مكافآت الإعجاب والتعليق والنشاط لم تظهر بعد؛ تحقق من تحديث مخطط Supabase.";
         }else{
             engagementTotal = Number(totalResult.data || 0);
         }
         if(entriesResult.error){
+            console.error("ENGAGEMENT POINTS LEDGER LOAD ERROR:",entriesResult.error.code,entriesResult.error.message);
             if(!["PGRST205","42P01"].includes(String(entriesResult.error.code || ""))) throw entriesResult.error;
+            engagementHistoryWarning = "رصيدك محفوظ، لكن سجل مكافآت الإعجاب والتعليق والنشاط غير متاح من Supabase حالياً. سنحتاج تحديث مخطط قاعدة البيانات.";
         }else{
             engagementEntries = (entriesResult.data || []).map(entry=>({
                 wallpaper_id:entry.reference_id || null,
                 points:Number(entry.points || 0),
                 reason:entry.reason || entry.reward_type || "engagement_reward",
+                reward_type:entry.reward_type || null,
                 created_at:entry.created_at
             }));
         }
@@ -6205,6 +6211,7 @@ app.get("/api/points/me", async(req,res)=>{
             userId:uid,
             total:Number((legacyTotal + engagementTotal).toFixed(2)),
             perWallpaper:0.1,
+            engagementHistoryWarning,
             entries
         });
     }catch(error){
