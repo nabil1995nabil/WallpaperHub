@@ -218,3 +218,63 @@ a{color:inherit}
  .activity-indicator-title h2{font-size:15px}
  .activity-current-box>strong{font-size:29px}
 }
+
+
+/* Mobile chart repair: keep axis labels inside the SVG and prevent flex squeezing */
+.activity-indicator-card{width:100%;min-width:0;overflow:hidden}
+.activity-indicator-head{width:100%;min-width:0}
+.activity-indicator-title{flex:1 1 auto}
+.activity-current-box{flex:0 0 auto}
+.activity-range-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;width:100%;gap:6px;padding:4px;background:#eef2fa!important;border-radius:14px}
+.activity-indicator-card .activity-range{
+  display:flex!important;align-items:center;justify-content:center;
+  width:100%;min-width:0;min-height:39px;margin:0;padding:7px 4px;
+  appearance:none;-webkit-appearance:none;border:1px solid transparent!important;
+  border-radius:10px;background:transparent!important;color:#64718e!important;
+  font-family:inherit;font-size:12px;line-height:1.2;font-weight:800;
+  white-space:nowrap;box-shadow:none;cursor:pointer
+}
+.activity-indicator-card .activity-range.active{
+  background:#fff!important;color:#245de8!important;
+  border-color:#e3eaff!important;box-shadow:0 3px 10px #253b7a12!important
+}
+.activity-chart-frame{display:block;width:100%;height:clamp(142px,34vw,190px);min-height:0;margin:0;padding:0;overflow:hidden}
+.activity-chart{
+  display:block!important;width:100%!important;height:100%!important;min-width:0;
+  max-width:100%;overflow:hidden;aspect-ratio:720/220
+}
+.activity-chart-grid line{stroke:#e4eaf5;stroke-width:1.2;stroke-dasharray:4 6;vector-effect:non-scaling-stroke}
+.activity-chart-labels text{
+  fill:#91a0bb;font-family:Arial,sans-serif;font-size:12px;
+  text-anchor:end;dominant-baseline:middle
+}
+.activity-chart-area{fill:url(#activityChartFill)!important;stroke:none!important}
+.activity-chart-line{fill:none!important;stroke:#0da775!important;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.activity-chart-point{fill:#fff!important;stroke:#0da775!important;stroke-width:3.5;vector-effect:non-scaling-stroke}
+.activity-chart.is-down .activity-chart-line{stroke:#d95d6a!important}
+.activity-chart.is-down .activity-chart-point{stroke:#d95d6a!important}
+.activity-chart-axis{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 26px);margin:1px 0 14px 26px;padding:0;color:#8d9ab1;font-size:10px;line-height:1.4}
+.activity-meta-grid{width:100%;min-width:0}
+.activity-explainer{max-width:100%;overflow-wrap:anywhere}
+@media(max-width:560px){
+ .activity-indicator-card{padding:15px 12px}
+ .activity-indicator-head{align-items:center;gap:8px}
+ .activity-indicator-title{gap:8px}
+ .activity-indicator-title>.material-icons{width:38px;height:38px}
+ .activity-indicator-title h2{font-size:16px}
+ .activity-indicator-title p{font-size:9px;line-height:1.5}
+ .activity-current-box{min-width:70px}
+ .activity-current-box>strong{font-size:31px}
+ .activity-range-tabs{margin:14px 0 9px}
+ .activity-indicator-card .activity-range{min-height:35px;font-size:10px}
+ .activity-chart-frame{height:clamp(135px,39vw,165px)}
+ .activity-chart-axis{font-size:9px;margin-bottom:10px}
+ .activity-meta-grid>div{min-width:0}
+}
+@media(max-width:360px){
+ .activity-indicator-head{align-items:flex-start}
+ .activity-indicator-title h2{font-size:14px}
+ .activity-current-box{min-width:64px}
+ .activity-current-box>strong{font-size:28px}
+ .activity-indicator-card{padding:13px 10px}
+}
