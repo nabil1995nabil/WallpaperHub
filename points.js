@@ -46,7 +46,7 @@ function filterForEntry(entry) {
 }
 function setProgress(total) {
   const progress = Math.max(0, Math.min(100, total / 1 * 100));
-  const label = `${formatPoints(total)} / 1.0`;
+  const label = `${formatPoints(total)} / 1.00`;
   document.getElementById("goalCurrent").textContent = label;
   document.getElementById("levelProgressText").textContent = label;
   document.getElementById("goalProgress").style.width = `${progress}%`;
