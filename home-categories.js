@@ -261,42 +261,35 @@ function renderHomeCategories(wallpapers) {
     if (allCard) allCard.classList.add("active");
 }
 
-async function fetchWallpapersForCategories() {
-    const response = await fetch("/api/wallpapers?_categories=" + Date.now(), {
-        method: "GET",
-        cache: "no-store",
-        headers: { Accept: "application/json" }
-    });
-
-    if (!response.ok) {
-        throw new Error(`Wallpaper API failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!Array.isArray(data)) throw new Error("Wallpaper API did not return an array.");
-
-    return data;
-}
+let categoryInitPromise = null;
 
 async function initCategories() {
     const container = getCategoryGrid();
-    if (!container) return;
+    if(!container) return;
+    if(categoryInitPromise) return categoryInitPromise;
 
-    container.innerHTML = `
-        <div class="home-categories-state" role="status">Loading categories…</div>
-    `;
-
-    try {
-        const wallpapers = await fetchWallpapersForCategories();
-        renderHomeCategories(wallpapers);
-    } catch (error) {
-        console.error("CATEGORIES LOAD ERROR:", error);
-        // لا نترك Loading عالقًا. نعرض البطاقات حتى لو تعذر API.
-        renderHomeCategories([]);
-    }
+    container.innerHTML = '<div class="home-categories-state" role="status">Loading categories…</div>';
+    categoryInitPromise = (async()=>{
+        try{
+            let data = window.WallpaperHubHomeWallpapers;
+            if(!Array.isArray(data) && window.WallpaperHubHomeWallpapersPromise){
+                data = await window.WallpaperHubHomeWallpapersPromise;
+            }
+            if(!Array.isArray(data)){
+                data = await new Promise(resolve=>{
+                    window.addEventListener("wallpaperhub:home-wallpapers-ready",event=>resolve(event.detail?.wallpapers || []),{once:true});
+                });
+            }
+            renderHomeCategories(Array.isArray(data) ? data : []);
+        }catch(error){
+            console.error("CATEGORIES LOAD ERROR:",error);
+            renderHomeCategories([]);
+        }
+    })();
+    return categoryInitPromise;
 }
 
-window.initHomeCategories = initCategories;
+window.initHomeCategories = initCategories;window.initHomeCategories = initCategories;
 window.renderHomeCategories = renderHomeCategories;
 
 document.addEventListener("DOMContentLoaded", () => {
