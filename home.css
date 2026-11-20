@@ -1068,3 +1068,28 @@ body.dark{
         background-attachment:scroll,scroll,scroll;
     }
 }
+
+
+/* Homepage performance: offscreen category sections are rendered only as they approach the viewport. */
+#dynamicSections .home-dynamic-section{
+    content-visibility:auto;
+    contain-intrinsic-size: 360px;
+}
+#dynamicSections .home-dynamic-section.is-empty{
+    contain-intrinsic-size: 76px;
+}
+.wall-card img,
+.video-preview img{
+    display:block;
+}
+
+/* Keep decorative hover effects away from touch-first devices and reduced-motion users. */
+@media (prefers-reduced-motion: reduce){
+    .wall-card,
+    .wall-card img,
+    .community-creations-cta,
+    .community-creations-cta-arrow{
+        transition:none !important;
+        animation:none !important;
+    }
+}
