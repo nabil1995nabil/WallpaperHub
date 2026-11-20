@@ -12,6 +12,9 @@ let sliderTouchStartY = 0;
 let sliderTouchActive = false;
 let sliderHovering = false;
 let sliderBound = false;
+let sliderVisible = true;
+let sliderPageVisible = !document.hidden;
+let sliderReducedMotion = false;
 
 
 // =======================================
@@ -24,74 +27,55 @@ function escHtml(value){
     }[c]));
 }
 
+function sliderImageUrl(value){
+    const image=String(value || "").trim();
+    if(!image) return "/assets/logo/no-image.png";
+    if(/^(https?:|data:|blob:|\/\/)/i.test(image) || image.startsWith("/") || image.startsWith("assets/")) return image;
+    return "assets/wallpapers/" + image;
+}
 
 // =======================================
+// تهيئة السلايدر// =======================================
 // تهيئة السلايدر
 // =======================================
 
 function initSlider(data){
+    const slider=document.getElementById("sliderContent");
+    if(!slider || !Array.isArray(data) || !data.length) return;
+    sliderItems=data.slice().reverse().slice(0,8);
+    slider.replaceChildren();
 
-    const slider = document.getElementById("sliderContent");
-
-    if(!slider || !Array.isArray(data) || !data.length)
-        return;
-
-    sliderItems = data.slice().reverse();
-
-    slider.innerHTML = "";
-
-    sliderItems.forEach((wall, index) => {
-
-        const slide = document.createElement("div");
-        slide.className = "slide" + (index === 0 ? " active" : "");
-
-        slide.innerHTML = `
-            <img src="${escHtml(wall.image)}"
-                 alt="${escHtml(wall.title || "Wallpaper")}"
-                 draggable="false"
-                 loading="${index < 2 ? "eager" : "lazy"}">
-            <div class="slider-info">
-                <div class="slider-category">${escHtml(wall.category || "")}</div>
-                <h3 class="slider-title">${escHtml(wall.title || "")}</h3>
-                <button type="button" class="slider-view-button">عرض الخلفية</button>
-            </div>
-        `;
-
-        slide.querySelector(".slider-view-button").onclick = (event) => {
-            event.stopPropagation();
-            openWallpaper(wall.id);
-        };
-
+    sliderItems.forEach((wall,index)=>{
+        const slide=document.createElement("div");
+        slide.className="slide" + (index===0 ? " active" : "");
+        const imageUrl=escHtml(sliderImageUrl(wall.image || wall.thumbnail));
+        const imageSource=index===0 ? 'src="' + imageUrl + '" fetchpriority="high"' : 'data-src="' + imageUrl + '"';
+        slide.innerHTML='<img ' + imageSource + ' alt="' + escHtml(wall.title || "Wallpaper") + '" draggable="false" loading="' + (index===0 ? "eager" : "lazy") + '" decoding="async" onerror="this.onerror=null;this.src=\'/assets/logo/no-image.png\'">' +
+            '<div class="slider-info"><div class="slider-category">' + escHtml(wall.category || "") + '</div><h3 class="slider-title">' + escHtml(wall.title || "") + '</h3><button type="button" class="slider-view-button">عرض الخلفية</button></div>';
+        slide.querySelector(".slider-view-button").onclick=event=>{event.stopPropagation();openWallpaper(wall.id);};
         slider.appendChild(slide);
     });
 
-    // العداد وشريط التقدم
-    const total = String(sliderItems.length).padStart(2, "0");
-    slider.insertAdjacentHTML("beforeend", `
-        <div class="slider-counter"><b>01</b><span>/ ${total}</span></div>
-        <div class="slider-progress"><span></span></div>
-    `);
-
-    const progress = slider.querySelector(".slider-progress");
-    if(progress)
-        progress.style.setProperty("--slider-duration", SLIDER_DURATION + "ms");
+    const total=String(sliderItems.length).padStart(2,"0");
+    slider.insertAdjacentHTML("beforeend",'<div class="slider-counter"><b>01</b><span>/ ' + total + '</span></div><div class="slider-progress"><span></span></div>');
+    const progress=slider.querySelector(".slider-progress");
+    if(progress) progress.style.setProperty("--slider-duration",SLIDER_DURATION + "ms");
 
     createSliderDots();
     createMiniCards();
     bindSliderArrows();
-
     if(!sliderBound){
         bindMainSliderSwipe();
         bindHoverPause();
-        sliderBound = true;
+        bindSliderVisibility();
+        sliderBound=true;
     }
-
-    showSlider(0, false);
+    showSlider(0,false);
     startAutoSlider(sliderItems.length);
 }
 
-
 // =======================================
+// عرض خلفية معينة// =======================================
 // عرض خلفية معينة
 // =======================================
 
@@ -107,6 +91,12 @@ function showSlider(index, restartTimer = true){
     index = ((index % total) + total) % total;
 
     sliderIndex = index;
+
+    const activeImage = slides[index]?.querySelector("img[data-src]");
+    if(activeImage){
+        activeImage.src = activeImage.dataset.src;
+        activeImage.removeAttribute("data-src");
+    }
 
     slides.forEach((slide, i) => {
         slide.classList.toggle("active", i === index);
@@ -201,30 +191,28 @@ function updateSliderDots(index){
 // =======================================
 
 function createMiniCards(){
-
-    const wrap = document.getElementById("miniCards");
-
+    const wrap=document.getElementById("miniCards");
     if(!wrap) return;
-
-    wrap.innerHTML = "";
-
-    sliderItems.forEach((wall, index) => {
-
-        const card = document.createElement("button");
-
-        card.type = "button";
-        card.className = "mini-card";
-        card.setAttribute("aria-label", `الخلفية ${index + 1}`);
-        card.innerHTML = `<img src="${escHtml(wall.image)}" alt="" loading="lazy" draggable="false">`;
-        card.dataset.title = wall.title || "";
-        card.style.setProperty("--i", index);
-
-        card.onclick = () => showSlider(index);
-
+    wrap.replaceChildren();
+    sliderItems.forEach((wall,index)=>{
+        const card=document.createElement("button");
+        card.type="button";
+        card.className="mini-card";
+        card.setAttribute("aria-label","الخلفية " + (index+1));
+        const image=document.createElement("img");
+        image.src=sliderImageUrl(wall.thumbnail || wall.image);
+        image.alt="";
+        image.loading="lazy";
+        image.decoding="async";
+        image.draggable=false;
+        image.onerror=()=>{image.onerror=null;image.src="/assets/logo/no-image.png";};
+        card.appendChild(image);
+        card.dataset.title=wall.title || "";
+        card.style.setProperty("--i",index);
+        card.onclick=()=>showSlider(index);
         wrap.appendChild(card);
     });
 }
-
 function updateMiniCards(index){
 
     const cards = document.querySelectorAll("#miniCards .mini-card");
@@ -277,27 +265,50 @@ function restartProgress(){
 // =======================================
 
 function bindHoverPause(){
-
-    const frame = document.querySelector(".slider-frame");
-
+    const frame=document.querySelector(".slider-frame");
     if(!frame) return;
-
-    frame.addEventListener("mouseenter", () => {
-        sliderHovering = true;
+    frame.addEventListener("mouseenter",()=>{
+        sliderHovering=true;
         clearInterval(sliderTimer);
-        document.querySelector("#sliderContent .slider-progress")
-            ?.classList.add("paused");
+        document.querySelector("#sliderContent .slider-progress")?.classList.add("paused");
     });
-
-    frame.addEventListener("mouseleave", () => {
-        sliderHovering = false;
+    frame.addEventListener("mouseleave",()=>{
+        sliderHovering=false;
         restartProgress();
         startAutoSlider(sliderItems.length);
     });
 }
 
+function bindSliderVisibility(){
+    const frame=document.querySelector(".slider-frame");
+    const motionQuery=window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    sliderReducedMotion=Boolean(motionQuery && motionQuery.matches);
+    if(frame && "IntersectionObserver" in window){
+        const observer=new IntersectionObserver(entries=>{
+            sliderVisible=Boolean(entries[0] && entries[0].isIntersecting);
+            if(sliderVisible) startAutoSlider(sliderItems.length);
+            else clearInterval(sliderTimer);
+        },{threshold:0.15});
+        observer.observe(frame);
+    }
+    document.addEventListener("visibilitychange",()=>{
+        sliderPageVisible=!document.hidden;
+        if(sliderPageVisible) startAutoSlider(sliderItems.length);
+        else clearInterval(sliderTimer);
+    });
+    if(motionQuery){
+        const updateMotion=event=>{
+            sliderReducedMotion=Boolean(event.matches);
+            if(sliderReducedMotion) clearInterval(sliderTimer);
+            else startAutoSlider(sliderItems.length);
+        };
+        if(motionQuery.addEventListener) motionQuery.addEventListener("change",updateMotion);
+        else if(motionQuery.addListener) motionQuery.addListener(updateMotion);
+    }
+}
 
 // =======================================
+// سحب السلايدر (موبايل)// =======================================
 // سحب السلايدر (موبايل)
 // =======================================
 
@@ -346,13 +357,7 @@ function bindMainSliderSwipe(){
 // =======================================
 
 function startAutoSlider(length){
-
     clearInterval(sliderTimer);
-
-    if(!length || length < 2 || sliderHovering)
-        return;
-
-    sliderTimer = setInterval(() => {
-        nextSlider();
-    }, SLIDER_DURATION);
+    if(!length || length<2 || sliderHovering || !sliderVisible || !sliderPageVisible || sliderReducedMotion) return;
+    sliderTimer=window.setInterval(()=>nextSlider(),SLIDER_DURATION);
 }
