@@ -42,7 +42,7 @@ async function loadTodayComponent() {
     }
 
     try {
-        const response = await fetch("today.html?_=" + Date.now());
+        const response = await fetch("today.html",{cache:"default"});
 
         if (!response.ok) {
             throw new Error("تعذر تحميل today.html: " + response.status);
@@ -441,25 +441,34 @@ async function todayRestoreWeatherPreference() {
 
 async function loadTodayWallpaper() {
     try {
-        const response = await fetch("/api/wallpapers?_=" + Date.now());
-        if (!response.ok) throw new Error("API error: " + response.status);
-        const wallpapers = await response.json();
-        if (!Array.isArray(wallpapers) || wallpapers.length === 0) {
+        let wallpapers = window.WallpaperHubHomeWallpapers;
+        if(!Array.isArray(wallpapers) && window.WallpaperHubHomeWallpapersPromise){
+            wallpapers = await window.WallpaperHubHomeWallpapersPromise;
+        }
+        if(!Array.isArray(wallpapers)){
+            const response = await fetch("/api/wallpapers",{
+                headers:{Accept:"application/json"},
+                cache:"default"
+            });
+            if(!response.ok) throw new Error("API error: " + response.status);
+            wallpapers = await response.json();
+        }
+        if(!Array.isArray(wallpapers) || wallpapers.length === 0){
             console.warn("Today: لا توجد خلفيات في API");
             return;
         }
-
-        todayWallpaperPool = wallpapers.filter(w => w && (w.id != null) && (w.image || w.thumbnail));
+        todayWallpaperPool = wallpapers.filter(w=>w && w.id != null && (w.image || w.thumbnail));
         await todayRestoreWeatherPreference();
         await todayConfigureWeatherButton();
         await todayUpdateDynamicWallpaper();
-    } catch (error) {
-        console.error("Today wallpaper error:", error);
+    }catch(error){
+        console.error("Today wallpaper error:",error);
     }
 }
 
 
 /* =========================================================
+   AI ORB/* =========================================================
    AI ORB — حركة أصلية مستوحاة من Siri Orb
 ========================================================= */
 function createTodayAILogo(canvas) {
