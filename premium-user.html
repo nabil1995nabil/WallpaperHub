@@ -1,171 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#07101d">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7fb">
   <title>المستخدم المميز | WallpaperHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="premium-user.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="premium-user.css?v=20261120-premium-clean">
 </head>
-<body>
-  <div class="app-shell">
-    <header class="topbar">
-      <button class="icon-btn" id="backBtn" aria-label="رجوع">‹</button>
-      <div class="page-title">
-        <span class="crown-mini">♛</span>
-        <span>المستخدم المميز</span>
+<body class="premium-page">
+  <header class="premium-header">
+    <a class="premium-back" id="backBtn" href="profile.html" aria-label="العودة إلى الملف الشخصي">
+      <span class="material-icons" aria-hidden="true">arrow_forward</span>
+    </a>
+    <div class="premium-brand">
+      <span class="premium-brand-icon material-icons" aria-hidden="true">workspace_premium</span>
+      <div><strong>المستخدم المميز</strong><small>WallpaperHub</small></div>
+    </div>
+    <button class="premium-share" id="shareBtn" type="button" aria-label="مشاركة الصفحة">
+      <span class="material-icons" aria-hidden="true">share</span>
+    </button>
+  </header>
+
+  <main class="premium-main">
+    <section class="premium-hero">
+      <div class="hero-orbit hero-orbit-a"></div>
+      <div class="hero-orbit hero-orbit-b"></div>
+      <div class="hero-copy">
+        <span class="premium-label"><span class="material-icons" aria-hidden="true">auto_awesome</span> مساحة خاصة بالهوية</span>
+        <h1>خلي حسابك<br><em>يبان بشكل مميز</em></h1>
+        <p>صفحة تجمع هوية الحساب ومحتواه وشاراته في تجربة أنيقة، واضحة ومناسبة للهاتف.</p>
+        <div class="hero-actions">
+          <a class="primary-action" id="profileBtn" href="profile.html">عرض الملف الشخصي <span class="material-icons" aria-hidden="true">arrow_back</span></a>
+          <a class="secondary-action" href="#premium-features">اكتشف المزايا</a>
+        </div>
       </div>
-      <button class="icon-btn" id="moreBtn" aria-label="المزيد">⋮</button>
-    </header>
+      <div class="hero-emblem" aria-hidden="true">
+        <div class="emblem-ring"><div class="emblem-core"><span class="material-icons">workspace_premium</span></div></div>
+        <span class="emblem-star star-one">✦</span><span class="emblem-star star-two">✧</span>
+      </div>
+    </section>
 
-    <main>
-      <section class="hero-card">
-        <div class="hero-glow"></div>
-        <div class="hero-content">
-          <div class="premium-pill"><span>♛</span> مستخدم مميز</div>
-          <h1>تجربة أكثر تميزًا</h1>
-          <p>حسابات مميزة تحصل على مزايا خاصة ومساحة أجمل لعرض محتواها.</p>
-          <div class="hero-actions">
-            <button class="gold-btn" id="profileBtn">عرض الملف الشخصي</button>
-            <button class="ghost-btn" id="shareBtn">مشاركة</button>
+    <section class="preview-section" aria-labelledby="previewTitle">
+      <div class="section-heading">
+        <div><span class="section-eyebrow">PROFILE PREVIEW</span><h2 id="previewTitle">معاينة حساب المستخدم</h2><p>معلومات الحساب الحقيقي المرتبط بهذه الصفحة</p></div>
+        <span class="preview-live"><i></i> معاينة مباشرة</span>
+      </div>
+      <article class="member-preview" id="memberPreview">
+        <div class="member-cover" id="memberCover">
+          <div class="cover-shimmer"></div>
+          <span class="cover-caption">WALLPAPERHUB MEMBER</span>
+        </div>
+        <div class="member-identity">
+          <div class="member-avatar" id="memberAvatar">
+            <span id="memberInitial">W</span>
+            <img id="memberAvatarImage" alt="" hidden>
           </div>
-        </div>
-        <div class="hero-crown">♛</div>
-      </section>
-
-      <section class="profile-card">
-        <div class="cover">
-          <div class="cover-overlay"></div>
-          <div class="cover-label">غلاف الحساب</div>
-        </div>
-        <div class="avatar-wrap">
-          <div class="avatar">N</div>
-          <span class="verified">✓</span>
-        </div>
-        <div class="profile-info">
-          <h2>Nabil Rahali <span class="check">✓</span></h2>
-          <p>@nabilrahali</p>
-          <span class="member-tag">عضوية ذهبية</span>
-          <p class="bio">مرحباً بكم في حسابي، صاحب الموقع 👑</p>
-        </div>
-        <div class="stats">
-          <div><strong>370</strong><span>خلفية</span></div>
-          <div><strong>182</strong><span>مشاهدة</span></div>
-          <div><strong>38</strong><span>إعجاب</span></div>
-          <div><strong>0</strong><span>تحميل</span></div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow">PREMIUM</span>
-            <h2>مزايا المستخدم المميز</h2>
+          <div class="member-details">
+            <div class="member-name-line">
+              <h3 id="memberName">جارٍ تحميل الحساب…</h3>
+              <span class="verified-mark material-icons" id="memberVerified" aria-label="حساب موثق" hidden>verified</span>
+            </div>
+            <p id="memberUsername">@wallpaperhub</p>
+            <span class="member-status"><span class="material-icons" aria-hidden="true">workspace_premium</span> ملف المستخدم</span>
           </div>
-          <span class="section-icon">✦</span>
+          <a class="open-profile-icon" id="openProfileIcon" href="profile.html" aria-label="فتح الملف الشخصي"><span class="material-icons">north_west</span></a>
         </div>
+        <p class="member-bio" id="memberBio">تظهر هنا نبذة صاحب الحساب عند توفرها.</p>
+        <div class="member-preview-footer">
+          <span><span class="material-icons" aria-hidden="true">shield</span> هوية الحساب</span>
+          <span>WallpaperHub</span>
+        </div>
+      </article>
+      <p class="preview-note" id="previewStatus" role="status">يتم تحميل بيانات الملف الشخصي…</p>
+    </section>
 
-        <div class="benefits-grid">
-          <article class="benefit-card active">
-            <div class="benefit-icon">♛</div>
-            <h3>شارة مميزة</h3>
-            <p>تظهر بجانب اسم الحساب في الموقع.</p>
-          </article>
-          <article class="benefit-card">
-            <div class="benefit-icon">✦</div>
-            <h3>خلفيات مميزة</h3>
-            <p>إبراز المحتوى داخل صفحات WallpaperHub.</p>
-          </article>
-          <article class="benefit-card">
-            <div class="benefit-icon">⚡</div>
-            <h3>دعم أسرع</h3>
-            <p>أولوية في طلبات الدعم والمساعدة.</p>
-          </article>
-          <article class="benefit-card">
-            <div class="benefit-icon">◆</div>
-            <h3>مزايا حصرية</h3>
-            <p>خصائص إضافية مخصصة للحسابات المميزة.</p>
-          </article>
-        </div>
-      </section>
+    <section class="features-section" id="premium-features" aria-labelledby="featuresTitle">
+      <div class="section-heading">
+        <div><span class="section-eyebrow">THE EXPERIENCE</span><h2 id="featuresTitle">تجربة المستخدم المميز</h2><p>عناصر تساعد على إبراز الحساب وتنظيم حضوره</p></div>
+      </div>
+      <div class="features-grid">
+        <article class="feature-card">
+          <span class="feature-icon feature-gold material-icons" aria-hidden="true">workspace_premium</span>
+          <h3>هوية بصرية خاصة</h3><p>عرض الاسم والصورة والنبذة داخل بطاقة موحدة وأنيقة.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon feature-blue material-icons" aria-hidden="true">verified</span>
+          <h3>حالة التوثيق</h3><p>إظهار علامة التوثيق عند توفرها على الحساب فعلياً.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon feature-purple material-icons" aria-hidden="true">military_tech</span>
+          <h3>الأوسمة والإنجازات</h3><p>مساحة مخصصة لإبراز الشارات التي حصل عليها المستخدم.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon feature-green material-icons" aria-hidden="true">collections</span>
+          <h3>المحتوى والخلفيات</h3><p>الوصول إلى معرض المستخدم ومشاهدة أعماله بسهولة.</p>
+        </article>
+      </div>
+    </section>
 
-      <section class="membership-card">
-        <div class="membership-top">
-          <div>
-            <span class="eyebrow">MEMBERSHIP</span>
-            <h2>تفاصيل العضوية</h2>
-          </div>
-          <span class="status">نشطة</span>
-        </div>
-        <div class="membership-row">
-          <span>نوع العضوية</span><strong>مستخدم مميز</strong>
-        </div>
-        <div class="membership-row">
-          <span>المستوى</span><strong>الذهبي ♛</strong>
-        </div>
-        <div class="membership-row">
-          <span>تاريخ الانضمام</span><strong>2026/09/12</strong>
-        </div>
-        <div class="progress">
-          <div class="progress-label"><span>التقدم إلى المستوى التالي</span><b>72%</b></div>
-          <div class="progress-track"><span></span></div>
-        </div>
-      </section>
+    <section class="premium-bottom-cta">
+      <div class="bottom-cta-icon material-icons" aria-hidden="true">person_search</div>
+      <div class="bottom-cta-copy"><h2>اكتشف حساب المستخدم</h2><p>انتقل إلى الملف الشخصي لمشاهدة التفاصيل والمحتوى والأوسمة.</p></div>
+      <a id="bottomProfileBtn" href="profile.html" aria-label="افتح الملف الشخصي"><span class="material-icons">arrow_back</span></a>
+    </section>
+  </main>
 
-      <section class="section">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow">ACHIEVEMENTS</span>
-            <h2>الأوسمة والإنجازات</h2>
-          </div>
-          <button class="text-btn" id="badgesBtn">عرض الكل</button>
-        </div>
-
-        <div class="badges">
-          <div class="badge-item unlocked"><span>♛</span><b>المؤسس</b><small>مستخدم مميز</small></div>
-          <div class="badge-item unlocked"><span>◆</span><b>الذهبي</b><small>مستوى العضوية</small></div>
-          <div class="badge-item unlocked"><span>⚡</span><b>النشط</b><small>نشاط مستمر</small></div>
-          <div class="badge-item"><span>★</span><b>الداعم</b><small>قريباً</small></div>
-        </div>
-      </section>
-
-      <section class="section wallpapers-section">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow">GALLERY</span>
-            <h2>أحدث الخلفيات</h2>
-          </div>
-          <button class="text-btn" id="galleryBtn">عرض الكل</button>
-        </div>
-        <div class="wallpapers">
-          <article class="wallpaper w1"><div class="wallpaper-meta"><span>♥ 124</span><span>↓ 1.2K</span></div></article>
-          <article class="wallpaper w2"><div class="wallpaper-meta"><span>♥ 89</span><span>↓ 980</span></div></article>
-          <article class="wallpaper w3"><div class="wallpaper-meta"><span>♥ 56</span><span>↓ 620</span></div></article>
-        </div>
-      </section>
-
-      <section class="contact-card">
-        <div>
-          <span class="eyebrow">ACCOUNT</span>
-          <h2>حساب موثوق ومميز</h2>
-          <p>حسابك يحمل شارة المستخدم المميز وتظهر مزايا العضوية في ملفك.</p>
-        </div>
-        <div class="contact-icon">✓</div>
-      </section>
-    </main>
-
-    <nav class="bottom-nav">
-      <button><span>⌂</span>الرئيسية</button>
-      <button><span>▦</span>الأقسام</button>
-      <button><span>♥</span>المفضلة</button>
-      <button class="selected"><span>●</span>حسابي</button>
-    </nav>
-  </div>
-
-  <div class="toast" id="toast"></div>
-  <script src="premium-user.js"></script>
+  <div class="premium-toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="premium-user.js?v=20261120-premium-clean"></script>
 </body>
 </html>
