@@ -74,6 +74,17 @@ begin
             return;
         end if;
 
+        -- Avoid rewarding an account again for likes already paid by the legacy points ledger.
+        if exists (
+            select 1 from public.wallpaper_points_ledger old_entry
+            where old_entry.user_id::text = p_user_id::text
+              and old_entry.wallpaper_id::text = p_reference_id
+              and lower(coalesce(old_entry.reason, '')) like '%like%'
+        ) then
+            return query select true, false, 0::numeric, false;
+            return;
+        end if;
+
         v_points := 0.90;
         v_event_key := 'wallpaper_like:' || p_reference_id;
 
