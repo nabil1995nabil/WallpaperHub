@@ -97,6 +97,21 @@ button:focus-visible{
    HEADER
 ========================================================= */
 .header{
+    transform: translate3d(0, 0, 0);
+    transition: transform .22s cubic-bezier(.2,.75,.25,1);
+    will-change: transform;
+}
+
+.header.is-scroll-hidden{
+    transform: translate3d(0, calc(-100% - 2px), 0);
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce){
+    .header{transition: none;}
+}
+
+.header{
     position: sticky;
     top: 0;
     z-index: 1000;
