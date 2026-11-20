@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f7ff">
   <title>نقاطي | WallpaperHub</title>
   <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="points.css">
+  <link rel="stylesheet" href="points.css?v=20261120-trading-index">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -38,6 +38,19 @@
       </div>
     </section>
 
+    <nav class="points-quick-actions" aria-label="اختصارات النقاط">
+      <a class="points-action points-action-info" href="points-earn.html">
+        <span class="material-icons" aria-hidden="true">info</span>
+        <span><strong>معلومات جمع النقاط</strong><small>شوف كيفاش تربح وتفاصيل المكافآت</small></span>
+        <span class="material-icons action-arrow" aria-hidden="true">arrow_back</span>
+      </a>
+      <a class="points-action points-action-chart" href="#activity-indicator">
+        <span class="material-icons" aria-hidden="true">show_chart</span>
+        <span><strong>مؤشر النشاط</strong><small>تابع الارتفاع والانخفاض مع الوقت</small></span>
+        <span class="material-icons action-arrow" aria-hidden="true">arrow_back</span>
+      </a>
+    </nav>
+
     <section class="earning-overview" aria-labelledby="earningOverviewTitle">
       <div class="earning-overview-head">
         <div><span class="section-kicker">EARN POINTS</span><h2 id="earningOverviewTitle">طرق جمع النقاط</h2><p>المكافآت تُحتسب بعد تأكيد العملية من الخادم.</p></div>
@@ -49,6 +62,42 @@
         <article class="earning-mini-card"><span class="material-icons">schedule</span><strong>+0.25</strong><small>كل 10 دقائق نشاط فعلي</small></article>
         <article class="earning-mini-card earning-ad-card"><span class="material-icons">ondemand_video</span><strong>+0.50</strong><small>لكل إعلان مكافأة مؤهل بعد تفعيله</small></article>
       </div>
+    </section>
+
+    <section class="activity-indicator-card" id="activity-indicator" aria-labelledby="activityIndicatorTitle">
+      <div class="activity-indicator-head">
+        <div class="activity-indicator-title">
+          <span class="material-icons" aria-hidden="true">monitoring</span>
+          <div><h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2><p>يرتفع مع الإعجاب والتعليق والنشر، وينخفض تدريجياً مع الخمول</p></div>
+        </div>
+        <div class="activity-current-box">
+          <strong id="activityIndexValue">0</strong><span>/100</span>
+          <small id="activityTrendChip" class="trend-chip trend-down"><span class="material-icons" aria-hidden="true">trending_down</span><span id="activityTrendText">مؤشر منخفض</span></small>
+        </div>
+      </div>
+      <div class="activity-range-tabs" role="group" aria-label="الفترة الزمنية للمؤشر">
+        <button type="button" class="activity-range active" data-activity-range="24h" aria-pressed="false">24 ساعة</button>
+        <button type="button" class="activity-range" data-activity-range="7d" aria-pressed="true">7 أيام</button>
+        <button type="button" class="activity-range" data-activity-range="30d" aria-pressed="false">30 يوماً</button>
+      </div>
+      <div class="activity-chart-frame">
+        <div class="activity-y-labels" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+        <svg id="activityChart" class="activity-chart is-down" viewBox="0 0 720 220" role="img" aria-label="رسم بياني لمؤشر نشاط الحساب من صفر إلى مئة">
+          <defs><linearGradient id="activityChartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#18a978" stop-opacity=".24"/><stop offset="100%" stop-color="#18a978" stop-opacity="0"/></linearGradient></defs>
+          <g class="activity-chart-grid">
+            <path d="M24 20H700 M24 60H700 M24 100H700 M24 140H700 M24 180H700"/>
+          </g>
+          <path id="activityChartArea" class="activity-chart-area" d="M24 180 L700 180"></path>
+          <path id="activityChartLine" class="activity-chart-line" d="M24 180 L700 180"></path>
+          <circle id="activityChartPoint" class="activity-chart-point" cx="700" cy="180" r="5"></circle>
+        </svg>
+      </div>
+      <div class="activity-chart-axis"><span id="activityRangeStart">قبل 7 أيام</span><span>الآن</span></div>
+      <div class="activity-meta-grid">
+        <div><small>آخر نشاط مؤهل</small><strong id="activityLastAction">لا يوجد نشاط بعد</strong></div>
+        <div><small>قيمة المؤشر الحالية</small><strong id="activityIndexStatus">0 من 100</strong></div>
+      </div>
+      <p class="activity-explainer" id="activityExplainer">كل إعجاب أو تعليق أو نشر يرفع المؤشر. إذا توقفت هذه الأنشطة، ينخفض تدريجياً إلى الصفر خلال 7 أيام. هذا مؤشر تشجيعي فقط ولا يخصم من رصيد نقاطك.</p>
     </section>
 
     <section class="level-card" aria-label="ملخص النقاط">
@@ -98,6 +147,6 @@
     </aside>
   </main>
 
-  <script type="module" src="points.js"></script>
+  <script type="module" src="points.js?v=20261120-trading-index"></script>
 </body>
 </html>
