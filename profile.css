@@ -1689,3 +1689,32 @@ body.dark .edit-social-field{background:var(--input-bg);}
     filter:saturate(1.08);
 }
 
+
+
+/* Site owner: permanent gold access, independent of medal ownership. */
+.identity-side-stack .premium-card.is-owner{
+    background:linear-gradient(120deg,#76530b 0%,#b78319 30%,#e1bd56 68%,#f3df98 100%);
+    border:1px solid rgba(255,231,157,.95);
+    box-shadow:0 10px 28px rgba(174,126,24,.30),inset 0 1px 0 rgba(255,255,255,.34);
+}
+.identity-side-stack .premium-card.is-owner .premium-crown{
+    background:rgba(255,255,255,.22);
+    color:#fff6d0;
+}
+.identity-side-stack .premium-card.is-owner .identity-side-content strong{
+    color:#fffdf5;
+    letter-spacing:.1px;
+}
+.identity-side-stack .premium-card.is-owner .identity-side-content small{
+    color:#fff8dd;
+    font-weight:700;
+}
+.identity-side-stack .premium-card.is-owner .premium-arrow{
+    color:#fff8dc;
+}
+.identity-side-stack .premium-card.is-owner:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 32px rgba(174,126,24,.36),inset 0 1px 0 rgba(255,255,255,.38);
+    filter:saturate(1.08);
+}
+
