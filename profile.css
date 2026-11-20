@@ -623,6 +623,18 @@ body.dark .follow-profile-btn.is-following{
     border-radius:clamp(13px,2.4vw,22px);
     background:linear-gradient(145deg,#795b50,#a9887a);
     color:#fff;
+    text-decoration:none;
+    cursor:pointer;
+    transition:transform .2s ease,box-shadow .2s ease,filter .2s ease;
+}
+.identity-side-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(121,91,80,.2);
+    filter:saturate(1.06);
+}
+.identity-side-card:focus-visible{
+    outline:3px solid #d8b95e;
+    outline-offset:3px;
 }
 
 .premium-crown{
