@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="community-components-compat.css">
   <link rel="stylesheet" href="community.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -29,6 +30,12 @@
         </div>
 
         <div class="top-actions">
+          <button class="call-shortcut video-shortcut" id="videoCallShortcut" type="button" aria-label="بدء مكالمة فيديو" title="مكالمة فيديو">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 8.5 21 5.8v12.4l-5.5-2.7v2A1.5 1.5 0 0 1 14 19H4.5A1.5 1.5 0 0 1 3 17.5v-11A1.5 1.5 0 0 1 4.5 5H14a1.5 1.5 0 0 1 1.5 1.5v2Z"/></svg>
+          </button>
+          <button class="call-shortcut voice-shortcut" id="voiceRoomShortcut" type="button" aria-label="فتح الغرفة الصوتية" title="الغرفة الصوتية">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-6 8a1 1 0 0 1 2 0 4 4 0 0 0 8 0 1 1 0 1 1 2 0 6 6 0 0 1-5 5.92V20h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-3.08A6 6 0 0 1 6 11Z"/></svg>
+          </button>
           <button class="profile-button" id="profileButton" type="button" aria-label="الملف الشخصي">
             <span class="avatar-fallback">U</span>
             <span class="online-dot"></span>
@@ -147,34 +154,34 @@
       </section>
 
       <section class="room-tabs" role="tablist" aria-label="أقسام المجتمع">
-        <button class="room-tab active" data-tab="general" role="tab" aria-selected="true">
+        <button class="room-tab active" id="tab-general" data-tab="general" role="tab" aria-controls="generalPanel" aria-selected="true" tabindex="0">
           <span class="tab-icon"><span class="material-icons-round">public</span></span>
           <span><b>الغرفة العامة</b><small>النقاشات والمنشورات العامة</small></span>
         </button>
 
-        <button class="room-tab" data-tab="members" role="tab" aria-selected="false">
+        <button class="room-tab" id="tab-members" data-tab="members" role="tab" aria-controls="membersPanel" aria-selected="false" tabindex="-1">
           <span class="tab-icon"><span class="material-icons-round">group</span></span>
           <span><b>الأعضاء</b><small>اكتشف أعضاء المجتمع</small></span>
         </button>
 
-        <button class="room-tab" data-tab="files" role="tab" aria-selected="false">
+        <button class="room-tab" id="tab-files" data-tab="files" role="tab" aria-controls="filesPanel" aria-selected="false" tabindex="-1">
           <span class="tab-icon"><span class="material-icons-round">folder</span></span>
           <span><b>الملفات المشتركة</b><small>صور وملفات المجتمع</small></span>
         </button>
 
-        <button class="room-tab" data-tab="topics" role="tab" aria-selected="false">
+        <button class="room-tab" id="tab-topics" data-tab="topics" role="tab" aria-controls="topicsPanel" aria-selected="false" tabindex="-1">
           <span class="tab-icon"><span class="material-icons-round">add</span></span>
           <span><b>مواضيع أخرى</b><small>اقترح نقاشًا جديدًا</small></span>
         </button>
 
-        <button class="room-tab" data-tab="rooms" role="tab" aria-selected="false">
+        <button class="room-tab" id="tab-rooms" data-tab="rooms" role="tab" aria-controls="roomsPanel" aria-selected="false" tabindex="-1">
           <span class="tab-icon"><span class="material-icons-round">forum</span></span>
           <span><b>منتدياتي</b><small>أنشئ منتداك وأدر أعضاءه</small></span>
         </button>
       </section>
 
       <section class="content-layout">
-        <section class="chat-card" id="generalPanel">
+        <section class="chat-card" id="generalPanel" role="tabpanel" aria-labelledby="tab-general" aria-hidden="false">
           <div class="chat-head">
             <div class="chat-title">
               <span class="room-status-icon"><span class="material-icons-round">public</span></span>
@@ -304,7 +311,7 @@
         </aside>
       </section>
 
-      <section class="secondary-panel hidden" id="membersPanel">
+      <section class="secondary-panel hidden" id="membersPanel" role="tabpanel" aria-labelledby="tab-members" aria-hidden="true">
         <div class="panel-heading">
           <div>
             <span class="eyebrow">COMMUNITY</span>
@@ -321,7 +328,7 @@
         <div class="private-conversations hidden" id="privateConversations"></div>
       </section>
 
-      <section class="secondary-panel hidden shared-files-panel" id="filesPanel">
+      <section class="secondary-panel hidden shared-files-panel" id="filesPanel" role="tabpanel" aria-labelledby="tab-files" aria-hidden="true">
         <div class="panel-heading shared-files-heading">
           <div>
             <span class="eyebrow">COMMUNITY FILES</span>
@@ -342,7 +349,7 @@
         </div>
       </section>
 
-      <section class="secondary-panel hidden" id="topicsPanel">
+      <section class="secondary-panel hidden" id="topicsPanel" role="tabpanel" aria-labelledby="tab-topics" aria-hidden="true">
         <div class="empty-panel">
           <span class="material-icons-round">forum</span>
           <h2>مواضيع المجتمع</h2>
@@ -352,7 +359,7 @@
       </section>
 
       <!-- منتديات الأعضاء الخاصة -->
-      <section class="secondary-panel hidden forums-panel" id="roomsPanel">
+      <section class="secondary-panel hidden forums-panel" id="roomsPanel" role="tabpanel" aria-labelledby="tab-rooms" aria-hidden="true">
         <div class="forum-panel-heading">
           <div>
             <span class="eyebrow">YOUR COMMUNITY SPACES</span>
@@ -373,7 +380,7 @@
         <div class="forum-room-grid" id="roomList" aria-live="polite"><div class="forum-empty-state">جاري تحميل المنتديات...</div></div>
       </section>
 
-      <section class="secondary-panel hidden forum-chat-panel" id="roomChatPanel">
+      <section class="secondary-panel hidden forum-chat-panel" id="roomChatPanel" role="tabpanel" aria-label="محادثة المنتدى" aria-hidden="true">
         <div class="forum-chat-heading">
           <button class="forum-back-button" id="backToRooms" type="button" aria-label="العودة إلى المنتديات"><span class="material-icons-round">arrow_forward</span></button>
           <div class="forum-room-identity"><span class="forum-room-symbol"><span class="material-icons-round">forum</span></span><div><h2 id="forumRoomName">منتدى</h2><p id="forumRoomDescription">مساحة نقاش الأعضاء</p></div></div>
