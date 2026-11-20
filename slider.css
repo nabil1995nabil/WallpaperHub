@@ -85,7 +85,8 @@
     display: block;
     transform: scale(1.12);
     transition: transform 1.6s var(--sl-ease);
-    filter: brightness(1.02) contrast(1.08) saturate(1.1);
+    filter: brightness(1.01) contrast(1.03) saturate(1.03);
+    image-rendering: auto;
     -webkit-user-drag: none;
 }
 
@@ -565,4 +566,19 @@
 
 .slider-section{
     overflow-x: clip;
+}
+
+
+@media (prefers-reduced-motion: reduce){
+    .slide,
+    .slide img,
+    .slide.active .slider-title,
+    .slide.active .slider-view-button,
+    .mini-card{
+        animation:none !important;
+        transition:none !important;
+    }
+    .slider-progress.run{
+        animation:none !important;
+    }
 }
