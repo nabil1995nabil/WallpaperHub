@@ -226,7 +226,8 @@ function isQualifyingActivity(entry) {
   const type = String(entry.reward_type || "").toLowerCase();
   if (["like", "comment"].includes(type)) return true;
   if (reason.includes("wallpaper_like") || reason.includes("wallpaper_comment")) return true;
-  return /(publish|upload|submission)/.test(reason) && !/(download|delete)/.test(reason);
+  if (/(publish|published|upload|submission)/.test(reason)) return !/(download|delete)/.test(reason);
+  return reason.includes("wallpaper") && !/(like|comment|download|delete)/.test(reason);
 }
 
 function getActivityEvents(entries) {
