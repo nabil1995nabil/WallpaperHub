@@ -5188,6 +5188,7 @@ app.get("/api/recommendations", async (req, res) => {
 // ======================================
 
 const HOME_CATEGORY_KEYS = [
+    "religious",
     "nature",
     "anime",
     "cars",
