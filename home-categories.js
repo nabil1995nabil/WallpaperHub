@@ -289,7 +289,7 @@ async function initCategories() {
     return categoryInitPromise;
 }
 
-window.initHomeCategories = initCategories;window.initHomeCategories = initCategories;
+window.initHomeCategories = initCategories;
 window.renderHomeCategories = renderHomeCategories;
 
 document.addEventListener("DOMContentLoaded", () => {
