@@ -3,110 +3,95 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f5f7ff">
+  <meta name="theme-color" content="#f4f6fb">
   <title>نقاطي | WallpaperHub</title>
   <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="points.css?v=20261120-activity-redesign">
-  <link rel="stylesheet" href="points-activity.css?v=20261120-activity-redesign">
+  <link rel="stylesheet" href="points.css?v=20261120-clean-redesign">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
   <header class="points-header">
-    <a class="back-button" id="pointsBackBtn" href="profile.html" aria-label="رجوع إلى الحساب"><span class="material-icons">arrow_back</span></a>
-    <div class="header-title">
-      <span class="crown-icon material-icons" aria-hidden="true">workspace_premium</span>
-      <div><h1>نقاطي</h1><p>كل ما يتعلق بنقاطك ومكافآتك</p></div>
+    <div class="points-header-identity">
+      <a class="back-button" id="pointsBackBtn" href="profile.html" aria-label="العودة إلى الحساب"><span class="material-icons" aria-hidden="true">arrow_forward</span></a>
+      <div class="points-header-mark"><span class="material-icons" aria-hidden="true">workspace_premium</span></div>
+      <div class="points-header-copy"><h1>نقاطي</h1><p>رصيدك ومكافآتك وتقدمك</p></div>
     </div>
-    <a class="points-earn-cta" href="points-earn.html"><span class="material-icons">add_circle</span>احصل على نقاط</a>
+    <a class="points-earn-cta" href="points-earn.html"><span class="material-icons" aria-hidden="true">add</span><span>اجمع النقاط</span></a>
   </header>
 
   <main class="points-main">
     <section class="hero-card" aria-labelledby="balanceTitle">
-      <div class="hero-art" aria-hidden="true">
-        <div class="coin-glow"></div><div class="coin-stack stack-one"></div><div class="coin-stack stack-two"></div>
-        <div class="hero-coin"><span class="material-icons">star</span></div>
-        <span class="spark spark-one">✦</span><span class="spark spark-two">✧</span><span class="spark spark-three">✦</span>
-      </div>
-      <div class="hero-content">
-        <div class="eyebrow"><span class="material-icons">database</span><span id="balanceTitle">رصيد النقاط الحالي</span></div>
-        <div class="total" id="pointsTotal" aria-live="polite">…</div>
-        <div class="secure-pill"><span class="material-icons">verified_user</span>رصيدك محفوظ بأمان</div>
-        <p class="hero-note">الرصيد المعروض يأتي من الخادم، وليس من قيمة محفوظة في المتصفح.</p>
+      <div class="hero-main">
+        <div class="hero-content">
+          <div class="eyebrow"><span class="material-icons" aria-hidden="true">account_balance_wallet</span><span id="balanceTitle">رصيد النقاط الحالي</span></div>
+          <div class="total" id="pointsTotal" aria-live="polite">…</div>
+          <div class="secure-pill"><span class="material-icons" aria-hidden="true">verified_user</span><span>رصيدك محفوظ بأمان</span></div>
+          <p class="hero-note">كل نقطة تُضاف بعد تأكيد العملية من الخادم.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-orbit"></div><div class="hero-coin"><span class="material-icons">stars</span></div>
+          <span class="hero-spark spark-a">✦</span><span class="hero-spark spark-b">✧</span>
+        </div>
       </div>
       <div class="goal-row">
-        <div class="goal-label"><span class="goal-badge material-icons">stars</span><div><strong>1.00</strong><small>الهدف القادم</small></div></div>
-        <div class="goal-progress"><div class="goal-numbers"><strong id="goalCurrent">0.10 / 1.00</strong><span>نحو الهدف القادم</span></div><div class="progress-track"><span id="goalProgress"></span></div></div>
+        <div class="goal-label"><span class="goal-badge material-icons" aria-hidden="true">flag</span><div><strong>1.00</strong><small>الهدف القادم</small></div></div>
+        <div class="goal-progress">
+          <div class="goal-numbers"><strong id="goalCurrent">0.00 / 1.00</strong><span>التقدم نحو الهدف</span></div>
+          <div class="progress-track"><span id="goalProgress"></span></div>
+        </div>
       </div>
     </section>
 
     <nav class="points-quick-actions" aria-label="اختصارات النقاط">
       <a class="points-action points-action-info" href="points-earn.html">
-        <span class="material-icons" aria-hidden="true">info</span>
-        <span><strong>معلومات جمع النقاط</strong><small>شوف كيفاش تربح وتفاصيل المكافآت</small></span>
-        <span class="material-icons action-arrow" aria-hidden="true">arrow_back</span>
+        <span class="points-action-icon material-icons" aria-hidden="true">info</span>
+        <span class="points-action-copy"><strong>كيف أجمع النقاط؟</strong><small>شاهد المكافآت وطرق الربح</small></span>
+        <span class="material-icons action-arrow" aria-hidden="true">arrow_back_ios</span>
       </a>
       <a class="points-action points-action-chart" href="#activity-indicator">
-        <span class="material-icons" aria-hidden="true">show_chart</span>
-        <span><strong>مؤشر النشاط</strong><small>تابع الارتفاع والانخفاض مع الوقت</small></span>
-        <span class="material-icons action-arrow" aria-hidden="true">arrow_back</span>
+        <span class="points-action-icon material-icons" aria-hidden="true">show_chart</span>
+        <span class="points-action-copy"><strong>مؤشر نشاطي</strong><small>تابع تغير نشاط حسابك</small></span>
+        <span class="material-icons action-arrow" aria-hidden="true">arrow_back_ios</span>
       </a>
     </nav>
 
     <section class="earning-overview" aria-labelledby="earningOverviewTitle">
-      <div class="earning-overview-head">
-        <div><span class="section-kicker">EARN POINTS</span><h2 id="earningOverviewTitle">طرق جمع النقاط</h2><p>المكافآت تُحتسب بعد تأكيد العملية من الخادم.</p></div>
-        <a href="points-earn.html">التفاصيل <span class="material-icons">arrow_back</span></a>
+      <div class="section-heading-inline">
+        <div><span class="section-kicker">طرق المكافأة</span><h2 id="earningOverviewTitle">اجمع نقاطاً أكثر</h2><p>أنشطة بسيطة ترفع رصيدك داخل WallpaperHub</p></div>
+        <a class="text-link" href="points-earn.html">كل الطرق <span class="material-icons" aria-hidden="true">arrow_back</span></a>
       </div>
       <div class="earning-overview-grid">
-        <article class="earning-mini-card"><span class="material-icons">favorite</span><strong>+0.90</strong><small>إعجاب جديد بخلفية</small></article>
-        <article class="earning-mini-card"><span class="material-icons">chat_bubble</span><strong>+0.10</strong><small>تعليق منشور · حتى 10 مكافآت يومياً</small></article>
-        <article class="earning-mini-card"><span class="material-icons">schedule</span><strong>+0.25</strong><small>كل 10 دقائق نشاط فعلي</small></article>
-        <article class="earning-mini-card earning-ad-card"><span class="material-icons">ondemand_video</span><strong>+0.50</strong><small>لكل إعلان مكافأة مؤهل بعد تفعيله</small></article>
+        <article class="earning-mini-card earning-like"><span class="material-icons" aria-hidden="true">favorite</span><strong>+0.90</strong><small>إعجاب جديد بخلفية</small></article>
+        <article class="earning-mini-card earning-comment"><span class="material-icons" aria-hidden="true">chat_bubble</span><strong>+0.10</strong><small>تعليق منشور · 10 يومياً كحد أقصى</small></article>
+        <article class="earning-mini-card earning-active"><span class="material-icons" aria-hidden="true">schedule</span><strong>+0.25</strong><small>كل 10 دقائق نشاط فعلي</small></article>
+        <article class="earning-mini-card earning-ad-card"><span class="material-icons" aria-hidden="true">ondemand_video</span><strong>+0.50</strong><small>إعلان مكافأة مؤهل بعد تفعيله</small></article>
       </div>
     </section>
 
-    <section id="activity-indicator" class="wh-ai-card" aria-labelledby="activityIndicatorTitle">
+    <section class="wh-ai-card" id="activity-indicator" aria-labelledby="activityIndicatorTitle">
       <div class="wh-ai-top">
         <div class="wh-ai-heading">
           <span class="material-icons wh-ai-icon" aria-hidden="true">monitoring</span>
-          <div class="wh-ai-heading-copy">
-            <h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2>
-            <p>نشاطك يرفع المؤشر والخمول يخفضه تدريجياً</p>
-          </div>
+          <div class="wh-ai-heading-copy"><h2 id="activityIndicatorTitle">مؤشر نشاط الحساب</h2><p>النشر والإعجاب والتعليق يرفع المؤشر، والخمول يخفضه</p></div>
         </div>
         <div class="wh-ai-score">
           <div class="wh-ai-score-number"><strong id="activityIndexValue">0</strong><span>/100</span></div>
-          <div id="activityTrendChip" class="wh-ai-trend wh-ai-trend-down">
-            <span class="material-icons" aria-hidden="true">trending_down</span>
-            <span id="activityTrendText">بانتظار النشاط</span>
-          </div>
+          <div id="activityTrendChip" class="wh-ai-trend wh-ai-trend-down"><span class="material-icons" aria-hidden="true">trending_down</span><span id="activityTrendText">بانتظار النشاط</span></div>
         </div>
       </div>
-
       <div class="wh-ai-periods" role="group" aria-label="الفترة الزمنية للمؤشر">
         <button type="button" class="wh-ai-period" data-activity-range="24h" aria-pressed="false">24 ساعة</button>
         <button type="button" class="wh-ai-period is-selected" data-activity-range="7d" aria-pressed="true">7 أيام</button>
         <button type="button" class="wh-ai-period" data-activity-range="30d" aria-pressed="false">30 يوماً</button>
       </div>
-
       <div class="wh-ai-chart-row">
-        <div class="wh-ai-y-axis" aria-hidden="true">
-          <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
-        </div>
+        <div class="wh-ai-y-axis" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
         <div class="wh-ai-graph-box">
           <svg id="activityChart" class="wh-ai-graph wh-ai-down" viewBox="0 0 320 140" preserveAspectRatio="none" role="img" aria-label="منحنى تغير مؤشر نشاط الحساب">
-            <defs>
-              <linearGradient id="whAiFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="#12a875" stop-opacity=".22"/>
-                <stop offset="100%" stop-color="#12a875" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
+            <defs><linearGradient id="whAiFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#12a875" stop-opacity=".22"/><stop offset="100%" stop-color="#12a875" stop-opacity="0"/></linearGradient></defs>
             <g class="wh-ai-grid">
-              <line x1="0" y1="10" x2="320" y2="10"/>
-              <line x1="0" y1="40" x2="320" y2="40"/>
-              <line x1="0" y1="70" x2="320" y2="70"/>
-              <line x1="0" y1="100" x2="320" y2="100"/>
-              <line x1="0" y1="130" x2="320" y2="130"/>
+              <line x1="0" y1="10" x2="320" y2="10"/><line x1="0" y1="40" x2="320" y2="40"/>
+              <line x1="0" y1="70" x2="320" y2="70"/><line x1="0" y1="100" x2="320" y2="100"/><line x1="0" y1="130" x2="320" y2="130"/>
             </g>
             <path id="activityChartArea" class="wh-ai-area" d="M0 130 L320 130 L0 130 Z"/>
             <path id="activityChartLine" class="wh-ai-line" d="M0 130 L320 130"/>
@@ -114,72 +99,50 @@
           </svg>
         </div>
       </div>
-
-      <div class="wh-ai-x-axis">
-        <span id="activityRangeStart">قبل 7 أيام</span>
-        <span>الآن</span>
-      </div>
-
+      <div class="wh-ai-x-axis"><span id="activityRangeStart">قبل 7 أيام</span><span>الآن</span></div>
       <div class="wh-ai-details">
-        <div class="wh-ai-detail">
-          <span class="material-icons" aria-hidden="true">schedule</span>
-          <div><small>آخر نشاط</small><strong id="activityLastAction">لا يوجد نشاط بعد</strong></div>
-        </div>
-        <div class="wh-ai-detail">
-          <span class="material-icons" aria-hidden="true">insights</span>
-          <div><small>قيمة المؤشر</small><strong id="activityIndexStatus">0 من 100</strong></div>
-        </div>
+        <div class="wh-ai-detail"><span class="material-icons" aria-hidden="true">schedule</span><div><small>آخر نشاط مؤهل</small><strong id="activityLastAction">لا يوجد نشاط بعد</strong></div></div>
+        <div class="wh-ai-detail"><span class="material-icons" aria-hidden="true">insights</span><div><small>قيمة المؤشر الحالية</small><strong id="activityIndexStatus">0 من 100</strong></div></div>
       </div>
-      <p class="wh-ai-note">الإعجاب والتعليق والنشر ترفع المؤشر. دون نشاط، ينخفض تدريجياً إلى الصفر خلال 7 أيام. لا يتم خصم أي نقاط من رصيدك.</p>
+      <p class="wh-ai-note">كل نشاط مؤهل يرفع المؤشر، وإذا توقفت الأنشطة ينخفض تدريجياً إلى الصفر خلال 7 أيام. هذا مؤشر تشجيعي ولا يخصم من رصيد نقاطك.</p>
     </section>
 
-    <section class="level-card" aria-label="ملخص النقاط">
+    <section class="level-card" aria-label="ملخص النقاط والمستوى">
       <div class="level-top">
         <div class="level-medal"><span class="material-icons">star</span></div>
         <div class="level-name"><small>المستوى الحالي</small><strong>المبتدئ <span class="material-icons">chevron_right</span></strong></div>
-        <div class="level-target"><strong id="levelProgressText">0.1 / 1.0</strong><small>إلى المستوى التالي</small></div>
+        <div class="level-target"><strong id="levelProgressText">0.00 / 1.00</strong><small>إلى المستوى التالي</small></div>
       </div>
       <div class="progress-track level-track"><span id="levelProgress"></span></div>
       <div class="stats-grid">
-        <article class="stat stat-purple"><span class="material-icons">star</span><small>إجمالي النقاط</small><strong id="statTotal">—</strong></article>
-        <article class="stat stat-green"><span class="material-icons">wallpaper</span><small>الخلفيات المنشورة</small><strong id="statWallpapers">—</strong></article>
-        <article class="stat stat-blue"><span class="material-icons">local_fire_department</span><small>سجل العمليات</small><strong id="statOperations">—</strong></article>
-        <article class="stat stat-gold"><span class="material-icons">emoji_events</span><small>أعلى مكافأة</small><strong id="statBest">—</strong></article>
+        <article class="stat stat-purple"><span class="material-icons" aria-hidden="true">stars</span><small>إجمالي النقاط</small><strong id="statTotal">—</strong></article>
+        <article class="stat stat-green"><span class="material-icons" aria-hidden="true">wallpaper</span><small>الخلفيات المنشورة</small><strong id="statWallpapers">—</strong></article>
+        <article class="stat stat-blue"><span class="material-icons" aria-hidden="true">receipt_long</span><small>سجل العمليات</small><strong id="statOperations">—</strong></article>
+        <article class="stat stat-gold"><span class="material-icons" aria-hidden="true">emoji_events</span><small>أعلى مكافأة</small><strong id="statBest">—</strong></article>
       </div>
     </section>
 
-
     <section class="rank-path-card" aria-labelledby="rankPathTitle">
-      <div class="rank-path-heading">
-        <span class="material-icons">military_tech</span>
-        <div><h2 id="rankPathTitle">مسار الشارات والمستويات</h2><p>تقدّمك من مبتدئ حتى ماستر حسب مجموع نقاطك</p></div>
-      </div>
+      <div class="rank-path-heading"><span class="material-icons" aria-hidden="true">military_tech</span><div><h2 id="rankPathTitle">مسار الشارات والمستويات</h2><p>تقدمك من مبتدئ إلى ماستر حسب مجموع نقاطك</p></div></div>
       <div id="rankPathList" class="rank-path-list" aria-live="polite"></div>
     </section>
 
     <section class="history-section" aria-labelledby="historyTitle">
-      <div class="section-heading">
-        <div class="heading-icon"><span class="material-icons">history</span></div>
-        <div><h2 id="historyTitle">سجل النقاط</h2><p>جميع العمليات التي حصلت فيها على نقاط</p></div>
-      </div>
+      <div class="section-heading"><div class="heading-icon"><span class="material-icons" aria-hidden="true">history</span></div><div><h2 id="historyTitle">سجل النقاط</h2><p>راجع كل عملية أضافت نقاطاً إلى رصيدك</p></div></div>
       <div class="filter-tabs" role="group" aria-label="تصفية سجل النقاط">
-        <button type="button" class="filter-tab active" data-filter="all"><span class="material-icons">format_list_bulleted</span>الكل</button>
-        <button type="button" class="filter-tab" data-filter="publish"><span class="material-icons">cloud_upload</span>النشر</button>
-        <button type="button" class="filter-tab" data-filter="download"><span class="material-icons">download</span>التحميلات</button>
-        <button type="button" class="filter-tab" data-filter="reward"><span class="material-icons">redeem</span>المكافآت</button>
+        <button type="button" class="filter-tab active" data-filter="all" aria-pressed="true"><span class="material-icons" aria-hidden="true">format_list_bulleted</span>الكل</button>
+        <button type="button" class="filter-tab" data-filter="publish" aria-pressed="false"><span class="material-icons" aria-hidden="true">cloud_upload</span>النشر</button>
+        <button type="button" class="filter-tab" data-filter="download" aria-pressed="false"><span class="material-icons" aria-hidden="true">download</span>التحميلات</button>
+        <button type="button" class="filter-tab" data-filter="reward" aria-pressed="false"><span class="material-icons" aria-hidden="true">redeem</span>المكافآت</button>
       </div>
-      <div class="ledger-card">
-        <div id="pointsStatus" class="points-status">جارٍ تحميل السجل…</div>
-        <div id="pointsLedger" class="points-ledger"></div>
-      </div>
+      <div class="ledger-card"><div id="pointsStatus" class="points-status">جارٍ تحميل السجل…</div><div id="pointsLedger" class="points-ledger"></div></div>
     </section>
 
     <aside class="points-info">
-      <span class="material-icons info-icon">info</span>
-      <div><strong>معلومات مهمة</strong><p>تُضاف النقاط بعد تأكيد النشر أو الإعجاب أو التعليق أو وقت النشاط من الخادم. مكافآت التعليقات محدودة بـ10 يومياً، وكل إعجاب يُكافأ مرة واحدة لكل خلفية.</p></div>
+      <span class="material-icons" aria-hidden="true">info</span>
+      <div><strong>معلومات مهمة</strong><p>تُضاف النقاط بعد تأكيد النشر أو الإعجاب أو التعليق أو وقت النشاط من الخادم. مكافآت التعليقات محدودة بعشر مرات يومياً، وكل إعجاب يُكافأ مرة واحدة لكل خلفية.</p></div>
     </aside>
   </main>
-
-  <script type="module" src="points.js?v=20261120-activity-redesign"></script>
+  <script type="module" src="points.js?v=20261120-clean-redesign"></script>
 </body>
 </html>
