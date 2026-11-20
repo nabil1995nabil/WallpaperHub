@@ -302,6 +302,7 @@ function fallbackTags(file){
     const title = document.getElementById("wallTitle")?.value || "";
     const name = (file?.name || "").replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ");
     const map = {
+        religious:["religious","islamic","quran","mosque","faith","spiritual","dua","dhikr"],
         nature:["nature","landscape","scenery","outdoors"], cars:["car","automotive","vehicle","road"],
         games:["gaming","game","video game"], space:["space","galaxy","cosmos","stars"],
         amoled:["amoled","dark","black"], animals:["animals","wildlife"], anime:["anime","illustration"],
