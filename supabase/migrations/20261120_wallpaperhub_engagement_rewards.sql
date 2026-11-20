@@ -242,4 +242,6 @@ grant execute on function public.award_wallpaperhub_engagement_reward(uuid, text
 grant execute on function public.record_wallpaperhub_active_time_reward(uuid) to service_role;
 grant execute on function public.get_wallpaperhub_reward_points_total(uuid) to service_role;
 
+notify pgrst, 'reload schema';
+
 commit;
