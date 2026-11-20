@@ -5,25 +5,21 @@ console.log("HOME JS LOADED");
 // =======================================
 
 function getImageUrl(image) {
-
-    if(!image){
-        return "assets/logo/no-image.png";
-    }
-
-    if(image.startsWith("http")){
-        return image;
-    }
-
-    if(image.startsWith("assets/")){
-        return image;
-    }
-
-    return "assets/wallpapers/" + image;
-
+    if(!image) return "/assets/logo/no-image.png";
+    const value=String(image).trim();
+    if(/^(https?:|data:|blob:|\/\/)/i.test(value) || value.startsWith("/")) return value;
+    if(value.startsWith("assets/")) return value;
+    return "assets/wallpapers/" + value;
 }
 
+function escapeHomeHtml(value){
+    return String(value ?? "").replace(/[&<>"']/g,character=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[character]));
+}
 
 // =======================================
+// Detect Video Wallpaper// =======================================
 // Detect Video Wallpaper
 // =======================================
 
@@ -68,6 +64,8 @@ function isGifMedia(wallpaper){
 let wallpapers = [];
 let personalizedRecommendations = [];
 let recommendationsLoaded = false;
+let popularWallpaperCache = [];
+let likedWallpaperCache = [];
 
 function getSupabaseAccessTokenFromBrowser(){
     try{
@@ -188,24 +186,23 @@ document.getElementById("otherWallpapers");
 // تحميل البيانات
 // =======================================
 async function loadWallpapers() {
-
     try {
+        const response = await fetch("/api/wallpapers", {
+            method:"GET",
+            headers:{Accept:"application/json"},
+            cache:"default"
+        });
+        if(!response.ok) throw new Error("Wallpapers API " + response.status);
+        const data = await response.json();
+        if(!Array.isArray(data)) throw new Error("Wallpapers API returned an invalid response");
 
-        const response = await fetch(
-    "/api/wallpapers?_=" + Date.now()
-);
+        wallpapers = data;
+        window.WallpaperHubHomeWallpapers = wallpapers;
+        window.dispatchEvent(new CustomEvent("wallpaperhub:home-wallpapers-ready", {detail:{wallpapers}}));
+        popularWallpaperCache = wallpapers.slice().sort((a,b)=>(Number(b.downloads)||0)-(Number(a.downloads)||0));
+        likedWallpaperCache = wallpapers.slice().sort((a,b)=>(Number(b.likes)||0)-(Number(a.likes)||0));
+        if(typeof window.renderHomeCategories === "function") window.renderHomeCategories(wallpapers);
 
-        const text = await response.text();
-
-        console.log("API RESPONSE:", text);
-
-        try {
-            wallpapers = JSON.parse(text);
-        }
-        catch(e){
-            console.error("Invalid API JSON:", text);
-            return;
-        }
         initSlider(wallpapers);
         renderPopular();
         renderDownloaded();
@@ -214,118 +211,58 @@ async function loadWallpapers() {
         renderWeatherTime();
         renderRecommended();
         createDynamicSections();
-        renderOtherWallpapers();
-        // تحميل التوصيات الشخصية من الخادم بعد تحميل الخلفيات الأساسية.
-        await loadPersonalizedRecommendations();
-
-    } catch(err) {
-
-        console.error("API wallpapers error:", err);
-
+        scheduleOtherWallpapers();
+        void loadPersonalizedRecommendations();
+        return wallpapers;
+    } catch(error) {
+        console.error("API wallpapers error:",error);
+        wallpapers = [];
+        popularWallpaperCache = [];
+        likedWallpaperCache = [];
+        window.WallpaperHubHomeWallpapers = wallpapers;
+        window.dispatchEvent(new CustomEvent("wallpaperhub:home-wallpapers-ready", {detail:{wallpapers}}));
+        if(typeof window.renderHomeCategories === "function") window.renderHomeCategories(wallpapers);
+        renderRecommended();
+        return wallpapers;
     }
-
 }
 
 // =======================================
+// إنشاء بطاقة الخلفية// =======================================
 // إنشاء بطاقة الخلفية
 // Image + Video Support
 // =======================================
 
 function createWallpaperCard(wall) {
-
+    if(!wall) return "";
+    const imageUrl = escapeHomeHtml(getImageUrl(wall.thumbnail || wall.image || ""));
+    const alt = escapeHomeHtml(wall.title || "Wallpaper");
+    const fallback = "/assets/logo/no-image.png";
     let mediaHTML = "";
-
-
-    // GIF متحرك: استخدم الملف الأصلي، وليس thumbnail ثابت.
-    if(isGifMedia(wall)){
-
-        mediaHTML = `
-
-        <img
-        src="${getImageUrl(wall.image)}"
-        alt="${wall.title || 'Wallpaper'}"
-        loading="lazy"
-        decoding="async"
-        onerror="this.src='assets/logo/no-image.png'">
-
-        `;
-
-    // فيديو
-    }else if(isVideoMedia(wall)){
-
-        mediaHTML = `
-
-        <div class="video-preview">
-
-            <video
-            src="${getImageUrl(wall.image)}"
-            muted
-            loop
-            autoplay
-            playsinline
-            preload="metadata">
-            </video>
-
-            <div class="video-icon">
-                ▶
-            </div>
-
-        </div>
-
-        `;
-
-
+    if(isVideoMedia(wall)){
+        mediaHTML = '<div class="video-preview"><img src="' + imageUrl + '" alt="' + alt + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'' + fallback + '\'"><span class="video-icon" aria-hidden="true">▶</span></div>';
     }else{
-
-
-        // صورة
-
-        mediaHTML = `
-
-        <img
-
-        src="${getImageUrl(
-            wall.thumbnail || wall.image
-        )}"
-
-        alt="${wall.title || 'Wallpaper'}"
-
-        loading="lazy"
-
-        onerror="this.src='assets/logo/no-image.png'">
-
-        `;
-
+        mediaHTML = '<img src="' + imageUrl + '" alt="' + alt + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'' + fallback + '\'">';
     }
 
-
-
-// افتح معرض WallpaperHub حتى للصور القادمة من Pixabay.
-const cardAction = wall.source === "pixabay"
-        ? `openExternalWallpaper('${encodeURIComponent(JSON.stringify({
-            id: String(wall.id || ""),
-            title: String(wall.title || "خلفية"),
-            image: String(wall.image || wall.thumbnail || ""),
-            thumbnail: String(wall.thumbnail || wall.image || ""),
-            category: String(wall.category || "other"),
-            source: "pixabay",
-            pageURL: String(wall.pageURL || ""),
-            downloads: Number(wall.downloads || 0),
-            likes: Number(wall.likes || 0)
-        }))}')`
-        : `openWallpaper('${String(wall.id ?? "").replace(/'/g, "%27")}')`;
-
-return `
-
-<div class="wall-card"
-onclick="${cardAction}">
-
-${mediaHTML}
-
-</div>
-
-`;
-
+    let cardAction;
+    if(wall.source === "pixabay"){
+        const external = {
+            id:String(wall.id || ""),
+            title:String(wall.title || "خلفية"),
+            image:String(wall.image || wall.thumbnail || ""),
+            thumbnail:String(wall.thumbnail || wall.image || ""),
+            category:String(wall.category || "other"),
+            source:"pixabay",
+            pageURL:String(wall.pageURL || ""),
+            downloads:Number(wall.downloads || 0),
+            likes:Number(wall.likes || 0)
+        };
+        cardAction = "openExternalWallpaper('" + encodeURIComponent(JSON.stringify(external)) + "')";
+    }else{
+        cardAction = "openWallpaper('" + String(wall.id ?? "").replace(/'/g,"%27") + "')";
+    }
+    return '<div class="wall-card" onclick="' + cardAction + '">' + mediaHTML + '</div>';
 }
 
 window.toggleFavorite =
@@ -440,10 +377,7 @@ function renderWeatherTime() {
         [pool[i], pool[j]] = [pool[j], pool[i]];
     }
 
-    weatherTimeContainer.innerHTML = "";
-    pool.slice(0, 8).forEach(wall => {
-        weatherTimeContainer.insertAdjacentHTML("beforeend", createWallpaperCard(wall));
-    });
+    weatherTimeContainer.innerHTML = pool.slice(0,8).map(createWallpaperCard).join("");
 
     if (!pool.length) {
         weatherTimeContainer.innerHTML =
@@ -476,12 +410,7 @@ function renderRecommended() {
             ? personalizedRecommendations
             : wallpapers.filter(w => w.featured).slice(0,8);
 
-    source
-        .slice(0,8)
-        .forEach(wall => {
-            recommendedContainer.innerHTML +=
-                createWallpaperCard(wall);
-        });
+    recommendedContainer.innerHTML = source.slice(0,8).map(createWallpaperCard).join("");
 
 }
 
@@ -567,137 +496,77 @@ async function renderOtherWallpapers() {
 // =======================================
 
 function createDynamicSections() {
-
-    if (!dynamicSections) return;
-
-    dynamicSections.innerHTML = "";
-
+    if(!dynamicSections) return;
+    dynamicSections.replaceChildren();
     const categories = [
-        "religious",
-        "nature",
-        "cars",
-        "games",
-        "space",
-        "ai",
-        "amoled",
-        "animals",
-        "anime",
-        "city",
-        "dark",
-        "4k",
-        "sports",
-        "minimal",
-        "rain",
-        "sunset",
-        "architecture",
-        "deep-space",
-        "snow",
-        "aurora",
-        "cyberpunk",
-        "gradients"
+        "religious","nature","cars","games","space","ai","amoled","animals",
+        "anime","city","dark","4k","sports","minimal","rain","sunset",
+        "architecture","deep-space","snow","aurora","cyberpunk","gradients"
     ];
-
-    categories.forEach(category => {
-
-        const section =
-            document.createElement("section");
-
-        section.className = "wall-section";
-
-        section.innerHTML = `
-
-            <div class="title">
-
-                <h3>
-                    ${categoryNames[category] || category}
-                </h3>
-
-                <a href="all-wallpapers.html?category=${encodeURIComponent(category)}">
-                    عرض الكل
-                </a>
-
-            </div>
-
-            <div
-                class="wall-grid"
-                id="section-${category}">
-            </div>
-
-        `;
-
+    let observer = null;
+    if("IntersectionObserver" in window){
+        observer = new IntersectionObserver(entries=>{
+            entries.forEach(entry=>{
+                if(!entry.isIntersecting) return;
+                const category=entry.target.dataset.homeCategory;
+                if(category) renderCategory(category);
+                observer.unobserve(entry.target);
+            });
+        },{rootMargin:"850px 0px",threshold:0.01});
+    }
+    categories.forEach(category=>{
+        const section=document.createElement("section");
+        section.className="wall-section home-dynamic-section";
+        section.dataset.homeCategory=category;
+        section.innerHTML='<div class="title"><h3>' + (categoryNames[category] || category) + '</h3><a href="all-wallpapers.html?category=' + encodeURIComponent(category) + '">عرض الكل</a></div>' +
+            '<div class="wall-grid" id="section-' + category + '" aria-label="' + (categoryNames[category] || category) + '"></div>';
         dynamicSections.appendChild(section);
-
-        renderCategory(category);
-
+        if(observer) observer.observe(section);
+        else renderCategory(category);
     });
-
 }
-// =======================================
-// عرض خلفيات القسم (نسخة محسنة)
-// =======================================
 
 function renderCategory(category) {
-
-    const container = document.getElementById(`section-${category}`);
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const targetCat = String(category || "").trim().toLowerCase();
-
-    const sectionWalls = wallpapers.filter(w => {
-        if (!w || !w.category) return false;
-        
-        const wallCat = String(w.category).trim().toLowerCase();
-
-        // 1. مطابقة مباشرة
-        if (wallCat === targetCat) return true;
-
-        // 2. مطابقة الأقسام الخاصة والأسماء العربية/البديلة
-        const aliasMap = {
-            "religious": ["ديني", "الدين", "الخلفيات الدينية", "اسلامي", "إسلامي", "قرآن", "قران", "quran", "islamic", "religion", "religious"],
-            "nature": ["طبيعة", "الطبيعة"],
-            "cars": ["سيارات", "السيارات"],
-            "games": ["العاب", "الألعاب"],
-            "space": ["فضاء", "الفضاء"],
-            "ai": ["ذكاء اصطناعي", "الذكاء الاصطناعي"],
-            "amoled": ["اموليد"],
-            "animals": ["حيوانات", "الحيوانات"],
-            "anime": ["انمي", "الأنمي"],
-            "city": ["مدن", "المدن"],
-            "dark": ["داكن", "مظلم"],
-            "4k": ["فور كي"],
-            "sports": ["رياضة", "الرياضة"],
-            "minimal": ["مينيمال"],
-            "rain": ["مطر", "المطر"],
-            "sunset": ["غروب", "الغروب"],
-            "architecture": ["عمارة", "العمارة"],
-            "deep-space": ["فضاء عميق", "الفضاء العميق"],
-            "snow": ["winter", "ثلج", "الثلج", "شتاء", "الشتاء"],
-            "aurora": ["aurora borealis", "الشفق القطبي", "الشفق"],
-            "cyberpunk": ["سايبربانك", "سايبر بانك"],
-            "gradients": ["gradient", "colors", "colours", "تدرجات", "التدرجات", "ألوان", "الوان"]
-        };
-
-        if (aliasMap[targetCat] && aliasMap[targetCat].includes(wallCat)) {
-            return true;
-        }
-
-        return false;
+    const container=document.getElementById("section-" + category);
+    if(!container || container.dataset.rendered === "true") return;
+    container.dataset.rendered = "true";
+    const targetCat=String(category || "").trim().toLowerCase();
+    const aliasMap={
+        religious:["ديني","الدين","الخلفيات الدينية","اسلامي","إسلامي","قرآن","قران","quran","islamic","religion","religious"],
+        nature:["طبيعة","الطبيعة"], cars:["سيارات","السيارات"], games:["العاب","الألعاب"],
+        space:["فضاء","الفضاء"], ai:["ذكاء اصطناعي","الذكاء الاصطناعي"], amoled:["اموليد"],
+        animals:["حيوانات","الحيوانات"], anime:["انمي","الأنمي"], city:["مدن","المدن"],
+        dark:["داكن","مظلم"], "4k":["فور كي"], sports:["رياضة","الرياضة"], minimal:["مينيمال"],
+        rain:["مطر","المطر"], sunset:["غروب","الغروب"], architecture:["عمارة","العمارة"],
+        "deep-space":["فضاء عميق","الفضاء العميق"], snow:["winter","ثلج","الثلج","شتاء","الشتاء"],
+        aurora:["aurora borealis","الشفق القطبي","الشفق"], cyberpunk:["سايبربانك","سايبر بانك"],
+        gradients:["gradient","colors","colours","تدرجات","التدرجات","ألوان","الوان"]
+    };
+    const matches=wallpapers.filter(w=>{
+        if(!w || !w.category) return false;
+        const wallCat=String(w.category).trim().toLowerCase();
+        return wallCat===targetCat || (aliasMap[targetCat] || []).includes(wallCat);
     });
+    if(!matches.length){
+        container.closest(".home-dynamic-section")?.classList.add("is-empty");
+        return;
+    }
+    container.innerHTML=matches.slice().reverse().slice(0,6).map(createWallpaperCard).join("");
+}
 
-    console.log(`SECTION [${targetCat}] Found:`, sectionWalls.length);
-
-    sectionWalls
-        .slice()
-        .reverse()
-        .slice(0, 6)
-        .forEach(wall => {
-            container.innerHTML += createWallpaperCard(wall);
-        });
+function scheduleOtherWallpapers(){
+    if(!otherWallpapersContainer) return;
+    if(!("IntersectionObserver" in window)){ void renderOtherWallpapers(); return; }
+    const observer=new IntersectionObserver(entries=>{
+        if(!entries.some(entry=>entry.isIntersecting)) return;
+        observer.disconnect();
+        void renderOtherWallpapers();
+    },{rootMargin:"700px 0px",threshold:0.01});
+    observer.observe(otherWallpapersContainer);
 }
 
 // =======================================
+// فتح صفحة الخلفية// =======================================
 // فتح صفحة الخلفية
 // =======================================
 
@@ -780,20 +649,11 @@ function findWallpaper(id) {
 // =======================================
 
 function getPopularWallpapers() {
-
-    return wallpapers
-
-        .slice()
-
-        .sort(
-            (a, b) =>
-                (b.downloads || 0) -
-                (a.downloads || 0)
-        );
-
+    return popularWallpaperCache.length ? popularWallpaperCache.slice() : wallpapers.slice();
 }
 
 // =======================================
+// أحدث الخلفيات// =======================================
 // أحدث الخلفيات
 // =======================================
 
@@ -812,77 +672,25 @@ function getLatestWallpapers() {
 // ==============================
 
 function renderPopular() {
-
-    if (!popularContainer) return;
-
-    popularContainer.innerHTML = "";
-
-    wallpapers
-
-    .slice()
-
-    .sort((a,b)=>(b.downloads||0)-(a.downloads||0))
-
-    .slice(0,8)
-
-    .forEach(wall=>{
-
-        popularContainer.innerHTML +=
-        createWallpaperCard(wall);
-
-    });
-
+    if(!popularContainer) return;
+    popularContainer.innerHTML = popularWallpaperCache.slice(0,8).map(createWallpaperCard).join("");
 }
 
 // ==============================
 // الأكثر إعجاباً
 // ==============================
-
 function renderLiked() {
-
-    if (!likedContainer) return;
-
-    likedContainer.innerHTML = "";
-
-    wallpapers
-
-    .slice()
-
-    .sort((a,b)=>(b.likes||0)-(a.likes||0))
-
-    .slice(0,8)
-
-    .forEach(wall=>{
-
-        likedContainer.innerHTML +=
-        createWallpaperCard(wall);
-
-    });
-
+    if(!likedContainer) return;
+    likedContainer.innerHTML = likedWallpaperCache.slice(0,8).map(createWallpaperCard).join("");
 }
 
 function renderDownloaded() {
-
-    if (!downloadedContainer) return;
-
-    downloadedContainer.innerHTML = "";
-
-    wallpapers
-        .slice()
-        .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
-        .slice(0, 8)
-        .forEach(wall => {
-
-            downloadedContainer.innerHTML +=
-                createWallpaperCard(wall);
-
-        });
-
+    if(!downloadedContainer) return;
+    downloadedContainer.innerHTML = popularWallpaperCache.slice(0,8).map(createWallpaperCard).join("");
 }
 
-
-
 // ==============================
+// Notification Badge// ==============================
 // Notification Badge
 // ==============================
 
@@ -1006,19 +814,14 @@ if(navItems.length && indicator){
 // تحميل الصفحة
 // =======================================
 
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => {
-
-        loadWallpapers();
-}
-
-);
+document.addEventListener("DOMContentLoaded", () => {
+    if(!window.WallpaperHubHomeWallpapersPromise){
+        window.WallpaperHubHomeWallpapersPromise = loadWallpapers();
+    }
+},{once:true});
 
 
-/* COMMUNITY LIVE BACKGROUND — optimized for smooth mobile scrolling */
+/* COMMUNITY LIVE BACKGROUND/* COMMUNITY LIVE BACKGROUND — optimized for smooth mobile scrolling */
 (function(){
     function boot(){
         const section=document.querySelector(".community-section");
