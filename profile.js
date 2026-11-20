@@ -589,10 +589,35 @@ const profileTargetUID = String(
 const isPublicProfile = Boolean(profileTargetUID);
 let publicProfileLoaded = false;
 
-// Keep the Premium page connected to the exact profile currently being viewed.
-const premiumProfileCard = document.querySelector(".premium-card");
-if (premiumProfileCard) {
-    premiumProfileCard.href = `premium-user.html${profileTargetUID ? `?uid=${encodeURIComponent(profileTargetUID)}` : ""}`;
+// Premium navigation: use a root-relative URL and preserve the viewed profile UID.
+const premiumProfileCard = document.querySelector("[data-premium-link]");
+
+function getPremiumProfileUrl(){
+    const target = new URL("/premium-user.html", window.location.origin);
+    if(profileTargetUID){
+        target.searchParams.set("uid", profileTargetUID);
+    }
+    return target.pathname + target.search;
+}
+
+if(premiumProfileCard){
+    premiumProfileCard.href = getPremiumProfileUrl();
+    premiumProfileCard.setAttribute("aria-label", "فتح صفحة المستخدم المميز");
+
+    // Explicit navigation fallback for mobile browsers/webviews that fail to
+    // follow a dynamically updated anchor after touch interaction.
+    premiumProfileCard.addEventListener("click", event => {
+        if(
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        ) return;
+
+        event.preventDefault();
+        window.location.assign(getPremiumProfileUrl());
+    });
 }
 
 function isOwnProfile(){
