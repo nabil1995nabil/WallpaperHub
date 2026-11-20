@@ -4590,6 +4590,45 @@ app.get("/api/users/:uid/medals", async (req,res)=>{
         });
     }
 });
+app.get("/api/users/:uid/premium-access", async (req,res)=>{
+    try{
+        const uid=String(req.params.uid || "").trim();
+        if(!uid){
+            return res.status(400).json({success:false,message:"User UID is required"});
+        }
+
+        // Must stay aligned with founder-crown.js: this is the site's owner UID.
+        const founderUID="0bad1b2a-b993-45f2-992c-f18509d9fa34";
+        const isOwner=uid.toLowerCase()===founderUID.toLowerCase();
+        const result=await getUserMedals(uid);
+        const catalog=(Array.isArray(result.catalog)?result.catalog:[])
+            .filter(m=>String(m?.key || m?.medal_key || "").trim());
+        const ownedKeys=new Set((result.owned||[])
+            .map(m=>String(m?.key || m?.medal_key || "").trim())
+            .filter(Boolean));
+        const total=catalog.length;
+        const earned=catalog.filter(m=>ownedKeys.has(String(m.key || m.medal_key).trim())).length;
+        const allowed=isOwner || (total>0 && earned===total);
+
+        return res.json({
+            success:true,
+            userId:uid,
+            isOwner,
+            allowed,
+            total,
+            earned,
+            remaining:Math.max(0,total-earned)
+        });
+    }catch(error){
+        console.log("PREMIUM ACCESS CHECK ERROR:",error);
+        return res.status(500).json({
+            success:false,
+            allowed:false,
+            message:error?.message || "تعذر التحقق من استحقاق صفحة Premium"
+        });
+    }
+});
+
 
 
 // ======================================
