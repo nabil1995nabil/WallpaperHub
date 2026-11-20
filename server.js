@@ -435,21 +435,21 @@ function injectWallpaperHubLanguageRuntime(source){
             "gtag('js', new Date());",
             "gtag('config', '" + WALLPAPERHUB_GOOGLE_ANALYTICS_ID + "');",
             "</script>"
-        ].join("\\n");
-        if(/<head\\b[^>]*>/i.test(html)){
-            html=html.replace(/<head\\b[^>]*>/i, match => match + "\\n" + googleTag);
+        ].join("\n");
+        if(/<head\b[^>]*>/i.test(html)){
+            html=html.replace(/<head\b[^>]*>/i, match => match + "\n" + googleTag);
         }else{
-            html=googleTag + "\\n" + html;
+            html=googleTag + "\n" + html;
         }
     }
 
     if(!html.includes("data-wh-language-runtime")){
         const styleTag='<link rel="stylesheet" href="/language.css?v=20261118-silent-translation" data-wh-language-runtime="1">';
         const scriptTag='<script defer src="/language.js?v=20261118-silent-translation" data-wh-language-runtime="1"></script>';
-        if(/<\\/head\\s*>/i.test(html)) html=html.replace(/<\\/head\\s*>/i,styleTag+"\\n</head>");
-        else html=styleTag+"\\n"+html;
-        if(/<\\/body\\s*>/i.test(html)) html=html.replace(/<\\/body\\s*>/i,scriptTag+"\\n</body>");
-        else html+="\\n"+scriptTag;
+        if(/<\/head\s*>/i.test(html)) html=html.replace(/<\/head\s*>/i,styleTag+"\n</head>");
+        else html=styleTag+"\n"+html;
+        if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,scriptTag+"\n</body>");
+        else html+="\n"+scriptTag;
     }
     return html;
 }
