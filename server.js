@@ -414,15 +414,43 @@ async function getActiveFeatureBan(userId, prefix){
 
 const app = express();
 
+const WALLPAPERHUB_GOOGLE_ANALYTICS_ID = "G-YE6V0P7R13";
+
 function injectWallpaperHubLanguageRuntime(source){
-    if(typeof source!=="string" || source.includes("data-wh-language-runtime")) return source;
-    const styleTag='<link rel="stylesheet" href="/language.css?v=20261118-silent-translation" data-wh-language-runtime="1">';
-    const scriptTag='<script defer src="/language.js?v=20261118-silent-translation" data-wh-language-runtime="1"></script>';
+    if(typeof source!=="string") return source;
     let html=source;
-    if(/<\/head\s*>/i.test(html)) html=html.replace(/<\/head\s*>/i,styleTag+"\n</head>");
-    else html=styleTag+"\n"+html;
-    if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,scriptTag+"\n</body>");
-    else html+="\n"+scriptTag;
+
+    // Google Analytics 4 uses a G- measurement ID, so load gtag.js (not the
+    // Google Tag Manager container script gtm.js). Inject once on every page.
+    const hasGoogleTag = html.includes("data-wh-google-analytics") ||
+        html.includes("gtag/js?id=" + WALLPAPERHUB_GOOGLE_ANALYTICS_ID) ||
+        html.includes("gtm.js?id=" + WALLPAPERHUB_GOOGLE_ANALYTICS_ID);
+    if(!hasGoogleTag){
+        const googleTag = [
+            "<!-- Google tag (gtag.js) - WallpaperHub -->",
+            '<script async src="https://www.googletagmanager.com/gtag/js?id=' + WALLPAPERHUB_GOOGLE_ANALYTICS_ID + '"></script>',
+            '<script data-wh-google-analytics="1">',
+            "window.dataLayer = window.dataLayer || [];",
+            "function gtag(){dataLayer.push(arguments);}",
+            "gtag('js', new Date());",
+            "gtag('config', '" + WALLPAPERHUB_GOOGLE_ANALYTICS_ID + "');",
+            "</script>"
+        ].join("\\n");
+        if(/<head\\b[^>]*>/i.test(html)){
+            html=html.replace(/<head\\b[^>]*>/i, match => match + "\\n" + googleTag);
+        }else{
+            html=googleTag + "\\n" + html;
+        }
+    }
+
+    if(!html.includes("data-wh-language-runtime")){
+        const styleTag='<link rel="stylesheet" href="/language.css?v=20261118-silent-translation" data-wh-language-runtime="1">';
+        const scriptTag='<script defer src="/language.js?v=20261118-silent-translation" data-wh-language-runtime="1"></script>';
+        if(/<\\/head\\s*>/i.test(html)) html=html.replace(/<\\/head\\s*>/i,styleTag+"\\n</head>");
+        else html=styleTag+"\\n"+html;
+        if(/<\\/body\\s*>/i.test(html)) html=html.replace(/<\\/body\\s*>/i,scriptTag+"\\n</body>");
+        else html+="\\n"+scriptTag;
+    }
     return html;
 }
 app.use((req,res,next)=>{
