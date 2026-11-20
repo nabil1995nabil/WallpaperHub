@@ -20,7 +20,7 @@ function makeProfileUrl(uid){
 
 function setProfileLinks(uid){
   const url = makeProfileUrl(uid);
-  ["#profileBtn","#openProfileIcon","#bottomProfileBtn","#backBtn"].forEach(selector => {
+  ["#profileBtn","#openProfileIcon","#bottomProfileBtn","#backBtn","#premiumGateBack"].forEach(selector => {
     const link = $(selector);
     if(link) link.href = url;
   });
