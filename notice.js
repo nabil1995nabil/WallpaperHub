@@ -67,14 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function notificationTarget(notif) {
-    const type = String(notif.type || "");
-    if (type === "community_moderation" || type === "community_appeal_update") {
-      return "community-appeal.html";
-    }
-    if (type.startsWith("community_")) {
-      return communityUrl(notif.communityMessageId || notif.community_message_id || notif.messageId || "");
-    }
-    return wallpaperUrl(notif.wallpaperId);
+    const type = String(notif?.type || "");
+    if (type === "community_moderation" || type === "community_appeal_update") return "community-appeal.html";
+    if (type.startsWith("community_")) return communityUrl(notif.communityMessageId || notif.community_message_id || notif.messageId || "");
+    if (isFollowNotification(notif)) return profileUrl(notificationActorId(notif));
+    if (notif?.wallpaperId || notif?.wallpaper_id) return wallpaperUrl(notif.wallpaperId || notif.wallpaper_id);
+    return "notifications.html";
   }
 
   function showToast(message) {
@@ -133,16 +131,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function isUnread(n) { return !n.is_read && !n.read; }
   function typeCategory(type) {
-    if (type === "wallpaper_like" || type === "comment_like") return "like";
-    if (type === "wallpaper_comment") return "comment";
-    if (type === "wallpaper_mention" || type === "community_mention") return "mention";
-    if (["follow", "user_follow", "new_follower", "new_follow", "follow_user", "user_followed"].includes(String(type).toLowerCase())) return "follow";
-    if (type.startsWith("community_") || type === "community_moderation") return "community";
+    const value = String(type || "").toLowerCase();
+    if (["wallpaper_like","comment_like"].includes(value)) return "like";
+    if (["wallpaper_comment","comment_reply"].includes(value)) return "comment";
+    if (["wallpaper_mention","community_mention"].includes(value)) return "mention";
+    if (["follow","user_follow","new_follower","new_follow","follow_user","user_followed"].includes(value)) return "follow";
+    if (value === "new_wallpaper") return "wallpaper";
+    if (value.startsWith("community_")) return "community";
+    if (["account_verified","account_unverified","account_banned","account_unbanned","account_disabled","account_enabled","role_changed","admin_warning","medal_awarded","medal_removed"].includes(value)) return "account";
     return "other";
   }
 
   function searchable(n) {
-    return `${n.userName||""} ${n.content||""} ${n.commentText||""} ${n.wallpaperTitle||""} ${n.type||""}`.toLowerCase();
+    return `${n.userName||n.user_name||n.actorName||""} ${n.title||""} ${n.content||n.message||""} ${n.commentText||n.comment_text||""} ${n.wallpaperTitle||""} ${n.type||""}`.toLowerCase();
   }
 
   function renderNotificationCard(notif) {
@@ -160,7 +161,29 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (type === "comment_like") { category="like"; badge="❤️"; indicator="like-indicator"; quote=`<div class="comment-quote">"${commentText}"</div>`; }
     else if (type === "wallpaper_comment") { category="comment"; badge="💬"; indicator=""; quote=`<div class="comment-quote">💬 ${commentText || "تعليق جديد"}</div>`; }
     else if (type === "wallpaper_mention") { category="mention"; badge="@"; indicator="mention-indicator"; quote=`<div class="comment-quote mention-comment">💬 ${formatMentionText(notif.commentText || "تمت الإشارة إليك في تعليق")}</div>`; }
-    else return null;
+    else {
+      category = typeCategory(type);
+      const labels = {
+        new_wallpaper:["wallpaper","🖼️","خلفية جديدة"],
+        comment_reply:["comment","↩️","رد على تعليقك"],
+        account_verified:["account","✓","تم توثيق حسابك"],
+        account_unverified:["account","⚠️","تحديث حالة التوثيق"],
+        account_banned:["account","⛔","تم حظر حسابك"],
+        account_unbanned:["account","✓","تم إلغاء حظر حسابك"],
+        account_disabled:["account","⛔","تم تعطيل حسابك"],
+        account_enabled:["account","✓","تم تفعيل حسابك"],
+        role_changed:["account","🛡️","تحديث صلاحيات الحساب"],
+        admin_warning:["account","⚠️","تحذير من الإدارة"],
+        medal_awarded:["account","🏅","ميدالية جديدة"],
+        medal_removed:["account","🏅","تحديث الميداليات"],
+        new_follower:["follow","＋","متابع جديد"]
+      };
+      const fallback = labels[type] || ["other","🔔","إشعار جديد"];
+      category = fallback[0]; badge = fallback[1]; indicator = "";
+      quote = (notif.commentText || notif.wallpaperTitle)
+        ? `<div class="comment-quote">${escapeHTML(notif.commentText || notif.wallpaperTitle)}</div>`
+        : "";
+    }
 
     const contentHTML = type === "wallpaper_mention"
       ? formatMentionText(content || "أشار إليك في تعليق")
@@ -200,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const userName = escapeHTML(notif.userName || notif.user_name || notif.actorName || notif.actor_name || "مستخدم");
     const avatar = escapeHTML(notif.avatar || notif.avatarUrl || notif.avatar_url || "assets/images/user.png");
     const date = escapeHTML(notif.date || notif.created_at || "الآن");
-    const content = escapeHTML(notif.content || "بدأ بمتابعتك على WallpaperHub");
+    const content = escapeHTML(notif.content || notif.message || "بدأ بمتابعتك على WallpaperHub");
     const targetAttr = escapeHTML(target);
     return {
       category: "follow",
@@ -241,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatar = escapeHTML(notif.avatar || "assets/images/user.png");
     const userName = escapeHTML(notif.userName || (appeal ? "إدارة WallpaperHub" : "عضو المجتمع"));
     const date = escapeHTML(notif.date || "الآن");
-    const target = appeal ? "community-appeal.html" : communityUrl(notif.communityMessageId || notif.community_message_id || "");
+    const target = appeal ? "community-appeal.html" : communityUrl(notif.communityMessageId || notif.community_message_id || notif.messageId || "");
     return {
       category:"community",
       html:`
@@ -386,8 +409,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const fresh = next.filter(n => n.id && !lastNotificationIds.has(String(n.id)));
         if (fresh.length) {
           await playNotificationSound();
-          if (fresh[0]) await browserNotify(fresh[0]);
           showToast(fresh.length === 1 ? "🔔 وصل إشعار جديد" : `🔔 وصل ${fresh.length} إشعارات جديدة`);
+          window.dispatchEvent(new CustomEvent("wallpaperhub:notifications-updated"));
         }
       }
 
@@ -559,11 +582,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSettingUI(); unlockAudio();
     showToast(settings.sound?"🔊 الصوت مفعل":"🔇 الصوت متوقف");
   });
-  $("#browser-toggle").addEventListener("change",async e=>{
-    if(e.target.checked) await requestBrowserNotifications();
-    else {settings.browser=false;localStorage.setItem("notificationBrowser","off");updateSettingUI();}
-  });
-  $("#browser-btn").addEventListener("click",requestBrowserNotifications);
+  $("#browser-toggle").addEventListener("change",()=>{ location.href="settings.html#notifications"; });
+  $("#browser-btn").addEventListener("click",()=>{ location.href="settings.html#notifications"; });
   $("#auto-refresh-toggle").addEventListener("change",e=>{
     settings.auto=e.target.checked;
     localStorage.setItem("notificationAutoRefresh",settings.auto?"on":"off");
