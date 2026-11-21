@@ -138,3 +138,25 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
   .follow-avatar-button{flex-basis:42px}
   .follow-avatar-button .avatar-container{width:42px;height:42px}
 }
+
+/* Notice center reliability and dark-mode finishing */
+.settings-link{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;background:#4778ff;color:#fff;text-decoration:none;font-size:10px;font-weight:850;white-space:nowrap}
+.notif-card:focus-within{outline:2px solid rgba(71,120,255,.35);outline-offset:2px}
+.notif-card img{max-width:100%}
+.notif-card button:disabled{opacity:.55;cursor:not-allowed}
+.notif-card .notif-body{overflow-wrap:anywhere}
+@media(max-width:390px){.header-top{gap:7px}.header-top h1{font-size:16px}.title-area>p{font-size:8px}.header-actions .icon-btn{width:34px;height:34px}.settings-link{font-size:9px;padding:8px}}
+body.dark{--bg:#0c1220;--surface:#151e30;--surface-2:#1a263b;--line:#2a3850;--text:#edf2ff;--muted:#9ba9bf;background:radial-gradient(circle at 50% -8%,rgba(71,120,255,.13),transparent 32%),var(--bg);color:var(--text)}
+body.dark .notif-header,body.dark .smart-tools,body.dark .notif-card,body.dark .notifications-empty,body.dark .settings-panel{background:#151e30;border-color:#2a3850;color:#edf2ff}
+body.dark .search-box,body.dark .tab-btn,body.dark .smart-actions button,body.dark .back-btn,body.dark .icon-btn{background:#1b2940;border-color:#2d3d58;color:#cbd6e8}
+body.dark .tab-btn.active,body.dark .tab-btn b{background:#26365a;color:#a9bdff;border-color:#465e9a}
+body.dark .notif-text,body.dark .notif-text strong,body.dark .smart-title h2,body.dark .notifications-empty h3,body.dark .post-title{color:#edf2ff}
+body.dark .comment-quote,body.dark .settings-note{background:#1b2940;color:#c1cce0}
+body.dark .notif-card.unread{background:#1b2b45;border-color:#45649b}
+body.dark .community-help-strip{background:linear-gradient(115deg,#1b2946,#151e30);border-color:#34486f}
+body.dark .community-help-copy b{color:#dbe5ff}
+body.dark .community-notification{background:linear-gradient(110deg,#151e30,#19243a)}
+body.dark .setting-row{border-color:#2a3850}
+body.dark .setting-row b,body.dark .settings-head h3{color:#edf2ff}
+body.dark .setting-row small,body.dark .settings-note{color:#9ba9bf}
+body.dark .post-text{color:#bdc8da}

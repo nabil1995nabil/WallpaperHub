@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#f6f8fc">
 <title>الإشعارات | WallpaperHub</title>
-<link rel="stylesheet" href="notice.css">
+<link rel="stylesheet" href="notice.css?v=20261121-notice-repair-1">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -60,6 +60,9 @@
     <button class="tab-btn" data-filter="like"><span class="material-icons">favorite</span>الإعجابات</button>
     <button class="tab-btn" data-filter="comment"><span class="material-icons">chat_bubble</span>التعليقات</button>
     <button class="tab-btn" data-filter="follow"><span class="material-icons">person_add</span>المتابعات</button>
+    <button class="tab-btn" data-filter="wallpaper"><span class="material-icons">wallpaper</span>الخلفيات</button>
+    <button class="tab-btn" data-filter="community"><span class="material-icons">forum</span>المجتمع</button>
+    <button class="tab-btn" data-filter="account"><span class="material-icons">verified_user</span>الحساب</button>
     <button class="tab-btn" data-filter="admin"><span class="material-icons">campaign</span>الإعلانات</button>
   </nav>
 </header>
@@ -117,7 +120,7 @@
 
     <label class="setting-row">
       <span><span class="material-icons">desktop_windows</span><span><b>تنبيهات المتصفح</b><small>إظهار إشعار من نظام التشغيل عند وصول جديد</small></span></span>
-      <input id="browser-toggle" type="checkbox">
+      <a class="settings-link" href="settings.html#notifications">إدارة إشعارات الهاتف</a>
     </label>
 
     <label class="setting-row">
@@ -125,7 +128,7 @@
       <input id="auto-refresh-toggle" type="checkbox">
     </label>
 
-    <p class="settings-note">ملاحظة: المتصفح قد يمنع الصوت أو تنبيهات الجهاز قبل تفاعل المستخدم مع الصفحة. بعد أول نقرة أو لمسة يتم تهيئة الصوت.</p>
+    <p class="settings-note">إشعارات الهاتف الحقيقية تُفعّل من إعدادات WallpaperHub. عند تفعيلها يُسجّل هذا الجهاز لاستقبال التنبيهات حتى عند إغلاق الموقع.</p>
   </section>
 </div>
 
@@ -135,6 +138,7 @@
   <source src="assets/notification.wav" type="audio/wav">
 </audio>
 
+<script src="theme.js"></script>
 <script type="module" src="notice.js"></script>
   <script type="module" src="section-badges.js"></script>
 </body>
