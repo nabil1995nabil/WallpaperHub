@@ -475,23 +475,54 @@ function injectWallpaperHubLanguageRuntime(source){
         if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,activityTag+"\n</body>");
         else html+="\n"+activityTag;
     }
-    // Apply one shared appearance system to every HTML page, including older pages
-    // that did not previously include theme.js or css/theme.css.
-    const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261121-unified-theme" data-wh-global-theme="1">';
-    const existingThemeStyle = /<link\\b(?=[^>]*href=["'][^"']*css\\/theme\\.css(?:\\?[^"']*)?["'])[^>]*>/i;
-    if(existingThemeStyle.test(html)){
-        html = html.replace(existingThemeStyle, globalThemeStyle);
-    }else if(!html.includes("data-wh-global-theme")){
-        if(/<\\/head\\s*>/i.test(html)) html = html.replace(/<\\/head\\s*>/i, globalThemeStyle + "\\n</head>");
-        else html = globalThemeStyle + "\\n" + html;
+    // Apply one shared appearance system to every HTML page, including older
+    // pages that do not include the global theme assets themselves.
+    if(!html.includes("data-wh-global-theme")){
+        const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261121-unified-theme" data-wh-global-theme="1">';
+        const lowerHtml = html.toLowerCase();
+        const cssIndex = lowerHtml.indexOf("css/theme.css");
+        if(cssIndex >= 0){
+            const linkStart = lowerHtml.lastIndexOf("<link", cssIndex);
+            const linkEnd = lowerHtml.indexOf(">", cssIndex);
+            if(linkStart >= 0 && linkEnd >= 0){
+                html = html.slice(0, linkStart) + globalThemeStyle + html.slice(linkEnd + 1);
+            }else{
+                const headEnd = lowerHtml.indexOf("</head>");
+                if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + "\n" + html.slice(headEnd);
+                else html = globalThemeStyle + "\n" + html;
+            }
+        }else{
+            const headEnd = lowerHtml.indexOf("</head>");
+            if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + "\n" + html.slice(headEnd);
+            else html = globalThemeStyle + "\n" + html;
+        }
     }
 
-    // Move the shared theme controller to the head with defer so the saved mode
-    // is applied before DOMContentLoaded and without an extra homepage toggle.
-    const globalThemeScript = '<script defer src="/theme.js?v=20261121-unified-theme" data-wh-global-theme-script="1"></script>';
-    html = html.replace(/<script\\b(?=[^>]*src=["'][^"']*theme\\.js(?:\\?[^"']*)?["'])[^>]*>\\s*<\\/script>/gi, "");
-    if(/<\\/head\\s*>/i.test(html)) html = html.replace(/<\\/head\\s*>/i, globalThemeScript + "\\n</head>");
-    else html = globalThemeScript + "\\n" + html;
+    // Replace any older page-level theme.js tag with one deferred, shared controller.
+    if(!html.includes("data-wh-global-theme-script")){
+        let lowerHtml = html.toLowerCase();
+        let searchFrom = 0;
+        while(true){
+            const themeIndex = lowerHtml.indexOf("theme.js", searchFrom);
+            if(themeIndex < 0) break;
+            const scriptStart = lowerHtml.lastIndexOf("<script", themeIndex);
+            const openEnd = scriptStart >= 0 ? lowerHtml.indexOf(">", scriptStart) : -1;
+            const scriptEnd = openEnd >= 0 ? lowerHtml.indexOf("</script>", openEnd) : -1;
+            const openingTag = scriptStart >= 0 && openEnd >= 0 ? lowerHtml.slice(scriptStart, openEnd + 1) : "";
+            if(openingTag.includes("src=") && scriptEnd >= 0){
+                html = html.slice(0, scriptStart) + html.slice(scriptEnd + 9);
+                lowerHtml = html.toLowerCase();
+                searchFrom = scriptStart;
+            }else{
+                searchFrom = themeIndex + 8;
+            }
+        }
+
+        const globalThemeScript = '<script defer src="/theme.js?v=20261121-unified-theme" data-wh-global-theme-script="1"></script>';
+        const headEnd = html.toLowerCase().indexOf("</head>");
+        if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeScript + "\n" + html.slice(headEnd);
+        else html = globalThemeScript + "\n" + html;
+    }
 
     return html;
 }
