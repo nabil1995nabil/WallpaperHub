@@ -478,10 +478,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateSettingUI() {
     $("#sound-toggle").checked=settings.sound;
-    $("#browser-toggle").checked=settings.browser;
     $("#auto-refresh-toggle").checked=settings.auto;
+    let pushEnabled = false;
+    try {
+      const stored = JSON.parse(localStorage.getItem("wallpaperSettings") || "{}");
+      pushEnabled = stored.browserNotifications === true;
+    } catch {}
+    settings.browser = pushEnabled;
     $("#sound-btn").classList.toggle("active",settings.sound);
-    $("#browser-btn").classList.toggle("active",settings.browser);
+    $("#browser-btn").classList.toggle("active",pushEnabled);
   }
 
   function setupRealtime() {
@@ -582,7 +587,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSettingUI(); unlockAudio();
     showToast(settings.sound?"🔊 الصوت مفعل":"🔇 الصوت متوقف");
   });
-  $("#browser-toggle").addEventListener("change",()=>{ location.href="settings.html#notifications"; });
   $("#browser-btn").addEventListener("click",()=>{ location.href="settings.html#notifications"; });
   $("#auto-refresh-toggle").addEventListener("change",e=>{
     settings.auto=e.target.checked;
