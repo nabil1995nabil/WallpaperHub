@@ -7,6 +7,8 @@
     const icon = document.getElementById("bellIcon");
     if (!button || !badge) return;
 
+    const NOTIFICATIONS_PAGE = "/notifications.html";
+
     function getAccessToken() {
         try {
             for (let i = 0; i < localStorage.length; i++) {
@@ -14,8 +16,21 @@
                 if (!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
                 const raw = localStorage.getItem(key);
                 if (!raw) continue;
-                const session = JSON.parse(raw);
-                const token = String(session?.access_token || session?.currentSession?.access_token || "").trim();
+
+                let session;
+                try {
+                    session = JSON.parse(raw);
+                } catch (_) {
+                    if (!raw.startsWith("base64-")) continue;
+                    const binary = atob(raw.slice(7));
+                    const bytes = Uint8Array.from(binary, function (char) { return char.charCodeAt(0); });
+                    session = JSON.parse(new TextDecoder().decode(bytes));
+                }
+
+                const token = String(
+                    session && (session.access_token ||
+                    (session.currentSession && session.currentSession.access_token)) || ""
+                ).trim();
                 if (token) return token;
             }
         } catch (error) {
@@ -30,7 +45,7 @@
         badge.classList.toggle("badge-active", safeCount > 0);
         badge.hidden = safeCount === 0;
         button.setAttribute("aria-label", safeCount
-            ? `الإشعارات، ${safeCount} غير مقروء`
+            ? "الإشعارات، " + safeCount + " غير مقروء"
             : "الإشعارات");
     }
 
@@ -59,15 +74,16 @@
 
             const data = await response.json();
             const items = Array.isArray(data) ? data : [];
-            const unread = items.filter(item =>
-                item?.isRead === false || item?.is_read === false ||
-                (item?.isRead == null && item?.is_read == null)
-            ).length;
+            const unread = items.filter(function (item) {
+                return item && item.is_read === false;
+            }).length;
             renderCount(unread);
 
             if (unread > 0 && icon && !document.hidden) {
                 icon.classList.add("bell-shake");
-                window.setTimeout(() => icon.classList.remove("bell-shake"), 900);
+                window.setTimeout(function () {
+                    icon.classList.remove("bell-shake");
+                }, 900);
             }
         } catch (error) {
             // Keep the last known count if a transient network error occurs.
@@ -75,25 +91,32 @@
         }
     }
 
+    function openNotificationCenter() {
+        window.location.href = NOTIFICATIONS_PAGE;
+    }
+
     button.setAttribute("role", "link");
     button.setAttribute("tabindex", "0");
     button.setAttribute("aria-label", "الإشعارات");
-    button.addEventListener("click", () => {
-        window.location.href = "notice.html";
-    });
-    button.addEventListener("keydown", event => {
+    button.addEventListener("click", openNotificationCenter);
+    button.addEventListener("keydown", function (event) {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            window.location.href = "notice.html";
+            openNotificationCenter();
         }
     });
 
     loadNotificationCount();
-    const timer = window.setInterval(() => {
+    const timer = window.setInterval(function () {
         if (!document.hidden) loadNotificationCount();
     }, 30000);
-    document.addEventListener("visibilitychange", () => {
+
+    document.addEventListener("visibilitychange", function () {
         if (!document.hidden) loadNotificationCount();
     });
-    window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
+
+    window.addEventListener("wallpaperhub:notifications-updated", loadNotificationCount);
+    window.addEventListener("pagehide", function () {
+        window.clearInterval(timer);
+    }, { once: true });
 })();
