@@ -1,138 +1,38 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#03060a">
+    <title>الإشعارات | WallpaperHub</title>
 
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-<title>
-الإشعارات | WallpaperHub
-</title>
-
-
-
-<!-- Notifications Style -->
-<link rel="stylesheet" href="notifications.css">
-
-
-<!-- Theme -->
-<link rel="stylesheet" href="css/theme.css">
-
-
-<!-- Bottom Nav -->
-<link rel="stylesheet" href="css/bottom-nav.css">
-
-
-
-<!-- Material Icons -->
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-
+    <link rel="stylesheet" href="notifications.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-
-
 <body>
+    <main class="notifications-page" id="notiPage">
+        <header class="page-header">
+            <div class="header-title">
+                <span class="material-icons" aria-hidden="true">notifications</span>
+                <h1>مركز التحديثات</h1>
+            </div>
 
+            <button class="clear-all" id="clearBtn" type="button">
+                <span class="material-icons" aria-hidden="true">delete_outline</span>
+                مسح الكل
+            </button>
+        </header>
 
+        <section class="notifications-list" id="notificationsList" aria-live="polite" aria-busy="true">
+            <div class="loading-notifications">
+                <span class="material-icons" aria-hidden="true">sync</span>
+                جاري تحميل الإشعارات...
+            </div>
+        </section>
+    </main>
 
-<!-- صفحة الإشعارات -->
-
-<main class="notifications-page" id="notiPage">
-
-
-
-<header class="page-header">
-
-
-<div class="header-title">
-
-<span class="material-icons">
-notifications
-</span>
-
-
-<h1>
-مركز التحديثات
-</h1>
-
-</div>
-
-
-
-
-<button
-class="clear-all"
-id="clearBtn">
-
-<span class="material-icons">
-delete_outline
-</span>
-
-مسح الكل
-
-</button>
-
-
-</header>
-
-
-
-
-
-<!-- قائمة الإشعارات -->
-
-<section
-class="notifications-list"
-id="notificationsList">
-
-
-<div class="loading-notifications">
-
-<span class="material-icons">
-sync
-</span>
-
-
-جاري تحميل الإشعارات...
-
-</div>
-
-
-</section>
-
-
-
-
-</main>
-
-
-
-
-
-<!-- Bottom Navigation -->
-
-<div id="bottomNav"></div>
-
-
-
-
-
-<!-- Components -->
-
-<script src="js/components.js"></script>
-
-
-
-<!-- Notifications Logic -->
-
-<script src="notifications.js"></script>
-<script src="js/performance-engine.js"></script>
-
-
+    <script src="notifications.js"></script>
+    <script src="js/performance-engine.js"></script>
 </body>
-
-
 </html>
