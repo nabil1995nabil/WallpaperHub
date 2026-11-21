@@ -911,3 +911,338 @@ body.viewer-open,body.phone-preview-open{overflow:hidden}
 .comment-replies{margin-top:9px}
 .mention-tag{display:inline-block;padding:1px 5px;color:#d3c1ff;background:rgba(165,139,255,.15);border-radius:5px}
 .wallpaper-link-copy.copied{color:#fff;background:rgba(76,166,132,.28);border-color:rgba(107,214,176,.35)}
+
+
+/* =========================================================
+   Theme switch integration
+   Light is the default. theme.js adds body.dark when the
+   user's saved setting requests the dark appearance.
+========================================================= */
+body.wallpaper-detail-page:not(.dark){
+  color-scheme:light;
+  color:#211d2d;
+  background:
+    radial-gradient(ellipse at 10% 0%,rgba(151,121,224,.055),transparent 32rem),
+    radial-gradient(ellipse at 95% 22%,rgba(155,128,225,.035),transparent 35rem),
+    #fff;
+}
+body.wallpaper-detail-page.dark{color-scheme:dark}
+
+body.wallpaper-detail-page:not(.dark) .top-bar{
+  background:rgba(255,255,255,.93);
+  border-bottom-color:#eceaf2;
+  box-shadow:0 4px 20px rgba(26,20,45,.045);
+}
+body.wallpaper-detail-page:not(.dark) .brand-copy strong{color:#201b2e}
+body.wallpaper-detail-page:not(.dark) .brand-copy small{color:#89849a}
+body.wallpaper-detail-page:not(.dark) .icon-btn{
+  color:#514a61;
+  background:#fff;
+  border-color:#e9e6f0;
+  box-shadow:0 2px 8px rgba(32,23,53,.035);
+}
+body.wallpaper-detail-page:not(.dark) .icon-btn:hover{
+  color:#7054c4;
+  background:#f7f4ff;
+  border-color:#dcd2f6;
+}
+body.wallpaper-detail-page:not(.dark) #likeBtn.liked{
+  color:#ef547d;
+  background:#fff3f6;
+  border-color:#ffd4df;
+}
+body.wallpaper-detail-page:not(.dark) #likeBtn.liked .material-icons{color:#ef547d}
+body.wallpaper-detail-page:not(.dark) .page-intro{color:#8a8596}
+body.wallpaper-detail-page:not(.dark) .intro-mark{box-shadow:0 0 0 4px rgba(135,103,215,.09)}
+
+body.wallpaper-detail-page:not(.dark) .wallpaper-preview-wrapper{
+  background:
+    radial-gradient(ellipse at 50% 45%,rgba(130,104,194,.08),transparent 56%),
+    linear-gradient(145deg,#f7f6fb,#efedf5);
+  border-color:#e9e6ef;
+  box-shadow:0 18px 52px rgba(31,23,51,.12),inset 0 1px 0 rgba(255,255,255,.9);
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-preview-wrapper::after{
+  background:linear-gradient(180deg,rgba(15,12,25,.11),transparent 15%,transparent 76%,rgba(15,12,25,.2));
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-ambient-background{opacity:.12!important}
+body.wallpaper-detail-page:not(.dark) .preview-meta-row{color:#8e899c}
+body.wallpaper-detail-page:not(.dark) .preview-meta-row .material-icons{color:#8e77cc}
+body.wallpaper-detail-page:not(.dark) .quality-badge{
+  color:#fff;
+  background:rgba(24,20,37,.7);
+  border-color:rgba(255,255,255,.23);
+}
+body.wallpaper-detail-page:not(.dark) .more-options-btn,
+body.wallpaper-detail-page:not(.dark) .image-action-btn,
+body.wallpaper-detail-page:not(.dark) .wallpaper-nav-btn{
+  color:#fff;
+  background:rgba(26,22,38,.66);
+  border-color:rgba(255,255,255,.42);
+}
+body.wallpaper-detail-page:not(.dark) .options-menu{
+  background:rgba(255,255,255,.98);
+  border-color:#e9e5f1;
+  box-shadow:0 18px 45px rgba(29,22,45,.18);
+}
+body.wallpaper-detail-page:not(.dark) .option-menu-btn{color:#262135}
+body.wallpaper-detail-page:not(.dark) .option-menu-btn:hover{background:#f5f2fb}
+body.wallpaper-detail-page:not(.dark) .option-menu-label strong{color:#282238}
+body.wallpaper-detail-page:not(.dark) .option-menu-label small{color:#868095}
+
+body.wallpaper-detail-page:not(.dark) .wallpaper-header-info,
+body.wallpaper-detail-page:not(.dark) .wallpaper-quick-stats,
+body.wallpaper-detail-page:not(.dark) .detail-primary-actions{
+  background:#fff;
+  border-color:#ece9f2;
+  box-shadow:0 9px 30px rgba(30,22,48,.055);
+}
+body.wallpaper-detail-page:not(.dark) .eyebrow{color:#8062c9}
+body.wallpaper-detail-page:not(.dark) .wallpaper-page-title{color:#201b2c}
+body.wallpaper-detail-page:not(.dark) .description-box>span{color:#393248}
+body.wallpaper-detail-page:not(.dark) .description-box p{color:#6f6a7b}
+body.wallpaper-detail-page:not(.dark) .wallpaper-publisher-card{border-top-color:#eeebf3}
+body.wallpaper-detail-page:not(.dark) .wallpaper-publisher-avatar{
+  background:#f2eff8;
+  border-color:#e3dafa;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-publisher-name-row strong{color:#292337}
+body.wallpaper-detail-page:not(.dark) .wallpaper-verified-icon{color:#8c6bd5}
+body.wallpaper-detail-page:not(.dark) .wallpaper-publisher-role,
+body.wallpaper-detail-page:not(.dark) .publisher-arrow{color:#918b9d}
+
+body.wallpaper-detail-page:not(.dark) .quick-stat{
+  background:#faf9fc;
+  border-color:#f0edf5;
+}
+body.wallpaper-detail-page:not(.dark) .quick-stat-icon{
+  color:#795fc0;
+  background:#f0ebfb;
+}
+body.wallpaper-detail-page:not(.dark) .quick-stat-text strong{color:#262135}
+body.wallpaper-detail-page:not(.dark) .quick-stat-text span{color:#898395}
+body.wallpaper-detail-page:not(.dark) .detail-action-caption{color:#898395}
+body.wallpaper-detail-page:not(.dark) .detail-action-caption .material-icons{color:#58a98b}
+body.wallpaper-detail-page:not(.dark) .download-primary{
+  background:linear-gradient(112deg,#9674e8 0%,#805fd2 55%,#7050c2 100%);
+  box-shadow:0 10px 25px rgba(112,80,194,.2),inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+body.wallpaper-detail-page:not(.dark) .wallpaper-tabs-section{
+  background:#fff;
+  border-color:#ece9f2;
+  box-shadow:0 14px 42px rgba(30,22,48,.055);
+}
+body.wallpaper-detail-page:not(.dark) .tabs-heading h2{color:#211c2e}
+body.wallpaper-detail-page:not(.dark) .tabs-heading-mark{
+  color:#8064c7;
+  background:#f2edfc;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-tabs{
+  background:#f8f7fb;
+  border-color:#efedf3;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-tab{color:#777184}
+body.wallpaper-detail-page:not(.dark) .wallpaper-tab:hover{
+  color:#4f426f;
+  background:#f1eef8;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-tab.active{
+  color:#5d439e;
+  background:#f0ebfb;
+  border-color:#e5dcf7;
+  box-shadow:inset 0 1px 0 #fff;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-tab.active .material-icons{color:#7657c1}
+body.wallpaper-detail-page:not(.dark) .wallpaper-tab b{
+  color:#684cae;
+  background:#e4dcf7;
+}
+body.wallpaper-detail-page:not(.dark) .info-item{border-bottom-color:#efedf3}
+body.wallpaper-detail-page:not(.dark) .info-item>span:first-child,
+body.wallpaper-detail-page:not(.dark) .info-label{color:#797486}
+body.wallpaper-detail-page:not(.dark) .info-item>span:last-child{color:#292437}
+
+body.wallpaper-detail-page:not(.dark) .rating-panel{
+  background:#faf9fd;
+  border-color:#eeebf4;
+}
+body.wallpaper-detail-page:not(.dark) .rating-panel-head,
+body.wallpaper-detail-page:not(.dark) .rating-panel-footer{border-color:#ece9f2}
+body.wallpaper-detail-page:not(.dark) .rating-score strong{color:#282239}
+body.wallpaper-detail-page:not(.dark) .rating-score span,
+body.wallpaper-detail-page:not(.dark) .rating-summary-title,
+body.wallpaper-detail-page:not(.dark) .rating-row-number,
+body.wallpaper-detail-page:not(.dark) .rating-row-count,
+body.wallpaper-detail-page:not(.dark) .rating-footer-hint{color:#898396}
+body.wallpaper-detail-page:not(.dark) .rating-summary strong,
+body.wallpaper-detail-page:not(.dark) .rating-footer-total b{color:#4d3c79}
+body.wallpaper-detail-page:not(.dark) .rating-bar{background:#e9e6ef}
+body.wallpaper-detail-page:not(.dark) .rating-row-star{color:#9575d8}
+body.wallpaper-detail-page:not(.dark) .rating-row-star:hover,
+body.wallpaper-detail-page:not(.dark) .rating-row-star.active,
+body.wallpaper-detail-page:not(.dark) .rating-row-star.pressed,
+body.wallpaper-detail-page:not(.dark) .rating-row.selected-rating-row .rating-row-star{
+  color:#d89d24;
+  background:#fff5df;
+}
+body.wallpaper-detail-page:not(.dark) .rating-row.has-ratings .rating-row-number{color:#3e3651}
+
+body.wallpaper-detail-page:not(.dark) .subsection-heading h3,
+body.wallpaper-detail-page:not(.dark) .section-title h3{color:#282237}
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-card{
+  background:#fbfaff;
+  border-color:#eeeaf5;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-icon{
+  color:#795dc4;
+  background:#f0ebfb;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-text strong{color:#30283f}
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-text span{color:#8b8599}
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-copy{
+  color:#7255b8;
+  background:#f1edfa;
+  border-color:#e7e0f4;
+}
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-copy:hover,
+body.wallpaper-detail-page:not(.dark) .wallpaper-link-copy.copied{
+  color:#fff;
+  background:#8063c6;
+}
+body.wallpaper-detail-page:not(.dark) .color-item{
+  color:#393149;
+  background:#fbfaff;
+  border-color:#ece8f3;
+}
+body.wallpaper-detail-page:not(.dark) .color-swatch{border-color:rgba(36,28,54,.16)}
+body.wallpaper-detail-page:not(.dark) .color-hex{color:#514a60}
+body.wallpaper-detail-page:not(.dark) .color-copy-btn{color:#7458b6}
+body.wallpaper-detail-page:not(.dark) .color-copy-btn:hover{background:#f0ebfb}
+body.wallpaper-detail-page:not(.dark) .tag{
+  color:#634b9f;
+  background:#f3effb;
+  border-color:#e7def7;
+}
+body.wallpaper-detail-page:not(.dark) .tags-empty{color:#898396}
+
+body.wallpaper-detail-page:not(.dark) .similar-card{
+  background:#f6f4f9;
+  border-color:#ece8f2;
+  box-shadow:0 3px 12px rgba(30,22,48,.04);
+}
+body.wallpaper-detail-page:not(.dark) .section-title-note{color:#898396}
+
+body.wallpaper-detail-page:not(.dark) .comments-count{
+  color:#674da8;
+  background:#f1edfb;
+  border-color:#e7def7;
+}
+body.wallpaper-detail-page:not(.dark) .add-comment-box,
+body.wallpaper-detail-page:not(.dark) .comment-card{
+  background:#fbfaff;
+  border-color:#eeebf3;
+}
+body.wallpaper-detail-page:not(.dark) .comment-reply-card{background:#f7f4fc}
+body.wallpaper-detail-page:not(.dark) .comment-editor{
+  color:#2c2639;
+  background:#fff;
+  border-color:#e8e3ef;
+}
+body.wallpaper-detail-page:not(.dark) .comment-editor:empty::before{color:#9993a4}
+body.wallpaper-detail-page:not(.dark) .comment-author{color:#292338}
+body.wallpaper-detail-page:not(.dark) .comment-email,
+body.wallpaper-detail-page:not(.dark) .comment-date{color:#928b9e}
+body.wallpaper-detail-page:not(.dark) .comment-text{color:#50495d}
+body.wallpaper-detail-page:not(.dark) .comment-footer{border-top-color:#eeeaf3}
+body.wallpaper-detail-page:not(.dark) .comment-action-btn,
+body.wallpaper-detail-page:not(.dark) .comment-like{
+  color:#706980;
+  background:#f6f4f9;
+  border-color:#ece8f1;
+}
+body.wallpaper-detail-page:not(.dark) .comment-like{color:#dc658a}
+body.wallpaper-detail-page:not(.dark) .comment-action-btn:hover,
+body.wallpaper-detail-page:not(.dark) .comment-like:hover{
+  color:#62489d;
+  background:#eee9f9;
+}
+body.wallpaper-detail-page:not(.dark) .no-comments{color:#898396}
+body.wallpaper-detail-page:not(.dark) .toggle-replies-btn,
+body.wallpaper-detail-page:not(.dark) .show-all-comments-btn{
+  color:#6e51b2;
+  background:#f3effb;
+  border-color:#e8e0f6;
+}
+body.wallpaper-detail-page:not(.dark) .mention-btn{
+  color:#7659b8;
+  background:#f2edfb;
+  border-color:#e6def4;
+}
+body.wallpaper-detail-page:not(.dark) .mention-suggestions{
+  background:#fff;
+  border-color:#e9e4f0;
+  box-shadow:0 14px 36px rgba(29,22,45,.16);
+}
+body.wallpaper-detail-page:not(.dark) .mention-suggestion-item{color:#30283f}
+body.wallpaper-detail-page:not(.dark) .mention-suggestion-item:hover{background:#f6f3fb}
+body.wallpaper-detail-page:not(.dark) .mention-suggestion-info small{color:#898396}
+body.wallpaper-detail-page:not(.dark) .replying-to-bar{
+  color:#60489a;
+  background:#f2edfb;
+}
+body.wallpaper-detail-page:not(.dark) .cancel-reply-btn{color:#827b90}
+
+body.wallpaper-detail-page:not(.dark) .download-options-dialog,
+body.wallpaper-detail-page:not(.dark) .phone-preview-dialog{
+  color:#282238;
+  background:linear-gradient(145deg,#fff,#fbfaff);
+  border-color:#e8e3ef;
+  box-shadow:0 28px 80px rgba(29,22,45,.24);
+}
+body.wallpaper-detail-page:not(.dark) .download-options-head,
+body.wallpaper-detail-page:not(.dark) .phone-preview-head{border-bottom-color:#ece8f1}
+body.wallpaper-detail-page:not(.dark) .download-options-head h3,
+body.wallpaper-detail-page:not(.dark) .phone-preview-head h3{color:#282238}
+body.wallpaper-detail-page:not(.dark) .download-options-head p{color:#858092}
+body.wallpaper-detail-page:not(.dark) .download-option-group label{color:#3b344b}
+body.wallpaper-detail-page:not(.dark) .download-option-group select{
+  color:#2c263b;
+  background:#fff;
+  border-color:#e3deeb;
+}
+body.wallpaper-detail-page:not(.dark) .download-option-group small{color:#898396}
+body.wallpaper-detail-page:not(.dark) .download-original-row{
+  background:#faf9fd;
+  border-color:#eae6f0;
+}
+body.wallpaper-detail-page:not(.dark) .download-original-row strong{color:#3a3348}
+body.wallpaper-detail-page:not(.dark) .download-original-row small{color:#898396}
+body.wallpaper-detail-page:not(.dark) .download-options-status{color:#777184}
+body.wallpaper-detail-page:not(.dark) .download-cancel-btn{
+  color:#625b70;
+  background:#f6f4f9;
+  border-color:#e9e5ef;
+}
+body.wallpaper-detail-page:not(.dark) .phone-preview-kicker{color:#8062c9}
+body.wallpaper-detail-page:not(.dark) .phone-preview-close{
+  color:#50475f;
+  background:#f7f5fa;
+  border-color:#e9e5ef;
+}
+body.wallpaper-detail-page:not(.dark) .phone-preview-note{color:#898396}
+
+body.wallpaper-detail-page.dark .bottom-nav{
+  --bottom-nav-bg:rgba(18,22,38,.94);
+  --bottom-nav-border:rgba(150,158,196,.20);
+  --bottom-nav-text:#aeb5ca;
+  --bottom-nav-active:#c2b6ff;
+  --bottom-nav-active-bg:rgba(151,129,255,.18);
+}
+body.wallpaper-detail-page:not(.dark) .bottom-nav{
+  --bottom-nav-bg:rgba(255,255,255,.97);
+  --bottom-nav-border:rgba(225,229,236,.9);
+  --bottom-nav-text:#7b8495;
+  --bottom-nav-active:#7154bf;
+  --bottom-nav-active-bg:#f0ebfb;
+}
