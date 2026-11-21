@@ -44,7 +44,7 @@ body{
 
     margin:auto;
 
-    padding:25px 18px 100px;
+    padding:25px 18px 38px;
 
     transform-style:preserve-3d;
 
@@ -580,4 +580,32 @@ body:not(.dark) .card-body p{
 
     color:#666;
 
+}
+
+/* Bell notification state */
+.notification-card.unread {
+    border-color: rgba(0, 242, 254, .42);
+    background: rgba(0, 242, 254, .075);
+}
+
+.notification-card:focus-visible {
+    outline: 2px solid #00f2fe;
+    outline-offset: 3px;
+}
+
+.notification-card[role="button"] {
+    cursor: pointer;
+}
+
+.action-link:disabled,
+.clear-all:disabled {
+    opacity: .55;
+    cursor: wait;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notification-card {
+        animation: none;
+        transition: none;
+    }
 }
