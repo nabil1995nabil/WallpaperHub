@@ -2135,3 +2135,6 @@ body.forum-modal-open { overflow: hidden; }
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Secondary views replace the general chat layout cleanly. */
+.content-layout:has(#generalPanel.hidden) { display: none; }
