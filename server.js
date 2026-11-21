@@ -512,7 +512,7 @@ const PUSH_VAPID_PUBLIC_KEY = String(process.env.VAPID_PUBLIC_KEY || "").trim();
 const PUSH_VAPID_PRIVATE_KEY = String(process.env.VAPID_PRIVATE_KEY || "").trim();
 if (webPush && PUSH_VAPID_PUBLIC_KEY && PUSH_VAPID_PRIVATE_KEY) {
     webPush.setVapidDetails(
-        String(process.env.VAPID_SUBJECT || "mailto:admin@wallpaperhub.example"),
+        String(process.env.VAPID_SUBJECT || "https://wallpaperhub-morocco.vercel.app").trim(),
         PUSH_VAPID_PUBLIC_KEY, PUSH_VAPID_PRIVATE_KEY
     );
 }
@@ -531,7 +531,7 @@ async function sendPushToUser(userId,notification){
                 await webPush.sendNotification(row.subscription,JSON.stringify({
                     title:cleanPushText(notification?.title||"WallpaperHub",80),
                     body:cleanPushText(notification?.body||"لديك إشعار جديد",180),
-                    icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",
+                    icon:"/assets/logo/wallpaperhub-w-logo.svg",badge:"/assets/logo/wallpaperhub-w-logo.svg",
                     url:String(notification?.url||"/notifications.html"),tag:String(notification?.tag||"wallpaperhub-notification")
                 }));
                 sent++;
@@ -555,7 +555,7 @@ async function sendPushToAll(notification,excludeUserId=""){
                 await webPush.sendNotification(row.subscription,JSON.stringify({
                     title:cleanPushText(notification?.title||"WallpaperHub",80),
                     body:cleanPushText(notification?.body||"لديك إشعار جديد",180),
-                    icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",
+                    icon:"/assets/logo/wallpaperhub-w-logo.svg",badge:"/assets/logo/wallpaperhub-w-logo.svg",
                     url:String(notification?.url||"/notifications.html"),tag:String(notification?.tag||"wallpaperhub-notification")
                 }));
                 sent++;
@@ -950,7 +950,13 @@ app.post("/api/push/subscribe",async(req,res)=>{
             return res.status(400).json({success:false,message:"بيانات اشتراك الإشعارات غير صالحة."});
         const {error}=await supabase.from("push_subscriptions").upsert({user_id:String(user.id),endpoint:String(subscription.endpoint),subscription},{onConflict:"endpoint"});
         if(error)throw error;
-        return res.json({success:true});
+        const testDelivery = await sendPushToUser(user.id,{
+            title:"تم تفعيل إشعارات WallpaperHub",
+            body:"سيصلك إشعار عندما تنشر الحسابات التي تتابعها خلفيات جديدة.",
+            url:"/settings.html",
+            tag:"wh-push-activated"
+        });
+        return res.json({success:true,testSent:Number(testDelivery?.sent||0)>0});
     }catch(error){console.log("PUSH SUBSCRIBE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ اشتراك الإشعارات."});}
 });
 app.post("/api/push/unsubscribe",async(req,res)=>{
@@ -4179,34 +4185,24 @@ async function notifyUsersAboutNewWallpaper({
     publisherUID = ""
 }){
     const targetWallpaperId = String(wallpaperId || "").trim();
-    if(!targetWallpaperId) return { inserted:0 };
+    const publisher = String(publisherUID || "").trim();
+    if(!targetWallpaperId || !publisher) return { inserted:0 };
 
     try{
-        const users = [];
-        let page = 1;
-        const perPage = 1000;
+        // Only notify users who explicitly follow the account that published
+        // this wallpaper. This also avoids broadcasting AI/system publications
+        // that have no authenticated publisher identity.
+        const { data: follows, error: followsError } = await supabase
+            .from("user_follows")
+            .select("follower_id")
+            .eq("followed_id", publisher);
 
-        while(true){
-            const { data, error } = await supabase.auth.admin.listUsers({
-                page,
-                perPage
-            });
+        if(followsError) throw followsError;
 
-            if(error) throw error;
-
-            const pageUsers = Array.isArray(data?.users) ? data.users : [];
-            users.push(...pageUsers);
-
-            if(pageUsers.length < perPage) break;
-            page += 1;
-            if(page > 100) break;
-        }
-
-        const publisher = String(publisherUID || "").trim();
         const recipients = [
             ...new Set(
-                users
-                    .map(user => String(user?.id || "").trim())
+                (follows || [])
+                    .map(row => String(row?.follower_id || "").trim())
                     .filter(Boolean)
                     .filter(id => id !== publisher)
             )
@@ -4216,7 +4212,6 @@ async function notifyUsersAboutNewWallpaper({
 
         const now = Date.now();
         const message = `خلفية جديدة منشورة: ${String(wallpaperTitle || "خلفية جديدة").trim()}`;
-
         const rows = recipients.map((recipientUID, index) => ({
             id: now + index,
             user_id: recipientUID,
@@ -4228,18 +4223,32 @@ async function notifyUsersAboutNewWallpaper({
             is_read: false
         }));
 
-        const { error } = await supabase
+        const { error: insertError } = await supabase
             .from("notifications")
             .insert(rows);
 
-        if(error) throw error;
+        if(insertError) throw insertError;
+
         if(pushIsConfigured()){
-            const pushBody=`خلفية جديدة منشورة: ${String(wallpaperTitle||"خلفية جديدة").trim()}`;
-            Promise.all(recipients.map(recipientUID=>sendPushToUser(recipientUID,{
-                title:"خلفية جديدة على WallpaperHub",body:pushBody,
-                url:`/wallpaper.html?id=${encodeURIComponent(targetWallpaperId)}`,tag:`wh-wallpaper-${targetWallpaperId}`
-            }))).catch(()=>{});
+            const pushBody = message;
+            const deliveries = await Promise.allSettled(recipients.map(recipientUID =>
+                sendPushToUser(recipientUID, {
+                    title: "خلفية جديدة على WallpaperHub",
+                    body: pushBody,
+                    url: `/wallpaper.html?id=${encodeURIComponent(targetWallpaperId)}`,
+                    tag: `wh-wallpaper-${targetWallpaperId}`
+                })
+            ));
+            const pushSent = deliveries.reduce((total, result) =>
+                total + (result.status === "fulfilled" ? Number(result.value?.sent || 0) : 0), 0
+            );
+            console.log("NEW WALLPAPER PUSH DELIVERY:", {
+                wallpaperId: targetWallpaperId,
+                followers: recipients.length,
+                devicesReached: pushSent
+            });
         }
+
         return { inserted: rows.length };
     }catch(error){
         // Notification delivery must not make a successfully published
