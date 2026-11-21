@@ -325,7 +325,7 @@ img,video,canvas{max-width:100%}
 }
 .wallpaper-main-header{display:flex;flex-direction:column;gap:21px}
 .wallpaper-title-block{min-width:0;overflow:hidden}
-.wallpaper-title-block h1.scroll-title,.wallpaper-title-block h2.scroll-title{white-space:normal;overflow-wrap:anywhere}85%,100%{transform:translateX(calc(-1 * (100% - 100vw + 40px)))}}
+.wallpaper-title-block h1.scroll-title,.wallpaper-title-block h2.scroll-title{white-space:normal;overflow-wrap:anywhere}
 .eyebrow{
   display:block;
   margin:0 0 7px;
