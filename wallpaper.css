@@ -1246,3 +1246,31 @@ body.wallpaper-detail-page:not(.dark) .bottom-nav{
   --bottom-nav-active:#7154bf;
   --bottom-nav-active-bg:#f0ebfb;
 }
+
+
+/* Small controls and community text — high contrast on white */
+body.wallpaper-detail-page:not(.dark) .download-options-close{
+  color:#5d536f;
+  background:#f6f4fa;
+  border-color:#e9e5ef;
+}
+body.wallpaper-detail-page:not(.dark) .reply-label{
+  color:#6b50a7;
+  background:#f0ebfa;
+}
+body.wallpaper-detail-page:not(.dark) .user-avatar{
+  color:#7255b4;
+  background:#eee9fa;
+}
+body.wallpaper-detail-page:not(.dark) .comment-mention,
+body.wallpaper-detail-page:not(.dark) .comment-mention-link,
+body.wallpaper-detail-page:not(.dark) .mention-tag{
+  color:#65489f;
+}
+body.wallpaper-detail-page:not(.dark) .mention-tag{background:#eee9fa}
+body.wallpaper-detail-page:not(.dark) .comment-ban-notice{
+  color:#9c3045;
+  background:#fff3f5;
+  border-color:#f5d4dc;
+}
+body.wallpaper-detail-page:not(.dark) .comment-ban-notice p{color:#985665}
