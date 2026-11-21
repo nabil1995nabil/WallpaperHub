@@ -1,7 +1,7 @@
 self.addEventListener("push",event=>{
  let data={};try{data=event.data?event.data.json():{}}catch(_){data={body:event.data?event.data.text():""}}
  event.waitUntil(self.registration.showNotification(String(data.title||"WallpaperHub"),{
-  body:String(data.body||"لديك إشعار جديد"),icon:data.icon||"/icons/icon-192.png",badge:data.badge||"/icons/icon-192.png",
+  body:String(data.body||"لديك إشعار جديد"),icon:data.icon||"/assets/logo/wallpaperhub-w-logo.svg",badge:data.badge||"/assets/logo/wallpaperhub-w-logo.svg",
   tag:String(data.tag||"wallpaperhub-notification"),data:{url:String(data.url||"/notifications.html")},dir:"rtl",lang:"ar"
  }));
 });
