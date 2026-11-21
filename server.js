@@ -4047,6 +4047,11 @@ function notificationTitle(type){
     if(type === "comment_reply") return "رد على تعليقك 💬";
     if(type === "new_wallpaper") return "خلفية جديدة منشورة 🖼️";
     if(type === "new_follower") return "متابع جديد 👤";
+    if(type === "community_moderation") return "إجراء إداري بخصوص المجتمع ⚠️";
+    if(type === "community_appeal_update") return "رد من إدارة المجتمع 💬";
+    if(type === "community_message_reply") return "رد جديد في المجتمع 💬";
+    if(type === "community_mention") return "تمت الإشارة إليك في المجتمع 💙";
+    if(type === "community_message_reaction") return "تفاعل جديد مع رسالتك ✨";
     return "إشعار جديد";
 }
 
