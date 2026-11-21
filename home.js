@@ -721,6 +721,41 @@ document.querySelectorAll(".category").forEach(category => {
 });
 
 // ======================
+// Bottom Nav Animation
+// ======================
+
+const navItems =
+document.querySelectorAll(".nav-item");
+
+const indicator =
+document.querySelector(".nav-indicator");
+
+
+if(navItems.length && indicator){
+
+    navItems.forEach((item,index)=>{
+
+        item.onclick = ()=>{
+
+
+            navItems.forEach(i =>
+                i.classList.remove("active")
+            );
+
+
+            item.classList.add("active");
+
+
+            indicator.style.left =
+            `calc(${index * 20}% + 10%)`;
+
+        };
+
+    });
+
+}
+// =======================================
+
 // تحميل الصفحة
 // =======================================
 
