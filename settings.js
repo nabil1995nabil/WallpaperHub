@@ -50,8 +50,16 @@ function showSaved(){
 
 function applySetting(key){
     if(key === "darkMode"){
-        document.body.classList.toggle("dark", !!settings.darkMode);
-        localStorage.setItem("darkMode", String(!!settings.darkMode));
+        if(typeof window.setWallpaperHubTheme === "function"){
+            window.setWallpaperHubTheme(!!settings.darkMode);
+        }else{
+            document.documentElement.classList.toggle("dark", !!settings.darkMode);
+            document.body.classList.toggle("dark", !!settings.darkMode);
+            localStorage.setItem("darkMode", String(!!settings.darkMode));
+        }
+        window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated", {
+            detail:{key:"darkMode", value:!!settings.darkMode}
+        }));
     }
     if(key === "animations"){
         document.body.classList.toggle("no-animation", !settings.animations);

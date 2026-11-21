@@ -475,6 +475,24 @@ function injectWallpaperHubLanguageRuntime(source){
         if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,activityTag+"\n</body>");
         else html+="\n"+activityTag;
     }
+    // Apply one shared appearance system to every HTML page, including older pages
+    // that did not previously include theme.js or css/theme.css.
+    const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261121-unified-theme" data-wh-global-theme="1">';
+    const existingThemeStyle = /<link\\b(?=[^>]*href=["'][^"']*css\\/theme\\.css(?:\\?[^"']*)?["'])[^>]*>/i;
+    if(existingThemeStyle.test(html)){
+        html = html.replace(existingThemeStyle, globalThemeStyle);
+    }else if(!html.includes("data-wh-global-theme")){
+        if(/<\\/head\\s*>/i.test(html)) html = html.replace(/<\\/head\\s*>/i, globalThemeStyle + "\\n</head>");
+        else html = globalThemeStyle + "\\n" + html;
+    }
+
+    // Move the shared theme controller to the head with defer so the saved mode
+    // is applied before DOMContentLoaded and without an extra homepage toggle.
+    const globalThemeScript = '<script defer src="/theme.js?v=20261121-unified-theme" data-wh-global-theme-script="1"></script>';
+    html = html.replace(/<script\\b(?=[^>]*src=["'][^"']*theme\\.js(?:\\?[^"']*)?["'])[^>]*>\\s*<\\/script>/gi, "");
+    if(/<\\/head\\s*>/i.test(html)) html = html.replace(/<\\/head\\s*>/i, globalThemeScript + "\\n</head>");
+    else html = globalThemeScript + "\\n" + html;
+
     return html;
 }
 app.use((req,res,next)=>{

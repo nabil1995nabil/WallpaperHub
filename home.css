@@ -174,28 +174,6 @@ button:focus-visible{
     max-height: 44px;
 }
 
-.header .header-switch{
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    transition: background .2s ease;
-}
-
-.header .header-switch:hover{
-    background: var(--surface);
-}
-
-.header .header-switch-icon{
-    font-size: 24px;
-    color: var(--ink);
-    pointer-events: none;
-}
-
 .header .menu-btn,
 .header #menuBtn{
     grid-column: 3;
@@ -826,7 +804,6 @@ button:focus-visible{
         gap: 14px;
     }
 
-    .header .header-switch,
     .header #menuBtn{
         width: 48px;
         height: 48px;
@@ -934,7 +911,6 @@ button:focus-visible{
         flex-basis: 34px;
     }
 
-    .header .header-switch,
     .header #menuBtn{
         width: 40px;
         height: 40px;

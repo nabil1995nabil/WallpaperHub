@@ -1,137 +1,240 @@
-/* ==================================
- WallpaperHub Theme Clean
-================================== */
+/* ==========================================================
+   WallpaperHub — Unified Light / Dark Theme
+   Loaded after each page stylesheet by the HTML response layer.
+========================================================== */
 
-
-/* Light */
-
-body{
-
-    background:#ffffff;
-    color:#111;
-
-    transition:.3s;
-
+:root {
+    color-scheme: light;
+    --wh-page: #f6f8fc;
+    --wh-surface: #ffffff;
+    --wh-surface-2: #f2f5fa;
+    --wh-text: #172033;
+    --wh-muted: #6d778b;
+    --wh-border: #e4e9f1;
 }
 
+body {
+    color-scheme: light;
+    --wh-page: #f6f8fc;
+    --wh-surface: #ffffff;
+    --wh-surface-2: #f2f5fa;
+    --wh-text: #172033;
+    --wh-muted: #6d778b;
+    --wh-border: #e4e9f1;
 
+    /* Shared aliases used by the different page stylesheets. */
+    --page: #f6f8fc;
+    --page-soft: #f0f3f9;
+    --bg: #f6f8fc;
+    --bg-2: #f0f3f9;
+    --background: #f6f8fc;
+    --surface: #ffffff;
+    --surface-2: #f5f7fb;
+    --surface-3: #edf1f7;
+    --surface-soft: #f3f5fa;
+    --surface-muted: #edf1f6;
+    --surface-tint: #eef2ff;
+    --surface-strong: #ffffff;
+    --card: #ffffff;
+    --card-bg: #ffffff;
+    --panel: #ffffff;
+    --panel-bg: #ffffff;
+    --soft: #f1f4fa;
+    --ink: #172033;
+    --ink-strong: #101828;
+    --text: #172033;
+    --text-strong: #101828;
+    --text-2: #394459;
+    --text-3: #667085;
+    --muted: #6d778b;
+    --muted-strong: #536074;
+    --muted-2: #8a93a5;
+    --subtle: #8a93a5;
+    --line: #e4e9f1;
+    --line-strong: #d6deea;
+    --line-soft: #edf0f5;
+    --border: #e4e9f1;
+    --input-bg: #ffffff;
+    --primary-soft: #eef1ff;
+    --brand-soft: #eef1ff;
+    --accent-soft: #eef1ff;
+    --shadow: 0 10px 30px rgba(25, 36, 65, .07);
 
-/* =================
- Dark Mode
-================= */
+    /* Points page palette aliases. */
+    --points-bg: #f6f8fc;
+    --points-card: #ffffff;
+    --points-ink: #172033;
+    --points-muted: #6d778b;
+    --points-line: #e4e9f1;
 
-
-body.dark{
-
-    background:#0b0b0b;
-    color:#fff;
-
+    color: var(--wh-text);
+    background-color: var(--wh-page);
+    transition: color .22s ease, background-color .22s ease;
 }
 
-
-
-/* الحاويات */
-
-body.dark main,
-body.dark section,
-body.dark header,
-body.dark .container,
-body.dark .card,
-body.dark .settings-card,
-body.dark .info-card,
-body.dark .profile-cover{
-
-    background:#111;
-
-    color:#fff;
-
-    border-color:#222;
-
+html.dark {
+    color-scheme: dark;
 }
 
+body.dark {
+    color-scheme: dark;
+    --wh-page: #0b0f19;
+    --wh-surface: #131b2a;
+    --wh-surface-2: #1a2638;
+    --wh-text: #edf2fb;
+    --wh-muted: #a1aec2;
+    --wh-border: #2a374c;
 
+    --page: #0b0f19;
+    --page-soft: #111a29;
+    --bg: #0b0f19;
+    --bg-2: #111a29;
+    --background: #0b0f19;
+    --surface: #131b2a;
+    --surface-2: #192538;
+    --surface-3: #202e43;
+    --surface-soft: #172337;
+    --surface-muted: #202c40;
+    --surface-tint: #1a2740;
+    --surface-strong: #1b2739;
+    --card: #131b2a;
+    --card-bg: #131b2a;
+    --panel: #131b2a;
+    --panel-bg: #131b2a;
+    --soft: #1a2638;
+    --ink: #edf2fb;
+    --ink-strong: #f7f9ff;
+    --text: #edf2fb;
+    --text-strong: #f7f9ff;
+    --text-2: #d0d9e8;
+    --text-3: #aebbd0;
+    --muted: #a1aec2;
+    --muted-strong: #bbc6d8;
+    --muted-2: #8f9db3;
+    --subtle: #8f9db3;
+    --line: #2a374c;
+    --line-strong: #3a4961;
+    --line-soft: #233147;
+    --border: #2a374c;
+    --input-bg: #101827;
+    --primary-soft: #20294a;
+    --brand-soft: #20294a;
+    --accent-soft: #20294a;
+    --shadow: 0 14px 36px rgba(0, 0, 0, .28);
 
-/* النصوص فقط */
+    --points-bg: #0b0f19;
+    --points-card: #131b2a;
+    --points-ink: #edf2fb;
+    --points-muted: #a1aec2;
+    --points-line: #2a374c;
 
-body.dark h1,
-body.dark h2,
-body.dark h3,
-body.dark h4,
-body.dark p,
-body.dark label{
-
-    color:#fff;
-
+    color: var(--wh-text);
+    background-color: var(--wh-page) !important;
 }
 
-
-
-/* الأزرار */
-
-body.dark button{
-
-    background:#181818;
-
-    color:#fff;
-
-    border:1px solid #333;
-
+/* Consistent text contrast on pages whose older styles hard-coded dark text. */
+body.dark :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, figcaption, blockquote, legend, th, td, label) {
+    color: var(--wh-text);
 }
 
-
-
-/* Inputs */
-
-body.dark input,
-body.dark textarea,
-body.dark select{
-
-    background:#111;
-
-    color:#fff;
-
-    border:1px solid #333;
-
+body.dark :where(.muted, .text-muted, .muted-text, .subtitle, .description, .meta,
+    .hint, .helper, .helper-text, .caption, .secondary-text, .empty-description,
+    .section-description, .card-description, .form-hint, .text-secondary) {
+    color: var(--wh-muted);
 }
 
-
-
-/* الصور */
-
-body.dark img{
-
-    background:transparent;
-
+/* Form controls follow the selected color scheme without flattening buttons. */
+body.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    textarea, select) {
+    color: var(--wh-text);
+    background-color: var(--input-bg);
+    border-color: var(--wh-border);
+    color-scheme: dark;
 }
 
-
-
-/* Bottom navigation — matching glass dock in dark mode */
-body.dark .bottom-nav{
-    background:rgba(18,22,38,.94);
-    border:1px solid rgba(150,158,196,.20);
-    box-shadow:0 14px 42px rgba(0,0,0,.38),0 2px 8px rgba(0,0,0,.22);
-    color:#d8d9ec;
-}
-body.dark .bottom-nav .nav-item{
-    color:#aeb5ca;
-    background:transparent;
-}
-body.dark .bottom-nav .nav-item>p{color:inherit}
-body.dark .bottom-nav .nav-item.active{
-    color:#c2b6ff;
-    background:transparent;
-}
-body.dark .bottom-nav .nav-item.active::before{
-    background:rgba(151,129,255,.18);
+body.dark :where(input, textarea, select)::placeholder {
+    color: var(--wh-muted);
+    opacity: .85;
 }
 
+body.dark :where(table, th, td, hr) {
+    border-color: var(--wh-border);
+}
 
+/* Common neutral surfaces only; designed hero panels and image cards keep their own art. */
+body.dark :where(.panel, .modal, .dialog, .dropdown-menu, .popover, .settings-card,
+    .info-card, .form-card, .widget-card, .result-card, .content-card, .list-card,
+    .search-wrap, .search-box, .filter-panel, .toolbar-panel, .empty-state,
+    .comment-card, .reply-card, .notif-card, .notification-card) {
+    background-color: var(--wh-surface);
+    border-color: var(--wh-border);
+}
 
-/* أيقونات */
+body.dark :where(.bottom-nav, .bottom-nav .nav-item) {
+    color: var(--wh-text);
+}
 
-body.dark .material-icons{
+body.dark :where(a:not([class]), button:not([class])) {
+    color: inherit;
+}
 
-    color:#fff;
+body.dark :where(button:disabled, input:disabled, textarea:disabled, select:disabled) {
+    opacity: .65;
+}
 
+body.dark ::selection {
+    color: #ffffff;
+    background: rgba(99, 102, 241, .45);
+}
+
+/* Bell notification page previously used a fixed dark background in both modes. */
+body.notifications-center-page:not(.dark) {
+    color: #172033;
+    background:
+        radial-gradient(circle at 50% -8%, rgba(99, 114, 220, .12), transparent 34%),
+        linear-gradient(180deg, #f5f7fc 0%, #eef2f9 100%);
+}
+
+body.notifications-center-page:not(.dark) .notification-card {
+    color: #172033;
+    background: rgba(255, 255, 255, .88);
+    border-color: rgba(79, 96, 140, .15);
+    box-shadow: 0 12px 30px rgba(35, 45, 80, .09);
+}
+
+body.notifications-center-page:not(.dark) .card-body p {
+    color: #667085;
+}
+
+body.notifications-center-page:not(.dark) .time-tag {
+    color: #4f5ed7;
+    background: rgba(91, 93, 245, .09);
+}
+
+body.notifications-center-page.dark {
+    background:
+        radial-gradient(circle at 50% -8%, rgba(71, 120, 255, .14), transparent 34%),
+        linear-gradient(180deg, #0b0f19 0%, #080b12 100%);
+}
+
+/* Keep the existing homepage bottom navigation and page-specific glass styling. */
+body.dark .bottom-nav {
+    background: rgba(18, 22, 38, .94);
+    border-color: rgba(150, 158, 196, .20);
+    box-shadow: 0 14px 42px rgba(0, 0, 0, .38), 0 2px 8px rgba(0, 0, 0, .22);
+}
+body.dark .bottom-nav .nav-item {
+    color: #aeb5ca;
+    background: transparent;
+}
+body.dark .bottom-nav .nav-item.active {
+    color: #c2b6ff;
+    background: transparent;
+}
+body.dark .bottom-nav .nav-item.active::before {
+    background: rgba(151, 129, 255, .18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body { transition: none; }
 }
