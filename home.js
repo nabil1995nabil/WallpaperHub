@@ -691,62 +691,6 @@ function renderDownloaded() {
 
 // ==============================
 // ==============================
-// Notification Badge
-// ==============================
-
-function updateNotificationCount(){
-
-    const badge =
-    document.getElementById("notificationCount");
-
-
-    if(!badge) return;
-
-
-    const notifications =
-    JSON.parse(
-        localStorage.getItem("notifications") || "[]"
-    );
-
-
-    if(notifications.length > 0){
-
-        badge.textContent =
-        notifications.length;
-
-        badge.style.display =
-        "flex";
-
-    }else{
-
-        badge.style.display =
-        "none";
-
-    }
-
-}
-
-
-// فتح صفحة الإشعارات
-
-function openNotifications(){
-
-    window.location.href =
-    "notifications.html";
-
-}
-
-
-
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-    updateNotificationCount();
-
-});
-
-// =======================================
 // فتح الأقسام في صفحة جميع الخلفيات
 // =======================================
 
@@ -777,40 +721,6 @@ document.querySelectorAll(".category").forEach(category => {
 });
 
 // ======================
-// Bottom Nav Animation
-// ======================
-
-const navItems =
-document.querySelectorAll(".nav-item");
-
-const indicator =
-document.querySelector(".nav-indicator");
-
-
-if(navItems.length && indicator){
-
-    navItems.forEach((item,index)=>{
-
-        item.onclick = ()=>{
-
-
-            navItems.forEach(i =>
-                i.classList.remove("active")
-            );
-
-
-            item.classList.add("active");
-
-
-            indicator.style.left =
-            `calc(${index * 20}% + 10%)`;
-
-        };
-
-    });
-
-}
-// =======================================
 // تحميل الصفحة
 // =======================================
 
