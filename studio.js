@@ -23,7 +23,7 @@
 
   function toast(message){if(!toastNode)return;toastNode.textContent=message;toastNode.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>toastNode.classList.remove('show'),3200)}
   function syncChoice(selector,key,value,className){
-    $(selector).forEach(button=>{
+    $$(selector).forEach(button=>{
       const selected=button.dataset[key]===String(value);
       button.classList.toggle(className,selected);
       button.setAttribute('aria-pressed',String(selected));
@@ -412,10 +412,10 @@
   function onCanvasPointerUp(){state.dragTarget=null;canvas.style.cursor='grab'}
   
     $$('.tool-card').forEach(button=>button.addEventListener('click',()=>updateTool(button.dataset.tool)));
-  $('.screen-mode-button').forEach(button=>button.addEventListener('click',()=>{state.screenMode=button.dataset.screenMode;syncChoice('.screen-mode-button','screenMode',state.screenMode,'is-active');render()}));
+  $$('.screen-mode-button').forEach(button=>button.addEventListener('click',()=>{state.screenMode=button.dataset.screenMode;syncChoice('.screen-mode-button','screenMode',state.screenMode,'is-active');render()}));
   canvas.addEventListener('pointerdown',onCanvasPointerDown);canvas.addEventListener('pointermove',onCanvasPointerMove);canvas.addEventListener('pointerup',onCanvasPointerUp);canvas.addEventListener('pointercancel',onCanvasPointerUp);
-  $('.palette-swatch').forEach(button=>button.addEventListener('click',()=>{state.palette=button.dataset.palette;syncChoice('.palette-swatch','palette',state.palette,'selected');render()}));
-  $('.preset-button').forEach(button=>button.addEventListener('click',()=>{state.preset=button.dataset.preset;syncChoice('.preset-button','preset',state.preset,'selected');render()}));
+  $$('.palette-swatch').forEach(button=>button.addEventListener('click',()=>{state.palette=button.dataset.palette;syncChoice('.palette-swatch','palette',state.palette,'selected');render()}));
+  $$('.preset-button').forEach(button=>button.addEventListener('click',()=>{state.preset=button.dataset.preset;syncChoice('.preset-button','preset',state.preset,'selected');render()}));
   ['#designTitle','#designSubtitle','#glowStrength','#showClock','#clockStyle','#clockFormat','#clockSize','#clockColor','#showDate','#showStatusBar','#iconShape','#iconScale','#showIconLabels'].forEach(selector=>{const node=$(selector);node.addEventListener('input',readControls);node.addEventListener('change',readControls)});
   $('#chooseBackgroundImage').addEventListener('click',()=>{if(!state.user){toast('سجّل الدخول أولاً');location.href='/login';return}$('#backgroundImageInput').click()});
   $('#backgroundImageInput').addEventListener('change',event=>onChooseBackground(event.target.files?.[0]));
