@@ -16,10 +16,21 @@ async function enablePush(){
  if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(kd.publicKey)});
  const response=await fetch("/api/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({subscription:subscription.toJSON()})});
  const result=await response.json().catch(()=>({}));if(!response.ok||!result.success)throw new Error(result.message||"تعذر تفعيل إشعارات الهاتف.");
- saveToggle(true);alert("تم تفعيل إشعارات الهاتف على هذا الجهاز.");
+ saveToggle(true);alert(result.testSent?"تم تفعيل إشعارات الهاتف، ووصل إليك إشعار تجريبي بنجاح.":"تم حفظ اشتراك هذا الجهاز، لكن لم يصل الإشعار التجريبي. راجع السماح بالإشعارات في إعدادات الهاتف.");
 }
 async function disablePush(){
  try{const registration=await navigator.serviceWorker.getRegistration("/");const subscription=await registration?.pushManager?.getSubscription();if(subscription){const session=await currentSession().catch(()=>null);if(session?.access_token)await fetch("/api/push/unsubscribe",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({endpoint:subscription.endpoint})}).catch(()=>{});await subscription.unsubscribe()}}
  finally{saveToggle(false)}
 }
+
+async function syncPushToggle(){
+ try{
+  if(!toggle||!("serviceWorker"in navigator)||!("Notification"in window))return;
+  const registration=await navigator.serviceWorker.getRegistration("/");
+  const subscription=await registration?.pushManager?.getSubscription();
+  saveToggle(Boolean(subscription&&Notification.permission==="granted"));
+ }catch(_error){}
+}
+void syncPushToggle();
+
 window.addEventListener("wallpaperhub:push-toggle",async event=>{try{if(event.detail?.enabled)await enablePush();else await disablePush()}catch(error){saveToggle(false);alert(error?.message||"تعذر تغيير إعداد إشعارات الهاتف.")}});
