@@ -1,899 +1,337 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="robots" content="noindex,follow">
-
-<title>WallpaperHub | تفاصيل الخلفية</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link rel="stylesheet" href="wallpaper.css">
-<link rel="stylesheet" href="wallpaper-colors.css">
-<link rel="stylesheet" href="effects.css">
-<link rel="stylesheet" href="bottom-nav.css">
-<link rel="stylesheet" href="css/theme.css">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex,follow">
+  <title>WallpaperHub | تفاصيل الخلفية</title>
+  <meta name="description" content="اكتشف تفاصيل الخلفية، عاينها، قيّمها وحمّلها بجودة عالية من WallpaperHub.">
+  <meta name="theme-color" content="#0b0b13">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="wallpaper.css?v=20261121-premium-detail-1">
+  <link rel="stylesheet" href="bottom-nav.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
-
-<body>
-
-
-<header class="top-bar">
-
-
-<button id="backBtn" class="icon-btn">
-
-<span class="material-icons">
-arrow_back
-</span>
-
-</button>
-
-
-<div style="display:flex;gap:10px;">
-
-
-<button id="likeBtn" class="icon-btn">
-
-<span class="material-icons">
-favorite_border
-</span>
-
-</button>
-
-
-
-<button id="shareBtn" class="icon-btn">
-
-<span class="material-icons">
-share
-</span>
-
-</button>
-
-
-</div>
-
-
-</header>
-
-
-
-
-
-<!-- =========================
- Wallpaper Preview
-========================= -->
-
-
-<section class="preview">
-
-
-<div class="wallpaper-preview-wrapper">
-
-
-
-<img id="wallImage" alt="Wallpaper" decoding="async" fetchpriority="high" draggable="false">
-<canvas id="panoramaCanvas" class="panorama-canvas" aria-label="عارض الخلفية 360 درجة"></canvas>
-
-
-
-
-
-<video
-
-id="wallVideo"
-
-class="wall-video"
-
-muted
-
-loop
-
-playsinline
-
-autoplay
-
-preload="metadata"
-
->
-
-</video>
-
-
-
-
-<div
-
-id="qualityBadge"
-
-class="quality-badge"
-
->
-
-HD
-
-</div>
-
-<button id="moreOptionsBtn" class="more-options-btn">
-
-<span class="material-icons">
-more_vert
-</span>
-
-</button>
-
-
-<div id="optionsMenu" class="options-menu" aria-label="خيارات الخلفية">
-
-<button id="phonePreviewBtn" class="option-menu-btn" type="button">
-    <span class="material-icons">smartphone</span>
-    <span class="option-menu-label">
-        <strong>معاينة الهاتف</strong>
-        <small>شاهد كيف ستظهر الخلفية</small>
-    </span>
-</button>
-
-<button id="setWallpaperBtn" class="option-menu-btn" type="button">
-    <span class="material-icons">wallpaper</span>
-    <span class="option-menu-label">
-        <strong>تعيين كخلفية</strong>
-        <small>استخدمها على هاتفك</small>
-    </span>
-</button>
-
-</div>
-
-<!-- Fullscreen -->
-<button
-id="prevWallpaperBtn"
-type="button"
-class="wallpaper-nav-btn wallpaper-nav-prev"
-aria-label="الخلفية السابقة"
-title="الخلفية السابقة"
-hidden
->
-<span class="material-icons">chevron_right</span>
-</button>
-
-<button
-id="nextWallpaperBtn"
-type="button"
-class="wallpaper-nav-btn wallpaper-nav-next"
-aria-label="الخلفية التالية"
-title="الخلفية التالية"
-hidden
->
-<span class="material-icons">chevron_left</span>
-</button>
-
-<button
-id="fullscreenBtn"
-type="button"
-class="image-action-btn fullscreen-image-btn"
->
-
-<span class="material-icons">
-fullscreen
-</span>
-
-</button>
-
-
-<!-- Download -->
-
-<button
-id="downloadBtn"
-type="button"
-class="image-action-btn download-image-btn"
->
-
-<span class="material-icons">
-download
-</span>
-
-</button>
-
-
-
-</div>
-
-
-</section>
-
-<!-- نافذة خيارات تنزيل الخلفية -->
-<div id="downloadOptionsModal" class="download-options-modal" aria-hidden="true">
-  <button class="download-options-backdrop" type="button" data-close-download aria-label="إغلاق نافذة التنزيل"></button>
-  <section class="download-options-dialog" role="dialog" aria-modal="true" aria-labelledby="downloadOptionsTitle">
-    <header class="download-options-head">
-      <div><span class="download-options-kicker">WALLPAPERHUB DOWNLOAD</span><h3 id="downloadOptionsTitle">خيارات التنزيل</h3><p>اختار الصيغة والدقة المناسبة ليك</p></div>
-      <button id="closeDownloadOptions" class="download-options-close" type="button" aria-label="إغلاق">×</button>
-    </header>
-    <div class="download-options-body">
-      <div class="download-option-group"><label for="downloadFormat">صيغة الصورة</label><select id="downloadFormat"><option value="image/jpeg">JPG — حجم صغير ومتوافق</option><option value="image/png">PNG — جودة عالية</option><option value="image/webp">WEBP — حجم أقل وجودة جيدة</option><option value="image/avif">AVIF — ضغط قوي (حسب دعم المتصفح)</option><option value="image/svg+xml">SVG — تحويل حقيقي إلى Vector</option></select><small>كيحوّل الصورة إلى مسارات Vector قابلة للتكبير؛ الصور الفوتوغرافية قد تختلف تفاصيلها عن الأصل.</small></div>
-      <div class="download-option-group"><label for="downloadResolution">الدقة</label><select id="downloadResolution"><option value="480">صغيرة — حتى 480px</option><option value="720">متوسطة — حتى 720px</option><option value="1080" selected>عالية — حتى 1080px</option><option value="1440">عالية جداً — حتى 1440px</option><option value="2160">4K — حتى 2160px</option><option value="original">الأصلية — أقصى دقة متاحة</option></select><small id="downloadResolutionHint">سيتم الحفاظ على تناسب أبعاد الصورة.</small></div>
-      <label class="download-original-row"><input id="downloadKeepOriginal" type="checkbox"><span><strong>تحميل الملف الأصلي</strong><small>بدون تحويل أو تغيير الدقة</small></span></label>
-      <div id="downloadOptionsStatus" class="download-options-status" role="status" aria-live="polite"></div>
+<body class="wallpaper-detail-page">
+
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <button id="backBtn" class="icon-btn back-button" type="button" aria-label="الرجوع">
+        <span class="material-icons">arrow_forward</span>
+      </button>
+
+      <a class="brand-lockup" href="/" aria-label="WallpaperHub الصفحة الرئيسية">
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <span class="brand-copy">
+          <strong>Wallpaper<span>Hub</span></strong>
+          <small>مساحة للإلهام البصري</small>
+        </span>
+      </a>
+
+      <div class="top-actions">
+        <button id="likeBtn" class="icon-btn" type="button" aria-label="إعجاب بالخلفية" title="إعجاب">
+          <span class="material-icons">favorite_border</span>
+        </button>
+        <button id="shareBtn" class="icon-btn" type="button" aria-label="مشاركة الخلفية" title="مشاركة">
+          <span class="material-icons">ios_share</span>
+        </button>
+      </div>
     </div>
-    <footer class="download-options-footer"><button id="cancelDownloadOptions" class="download-cancel-btn" type="button">إلغاء</button><button id="confirmWallpaperDownload" class="download-confirm-btn" type="button"><span class="material-icons">download</span> تنزيل الصورة</button></footer>
-  </section>
-</div>
+  </header>
 
-<!-- =========================
-     Phone Preview — معاينة حقيقية للهاتف
-========================= -->
-<div id="phonePreviewModal" class="phone-preview-modal" aria-hidden="true">
-    <div class="phone-preview-backdrop" data-close-phone-preview></div>
+  <main class="wallpaper-page-shell">
+    <div class="page-intro">
+      <span class="intro-mark"></span>
+      <span>اكتشف التفاصيل، عاين، ثم اختر طريقتك المفضلة</span>
+    </div>
 
-    <section class="phone-preview-dialog" role="dialog"
-             aria-modal="true" aria-labelledby="phonePreviewTitle">
+    <div class="detail-hero-layout">
+      <section class="preview-column" aria-label="معاينة الخلفية">
+        <div class="preview">
+          <div class="wallpaper-preview-wrapper">
+            <img id="wallImage" alt="الخلفية" decoding="async" fetchpriority="high" draggable="false">
+            <canvas id="panoramaCanvas" class="panorama-canvas" aria-label="عارض الخلفية 360 درجة"></canvas>
+            <video id="wallVideo" class="wall-video" muted loop playsinline autoplay preload="metadata"></video>
 
-        <div class="phone-preview-head">
-            <div>
-                <span class="phone-preview-kicker">معاينة قبل التنزيل</span>
-                <h3 id="phonePreviewTitle">كيف ستظهر في هاتفك</h3>
-            </div>
+            <div id="qualityBadge" class="quality-badge">HD</div>
 
-            <button id="closePhonePreviewBtn" class="phone-preview-close"
-                    type="button" aria-label="إغلاق المعاينة">
-                <span class="material-icons">close</span>
-            </button>
-        </div>
-
-        <div class="phone-stage">
-            <div class="phone-device" id="phoneDevice">
-
-                <div class="phone-screen">
-                    <div class="phone-status-bar">
-                        <span id="phonePreviewTime">12:00</span>
-                        <div class="phone-status-icons">
-                            <span class="material-icons">signal_cellular_alt</span>
-                            <span class="material-icons">wifi</span>
-                            <span class="material-icons">battery_full</span>
-                        </div>
-                    </div>
-
-                    <img id="phonePreviewImage" alt="معاينة الخلفية على الهاتف">
-                    <video id="phonePreviewVideo" muted loop playsinline></video>
-
-                    <div class="phone-home-indicator"></div>
-                </div>
-
-                <div class="phone-side-button phone-side-top"></div>
-                <div class="phone-side-button phone-side-bottom"></div>
-            </div>
-        </div>
-
-        <div class="phone-preview-actions">
-            <button id="phonePreviewDownloadBtn" class="phone-preview-secondary" type="button">
-                <span class="material-icons">download</span>
-                تحميل
+            <button id="moreOptionsBtn" class="more-options-btn" type="button" aria-label="المزيد من الخيارات">
+              <span class="material-icons">more_horiz</span>
             </button>
 
-            <button id="phonePreviewSetBtn" class="phone-preview-primary" type="button">
+            <div id="optionsMenu" class="options-menu" aria-label="خيارات الخلفية">
+              <button id="phonePreviewBtn" class="option-menu-btn" type="button">
+                <span class="material-icons">smartphone</span>
+                <span class="option-menu-label"><strong>معاينة الهاتف</strong><small>شاهد كيف ستظهر الخلفية</small></span>
+              </button>
+              <button id="setWallpaperBtn" class="option-menu-btn" type="button">
                 <span class="material-icons">wallpaper</span>
-                تعيين كخلفية
-            </button>
-        </div>
-
-        <p class="phone-preview-note">
-            هذه معاينة تقريبية لشكل الخلفية على شاشة هاتف عمودية.
-        </p>
-    </section>
-</div>
-
-<!-- =========================
-     Fullscreen Viewer
-========================= -->
-
-
-<div
-
-id="fullscreenViewer"
-
-class="fullscreen-viewer"
-
->
-
-
-<img id="fullscreenImage" alt="Fullscreen Wallpaper" decoding="async" draggable="false">
-
-
-
-
-<video
-
-id="fullscreenVideo"
-
-muted
-
-loop
-
-playsinline
-
-preload="metadata"
-
->
-
-</video>
-
-
-
-
-
-<!-- زر الإغلاق -->
-
-<button
-
-id="closeFullscreenBtn"
-
-class="fullscreen-close"
-
-type="button"
-
->
-
-<span class="material-icons">
-
-close
-
-</span>
-
-</button>
-
-
-</div>
-
-
-<!-- =========================
-     Wallpaper Information
-========================= -->
-
-
-<!-- =========================
-     Wallpaper Header
-========================= -->
-<section class="wallpaper-header-info">
-    <div class="wallpaper-main-header">
-
-        <!-- اسم الخلفية والوصف -->
-        <div class="wallpaper-title-block">
-            <h1 id="wallTitle2" class="wallpaper-page-title"></h1>
-
-            <div class="description-box">
-                <span>الوصف</span>
-                <p id="wallDescription"></p>
+                <span class="option-menu-label"><strong>تعيين كخلفية</strong><small>حمّلها أو شاركها مع هاتفك</small></span>
+              </button>
             </div>
+
+            <button id="prevWallpaperBtn" type="button" class="wallpaper-nav-btn wallpaper-nav-prev" aria-label="الخلفية السابقة" title="الخلفية السابقة" hidden>
+              <span class="material-icons">chevron_right</span>
+            </button>
+            <button id="nextWallpaperBtn" type="button" class="wallpaper-nav-btn wallpaper-nav-next" aria-label="الخلفية التالية" title="الخلفية التالية" hidden>
+              <span class="material-icons">chevron_left</span>
+            </button>
+
+            <button id="fullscreenBtn" type="button" class="image-action-btn fullscreen-image-btn" aria-label="عرض الشاشة الكاملة" title="ملء الشاشة">
+              <span class="material-icons">fullscreen</span>
+            </button>
+          </div>
         </div>
 
-        <!-- معلومات المستخدم الذي نشر الخلفية -->
-        <div class="wallpaper-publisher-card">
-            <img
-                id="wallAuthorAvatar"
-                class="wallpaper-publisher-avatar"
-                src="/assets/logo/no-image.png"
-                alt="صورة المستخدم"
-                loading="lazy"
-            >
-            <div class="wallpaper-publisher-info">
+        <div class="preview-meta-row">
+          <span><span class="material-icons">high_quality</span> عرض الصورة بأبعادها الأصلية</span>
+          <span><span class="material-icons">touch_app</span> اسحب للتنقل بين الخلفيات</span>
+        </div>
+      </section>
+
+      <aside class="wallpaper-sidebar">
+        <section class="wallpaper-header-info">
+          <div class="wallpaper-main-header">
+            <div class="wallpaper-title-block">
+              <span class="eyebrow">WALLPAPER DETAILS</span>
+              <h1 id="wallTitle2" class="wallpaper-page-title">تفاصيل الخلفية</h1>
+              <div class="description-box">
+                <span>نبذة عن الخلفية</span>
+                <p id="wallDescription">اكتشف تفاصيل هذه الخلفية.</p>
+              </div>
+            </div>
+
+            <div class="wallpaper-publisher-card">
+              <img id="wallAuthorAvatar" class="wallpaper-publisher-avatar" src="/assets/logo/no-image.png" alt="صورة المستخدم" loading="lazy">
+              <div class="wallpaper-publisher-info">
                 <div class="wallpaper-publisher-name-row">
-                    <strong id="wallAuthorName">WallpaperHub</strong>
-                    <span class="material-icons wallpaper-verified-icon">verified</span>
+                  <strong id="wallAuthorName">WallpaperHub</strong>
+                  <span class="material-icons wallpaper-verified-icon">verified</span>
                 </div>
-                <span class="wallpaper-publisher-role">الناشر</span>
+                <span class="wallpaper-publisher-role">نُشرت بواسطة</span>
+              </div>
+              <span class="material-icons publisher-arrow" aria-hidden="true">north_east</span>
             </div>
+          </div>
+        </section>
+
+        <div class="wallpaper-quick-stats" aria-label="إحصائيات الخلفية">
+          <div class="quick-stat">
+            <span class="quick-stat-icon"><span class="material-icons">favorite</span></span>
+            <div class="quick-stat-text"><strong id="wallLikes">0</strong><span>إعجاب</span></div>
+          </div>
+          <div class="quick-stat">
+            <span class="quick-stat-icon"><span class="material-icons">visibility</span></span>
+            <div class="quick-stat-text"><strong id="wallViews">0</strong><span>مشاهدة</span></div>
+          </div>
+          <div class="quick-stat">
+            <span class="quick-stat-icon"><span class="material-icons">star</span></span>
+            <div class="quick-stat-text"><strong id="wallQuickRating">0</strong><span>التقييم</span></div>
+          </div>
+          <div class="quick-stat">
+            <span class="quick-stat-icon"><span class="material-icons">calendar_today</span></span>
+            <div class="quick-stat-text"><strong id="wallQuickDate">—</strong><span>تاريخ الإضافة</span></div>
+          </div>
         </div>
 
+        <div class="detail-primary-actions">
+          <button id="downloadBtn" type="button" class="download-primary image-action-btn download-image-btn">
+            <span class="download-primary-icon material-icons">download</span>
+            <span class="download-primary-copy"><strong>تحميل الخلفية</strong><small>اختر الصيغة والدقة المناسبة</small></span>
+            <span class="download-primary-arrow material-icons">arrow_back</span>
+          </button>
+          <div class="detail-action-caption">
+            <span class="material-icons">verified_user</span>
+            <span>تحميل مباشر مع خيارات متعددة للجودة</span>
+          </div>
+        </div>
+      </aside>
     </div>
-</section>
-<!-- شريط النتائج والإحصائيات -->
-<div class="wallpaper-quick-stats" aria-label="إحصائيات الخلفية">
-    <div class="quick-stat">
-        <span class="material-icons quick-stat-icon">favorite</span>
-        <div class="quick-stat-text"><strong id="wallLikes">0</strong><span>إعجاب</span></div>
-    </div>
-    <div class="quick-stat">
-        <span class="material-icons quick-stat-icon">visibility</span>
-        <div class="quick-stat-text"><strong id="wallViews">0</strong><span>مشاهدة</span></div>
-    </div>
-    <div class="quick-stat">
-        <span class="material-icons quick-stat-icon rating-stat-icon">star</span>
-        <div class="quick-stat-text"><strong id="wallQuickRating">0</strong><span>تقييمات</span></div>
-    </div>
-    <div class="quick-stat">
-        <span class="material-icons quick-stat-icon">calendar_today</span>
-        <div class="quick-stat-text"><strong id="wallQuickDate">—</strong><span>تاريخ الإضافة</span></div>
-    </div>
-</div>
 
+    <section class="wallpaper-tabs-section" aria-label="محتوى الخلفية">
+      <div class="tabs-heading">
+        <div>
+          <span class="eyebrow">EXPLORE MORE</span>
+          <h2>كل ما يخص هذه الخلفية</h2>
+        </div>
+        <span class="tabs-heading-mark material-icons" aria-hidden="true">auto_awesome</span>
+      </div>
 
-
-<!-- =========================
-     COMMENTS SECTION NEW
-========================= -->
-
-
-
-
-
-
-<!-- =========================
-     Wallpaper Content Tabs
-========================= -->
-<section class="wallpaper-tabs-section" aria-label="محتوى الخلفية">
-    <div class="wallpaper-tabs" role="tablist" aria-label="أقسام الخلفية">
-        <button class="wallpaper-tab active" type="button" role="tab"
-                data-tab="info" aria-selected="true">
-            <span class="material-icons">info</span>
-            <span>المعلومات</span>
+      <div class="wallpaper-tabs" role="tablist" aria-label="أقسام الخلفية">
+        <button class="wallpaper-tab active" type="button" role="tab" data-tab="info" aria-selected="true">
+          <span class="material-icons">info</span><span>المعلومات</span>
         </button>
-
-        <button class="wallpaper-tab" type="button" role="tab"
-                data-tab="similar" aria-selected="false">
-            <span class="material-icons">wallpaper</span>
-            <span>خلفيات مشابهة</span>
+        <button class="wallpaper-tab" type="button" role="tab" data-tab="similar" aria-selected="false">
+          <span class="material-icons">wallpaper</span><span>خلفيات مشابهة</span>
         </button>
-
-        <button class="wallpaper-tab" type="button" role="tab"
-                data-tab="comments" aria-selected="false">
-            <span class="material-icons">chat_bubble_outline</span>
-            <span>التعليقات</span>
-            <b id="tabCommentsCount">0</b>
+        <button class="wallpaper-tab" type="button" role="tab" data-tab="comments" aria-selected="false">
+          <span class="material-icons">chat_bubble_outline</span><span>التعليقات</span><b id="tabCommentsCount">0</b>
         </button>
-    </div>
+      </div>
 
-    <div class="wallpaper-tab-content">
+      <div class="wallpaper-tab-content">
         <section class="tab-panel tab-panel-info" data-panel="info">
-    <div class="info-details">
-<div class="info-item">
+          <div class="info-details">
+            <div class="info-item"><span>الدقة</span><span id="wallResolution">—</span></div>
+            <div class="info-item"><span>الحجم</span><span id="wallSize">—</span></div>
+            <div class="info-item"><span>عدد التحميلات</span><span id="wallDownloads">—</span></div>
 
-<span>
-الدقة
-</span>
-
-<span id="wallResolution"></span>
-
-</div>
-
-
-
-
-
-<div class="info-item">
-
-<span>
-الحجم
-</span>
-
-<span id="wallSize"></span>
-
-</div>
-
-
-
-
-
-<div class="info-item">
-
-<span>
-عدد التحميلات
-</span>
-
-<span id="wallDownloads"></span>
-
-</div>
-
-
-
-
-
-<div class="info-item rating-info-item">
-    <span class="info-label">التقييم</span>
-
-    <div class="rating-panel" aria-label="تقييم الخلفية">
-        <div class="rating-panel-head">
-            <div class="rating-score">
-                <strong id="wallRating">0.0</strong>
-                <span>/ 5</span>
+            <div class="info-item rating-info-item">
+              <span class="info-label">تقييم المجتمع</span>
+              <div class="rating-panel" aria-label="تقييم الخلفية">
+                <div class="rating-panel-head">
+                  <div class="rating-score"><strong id="wallRating">0.0</strong><span>/ 5</span></div>
+                  <div class="rating-summary"><span class="rating-summary-title">إجمالي التقييمات</span><strong id="ratingTotalInline">0</strong></div>
+                </div>
+                <div class="rating-distribution" id="ratingDistribution">
+                  <div class="rating-row" data-rate="5"><span class="rating-row-number">5</span><div class="rating-bar" aria-hidden="true"><span class="rating-bar-fill"></span></div><button class="rating-row-star" type="button" data-rate="5" aria-label="تقييم 5 نجوم">★</button><span class="rating-row-count">0</span></div>
+                  <div class="rating-row" data-rate="4"><span class="rating-row-number">4</span><div class="rating-bar" aria-hidden="true"><span class="rating-bar-fill"></span></div><button class="rating-row-star" type="button" data-rate="4" aria-label="تقييم 4 نجوم">★</button><span class="rating-row-count">0</span></div>
+                  <div class="rating-row" data-rate="3"><span class="rating-row-number">3</span><div class="rating-bar" aria-hidden="true"><span class="rating-bar-fill"></span></div><button class="rating-row-star" type="button" data-rate="3" aria-label="تقييم 3 نجوم">★</button><span class="rating-row-count">0</span></div>
+                  <div class="rating-row" data-rate="2"><span class="rating-row-number">2</span><div class="rating-bar" aria-hidden="true"><span class="rating-bar-fill"></span></div><button class="rating-row-star" type="button" data-rate="2" aria-label="تقييم نجمتين">★</button><span class="rating-row-count">0</span></div>
+                  <div class="rating-row" data-rate="1"><span class="rating-row-number">1</span><div class="rating-bar" aria-hidden="true"><span class="rating-bar-fill"></span></div><button class="rating-row-star" type="button" data-rate="1" aria-label="تقييم نجمة واحدة">★</button><span class="rating-row-count">0</span></div>
+                </div>
+                <div class="rating-panel-footer"><span class="rating-footer-hint">اضغط على النجوم لإضافة تقييمك</span><span class="rating-footer-total"><b id="ratingTotalFooter">0</b> تقييم</span></div>
+              </div>
             </div>
 
-            <div class="rating-summary">
-                <span class="rating-summary-title">التقييمات</span>
-                <strong id="ratingTotalInline">0</strong>
+            <div class="info-item"><span>الناشر</span><span id="wallAuthor">—</span></div>
+            <div class="info-item"><span>تاريخ الإضافة</span><span id="wallDate">—</span></div>
+            <div class="info-item"><span>مكان الالتقاط</span><span id="captureLocation">غير معروف</span></div>
+            <div class="info-item"><span>تاريخ الالتقاط</span><span id="captureDate">غير معروف</span></div>
+            <div class="info-item"><span>وقت الالتقاط</span><span id="captureTime">غير معروف</span></div>
+            <div class="info-item"><span>مصدر الصورة</span><span id="imageSource">غير معروف</span></div>
+          </div>
+
+          <div class="wallpaper-links-section" aria-label="روابط الخلفية">
+            <div class="subsection-heading"><div><span class="eyebrow">SHARE LINKS</span><h3>روابط الخلفية</h3></div></div>
+            <div class="wallpaper-links-grid">
+              <div class="wallpaper-link-card wallpaper-site-link">
+                <div class="wallpaper-link-card-content">
+                  <div class="wallpaper-link-icon"><span class="material-icons">open_in_new</span></div>
+                  <div class="wallpaper-link-text"><strong>رابط صفحة الخلفية</strong><span>للمشاركة داخل WallpaperHub</span></div>
+                </div>
+                <button id="copyWallpaperPageLinkBtn" class="wallpaper-link-copy" type="button" aria-label="نسخ رابط الخلفية" title="نسخ رابط الخلفية"><span class="material-icons">content_copy</span></button>
+              </div>
+              <div class="wallpaper-link-card wallpaper-direct-link">
+                <div class="wallpaper-link-card-content">
+                  <div class="wallpaper-link-icon"><span class="material-icons">link</span></div>
+                  <div class="wallpaper-link-text"><strong>الرابط المباشر</strong><span>رابط ملف الصورة الأصلي</span></div>
+                </div>
+                <button id="copyWallpaperDirectLinkBtn" class="wallpaper-link-copy" type="button" aria-label="نسخ الرابط المباشر" title="نسخ الرابط المباشر"><span class="material-icons">content_copy</span></button>
+              </div>
             </div>
-        </div>
-
-        <div class="rating-distribution" id="ratingDistribution">
-            <div class="rating-row" data-rate="5">
-                <span class="rating-row-number">5</span>
-                <div class="rating-bar" aria-hidden="true">
-                    <span class="rating-bar-fill"></span>
-                </div>
-                <button class="rating-row-star" type="button"
-                        data-rate="5" aria-label="تقييم 5 نجوم">★</button>
-                <span class="rating-row-count">0</span>
-            </div>
-
-            <div class="rating-row" data-rate="4">
-                <span class="rating-row-number">4</span>
-                <div class="rating-bar" aria-hidden="true">
-                    <span class="rating-bar-fill"></span>
-                </div>
-                <button class="rating-row-star" type="button"
-                        data-rate="4" aria-label="تقييم 4 نجوم">★</button>
-                <span class="rating-row-count">0</span>
-            </div>
-
-            <div class="rating-row" data-rate="3">
-                <span class="rating-row-number">3</span>
-                <div class="rating-bar" aria-hidden="true">
-                    <span class="rating-bar-fill"></span>
-                </div>
-                <button class="rating-row-star" type="button"
-                        data-rate="3" aria-label="تقييم 3 نجوم">★</button>
-                <span class="rating-row-count">0</span>
-            </div>
-
-            <div class="rating-row" data-rate="2">
-                <span class="rating-row-number">2</span>
-                <div class="rating-bar" aria-hidden="true">
-                    <span class="rating-bar-fill"></span>
-                </div>
-                <button class="rating-row-star" type="button"
-                        data-rate="2" aria-label="تقييم نجمتين">★</button>
-                <span class="rating-row-count">0</span>
-            </div>
-
-            <div class="rating-row" data-rate="1">
-                <span class="rating-row-number">1</span>
-                <div class="rating-bar" aria-hidden="true">
-                    <span class="rating-bar-fill"></span>
-                </div>
-                <button class="rating-row-star" type="button"
-                        data-rate="1" aria-label="تقييم نجمة واحدة">★</button>
-                <span class="rating-row-count">0</span>
-            </div>
-        </div>
-
-        <div class="rating-panel-footer">
-            <span class="rating-footer-hint">اختر تقييمك</span>
-            <span class="rating-footer-total"><b id="ratingTotalFooter">0</b> تقييم</span>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-
-<div class="info-item">
-
-<span>
-الناشر
-</span>
-
-
-<span id="wallAuthor"></span>
-
-
-</div>
-
-
-
-
-
-<div class="info-item">
-
-<span>
-تاريخ الإضافة
-</span>
-
-
-<span id="wallDate"></span>
-
-
-</div>
-
-
-<div class="info-item">
-
-<span>
-📍 مكان الالتقاط
-</span>
-
-
-<span id="captureLocation">
-غير معروف
-</span>
-
-
-</div>
-
-
-
-<div class="info-item">
-
-<span>
-📅 تاريخ الالتقاط
-</span>
-
-
-<span id="captureDate">
-غير معروف
-</span>
-
-
-</div>
-
-
-
-<div class="info-item">
-
-<span>
-⏰ وقت الالتقاط
-</span>
-
-
-<span id="captureTime">
-غير معروف
-</span>
-
-
-</div>
-
-<div class="info-item">
-
-<span>
-🤖 مصدر الصورة
-</span>
-
-
-<span id="imageSource">
-غير معروف
-</span>
-
-
-</div>
-
-<!-- =========================
-     Wallpaper Links
-========================= -->
-<div class="wallpaper-links-section" aria-label="روابط الخلفية">
-
-    <div class="wallpaper-links-grid">
-
-        <div class="wallpaper-link-card wallpaper-site-link">
-            <div class="wallpaper-link-card-content">
-                <div class="wallpaper-link-icon">
-                    <span class="material-icons">open_in_new</span>
-                </div>
-                <div class="wallpaper-link-text">
-                    <strong>رابط الخلفية</strong>
-                    <span>داخل موقعي</span>
-                </div>
-            </div>
-
-            <button id="copyWallpaperPageLinkBtn" class="wallpaper-link-copy" type="button" aria-label="نسخ رابط الخلفية" title="نسخ رابط الخلفية">
-                <span class="material-icons">content_copy</span>
-            </button>
-        </div>
-
-        <div class="wallpaper-link-card wallpaper-direct-link">
-            <div class="wallpaper-link-card-content">
-                <div class="wallpaper-link-icon">
-                    <span class="material-icons">link</span>
-                </div>
-                <div class="wallpaper-link-text">
-                    <strong>الرابط المباشر</strong>
-                    <span>رابط الصورة الأصلي</span>
-                </div>
-            </div>
-
-            <button id="copyWallpaperDirectLinkBtn" class="wallpaper-link-copy" type="button" aria-label="نسخ الرابط المباشر" title="نسخ الرابط المباشر">
-                <span class="material-icons">content_copy</span>
-            </button>
-        </div>
-
-    </div>
-
-    <div class="wallpaper-link-value" aria-live="polite">
-        <span id="wallImageLink"></span>
-        <span id="wallDirectImageLink"></span>
-    </div>
-</div>
-
-
-
-
-    </div>
-
-    <section class="tags info-extra-section">
-        <h3>الألوان</h3>
-        <div id="colorPalette"></div>
-    </section>
-
-    <section class="tags info-extra-section">
-        <h3>الوسوم</h3>
-        <div id="tagsContainer"></div>
-    </section>
-</section>
+            <div class="wallpaper-link-value" aria-live="polite"><span id="wallImageLink"></span><span id="wallDirectImageLink"></span></div>
+          </div>
+
+          <div class="info-extras-grid">
+            <section class="tags info-extra-section">
+              <div class="subsection-heading"><div><span class="eyebrow">COLOR PALETTE</span><h3>الألوان</h3></div></div>
+              <div id="colorPalette"></div>
+            </section>
+            <section class="tags info-extra-section">
+              <div class="subsection-heading"><div><span class="eyebrow">DISCOVER</span><h3>الوسوم</h3></div></div>
+              <div id="tagsContainer"></div>
+            </section>
+          </div>
+        </section>
 
         <section class="tab-panel tab-panel-similar" data-panel="similar" hidden>
-            <section class="similar">
-
-
-<div class="section-title">
-
-
-<h3>
-خلفيات مشابهة
-</h3>
-
-
-
-<a href="#">
-عرض الكل
-</a>
-
-
-</div>
-
-
-
-<div
-
-id="similarWallpapers"
-
-class="similar-grid"
-
->
-
-</div>
-
-
-
-</section>
+          <section class="similar">
+            <div class="section-title">
+              <div><span class="eyebrow">YOU MAY ALSO LIKE</span><h3>خلفيات مشابهة</h3></div>
+              <span class="section-title-note">اكتشف المزيد من نفس الفئة</span>
+            </div>
+            <div id="similarWallpapers" class="similar-grid"></div>
+          </section>
         </section>
 
         <section class="tab-panel tab-panel-comments" data-panel="comments" hidden>
-            <section class="comments-section">
+          <section class="comments-section">
+            <div class="section-title">
+              <div><span class="eyebrow">COMMUNITY</span><h3>آراء المجتمع</h3></div>
+              <span id="commentsCountBadge" class="comments-count">0 تعليق</span>
+            </div>
 
+            <div id="commentBanNotice" class="comment-ban-notice" role="status" aria-live="polite" hidden>
+              <span class="material-icons" aria-hidden="true">block</span>
+              <div><strong>تم منعك من كتابة التعليقات</strong><p id="commentBanNoticeDetails">لا يمكنك إضافة تعليق على الخلفيات حاليًا.</p></div>
+            </div>
 
-    <div class="section-title">
-
-        <h3>
-            💬 التعليقات
-        </h3>
-
-
-        <span 
-        id="commentsCountBadge"
-        class="comments-count">
-            0 تعليق
-        </span>
-
-
-    </div>
-
-
-
-
-<!-- صندوق التعليقات -->
-
-<div id="commentBanNotice" class="comment-ban-notice" role="status" aria-live="polite" hidden>
-    <span class="material-icons" aria-hidden="true">block</span>
-    <div>
-        <strong>تم منعك من كتابة التعليقات</strong>
-        <p id="commentBanNoticeDetails">لا يمكنك إضافة تعليق على الخلفيات حاليًا.</p>
-    </div>
-</div>
-
-<div class="add-comment-box" id="addCommentBox">
-    <div id="replyingToBar" class="replying-to-bar" hidden></div>
-
-
-    <!-- كتابة التعليق -->
-
-    <div
-    id="commentInput"
-    class="comment-editor"
-    contenteditable="true"
-    role="textbox"
-    aria-multiline="true"
-    data-placeholder="اكتب تعليقك هنا..."
-    ></div>
-<!-- أدوات الإرسال -->
-
-    <div class="comment-tools">
-
-
-        <span class="emoji-hint">
-            😊 يمكنك استخدام الرموز التعبيرية
-        </span>
-
-
-
-        <div class="comment-action-buttons">
-
-        <button
-        id="mentionBtn"
-        class="mention-btn"
-        type="button"
-        aria-label="إضافة إشارة"
-        title="إضافة إشارة">
-            @
-        </button>
-
-        <div
-        id="mentionSuggestions"
-        class="mention-suggestions"
-        hidden
-        role="listbox"
-        aria-label="نتيجة البحث عن صاحب الخلفية"
-        ></div>
-
-        <button
-        id="sendCommentBtn"
-        class="send-comment-btn"
-        type="button">
-
-            <span class="material-icons">
-                send
-            </span>
-
-        </button>
-
-    </div>
-
-
-    </div>
-    <!-- تعليقات المستخدمين داخل نفس الإطار -->
-
-    <div
-
-    id="commentsContainer"
-
-    class="comments-container">
-
-
-    </div>
-
-
-</div>
-
-
-
-
-</section>
+            <div class="add-comment-box" id="addCommentBox">
+              <div id="replyingToBar" class="replying-to-bar" hidden></div>
+              <div id="commentInput" class="comment-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="اكتب تعليقك هنا..."></div>
+              <div class="comment-tools">
+                <span class="emoji-hint"><span class="material-icons">sentiment_satisfied_alt</span> شارك رأيك مع المجتمع</span>
+                <div class="comment-action-buttons">
+                  <button id="mentionBtn" class="mention-btn" type="button" aria-label="إضافة إشارة" title="إضافة إشارة">@</button>
+                  <div id="mentionSuggestions" class="mention-suggestions" hidden role="listbox" aria-label="نتيجة البحث عن صاحب الخلفية"></div>
+                  <button id="sendCommentBtn" class="send-comment-btn" type="button" aria-label="إرسال التعليق"><span class="material-icons">send</span></button>
+                </div>
+              </div>
+              <div id="commentsContainer" class="comments-container"></div>
+            </div>
+          </section>
         </section>
-    </div>
-</section>
+      </div>
+    </section>
+  </main>
 
+  <div id="downloadOptionsModal" class="download-options-modal" aria-hidden="true">
+    <button class="download-options-backdrop" type="button" data-close-download aria-label="إغلاق نافذة التنزيل"></button>
+    <section class="download-options-dialog" role="dialog" aria-modal="true" aria-labelledby="downloadOptionsTitle">
+      <header class="download-options-head">
+        <div><span class="download-options-kicker">WALLPAPERHUB DOWNLOAD</span><h3 id="downloadOptionsTitle">خيارات التنزيل</h3><p>اختار الصيغة والدقة المناسبة ليك</p></div>
+        <button id="closeDownloadOptions" class="download-options-close" type="button" aria-label="إغلاق">×</button>
+      </header>
+      <div class="download-options-body">
+        <div class="download-option-group"><label for="downloadFormat">صيغة الصورة</label><select id="downloadFormat"><option value="image/jpeg">JPG — حجم صغير ومتوافق</option><option value="image/png">PNG — جودة عالية</option><option value="image/webp">WEBP — حجم أقل وجودة جيدة</option><option value="image/avif">AVIF — ضغط قوي (حسب دعم المتصفح)</option><option value="image/svg+xml">SVG — تحويل حقيقي إلى Vector</option></select><small>كيحوّل الصورة إلى مسارات Vector قابلة للتكبير؛ الصور الفوتوغرافية قد تختلف تفاصيلها عن الأصل.</small></div>
+        <div class="download-option-group"><label for="downloadResolution">الدقة</label><select id="downloadResolution"><option value="480">صغيرة — حتى 480px</option><option value="720">متوسطة — حتى 720px</option><option value="1080" selected>عالية — حتى 1080px</option><option value="1440">عالية جداً — حتى 1440px</option><option value="2160">4K — حتى 2160px</option><option value="original">الأصلية — أقصى دقة متاحة</option></select><small id="downloadResolutionHint">سيتم الحفاظ على تناسب أبعاد الصورة.</small></div>
+        <label class="download-original-row"><input id="downloadKeepOriginal" type="checkbox"><span><strong>تحميل الملف الأصلي</strong><small>بدون تحويل أو تغيير الدقة</small></span></label>
+        <div id="downloadOptionsStatus" class="download-options-status" role="status" aria-live="polite"></div>
+      </div>
+      <footer class="download-options-footer"><button id="cancelDownloadOptions" class="download-cancel-btn" type="button">إلغاء</button><button id="confirmWallpaperDownload" class="download-confirm-btn" type="button"><span class="material-icons">download</span> تنزيل الصورة</button></footer>
+    </section>
+  </div>
 
-<!-- Wallpaper action status -->
-<div id="wallpaperActionToast"
-     class="wallpaper-action-toast"
-     role="status"
-     aria-live="polite"
-     aria-atomic="true"></div>
+  <div id="phonePreviewModal" class="phone-preview-modal" aria-hidden="true">
+    <div class="phone-preview-backdrop" data-close-phone-preview></div>
+    <section class="phone-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="phonePreviewTitle">
+      <div class="phone-preview-head">
+        <div><span class="phone-preview-kicker">معاينة قبل التنزيل</span><h3 id="phonePreviewTitle">كيف ستظهر في هاتفك</h3></div>
+        <button id="closePhonePreviewBtn" class="phone-preview-close" type="button" aria-label="إغلاق المعاينة"><span class="material-icons">close</span></button>
+      </div>
+      <div class="phone-stage">
+        <div class="phone-device" id="phoneDevice">
+          <div class="phone-screen">
+            <div class="phone-status-bar"><span id="phonePreviewTime">12:00</span><div class="phone-status-icons"><span class="material-icons">signal_cellular_alt</span><span class="material-icons">wifi</span><span class="material-icons">battery_full</span></div></div>
+            <img id="phonePreviewImage" alt="معاينة الخلفية على الهاتف">
+            <video id="phonePreviewVideo" muted loop playsinline></video>
+            <div class="phone-home-indicator"></div>
+          </div>
+          <div class="phone-side-button phone-side-top"></div><div class="phone-side-button phone-side-bottom"></div>
+        </div>
+      </div>
+      <div class="phone-preview-actions">
+        <button id="phonePreviewDownloadBtn" class="phone-preview-secondary" type="button"><span class="material-icons">download</span> تحميل</button>
+        <button id="phonePreviewSetBtn" class="phone-preview-primary" type="button"><span class="material-icons">wallpaper</span> تعيين كخلفية</button>
+      </div>
+      <p class="phone-preview-note">هذه معاينة تقريبية لشكل الخلفية على شاشة هاتف عمودية.</p>
+    </section>
+  </div>
 
-<!-- Scripts -->
-<script defer src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
-<script type="module" src="wallpaper.js"></script>
+  <div id="fullscreenViewer" class="fullscreen-viewer">
+    <img id="fullscreenImage" alt="الخلفية بملء الشاشة" decoding="async" draggable="false">
+    <video id="fullscreenVideo" muted loop playsinline preload="metadata"></video>
+    <button id="closeFullscreenBtn" class="fullscreen-close" type="button" aria-label="إغلاق العرض"><span class="material-icons">close</span></button>
+  </div>
 
-<script src="effects.js"></script>
-<script src="theme.js"></script>
-<script src="bottom-nav.js"></script>
-<script src="js/performance-engine.js"></script>
+  <div id="wallpaperActionToast" class="wallpaper-action-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
+  <script type="module" src="wallpaper.js?v=20261121-premium-detail-1"></script>
+  <script src="js/performance-engine.js"></script>
 </body>
-
 </html>
