@@ -256,7 +256,7 @@
   clearTimeout(syncTimer);syncTimer=setTimeout(()=>{void syncAccountSettings();},250);
  });
  window.addEventListener("storage",event=>{
-  if(!event.key||event.key===KEY||event.key===CARD_KEY){preferences=readLocal();apply();}
+  if(!event.key||event.key===KEY||event.key===CARD_KEY){preferences=readLocal();apply();dispatchLoaded();}
   if(event.key&&event.key.startsWith("sb-")&&event.newValue)void loadAccountSettings();
  });
  window.addEventListener("focus",()=>{checkAutoRefresh();void checkSystemUpdate();});
@@ -265,6 +265,7 @@
  document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkAutoRefresh();void checkSystemUpdate();}});
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",apply,{once:true});else apply();
  setupSearchHistory();
+ dispatchLoaded();
  void loadAccountSettings();
  void checkSystemUpdate();
 })();
