@@ -3306,6 +3306,29 @@ fullscreenVideo.pause();
 }
 
 
+
+function applyWallpaperMediaSettings(){
+    if(!currentWallpaper)return;
+    if(isVideoMedia(currentWallpaper)){
+        if(window.WallpaperHubSettings?.videosEnabled?.()===false){
+            stopVideo();
+            if(wallImage){
+                wallImage.style.display="block";
+                const still=currentWallpaper.thumbnail||"/assets/logo/no-image.png";
+                setHeroImage(wallImage,getImageUrl(still));
+            }
+        }else{
+            setupVideo(currentWallpaper.image);
+        }
+    }
+    if(fullscreenBtn){
+        fullscreenBtn.hidden=window.WallpaperHubSettings?.get?.("fullscreen")===false;
+    }
+}
+window.addEventListener("wallpaperhub:settings-loaded",applyWallpaperMediaSettings);
+window.addEventListener("wallpaperhub:settings-updated",applyWallpaperMediaSettings);
+window.addEventListener("load",applyWallpaperMediaSettings,{once:true});
+
 // ===============================
 // Phone Preview — معاينة الخلفية داخل هاتف حقيقي الشكل
 // ===============================
