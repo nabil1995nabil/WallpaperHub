@@ -502,7 +502,7 @@ function injectWallpaperHubLanguageRuntime(source){
         lowerHtml = html.toLowerCase();
     }
 
-    const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261122-page-palettes" data-wh-global-theme="1">';
+    const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261122-page-palettes-v2" data-wh-global-theme="1">';
     const headEnd = html.toLowerCase().indexOf("</head>");
     if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + lineBreak + html.slice(headEnd);
     else html = globalThemeStyle + lineBreak + html;

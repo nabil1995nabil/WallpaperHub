@@ -133,18 +133,18 @@ body.dark {
 }
 
 /* Consistent text contrast on pages whose older styles hard-coded dark text. */
-body.dark :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, figcaption, blockquote, legend, th, td, label) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, figcaption, blockquote, legend, th, td, label) {
     color: var(--wh-text);
 }
 
-body.dark :where(.muted, .text-muted, .muted-text, .subtitle, .description, .meta,
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(.muted, .text-muted, .muted-text, .subtitle, .description, .meta,
     .hint, .helper, .helper-text, .caption, .secondary-text, .empty-description,
     .section-description, .card-description, .form-hint, .text-secondary) {
     color: var(--wh-muted);
 }
 
 /* Form controls follow the selected color scheme without flattening buttons. */
-body.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
     textarea, select) {
     color: var(--wh-text);
     background-color: var(--input-bg);
@@ -152,17 +152,17 @@ body.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="ran
     color-scheme: dark;
 }
 
-body.dark :where(input, textarea, select)::placeholder {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(input, textarea, select)::placeholder {
     color: var(--wh-muted);
     opacity: .85;
 }
 
-body.dark :where(table, th, td, hr) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(table, th, td, hr) {
     border-color: var(--wh-border);
 }
 
 /* Common neutral surfaces only; designed hero panels and image cards keep their own art. */
-body.dark :where(.panel, .modal, .dialog, .dropdown-menu, .popover, .settings-card,
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(.panel, .modal, .dialog, .dropdown-menu, .popover, .settings-card,
     .info-card, .form-card, .widget-card, .result-card, .content-card, .list-card,
     .search-wrap, .search-box, .filter-panel, .toolbar-panel, .empty-state,
     .comment-card, .reply-card, .notif-card, .notification-card) {
@@ -170,15 +170,15 @@ body.dark :where(.panel, .modal, .dialog, .dropdown-menu, .popover, .settings-ca
     border-color: var(--wh-border);
 }
 
-body.dark :where(.bottom-nav, .bottom-nav .nav-item) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(.bottom-nav, .bottom-nav .nav-item) {
     color: var(--wh-text);
 }
 
-body.dark :where(a:not([class]), button:not([class])) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(a:not([class]), button:not([class])) {
     color: inherit;
 }
 
-body.dark :where(button:disabled, input:disabled, textarea:disabled, select:disabled) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(button:disabled, input:disabled, textarea:disabled, select:disabled) {
     opacity: .65;
 }
 
@@ -248,15 +248,6 @@ body.dark .bottom-nav .nav-item.active::before {
 
 /* Additional design-system tokens used by pages with their own palette names. */
 body {
-    --social-bg:#f4f7fc;
-    --social-surface:#ffffff;
-    --social-line:#e5eaf2;
-    --social-line-strong:#d6e0ef;
-    --social-ink:#172235;
-    --social-muted:#78869a;
-    --social-blue:#246df2;
-    --social-blue-soft:#edf4ff;
-
     --premium-bg:#f6f8ff;
     --premium-card:#ffffff;
     --premium-ink:#202a42;
@@ -333,360 +324,6 @@ body.dark {
     --wh-nav-active:#c2b6ff;
     --wh-nav-active-bg:rgba(151,129,255,.18);
     --wh-nav-shadow:0 14px 42px rgba(0,0,0,.38);
-}
-
-/* ---------- Community chat / forums ---------- */
-body.wh-page-community {
-    --page:#f3f5f9;
-    --surface:#ffffff;
-    --surface-soft:#f8f9fc;
-    --surface-muted:#f0f2f7;
-    --ink:#202538;
-    --ink-strong:#141a2b;
-    --muted:#7b8498;
-    --muted-strong:#59647b;
-    --line:#e8ebf2;
-    --line-strong:#dce1eb;
-    --brand:#6258e8;
-    --brand-dark:#4f46c8;
-    --brand-soft:#eeedff;
-}
-body.wh-page-community.dark {
-    --page:#0b1220;
-    --surface:#131d2d;
-    --surface-soft:#19263a;
-    --surface-muted:#202e43;
-    --ink:#eaf0fa;
-    --ink-strong:#f5f7ff;
-    --muted:#a2afc3;
-    --muted-strong:#c0cbda;
-    --line:#29384d;
-    --line-strong:#3a4b63;
-    --brand:#a69aff;
-    --brand-dark:#c0b7ff;
-    --brand-soft:#252746;
-    background:
-        radial-gradient(ellipse at 12% 0%,rgba(99,88,232,.12),transparent 34rem),
-        linear-gradient(180deg,#0b1220,#0a101b) !important;
-    color:var(--ink);
-}
-body.wh-page-community.dark .topbar,
-body.wh-page-community.dark .room-tabs,
-body.wh-page-community.dark .chat-card,
-body.wh-page-community.dark .side-card,
-body.wh-page-community.dark .secondary-panel,
-body.wh-page-community.dark .forum-room-card,
-body.wh-page-community.dark .forum-conversation-card,
-body.wh-page-community.dark .forum-members-card,
-body.wh-page-community.dark .message-action-panel,
-body.wh-page-community.dark .message-action-sheet,
-body.wh-page-community.dark .private-inbox-panel,
-body.wh-page-community.dark .private-conversations,
-body.wh-page-community.dark .forum-feed-toolbar,
-body.wh-page-community.dark .forum-composer,
-body.wh-page-community.dark .private-composer,
-body.wh-page-community.dark .composer,
-body.wh-page-community.dark .attachment-preview,
-body.wh-page-community.dark .mention-suggestions {
-    color:var(--ink);
-    background-color:var(--surface);
-    border-color:var(--line);
-}
-body.wh-page-community.dark .tab-icon,
-body.wh-page-community.dark .pinned-message-banner,
-body.wh-page-community.dark .reply-composer,
-body.wh-page-community.dark .reply-composer-icon,
-body.wh-page-community.dark .message-reply-quote,
-body.wh-page-community.dark .message-file-card,
-body.wh-page-community.dark .private-message-file-card,
-body.wh-page-community.dark .member-message-button,
-body.wh-page-community.dark .shared-file-download,
-body.wh-page-community.dark .forum-composer textarea,
-body.wh-page-community.dark .forum-form textarea,
-body.wh-page-community.dark .message-report-form textarea,
-body.wh-page-community.dark .message-report-form select {
-    color:var(--ink);
-    background-color:var(--surface-soft);
-    border-color:var(--line);
-}
-body.wh-page-community.dark .message-bubble,
-body.wh-page-community.dark .forum-message:not(.is-mine) .forum-message-bubble,
-body.wh-page-community.dark .private-message-bubble:not(.mine) {
-    color:#e7edf8;
-    background:#202d41;
-    border-color:#33435a;
-}
-body.wh-page-community.dark .message-row.mine .message-bubble,
-body.wh-page-community.dark .forum-message.is-mine .forum-message-bubble {
-    color:#ffffff;
-    background:linear-gradient(125deg,#655ce8,#526fcf);
-    border-color:transparent;
-}
-body.wh-page-community.dark .composer-field,
-body.wh-page-community.dark .composer-field input,
-body.wh-page-community.dark .composer-field textarea {
-    color:var(--ink);
-    background:transparent;
-}
-body.wh-page-community.dark .composer-field,
-body.wh-page-community.dark .forum-composer textarea,
-body.wh-page-community.dark .forum-form textarea,
-body.wh-page-community.dark .message-report-form textarea,
-body.wh-page-community.dark .message-report-form select {
-    border-color:var(--line-strong);
-}
-body.wh-page-community.dark .topics-list button,
-body.wh-page-community.dark .private-inbox-button,
-body.wh-page-community.dark .forum-secondary-button {
-    color:var(--muted-strong);
-}
-body.wh-page-community.dark .message-meta time,
-body.wh-page-community.dark .topics-list button small,
-body.wh-page-community.dark .forum-room-meta,
-body.wh-page-community.dark .forum-composer-footer small {
-    color:var(--muted);
-}
-body.wh-page-community.dark .forum-room-card,
-body.wh-page-community.dark .forum-conversation-card,
-body.wh-page-community.dark .forum-members-card {
-    box-shadow:0 12px 30px rgba(0,0,0,.18);
-}
-body.wh-page-community .forum-panel-heading h2,
-body.wh-page-community .forum-room-identity h2,
-body.wh-page-community .profile-content h3,
-body.wh-page-community .side-card-head h3,
-body.wh-page-community .chat-title b {
-    color:#6258c9;
-    text-shadow:0 1px 14px rgba(98,88,232,.10);
-}
-body.wh-page-community.dark .forum-panel-heading h2,
-body.wh-page-community.dark .forum-room-identity h2,
-body.wh-page-community.dark .profile-content h3,
-body.wh-page-community.dark .side-card-head h3,
-body.wh-page-community.dark .chat-title b {
-    color:#c1b9ff;
-    text-shadow:0 1px 18px rgba(151,129,255,.18);
-}
-
-/* ---------- Community wallpaper / creation detail ---------- */
-body.wh-page-community-creation:not(.dark) {
-    background:
-        radial-gradient(ellipse at 85% 0%,rgba(164,133,255,.13),transparent 38%),
-        linear-gradient(180deg,#fbfaff,#f5f2ff);
-}
-body.wh-page-community-creation.dark {
-    --ink:#e9eefa;
-    --muted:#a4aec3;
-    --line:#2d3550;
-    background:
-        radial-gradient(ellipse at 85% 0%,rgba(140,115,255,.17),transparent 38%),
-        linear-gradient(180deg,#0e1423,#111527) !important;
-}
-body.wh-page-community-creation.dark .creation-topbar,
-body.wh-page-community-creation.dark .creation-info-grid>div,
-body.wh-page-community-creation.dark .creation-loading,
-body.wh-page-community-creation.dark .creation-not-found,
-body.wh-page-community-creation.dark .creation-preview-image-wrap,
-body.wh-page-community-creation.dark .create-more-link {
-    color:var(--ink);
-    background-color:#182337;
-    border-color:var(--line);
-}
-body.wh-page-community-creation.dark .creation-preview-foot,
-body.wh-page-community-creation.dark .creation-info-grid small,
-body.wh-page-community-creation.dark .creation-preview-head small,
-body.wh-page-community-creation.dark .creation-downloads>p {
-    color:var(--muted);
-}
-body.wh-page-community-creation.dark .creation-kicker,
-body.wh-page-community-creation.dark .creation-info-eyebrow,
-body.wh-page-community-creation.dark .creation-back,
-body.wh-page-community-creation.dark .creation-brand span {
-    color:#bcb1ff;
-}
-body.wh-page-community-creation.dark .creation-badge,
-body.wh-page-community-creation.dark .creation-download-pack {
-    color:#c9c0ff;
-    background:#29264b;
-}
-body.wh-page-community-creation .creation-info-title,
-body.wh-page-community-creation .creation-preview-title {
-    color:#6b5bc8;
-}
-body.wh-page-community-creation.dark .creation-info-title,
-body.wh-page-community-creation.dark .creation-preview-title {
-    color:#c5bbff;
-}
-
-/* ---------- Community appeal / support conversation ---------- */
-body.wh-page-community-appeal.dark {
-    --ink:#edf2fc;
-    --muted:#a2aec2;
-    --line:#2c3a50;
-    background:radial-gradient(circle at 50% -10%,rgba(100,128,255,.13),transparent 42%),#0c1422 !important;
-}
-body.wh-page-community-appeal.dark .appeal-header,
-body.wh-page-community-appeal.dark .conversation-card,
-body.wh-page-community-appeal.dark .appeal-messages {
-    color:var(--ink);
-    background:#151f30;
-    border-color:var(--line);
-}
-body.wh-page-community-appeal.dark .appeal-info {
-    color:#dce5f5;
-    background:linear-gradient(110deg,#1c2942,#20253d);
-    border-color:#35435d;
-}
-body.wh-page-community-appeal.dark .appeal-info p,
-body.wh-page-community-appeal.dark .appeal-message .sender,
-body.wh-page-community-appeal.dark .appeal-message .time,
-body.wh-page-community-appeal.dark .privacy-note {
-    color:var(--muted);
-}
-body.wh-page-community-appeal.dark .appeal-message .bubble {
-    color:#e7edf8;
-    background:#202d41;
-    border-color:#33435a;
-}
-body.wh-page-community-appeal.dark .appeal-message.mine .bubble {
-    color:#fff;
-    background:linear-gradient(125deg,#4778ff,#7049e9);
-}
-body.wh-page-community-appeal.dark .appeal-form textarea {
-    color:var(--ink);
-    background:#101a29;
-    border-color:#34435a;
-}
-body.wh-page-community-appeal.dark .back,
-body.wh-page-community-appeal.dark .conversation-top button {
-    color:#c5cbe0;
-    background:#202c40;
-    border-color:#34435a;
-}
-body.wh-page-community-appeal .appeal-header h1,
-body.wh-page-community-appeal .conversation-top h2 {
-    color:#5e68c7;
-}
-body.wh-page-community-appeal.dark .appeal-header h1,
-body.wh-page-community-appeal.dark .conversation-top h2 {
-    color:#b9c3ff;
-}
-
-/* ---------- Social posts feed ---------- */
-body.wh-page-social {
-    --social-bg:#f4f7fc;
-    --social-surface:#ffffff;
-    --social-line:#e5eaf2;
-    --social-ink:#172235;
-    --social-muted:#78869a;
-}
-body.wh-page-social.dark {
-    background:
-        radial-gradient(circle at 88% 0%,rgba(81,116,213,.13),transparent 34rem),
-        var(--social-bg) !important;
-    color:var(--social-ink);
-}
-body.wh-page-social.dark .topbar,
-body.wh-page-social.dark .card,
-body.wh-page-social.dark .stories,
-body.wh-page-social.dark .post,
-body.wh-page-social.dark .quick,
-body.wh-page-social.dark .commentarea,
-body.wh-page-social.dark .modal,
-body.wh-page-social.dark .story-composer,
-body.wh-page-social.dark .mobile-nav {
-    color:var(--social-ink);
-    background:var(--social-surface);
-    border-color:var(--social-line);
-}
-body.wh-page-social.dark .topbar,
-body.wh-page-social.dark .mobile-nav {
-    box-shadow:0 8px 26px rgba(0,0,0,.20);
-}
-body.wh-page-social.dark .thought,
-body.wh-page-social.dark .quicktop button,
-body.wh-page-social.dark .filters button,
-body.wh-page-social.dark .refresh,
-body.wh-page-social.dark .comment,
-body.wh-page-social.dark .commentform input,
-body.wh-page-social.dark .modal header button,
-body.wh-page-social.dark .story-pick,
-body.wh-page-social.dark .attachbox,
-body.wh-page-social.dark .attachbox button,
-body.wh-page-social.dark .loadmore {
-    color:var(--social-ink);
-    background:#1b293c;
-    border-color:#33445b;
-}
-body.wh-page-social.dark .thought,
-body.wh-page-social.dark .quicktop button,
-body.wh-page-social.dark .commentform input {
-    color:#cad5e5;
-}
-body.wh-page-social.dark .posttext,
-body.wh-page-social.dark .postauthor b,
-body.wh-page-social.dark .sidecard h3,
-body.wh-page-social.dark .modal header h2,
-body.wh-page-social.dark .story-composer header h2,
-body.wh-page-social.dark .empty b {
-    color:#eaf0fa;
-}
-body.wh-page-social.dark .meta,
-body.wh-page-social.dark .stats,
-body.wh-page-social.dark .sidecard p,
-body.wh-page-social.dark .hint,
-body.wh-page-social.dark .author small,
-body.wh-page-social.dark .story-expiry-note,
-body.wh-page-social.dark .uploadstatus {
-    color:var(--social-muted);
-}
-body.wh-page-social.dark .postactions button,
-body.wh-page-social.dark .quickactions button,
-body.wh-page-social.dark .mobile-nav a {
-    color:#aebbd0;
-}
-body.wh-page-social.dark .postactions button.active,
-body.wh-page-social.dark .filters button.active,
-body.wh-page-social.dark .mobile-nav .selected {
-    color:#b9cbff;
-    background:#22385a;
-    border-color:#415a82;
-}
-body.wh-page-social.dark .sectionhead h2,
-body.wh-page-social.dark .feedheading h1,
-body.wh-page-social.dark .sidecard h3 {
-    color:#c7c1ff;
-    text-shadow:0 1px 18px rgba(121,111,255,.15);
-}
-body.wh-page-social:not(.dark) .sectionhead h2,
-body.wh-page-social:not(.dark) .feedheading h1,
-body.wh-page-social:not(.dark) .sidecard h3 {
-    color:#5d62b9;
-    text-shadow:0 1px 16px rgba(102,111,220,.10);
-}
-body.wh-page-social.dark .story>b {
-    color:#edf2fa;
-    background:#172337;
-}
-body.wh-page-social.dark .modal header,
-body.wh-page-social.dark .story-composer header {
-    background:#131f30;
-    border-color:var(--social-line);
-}
-body.wh-page-social.dark .commentlist,
-body.wh-page-social.dark .preview,
-body.wh-page-social.dark .attachbox>div {
-    border-color:var(--social-line);
-}
-body.wh-page-social.dark .empty,
-body.wh-page-social.dark .status,
-body.wh-page-social.dark .error {
-    color:var(--social-muted);
-}
-body.wh-page-social.dark .postmedia,
-body.wh-page-social.dark .preview img,
-body.wh-page-social.dark .preview video {
-    background:#080e17;
 }
 
 /* ---------- Publishing pages (web + Telegram variant) ---------- */
@@ -1207,13 +844,13 @@ body.wh-page-admin.dark :where(input:not([type=checkbox]):not([type=radio]),text
 
 /* Keep the visual message hierarchy readable in every page: supporting copy is softer,
    while links and badges keep their own functional/accent colors. */
-body.dark :where(.time,.date,.timestamp,.meta-text,.subtext,.supporting-copy,.field-hint) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(.time,.date,.timestamp,.meta-text,.subtext,.supporting-copy,.field-hint) {
     color:var(--wh-muted);
 }
-body.dark :where(.section-subtitle,.page-subtitle,.panel-subtitle,.card-subtitle) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(.section-subtitle,.page-subtitle,.panel-subtitle,.card-subtitle) {
     color:var(--wh-muted);
 }
-body.dark :where(.title-accent,.heading-accent) {
+body.dark:not(.wh-page-social):not(.wh-page-community):not(.wh-page-community-creation):not(.wh-page-community-appeal) :where(.title-accent,.heading-accent) {
     color:#c4bdff;
 }
 
