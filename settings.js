@@ -255,17 +255,14 @@ function setupDataTools(){
 
     $("resetSettings").onclick = async () => {
         if(!confirm("سيتم إرجاع إعدادات WallpaperHub الافتراضية إلى الجهاز والحساب. هل تريد المتابعة؟")) return;
-        const pushWasEnabled = !!settings.browserNotifications;
         settings = {...DEFAULT_SETTINGS,cardStyle:"classic",browserNotifications:false};
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
         localStorage.setItem(CARD_STYLE_KEY, "classic");
         window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{
             detail:{settings:{...settings},source:"local-change"}
         }));
-        if(pushWasEnabled){
-            if(window.WallpaperHubPush?.disable) await window.WallpaperHubPush.disable();
-            else window.dispatchEvent(new CustomEvent("wallpaperhub:push-toggle",{detail:{enabled:false}}));
-        }
+        if(window.WallpaperHubPush?.disable) await window.WallpaperHubPush.disable();
+        else window.dispatchEvent(new CustomEvent("wallpaperhub:push-toggle",{detail:{enabled:false}}));
         await window.WallpaperHubSettings?.syncAccountSettings?.();
         location.reload();
     };
