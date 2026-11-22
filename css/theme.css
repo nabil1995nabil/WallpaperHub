@@ -275,6 +275,21 @@ body {
     --editor-text:#252a35;
     --editor-muted:#727987;
     --editor-line:#e4e7ee;
+
+    /* Developers/API page palette aliases. */
+    --bg-body:#f6f8fc;
+    --panel-bg:rgba(255,255,255,.92);
+    --panel-border:#e2e8f0;
+    --text-main:#172033;
+    --text-sub:#64748b;
+
+    /* HUD / bottom navigation aliases. */
+    --wh-nav-bg:rgba(255,255,255,.98);
+    --wh-nav-border:#e5eaf2;
+    --wh-nav-text:#778196;
+    --wh-nav-active:#5665d9;
+    --wh-nav-active-bg:rgba(110,94,229,.055);
+    --wh-nav-shadow:0 -8px 24px rgba(28,42,70,.08);
 }
 
 body.dark {
@@ -305,6 +320,19 @@ body.dark {
     --editor-text:#edf2fa;
     --editor-muted:#a2aec0;
     --editor-line:#303d50;
+
+    --bg-body:#0b1220;
+    --panel-bg:rgba(21,31,48,.96);
+    --panel-border:#2b3a50;
+    --text-main:#edf2fc;
+    --text-sub:#a3b0c4;
+
+    --wh-nav-bg:rgba(18,22,38,.96);
+    --wh-nav-border:rgba(150,158,196,.22);
+    --wh-nav-text:#aeb5ca;
+    --wh-nav-active:#c2b6ff;
+    --wh-nav-active-bg:rgba(151,129,255,.18);
+    --wh-nav-shadow:0 14px 42px rgba(0,0,0,.38);
 }
 
 /* ---------- Community chat / forums ---------- */
@@ -1187,4 +1215,92 @@ body.dark :where(.section-subtitle,.page-subtitle,.panel-subtitle,.card-subtitle
 }
 body.dark :where(.title-accent,.heading-accent) {
     color:#c4bdff;
+}
+
+
+/* Developer console, API token cards, and one-time token dialogs. */
+body.wh-page-developers.dark {
+    background:
+        radial-gradient(circle at 12% 0,rgba(62,114,220,.12),transparent 32rem),
+        var(--bg-body) !important;
+    color:var(--text-main);
+}
+body.wh-page-developers.dark .container,
+body.wh-page-developers.dark .panel,
+body.wh-page-developers.dark .docs-box,
+body.wh-page-developers.dark .token-item,
+body.wh-page-developers.dark .token-value-box,
+body.wh-page-developers.dark .popup-box,
+body.wh-page-developers.dark .one-time-token,
+body.wh-page-developers.dark .token-env-field .one-time-token {
+    color:var(--text-main);
+    background:var(--panel-bg);
+    border-color:var(--panel-border);
+}
+body.wh-page-developers.dark .header h1,
+body.wh-page-developers.dark .panel-title,
+body.wh-page-developers.dark .docs-title,
+body.wh-page-developers.dark .popup-box h3,
+body.wh-page-developers.dark .one-time-inner h3 {
+    color:#c3bdff;
+}
+body.wh-page-developers.dark .header p,
+body.wh-page-developers.dark .token-domain,
+body.wh-page-developers.dark .token-meta,
+body.wh-page-developers.dark .one-time-inner p,
+body.wh-page-developers.dark .token-env-field label {
+    color:var(--text-sub);
+}
+body.wh-page-developers.dark .one-time-token code,
+body.wh-page-developers.dark .token-value-box code {
+    color:#d9e5fb;
+}
+body.wh-page-developers.dark .form-group input,
+body.wh-page-developers.dark .form-group select {
+    color:var(--text-main);
+    background:#101a29;
+    border-color:#34445a;
+}
+
+/* Shared drawer and mobile navigation should match the active appearance too. */
+body.dark .side-drawer,
+body.dark .drawer-header,
+body.dark .drawer-menu {
+    color:var(--wh-text);
+    background:#131d2d;
+    border-color:var(--wh-border);
+}
+body.dark .drawer-menu a {
+    color:#d8e2f1;
+}
+body.dark .drawer-menu a:hover {
+    color:#c7c0ff;
+    background:#202b43;
+}
+body.dark .drawer-menu hr {
+    border-color:var(--wh-border);
+}
+body.dark .side-drawer .drawer-brand h2 {
+    color:#edf2fb;
+}
+body.dark .side-drawer .drawer-brand p {
+    color:var(--wh-muted);
+}
+
+/* Premium page titles use a quiet gold accent, not the general violet palette. */
+body.wh-page-premium-user .premium-page h1,
+body.wh-page-premium-user .premium-page h2,
+body.wh-page-premium-user .premium-page h3 {
+    color:#8d6b2d;
+}
+body.wh-page-premium-user.dark .premium-page h1,
+body.wh-page-premium-user.dark .premium-page h2,
+body.wh-page-premium-user.dark .premium-page h3 {
+    color:#f1d69a;
+    text-shadow:0 1px 18px rgba(224,185,103,.12);
+}
+body.wh-page-photo-editor.dark #inlineTitle,
+body.wh-page-photo-editor.dark .inline-title,
+body.wh-page-photo-editor.dark .tool-title {
+    color:#c7c0ff;
 }
