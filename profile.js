@@ -721,6 +721,7 @@ function updatePublicProfileActions(){
     actions.hidden = !viewingOther;
     if(editButton) editButton.style.display = viewingOther ? "none" : "";
     if(pointsButton && viewingOther) pointsButton.style.display = "none";
+    if(settingsBtn) settingsBtn.hidden = viewingOther;
 }
 
 function hideOwnerEditControls(){
@@ -751,197 +752,121 @@ function showOwnerEditControls(){
 }
 
 async function loadPublicProfile(uid){
-    const targetUID = String(uid || "").trim();
-    if(!targetUID) return;
-
-    // منع استدعاءات متكررة من Auth + DOMContentLoaded.
-    if(publicProfileLoaded === targetUID) return;
-
+    const targetUID=String(uid||"").trim();
+    if(!targetUID||publicProfileLoaded===targetUID)return;
     hideOwnerEditControls();
-
     try{
-        let profile = null;
-
-        // ==================================================
-        // المصدر الأول: السيرفر (Service Role)
-        // مهم لأن RLS قد يمنع المتصفح من قراءة profiles مباشرة.
-        // ==================================================
-        try{
-            const response = await fetch(
-                `/api/users/${encodeURIComponent(targetUID)}/profile`,
-                { cache:"no-store" }
-            );
-
-            if(response.ok){
-                const payload = await response.json();
-                if(payload?.success && payload?.user){
-                    profile = payload.user;
-                }
-            }
-        }catch(serverError){
-            console.warn("PUBLIC PROFILE SERVER LOAD:", serverError);
-        }
-
-        // ==================================================
-        // المصدر الثاني: Supabase مباشرة كاحتياطي.
-        // ==================================================
-        if(!profile){
-            try{
-                const { data, error } = await supabase
-                    .from("user_profile_sync")
-                    .select("user_id, full_name, username, avatar_url, social_links, is_verified, verified_at, verified_by")
-                    .eq("user_id", targetUID)
-                    .maybeSingle();
-
-                if(!error && data){
-                    profile = {
-                        id: data.user_id,
-                        full_name: data.full_name || "",
-                        username: data.username || "",
-                        avatar_url: data.avatar_url || "",
-                        social_links: data.social_links || {},
-                        is_verified: data.is_verified,
-                        verified_at: data.verified_at || null,
-                        verified_by: data.verified_by || null
-                    };
-                }else if(error){
-                    console.warn("PUBLIC PROFILE SUPABASE LOAD:", error.message);
-                }
-            }catch(supabaseError){
-                console.warn("PUBLIC PROFILE SUPABASE ERROR:", supabaseError);
-            }
-        }
-
-        if(!profile){
-            if(userName) userName.textContent = "المستخدم غير موجود";
-            if(userEmail) userEmail.textContent = "";
-            if(infoUserName) infoUserName.textContent = "المستخدم غير موجود";
-            if(infoUserEmail) infoUserEmail.textContent = "";
-            if(accountType) accountType.textContent = "ملف عام";
-            if(uidText) uidText.textContent = "••••••••••••••";
-            userUID = targetUID;
+        const response=await fetch(`/api/users/${encodeURIComponent(targetUID)}/profile`,{cache:"no-store",headers:{Accept:"application/json"}});
+        const payload=await response.json().catch(()=>({}));
+        if(response.status===403||payload?.blocked){
+            const nameEl=document.getElementById("heroDisplayName"),bioEl=document.getElementById("heroBio"),stats=document.querySelector(".profile-stats");
+            if(nameEl)nameEl.textContent="هذا الملف غير متاح";
+            if(bioEl)bioEl.textContent=payload?.message||"لا يمكن عرض هذا الحساب بسبب إعدادات الحظر.";
+            if(stats)stats.hidden=true;
             return;
         }
-
-        void loadFollowStats(targetUID);
-
-        const verified = await loadVerifiedStatus(
-            targetUID,
-            profile.is_verified
-        );
-
-        profile.is_verified = verified;
-
-        const name = String(
-            profile.full_name ||
-            profile.username ||
-            "مستخدم WallpaperHub"
-        ).trim();
-
-        const avatar = String(
-            profile.avatar_url ||
-            profile.avatar ||
-            profile.photoURL ||
-            ""
-        ).trim();
-
-        // الغلاف العام: نستخدم غلاف صاحب البروفايل القادم من المصدر العام،
-        // ولا نستخدم userCover الموجود في جهاز الزائر.
-        const publicCover = String(
-            profile.cover_url ||
-            profile.cover ||
-            ""
-        ).trim();
-
-        if(coverImage){
-            if(publicCover){
-                coverImage.src = publicCover;
-            }else{
-                coverImage.removeAttribute("src");
-            }
-        }
-
-        // عرض بيانات UID الموجود في الرابط فقط.
-        if(userName) userName.textContent = name;
-        if(infoUserName) infoUserName.textContent = name;
-        if(userEmail) userEmail.textContent = "البريد الإلكتروني مخفي";
-        if(infoUserEmail) infoUserEmail.textContent = "البريد الإلكتروني مخفي";
-        if(accountType) accountType.textContent = "ملف عام";
-        if(joinDate) joinDate.textContent = "—";
-        if(lastLogin) lastLogin.textContent = "—";
-
-        updateHeroIdentity(null, name, {
-            full_name: name,
-            username: profile.username || "",
-            bio: profile.bio || "",
-            join_date: profile.join_date || profile.created_at || "",
-            is_verified: profile.is_verified === true
+        if(!response.ok||payload?.success!==true||!payload?.user)throw new Error(payload?.message||"تعذر تحميل الملف الشخصي");
+        const profile=payload.user;
+        const privacy={
+            showStats:true,showOwnWallpapers:true,showFavorites:false,showDownloads:false,showViews:false,
+            showBadges:true,showSocialLinks:true,showFollowStats:true,allowFollow:true,allowMessages:true,
+            ...(profile.privacy&&typeof profile.privacy==="object"?profile.privacy:{})
+        };
+        const verified=await loadVerifiedStatus(targetUID,profile.is_verified);
+        profile.is_verified=verified;
+        const name=String(profile.full_name||profile.username||"مستخدم WallpaperHub").trim();
+        const avatar=String(profile.avatar_url||profile.avatar||profile.photoURL||"").trim();
+        const publicCover=String(profile.cover_url||profile.cover||"").trim();
+        if(coverImage){if(publicCover)coverImage.src=publicCover;else coverImage.removeAttribute("src");}
+        if(userName)userName.textContent=name;
+        if(infoUserName)infoUserName.textContent=name;
+        if(userEmail)userEmail.textContent="البريد الإلكتروني مخفي";
+        if(infoUserEmail)infoUserEmail.textContent="البريد الإلكتروني مخفي";
+        if(accountType)accountType.textContent="ملف عام";
+        if(joinDate)joinDate.textContent=profile.join_date||"—";
+        if(lastLogin)lastLogin.textContent="—";
+        updateHeroIdentity(null,name,{
+            full_name:name,username:profile.username||"",bio:profile.bio||"",
+            join_date:profile.join_date||"",is_verified:profile.is_verified===true
         });
-
         if(userAvatar){
-            userAvatar.src = avatar || "assets/images/user.png";
-            userAvatar.onerror = () => {
-                userAvatar.onerror = null;
-                userAvatar.src = "assets/images/user.png";
-            };
+            userAvatar.src=avatar||"assets/images/user.png";
+            userAvatar.onerror=()=>{userAvatar.onerror=null;userAvatar.src="assets/images/user.png";};
         }
+        renderProfileSocialLinks(privacy.showSocialLinks?(profile.social_links||{}):{});
+        const socialCard=document.getElementById("profileSocialCard");
+        if(socialCard)socialCard.hidden=!privacy.showSocialLinks||!Object.keys(profile.social_links||{}).length;
+        if(uidText)uidText.textContent="••••••••••••••";
+        userUID=targetUID;uidVisible=false;
 
-        renderProfileSocialLinks(profile.social_links || {});
+        const stats=document.querySelector(".profile-stats");
+        if(stats)stats.hidden=!privacy.showStats;
+        const followStats=document.getElementById("profileFollowStats");
+        if(followStats)followStats.hidden=!privacy.showFollowStats;
+        const sideStack=document.querySelector(".identity-side-stack");
+        if(sideStack)sideStack.hidden=!privacy.showBadges;
+        document.querySelectorAll(".profile-medal-history").forEach(el=>el.hidden=!privacy.showBadges);
+        if(settingsBtn)settingsBtn.hidden=true;
 
-        if(uidText) uidText.textContent = "••••••••••••••";
-        userUID = targetUID;
-        uidVisible = false;
+        const followButton=document.getElementById("followProfileBtn");
+        if(followButton){
+            followButton.disabled=!privacy.allowFollow;
+            followButton.hidden=!privacy.allowFollow;
+            followButton.setAttribute("aria-disabled",String(!privacy.allowFollow));
+            followButton.title=privacy.allowFollow?"متابعة الحساب":"صاحب الحساب لا يستقبل متابعات حالياً";
+        }
+        const messageButton=document.getElementById("messageProfileBtn");
+        if(messageButton)messageButton.hidden=!privacy.allowMessages;
 
-        ["downloadCount", "likeCount", "viewCount"].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.textContent = "—";
+        const allWallsResponse=await fetch(API,{cache:"no-store"});
+        if(!allWallsResponse.ok)throw new Error("تعذر تحميل خلفيات الحساب");
+        const allWalls=await allWallsResponse.json();
+        wallpapers=Array.isArray(allWalls)?allWalls:[];
+        const ownerWalls=wallpapers.filter(w=>{
+            const owner=String(w.ownerUID||w.userId||w.user_id||w.owner_id||"").trim();
+            return owner===targetUID;
         });
-
-        const response = await fetch(API, { cache:"no-store" });
-        if(!response.ok) throw new Error("PUBLIC WALLPAPERS API ERROR");
-
-        const list = await response.json();
-        const ownerWalls = Array.isArray(list)
-            ? list.filter(w => {
-                const owner = String(
-                    w.ownerUID || w.userId || w.user_id || w.owner_id || ""
-                ).trim();
-                return owner === targetUID;
-            })
-            : [];
-
-        wallpapers = ownerWalls;
         updateWallpaperCount(ownerWalls.length);
-
-        const containers = [ownWallpapersContainer, downloadedContainer, likedContainer, viewedContainer];
-        containers.forEach(container => {
-            if(!container) return;
-            container.innerHTML = "";
+        const displayedCount=(value)=>Array.isArray(value)?value.length:"—";
+        const statValues={
+            wallpaperCount:ownerWalls.length,
+            downloadCount:displayedCount(profile.download_ids),
+            viewCount:displayedCount(profile.view_ids),
+            likeCount:displayedCount(profile.favorite_ids)
+        };
+        Object.entries(statValues).forEach(([id,value])=>{
+            const el=document.getElementById(id);if(el)el.textContent=String(value);
         });
-
-        if(ownerWalls.length === 0){
-            if(ownWallpapersContainer){
-                ownWallpapersContainer.innerHTML =
-                    '<div class="empty-profile">لا توجد خلفيات منشورة حاليا</div>';
-            }
-        }else{
-            renderWalls(ownWallpapersContainer, ownerWalls.map(w => w.id));
-        }
-
-        document.querySelectorAll('.profile-tab[data-profile-tab="favorites"], .profile-tab[data-profile-tab="downloads"], .profile-tab[data-profile-tab="views"]').forEach(tab => {
-            tab.style.display = "none";
+        const sections=[
+            {key:"wallpapers",visible:privacy.showOwnWallpapers,ids:ownerWalls.map(w=>w.id),container:ownWallpapersContainer},
+            {key:"favorites",visible:privacy.showFavorites,ids:profile.favorite_ids||[],container:document.getElementById("favoriteWallpapers")},
+            {key:"downloads",visible:privacy.showDownloads,ids:profile.download_ids||[],container:downloadedContainer},
+            {key:"views",visible:privacy.showViews,ids:profile.view_ids||[],container:viewedContainer}
+        ];
+        sections.forEach(section=>{
+            const tab=document.querySelector(`.profile-tab[data-profile-tab="${section.key}"]`);
+            const panel=document.querySelector(`.profile-panel[data-profile-panel="${section.key}"]`);
+            if(tab)tab.hidden=!section.visible;
+            if(panel)panel.hidden=!section.visible;
+            if(section.visible&&section.container)renderWalls(section.container,section.ids);
+            else if(section.container)section.container.innerHTML="";
         });
-
         await loadProfileMedals(targetUID);
-
-        publicProfileLoaded = targetUID;
+        publicProfileLoaded=targetUID;
         updatePublicProfileActions();
-        console.log("✅ PUBLIC PROFILE LOADED:", targetUID);
+        await refreshProfileBlockState();
+        if(profileBlockState.blockedByViewer){
+            if(followButton)followButton.hidden=true;
+            if(messageButton)messageButton.hidden=true;
+        }
+        void loadFollowStats(targetUID);
+        console.log("PUBLIC PROFILE LOADED:",targetUID);
     }catch(error){
-        console.error("PUBLIC PROFILE LOAD ERROR:", error);
+        console.error("PUBLIC PROFILE LOAD ERROR:",error);
+        const bioEl=document.getElementById("heroBio");
+        if(bioEl)bioEl.textContent=error.message||"تعذر تحميل الملف الشخصي.";
     }
 }
-
 
 
 
