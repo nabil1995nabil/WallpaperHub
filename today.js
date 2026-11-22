@@ -278,6 +278,7 @@ function todayRenderWallpaper(wallpaper, period, weather) {
     }
     if (download) {
         download.onclick = () => {
+            if(window.WallpaperHubSettings?.canDownload?.(todayWallpaper?.size) === false) return;
             const a = document.createElement("a");
             a.href = todayGetImageUrl(variantImage || wallpaper.image);
             const ext = String(variantImage || wallpaper.image || "").split("?")[0].split(".").pop();
