@@ -4340,7 +4340,7 @@ async function notifyUsersAboutNewWallpaper({
 
         if(followsError) throw followsError;
 
-        const recipients = [
+        const followedRecipients = [
             ...new Set(
                 (follows || [])
                     .map(row => String(row?.follower_id || "").trim())
@@ -4349,6 +4349,16 @@ async function notifyUsersAboutNewWallpaper({
             )
         ];
 
+        if(!followedRecipients.length) return { inserted:0 };
+        const {data:preferenceRows,error:preferenceError}=await supabase.from("user_settings")
+            .select("user_id,preferences").in("user_id",followedRecipients);
+        if(preferenceError) throw preferenceError;
+        const preferencesByUser=new Map((preferenceRows||[]).map(row=>[
+            String(row.user_id),cleanUserSettingsPreferences(row.preferences||{})
+        ]));
+        const recipients=followedRecipients.filter(id=>
+            notificationPreferenceAllows(preferencesByUser.get(id)||{},"new_wallpaper")
+        );
         if(!recipients.length) return { inserted:0 };
 
         const now = Date.now();
