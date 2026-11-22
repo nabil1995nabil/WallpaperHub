@@ -66,7 +66,7 @@ function getImageUrl(value) {
     if (!value) return "";
     const image = String(value);
 
-    if (/^https?:\/\//i.test(image) || image.startsWith("//")) return image;
+    if (/^https?:\/\//i.test(image) || image.startsWith("//")) return window.WallpaperHubSettings?.optimizeImageUrl(image) || image;
     if (image.startsWith("/")) return image;
     if (image.startsWith("assets/")) return image;
 
