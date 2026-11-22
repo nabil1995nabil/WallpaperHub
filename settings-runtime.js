@@ -91,6 +91,9 @@
   injectStyle();
   const full=document.getElementById("fullscreenBtn");
   if(full){full.hidden=preferences.fullscreen===false;full.setAttribute("aria-hidden",preferences.fullscreen===false?"true":"false");}
+  if(preferences.systemUpdate===false){
+   document.getElementById("wh-update-available")?.remove();
+  }
   const toggle=document.getElementById("darkMode");
   if(toggle&&typeof window.getWallpaperHubTheme==="function")toggle.checked=window.getWallpaperHubTheme()==="dark";
  }
