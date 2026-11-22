@@ -1975,7 +1975,7 @@ async function openPrivateConversationFromUrl(){
   if(!conversationId||!currentUser||openedProfilePrivateConversationId===conversationId)return false;
   openedProfilePrivateConversationId=conversationId;
   try{
-    const result=await fetchJson('/api/community/private/conversations?limit=100',{headers:await authHeaders()});
+    const result=await fetchJson(`/api/community/private/conversations?id=${encodeURIComponent(conversationId)}`,{headers:await authHeaders()});
     const conversation=(result.conversations||[]).find(item=>String(item.id)===conversationId);
     if(!conversation)throw new Error("تعذر العثور على المحادثة المطلوبة");
     const url=new URL(window.location.href);
