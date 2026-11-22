@@ -225,17 +225,19 @@
   try{
    const response=await fetch("/api/app-version",{cache:"no-store"});if(!response.ok)return;
    const result=await response.json();const version=String(result.version||"").trim();if(!version)return;
-   const seen=sessionStorage.getItem(VERSION_KEY);
-   if(!seen){sessionStorage.setItem(VERSION_KEY,version);return;}
+   const seen=localStorage.getItem(VERSION_KEY);
+   if(!seen){localStorage.setItem(VERSION_KEY,version);return;}
    if(seen!==version){
-    sessionStorage.setItem(VERSION_KEY,version);
     let banner=document.getElementById("wh-update-available");
     if(!banner){
      banner=document.createElement("div");banner.id="wh-update-available";
      banner.style.cssText="position:fixed;z-index:99998;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(92vw,480px);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid #9db8ec;border-radius:14px;background:var(--card-bg,#fff);color:var(--text-color,#182230);box-shadow:0 8px 28px #0002;font:600 13px/1.4 system-ui";
      const text=document.createElement("span");text.textContent="يتوفر تحديث جديد لـ WallpaperHub.";
      const button=document.createElement("button");button.type="button";button.textContent="تحديث";button.style.cssText="border:0;border-radius:10px;padding:8px 12px;background:#4169d8;color:white;font-weight:700";
-     button.addEventListener("click",()=>location.reload());
+     button.addEventListener("click",()=>{
+      try{localStorage.setItem(VERSION_KEY,version);}catch(_error){}
+      location.reload();
+     });
      banner.append(text,button);document.body.appendChild(banner);
     }
    }
