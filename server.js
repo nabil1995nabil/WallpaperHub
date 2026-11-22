@@ -5089,14 +5089,29 @@ app.get("/api/users/:uid/follow-stats", async (req,res)=>{
         const profileViewer=await getAuthenticatedUser(req);
         if(profileViewer&&String(profileViewer.id)!==targetUID&&await areUsersBlocked(profileViewer.id,targetUID))return res.status(403).json({success:false,message:"إحصائيات المتابعة غير متاحة"});
         const privacy=await getProfilePrivacy(targetUID);
-        if(!privacy.showFollowStats)return res.json({success:true,user_id:targetUID,followers:0,following:0,is_following:false,is_follower:false,visible:false});
+        if(!privacy.showFollowStats){
+            let isFollowing=false,isFollower=false;
+            if(profileViewer&&String(profileViewer.id)!==targetUID){
+                const [{data:followingRow,error:followingRowError},{data:followerRow,error:followerRowError}]=await Promise.all([
+                    supabase.from("user_follows").select("follower_id")
+                        .eq("follower_id",String(profileViewer.id)).eq("followed_id",targetUID).maybeSingle(),
+                    supabase.from("user_follows").select("follower_id")
+                        .eq("follower_id",targetUID).eq("followed_id",String(profileViewer.id)).maybeSingle()
+                ]);
+                if(followingRowError)throw followingRowError;
+                if(followerRowError)throw followerRowError;
+                isFollowing=Boolean(followingRow);
+                isFollower=Boolean(followerRow);
+            }
+            return res.json({success:true,user_id:targetUID,followers:0,following:0,is_following:isFollowing,is_follower:isFollower,visible:false});
+        }
         const [{count:followers,error:followersError},{count:following,error:followingError}] = await Promise.all([
             supabase.from("user_follows").select("follower_id",{count:"exact",head:true}).eq("followed_id",targetUID),
             supabase.from("user_follows").select("followed_id",{count:"exact",head:true}).eq("follower_id",targetUID)
         ]);
         if(followersError) throw followersError;
         if(followingError) throw followingError;
-        const viewer=await getAuthenticatedUser(req);
+        const viewer=profileViewer;
         let isFollowing=false;
         let isFollower=false;
         if(viewer && String(viewer.id)!==targetUID){
