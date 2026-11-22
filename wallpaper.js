@@ -25,7 +25,7 @@ function getImageUrl(url){
         url.startsWith("http://") ||
         url.startsWith("https://")
     ){
-        return url;
+        return window.WallpaperHubSettings?.optimizeImageUrl(url) || url;
     }
 
     return "/" + url.replace(/^\/+/, "");
@@ -282,6 +282,7 @@ let currentWallpaperIndex = -1;
 // User Actions
 // ===============================
 function saveUserAction(key, id){
+    if(["downloads","views"].includes(String(key)) && window.WallpaperHubSettings?.keepLocalActivity?.() === false) return;
     let list = [];
     try {
         const parsed = JSON.parse(localStorage.getItem(key) || "[]");
@@ -862,6 +863,18 @@ function setupVideo(src){
         return;
 
 
+
+    if(window.WallpaperHubSettings?.videosEnabled?.() === false){
+        wallVideo.pause();
+        wallVideo.removeAttribute("src");
+        wallVideo.load();
+        wallVideo.style.display="none";
+        if(wallImage){
+            wallImage.style.display="block";
+            wallImage.src=getImageUrl(currentWallpaper?.thumbnail || "/assets/logo/no-image.png");
+        }
+        return;
+    }
 
     wallVideo.src =
     getImageUrl(src);
@@ -2071,7 +2084,7 @@ p360Stop();
 if(prevWallpaperBtn) prevWallpaperBtn.hidden=true;
 if(nextWallpaperBtn) nextWallpaperBtn.hidden=true;
 
-if(isVideoMedia(currentWallpaper)){
+if(isVideoMedia(currentWallpaper) && window.WallpaperHubSettings?.videosEnabled?.() !== false){
 
 updateWallpaperSideBackground("", false);
 setupVideo(media);
@@ -2089,7 +2102,11 @@ stopVideo();
 if(wallImage){
 
     // عرض النسخة الأصلية الموجودة في image، وليس thumbnail.
-    const originalImageUrl = getImageUrl(currentWallpaper.image || media);
+    const originalImageUrl = getImageUrl(
+        isVideoMedia(currentWallpaper) && window.WallpaperHubSettings?.videosEnabled?.() === false
+            ? (currentWallpaper.thumbnail || "/assets/logo/no-image.png")
+            : (currentWallpaper.image || media)
+    );
     updateWallpaperSideBackground(originalImageUrl, !currentWallpaper.is360);
 
     wallImage.removeAttribute("srcset");
@@ -2677,7 +2694,8 @@ function createSwipePreview(index, direction){
 
     let media;
 
-    if(isVideoMedia(target)){
+    const previewVideoEnabled = isVideoMedia(target) && window.WallpaperHubSettings?.videosEnabled?.() !== false;
+    if(previewVideoEnabled){
         media = document.createElement("video");
         media.src = getImageUrl(target.image);
         media.muted = true;
@@ -2691,19 +2709,18 @@ function createSwipePreview(index, direction){
     }else{
         media = document.createElement("img");
         media.src = getImageUrl(
-            isGifMedia(target)
-                ? target.image
-                : (target.image || target.thumbnail)
+            isVideoMedia(target) && window.WallpaperHubSettings?.videosEnabled?.() === false
+                ? (target.thumbnail || "/assets/logo/no-image.png")
+                : (isGifMedia(target) ? target.image : (target.image || target.thumbnail))
         );
         media.alt = "";
         media.decoding = "async";
         media.setAttribute("aria-hidden", "true");
     }
 
-    media.className =
-        isVideoMedia(target)
-            ? "wall-swipe-preview wall-swipe-preview-video"
-            : "wall-swipe-preview wall-swipe-preview-image";
+    media.className = previewVideoEnabled
+        ? "wall-swipe-preview wall-swipe-preview-video"
+        : "wall-swipe-preview wall-swipe-preview-image";
 
     media.style.position = "absolute";
     media.style.inset = "0";
@@ -3205,7 +3222,7 @@ document.body.classList.add(
 
 );
 
-if(isVideoMedia(currentWallpaper)){
+if(isVideoMedia(currentWallpaper) && window.WallpaperHubSettings?.videosEnabled?.() !== false){
 
 fullscreenImage.style.display =
 
@@ -3249,7 +3266,11 @@ fullscreenImage.removeAttribute("srcset");
 fullscreenImage.removeAttribute("sizes");
 fullscreenImage.decoding = "async";
 prepareWallpaperColorRendering(fullscreenImage, currentWallpaper);
-fullscreenImage.src = getImageUrl(currentWallpaper.image);
+fullscreenImage.src = getImageUrl(
+            isVideoMedia(currentWallpaper) && window.WallpaperHubSettings?.videosEnabled?.() === false
+                ? (currentWallpaper.thumbnail || "/assets/logo/no-image.png")
+                : currentWallpaper.image
+        );
 
 }
 
@@ -3313,7 +3334,7 @@ function openPhonePreview(){
 
     const url = getImageUrl(currentWallpaper.image);
 
-    if(isVideoMedia(currentWallpaper)){
+    if(isVideoMedia(currentWallpaper) && window.WallpaperHubSettings?.videosEnabled?.() !== false){
         if(phonePreviewImage) phonePreviewImage.style.display = "none";
         if(phonePreviewVideo){
             phonePreviewVideo.style.display = "block";
@@ -3844,6 +3865,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&downloadOptionsModa
 if(confirmWallpaperDownload){
     confirmWallpaperDownload.addEventListener("click",async()=>{
         if(!currentWallpaper) return;
+        if(window.WallpaperHubSettings?.canDownload?.(currentWallpaper.size) === false) return;
         const original = downloadKeepOriginal.checked;
         const url = getImageUrl(currentWallpaper.image);
         confirmWallpaperDownload.disabled = true;
