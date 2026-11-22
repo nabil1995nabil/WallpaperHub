@@ -1481,19 +1481,192 @@ if(loginBtn){
    Header Actions
 ========================== */
 
-// الإعدادات: الزر موجود وجاهز لربطه لاحقاً بصفحة/نافذة الإعدادات.
-if (settingsBtn) {
-    settingsBtn.onclick = () => {
-        console.log("⚙️ Settings button clicked");
-    };
+// Profile actions, profile privacy and sharing.
+const PROFILE_PRIVACY_DEFAULTS={
+ showStats:true,showOwnWallpapers:true,showFavorites:false,showDownloads:false,showViews:false,
+ showBadges:true,showSocialLinks:true,showFollowStats:true,allowFollow:true,allowMessages:true
+};
+let profileBlockState={blockedByViewer:false,blockedViewer:false};
+let profilePrivacySaving=false;
+function getProfileActionTarget(){
+ return String((isPublicProfile&&!isOwnProfile()?profileTargetUID:(currentUser?.id||profileTargetUID||""))||"").trim();
 }
+function getProfileShareUrl(){
+ const target=getProfileActionTarget(),url=new URL("/profile.html",window.location.origin);
+ if(target)url.searchParams.set("uid",target);
+ return url.href;
+}
+function profileToast(message){
+ const toast=document.getElementById("profileToast");
+ if(!toast){console.info(message);return;}
+ toast.textContent=String(message||"");toast.classList.add("show");
+ clearTimeout(profileToast.timer);profileToast.timer=setTimeout(()=>toast.classList.remove("show"),2800);
+}
+async function profileHeaders(){
+ const {data,error}=await supabase.auth.getSession();
+ if(error)throw error;
+ const token=data?.session?.access_token;
+ if(!token)throw new Error("سجّل الدخول أولاً");
+ return {Authorization:`Bearer ${token}`,"Content-Type":"application/json",Accept:"application/json"};
+}
+function setProfileModal(id,open){
+ const modal=document.getElementById(id);if(!modal)return;
+ modal.hidden=!open;modal.classList.toggle("is-open",Boolean(open));modal.setAttribute("aria-hidden",open?"false":"true");
+ document.body.classList.toggle("profile-overlay-open",Boolean(open));
+ if(open){const target=modal.querySelector("button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])");setTimeout(()=>target?.focus(),30);}
+}
+function closeProfileMenu(){
+ const sheet=document.getElementById("profileMenuSheet");if(!sheet)return;
+ sheet.hidden=true;sheet.classList.remove("is-open");sheet.setAttribute("aria-hidden","true");
+ profileMenuBtn?.setAttribute("aria-expanded","false");
+}
+function addProfileMenuAction(list,icon,label,description,action,options={}){
+ const button=document.createElement("button");button.type="button";button.className="profile-menu-action"+(options.danger?" is-danger":"");button.disabled=Boolean(options.disabled);
+ const symbol=document.createElement("span");symbol.className="material-icons profile-menu-action-icon";symbol.textContent=icon;
+ const copy=document.createElement("span");copy.className="profile-menu-action-copy";
+ const title=document.createElement("strong");title.textContent=label;
+ const hint=document.createElement("small");hint.textContent=description||"";
+ copy.append(title,hint);
+ const arrow=document.createElement("span");arrow.className="material-icons profile-menu-action-arrow";arrow.textContent="chevron_left";
+ button.append(symbol,copy,arrow);button.addEventListener("click",()=>{closeProfileMenu();if(action)action();});
+ list.appendChild(button);
+}
+async function refreshProfileBlockState(){
+ const target=getProfileActionTarget();profileBlockState={blockedByViewer:false,blockedViewer:false};
+ if(!target||!currentUser||String(currentUser.id)===target)return profileBlockState;
+ try{
+  const response=await fetch(`/api/users/${encodeURIComponent(target)}/block-status`,{cache:"no-store",headers:await profileHeaders()});
+  const payload=await response.json().catch(()=>({}));
+  if(response.ok&&payload.success)profileBlockState={blockedByViewer:Boolean(payload.blockedByViewer),blockedViewer:Boolean(payload.blockedViewer)};
+ }catch(error){console.warn("PROFILE BLOCK STATUS:",error.message);}
+ return profileBlockState;
+}
+async function openProfileMenu(){
+ const sheet=document.getElementById("profileMenuSheet"),list=document.getElementById("profileMenuActionList");
+ if(!sheet||!list)return;
+ list.innerHTML="";
+ const own=!isPublicProfile||isOwnProfile();
+ addProfileMenuAction(list,"ios_share","مشاركة الملف","إرسال رابط الحساب",shareProfile);
+ addProfileMenuAction(list,"content_copy","نسخ رابط الملف","نسخ الرابط إلى الحافظة",copyProfileLink);
+ if(own){
+  addProfileMenuAction(list,"qr_code_2","رمز QR","فتح الحساب بمسح الرمز",openProfileQr);
+  addProfileMenuAction(list,"download","حفظ بطاقة الحساب","تنزيل بطاقة تعريف بصورة واسم الحساب",downloadProfileCard);
+ }else if(!currentUser){
+  addProfileMenuAction(list,"flag","الإبلاغ عن الحساب","سجّل الدخول لإرسال بلاغ",()=>profileToast("سجّل الدخول أولاً لإرسال بلاغ"));
+  addProfileMenuAction(list,"block","حظر الحساب","سجّل الدخول لاستخدام الحظر",()=>profileToast("سجّل الدخول أولاً لحظر الحساب"));
+ }else{
+  await refreshProfileBlockState();
+  if(profileBlockState.blockedViewer){
+   addProfileMenuAction(list,"lock","هذا الحساب حظرك","لا يمكن بدء تواصل معه",null,{disabled:true});
+  }else{
+   addProfileMenuAction(list,"flag","الإبلاغ عن الحساب","إرسال بلاغ إلى فريق الإدارة",openProfileReport);
+   addProfileMenuAction(list,profileBlockState.blockedByViewer?"person_check":"block",profileBlockState.blockedByViewer?"إلغاء حظر الحساب":"حظر الحساب",
+    profileBlockState.blockedByViewer?"السماح بالتواصل معه مجدداً":"منع المتابعة والرسائل بين الحسابين",toggleProfileBlock,{danger:!profileBlockState.blockedByViewer});
+  }
+ }
+ sheet.hidden=false;sheet.classList.add("is-open");sheet.setAttribute("aria-hidden","false");profileMenuBtn?.setAttribute("aria-expanded","true");
+}
+async function copyProfileLink(){
+ const url=getProfileShareUrl();
+ try{
+  if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(url);
+  else{const field=document.createElement("textarea");field.value=url;field.style.position="fixed";field.style.opacity="0";document.body.appendChild(field);field.select();if(!document.execCommand("copy"))throw new Error("copy failed");field.remove();}
+  profileToast("تم نسخ رابط الملف");
+ }catch(error){profileToast("تعذر نسخ الرابط تلقائياً");}
+}
+async function shareProfile(){
+ const url=getProfileShareUrl(),title=document.getElementById("heroDisplayName")?.textContent||"ملفي على WallpaperHub";
+ try{if(navigator.share)await navigator.share({title,text:"شاهد هذا الملف على WallpaperHub",url});else await copyProfileLink();}
+ catch(error){if(error?.name!=="AbortError")await copyProfileLink();}
+}
+function openProfileQr(){
+ const url=getProfileShareUrl(),image=document.getElementById("profileQrImage"),label=document.getElementById("profileQrUrl");
+ if(image)image.src=`https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=${encodeURIComponent(url)}`;
+ if(label)label.textContent=url;setProfileModal("profileQrModal",true);
+}
+async function downloadProfileCard(){
+ const canvas=document.createElement("canvas");canvas.width=1200;canvas.height=630;
+ const ctx=canvas.getContext("2d");if(!ctx){profileToast("تعذر إنشاء البطاقة");return;}
+ const gradient=ctx.createLinearGradient(0,0,1200,630);gradient.addColorStop(0,"#f5f7ff");gradient.addColorStop(1,"#e7ecff");
+ ctx.fillStyle=gradient;ctx.fillRect(0,0,1200,630);ctx.fillStyle="#fff";
+ if(ctx.roundRect){ctx.beginPath();ctx.roundRect(54,54,1092,522,38);ctx.fill();}else ctx.fillRect(54,54,1092,522);
+ ctx.fillStyle="#5664d8";ctx.font="700 26px Arial";ctx.fillText("WALLPAPERHUB MOROCCO",104,128);
+ const name=document.getElementById("heroDisplayName")?.textContent||"WallpaperHub member";
+ const username=document.getElementById("heroUsername")?.textContent||"";
+ ctx.fillStyle="#17233c";ctx.font="700 54px Arial";ctx.fillText(name.slice(0,30),104,285);
+ ctx.fillStyle="#748099";ctx.font="28px Arial";ctx.fillText(username.slice(0,40),104,346);
+ ctx.fillStyle="#5966d8";ctx.font="24px Arial";ctx.fillText("اكتشف الحساب والأعمال على WallpaperHub",104,438);
+ ctx.fillStyle="#929bb0";ctx.font="18px Arial";ctx.fillText(getProfileShareUrl(),104,510);
+ try{
+  const avatar=document.getElementById("userAvatar");
+  if(avatar?.src){const img=new Image();img.crossOrigin="anonymous";img.src=avatar.src;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;});
+   ctx.save();ctx.beginPath();ctx.arc(920,315,116,0,Math.PI*2);ctx.clip();ctx.drawImage(img,804,199,232,232);ctx.restore();}
+ }catch(error){console.warn("PROFILE CARD AVATAR SKIPPED:",error.message);}
+ const link=document.createElement("a");link.download="wallpaperhub-profile.png";link.href=canvas.toDataURL("image/png");link.click();profileToast("تم تنزيل بطاقة الملف");
+}
+async function openProfilePrivacy(){
+ if(!currentUser?.id||!isOwnProfile()){profileToast("سجّل الدخول أولاً لفتح الإعدادات");return;}
+ try{
+  const response=await fetch(`/api/users/${encodeURIComponent(currentUser.id)}/privacy`,{cache:"no-store"});
+  const payload=await response.json().catch(()=>({}));if(!response.ok||!payload.success)throw new Error(payload.message||"تعذر تحميل الخصوصية");
+  const settings={...PROFILE_PRIVACY_DEFAULTS,...(payload.settings||{})};
+  document.querySelectorAll("[data-privacy-key]").forEach(input=>input.checked=settings[input.dataset.privacyKey]===true);
+  setProfileModal("profilePrivacyModal",true);
+ }catch(error){profileToast(error.message||"تعذر تحميل الإعدادات");}
+}
+async function saveProfilePrivacy(){
+ if(profilePrivacySaving)return;
+ const button=document.getElementById("profilePrivacySave"),settings={...PROFILE_PRIVACY_DEFAULTS};
+ document.querySelectorAll("[data-privacy-key]").forEach(input=>settings[input.dataset.privacyKey]=Boolean(input.checked));
+ profilePrivacySaving=true;if(button){button.disabled=true;button.textContent="جارٍ الحفظ…";}
+ try{
+  const response=await fetch("/api/user/profile-privacy",{method:"PUT",headers:await profileHeaders(),body:JSON.stringify({settings})});
+  const payload=await response.json().catch(()=>({}));if(!response.ok||!payload.success)throw new Error(payload.message||"تعذر حفظ الخصوصية");
+  setProfileModal("profilePrivacyModal",false);profileToast("تم حفظ إعدادات الخصوصية");
+ }catch(error){profileToast(error.message||"تعذر حفظ الإعدادات");}
+ finally{profilePrivacySaving=false;if(button){button.disabled=false;button.textContent="حفظ الإعدادات";}}
+}
+function openProfileReport(){
+ const reason=document.getElementById("profileReportReason"),details=document.getElementById("profileReportDetails");
+ if(reason)reason.value="";if(details)details.value="";setProfileModal("profileReportModal",true);
+}
+async function submitProfileReport(){
+ const target=getProfileActionTarget(),reason=document.getElementById("profileReportReason")?.value||"",details=document.getElementById("profileReportDetails")?.value||"";
+ const button=document.getElementById("profileReportSubmit");
+ if(!target||!reason){profileToast("اختر سبب البلاغ أولاً");return;}
+ if(button){button.disabled=true;button.textContent="جارٍ الإرسال…";}
+ try{
+  const response=await fetch(`/api/users/${encodeURIComponent(target)}/report`,{method:"POST",headers:await profileHeaders(),body:JSON.stringify({reason,details})});
+  const payload=await response.json().catch(()=>({}));if(!response.ok||!payload.success)throw new Error(payload.message||"تعذر إرسال البلاغ");
+  setProfileModal("profileReportModal",false);profileToast(payload.duplicate?"البلاغ السابق ما زال قيد المراجعة":"وصل البلاغ إلى فريق الإدارة");
+ }catch(error){profileToast(error.message||"تعذر إرسال البلاغ");}
+ finally{if(button){button.disabled=false;button.textContent="إرسال البلاغ";}}
+}
+async function toggleProfileBlock(){
+ const target=getProfileActionTarget();if(!target)return;
+ const removing=profileBlockState.blockedByViewer;
+ if(!window.confirm(removing?"هل تريد إلغاء حظر هذا الحساب؟":"حظر هذا الحساب؟ سيُمنع التواصل والمتابعة بينكما وتُلغى المتابعة المتبادلة."))return;
+ try{
+  const response=await fetch(`/api/users/${encodeURIComponent(target)}/block`,{method:removing?"DELETE":"POST",headers:await profileHeaders()});
+  const payload=await response.json().catch(()=>({}));if(!response.ok||!payload.success)throw new Error(payload.message||"تعذر تنفيذ الحظر");
+  profileBlockState.blockedByViewer=!removing;
+  if(followProfileBtn){followProfileBtn.disabled=!removing;followProfileBtn.hidden=!removing;}
+  if(messageProfileBtn)messageProfileBtn.hidden=!removing;
+  profileToast(removing?"تم إلغاء الحظر":"تم حظر الحساب");await openProfileMenu();
+ }catch(error){profileToast(error.message||"تعذر تنفيذ الحظر");}
+}
+if(settingsBtn)settingsBtn.onclick=()=>openProfilePrivacy();
+if(profileMenuBtn)profileMenuBtn.onclick=()=>openProfileMenu();
+document.getElementById("profileMenuClose")?.addEventListener("click",closeProfileMenu);
+document.getElementById("profileMenuBackdrop")?.addEventListener("click",closeProfileMenu);
+document.getElementById("profilePrivacySave")?.addEventListener("click",saveProfilePrivacy);
+document.getElementById("profileReportSubmit")?.addEventListener("click",submitProfileReport);
+document.getElementById("profileQrCopy")?.addEventListener("click",copyProfileLink);
+document.querySelectorAll("[data-profile-close]").forEach(button=>button.addEventListener("click",()=>setProfileModal(button.dataset.profileClose,false)));
+document.addEventListener("keydown",event=>{
+ if(event.key==="Escape"){closeProfileMenu();document.querySelectorAll(".profile-modal.is-open").forEach(modal=>setProfileModal(modal.id,false));}
+});
 
-// الثلاث نقاط: مكان مخصص لقائمة خيارات سنضيفها لاحقاً.
-if (profileMenuBtn) {
-    profileMenuBtn.onclick = () => {
-        console.log("⋮ Profile menu clicked");
-    };
-}
 
 
 /* ===================================================
@@ -1859,12 +2032,20 @@ if(followProfileBtn){
 }
 
 if(messageProfileBtn){
-    messageProfileBtn.addEventListener("click", () => {
-        if(!currentUser){
-            alert("سجّل الدخول أولاً لإرسال رسالة.");
-            return;
-        }
-        alert("نظام الرسائل غير مربوط بهذه الصفحة حالياً.");
+    messageProfileBtn.addEventListener("click",async()=>{
+        const target=String(profileTargetUID||"").trim();
+        if(!currentUser){profileToast("سجّل الدخول أولاً لإرسال رسالة");return;}
+        if(!target||target===String(currentUser.id)){profileToast("هذا ملفك الشخصي");return;}
+        messageProfileBtn.disabled=true;
+        try{
+            const response=await fetch("/api/community/private/conversations",{method:"POST",headers:await profileHeaders(),body:JSON.stringify({userId:target})});
+            const payload=await response.json().catch(()=>({}));
+            if(!response.ok||!payload?.success||!payload?.conversation?.id)throw new Error(payload.message||"تعذر فتح المحادثة");
+            const url=new URL("/community.html",window.location.origin);
+            url.searchParams.set("privateConversation",String(payload.conversation.id));
+            window.location.assign(url.pathname+url.search);
+        }catch(error){profileToast(error.message||"تعذر فتح المحادثة");}
+        finally{messageProfileBtn.disabled=false;}
     });
 }
 
