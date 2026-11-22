@@ -847,8 +847,8 @@ async function loadPublicProfile(uid){
         const displayedCount=(value)=>Array.isArray(value)?value.length:"—";
         const statValues={
             wallpaperCount:ownerWalls.length,
-            downloadCount:displayedCount(profile.download_ids),
-            viewCount:displayedCount(profile.view_ids),
+            downloadCount:privacy.showDownloads?displayedCount(profile.download_ids):"—",
+            viewCount:privacy.showViews?displayedCount(profile.view_ids):"—",
             likeCount:"—"
         };
         Object.entries(statValues).forEach(([id,value])=>{
