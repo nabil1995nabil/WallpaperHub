@@ -2700,8 +2700,10 @@ window.syncUserStats = function(type, id) {
     const key = allowed[actionType] || String(type);
     const list = getList(key);
     const value = String(id);
+    const keepLocal = !["downloads","views"].includes(key) ||
+        window.WallpaperHubSettings?.keepLocalActivity?.() !== false;
 
-    if(!list.includes(value)){
+    if(keepLocal && !list.includes(value)){
         list.push(value);
         localStorage.setItem(key, JSON.stringify(list));
     }
