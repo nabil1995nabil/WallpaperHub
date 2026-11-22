@@ -72,8 +72,21 @@
         notificationsList.setAttribute("aria-busy", "false");
     }
 
+    function readLocalSetting(key){
+        try{
+            const saved=JSON.parse(localStorage.getItem("wallpaperSettings")||"{}");
+            return typeof saved[key]==="boolean" ? saved[key] : undefined;
+        }catch(_error){return undefined;}
+    }
+    function notificationsAllowed(){
+        return readLocalSetting("notifications")!==false &&
+            readLocalSetting("notificationsEnabled")!==false &&
+            window.WallpaperHubSettings?.notificationsEnabled?.()!==false;
+    }
+
     async function playNotificationSound() {
-        if(window.WallpaperHubSettings?.soundEnabled?.() === false) return;
+        if(readLocalSetting("notificationSound")===false ||
+            window.WallpaperHubSettings?.soundEnabled?.() === false) return;
         try {
             notificationSound.currentTime = 0;
             await notificationSound.play();
@@ -319,7 +332,7 @@
         isLoading = true;
         const settings = options || {};
         try {
-            if(window.WallpaperHubSettings?.notificationsEnabled?.() === false){
+            if(!notificationsAllowed()){
                 notifications=[];
                 initialized=true;
                 setListMessage("مركز الإشعارات متوقف من صفحة الإعدادات","empty-notification");
@@ -367,7 +380,7 @@
 
     function schedulePolling() {
         if (pollingTimer) window.clearTimeout(pollingTimer);
-        if(window.WallpaperHubSettings?.notificationsEnabled?.() === false) return;
+        if(!notificationsAllowed()) return;
         pollingTimer = window.setTimeout(function () {
             if (!document.hidden) loadNotifications({ announceNew: true });
             else schedulePolling();
@@ -410,7 +423,7 @@
     }
 
     window.addEventListener("wallpaperhub:settings-updated",function(){
-        if(window.WallpaperHubSettings?.notificationsEnabled?.() === false){
+        if(!notificationsAllowed()){
             notifications=[];
             setListMessage("مركز الإشعارات متوقف من صفحة الإعدادات","empty-notification");
             if(pollingTimer)window.clearTimeout(pollingTimer);
