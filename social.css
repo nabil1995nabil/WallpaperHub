@@ -234,7 +234,7 @@ button{
   border-radius:12px;
   background:var(--social-surface);
   padding:8px 13px;
-  color:#52627a;
+  color:var(--social-muted-strong);
   font-size:12px;
   font-weight:700;
   transition:background .18s,border-color .18s,transform .18s;
@@ -263,8 +263,8 @@ button{
   min-height:45px;
   padding:11px 17px;
   border:1px solid transparent;
-  background:#f3f6fa;
-  color:#69788d;
+  background:var(--social-input);
+  color:var(--social-muted);
   font-size:13px;
   transition:background .18s,border-color .18s;
 }
@@ -297,13 +297,13 @@ button{
   border-color:var(--social-line);
   background:var(--social-surface);
   padding:7px 17px;
-  color:#65748a;
+  color:var(--social-muted);
   font-size:12px;
   font-weight:700;
 }
 .filters button.active{
-  border-color:#cbdcff;
-  background:#edf4ff;
+  border-color:var(--social-blue-border);
+  background:var(--social-blue-soft);
   color:var(--social-blue);
   box-shadow:0 3px 12px rgba(36,109,242,.09);
 }
@@ -350,8 +350,8 @@ button{
   transition:background .16s,color .16s;
 }
 .posthead>[data-act="report"]:hover{
-  background:#f1f5fa;
-  color:#34445c;
+  background:var(--social-hover);
+  color:var(--social-ink-strong);
 }
 .posttext{
   padding:5px 18px 14px;
@@ -398,11 +398,11 @@ button{
 }
 .postactions button:hover{
   background:var(--social-hover);
-  color:#315d9d;
+  color:var(--social-blue);
 }
 .postactions button:active{transform:scale(.97)}
 .postactions button.active{
-  background:#edf4ff;
+  background:var(--social-blue-soft);
   color:var(--social-blue);
 }
 .commentarea{
@@ -410,9 +410,9 @@ button{
   padding:13px 15px;
 }
 .comment{
-  border:1px solid #edf1f6;
-  background:#f6f8fb;
-  color:#344258;
+  border:1px solid var(--social-line);
+  background:var(--social-surface-soft);
+  color:var(--social-muted-strong);
   line-height:1.8;
 }
 .comment b{
@@ -422,10 +422,10 @@ button{
 }
 .commentform input{
   min-height:42px;
-  border:1px solid #e6ebf3;
-  background:#f7f9fc;
+  border:1px solid var(--social-line);
+  background:var(--social-input);
   outline:none;
-  color:#24344c;
+  color:var(--social-ink);
 }
 .commentform input:focus{
   border-color:var(--social-blue-border);
@@ -468,9 +468,9 @@ button{
 }
 .loadmore{
   min-height:44px;
-  border-color:#d9e5f8;
+  border-color:var(--social-blue-border);
   background:var(--social-surface);
-  color:#2369dc;
+  color:var(--social-blue);
   border-radius:13px;
   font-size:12px;
   transition:background .18s,transform .18s;
