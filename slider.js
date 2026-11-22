@@ -30,7 +30,8 @@ function escHtml(value){
 function sliderImageUrl(value){
     const image=String(value || "").trim();
     if(!image) return "/assets/logo/no-image.png";
-    if(/^(https?:|data:|blob:|\/\/)/i.test(image) || image.startsWith("/") || image.startsWith("assets/")) return image;
+    if(/^https?:\/\//i.test(image)) return window.WallpaperHubSettings?.optimizeImageUrl(image) || image;
+    if(/^(data:|blob:|\/\/)/i.test(image) || image.startsWith("/") || image.startsWith("assets/")) return image;
     return "assets/wallpapers/" + image;
 }
 
