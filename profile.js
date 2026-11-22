@@ -101,46 +101,67 @@ function setLocalCoverHistory(history){
 
 function renderCoverHistory(){
     if(!coverImage) return;
-
-    coverHistory = normalizeCoverHistory(coverHistory);
-
+    coverHistory=normalizeCoverHistory(coverHistory);
     if(!coverHistory.length){
-        activeCoverIndex = 0;
-        coverImage.src = DEFAULT_PROFILE_COVER;
+        activeCoverIndex=0;
+        coverImage.src=DEFAULT_PROFILE_COVER;
     }else{
-        activeCoverIndex = Math.max(0, Math.min(activeCoverIndex, coverHistory.length - 1));
-        coverImage.src = coverHistory[activeCoverIndex].src || DEFAULT_PROFILE_COVER;
+        activeCoverIndex=Math.max(0,Math.min(activeCoverIndex,coverHistory.length-1));
+        coverImage.src=coverHistory[activeCoverIndex].src||DEFAULT_PROFILE_COVER;
     }
-
-    const prev = document.getElementById("coverPrevBtn");
-    const next = document.getElementById("coverNextBtn");
-    const dots = document.getElementById("coverHistoryDots");
-    const count = document.getElementById("coverHistoryCount");
-    const label = document.getElementById("coverHistoryLabel");
-
-    const hasMultiple = coverHistory.length > 1;
-    if(prev) prev.disabled = !hasMultiple;
-    if(next) next.disabled = !hasMultiple;
-
-    if(count) count.textContent = coverHistory.length
-        ? `${activeCoverIndex + 1} / ${coverHistory.length}` : "0";
-
-    if(label) label.textContent = coverHistory.length > 1
-        ? `أغلفة الحساب · ${activeCoverIndex + 1} من ${coverHistory.length}`
-        : "غلاف الحساب";
-
+    const dots=document.getElementById("coverHistoryDots");
+    const count=document.getElementById("coverHistoryCount");
+    const label=document.getElementById("coverHistoryLabel");
+    if(count)count.textContent=coverHistory.length?(`${activeCoverIndex+1} / ${coverHistory.length}`):"0";
+    if(label)label.textContent=coverHistory.length>1?(`اسحب للتبديل · ${activeCoverIndex+1} من ${coverHistory.length}`):"غلاف الحساب";
     if(dots){
-        dots.innerHTML = "";
-        coverHistory.forEach((cover, index) => {
-            const dot = document.createElement("button");
-            dot.type = "button";
-            dot.className = `cover-history-dot${index === activeCoverIndex ? " active" : ""}`;
-            dot.setAttribute("aria-label", `اختيار الغلاف ${index + 1}`);
-            dot.onclick = () => selectCover(index, true);
+        dots.innerHTML="";
+        coverHistory.forEach((cover,index)=>{
+            const dot=document.createElement("button");
+            dot.type="button";
+            dot.className=`cover-history-dot${index===activeCoverIndex?" active":""}`;
+            dot.setAttribute("aria-label",`اختيار الغلاف ${index+1}`);
+            dot.setAttribute("aria-current",index===activeCoverIndex?"true":"false");
+            dot.onclick=()=>selectCover(index,true);
             dots.appendChild(dot);
         });
     }
 }
+
+function attachProfileCoverSwipe(){
+    const stage=document.querySelector(".cover-stage");
+    if(!stage||stage.dataset.swipeReady==="1")return;
+    stage.dataset.swipeReady="1";
+    let gesture=null;
+    stage.addEventListener("pointerdown",event=>{
+        if(!isOwnProfile()||coverHistory.length<2||event.button>0||event.target.closest("button,a,input"))return;
+        gesture={id:event.pointerId,x:event.clientX,y:event.clientY,axis:""};
+    },{passive:true});
+    document.addEventListener("pointermove",event=>{
+        if(!gesture||gesture.id!==event.pointerId)return;
+        const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;
+        if(!gesture.axis){
+            if(Math.abs(dx)<10&&Math.abs(dy)<10)return;
+            gesture.axis=Math.abs(dx)>Math.abs(dy)*1.2?"horizontal":"vertical";
+        }
+        if(gesture.axis!=="horizontal")return;
+        stage.style.setProperty("--cover-drag-offset",`${Math.max(-90,Math.min(90,dx))}px`);
+        stage.classList.add("is-swiping");
+        if(event.cancelable)event.preventDefault();
+    },{passive:false});
+    const finish=event=>{
+        if(!gesture||gesture.id!==event.pointerId)return;
+        const dx=event.clientX-gesture.x,axis=gesture.axis;
+        gesture=null;stage.classList.remove("is-swiping");stage.style.removeProperty("--cover-drag-offset");
+        if(axis==="horizontal"&&Math.abs(dx)>=48){
+            const next=activeCoverIndex+(dx<0?1:-1);
+            if(next>=0&&next<coverHistory.length)void selectCover(next,true);
+        }
+    };
+    document.addEventListener("pointerup",finish,{passive:true});
+    document.addEventListener("pointercancel",()=>{gesture=null;stage.classList.remove("is-swiping");stage.style.removeProperty("--cover-drag-offset");},{passive:true});
+}
+document.addEventListener("DOMContentLoaded",attachProfileCoverSwipe,{once:true});
 
 async function persistCoverHistory(){
     if(!currentUser?.id || !isOwnProfile()) return;
@@ -212,7 +233,7 @@ async function selectCover(index, persist = true){
     if(!selected?.src) return;
 
     coverImage.src = selected.src;
-    localStorage.setItem("userCover", selected.src);
+    if(!isPublicProfile || isOwnProfile()) localStorage.setItem("userCover", selected.src);
     renderCoverHistory();
 
     if(persist && currentUser && isOwnProfile()){
