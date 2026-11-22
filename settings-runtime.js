@@ -193,6 +193,26 @@
   node.textContent=message;node.hidden=false;
   clearTimeout(toast.timer);toast.timer=setTimeout(()=>{node.hidden=true;},5000);
  }
+ function setupSearchHistory(){
+  let saveTimer=0;
+  document.addEventListener("input",event=>{
+   const input=event.target;
+   if(!(input instanceof HTMLInputElement))return;
+   if(!input.matches('input[type="search"],#searchInput,.search-input,.wallpaper-search'))return;
+   if(["settingsSearch","notification-search","whLanguageSearch"].includes(input.id))return;
+   const query=String(input.value||"").trim();
+   if(query.length<2)return;
+   clearTimeout(saveTimer);
+   saveTimer=setTimeout(()=>{
+    try{
+     const current=JSON.parse(localStorage.getItem("searchHistory")||"[]");
+     const list=Array.isArray(current)?current.map(String):[];
+     const next=[query,...list.filter(item=>item.toLowerCase()!==query.toLowerCase())].slice(0,30);
+     localStorage.setItem("searchHistory",JSON.stringify(next));
+    }catch(error){console.debug("SEARCH HISTORY SAVE SKIPPED:",error);}
+   },450);
+  },true);
+ }
  function checkAutoRefresh(){
   if(preferences.autoUpdate===false||document.hidden)return;
   const now=Date.now();if(now-lastRefresh<refreshInterval)return;
@@ -200,7 +220,7 @@
   window.dispatchEvent(new CustomEvent("wallpaperhub:refresh-content",{detail:{reason:"foreground"}}));
  }
  async function checkSystemUpdate(){
-  if(preferences.systemUpdate===false||!tokenFromStorage()&&location.pathname.includes("settings"))return;
+  if(preferences.systemUpdate===false)return;
   const now=Date.now();if(now-lastVersionCheck<30*60*1000)return;lastVersionCheck=now;
   try{
    const response=await fetch("/api/app-version",{cache:"no-store"});if(!response.ok)return;
@@ -244,6 +264,7 @@
  window.addEventListener("pageshow",()=>{checkAutoRefresh();void checkSystemUpdate();});
  document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkAutoRefresh();void checkSystemUpdate();}});
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",apply,{once:true});else apply();
+ setupSearchHistory();
  void loadAccountSettings();
  void checkSystemUpdate();
 })();
