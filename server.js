@@ -5185,7 +5185,9 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
         ]);
         if(followersError) throw followersError;
         if(followingError) throw followingError;
-        return res.json({success:true,is_following:followingNow,followers:Number(followers||0),following:Number(following||0),notification_created:notificationCreated});
+        const followPrivacy=await getProfilePrivacy(targetUID);
+        const countsVisible=followPrivacy.showFollowStats===true;
+        return res.json({success:true,is_following:followingNow,followers:countsVisible?Number(followers||0):0,following:countsVisible?Number(following||0):0,notification_created:notificationCreated});
     }catch(error){
         console.error("FOLLOW TOGGLE ERROR:",error.message);
         return res.status(500).json({success:false,message:"تعذرت معالجة المتابعة. تأكد من إعداد جدول user_follows."});
@@ -5294,8 +5296,8 @@ app.get(
    }catch(error){console.log("PUBLIC PROFILE SYNC ERROR:",error?.message||error);}
    const common={
     id:targetUID,cover_url:syncProfile?.cover_url||"",bio:syncProfile?.bio||"",join_date:syncProfile?.join_date||"",
-    social_links:privacy.showSocialLinks?(syncProfile?.social_links||{}):{},is_verified:Boolean(syncProfile?.is_verified),
-    verified_at:syncProfile?.verified_at||null,verified_by:syncProfile?.verified_by||null,privacy,
+    social_links:privacy.showSocialLinks?(syncProfile?.social_links||{}):{},is_verified:privacy.showBadges&&Boolean(syncProfile?.is_verified),
+    verified_at:privacy.showBadges?(syncProfile?.verified_at||null):null,verified_by:privacy.showBadges?(syncProfile?.verified_by||null):null,privacy,
     favorite_ids:privacy.showFavorites?cleanPublicProfileIds(syncProfile?.favorite_ids):[],
     download_ids:privacy.showDownloads?cleanPublicProfileIds(syncProfile?.download_ids):[],
     view_ids:privacy.showViews?cleanPublicProfileIds(syncProfile?.view_ids):[]
