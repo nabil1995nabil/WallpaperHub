@@ -9,7 +9,10 @@ function todayGetImageUrl(image) {
     }
 
     image = String(image);
-    if (image.startsWith("http") || image.startsWith("data:") || image.startsWith("/")) {
+    if (image.startsWith("http")) {
+        return window.WallpaperHubSettings?.optimizeImageUrl(image) || image;
+    }
+    if (image.startsWith("data:") || image.startsWith("/")) {
         return image;
     }
 
