@@ -784,7 +784,9 @@ async function loadPublicProfile(uid){
         const verified=await loadVerifiedStatus(targetUID,profile.is_verified);
         profile.is_verified=verified;
         const verifiedBadgeEl=document.getElementById("verifiedBadge");
-        if(verifiedBadgeEl&&!privacy.showBadges)verifiedBadgeEl.hidden=true;
+        if(verifiedBadgeEl)verifiedBadgeEl.hidden=!privacy.showBadges||!profile.is_verified;
+        const avatarCrownEl=document.querySelector(".profile-avatar-crown");
+        if(avatarCrownEl)avatarCrownEl.hidden=!privacy.showBadges;
         const name=String(profile.full_name||profile.username||"مستخدم WallpaperHub").trim();
         const avatar=String(profile.avatar_url||profile.avatar||profile.photoURL||"").trim();
         const publicCover=String(profile.cover_url||profile.cover||"").trim();
