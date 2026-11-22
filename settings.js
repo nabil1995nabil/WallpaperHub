@@ -262,7 +262,10 @@ function setupDataTools(){
         window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{
             detail:{settings:{...settings},source:"local-change"}
         }));
-        if(pushWasEnabled) window.dispatchEvent(new CustomEvent("wallpaperhub:push-toggle",{detail:{enabled:false}}));
+        if(pushWasEnabled){
+            if(window.WallpaperHubPush?.disable) await window.WallpaperHubPush.disable();
+            else window.dispatchEvent(new CustomEvent("wallpaperhub:push-toggle",{detail:{enabled:false}}));
+        }
         await window.WallpaperHubSettings?.syncAccountSettings?.();
         location.reload();
     };
