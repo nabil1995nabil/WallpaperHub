@@ -7,7 +7,7 @@ console.log("HOME JS LOADED");
 function getImageUrl(image) {
     if(!image) return "/assets/logo/no-image.png";
     const value=String(image).trim();
-    if(/^(https?:|data:|blob:|\/\/)/i.test(value) || value.startsWith("/")) return value;
+    if(/^(https?:|data:|blob:|\/\/)/i.test(value) || value.startsWith("/")) return window.WallpaperHubSettings?.optimizeImageUrl(value) || value;
     if(value.startsWith("assets/")) return value;
     return "assets/wallpapers/" + value;
 }
@@ -227,6 +227,10 @@ async function loadWallpapers() {
     }
 }
 
+window.addEventListener("wallpaperhub:refresh-content", () => {
+    if(document.visibilityState === "visible") void loadWallpapers();
+});
+
 // =======================================
 // إنشاء بطاقة الخلفية// =======================================
 // إنشاء بطاقة الخلفية
@@ -235,11 +239,14 @@ async function loadWallpapers() {
 
 function createWallpaperCard(wall) {
     if(!wall) return "";
-    const imageUrl = escapeHomeHtml(getImageUrl(wall.thumbnail || wall.image || ""));
+    const isVideo = isVideoMedia(wall);
+    const videoEnabled = window.WallpaperHubSettings?.videosEnabled?.() !== false;
+    const imageSource = isVideo && !videoEnabled ? (wall.thumbnail || wall.preview || "/assets/logo/no-image.png") : (wall.thumbnail || wall.image || "");
+    const imageUrl = escapeHomeHtml(getImageUrl(imageSource));
     const alt = escapeHomeHtml(wall.title || "Wallpaper");
     const fallback = "/assets/logo/no-image.png";
     let mediaHTML = "";
-    if(isVideoMedia(wall)){
+    if(isVideo && videoEnabled){
         mediaHTML = '<div class="video-preview"><img src="' + imageUrl + '" alt="' + alt + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'' + fallback + '\'"><span class="video-icon" aria-hidden="true">▶</span></div>';
     }else{
         mediaHTML = '<img src="' + imageUrl + '" alt="' + alt + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'' + fallback + '\'">';
