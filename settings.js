@@ -1,3 +1,22 @@
+function getSettingsAccessToken(){
+    try{
+        for(let i=0;i<localStorage.length;i++){
+            const key=localStorage.key(i)||"";
+            if(!key.startsWith("sb-")||!key.endsWith("-auth-token")) continue;
+            const raw=localStorage.getItem(key);if(!raw)continue;
+            let session;
+            try{session=JSON.parse(raw);}catch(_){
+                if(!raw.startsWith("base64-"))continue;
+                const bytes=Uint8Array.from(atob(raw.slice(7)),c=>c.charCodeAt(0));
+                session=JSON.parse(new TextDecoder().decode(bytes));
+            }
+            const token=String(session?.access_token||session?.currentSession?.access_token||"").trim();
+            if(token)return token;
+        }
+    }catch(error){console.warn("SETTINGS AUTH TOKEN ERROR:",error);}
+    return "";
+}
+
 // WallpaperHub Settings — Pro
 const DEFAULT_SETTINGS = {
     darkMode:false,
@@ -22,9 +41,10 @@ const CARD_STYLE_KEY = "cardStyle";
 function loadSettings(){
     try{
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-        return {...DEFAULT_SETTINGS, ...saved};
+        const cardStyle = localStorage.getItem(CARD_STYLE_KEY) || saved.cardStyle || "classic";
+        return {...DEFAULT_SETTINGS, ...saved, cardStyle};
     }catch{
-        return {...DEFAULT_SETTINGS};
+        return {...DEFAULT_SETTINGS, cardStyle:"classic"};
     }
 }
 
@@ -34,13 +54,17 @@ const $ = id => document.getElementById(id);
 
 function saveSettings(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    localStorage.setItem(CARD_STYLE_KEY, settings.cardStyle || "classic");
+    window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{
+        detail:{settings:{...settings},source:"local-change"}
+    }));
     showSaved();
 }
 
 function showSaved(){
     const el = $("saveIndicator");
     if(!el) return;
-    el.innerHTML = `<span class="material-icons">cloud_done</span> محفوظ`;
+    el.innerHTML = `<span class="material-icons">check</span> محفوظ على الجهاز`;
     el.classList.add("saved");
     clearTimeout(showSaved.timer);
     showSaved.timer = setTimeout(() => {
@@ -108,10 +132,10 @@ function setupCardStyles(){
     document.querySelectorAll(".style-option").forEach(option => {
         option.onclick = () => {
             current = option.dataset.style;
-            localStorage.setItem(CARD_STYLE_KEY, current);
+            settings.cardStyle = current;
+            saveSettings();
             render();
             menu.classList.remove("show");
-            showSaved();
         };
     });
 
@@ -188,18 +212,33 @@ function setupDataTools(){
         showSaved();
     };
 
-    $("exportActivity").onclick = () => {
+    $("exportActivity").onclick = async () => {
         const read = key => {
             try{return JSON.parse(localStorage.getItem(key) || "[]");}
             catch{return [];}
         };
-        downloadJSON("wallpaperhub-activity-backup.json", {
+        const backup = {
             exported_at:new Date().toISOString(),
+            source:"local-device",
             favorites:read("favorites"),
             downloads:read("downloads"),
             views:read("views"),
             likes:read("likes")
-        });
+        };
+        const token = getSettingsAccessToken();
+        if(token){
+            try{
+                const response = await fetch("/api/user/activity-backup",{cache:"no-store",headers:{Authorization:"Bearer "+token}});
+                const cloud = await response.json().catch(()=>({}));
+                if(response.ok && cloud.success){
+                    backup.source="local-device+supabase-account";
+                    backup.favorites=[...new Set([...backup.favorites,...(cloud.favorites||[])].map(String))];
+                    backup.downloads=[...new Set([...backup.downloads,...(cloud.downloads||[])].map(String))];
+                    backup.views=[...new Set([...backup.views,...(cloud.views||[])].map(String))];
+                }
+            }catch(error){console.warn("CLOUD ACTIVITY BACKUP ERROR:",error);}
+        }
+        downloadJSON("wallpaperhub-activity-backup.json",backup);
     };
 
     $("clearSearch").onclick = () => {
@@ -214,14 +253,36 @@ function setupDataTools(){
         alert("تم مسح المفضلة المحلية.");
     };
 
-    $("resetSettings").onclick = () => {
-        if(!confirm("سيتم إرجاع إعدادات WallpaperHub الافتراضية. هل تريد المتابعة؟")) return;
-        settings = {...DEFAULT_SETTINGS};
+    $("resetSettings").onclick = async () => {
+        if(!confirm("سيتم إرجاع إعدادات WallpaperHub الافتراضية إلى الجهاز والحساب. هل تريد المتابعة؟")) return;
+        const pushWasEnabled = !!settings.browserNotifications;
+        settings = {...DEFAULT_SETTINGS,cardStyle:"classic",browserNotifications:false};
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
         localStorage.setItem(CARD_STYLE_KEY, "classic");
+        window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{
+            detail:{settings:{...settings},source:"local-change"}
+        }));
+        if(pushWasEnabled) window.dispatchEvent(new CustomEvent("wallpaperhub:push-toggle",{detail:{enabled:false}}));
+        await window.WallpaperHubSettings?.syncAccountSettings?.();
         location.reload();
     };
 }
+
+
+window.addEventListener("wallpaperhub:settings-loaded",event=>{
+    const remote=event.detail?.settings;
+    if(!remote||typeof remote!=="object")return;
+    settings={...DEFAULT_SETTINGS,...remote};
+    document.querySelectorAll(".settings-section input[type='checkbox']").forEach(input=>{
+        const key=input.id==="notificationsEnabled"?"notifications":input.id;
+        if(key in settings)input.checked=!!settings[key];
+    });
+    const style=String(settings.cardStyle||"classic");
+    const styleValue=$("cardStyleValue");
+    if(styleValue)styleValue.textContent=({classic:"كلاسيكي",glass:"زجاجي",premium:"مميز"})[style]||"كلاسيكي";
+    document.querySelectorAll(".style-option").forEach(option=>option.classList.toggle("active",option.dataset.style===style));
+    Object.keys(settings).forEach(applySetting);
+});
 
 bindSettings();
 setupCardStyles();
