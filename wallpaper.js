@@ -3578,6 +3578,7 @@ async function setWallpaperFromWebsite(){
         return;
     }
 
+    if(window.WallpaperHubSettings?.canDownload?.(currentWallpaper.size) === false) return;
     const isVideo = isVideoMedia(currentWallpaper);
 
     try{
@@ -3678,6 +3679,7 @@ function getWatermarkColor(ctx, canvas) {
 }
 
 async function downloadWithWatermark(imageUrl, title) {
+    if(window.WallpaperHubSettings?.canDownload?.(currentWallpaper?.size) === false) return;
     try {
         const response = await fetch(imageUrl, { mode: "cors" });
         if (!response.ok) throw new Error("IMAGE DOWNLOAD ERROR");
