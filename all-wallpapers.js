@@ -9,7 +9,7 @@ function getImageUrl(imagePath){
 
     const value = String(imagePath).trim();
 
-    if(/^https?:\/\//i.test(value)) return value;
+    if(/^https?:\/\//i.test(value)) return window.WallpaperHubSettings?.optimizeImageUrl(value) || value;
     if(value.startsWith("/")) return value;
     if(value.startsWith("assets/")) return "/" + value;
 
@@ -1026,4 +1026,7 @@ document.querySelectorAll(".page-bottom-nav button").forEach(button => {
 });
 
 setView("grid");
+window.addEventListener("wallpaperhub:refresh-content",()=>{
+    if(document.visibilityState==="visible") void loadWallpapers();
+});
 loadWallpapers();
