@@ -475,27 +475,19 @@ function injectWallpaperHubLanguageRuntime(source){
         if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,activityTag+"\n</body>");
         else html+="\n"+activityTag;
     }
-    // Apply one shared appearance system to every HTML page, including older
-    // pages that do not include the global theme assets themselves.
+    // Load the shared palette after every page stylesheet so its semantic tokens
+    // and page-scoped contrast fixes win without flattening designed artwork.
+    html = html.replace(/<link\\b[^>]*href=["'][^"']*css\\/theme\\.css(?:\\?[^"']*)?["'][^>]*>/gi, "");
+    const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261122-page-palettes" data-wh-global-theme="1">';
     if(!html.includes("data-wh-global-theme")){
-        const globalThemeStyle = '<link rel="stylesheet" href="/css/theme.css?v=20261121-unified-theme" data-wh-global-theme="1">';
-        const lowerHtml = html.toLowerCase();
-        const cssIndex = lowerHtml.indexOf("css/theme.css");
-        if(cssIndex >= 0){
-            const linkStart = lowerHtml.lastIndexOf("<link", cssIndex);
-            const linkEnd = lowerHtml.indexOf(">", cssIndex);
-            if(linkStart >= 0 && linkEnd >= 0){
-                html = html.slice(0, linkStart) + globalThemeStyle + html.slice(linkEnd + 1);
-            }else{
-                const headEnd = lowerHtml.indexOf("</head>");
-                if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + "\n" + html.slice(headEnd);
-                else html = globalThemeStyle + "\n" + html;
-            }
-        }else{
-            const headEnd = lowerHtml.indexOf("</head>");
-            if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + "\n" + html.slice(headEnd);
-            else html = globalThemeStyle + "\n" + html;
-        }
+        const headEnd = html.toLowerCase().indexOf("</head>");
+        if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + "\\n" + html.slice(headEnd);
+        else html = globalThemeStyle + "\\n" + html;
+    }else{
+        // Existing injected copies are moved to the end of the head for predictable specificity.
+        html = html.replace(/<link\\b[^>]*data-wh-global-theme=["']1["'][^>]*>/gi, "");
+        const headEnd = html.toLowerCase().indexOf("</head>");
+        if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeStyle + "\\n" + html.slice(headEnd);
     }
 
     // Replace any older page-level theme.js tag with one deferred, shared controller.
