@@ -10026,19 +10026,40 @@ app.get("/api/community/private/conversations", async (req,res) => {
         );
         const uid = String(user.id);
 
-        const { data, error } = await supabase
+        const requestedId=String(req.query.id||"").trim();
+        let conversationQuery=supabase
             .from("private_conversations")
             .select("id,user_one_id,user_two_id,created_at,updated_at")
             .or(`user_one_id.eq.${uid},user_two_id.eq.${uid}`)
             .order("updated_at",{ascending:false})
             .limit(limit);
-
-        if(error) throw error;
-
-        const rows = data || [];
+        if(requestedId) conversationQuery=conversationQuery.eq("id",requestedId);
+        const {data,error}=await conversationQuery;
+        if(error)throw error;
+        const rows=data||[];
+        if(requestedId&&!rows.length){
+            return res.status(404).json({success:false,message:"المحادثة غير موجودة أو لا تملك صلاحية الوصول إليها"});
+        }
         const otherIds = rows.map(row =>
             String(row.user_one_id) === uid ? row.user_two_id : row.user_one_id
         );
+        if(requestedId && otherIds[0] && await areUsersBlocked(uid,otherIds[0])){
+            return res.status(403).json({success:false,message:"المحادثة متوقفة بسبب الحظر"});
+        }
+        let visibleRows=rows;
+        if(!requestedId && otherIds.length){
+            const {data:blocks,error:blockError}=await supabase.from("user_blocks")
+                .select("blocker_id,blocked_user_id")
+                .or(`blocker_id.eq.${uid},blocked_user_id.eq.${uid}`);
+            if(blockError)throw blockError;
+            const blockedIds=new Set((blocks||[]).map(row=>
+                String(row.blocker_id)===uid?String(row.blocked_user_id):String(row.blocker_id)
+            ));
+            visibleRows=rows.filter(row=>{
+                const other=String(row.user_one_id)===uid?String(row.user_two_id):String(row.user_one_id);
+                return !blockedIds.has(other);
+            });
+        }
 
         let profiles = new Map();
         try{
@@ -10048,7 +10069,7 @@ app.get("/api/community/private/conversations", async (req,res) => {
         }
 
         const conversations = [];
-        for(const row of rows){
+        for(const row of visibleRows){
             const otherId =
                 String(row.user_one_id) === uid
                     ? String(row.user_two_id)
