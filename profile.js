@@ -2760,9 +2760,10 @@ function renderWalls(container, ids){
         image.alt = String(wall.title || wall.name || "خلفية");
         image.loading = "lazy";
         image.referrerPolicy = "no-referrer";
-        image.src = String(
+        const profileImageSource=String(
             profileIsGifMedia(wall) ? wall.image : (wall.thumbnail || wall.image || "")
         );
+        image.src = window.WallpaperHubSettings?.optimizeImageUrl(profileImageSource) || profileImageSource;
         image.onerror = () => {
             image.onerror = null;
             image.removeAttribute("src");
