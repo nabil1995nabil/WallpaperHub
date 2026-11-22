@@ -186,6 +186,46 @@ function notificationPreferenceAllows(preferences,type){
 
 
 // ======================================
+
+/* Profile privacy + blocking — server-authoritative controls */
+const PROFILE_PRIVACY_DEFAULTS=Object.freeze({
+ showStats:true,showOwnWallpapers:true,showFavorites:false,showDownloads:false,showViews:false,
+ showBadges:true,showSocialLinks:true,showFollowStats:true,allowFollow:true,allowMessages:true
+});
+function cleanProfilePrivacy(value){
+ const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+ const clean={};
+ for(const [key,fallback] of Object.entries(PROFILE_PRIVACY_DEFAULTS))clean[key]=typeof source[key]==="boolean"?source[key]:fallback;
+ return clean;
+}
+async function getProfilePrivacy(userId){
+ const uid=String(userId||"").trim();if(!uid)return {...PROFILE_PRIVACY_DEFAULTS};
+ const {data,error}=await supabase.from("user_profile_privacy").select("settings").eq("user_id",uid).maybeSingle();
+ if(error)throw error;
+ return cleanProfilePrivacy(data?.settings||{});
+}
+async function areUsersBlocked(firstUserId,secondUserId){
+ const first=String(firstUserId||"").trim(),second=String(secondUserId||"").trim();
+ if(!first||!second||first===second)return false;
+ const [forward,reverse]=await Promise.all([
+  supabase.from("user_blocks").select("blocker_id").eq("blocker_id",first).eq("blocked_user_id",second).maybeSingle(),
+  supabase.from("user_blocks").select("blocker_id").eq("blocker_id",second).eq("blocked_user_id",first).maybeSingle()
+ ]);
+ if(forward.error)throw forward.error;if(reverse.error)throw reverse.error;
+ return Boolean(forward.data||reverse.data);
+}
+function otherPrivateConversationUser(conversation,userId){
+ const uid=String(userId||"");
+ if(String(conversation?.user_one_id||"")===uid)return String(conversation?.user_two_id||"");
+ if(String(conversation?.user_two_id||"")===uid)return String(conversation?.user_one_id||"");
+ return "";
+}
+function cleanPublicProfileIds(value){
+ if(!Array.isArray(value))return [];
+ return [...new Set(value.map(item=>item&&typeof item==="object"?(item.id??item.wallpaperId??item.wallpaper_id??item.wallId??""):item)
+  .map(item=>String(item||"").trim()).filter(Boolean))].slice(0,500);
+}
+
 // Admin authorization
 // تصنيف الخلفيات لا يتغير إلا بواسطة الأدمن.
 // ضع UID الأدمن في متغير البيئة ADMIN_UIDS (يمكن فصل أكثر من UID بفاصلة).
@@ -5046,13 +5086,32 @@ app.get("/api/users/:uid/follow-stats", async (req,res)=>{
     try{
         const targetUID=String(req.params.uid || "").trim();
         if(!targetUID) return res.status(400).json({success:false,message:"UID غير صالح"});
+        const profileViewer=await getAuthenticatedUser(req);
+        if(profileViewer&&String(profileViewer.id)!==targetUID&&await areUsersBlocked(profileViewer.id,targetUID))return res.status(403).json({success:false,message:"إحصائيات المتابعة غير متاحة"});
+        const privacy=await getProfilePrivacy(targetUID);
+        if(!privacy.showFollowStats){
+            let isFollowing=false,isFollower=false;
+            if(profileViewer&&String(profileViewer.id)!==targetUID){
+                const [{data:followingRow,error:followingRowError},{data:followerRow,error:followerRowError}]=await Promise.all([
+                    supabase.from("user_follows").select("follower_id")
+                        .eq("follower_id",String(profileViewer.id)).eq("followed_id",targetUID).maybeSingle(),
+                    supabase.from("user_follows").select("follower_id")
+                        .eq("follower_id",targetUID).eq("followed_id",String(profileViewer.id)).maybeSingle()
+                ]);
+                if(followingRowError)throw followingRowError;
+                if(followerRowError)throw followerRowError;
+                isFollowing=Boolean(followingRow);
+                isFollower=Boolean(followerRow);
+            }
+            return res.json({success:true,user_id:targetUID,followers:0,following:0,is_following:isFollowing,is_follower:isFollower,visible:false});
+        }
         const [{count:followers,error:followersError},{count:following,error:followingError}] = await Promise.all([
             supabase.from("user_follows").select("follower_id",{count:"exact",head:true}).eq("followed_id",targetUID),
             supabase.from("user_follows").select("followed_id",{count:"exact",head:true}).eq("follower_id",targetUID)
         ]);
         if(followersError) throw followersError;
         if(followingError) throw followingError;
-        const viewer=await getAuthenticatedUser(req);
+        const viewer=profileViewer;
         let isFollowing=false;
         let isFollower=false;
         if(viewer && String(viewer.id)!==targetUID){
@@ -5083,10 +5142,15 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
         if(String(user.id)===targetUID) return res.status(400).json({success:false,message:"لا يمكنك متابعة حسابك الشخصي"});
         const {data:target,error:targetError}=await supabase.auth.admin.getUserById(targetUID);
         if(targetError || !target?.user) return res.status(404).json({success:false,message:"الحساب غير موجود"});
+        if(await areUsersBlocked(user.id,targetUID))return res.status(403).json({success:false,message:"لا يمكن متابعة هذا الحساب بسبب الحظر"});
 
         const {data:existing,error:readError}=await supabase.from("user_follows").select("follower_id")
             .eq("follower_id",String(user.id)).eq("followed_id",targetUID).maybeSingle();
         if(readError) throw readError;
+        if(!existing){
+            const targetPrivacy=await getProfilePrivacy(targetUID);
+            if(!targetPrivacy.allowFollow)return res.status(403).json({success:false,message:"صاحب الحساب لا يستقبل طلبات متابعة حالياً"});
+        }
 
         let followingNow;
         let notificationCreated = false;
@@ -5121,7 +5185,9 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
         ]);
         if(followersError) throw followersError;
         if(followingError) throw followingError;
-        return res.json({success:true,is_following:followingNow,followers:Number(followers||0),following:Number(following||0),notification_created:notificationCreated});
+        const followPrivacy=await getProfilePrivacy(targetUID);
+        const countsVisible=followPrivacy.showFollowStats===true;
+        return res.json({success:true,is_following:followingNow,followers:countsVisible?Number(followers||0):0,following:countsVisible?Number(following||0):0,notification_created:notificationCreated});
     }catch(error){
         console.error("FOLLOW TOGGLE ERROR:",error.message);
         return res.status(500).json({success:false,message:"تعذرت معالجة المتابعة. تأكد من إعداد جدول user_follows."});
@@ -5133,112 +5199,118 @@ app.post("/api/users/:uid/follow", async (req,res)=>{
 // UID -> profiles / Auth metadata
 // لا يعتمد على جلسة الزائر ولا على RLS من المتصفح.
 // ======================================
+
+app.get("/api/users/:uid/privacy",async(req,res)=>{
+ try{const uid=String(req.params.uid||"").trim();if(!uid)return res.status(400).json({success:false,message:"UID غير صالح"});
+  return res.json({success:true,settings:await getProfilePrivacy(uid)});
+ }catch(error){console.error("GET PROFILE PRIVACY ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تحميل خصوصية الحساب"});}
+});
+app.put("/api/user/profile-privacy",async(req,res)=>{
+ try{const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+  const submitted=cleanProfilePrivacy(req.body?.settings||{}),existing=await getProfilePrivacy(user.id),settings={...existing,...submitted};
+  const {data,error}=await supabase.from("user_profile_privacy").upsert({user_id:String(user.id),settings,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select("settings,updated_at").single();
+  if(error)throw error;return res.json({success:true,settings:cleanProfilePrivacy(data.settings),updatedAt:data.updated_at});
+ }catch(error){console.error("SAVE PROFILE PRIVACY ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ إعدادات الخصوصية"});}
+});
+app.get("/api/users/:uid/block-status",async(req,res)=>{
+ try{const target=String(req.params.uid||"").trim();if(!target)return res.status(400).json({success:false,message:"UID غير صالح"});
+  const viewer=await getAuthenticatedUser(req);if(!viewer||String(viewer.id)===target)return res.json({success:true,blockedByViewer:false,blockedViewer:false});
+  const [ownBlock,targetBlock]=await Promise.all([
+   supabase.from("user_blocks").select("blocker_id").eq("blocker_id",String(viewer.id)).eq("blocked_user_id",target).maybeSingle(),
+   supabase.from("user_blocks").select("blocker_id").eq("blocker_id",target).eq("blocked_user_id",String(viewer.id)).maybeSingle()
+  ]);
+  if(ownBlock.error)throw ownBlock.error;if(targetBlock.error)throw targetBlock.error;
+  return res.json({success:true,blockedByViewer:Boolean(ownBlock.data),blockedViewer:Boolean(targetBlock.data)});
+ }catch(error){console.error("PROFILE BLOCK STATUS ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر التحقق من حالة الحظر"});}
+});
+app.post("/api/users/:uid/block",async(req,res)=>{
+ try{const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+  const target=String(req.params.uid||"").trim();if(!target||target===String(user.id))return res.status(400).json({success:false,message:"لا يمكن حظر هذا الحساب"});
+  const {data:targetUser,error:targetError}=await supabase.auth.admin.getUserById(target);if(targetError||!targetUser?.user)return res.status(404).json({success:false,message:"الحساب غير موجود"});
+  const {error}=await supabase.from("user_blocks").upsert({blocker_id:String(user.id),blocked_user_id:target},{onConflict:"blocker_id,blocked_user_id",ignoreDuplicates:true});
+  if(error)throw error;
+  const [a,b]=await Promise.all([
+   supabase.from("user_follows").delete().eq("follower_id",String(user.id)).eq("followed_id",target),
+   supabase.from("user_follows").delete().eq("follower_id",target).eq("followed_id",String(user.id))
+  ]);
+  if(a.error)console.warn("BLOCK FOLLOW CLEANUP:",a.error.message);if(b.error)console.warn("BLOCK REVERSE FOLLOW CLEANUP:",b.error.message);
+  return res.json({success:true,blocked:true});
+ }catch(error){console.error("BLOCK PROFILE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حظر الحساب"});}
+});
+app.delete("/api/users/:uid/block",async(req,res)=>{
+ try{const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولاً"});
+  const target=String(req.params.uid||"").trim();const {error}=await supabase.from("user_blocks").delete().eq("blocker_id",String(user.id)).eq("blocked_user_id",target);
+  if(error)throw error;return res.json({success:true,blocked:false});
+ }catch(error){console.error("UNBLOCK PROFILE ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر إلغاء الحظر"});}
+});
+app.post("/api/users/:uid/report",async(req,res)=>{
+ try{const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول لإرسال بلاغ"});
+  const target=String(req.params.uid||"").trim(),reason=String(req.body?.reason||"").trim().toLowerCase(),details=String(req.body?.details||"").trim().slice(0,1000);
+  const allowed=new Set(["spam","impersonation","harassment","inappropriate","hate","other"]);
+  if(!target||target===String(user.id))return res.status(400).json({success:false,message:"الحساب المحدد غير صالح"});
+  if(!allowed.has(reason))return res.status(400).json({success:false,message:"اختر سبباً صحيحاً للبلاغ"});
+  const {data:targetUser,error:targetError}=await supabase.auth.admin.getUserById(target);if(targetError||!targetUser?.user)return res.status(404).json({success:false,message:"الحساب غير موجود"});
+  const {data:existing,error:readError}=await supabase.from("user_profile_reports").select("id").eq("reporter_id",String(user.id)).eq("reported_user_id",target).eq("status","pending").maybeSingle();
+  if(readError)throw readError;if(existing)return res.json({success:true,duplicate:true,message:"يوجد بلاغ قيد المراجعة لهذا الحساب"});
+  const {data,error}=await supabase.from("user_profile_reports").insert({reporter_id:String(user.id),reported_user_id:target,reason,details}).select("id,created_at").single();
+  if(error)throw error;return res.status(201).json({success:true,reportId:data.id,createdAt:data.created_at});
+ }catch(error){console.error("PROFILE REPORT ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر إرسال البلاغ"});}
+});
+app.get("/api/admin/user-profile-reports",async(req,res)=>{
+ try{const admin=await requireAdmin(req,res);if(!admin)return;
+  const status=String(req.query.status||"all").trim().toLowerCase(),limit=Math.min(Math.max(Number.parseInt(req.query.limit,10)||200,1),1000);
+  let query=supabase.from("user_profile_reports").select("*").order("created_at",{ascending:false}).limit(limit);
+  if(["pending","reviewing","resolved","dismissed"].includes(status))query=query.eq("status",status);
+  const {data,error}=await query;if(error)throw error;return res.json({success:true,reports:data||[]});
+ }catch(error){console.error("ADMIN PROFILE REPORTS ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تحميل بلاغات الحسابات"});}
+});
+app.patch("/api/admin/user-profile-reports/:id",async(req,res)=>{
+ try{const admin=await requireAdmin(req,res);if(!admin)return;
+  const id=String(req.params.id||"").trim(),status=String(req.body?.status||"").trim().toLowerCase(),allowed=new Set(["pending","reviewing","resolved","dismissed"]);
+  if(!id||!allowed.has(status))return res.status(400).json({success:false,message:"بيانات التحديث غير صالحة"});
+  const updates={status,reviewed_by:String(admin.id),reviewed_at:new Date().toISOString(),admin_notes:String(req.body?.adminNotes||"").trim().slice(0,3000)};
+  const {data,error}=await supabase.from("user_profile_reports").update(updates).eq("id",id).select("id,status,reviewed_at,admin_notes").maybeSingle();
+  if(error)throw error;if(!data)return res.status(404).json({success:false,message:"البلاغ غير موجود"});return res.json({success:true,report:data});
+ }catch(error){console.error("UPDATE PROFILE REPORT ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تحديث البلاغ"});}
+});
+
+
 app.get(
-    "/api/users/:uid/profile",
-    async (req, res) => {
-        try {
-            const targetUID = String(req.params.uid || "").trim();
-
-            if(!targetUID){
-                return res.status(400).json({
-                    success:false,
-                    user:null,
-                    message:"User UID is required"
-                });
-            }
-
-            const { data: profile, error: profileError } = await supabase
-                .from("profiles")
-                .select("id, full_name, username, avatar_url")
-                .eq("id", targetUID)
-                .maybeSingle();
-
-            if(profileError){
-                console.log("PUBLIC PROFILE QUERY ERROR:", profileError.message);
-            }
-
-            // الغلاف العام: نقرأه من user_profile_sync عبر السيرفر،
-            // حتى يستطيع أي زائر رؤية غلاف صاحب البروفايل.
-            let syncProfile = null;
-            try{
-                const { data: syncData, error: syncError } = await supabase
-                    .from("user_profile_sync")
-                    .select("cover_url,bio,join_date,social_links,is_verified,verified_at,verified_by")
-                    .eq("user_id", targetUID)
-                    .maybeSingle();
-
-                if(syncError){
-                    console.log("PUBLIC PROFILE SYNC QUERY ERROR:", syncError.message);
-                }else{
-                    syncProfile = syncData || null;
-                }
-            }catch(syncError){
-                console.log("PUBLIC PROFILE SYNC ERROR:", syncError.message);
-            }
-
-            if(profile){
-                return res.json({
-                    success:true,
-                    uid:targetUID,
-                    user:{
-                        id:String(profile.id),
-                        full_name:profile.full_name || "",
-                        username:profile.username || "",
-                        avatar_url:profile.avatar_url || "",
-                        cover_url:syncProfile?.cover_url || "",
-                        bio:syncProfile?.bio || "",
-                        join_date:syncProfile?.join_date || "",
-                        social_links:syncProfile?.social_links || {},
-                        is_verified:Boolean(syncProfile?.is_verified),
-                        verified_at:syncProfile?.verified_at || null,
-                        verified_by:syncProfile?.verified_by || null
-                    }
-                });
-            }
-
-            try{
-                const { data: authData, error: authError } =
-                    await supabase.auth.admin.getUserById(targetUID);
-
-                if(!authError && authData?.user){
-                    const authUser = authData.user;
-                    const meta = authUser.user_metadata || {};
-
-                    return res.json({
-                        success:true,
-                        uid:targetUID,
-                        user:{
-                            id:String(authUser.id),
-                            full_name:meta.full_name || meta.name || meta.user_name || "",
-                            username:meta.username || meta.user_name || "",
-                            avatar_url:meta.avatar_url || meta.picture || "",
-                            cover_url:syncProfile?.cover_url || "",
-                            bio:syncProfile?.bio || "",
-                            join_date:syncProfile?.join_date || "",
-                            is_verified:Boolean(syncProfile?.is_verified),
-                            verified_at:syncProfile?.verified_at || null,
-                            verified_by:syncProfile?.verified_by || null
-                        }
-                    });
-                }
-            }catch(authError){
-                console.log("PUBLIC PROFILE AUTH FALLBACK ERROR:", authError.message);
-            }
-
-            return res.status(404).json({
-                success:false,
-                user:null,
-                message:"User profile not found"
-            });
-        }catch(error){
-            console.log("GET PUBLIC PROFILE ERROR:", error);
-            return res.status(500).json({
-                success:false,
-                user:null,
-                message:error.message
-            });
-        }
-    }
+ "/api/users/:uid/profile",
+ async(req,res)=>{
+  try{
+   const targetUID=String(req.params.uid||"").trim();
+   if(!targetUID)return res.status(400).json({success:false,user:null,message:"User UID is required"});
+   const profileViewer=await getAuthenticatedUser(req);
+   if(profileViewer&&String(profileViewer.id)!==targetUID&&await areUsersBlocked(profileViewer.id,targetUID))
+    return res.status(403).json({success:false,user:null,blocked:true,message:"لا يمكن عرض هذا الملف بسبب الحظر"});
+   const privacy=await getProfilePrivacy(targetUID);
+   const {data:profile,error:profileError}=await supabase.from("profiles").select("id,full_name,username,avatar_url").eq("id",targetUID).maybeSingle();
+   if(profileError)console.log("PUBLIC PROFILE QUERY ERROR:",profileError.message);
+   let syncProfile=null;
+   try{
+    const {data,error}=await supabase.from("user_profile_sync")
+     .select("cover_url,bio,join_date,social_links,is_verified,verified_at,verified_by,favorite_ids,download_ids,view_ids")
+     .eq("user_id",targetUID).maybeSingle();
+    if(error)console.log("PUBLIC PROFILE SYNC QUERY ERROR:",error.message);else syncProfile=data||null;
+   }catch(error){console.log("PUBLIC PROFILE SYNC ERROR:",error?.message||error);}
+   const common={
+    id:targetUID,cover_url:syncProfile?.cover_url||"",bio:syncProfile?.bio||"",join_date:syncProfile?.join_date||"",
+    social_links:privacy.showSocialLinks?(syncProfile?.social_links||{}):{},is_verified:privacy.showBadges&&Boolean(syncProfile?.is_verified),
+    verified_at:privacy.showBadges?(syncProfile?.verified_at||null):null,verified_by:privacy.showBadges?(syncProfile?.verified_by||null):null,privacy,
+    favorite_ids:privacy.showFavorites?cleanPublicProfileIds(syncProfile?.favorite_ids):[],
+    download_ids:privacy.showDownloads?cleanPublicProfileIds(syncProfile?.download_ids):[],
+    view_ids:privacy.showViews?cleanPublicProfileIds(syncProfile?.view_ids):[]
+   };
+   if(profile)return res.json({success:true,uid:targetUID,user:{...common,full_name:profile.full_name||"",username:profile.username||"",avatar_url:profile.avatar_url||""}});
+   const {data:authData,error:authError}=await supabase.auth.admin.getUserById(targetUID);
+   if(!authError&&authData?.user){
+    const meta=authData.user.user_metadata||{};
+    return res.json({success:true,uid:targetUID,user:{...common,full_name:meta.full_name||meta.name||meta.user_name||"",username:meta.username||meta.user_name||"",avatar_url:meta.avatar_url||meta.picture||""}});
+   }
+   return res.status(404).json({success:false,user:null,message:"User profile not found"});
+  }catch(error){console.log("GET PUBLIC PROFILE ERROR:",error?.message||error);return res.status(500).json({success:false,user:null,message:"تعذر تحميل الملف الشخصي"});}
+ }
 );
 
 // ======================================
@@ -9971,19 +10043,40 @@ app.get("/api/community/private/conversations", async (req,res) => {
         );
         const uid = String(user.id);
 
-        const { data, error } = await supabase
+        const requestedId=String(req.query.id||"").trim();
+        let conversationQuery=supabase
             .from("private_conversations")
             .select("id,user_one_id,user_two_id,created_at,updated_at")
             .or(`user_one_id.eq.${uid},user_two_id.eq.${uid}`)
             .order("updated_at",{ascending:false})
             .limit(limit);
-
-        if(error) throw error;
-
-        const rows = data || [];
+        if(requestedId) conversationQuery=conversationQuery.eq("id",requestedId);
+        const {data,error}=await conversationQuery;
+        if(error)throw error;
+        const rows=data||[];
+        if(requestedId&&!rows.length){
+            return res.status(404).json({success:false,message:"المحادثة غير موجودة أو لا تملك صلاحية الوصول إليها"});
+        }
         const otherIds = rows.map(row =>
             String(row.user_one_id) === uid ? row.user_two_id : row.user_one_id
         );
+        if(requestedId && otherIds[0] && await areUsersBlocked(uid,otherIds[0])){
+            return res.status(403).json({success:false,message:"المحادثة متوقفة بسبب الحظر"});
+        }
+        let visibleRows=rows;
+        if(!requestedId && otherIds.length){
+            const {data:blocks,error:blockError}=await supabase.from("user_blocks")
+                .select("blocker_id,blocked_user_id")
+                .or(`blocker_id.eq.${uid},blocked_user_id.eq.${uid}`);
+            if(blockError)throw blockError;
+            const blockedIds=new Set((blocks||[]).map(row=>
+                String(row.blocker_id)===uid?String(row.blocked_user_id):String(row.blocker_id)
+            ));
+            visibleRows=rows.filter(row=>{
+                const other=String(row.user_one_id)===uid?String(row.user_two_id):String(row.user_one_id);
+                return !blockedIds.has(other);
+            });
+        }
 
         let profiles = new Map();
         try{
@@ -9993,7 +10086,7 @@ app.get("/api/community/private/conversations", async (req,res) => {
         }
 
         const conversations = [];
-        for(const row of rows){
+        for(const row of visibleRows){
             const otherId =
                 String(row.user_one_id) === uid
                     ? String(row.user_two_id)
@@ -10055,6 +10148,11 @@ app.post("/api/community/private/conversations", async (req,res) => {
 
         if(!targetId) return res.status(400).json({success:false,message:"معرّف العضو غير صالح"});
         if(targetId === currentId) return res.status(400).json({success:false,message:"لا يمكنك بدء محادثة مع نفسك"});
+        const {data:targetAuth,error:targetAuthError}=await supabase.auth.admin.getUserById(targetId);
+        if(targetAuthError||!targetAuth?.user)return res.status(404).json({success:false,message:"الحساب غير موجود"});
+        if(await areUsersBlocked(currentId,targetId))return res.status(403).json({success:false,message:"لا يمكن بدء محادثة بسبب الحظر"});
+        const targetPrivacy=await getProfilePrivacy(targetId);
+        if(!targetPrivacy.allowMessages)return res.status(403).json({success:false,message:"هذا الحساب لا يستقبل رسائل خاصة حالياً"});
 
         const firstId = currentId < targetId ? currentId : targetId;
         const secondId = currentId < targetId ? targetId : currentId;
@@ -10108,6 +10206,8 @@ app.get("/api/community/private/messages/:conversationId", async (req,res) => {
         const membership = await requirePrivateConversationMember(conversationId,user.id);
         if(membership === null) return res.status(404).json({success:false,message:"المحادثة غير موجودة"});
         if(membership === false) return res.status(403).json({success:false,message:"هذه المحادثة ليست متاحة لك"});
+        const otherUserId=otherPrivateConversationUser(membership,user.id);
+        if(!otherUserId||await areUsersBlocked(user.id,otherUserId))return res.status(403).json({success:false,message:"المحادثة متوقفة بسبب الحظر"});
 
         const limit = Math.min(
             Math.max(Number.parseInt(req.query.limit,10) || 100,1),100
@@ -10162,6 +10262,10 @@ app.post("/api/community/private/messages/:conversationId", async (req,res) => {
         const membership = await requirePrivateConversationMember(conversationId,user.id);
         if(membership === null) return res.status(404).json({success:false,message:"المحادثة غير موجودة"});
         if(membership === false) return res.status(403).json({success:false,message:"لا يمكنك إرسال رسالة في هذه المحادثة"});
+        const recipientId=otherPrivateConversationUser(membership,user.id);
+        if(!recipientId||await areUsersBlocked(user.id,recipientId))return res.status(403).json({success:false,message:"لا يمكنك إرسال رسالة بسبب الحظر"});
+        const recipientPrivacy=await getProfilePrivacy(recipientId);
+        if(!recipientPrivacy.allowMessages)return res.status(403).json({success:false,message:"هذا المستخدم لا يستقبل رسائل خاصة حالياً"});
 
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();

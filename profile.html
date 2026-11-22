@@ -11,7 +11,7 @@
 <title>حسابي | WallpaperHub</title>
 
 
-<link rel="stylesheet" href="profile.css?v=20261120-premium-supabase">
+<link rel="stylesheet" href="profile.css?v=20261122-profile-root">
 
 <link rel="stylesheet" href="css/theme.css">
 
@@ -24,7 +24,7 @@
 </head>
 
 
-<body>
+<body class="profile-page">
 
 
 <!-- ==========================
@@ -38,6 +38,9 @@
 id="profileMenuBtn"
 class="menu-btn"
 type="button"
+aria-haspopup="dialog"
+aria-controls="profileMenuSheet"
+aria-expanded="false"
 aria-label="المزيد"
 title="المزيد">
 
@@ -74,7 +77,9 @@ login
 id="settingsBtn"
 class="settings-btn"
 type="button"
-aria-label="الإعدادات"
+aria-haspopup="dialog"
+aria-controls="profilePrivacyModal"
+aria-label="خصوصية الملف الشخصي"
 title="الإعدادات">
 
 <span class="material-icons">
@@ -106,14 +111,6 @@ settings
     class="cover-image"
     src="assets/images/default-cover.jpg"
     alt="Cover">
-
-    <button id="coverPrevBtn" class="cover-nav-btn cover-nav-prev" type="button" aria-label="الغلاف السابق" title="الغلاف السابق">
-        <span class="material-icons">chevron_right</span>
-    </button>
-
-    <button id="coverNextBtn" class="cover-nav-btn cover-nav-next" type="button" aria-label="الغلاف التالي" title="الغلاف التالي">
-        <span class="material-icons">chevron_left</span>
-    </button>
 
     <div class="cover-history-overlay">
         <span id="coverHistoryLabel">غلاف الحساب</span>
@@ -217,10 +214,10 @@ alt="Avatar">
         </button>
 
         <a id="profilePointsBtn" href="points.html" aria-label="عرض نقاطي"
-           style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:10px;padding:10px 16px;box-sizing:border-box;border:1px solid #e4e8f0;border-radius:28px;background:#fff;color:#4656d9;text-decoration:none;font-weight:700;box-shadow:0 5px 18px rgba(25,35,70,.06);">
+           >
             <span class="material-icons" aria-hidden="true">stars</span>
             <span>نقاطك</span>
-            <strong id="profilePointsValue" style="font-variant-numeric:tabular-nums;">—</strong>
+            <strong id="profilePointsValue" >—</strong>
         </a>
 
     </div>
@@ -580,6 +577,93 @@ alt="Avatar">
  Bottom Navigation
 ========================== -->
 
+
+<!-- Profile actions sheet -->
+<div id="profileMenuSheet" class="profile-sheet" hidden aria-hidden="true">
+  <button id="profileMenuBackdrop" class="profile-sheet-backdrop" type="button" aria-label="إغلاق القائمة"></button>
+  <section class="profile-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="profileMenuTitle">
+    <div class="profile-sheet-grab" aria-hidden="true"></div>
+    <header class="profile-sheet-head">
+      <div><small>WALLPAPERHUB</small><h2 id="profileMenuTitle">خيارات الملف الشخصي</h2></div>
+      <button id="profileMenuClose" class="profile-icon-button" type="button" aria-label="إغلاق"><span class="material-icons">close</span></button>
+    </header>
+    <div id="profileMenuActionList" class="profile-menu-actions"></div>
+  </section>
+</div>
+
+<!-- Profile privacy settings -->
+<div id="profilePrivacyModal" class="profile-modal" hidden aria-hidden="true">
+  <button class="profile-modal-backdrop" type="button" data-profile-close="profilePrivacyModal" aria-label="إغلاق"></button>
+  <section class="profile-modal-panel" role="dialog" aria-modal="true" aria-labelledby="profilePrivacyTitle">
+    <header class="profile-modal-head">
+      <div><small>YOUR PROFILE</small><h2 id="profilePrivacyTitle">خصوصية الملف الشخصي</h2><p>تحكم في المعلومات التي يراها زوار حسابك.</p></div>
+      <button class="profile-icon-button" type="button" data-profile-close="profilePrivacyModal" aria-label="إغلاق"><span class="material-icons">close</span></button>
+    </header>
+    <div class="privacy-group">
+      <h3>ما يظهر في ملفك</h3>
+      <label class="privacy-option"><span><strong>الإحصائيات</strong><small>أعداد الخلفيات والمشاهدات والنشاط</small></span><input id="privacyShowStats" type="checkbox" data-privacy-key="showStats"></label>
+      <label class="privacy-option"><span><strong>الخلفيات المنشورة</strong><small>عرض الأعمال التي نشرتها في حسابك</small></span><input id="privacyShowOwnWallpapers" type="checkbox" data-privacy-key="showOwnWallpapers"></label>
+      <label class="privacy-option"><span><strong>المفضلة</strong><small>السماح للزوار برؤية الخلفيات المحفوظة</small></span><input id="privacyShowFavorites" type="checkbox" data-privacy-key="showFavorites"></label>
+      <label class="privacy-option"><span><strong>التنزيلات</strong><small>عرض قائمة الخلفيات التي حمّلتها</small></span><input id="privacyShowDownloads" type="checkbox" data-privacy-key="showDownloads"></label>
+      <label class="privacy-option"><span><strong>المشاهدات</strong><small>عرض سجل الخلفيات التي شاهدتها</small></span><input id="privacyShowViews" type="checkbox" data-privacy-key="showViews"></label>
+      <label class="privacy-option"><span><strong>الميداليات والشارات</strong><small>إظهار الإنجازات وصفحة المستخدم المميز</small></span><input id="privacyShowBadges" type="checkbox" data-privacy-key="showBadges"></label>
+      <label class="privacy-option"><span><strong>روابط التواصل</strong><small>إظهار روابط حساباتك الاجتماعية</small></span><input id="privacyShowSocialLinks" type="checkbox" data-privacy-key="showSocialLinks"></label>
+      <label class="privacy-option"><span><strong>إحصائيات المتابعة</strong><small>إظهار عدد المتابعين والحسابات التي تتابعها</small></span><input id="privacyShowFollowStats" type="checkbox" data-privacy-key="showFollowStats"></label>
+    </div>
+    <div class="privacy-group">
+      <h3>التواصل معك</h3>
+      <label class="privacy-option"><span><strong>استقبال المتابعات</strong><small>السماح للأعضاء بمتابعة حسابك</small></span><input id="privacyAllowFollow" type="checkbox" data-privacy-key="allowFollow"></label>
+      <label class="privacy-option"><span><strong>استقبال الرسائل الخاصة</strong><small>منع إنشاء محادثات خاصة جديدة عند الإيقاف</small></span><input id="privacyAllowMessages" type="checkbox" data-privacy-key="allowMessages"></label>
+    </div>
+    <footer class="profile-modal-actions">
+      <button class="profile-secondary-button" type="button" data-profile-close="profilePrivacyModal">إلغاء</button>
+      <button id="profilePrivacySave" class="profile-primary-button" type="button">حفظ الإعدادات</button>
+    </footer>
+  </section>
+</div>
+
+<!-- Profile report -->
+<div id="profileReportModal" class="profile-modal" hidden aria-hidden="true">
+  <button class="profile-modal-backdrop" type="button" data-profile-close="profileReportModal" aria-label="إغلاق"></button>
+  <section class="profile-modal-panel compact" role="dialog" aria-modal="true" aria-labelledby="profileReportTitle">
+    <header class="profile-modal-head">
+      <div><small>SAFETY</small><h2 id="profileReportTitle">الإبلاغ عن الحساب</h2><p>يصل البلاغ إلى فريق الإدارة لمراجعته.</p></div>
+      <button class="profile-icon-button" type="button" data-profile-close="profileReportModal" aria-label="إغلاق"><span class="material-icons">close</span></button>
+    </header>
+    <label class="profile-form-label" for="profileReportReason">سبب البلاغ</label>
+    <select id="profileReportReason">
+      <option value="">اختر السبب</option>
+      <option value="spam">رسائل مزعجة أو احتيال</option>
+      <option value="impersonation">انتحال شخصية</option>
+      <option value="harassment">مضايقة أو تنمر</option>
+      <option value="inappropriate">محتوى غير مناسب</option>
+      <option value="hate">خطاب كراهية</option>
+      <option value="other">سبب آخر</option>
+    </select>
+    <label class="profile-form-label" for="profileReportDetails">تفاصيل إضافية (اختياري)</label>
+    <textarea id="profileReportDetails" rows="4" maxlength="1000" placeholder="اكتب تفاصيل تساعد فريق الإدارة على المراجعة…"></textarea>
+    <footer class="profile-modal-actions">
+      <button class="profile-secondary-button" type="button" data-profile-close="profileReportModal">إلغاء</button>
+      <button id="profileReportSubmit" class="profile-primary-button danger" type="button">إرسال البلاغ</button>
+    </footer>
+  </section>
+</div>
+
+<!-- QR code -->
+<div id="profileQrModal" class="profile-modal" hidden aria-hidden="true">
+  <button class="profile-modal-backdrop" type="button" data-profile-close="profileQrModal" aria-label="إغلاق"></button>
+  <section class="profile-modal-panel qr-panel" role="dialog" aria-modal="true" aria-labelledby="profileQrTitle">
+    <header class="profile-modal-head">
+      <div><small>SHARE PROFILE</small><h2 id="profileQrTitle">رمز QR لملفك</h2><p>امسح الرمز للوصول مباشرة إلى هذا الملف.</p></div>
+      <button class="profile-icon-button" type="button" data-profile-close="profileQrModal" aria-label="إغلاق"><span class="material-icons">close</span></button>
+    </header>
+    <img id="profileQrImage" class="profile-qr-image" alt="رمز QR لفتح الملف الشخصي">
+    <p id="profileQrUrl" class="profile-qr-url"></p>
+    <button id="profileQrCopy" class="profile-primary-button" type="button">نسخ رابط الملف</button>
+  </section>
+</div>
+<div id="profileToast" class="profile-toast" role="status" aria-live="polite"></div>
+
 <div id="bottomNav"></div>
 
 
@@ -591,7 +675,7 @@ alt="Avatar">
 ========================== -->
 
 
-<script type="module" src="profile.js?v=20261120-premium-access-fix"></script>
+<script type="module" src="profile.js?v=20261122-profile-root"></script>
 <script src="founder-crown.js?v=20261120-premium-owner"></script>
 
 <script src="theme.js"></script>
