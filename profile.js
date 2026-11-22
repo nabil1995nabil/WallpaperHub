@@ -631,6 +631,14 @@ const profileTargetUID = String(
 const isPublicProfile = Boolean(profileTargetUID);
 let publicProfileLoaded = false;
 
+// The original profile flow referenced this check without defining it.
+// Only a verified Supabase session can own a profile.
+function isOwnProfile(){
+    const viewerId=String(currentUser?.id||window.WallpaperHubCurrentUserId||"").trim();
+    if(!viewerId) return false;
+    return !isPublicProfile || viewerId===String(profileTargetUID||"").trim();
+}
+
 // Premium navigation: use a root-relative URL and preserve the viewed profile UID.
 const premiumProfileCard = document.querySelector("[data-premium-link]");
 
@@ -832,7 +840,7 @@ async function loadPublicProfile(uid){
             wallpaperCount:ownerWalls.length,
             downloadCount:displayedCount(profile.download_ids),
             viewCount:displayedCount(profile.view_ids),
-            likeCount:displayedCount(profile.favorite_ids)
+            likeCount:"—"
         };
         Object.entries(statValues).forEach(([id,value])=>{
             const el=document.getElementById(id);if(el)el.textContent=String(value);
