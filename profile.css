@@ -13,12 +13,14 @@
 }
 *{box-sizing:border-box}
 html{background:#fff;scroll-behavior:smooth}
+html.dark{background:#0b0f19}
 body.profile-page{
   margin:0;min-height:100vh;background:#fff;color:var(--profile-text);
   font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
   line-height:1.55;overflow-x:hidden;
   padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
 }
+body.profile-page.profile-overlay-open{overflow:hidden}
 body.profile-page.dark{
   --profile-bg:#0b0f19;--profile-surface:#131b2a;--profile-soft:#1a2638;
   --profile-text:#edf2fb;--profile-muted:#a1aec2;--profile-line:#29364b;
