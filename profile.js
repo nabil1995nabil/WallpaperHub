@@ -780,8 +780,11 @@ async function loadPublicProfile(uid){
             showBadges:true,showSocialLinks:true,showFollowStats:true,allowFollow:true,allowMessages:true,
             ...(profile.privacy&&typeof profile.privacy==="object"?profile.privacy:{})
         };
+        activePublicProfilePrivacy=privacy;
         const verified=await loadVerifiedStatus(targetUID,profile.is_verified);
         profile.is_verified=verified;
+        const verifiedBadgeEl=document.getElementById("verifiedBadge");
+        if(verifiedBadgeEl&&!privacy.showBadges)verifiedBadgeEl.hidden=true;
         const name=String(profile.full_name||profile.username||"مستخدم WallpaperHub").trim();
         const avatar=String(profile.avatar_url||profile.avatar||profile.photoURL||"").trim();
         const publicCover=String(profile.cover_url||profile.cover||"").trim();
@@ -818,10 +821,12 @@ async function loadPublicProfile(uid){
 
         const followButton=document.getElementById("followProfileBtn");
         if(followButton){
-            followButton.disabled=!privacy.allowFollow;
-            followButton.hidden=!privacy.allowFollow;
-            followButton.setAttribute("aria-disabled",String(!privacy.allowFollow));
-            followButton.title=privacy.allowFollow?"متابعة الحساب":"صاحب الحساب لا يستقبل متابعات حالياً";
+            followButton.hidden=false;
+            followButton.disabled=!privacy.allowFollow&&!followStatsState.is_following;
+            followButton.setAttribute("aria-disabled",String(followButton.disabled));
+            followButton.title=privacy.allowFollow?"متابعة الحساب":"صاحب الحساب لا يستقبل متابعات جديدة حالياً";
+            const label=followButton.querySelector(".follow-profile-label");
+            if(label)label.textContent=followStatsState.is_following?"إلغاء المتابعة":(privacy.allowFollow?"متابعة":"المتابعة مغلقة");
         }
         const messageButton=document.getElementById("messageProfileBtn");
         if(messageButton)messageButton.hidden=!privacy.allowMessages;
@@ -1823,6 +1828,18 @@ const messageProfileBtn = document.getElementById("messageProfileBtn");
 // ======================================
 let followStatsTarget = "";
 let followStatsState = { followers:0, following:0, is_following:false };
+let activePublicProfilePrivacy = {allowFollow:true};
+function syncPublicFollowControl(){
+    if(!followProfileBtn || !isPublicProfile || isOwnProfile()) return;
+    const alreadyFollowing=Boolean(followStatsState.is_following);
+    const allowed=activePublicProfilePrivacy.allowFollow!==false;
+    followProfileBtn.hidden=false;
+    followProfileBtn.disabled=!allowed&&!alreadyFollowing;
+    followProfileBtn.setAttribute("aria-disabled",String(followProfileBtn.disabled));
+    const label=followProfileBtn.querySelector(".follow-profile-label");
+    if(label) label.textContent=alreadyFollowing?"إلغاء المتابعة":(allowed?"متابعة":"المتابعة مغلقة");
+    followProfileBtn.title=alreadyFollowing?"إلغاء متابعة هذا الحساب":(allowed?"متابعة الحساب":"صاحب الحساب لا يستقبل متابعات حالياً");
+}
 let followStatsRow = null;
 
 // عرض هيكل الإحصائيات فور تحميل الصفحة، ثم تعبئته من السيرفر عند توفر الجلسة.
@@ -1920,9 +1937,11 @@ async function loadFollowStats(uid){
             is_following:Boolean(payload.is_following)
         };
         renderFollowStats();
+        syncPublicFollowControl();
     }catch(error){
         console.warn("FOLLOW STATS LOAD ERROR:",error.message);
         renderFollowStats();
+        syncPublicFollowControl();
     }
 }
 
@@ -1953,13 +1972,15 @@ if(followProfileBtn){
                 is_following:Boolean(payload.is_following)
             };
             renderFollowStats();
+            syncPublicFollowControl();
             window.dispatchEvent(new CustomEvent("wallpaperhub:follow-changed",{
                 detail:{userId:profileTargetUID,isFollowing:followStatsState.is_following,followers:followStatsState.followers}
             }));
         }catch(error){
             alert(error.message||"وقع خطأ أثناء المتابعة");
         }finally{
-            followProfileBtn.disabled=false;
+            syncPublicFollowControl();
+            if(!isPublicProfile || isOwnProfile()) followProfileBtn.disabled=false;
         }
     });
 }
