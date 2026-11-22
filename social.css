@@ -315,7 +315,7 @@ button{
   content-visibility:auto;
   contain-intrinsic-size:auto 560px;
   transform:translateZ(0);
-}
+overflow:hidden;}
 .posthead{
   gap:11px;
   padding:16px 18px 8px;
@@ -414,7 +414,7 @@ button{
   background:var(--social-surface-soft);
   color:var(--social-muted-strong);
   line-height:1.8;
-}
+font-size:12px;border-radius:12px;padding:7px 10px;}
 .comment b{
   margin-bottom:2px;
   color:var(--social-ink-strong);
@@ -426,7 +426,7 @@ button{
   background:var(--social-input);
   outline:none;
   color:var(--social-ink);
-}
+border-radius:20px;padding:9px 12px;min-width:0;flex:1;}
 .commentform input:focus{
   border-color:var(--social-blue-border);
   box-shadow:0 0 0 3px rgba(36,109,242,.1);
@@ -600,7 +600,7 @@ button{
   .mobile-nav{
     height:calc(66px + env(safe-area-inset-bottom));
     padding:5px 9px env(safe-area-inset-bottom);
-  }
+  display:flex;}
   .mobile-nav a{height:52px;border-radius:13px}
   .mobile-nav .material-icons-round{font-size:23px}
   .mobile-nav small{font-size:9px}
@@ -626,6 +626,19 @@ button{
     transition-duration:.01ms!important;
   }
 }
+
+/* Small shared feed elements retained in the consolidated system. */
+.soon{padding:5px 10px;border:1px solid var(--social-blue-border);border-radius:20px;background:var(--social-blue-soft);color:var(--social-blue);font-size:11px;font-weight:700}
+.green{color:#32a76b}.purple{color:#9360d7}.orange{color:#e7a42b}
+.commentlist{display:grid;gap:7px;margin-bottom:8px}
+.sidecard h3 .material-icons-round{vertical-align:middle;color:var(--social-blue)}
+.refresh .material-icons-round{font-size:20px}
+.thought:focus-visible,.thought:hover{border-color:var(--social-blue-border);box-shadow:0 0 0 3px var(--social-focus)}
+.headicon:hover{background:var(--social-hover);transform:translateY(-1px)}
+.story:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(24,45,76,.12)}
+.post:hover{box-shadow:0 10px 30px rgba(24,45,76,.12)}
+.mobile-nav a:active{transform:scale(.97)}
+
 /* Stories, composer sheets and immersive viewer */
 .story-status{align-self:center;padding:12px;color:var(--social-muted);font-size:12px;white-space:nowrap}
 .story-live{border:0;background:transparent;cursor:pointer}.story-live-photo{position:absolute;inset:0;overflow:hidden;background:#101521}
