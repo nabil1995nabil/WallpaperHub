@@ -15,9 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
   let audioUnlocked = false;
 
   const audio = $("#notification-audio");
-  const savedSound = localStorage.getItem("notificationSound") !== "off";
+  function readWallpaperSettings(){
+    try{return JSON.parse(localStorage.getItem("wallpaperSettings")||"{}");}
+    catch(_){return {};}
+  }
+  const initialWallpaperSettings=readWallpaperSettings();
+  const savedSound = typeof initialWallpaperSettings.notificationSound==="boolean"
+    ? initialWallpaperSettings.notificationSound
+    : localStorage.getItem("notificationSound") !== "off";
   const savedBrowser = localStorage.getItem("notificationBrowser") === "on";
-  const savedAuto = localStorage.getItem("notificationAutoRefresh") !== "off";
+  const savedAuto = typeof initialWallpaperSettings.autoUpdate==="boolean"
+    ? initialWallpaperSettings.autoUpdate
+    : localStorage.getItem("notificationAutoRefresh") !== "off";
 
   const settings = {
     sound: savedSound,
@@ -374,6 +383,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadAnnouncements() {
+    if(readWallpaperSettings().updatesNotify===false){
+      announcements=[];
+      render();
+      return;
+    }
     try {
       const r = await fetch("/api/announcements", {cache:"no-store"});
       if (!r.ok) throw new Error("ANNOUNCEMENTS_API");
@@ -387,6 +401,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadUserNotifications({checkNew=true}={}) {
+    if(readWallpaperSettings().notifications===false || readWallpaperSettings().notificationsEnabled===false){
+      notifications=[];
+      render();
+      setConnection(false,"مركز الإشعارات متوقف من الإعدادات");
+      return;
+    }
     try {
       const session = await getSession();
       currentUser = session?.user || null;
@@ -578,12 +598,18 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#sound-toggle").addEventListener("change",e=>{
     settings.sound=e.target.checked;
     localStorage.setItem("notificationSound",settings.sound?"on":"off");
+    const prefs=readWallpaperSettings();prefs.notificationSound=!!settings.sound;
+    localStorage.setItem("wallpaperSettings",JSON.stringify(prefs));
+    window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{detail:{settings:prefs,source:"local-change"}}));
     updateSettingUI();
     if(settings.sound) { unlockAudio(); showToast("🔊 تم تفعيل صوت الإشعار"); }
   });
   $("#sound-btn").addEventListener("click",()=>{
     settings.sound=!settings.sound;
     localStorage.setItem("notificationSound",settings.sound?"on":"off");
+    const prefs=readWallpaperSettings();prefs.notificationSound=!!settings.sound;
+    localStorage.setItem("wallpaperSettings",JSON.stringify(prefs));
+    window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{detail:{settings:prefs,source:"local-change"}}));
     updateSettingUI(); unlockAudio();
     showToast(settings.sound?"🔊 الصوت مفعل":"🔇 الصوت متوقف");
   });
@@ -591,11 +617,24 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#auto-refresh-toggle").addEventListener("change",e=>{
     settings.auto=e.target.checked;
     localStorage.setItem("notificationAutoRefresh",settings.auto?"on":"off");
+    const prefs=readWallpaperSettings();prefs.autoUpdate=!!settings.auto;
+    localStorage.setItem("wallpaperSettings",JSON.stringify(prefs));
+    window.dispatchEvent(new CustomEvent("wallpaperhub:settings-updated",{detail:{settings:prefs,source:"local-change"}}));
     setupRealtime();
     showToast(settings.auto?"تم تفعيل التحديث التلقائي":"تم إيقاف التحديث الاحتياطي");
   });
 
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") loadUserNotifications({checkNew:false});});
+
+  window.addEventListener("wallpaperhub:settings-loaded",()=>{
+    const prefs=readWallpaperSettings();
+    settings.sound=prefs.notificationSound!==false;
+    settings.auto=prefs.autoUpdate!==false;
+    updateSettingUI();
+    void loadAnnouncements();
+    void loadUserNotifications({checkNew:false});
+    setupRealtime();
+  });
 
   // Auth + initial load
   loadAnnouncements();
