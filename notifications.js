@@ -73,6 +73,7 @@
     }
 
     async function playNotificationSound() {
+        if(window.WallpaperHubSettings?.soundEnabled?.() === false) return;
         try {
             notificationSound.currentTime = 0;
             await notificationSound.play();
@@ -318,6 +319,12 @@
         isLoading = true;
         const settings = options || {};
         try {
+            if(window.WallpaperHubSettings?.notificationsEnabled?.() === false){
+                notifications=[];
+                initialized=true;
+                setListMessage("مركز الإشعارات متوقف من صفحة الإعدادات","empty-notification");
+                return;
+            }
             const nextNotifications = await fetchNotifications();
             const previousIds = new Set(notifications.map(function (item) {
                 return String(item.id);
@@ -360,6 +367,7 @@
 
     function schedulePolling() {
         if (pollingTimer) window.clearTimeout(pollingTimer);
+        if(window.WallpaperHubSettings?.notificationsEnabled?.() === false) return;
         pollingTimer = window.setTimeout(function () {
             if (!document.hidden) loadNotifications({ announceNew: true });
             else schedulePolling();
@@ -400,6 +408,16 @@
             }
         });
     }
+
+    window.addEventListener("wallpaperhub:settings-updated",function(){
+        if(window.WallpaperHubSettings?.notificationsEnabled?.() === false){
+            notifications=[];
+            setListMessage("مركز الإشعارات متوقف من صفحة الإعدادات","empty-notification");
+            if(pollingTimer)window.clearTimeout(pollingTimer);
+        }else{
+            void loadNotifications({announceNew:false});
+        }
+    });
 
     document.addEventListener("visibilitychange", function () {
         if (!document.hidden) loadNotifications({ announceNew: false });
