@@ -230,6 +230,9 @@ async function loadWallpapers() {
 window.addEventListener("wallpaperhub:refresh-content", () => {
     if(document.visibilityState === "visible") void loadWallpapers();
 });
+window.addEventListener("wallpaperhub:settings-loaded", () => {
+    if(document.visibilityState === "visible") void loadWallpapers();
+});
 
 // =======================================
 // إنشاء بطاقة الخلفية// =======================================
