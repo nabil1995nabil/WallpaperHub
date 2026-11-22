@@ -281,7 +281,7 @@ async function initSupabase(){
     updateComposerState();
     loadCommunityModeration({silent:true}).catch(()=>{});
     loadMembers().then(updateProfileCard).catch(()=>{});
-    if(currentUser) loadPrivateConversations().catch(()=>{});
+    if(currentUser) loadPrivateConversations().then(()=>openPrivateConversationFromUrl()).catch(()=>{});
     if(currentUser) processCommunityRoomInviteFromUrl().catch(()=>{});
     else { clearRoomMessagesRealtime(); activeCommunityRoom=null; activeCommunityRoomRole='member'; }
   });
@@ -289,6 +289,10 @@ async function initSupabase(){
   await loadCommunityModeration({silent:true});
   await markCommunitySectionRead();
   subscribeToMessages();
+  if(currentUser){
+    await loadPrivateConversations();
+    await openPrivateConversationFromUrl();
+  }
 }
 
 async function authHeaders(){
@@ -1960,6 +1964,29 @@ async function loadPrivateConversations(){
     renderPrivateConversations();
   }catch(error){
     showToast(error.message);
+  }
+}
+
+
+let openedProfilePrivateConversationId="";
+async function openPrivateConversationFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const conversationId=String(params.get("privateConversation")||"").trim();
+  if(!conversationId||!currentUser||openedProfilePrivateConversationId===conversationId)return false;
+  openedProfilePrivateConversationId=conversationId;
+  try{
+    const result=await fetchJson('/api/community/private/conversations?limit=100',{headers:await authHeaders()});
+    const conversation=(result.conversations||[]).find(item=>String(item.id)===conversationId);
+    if(!conversation)throw new Error("تعذر العثور على المحادثة المطلوبة");
+    const url=new URL(window.location.href);
+    url.searchParams.delete("privateConversation");
+    window.history.replaceState({}, "", url.pathname+url.search+url.hash);
+    await openPrivateChat(conversation.otherUser,conversation.id);
+    return true;
+  }catch(error){
+    openedProfilePrivateConversationId="";
+    showToast(error.message||"تعذر فتح المحادثة");
+    return false;
   }
 }
 
