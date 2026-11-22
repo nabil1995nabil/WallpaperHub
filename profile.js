@@ -393,6 +393,14 @@ function fillEditSocialLinks(value){
     });
 }
 
+function profileKeepsLocalActivity(){
+    try{
+        const prefs=JSON.parse(localStorage.getItem("wallpaperSettings")||"{}");
+        if(typeof prefs.localActivity==="boolean") return prefs.localActivity;
+    }catch(_error){}
+    return window.WallpaperHubSettings?.keepLocalActivity?.() !== false;
+}
+
 function getLocalSyncData(){
     const read = key => {
         try { return JSON.parse(localStorage.getItem(key) || "[]"); }
@@ -415,6 +423,11 @@ function getLocalSyncData(){
 
 function applyCloudUserData(data){
     if(!data) return;
+    window.WallpaperHubCloudActivity={
+        favorites:normalizeActionList(data.favorite_ids),
+        downloads:normalizeActionList(data.download_ids),
+        views:normalizeActionList(data.view_ids)
+    };
 
     const setIfPresent = (key, value) => {
         if(value !== null && value !== undefined && String(value) !== ""){
@@ -440,7 +453,9 @@ function applyCloudUserData(data){
         ["views", data.view_ids]
     ].forEach(([key, value]) => {
         if(Array.isArray(value)){
-            localStorage.setItem(key, JSON.stringify(normalizeActionList(value)));
+            if(key==="favorites" || profileKeepsLocalActivity()){
+                localStorage.setItem(key, JSON.stringify(normalizeActionList(value)));
+            }
         }
     });
 }
@@ -2296,9 +2311,14 @@ document.getElementById(
 function getList(key){
     try{
         const raw = JSON.parse(localStorage.getItem(key) || "[]");
-        if(!Array.isArray(raw)) return [];
+        const localList=Array.isArray(raw)?raw:[];
+        const cloudKey=key==="favorites"?"favorites":key==="downloads"?"downloads":key==="views"?"views":null;
+        const cloudList=cloudKey&&window.WallpaperHubCloudActivity?.[cloudKey]
+            ? window.WallpaperHubCloudActivity[cloudKey] : [];
+        const source=(["downloads","views"].includes(key)&&!profileKeepsLocalActivity())
+            ? [...cloudList] : [...localList,...cloudList];
 
-        return raw
+        return normalizeActionList(source)
             .map(item => {
                 if(item && typeof item === "object"){
                     return item.id ?? item.wallpaperId ?? item.wallpaper_id ?? item.wallId ?? null;
@@ -2430,7 +2450,9 @@ async function getActualDownloadIds(){
         const finalIds = normalizeActionList([...cloudIds, ...combinedLocal]);
 
         // تحديث التخزين المحلي بالنتيجة المدمجة
-        localStorage.setItem("downloads", JSON.stringify(finalIds));
+        if(profileKeepsLocalActivity()){
+            localStorage.setItem("downloads", JSON.stringify(finalIds));
+        }
 
         // مزامنة السحابة إذا كان هناك نقص في المعرفات
         if(finalIds.length !== cloudIds.length){
@@ -2700,8 +2722,7 @@ window.syncUserStats = function(type, id) {
     const key = allowed[actionType] || String(type);
     const list = getList(key);
     const value = String(id);
-    const keepLocal = !["downloads","views"].includes(key) ||
-        window.WallpaperHubSettings?.keepLocalActivity?.() !== false;
+    const keepLocal = !["downloads","views"].includes(key) || profileKeepsLocalActivity();
 
     if(keepLocal && !list.includes(value)){
         list.push(value);
