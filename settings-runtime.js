@@ -175,7 +175,7 @@
   if(!original||preferences.highQuality!==false)return original;
   try{
    const url=new URL(original,location.origin);
-   if(url.hostname!=="ik.imagekit.io")return original;
+   if(url.hostname!=="ik.imagekit.io"||url.searchParams.has("ik-s")||url.searchParams.has("ik-t")||url.searchParams.has("tr"))return original;
    const parts=url.pathname.split("/").filter(Boolean);
    if(parts.length<2||parts.some(part=>/^tr:/i.test(part)))return original;
    parts.splice(1,0,"tr:q-70");
