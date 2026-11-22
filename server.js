@@ -527,7 +527,7 @@ function injectWallpaperHubLanguageRuntime(source){
             }
         }
 
-        const globalThemeScript = '<script defer src="/theme.js?v=20261121-unified-theme" data-wh-global-theme-script="1"></script>';
+        const globalThemeScript = '<script defer src="/theme.js?v=20261122-page-palettes" data-wh-global-theme-script="1"></script>';
         const headEnd = html.toLowerCase().indexOf("</head>");
         if(headEnd >= 0) html = html.slice(0, headEnd) + globalThemeScript + "\n" + html.slice(headEnd);
         else html = globalThemeScript + "\n" + html;

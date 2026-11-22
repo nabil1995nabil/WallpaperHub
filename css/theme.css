@@ -743,8 +743,6 @@ body.wh-page-publish-telegram.dark .upload-controls .upload-control-btn {
 body.wh-page-studio.dark .studio-topbar,
 body.wh-page-studio.dark .topbar-status,
 body.wh-page-studio.dark .live-pill,
-body.wh-page-studio.dark .section-heading,
-body.wh-page-studio.dark .panel-title,
 body.wh-page-studio.dark .editor-panel,
 body.wh-page-studio.dark .draft-card,
 body.wh-page-studio.dark .creation-card,
@@ -1059,4 +1057,134 @@ body.wh-page-admin.dark :where(.muted,.subtle,.helper-text,.description,.meta) {
 }
 body.wh-page-admin.dark :where(h1,h2,h3,h4,.page-title,.section-title) {
     color:#c2bdff;
+}
+
+
+/* ---------- Final refinements for pages with fixed light-mode surfaces ---------- */
+body.wh-page-points.dark {
+    background:
+        radial-gradient(circle at 10% 0,rgba(120,135,255,.12),transparent 30%),
+        var(--points-bg) !important;
+}
+body.wh-page-points-earn.dark {
+    background:
+        radial-gradient(ellipse at 12% 8%,rgba(104,119,230,.14),transparent 30%),
+        radial-gradient(ellipse at 90% 40%,rgba(145,103,221,.10),transparent 30%),
+        #0b1220 !important;
+}
+body.wh-page-points-earn.dark .earning-card,
+body.wh-page-points-earn.dark .reward-card,
+body.wh-page-points-earn.dark .points-method,
+body.wh-page-points-earn.dark .points-banner,
+body.wh-page-points-earn.dark .reward-item {
+    color:var(--wh-text);
+    background:#151f30;
+    border-color:var(--wh-border);
+}
+body.wh-page-points-earn.dark :where(.earning-card p,.reward-card p,.points-method p,.reward-item small) {
+    color:var(--wh-muted);
+}
+body.wh-page-premium-user.dark {
+    background:
+        radial-gradient(circle at 8% 0,rgba(204,165,87,.12),transparent 32%),
+        #0d1422 !important;
+}
+body.wh-page-premium-user.dark .premium-page,
+body.wh-page-premium-user.dark .premium-card,
+body.wh-page-premium-user.dark .premium-panel,
+body.wh-page-premium-user.dark .feature-card,
+body.wh-page-premium-user.dark .premium-preview {
+    color:var(--premium-ink);
+    background:var(--premium-card);
+    border-color:var(--premium-line);
+}
+
+/* Light mode page title accents — gentle hues with strong text contrast. */
+body.wh-page-community-creation:not(.dark) h1,
+body.wh-page-community-creation:not(.dark) h2,
+body.wh-page-community-appeal:not(.dark) h1,
+body.wh-page-community-appeal:not(.dark) h2 {
+    color:#645bb8;
+}
+body.wh-page-publish:not(.dark) .intro h1,
+body.wh-page-publish-telegram:not(.dark) .intro h1 {
+    color:#5363b8;
+}
+body.wh-page-studio:not(.dark) .section-heading h2,
+body.wh-page-studio:not(.dark) .panel-title b {
+    color:#625bb7;
+}
+body.wh-page-categories:not(.dark) .header h1,
+body.wh-page-categories:not(.dark) .section-heading h2 {
+    color:#5269b7;
+}
+body.wh-page-all-wallpapers:not(.dark) .header-info h1,
+body.wh-page-all-wallpapers:not(.dark) .categories-sheet-head h3 {
+    color:#5964bb;
+}
+
+/* About, support, settings and profile titles gain restrained color identity. */
+body.wh-page-about .page-title,
+body.wh-page-about h1,
+body.wh-page-support h1,
+body.wh-page-privacy h1,
+body.wh-page-settings .header-title h1,
+body.wh-page-profile .profile-name,
+body.wh-page-favorites h1 {
+    color:#5966b7;
+    text-shadow:0 1px 16px rgba(94,111,202,.10);
+}
+body.wh-page-about.dark .page-title,
+body.wh-page-about.dark h1,
+body.wh-page-support.dark h1,
+body.wh-page-privacy.dark h1,
+body.wh-page-settings.dark .header-title h1,
+body.wh-page-profile.dark .profile-name,
+body.wh-page-favorites.dark h1 {
+    color:#c3bdff;
+    text-shadow:0 1px 18px rgba(120,108,255,.16);
+}
+
+/* Admin tools use the same day/night text palette without repainting branded controls. */
+body.wh-page-admin.dark {
+    --ink:var(--admin-text);
+    --muted:var(--admin-muted);
+    --line:var(--admin-line);
+    --surface:var(--admin-panel);
+    --surface-soft:#1d293c;
+    --bg:var(--admin-bg);
+}
+body.wh-page-admin.dark :where(.admin-header,.admin-topbar,.admin-toolbar,.admin-filter,
+    .admin-table-wrap,.admin-form-card,.admin-stat-card,.admin-user-card,.admin-review-card,
+    .admin-report-card,.admin-content-card,.admin-modal,.admin-dialog,.admin-main-card,
+    .admin-panel,.table-container,.users-container,.review-item,.report-item,.user-row,
+    .admin-search,.admin-select,.admin-input) {
+    color:var(--admin-text);
+    background:#151f30;
+    border-color:var(--admin-line);
+}
+body.wh-page-admin.dark :where(.admin-header h1,.admin-header h2,.admin-content h1,
+    .admin-content h2,.admin-content h3,.admin-page-title,.section-title) {
+    color:#c5c0ff;
+}
+body.wh-page-admin.dark :where(.admin-muted,.admin-description,.admin-meta,.admin-help,
+    .admin-form-help,.admin-subtitle,.admin-stat-label) {
+    color:var(--admin-muted);
+}
+body.wh-page-admin.dark :where(input:not([type=checkbox]):not([type=radio]),textarea,select) {
+    color:var(--admin-text);
+    background:#101a29;
+    border-color:#34445a;
+}
+
+/* Keep the visual message hierarchy readable in every page: supporting copy is softer,
+   while links and badges keep their own functional/accent colors. */
+body.dark :where(.time,.date,.timestamp,.meta-text,.subtext,.supporting-copy,.field-hint) {
+    color:var(--wh-muted);
+}
+body.dark :where(.section-subtitle,.page-subtitle,.panel-subtitle,.card-subtitle) {
+    color:var(--wh-muted);
+}
+body.dark :where(.title-accent,.heading-accent) {
+    color:#c4bdff;
 }
