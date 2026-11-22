@@ -34,3 +34,5 @@ async function syncPushToggle(){
 void syncPushToggle();
 
 window.addEventListener("wallpaperhub:push-toggle",async event=>{try{if(event.detail?.enabled)await enablePush();else await disablePush()}catch(error){saveToggle(false);alert(error?.message||"تعذر تغيير إعداد إشعارات الهاتف.")}});
+
+window.WallpaperHubPush={enable:enablePush,disable:disablePush,sync:syncPushToggle};
