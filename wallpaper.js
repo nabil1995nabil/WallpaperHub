@@ -364,7 +364,12 @@ async function syncUserActionToSupabase(type, id){
         };
 
         merged[key] = unique([...(merged[key] || []), String(id)]);
-        localStorage.setItem(key === "favorite_ids" ? "favorites" : key === "download_ids" ? "downloads" : "views", JSON.stringify(merged[key]));
+        if(key === "favorite_ids" || window.WallpaperHubSettings?.keepLocalActivity?.() !== false){
+            localStorage.setItem(
+                key === "favorite_ids" ? "favorites" : key === "download_ids" ? "downloads" : "views",
+                JSON.stringify(merged[key])
+            );
+        }
 
         const { error } = await supabase
             .from("user_profile_sync")
