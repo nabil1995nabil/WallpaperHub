@@ -787,6 +787,8 @@ async function loadPublicProfile(uid){
         if(verifiedBadgeEl)verifiedBadgeEl.hidden=!privacy.showBadges||!profile.is_verified;
         const avatarCrownEl=document.querySelector(".profile-avatar-crown");
         if(avatarCrownEl)avatarCrownEl.hidden=!privacy.showBadges;
+
+        if(avatarCrownEl)avatarCrownEl.hidden=!privacy.showBadges;
         const name=String(profile.full_name||profile.username||"مستخدم WallpaperHub").trim();
         const avatar=String(profile.avatar_url||profile.avatar||profile.photoURL||"").trim();
         const publicCover=String(profile.cover_url||profile.cover||"").trim();
@@ -1838,9 +1840,12 @@ function syncPublicFollowControl(){
     followProfileBtn.hidden=false;
     followProfileBtn.disabled=!allowed&&!alreadyFollowing;
     followProfileBtn.setAttribute("aria-disabled",String(followProfileBtn.disabled));
-    const label=followProfileBtn.querySelector(".follow-profile-label");
-    if(label) label.textContent=alreadyFollowing?"إلغاء المتابعة":(allowed?"متابعة":"المتابعة مغلقة");
-    followProfileBtn.title=alreadyFollowing?"إلغاء متابعة هذا الحساب":(allowed?"متابعة الحساب":"صاحب الحساب لا يستقبل متابعات حالياً");
+    followProfileBtn.innerHTML=alreadyFollowing
+        ? '<span class="material-icons">how_to_reg</span><span>إلغاء المتابعة</span>'
+        : allowed
+            ? '<span class="material-icons">person_add</span><span>متابعة</span>'
+            : '<span class="material-icons">lock</span><span>المتابعة مغلقة</span>';
+    followProfileBtn.title=alreadyFollowing?"إلغاء متابعة هذا الحساب":(allowed?"متابعة الحساب":"صاحب الحساب لا يستقبل متابعات جديدة حالياً");
 }
 let followStatsRow = null;
 
@@ -1904,7 +1909,7 @@ function renderFollowStats(){
     if(followingCount) followingCount.textContent=Number(followStatsState.following||0).toLocaleString("en-US");
     if(followersLabel) followersLabel.textContent=own ? "يتابعونك" : "يتابعونه";
     if(followingLabel) followingLabel.textContent=own ? "تتابعهم" : "يتابعهم";
-    row.hidden=false;
+    row.hidden=!own && activePublicProfilePrivacy.showFollowStats===false;
 
     if(followProfileBtn){
         followProfileBtn.classList.toggle("is-following",Boolean(followStatsState.is_following));
@@ -1915,6 +1920,7 @@ function renderFollowStats(){
         followProfileBtn.disabled=own;
         if(own) followProfileBtn.style.display="none";
         else followProfileBtn.style.display="";
+        if(!own) syncPublicFollowControl();
     }
 }
 
