@@ -1304,3 +1304,23 @@ body.wh-page-photo-editor.dark .inline-title,
 body.wh-page-photo-editor.dark .tool-title {
     color:#c7c0ff;
 }
+
+
+/* Premium profile uses a restrained champagne accent on its real title elements. */
+body.wh-page-premium-user .hero-copy h1,
+body.wh-page-premium-user .section-heading h2,
+body.wh-page-premium-user .premium-access-gate h1,
+body.wh-page-premium-user .bottom-cta-copy h2 {
+    color:#896b35;
+    text-shadow:0 1px 16px rgba(195,158,81,.10);
+}
+body.wh-page-premium-user.dark .hero-copy h1,
+body.wh-page-premium-user.dark .section-heading h2,
+body.wh-page-premium-user.dark .premium-access-gate h1,
+body.wh-page-premium-user.dark .bottom-cta-copy h2 {
+    color:#f0d69f;
+    text-shadow:0 1px 18px rgba(224,185,103,.15);
+}
+body.wh-page-premium-user.dark .premium-access-gate h1 {
+    color:#f0d69f;
+}
