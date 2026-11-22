@@ -153,6 +153,38 @@ async function getAuthenticatedUser(req){
     return data.user;
 }
 
+// Per-user settings are keyed only by the verified Supabase UID.
+const WH_USER_SETTINGS_KEYS = new Set([
+ "darkMode","animations","videos","highQuality","fullscreen","autoUpdate","wifiOnly",
+ "notifications","notificationsEnabled","ratingsNotify","updatesNotify",
+ "notificationSound","localActivity","systemUpdate","cardStyle"
+]);
+function cleanUserSettingsPreferences(value){
+ const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+ const clean={};
+ for(const key of WH_USER_SETTINGS_KEYS){
+  if(key==="cardStyle"){if(["classic","glass","premium"].includes(String(source[key]||"")))clean[key]=String(source[key]);}
+  else if(typeof source[key]==="boolean")clean[key]=source[key];
+ }
+ return clean;
+}
+async function getUserSettingsPreferences(userId){
+ const uid=String(userId||"").trim();if(!uid)return {};
+ try{const {data,error}=await supabase.from("user_settings").select("preferences").eq("user_id",uid).maybeSingle();if(error)throw error;return cleanUserSettingsPreferences(data?.preferences||{});}
+ catch(error){console.log("USER SETTINGS READ ERROR:",error?.message||error);return {};}
+}
+function notificationPreferenceAllows(preferences,type){
+ const prefs=preferences&&typeof preferences==="object"?preferences:{};
+ if(prefs.notifications===false||prefs.notificationsEnabled===false)return false;
+ const normalized=String(type||"").toLowerCase();
+ const reactions=new Set(["like","new_like","comment","new_comment","comment_like","rating","wallpaper_rating","social_post_like","social_post_comment","social_like","social_comment"]);
+ const announcements=new Set(["announcement","admin_announcement","site_update","wallpaperhub_announcement"]);
+ if(reactions.has(normalized)&&prefs.ratingsNotify===false)return false;
+ if(announcements.has(normalized)&&prefs.updatesNotify===false)return false;
+ return true;
+}
+
+
 // ======================================
 // Admin authorization
 // تصنيف الخلفيات لا يتغير إلا بواسطة الأدمن.
@@ -581,6 +613,9 @@ function cleanPushText(value,max=180){
 async function sendPushToUser(userId,notification){
     if(!pushIsConfigured()||!userId)return {sent:0};
     try{
+        const pushType=String(notification?.type||"");
+        const preferences=notification?.force===true?{}:(notification?.preferences||await getUserSettingsPreferences(userId));
+        if(notification?.force!==true&&!notificationPreferenceAllows(preferences,pushType))return {sent:0,skipped:true};
         const {data:subscriptions,error}=await supabase.from("push_subscriptions").select("id,subscription").eq("user_id",String(userId));
         if(error)throw error;
         let sent=0;
@@ -602,33 +637,33 @@ async function sendPushToUser(userId,notification){
     }catch(error){console.log("WEB PUSH USER ERROR:",error?.message||error);return {sent:0};}
 }
 async function sendPushToAll(notification,excludeUserId=""){
-    if(!pushIsConfigured())return {sent:0};
-    try{
-        const {data:subscriptions,error}=await supabase.from("push_subscriptions").select("user_id,subscription,id");
-        if(error)throw error;
-        let sent=0;
-        for(const row of subscriptions||[]){
-            if(excludeUserId&&String(row.user_id)===String(excludeUserId))continue;
-            try{
-                await webPush.sendNotification(row.subscription,JSON.stringify({
-                    title:cleanPushText(notification?.title||"WallpaperHub",80),
-                    body:cleanPushText(notification?.body||"لديك إشعار جديد",180),
-                    icon:"/assets/logo/wallpaperhub-w-logo.svg",badge:"/assets/logo/wallpaperhub-w-logo.svg",
-                    url:String(notification?.url||"/notifications.html"),tag:String(notification?.tag||"wallpaperhub-notification")
-                }));
-                sent++;
-            }catch(error){
-                if(error?.statusCode===404||error?.statusCode===410) await supabase.from("push_subscriptions").delete().eq("id",row.id);
-                else console.log("WEB PUSH SEND ERROR:",error?.message||error);
-            }
-        }
-        return {sent};
-    }catch(error){console.log("WEB PUSH BROADCAST ERROR:",error?.message||error);return {sent:0};}
+ if(!pushIsConfigured())return {sent:0};
+ try{
+  const {data:subscriptions,error}=await supabase.from("push_subscriptions").select("user_id,subscription,id");if(error)throw error;
+  const rows=(subscriptions||[]).filter(row=>!excludeUserId||String(row.user_id)!==String(excludeUserId));
+  if(!rows.length)return {sent:0};
+  const ids=[...new Set(rows.map(row=>String(row.user_id)).filter(Boolean))];
+  const {data:settingsRows,error:settingsError}=await supabase.from("user_settings").select("user_id,preferences").in("user_id",ids);if(settingsError)throw settingsError;
+  const prefs=new Map((settingsRows||[]).map(row=>[String(row.user_id),cleanUserSettingsPreferences(row.preferences||{})]));
+  let sent=0,skipped=0;
+  for(const row of rows){
+   if(!notificationPreferenceAllows(prefs.get(String(row.user_id))||{},String(notification?.type||"announcement"))){skipped++;continue;}
+   try{
+    await webPush.sendNotification(row.subscription,JSON.stringify({
+     title:cleanPushText(notification?.title||"WallpaperHub",80),body:cleanPushText(notification?.body||"لديك إشعار جديد",180),
+     icon:"/assets/logo/wallpaperhub-w-logo.svg",badge:"/assets/logo/wallpaperhub-w-logo.svg",
+     url:String(notification?.url||"/notifications.html"),tag:String(notification?.tag||"wallpaperhub-notification")
+    }));sent++;
+   }catch(error){
+    if(error?.statusCode===404||error?.statusCode===410)await supabase.from("push_subscriptions").delete().eq("id",row.id);
+    else console.log("WEB PUSH SEND ERROR:",error?.message||error);
+   }
+  }
+  return {sent,skipped};
+ }catch(error){console.log("WEB PUSH BROADCAST ERROR:",error?.message||error);return {sent:0};}
 }
 
 
-
-// ======================================
 // Middleware
 // يجب تسجيل parser قبل جميع API routes حتى يصل req.body
 // إلى PATCH/POST الخاصة بإدارة المستخدمين.
@@ -643,6 +678,41 @@ app.use(express.json({
 app.use(express.urlencoded({
     extended:true
 }));
+
+// Account settings API: verified account only; never accept a client-supplied user_id.
+app.get("/api/user/settings",async(req,res)=>{
+ try{
+  const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولاً."});
+  const {data,error}=await supabase.from("user_settings").select("preferences,updated_at").eq("user_id",String(user.id)).maybeSingle();
+  if(error)throw error;
+  return res.json({success:true,exists:Boolean(data),preferences:cleanUserSettingsPreferences(data?.preferences||{}),updatedAt:data?.updated_at||null});
+ }catch(error){console.log("GET USER SETTINGS ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تحميل إعدادات الحساب."});}
+});
+app.put("/api/user/settings",async(req,res)=>{
+ try{
+  const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولاً."});
+  const submitted=cleanUserSettingsPreferences(req.body?.preferences||{});
+  const {data:existing,error:readError}=await supabase.from("user_settings").select("preferences").eq("user_id",String(user.id)).maybeSingle();
+  if(readError)throw readError;
+  const merged={...cleanUserSettingsPreferences(existing?.preferences||{}),...submitted};
+  const {data,error}=await supabase.from("user_settings").upsert({user_id:String(user.id),preferences:merged,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select("preferences,updated_at").single();
+  if(error)throw error;
+  return res.json({success:true,preferences:cleanUserSettingsPreferences(data.preferences),updatedAt:data.updated_at});
+ }catch(error){console.log("SAVE USER SETTINGS ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر حفظ إعدادات الحساب."});}
+});
+app.get("/api/app-version",(req,res)=>{
+ res.set("Cache-Control","no-store");
+ return res.json({success:true,version:String(process.env.VERCEL_GIT_COMMIT_SHA||process.env.VERCEL_DEPLOYMENT_ID||"1.0"),message:String(process.env.VERCEL_GIT_COMMIT_MESSAGE||"").slice(0,160)});
+});
+app.get("/api/user/activity-backup",async(req,res)=>{
+ try{
+  const user=await getAuthenticatedUser(req);if(!user)return res.status(401).json({success:false,message:"سجّل الدخول أولاً."});
+  const {data,error}=await supabase.from("user_profile_sync").select("favorite_ids,download_ids,view_ids").eq("user_id",String(user.id)).maybeSingle();
+  if(error)throw error;
+  return res.json({success:true,favorites:Array.isArray(data?.favorite_ids)?data.favorite_ids:[],downloads:Array.isArray(data?.download_ids)?data.download_ids:[],views:Array.isArray(data?.view_ids)?data.view_ids:[]});
+ }catch(error){console.log("ACTIVITY BACKUP ERROR:",error?.message||error);return res.status(500).json({success:false,message:"تعذر تجهيز النسخة الاحتياطية السحابية."});}
+});
+
 
 // WallpaperHub public read-only MCP knowledge server for ChatGPT.
 registerWallpaperHubMcp(app);
@@ -1009,6 +1079,7 @@ app.post("/api/push/subscribe",async(req,res)=>{
         const {error}=await supabase.from("push_subscriptions").upsert({user_id:String(user.id),endpoint:String(subscription.endpoint),subscription},{onConflict:"endpoint"});
         if(error)throw error;
         const testDelivery = await sendPushToUser(user.id,{
+            force:true,type:"push_test",
             title:"تم تفعيل إشعارات WallpaperHub",
             body:"سيصلك إشعار عندما تنشر الحسابات التي تتابعها خلفيات جديدة.",
             url:"/settings.html",
@@ -4296,6 +4367,7 @@ async function notifyUsersAboutNewWallpaper({
             const pushBody = message;
             const deliveries = await Promise.allSettled(recipients.map(recipientUID =>
                 sendPushToUser(recipientUID, {
+                    type:"new_wallpaper",
                     title: "خلفية جديدة على WallpaperHub",
                     body: pushBody,
                     url: `/wallpaper.html?id=${encodeURIComponent(targetWallpaperId)}`,
@@ -4331,6 +4403,8 @@ async function createNotification({
     message = ""
 }){
     if(!recipientUID) return null;
+    const recipientPreferences=await getUserSettingsPreferences(recipientUID);
+    if(!notificationPreferenceAllows(recipientPreferences,type)) return null;
 
     const payload = {
         id: Date.now(),
@@ -4354,6 +4428,8 @@ async function createNotification({
     const saved = notificationFromDb(data);
     const pushTitles = {new_follower:"متابع جديد",community_message_reply:"رد جديد في المجتمع",community_mention:"تمت الإشارة إليك",account_verified:"تم توثيق حسابك",account_unverified:"تحديث الحساب",new_wallpaper:"خلفية جديدة",comment:"تعليق جديد",like:"إعجاب جديد"};
     sendPushToUser(recipientUID,{
+        type:String(type||""),
+        preferences:recipientPreferences,
         title:pushTitles[String(type||"")]||"إشعار جديد في WallpaperHub",
         body:message||"لديك إشعار جديد",
         url:type==="new_wallpaper"&&wallpaperId?`/wallpaper.html?id=${encodeURIComponent(wallpaperId)}`:"/notifications.html",
@@ -9044,6 +9120,7 @@ throw error;
 }
 
 sendPushToAll({
+    type:"announcement",
     title:cleanPushText(data?.title || "إعلان جديد من WallpaperHub",80),
     body:cleanPushText(data?.content || "تم نشر إعلان جديد",180),
     url:"/notifications.html",tag:`wh-announcement-${data?.id || Date.now()}`
