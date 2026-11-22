@@ -568,8 +568,8 @@ function injectWallpaperHubLanguageRuntime(source){
     // One shared controller makes settings effective on every site page.
     if(!html.includes("data-wh-settings-runtime")){
         const settingsRuntimeTag='<script defer src="/settings-runtime.js?v=20261122-functional-v1" data-wh-settings-runtime="1"></script>';
-        if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,settingsRuntimeTag+"\\n</body>");
-        else html+="\\n"+settingsRuntimeTag;
+        if(/<\/body\s*>/i.test(html)) html=html.replace(/<\/body\s*>/i,settingsRuntimeTag+"\n</body>");
+        else html+="\n"+settingsRuntimeTag;
     }
 
     return html;
