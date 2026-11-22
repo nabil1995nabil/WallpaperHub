@@ -23,7 +23,7 @@ let toastTimer=null;
 
 function getImageUrl(path){
  if(!path)return "";
- if(/^https?:\/\//i.test(path))return path;
+ if(/^https?:\/\//i.test(path))return window.WallpaperHubSettings?.optimizeImageUrl(path)||path;
  return "/"+String(path).replace(/^\/+/,"");
 }
 
