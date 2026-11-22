@@ -177,7 +177,7 @@ function notificationPreferenceAllows(preferences,type){
  const prefs=preferences&&typeof preferences==="object"?preferences:{};
  if(prefs.notifications===false||prefs.notificationsEnabled===false)return false;
  const normalized=String(type||"").toLowerCase();
- const reactions=new Set(["like","new_like","comment","new_comment","comment_like","rating","wallpaper_rating","social_post_like","social_post_comment","social_like","social_comment"]);
+ const reactions=new Set(["like","new_like","wallpaper_like","comment","new_comment","wallpaper_comment","comment_reply","comment_like","rating","wallpaper_rating","social_post_like","social_post_comment","social_like","social_comment"]);
  const announcements=new Set(["announcement","admin_announcement","site_update","wallpaperhub_announcement"]);
  if(reactions.has(normalized)&&prefs.ratingsNotify===false)return false;
  if(announcements.has(normalized)&&prefs.updatesNotify===false)return false;
