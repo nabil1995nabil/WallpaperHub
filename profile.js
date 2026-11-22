@@ -415,8 +415,14 @@ function getLocalSyncData(){
         bio: localStorage.getItem("profileBio") || "",
         join_date: localStorage.getItem("joinDate") || "",
         favorite_ids: normalizeActionList(read("favorites")),
-        download_ids: normalizeActionList(read("downloads")),
-        view_ids: normalizeActionList(read("views")),
+        download_ids: normalizeActionList([
+            ...read("downloads"),
+            ...(!profileKeepsLocalActivity() ? (window.WallpaperHubCloudActivity?.downloads || []) : [])
+        ]),
+        view_ids: normalizeActionList([
+            ...read("views"),
+            ...(!profileKeepsLocalActivity() ? (window.WallpaperHubCloudActivity?.views || []) : [])
+        ]),
         social_links: getLocalSocialLinks()
     };
 }
@@ -2448,6 +2454,8 @@ async function getActualDownloadIds(){
 
         const cloudIds = normalizeActionList(cloud?.download_ids);
         const finalIds = normalizeActionList([...cloudIds, ...combinedLocal]);
+        window.WallpaperHubCloudActivity=window.WallpaperHubCloudActivity||{favorites:[],downloads:[],views:[]};
+        window.WallpaperHubCloudActivity.downloads=finalIds;
 
         // تحديث التخزين المحلي بالنتيجة المدمجة
         if(profileKeepsLocalActivity()){
