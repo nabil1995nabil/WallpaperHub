@@ -60,7 +60,7 @@ a{color:inherit;text-decoration:none}
 .stage-hint{color:#77839a;font-size:10px}
 .media-area{display:flex;flex:1;min-height:300px}
 .stage{position:relative;display:flex;flex:1;align-items:center;justify-content:center;min-width:0;min-height:320px;max-height:69dvh;overflow:auto;border:1px solid rgba(204,218,245,.09);border-radius:17px;background-color:#101521;background-image:linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.018) 75%),linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.018) 75%);background-position:0 0,12px 12px;background-size:24px 24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);overscroll-behavior:contain;contain:layout paint}
-.stage canvas{display:block;max-width:calc(100% - 34px);max-height:calc(100% - 34px);object-fit:contain;touch-action:none;user-select:none;-webkit-user-select:none;will-change:contents}
+.stage canvas{display:block;max-width:none;max-height:none;object-fit:contain;touch-action:none;user-select:none;-webkit-user-select:none;will-change:contents}
 .stage-watermark{position:absolute;bottom:12px;left:14px;color:rgba(164,177,203,.22);font-size:8px;font-weight:900;letter-spacing:1.7px;pointer-events:none}
 .empty-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:min(420px,90%);padding:30px 20px;color:#b8c2d4;text-align:center}
 .empty-stage.hidden{display:none}
@@ -212,7 +212,6 @@ a{color:inherit;text-decoration:none}
 .video-export{min-height:40px;width:100%;border-radius:10px;color:#111423;background:linear-gradient(110deg,#c2b5ff,#86e0e3);font-size:11px;font-weight:900}
 .video-export:disabled{opacity:.55}
 .video-export-note{margin:0}
-.video-legacy-controls{display:none!important}
 button,.tool,.video-tool-tab{-webkit-tap-highlight-color:transparent}
 button:not(:disabled){transition:transform .14s ease,background-color .16s ease,border-color .16s ease,opacity .16s ease}
 input[type="range"]{touch-action:pan-y}
