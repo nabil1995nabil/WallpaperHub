@@ -326,7 +326,7 @@ const videoEl = $("#videoSource");
 const videoInput = $("#videoFiles");
 if(videoInput){videoInput.accept="video/*";videoInput.multiple=true;}
 const videoState = {
-  mode:false, clips:[], active:0, playing:false, speed:1, volume:1,
+  mode:false, exporting:false, clips:[], active:0, playing:false, speed:1, volume:1,
   trimStart:0, trimEnd:0, raf:0, draggingTrim:null, objectUrls:[]
 };
 const videoMusicPlayer=$("#videoMusicSource");let videoMusicObjectUrl=null;
@@ -452,7 +452,7 @@ function videoDrawFrame(){
 }
 function videoLoop(){
   videoState.raf=0;
-  if(!videoState.mode)return;
+  if(!videoState.mode||videoState.exporting)return;
   // Draw one frame while paused; continuously redraw only during playback.
   // The old loop kept consuming CPU/GPU even when the preview was idle.
   videoDrawFrame();
@@ -544,11 +544,32 @@ async function videoExport(){
  if(!videoState.clips.length)return note("أضف فيديو أولًا");
  if(!window.MediaRecorder||!c.captureStream)return note("التصدير غير مدعوم في هذا المتصفح");
  const btn=$("#videoExport"),progress=$("#videoExportProgress"),status=$("#videoExportStatus");if(btn)btn.disabled=true;if(progress)progress.value=0;if(status)status.textContent="تحضير المشروع...";
- let canvasStream=null,sourceStream=null,musicStream=null,recordStream=null,rec=null;
+ let canvasStream=null,sourceStream=null,musicStream=null,recordStream=null,rec=null,audioContext=null,audioDestination=null;
  try{
-  videoState.playing=false;videoEl.pause();videoMusicPlayer?.pause();canvasStream=c.captureStream(30);const tracks=[...canvasStream.getVideoTracks()];
-  try{if(videoEl.captureStream){sourceStream=videoEl.captureStream();const a=sourceStream.getAudioTracks()[0];if(a)tracks.push(a)}}catch(_error){}
-  let musicTrack=null;if(videoMusicObjectUrl&&videoMusicPlayer?.captureStream){try{musicStream=videoMusicPlayer.captureStream();musicTrack=musicStream.getAudioTracks()[0]||null;if(musicTrack)tracks.push(musicTrack)}catch(_error){}}
+  videoState.playing=false;videoState.exporting=true;if(videoState.raf)cancelAnimationFrame(videoState.raf);videoState.raf=0;
+  videoEl.pause();videoMusicPlayer?.pause();canvasStream=c.captureStream(30);const tracks=[...canvasStream.getVideoTracks()];
+  try{if(videoEl.captureStream)sourceStream=videoEl.captureStream()}catch(_error){}
+  if(videoMusicObjectUrl&&videoMusicPlayer?.captureStream){try{musicStream=videoMusicPlayer.captureStream()}catch(_error){}}
+  const sourceHasAudio=Boolean(sourceStream?.getAudioTracks?.().length);
+  const musicHasAudio=Boolean(musicStream?.getAudioTracks?.().length);
+  if(sourceHasAudio&&musicHasAudio&&(window.AudioContext||window.webkitAudioContext)){
+    try{
+      const AudioContextCtor=window.AudioContext||window.webkitAudioContext;
+      audioContext=new AudioContextCtor();audioDestination=audioContext.createMediaStreamDestination();
+      audioContext.createMediaStreamSource(sourceStream).connect(audioDestination);
+      audioContext.createMediaStreamSource(musicStream).connect(audioDestination);
+      await audioContext.resume();
+      const mixed=audioDestination.stream.getAudioTracks()[0];if(mixed)tracks.push(mixed);
+    }catch(error){
+      console.warn("Audio mixing fallback:",error);
+      const original=sourceStream.getAudioTracks()[0];if(original)tracks.push(original);
+      if(status)status.textContent="تعذر دمج الموسيقى؛ سيتم استخدام صوت الفيديو الأصلي فقط.";
+    }
+  }else{
+    const original=sourceStream?.getAudioTracks?.()[0],music=musicStream?.getAudioTracks?.()[0];
+    if(original)tracks.push(original);else if(music)tracks.push(music);
+    if(original&&music&&status)status.textContent="تنبيه: المتصفح لا يدعم مزج مسارين صوتيين؛ سيتم استخدام الصوت الأصلي فقط.";
+  }
   const formats=["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];const mime=formats.find(t=>MediaRecorder.isTypeSupported(t));if(!mime)throw new Error("هذا المتصفح لا يدعم صيغة فيديو قابلة للتصدير");
   const ext=mime.startsWith("video/mp4")?"mp4":"webm";recordStream=new MediaStream(tracks);rec=new MediaRecorder(recordStream,{mimeType:mime,videoBitsPerSecond:10000000});
   const chunks=[];rec.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||new Error("تعذر تسجيل الفيديو"))});
@@ -563,17 +584,26 @@ async function videoExport(){
   }
   rec.stop();await done;const blob=new Blob(chunks,{type:mime});if(!blob.size)throw new Error("ملف التصدير فارغ");const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="wallpaperhub-video."+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);if(progress)progress.value=100;if(status)status.textContent="اكتمل التصدير · "+ext.toUpperCase();note("تم تصدير الفيديو بصيغة "+ext.toUpperCase());
  }catch(error){console.error("Video export error:",error);if(status)status.textContent="تعذر التصدير: "+(error?.message||"خطأ غير معروف");note(error?.message||"تعذر تصدير الفيديو");try{if(rec&&rec.state!=="inactive")rec.stop()}catch(_error){}}
- finally{try{videoEl.pause();videoMusicPlayer?.pause()}catch(_error){}[canvasStream,sourceStream,musicStream,recordStream].filter(Boolean).forEach(stream=>{try{stream.getTracks().forEach(t=>t.stop())}catch(_error){}});videoState.playing=false;if(videoState.mode&&videoState.clips.length){videoSelectClip(0);$("#videoPlay").textContent="▶";videoStartLoop()}if(btn)btn.disabled=false}
+ finally{
+  try{videoEl.pause();videoMusicPlayer?.pause()}catch(_error){}
+  [canvasStream,sourceStream,musicStream,recordStream,audioDestination?.stream].filter(Boolean).forEach(stream=>{try{stream.getTracks().forEach(t=>t.stop())}catch(_error){}});
+  try{if(audioContext)await audioContext.close()}catch(_error){}
+  videoState.exporting=false;videoState.playing=false;
+  if(videoState.mode&&videoState.clips.length){videoSelectClip(0);$("#videoPlay").textContent="▶";videoStartLoop()}
+  if(btn)btn.disabled=false;
+ }
 }
 function videoBind(){
   if(!videoDeck)return;
   $("#videoPlay").onclick=videoTogglePlay;
   $("#videoClose").onclick=()=>{
-    videoState.playing=false;videoEl.pause();videoOpenDeck(false);videoState.mode=false;
-    videoState.objectUrls.forEach(u=>URL.revokeObjectURL(u));videoState.objectUrls=[];
-    videoState.clips=[];videoEl.removeAttribute("src");videoEl.load();
-    $("#statusText").textContent="جاهز للتحرير";$("#emptyStage")?.classList.remove("hidden");
-    c.hidden=true;$("#inlineControls")?.classList.remove("has-image");
+    videoState.playing=false;videoEl.pause();videoMusicPlayer?.pause();videoOpenDeck(false);videoState.mode=false;
+    if(videoState.raf)cancelAnimationFrame(videoState.raf);
+    videoState.raf=0;videoState.objectUrls.forEach(u=>URL.revokeObjectURL(u));videoState.objectUrls=[];
+    videoState.clips=[];videoEl.removeAttribute("src");videoEl.load();videoRemoveMusic();
+    state=defaults();state.exposure=state.highlights=state.shadows=state.clarity=0;
+    c.hidden=true;$("#emptyStage")?.classList.remove("hidden");$("#inlineControls")?.classList.remove("has-image");
+    $("#info").textContent="لم يتم اختيار ملف";$("#sizeInfo").textContent="—";$("#statusText").textContent="جاهز للتحرير";
   };
   $("#videoAddClip").onclick=()=>videoInput.click();
   $("#videoAddClipBottom")?.addEventListener("click",()=>videoInput.click());
@@ -625,7 +655,7 @@ function videoBind(){
     $("#sizeInfo").textContent=`${videoEl.videoWidth} × ${videoEl.videoHeight}px`;
     videoSyncControls();videoRenderTimeline();fit();videoStartLoop();
   });
-  videoEl.addEventListener("play",()=>{videoState.playing=true;$("#videoPlay").textContent="❚❚";videoStartLoop()});
+  videoEl.addEventListener("play",()=>{videoState.playing=true;$("#videoPlay").textContent="❚❚";if(!videoState.exporting)videoStartLoop()});
   videoEl.addEventListener("pause",()=>{if(!videoState.playing)$("#videoPlay").textContent="▶"});
   $$("[data-video-filter]").forEach(b=>b.addEventListener("click",()=>{state.filter=b.dataset.videoFilter;$$("[data-video-filter]").forEach(z=>z.classList.toggle("active",z===b));videoDrawFrame()}));
   [["videoBrightness","brightness"],["videoContrast","contrast"],["videoSaturation","saturation"]].forEach(([id,key])=>{const input=$("#"+id),out=$("#"+id+"Value");if(input)input.addEventListener("input",()=>{state[key]=+input.value;if(out)out.textContent=input.value;videoDrawFrame()})});
