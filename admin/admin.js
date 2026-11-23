@@ -66,12 +66,6 @@ document.getElementById("uploadProgressBar");
 const saveWallpaper =
 document.getElementById("saveWallpaper");
 
-const pauseUploadBtn =
-document.getElementById("pauseUploadBtn");
-
-const resumeUploadBtn =
-document.getElementById("resumeUploadBtn");
-
 const uploadNetworkStatus =
 document.getElementById("uploadNetworkStatus");
 
@@ -153,27 +147,14 @@ let videoThumbnail = "";
 /* DBByte upload state.
  * Direct browser PUT uploads are single requests, not resumable chunks.
  */
-const UPLOAD_CHUNK_SIZE = 6 * 1024 * 1024;
-const UPLOAD_RETRY_LIMIT = 8;
 let activeUploadXHR = null;
-let uploadPausedByUser = false;
 let uploadWaitingForNetwork = false;
 let uploadCurrentState = null;
-let uploadAbortReason = "";
 
 function setUploadNetworkStatus(text, state="is-online"){
     if(!uploadNetworkStatus) return;
     uploadNetworkStatus.textContent = text;
     uploadNetworkStatus.className = `upload-network-status ${state}`;
-}
-
-function setUploadControls(){
-    const active = Boolean(uploadCurrentState);
-    const canPause = active && !uploadPausedByUser && !uploadWaitingForNetwork;
-    const canResume = active && (uploadPausedByUser || uploadWaitingForNetwork) && navigator.onLine !== false;
-
-    if(pauseUploadBtn) pauseUploadBtn.disabled = !canPause;
-    if(resumeUploadBtn) resumeUploadBtn.disabled = !canResume;
 }
 
 function setUploadCurrentFile(text="لا يوجد رفع حالي"){
@@ -193,60 +174,31 @@ function createUploadId(){
     return `wh-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function abortActiveUpload(reason=""){
-    uploadAbortReason = reason;
+function abortActiveUpload(){
     if(activeUploadXHR){
         try{ activeUploadXHR.abort(); }catch{}
         activeUploadXHR = null;
     }
 }
-
-function pauseCurrentUpload(){
-    if(!uploadCurrentState) return;
-    uploadPausedByUser = true;
-    uploadWaitingForNetwork = false;
-    abortActiveUpload("user");
-    setUploadNetworkStatus("تم إلغاء طلب الرفع", "is-paused");
-    setUploadRetryInfo("DBByte يرفع الملف في طلب واحد؛ لا يمكن استكماله من منتصف الملف. أعد اختيار الملف لرفعه من البداية.");
-    setUploadControls();
-}
-
-function resumeCurrentUpload(){
-    if(!uploadCurrentState || navigator.onLine === false) return;
-    setUploadRetryInfo("لا يدعم هذا الرفع الاستكمال من منتصف الملف. أعد المحاولة لرفع الملف من البداية.");
-    setUploadNetworkStatus("جاهز لإعادة المحاولة", "is-paused");
-}
-
 function handleOffline(){
     if(!uploadCurrentState) return;
     uploadWaitingForNetwork = true;
-    uploadPausedByUser = false;
-    abortActiveUpload("offline");
-    setUploadNetworkStatus("● لا يوجد اتصال", "is-offline");
-    if(uploadOfflineNotice) uploadOfflineNotice.hidden = false;
-    setUploadRetryInfo("بانتظار عودة الإنترنت...");
-    setUploadControls();
+    abortActiveUpload();
+    setUploadNetworkStatus("● لا يوجد اتصال — تم إلغاء الرفع الحالي", "is-offline");
+    if(uploadOfflineNotice){
+        uploadOfflineNotice.hidden = false;
+        uploadOfflineNotice.textContent = "أُلغي طلب الرفع عند انقطاع الاتصال. بعد عودة الإنترنت أعد المحاولة من البداية؛ DBByte لا يدعم استكمال الملف من منتصفه.";
+    }
+    setUploadRetryInfo("أعد محاولة رفع الملف بعد عودة الاتصال.");
 }
-
 function handleOnline(){
     if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
-    if(!uploadCurrentState) {
-        setUploadNetworkStatus("● متصل — الرفع جاهز", "is-online");
-        return;
-    }
     uploadWaitingForNetwork = false;
-    uploadPausedByUser = false;
-    setUploadNetworkStatus("● عاد الاتصال — استئناف الرفع", "is-online");
-    setUploadRetryInfo("");
-    setUploadControls();
+    setUploadNetworkStatus("● عاد الاتصال — الرفع جاهز لإعادة المحاولة", "is-online");
+    setUploadRetryInfo("الملفات التي لم يكتمل رفعها تحتاج إلى إعادة المحاولة من البداية.");
 }
-
 window.addEventListener("offline", handleOffline);
 window.addEventListener("online", handleOnline);
-
-// DBByte uploads use a single signed PUT request; hide controls that imply chunk-resume.
-if(pauseUploadBtn) pauseUploadBtn.hidden = true;
-if(resumeUploadBtn) resumeUploadBtn.hidden = true;
 
 // ==========================================
 // AI Auto Tags
@@ -798,10 +750,10 @@ function uploadToDBByte(file, onProgress){
             }
             const total=file.size;
             uploadCurrentState={file,uploadId:auth.key,resourceType:"dbbyte",offset:0,total,url:auth.publicUrl,done:false};
-            uploadPausedByUser=false;uploadWaitingForNetwork=navigator.onLine===false;
+            uploadWaitingForNetwork=navigator.onLine===false;
             if(uploadOfflineNotice) uploadOfflineNotice.hidden=!uploadWaitingForNetwork;
             setUploadNetworkStatus("● جارٍ رفع الملف إلى DBByte","is-online");
-            setUploadControls();
+            
             const xhr=new XMLHttpRequest();activeUploadXHR=xhr;
             xhr.open("PUT",auth.uploadUrl,true);
             xhr.timeout=120000;
@@ -815,7 +767,7 @@ function uploadToDBByte(file, onProgress){
             xhr.onload=()=>{
                 activeUploadXHR=null;
                 uploadCurrentState=null;
-                setUploadControls();
+                
                 if(xhr.status>=200&&xhr.status<300){
                     if(onProgress)onProgress(100,total,total);
                     setUploadRetryInfo("");
@@ -832,20 +784,20 @@ function uploadToDBByte(file, onProgress){
                 }
             };
             xhr.onerror=()=>{
-                activeUploadXHR=null;uploadCurrentState=null;setUploadControls();
+                activeUploadXHR=null;uploadCurrentState=null;
                 reject(new Error("فشل الاتصال بـ DBByte. تحقق من إعداد CORS والسماح بـ PUT لنطاق الموقع."));
             };
             xhr.ontimeout=()=>{
-                activeUploadXHR=null;uploadCurrentState=null;setUploadControls();
+                activeUploadXHR=null;uploadCurrentState=null;
                 reject(new Error("انتهت مهلة رفع DBByte بعد دقيقتين."));
             };
             xhr.onabort=()=>{
-                activeUploadXHR=null;uploadCurrentState=null;setUploadControls();
+                activeUploadXHR=null;uploadCurrentState=null;
                 reject(new Error("تم إلغاء رفع DBByte. هذا الرفع لا يستكمل من منتصف الملف؛ أعد المحاولة من البداية."));
             };
             xhr.send(file);
         }catch(error){
-            uploadCurrentState=null;activeUploadXHR=null;setUploadControls();reject(error);
+            uploadCurrentState=null;activeUploadXHR=null;reject(error);
         }
     });
 }
@@ -1251,7 +1203,7 @@ setUploadNetworkStatus(
 );
 setUploadCurrentFile("يتم تجهيز الملفات...");
 setUploadRetryInfo("");
-setUploadControls();
+
 
 
 
@@ -1436,10 +1388,10 @@ uploadProgressText.textContent =
 saveWallpaper.disabled = false;
 
 uploadCurrentState = null;
-uploadPausedByUser = false;
+
 uploadWaitingForNetwork = false;
-abortActiveUpload("complete");
-setUploadControls();
+abortActiveUpload();
+
 setUploadCurrentFile("لا يوجد رفع حالي");
 setUploadRetryInfo("");
 if(uploadOfflineNotice) uploadOfflineNotice.hidden = true;
