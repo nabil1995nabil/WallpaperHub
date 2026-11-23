@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="اكتشف خلفيات مختارة بعناية على WallpaperHub. تصفح الرائج والأحدث واختر خلفيتك القادمة.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://wallpaperhub-morocco.vercel.app/explore.html">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="استكشاف | WallpaperHub">
+    <meta property="og:description" content="اكتشف خلفيات مميزة مختارة بعناية.">
+    <meta property="og:url" content="https://wallpaperhub-morocco.vercel.app/explore.html">
+    <title>استكشاف | WallpaperHub</title>
+    <link rel="preconnect" href="https://ik.imagekit.io" crossorigin>
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="bottom-nav.css">
+    <link rel="stylesheet" href="effects.css">
+    <link rel="stylesheet" href="explore.css?v=20261123-explore-1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="explore-body">
+    <div class="explore-page">
+        <header class="explore-topbar">
+            <a class="explore-brand" href="home.html" aria-label="WallpaperHub، الصفحة الرئيسية">
+                <span class="brand-symbol"><span class="material-icons" aria-hidden="true">wallpaper</span></span>
+                <span class="brand-word">Wallpaper<span>Hub</span></span>
+            </a>
+            <div class="topbar-actions">
+                <button id="randomWallpaperBtn" class="topbar-icon" type="button" aria-label="خلفية عشوائية" title="فاجئني">
+                    <span class="material-icons" aria-hidden="true">shuffle</span>
+                </button>
+                <a class="topbar-icon" href="all-wallpapers.html" aria-label="كل الخلفيات" title="كل الخلفيات">
+                    <span class="material-icons" aria-hidden="true">grid_view</span>
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <section class="explore-intro" aria-labelledby="exploreTitle">
+                <span class="eyebrow"><span class="eyebrow-dot"></span> مساحة الإلهام الخاصة بك</span>
+                <h1 id="exploreTitle">اكتشف خلفيتك <span>القادمة</span></h1>
+                <p>تفاصيل قليلة، اختيارات أجمل، ومساحة تترك لذوقك حرية الاختيار.</p>
+
+                <form id="exploreSearchForm" class="explore-search" role="search">
+                    <span class="material-icons search-icon" aria-hidden="true">search</span>
+                    <input id="exploreSearchInput" type="search" autocomplete="off" placeholder="ابحث عن طبيعة، سيارات، أنمي..." aria-label="ابحث عن خلفية">
+                    <button id="clearExploreSearch" class="clear-search" type="button" aria-label="مسح البحث" hidden>
+                        <span class="material-icons" aria-hidden="true">close</span>
+                    </button>
+                    <span class="search-hint" aria-hidden="true">بحث</span>
+                </form>
+            </section>
+
+            <section id="exploreSearchResults" class="search-results" hidden aria-labelledby="searchResultsTitle">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">SEARCH</span>
+                        <h2 id="searchResultsTitle">نتائج البحث</h2>
+                    </div>
+                    <span id="searchResultsCount" class="results-count"></span>
+                </div>
+                <div id="searchResultsGrid" class="wallpaper-grid search-grid" aria-live="polite"></div>
+                <p id="searchEmptyState" class="search-empty" hidden>لم نعثر على خلفيات مطابقة. جرّب كلمة أخرى.</p>
+            </section>
+
+            <section class="featured-section" aria-labelledby="featuredHeading">
+                <div class="feature-heading">
+                    <div>
+                        <span class="section-kicker">EDITOR'S PICK</span>
+                        <h2 id="featuredHeading">وقفة مع الجمال</h2>
+                    </div>
+                    <span class="feature-note"><span class="material-icons" aria-hidden="true">auto_awesome</span> اختيار مميز</span>
+                </div>
+
+                <a id="featuredWallpaperLink" class="feature-card" href="all-wallpapers.html" aria-label="استكشف الخلفية المميزة">
+                    <img id="featuredWallpaperImage" class="feature-image" src="/assets/logo/no-image.png" alt="" fetchpriority="high">
+                    <span class="feature-shade"></span>
+                    <span class="feature-content">
+                        <span class="feature-kicker"><span class="material-icons" aria-hidden="true">stars</span> مختارة لك</span>
+                        <strong id="featuredWallpaperTitle">نبحث لك عن لقطة مميزة...</strong>
+                        <span id="featuredWallpaperMeta" class="feature-meta">خلفيات تلائم شاشتك وذوقك</span>
+                        <span class="feature-cta">شاهد الخلفية <span class="material-icons" aria-hidden="true">arrow_back</span></span>
+                    </span>
+                    <span class="feature-corner material-icons" aria-hidden="true">north_east</span>
+                </a>
+            </section>
+
+            <section class="category-section" aria-labelledby="categoryHeading">
+                <div class="section-heading compact-heading">
+                    <div>
+                        <span class="section-kicker">FIND YOUR MOOD</span>
+                        <h2 id="categoryHeading">من أي عالم تبدأ؟</h2>
+                    </div>
+                    <a class="text-link" href="categories.html">كل الأقسام <span class="material-icons" aria-hidden="true">arrow_back</span></a>
+                </div>
+                <nav class="category-rail" aria-label="تصنيفات الخلفيات">
+                    <a class="category-chip category-chip-all" href="all-wallpapers.html">
+                        <span class="material-icons" aria-hidden="true">apps</span><span>الكل</span>
+                    </a>
+                    <a class="category-chip" href="all-wallpapers.html?category=nature">
+                        <span class="material-icons" aria-hidden="true">park</span><span>الطبيعة</span>
+                    </a>
+                    <a class="category-chip" href="all-wallpapers.html?category=cars">
+                        <span class="material-icons" aria-hidden="true">directions_car</span><span>السيارات</span>
+                    </a>
+                    <a class="category-chip" href="all-wallpapers.html?category=anime">
+                        <span class="material-icons" aria-hidden="true">face</span><span>الأنمي</span>
+                    </a>
+                    <a class="category-chip" href="all-wallpapers.html?category=games">
+                        <span class="material-icons" aria-hidden="true">sports_esports</span><span>الألعاب</span>
+                    </a>
+                    <a class="category-chip" href="all-wallpapers.html?category=space">
+                        <span class="material-icons" aria-hidden="true">public</span><span>الفضاء</span>
+                    </a>
+                    <a class="category-chip" href="all-wallpapers.html?category=amoled">
+                        <span class="material-icons" aria-hidden="true">dark_mode</span><span>AMOLED</span>
+                    </a>
+                </nav>
+            </section>
+
+            <section class="curated-section" aria-labelledby="curatedHeading">
+                <div class="section-heading curated-heading">
+                    <div>
+                        <span class="section-kicker">A LITTLE INSPIRATION</span>
+                        <h2 id="curatedHeading">اختيارات تستحق المشاهدة</h2>
+                        <p id="curatedSubtitle">خلفيتان فقط، لكنهما تستحقان وقتك.</p>
+                    </div>
+                    <div class="curated-actions">
+                        <div class="mode-switch" role="tablist" aria-label="ترتيب الاختيارات">
+                            <button class="mode-button is-active" type="button" role="tab" aria-selected="true" data-mode="popular">رائج الآن</button>
+                            <button class="mode-button" type="button" role="tab" aria-selected="false" data-mode="latest">الأحدث</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="curatedWallpaperGrid" class="wallpaper-grid" aria-live="polite">
+                    <div class="loading-skeleton"></div>
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="catalog-link-wrap">
+                    <a id="viewAllWallpapersLink" class="catalog-link" href="all-wallpapers.html?type=popular">
+                        تصفح مكتبة الخلفيات كاملة
+                        <span class="material-icons" aria-hidden="true">arrow_back</span>
+                    </a>
+                </div>
+            </section>
+
+            <div id="exploreFeedback" class="explore-feedback" role="status" hidden></div>
+        </main>
+
+        <footer class="explore-footer">
+            <span class="footer-mark">W</span>
+            <span>WallpaperHub</span>
+            <span class="footer-separator">•</span>
+            <span>مساحتك، على ذوقك.</span>
+        </footer>
+    </div>
+
+    <div id="bottomNav"></div>
+
+    <script src="js/components.js"></script>
+    <script src="bottom-nav-20d.js"></script>
+    <script src="theme.js"></script>
+    <script type="module" src="explore.js?v=20261123-explore-1"></script>
+</body>
+</html>
