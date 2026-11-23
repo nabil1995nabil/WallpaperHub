@@ -474,7 +474,7 @@ function fillDetail(detail){
   renderAudit(detail?.audit_logs || []);
   renderWarningHistory(detail?.warnings || []);
   activeMemberReportKind="all";
-  $("#memberReportFilters [data-member-report-kind]").forEach(button=>button.classList.toggle("active",button.dataset.memberReportKind==="all"));
+  $$("#memberReportFilters [data-member-report-kind]").forEach(button=>button.classList.toggle("active",button.dataset.memberReportKind==="all"));
   renderMemberReports(u);
   if(u?.id || u?.uid) loadModerationState(u.id || u.uid).catch(error=>console.warn("MODERATION STATE:",error));
 }
@@ -546,7 +546,7 @@ function reportSafeUrl(value){const url=String(value||"").trim();return /^https?
 function setWorkspace(name){
   activeWorkspace=name==="reports"?"reports":"members";
   const reportsMode=activeWorkspace==="reports";
-  $("#workspaceTabs [data-workspace]").forEach(button=>{
+  $$("#workspaceTabs [data-workspace]").forEach(button=>{
     button.classList.toggle("active",button.dataset.workspace===activeWorkspace);
     button.setAttribute("aria-pressed",button.dataset.workspace===activeWorkspace?"true":"false");
   });
@@ -1159,7 +1159,7 @@ $("#reportSearch")?.addEventListener("input",renderCommunityReports);
 $("#reportStatusFilters")?.addEventListener("click",event=>{
   const button=event.target.closest("[data-report-status]");if(!button)return;
   activeReportStatus=button.dataset.reportStatus;
-  $("#reportStatusFilters [data-report-status]").forEach(item=>item.classList.toggle("active",item===button));
+  $$("#reportStatusFilters [data-report-status]").forEach(item=>item.classList.toggle("active",item===button));
   renderCommunityReports();
 });
 $("#reportPriorityFilter")?.addEventListener("change",event=>{activeReportPriority=event.target.value;renderCommunityReports();});
@@ -1169,7 +1169,7 @@ $("#communityReportsList")?.addEventListener("click",event=>{
 $("#memberReportFilters")?.addEventListener("click",event=>{
   const button=event.target.closest("[data-member-report-kind]");if(!button)return;
   activeMemberReportKind=button.dataset.memberReportKind;
-  $("#memberReportFilters [data-member-report-kind]").forEach(item=>item.classList.toggle("active",item===button));
+  $$("#memberReportFilters [data-member-report-kind]").forEach(item=>item.classList.toggle("active",item===button));
   renderMemberReports(selected);
 });
 $("#memberReportsList")?.addEventListener("click",event=>{
@@ -1199,7 +1199,7 @@ $("#filters").addEventListener("click", e => {
 
   activeFilter = button.dataset.filter;
   currentPage = 1;
-  $(".filter").forEach(x => x.classList.remove("active"));
+  $$(".filter").forEach(x => x.classList.remove("active"));
   button.classList.add("active");
   renderUsers();
 });
