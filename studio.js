@@ -16,7 +16,7 @@
   const toolLabels={wallpaper:'تصميم الخلفيات',theme:'ثيمات الهاتف',icons:'حزم الأيقونات',widget:'الودجات',lock:'شاشة القفل'};
   const presets=['aurora','mountain','waves','minimal','geometry','dots','stripes'];
   const appIcons=[['☎','phone','الهاتف'],['▧','photos','الصور'],['◉','camera','الكاميرا'],['♫','music','الموسيقى'],['✉','messages','الرسائل'],['◎','browser','المتصفح'],['⚙','settings','الإعدادات'],['◈','files','الملفات'],['✦','store','المتجر']];
-  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set(),shareThemeUrl:null,shareConfigKey:null};
+  const state={tool:'wallpaper',palette:'violet',preset:'aurora',title:'لمسة بنفسجية',subtitle:'اصنع لحظتك الخاصة',glow:65,clock:true,clockStyle:'digital',clockFormat:'24',clockSize:100,clockColor:'auto',showDate:true,showStatusBar:true,screenMode:'lock',iconShape:'rounded',iconScale:100,showIconLabels:true,clockX:540,clockY:400,appsX:540,appsY:1050,subtitleX:540,subtitleY:1740,dragTarget:null,client:null,user:null,savedId:null,backgroundUrl:'',backgroundImage:null,forums:[],publishing:false,shareImageUrl:null,shareSaved:false,successfulDestinations:new Set(),shareThemeUrl:null,shareConfigKey:null,galleryItems:[],galleryFilter:'all'};
   const canvas=$('#designCanvas');
   const ctx=canvas?.getContext('2d');
   const toastNode=$('#studioToast');
@@ -124,7 +124,7 @@
     render();
   }
   function readControls(){state.title=$('#designTitle').value.trim()||'تصميم جديد';state.subtitle=$('#designSubtitle').value.trim();state.glow=Number($('#glowStrength').value)||0;state.clock=$('#showClock').checked;state.clockStyle=$('#clockStyle').value;state.clockFormat=$('#clockFormat').value;state.clockSize=Number($('#clockSize').value)||100;state.clockColor=$('#clockColor').value;state.showDate=$('#showDate').checked;state.showStatusBar=$('#showStatusBar').checked;state.iconShape=$('#iconShape').value;state.iconScale=Number($('#iconScale').value)||100;state.showIconLabels=$('#showIconLabels').checked;$('#glowValue').textContent=`${state.glow}%`;$('#clockSizeValue').textContent=`${state.clockSize}%`;$('#iconScaleValue').textContent=`${state.iconScale}%`;render()}
-  function designConfig(){return {tool:state.tool,palette:state.palette,preset:state.preset,title:state.title,subtitle:state.subtitle,glow:state.glow,clock:state.clock,clockStyle:state.clockStyle,clockFormat:state.clockFormat,clockSize:state.clockSize,clockColor:state.clockColor,showDate:state.showDate,showStatusBar:state.showStatusBar,screenMode:state.screenMode,iconShape:state.iconShape,iconScale:state.iconScale,showIconLabels:state.showIconLabels,clockX:state.clockX,clockY:state.clockY,appsX:state.appsX,appsY:state.appsY,subtitleX:state.subtitleX,subtitleY:state.subtitleY,backgroundUrl:state.backgroundUrl||null}}
+  function designConfig(){return {format:'wallpaperhub-theme',version:2,tool:state.tool,palette:state.palette,preset:state.preset,title:state.title,subtitle:state.subtitle,glow:state.glow,clock:state.clock,clockStyle:state.clockStyle,clockFormat:state.clockFormat,clockSize:state.clockSize,clockColor:state.clockColor,showDate:state.showDate,showStatusBar:state.showStatusBar,screenMode:state.screenMode,iconShape:state.iconShape,iconScale:state.iconScale,showIconLabels:state.showIconLabels,clockX:state.clockX,clockY:state.clockY,appsX:state.appsX,appsY:state.appsY,subtitleX:state.subtitleX,subtitleY:state.subtitleY,backgroundUrl:state.backgroundUrl||null}}
   function dataForSave(visibility,imageUrl=null,themeUrl=null){return {user_id:state.user.id,title:state.title,category:state.tool,visibility,config:{...designConfig(),themeUrl:themeUrl||null},image_url:imageUrl,updated_at:new Date().toISOString()}}
   async function authToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;const token=data?.session?.access_token;if(!token)throw new Error('انتهت جلستك، سجّل الدخول من جديد');return token}
   async function uploadToImageKit(file,fileName){
@@ -145,13 +145,119 @@
     catch(error){console.error('STUDIO BACKGROUND UPLOAD:',error);status.textContent='تعذر رفع الصورة. حاول مرة أخرى';toast(error.message||'تعذر رفع الصورة')}
     finally{button.disabled=false;$('#backgroundImageInput').value=''}
   }
-  async function initSupabase(){try{const r=await fetch('/api/supabase/config',{cache:'no-store'});if(!r.ok)throw new Error('config');const cfg=await r.json();state.client=window.supabase.createClient(cfg.url,cfg.anonKey);const {data}=await state.client.auth.getSession();state.user=data?.session?.user||null;updateProfile();state.client.auth.onAuthStateChange((_event,session)=>{state.user=session?.user||null;updateProfile();loadDrafts()});loadGallery();loadDrafts()}catch(error){console.warn('STUDIO SUPABASE INIT:',error);updateProfile();loadGallery()}}
+  async function initSupabase(){
+    try{
+      const response=await fetch('/api/supabase/config',{cache:'no-store'});
+      if(!response.ok)throw new Error('تعذر تحميل إعدادات الاتصال');
+      const cfg=await response.json();
+      state.client=window.supabase.createClient(cfg.url,cfg.anonKey);
+      const {data}=await state.client.auth.getSession();
+      state.user=data?.session?.user||null;
+      updateProfile();
+      state.client.auth.onAuthStateChange((_event,session)=>{
+        state.user=session?.user||null;
+        updateProfile();
+        loadDrafts();
+      });
+      await Promise.all([loadGallery(),loadDrafts()]);
+      const sharedId=new URLSearchParams(location.search).get('import');
+      if(sharedId)await loadSharedTheme(sharedId);
+    }catch(error){
+      console.warn('STUDIO SUPABASE INIT:',error);
+      updateProfile();
+      loadGallery();
+      const sharedId=new URLSearchParams(location.search).get('import');
+      if(sharedId)toast('تعذر الاتصال لاستيراد الثيم؛ حاول تحديث الصفحة');
+    }
+  }
   function updateProfile(){const node=$('#studioAvatar');if(!node)return;const meta=state.user?.user_metadata||{};const avatar=meta.avatar_url||meta.avatarUrl||meta.picture||'';if(avatar){node.innerHTML='';const img=document.createElement('img');img.src=avatar;img.alt='';node.appendChild(img)}else node.textContent=(meta.full_name||meta.name||state.user?.email||'U').trim().slice(0,1).toUpperCase()}
   async function saveDesign(visibility){if(!state.user||!state.client){toast('سجّل الدخول أولاً لحفظ تصميمك');return}const button=visibility==='published'?$('#publishDesign'):$('#saveDraft');button.disabled=true;try{const payload=dataForSave(visibility,null);let query;if(state.savedId){query=await state.client.from('studio_designs').update(payload).eq('id',state.savedId).eq('user_id',state.user.id).select('id').single()}else{query=await state.client.from('studio_designs').insert(payload).select('id').single()}if(query.error)throw query.error;state.savedId=query.data.id;toast('تم حفظ التصميم في مسوداتك');loadDrafts()}catch(error){console.error('STUDIO SAVE:',error);toast(error.message?.includes('studio_designs')?'تحقق من صلاحيات جدول studio_designs وإعدادات Data API في Supabase':'تعذر حفظ التصميم، تحقق من اتصالك ثم حاول مجدداً')}finally{button.disabled=false}}
   async function savePublishedDesign(imageUrl,themeUrl){const payload=dataForSave('published',imageUrl,themeUrl);let query;if(state.savedId){query=await state.client.from('studio_designs').update(payload).eq('id',state.savedId).eq('user_id',state.user.id).select('id').single()}else{query=await state.client.from('studio_designs').insert(payload).select('id').single()}if(query.error)throw query.error;state.savedId=query.data.id}
-  async function loadGallery(){const target=$('#creationGrid');if(!target)return;if(!state.client){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">cloud_off</span><b>المعرض يحتاج اتصال قاعدة البيانات</b><small>يمكنك تجربة المصمم وتنزيل إبداعاتك الآن.</small></div>';return}try{const {data,error}=await state.client.from('studio_designs').select('id,title,category,config,image_url,created_at').eq('visibility','published').order('created_at',{ascending:false}).limit(12);if(error)throw error;target.replaceChildren();if(!data?.length){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">auto_awesome</span><b>كن أول من يشارك إبداعه</b><small>صمّم شيئاً جميلاً ثم انشره ليظهر هنا.</small></div>';return}data.forEach(item=>{const p=palettes[item.config?.palette]||palettes.violet;const card=document.createElement('a');card.className='creation-card';card.href=`/community-creation.html?id=${encodeURIComponent(item.id)}`;card.setAttribute('aria-label',`عرض ${item.title||'إبداع المجتمع'}`);const art=document.createElement('div');art.className='creation-art';if(item.image_url){const image=document.createElement('img');image.src=item.image_url;image.alt=item.title||'تصميم من المجتمع';image.loading='lazy';art.appendChild(image)}else{art.style.setProperty('--art-bg',`linear-gradient(145deg,${p.a},${p.b},${p.c})`);const icon=document.createElement('span');icon.className='material-icons-round';icon.textContent=({wallpaper:'landscape',theme:'palette',icons:'apps',widget:'dashboard_customize',lock:'lock'})[item.category]||'auto_awesome';art.appendChild(icon)}const meta=document.createElement('div');meta.className='creation-meta';const title=document.createElement('b');title.textContent=item.title||'تصميم من المجتمع';const sub=document.createElement('small');sub.textContent=`${toolLabels[item.config?.tool||item.category]||'تصميم'} · ${new Date(item.created_at).toLocaleDateString('ar-MA')}`;meta.append(title,sub);if(item.config?.themeUrl){const pack=document.createElement('small');pack.className='creation-pack-badge';pack.textContent='ملف الثيم متاح';meta.appendChild(pack)}card.append(art,meta);target.appendChild(card)})}catch(error){console.warn('STUDIO GALLERY:',error);target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">info</span><b>المعرض غير متاح حالياً</b><small>تحقق من صلاحيات قراءة التصاميم المنشورة وإعدادات جدول الاستوديو في Supabase.</small></div>'}}
-  async function loadDraftIntoEditor(item){
-    const c=item.config||{};state.savedId=item.id;
+  function renderGallery(){
+    const target=$('#creationGrid');
+    if(!target)return;
+    const term=String($('#gallerySearch')?.value||'').trim().toLowerCase();
+    const filter=state.galleryFilter||'all';
+    const filtered=state.galleryItems.filter(item=>{
+      const c=item.config||{};
+      const mode=c.screenMode||((c.tool==='lock')?'lock':(['theme','icons','widget'].includes(c.tool)?'home':'wallpaper'));
+      const matchesFilter=filter==='all'||mode===filter;
+      const haystack=[item.title,c.subtitle,c.palette,c.preset,c.tool].filter(Boolean).join(' ').toLowerCase();
+      return matchesFilter&&(!term||haystack.includes(term));
+    });
+    target.replaceChildren();
+    if(!state.galleryItems.length){
+      target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">auto_awesome</span><b>كن أول من يشارك ثيمه</b><small>صمّم ثيمك ثم انشره ليظهر هنا مع إعداداته الكاملة.</small></div>';
+      return;
+    }
+    if(!filtered.length){
+      target.innerHTML='<div class="gallery-empty">لا توجد نتائج مطابقة. جرّب كلمة بحث أخرى أو اختر تصنيفاً مختلفاً.</div>';
+      return;
+    }
+    filtered.forEach(item=>{
+      const p=palettes[item.config?.palette]||palettes.violet;
+      const card=document.createElement('a');
+      card.className='creation-card';
+      card.href='/community-creation.html?id='+encodeURIComponent(item.id);
+      card.setAttribute('aria-label','عرض '+(item.title||'إبداع المجتمع'));
+      const art=document.createElement('div');
+      art.className='creation-art';
+      if(item.image_url){
+        const image=document.createElement('img');
+        image.src=item.image_url;
+        image.alt=item.title||'تصميم من المجتمع';
+        image.loading='lazy';
+        image.decoding='async';
+        image.referrerPolicy='no-referrer';
+        art.appendChild(image);
+      }else{
+        art.style.setProperty('--art-bg','linear-gradient(145deg,'+p.a+','+p.b+','+p.c+')');
+        const icon=document.createElement('span');
+        icon.className='material-icons-round';
+        icon.textContent=({wallpaper:'landscape',theme:'palette',icons:'apps',widget:'dashboard_customize',lock:'lock'})[item.category]||'auto_awesome';
+        art.appendChild(icon);
+      }
+      const meta=document.createElement('div');
+      meta.className='creation-meta';
+      const title=document.createElement('b');
+      title.textContent=item.title||'تصميم من المجتمع';
+      const sub=document.createElement('small');
+      const category=item.config?.screenMode==='lock'?'شاشة القفل':item.config?.screenMode==='home'?'الشاشة الرئيسية':toolLabels[item.config?.tool||item.category]||'تصميم';
+      sub.textContent=category+' · '+new Date(item.created_at).toLocaleDateString('ar-MA');
+      meta.append(title,sub);
+      if(item.config?.themeUrl){
+        const pack=document.createElement('small');
+        pack.className='creation-pack-badge';
+        pack.textContent='حزمة الهاتف متاحة';
+        meta.appendChild(pack);
+      }
+      card.append(art,meta);
+      target.appendChild(card);
+    });
+  }
+  async function loadGallery(){
+    const target=$('#creationGrid');
+    if(!target)return;
+    if(!state.client){
+      target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">cloud_off</span><b>المكتبة غير متاحة الآن</b><small>يمكنك استخدام المصمم وتصدير الثيم على جهازك.</small></div>';
+      return;
+    }
+    try{
+      const {data,error}=await state.client.from('studio_designs')
+        .select('id,title,category,config,image_url,created_at')
+        .eq('visibility','published')
+        .order('created_at',{ascending:false})
+        .limit(60);
+      if(error)throw error;
+      state.galleryItems=Array.isArray(data)?data:[];
+      renderGallery();
+    }catch(error){
+      console.warn('STUDIO GALLERY:',error);
+      target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">info</span><b>المكتبة غير متاحة حالياً</b><small>تعذر قراءة الثيمات المنشورة من قاعدة البيانات.</small></div>';
+    }
+  }
+  async function loadDraftIntoEditor(item,options={}){
+    const c=item.config||{};state.savedId=options.asCopy?null:item.id;state.shareImageUrl=null;state.shareThemeUrl=null;state.shareSaved=false;state.shareConfigKey=null;state.successfulDestinations=new Set();
     state.tool=toolLabels[c.tool]?c.tool:'wallpaper';state.palette=palettes[c.palette]?c.palette:'violet';state.preset=presets.includes(c.preset)?c.preset:'aurora';
     state.title=String(item.title||c.title||'تصميم محفوظ');state.subtitle=String(c.subtitle||'');state.glow=Math.max(0,Math.min(100,Number(c.glow??65)));state.clock=c.clock!==false;
     state.clockStyle=c.clockStyle==='analog'?'analog':'digital';state.clockFormat=c.clockFormat==='12'?'12':'24';state.clockSize=Math.max(70,Math.min(150,Number(c.clockSize)||100));state.clockColor=['auto','white','dark','gold'].includes(c.clockColor)?c.clockColor:'auto';state.showDate=c.showDate!==false;state.showStatusBar=c.showStatusBar!==false;
@@ -163,7 +269,7 @@
     syncChoice('.tool-card','tool',state.tool,'is-active');syncChoice('.screen-mode-button','screenMode',state.screenMode,'is-active');$('#activeToolLabel').textContent=toolLabels[state.tool];
     syncChoice('.palette-swatch','palette',state.palette,'selected');syncChoice('.preset-button','preset',state.preset,'selected');
     try{await loadBackground(c.backgroundUrl||'');$('#removeBackgroundImage').classList.toggle('hidden',!state.backgroundUrl);$('#backgroundImageStatus').textContent=state.backgroundUrl?'صورة التصميم المحفوظة جاهزة للتعديل':'JPG · PNG · WEBP · AVIF — حتى 15MB'}catch(error){toast(error.message)}
-    readControls();$('#studioEditor').scrollIntoView({behavior:'smooth',block:'start'});toast('تم فتح المسودة في مساحة التصميم');
+    readControls();$('#studioEditor').scrollIntoView({behavior:'smooth',block:'start'});toast(options.asCopy?'تم استيراد نسخة مستقلة من الثيم — احفظها أو انشرها باسمك':'تم فتح المسودة في مساحة التصميم');
   }
   async function loadDrafts(){const section=$('#draftSection'),target=$('#draftGrid');if(!section||!target)return;section.classList.toggle('hidden',!state.user);if(!state.user||!state.client){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">bookmark_border</span><b>سجّل الدخول لحفظ مسوداتك</b><small>يمكنك تنزيل التصميم الآن أو تسجيل الدخول لحفظه.</small></div>';return}try{const {data,error}=await state.client.from('studio_designs').select('id,title,category,config,created_at').eq('visibility','draft').order('updated_at',{ascending:false}).limit(8);if(error)throw error;target.replaceChildren();if(!data?.length){target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">bookmark_add</span><b>لا توجد مسودات بعد</b><small>احفظ أول تصميم لتكمل العمل عليه لاحقاً.</small></div>';return}data.forEach(item=>{const p=palettes[item.config?.palette]||palettes.violet;const button=document.createElement('button');button.type='button';button.className='draft-card';const art=document.createElement('span');art.className='draft-art';if(item.config?.backgroundUrl){art.style.backgroundImage=`url("${String(item.config.backgroundUrl).replace(/["\\]/g,'')}")`;art.style.backgroundSize='cover';art.style.backgroundPosition='center'}else art.style.setProperty('--art-bg',`linear-gradient(145deg,${p.a},${p.b},${p.c})`);art.innerHTML='<span class="material-icons-round">edit</span>';const copy=document.createElement('span');copy.className='draft-copy';const title=document.createElement('b');title.textContent=item.title||'تصميم بدون اسم';const meta=document.createElement('small');meta.textContent=toolLabels[item.category]||'تصميم';copy.append(title,meta);const action=document.createElement('span');action.className='material-icons-round draft-open';action.textContent='arrow_back';button.append(art,copy,action);button.addEventListener('click',()=>loadDraftIntoEditor(item));target.appendChild(button)})}catch(error){console.warn('STUDIO DRAFTS:',error);target.innerHTML='<div class="gallery-loading"><span class="material-icons-round">info</span><b>تعذر تحميل المسودات</b><small>تحقق من صلاحيات الوصول إلى جدول الاستوديو في Supabase.</small></div>'}}
   function canvasBlob(){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('تعذر تجهيز صورة التصميم. جرّب إزالة الصورة وإضافتها مجدداً.')),'image/png',.95))}
@@ -213,7 +319,11 @@
     for(const [symbol,key] of appIcons){
       files.push({name:`icons/${key}.png`,data:await makeIconBlob(symbol,p)});
     }
+    const completeConfig=designConfig();
+    const packageData={format:'wallpaperhub-theme',version:2,name:state.title,createdAt:new Date().toISOString(),config:completeConfig};
     const manifest={
+      format:'wallpaperhub-theme-package',
+      version:2,
       name:state.title,
       createdAt:new Date().toISOString(),
       palette:state.palette,
@@ -221,11 +331,13 @@
       preset:state.preset,
       iconShape:state.iconShape,
       iconScale:state.iconScale,
-      assets:{wallpaper:'wallpaper.png',icons:appIcons.map(([,key])=>`icons/${key}.png`)},
-      note:'PNG assets for manual setup with a launcher that supports custom icons.'
+      config:completeConfig,
+      assets:{wallpaper:'wallpaper.png',icons:appIcons.map(item=>'icons/'+item[1]+'.png'),settings:'theme-config.json'},
+      platform:'Image assets and portable Studio settings; not a native Android/iOS installer.'
     };
+    files.push({name:'theme-config.json',data:new TextEncoder().encode(JSON.stringify(packageData,null,2))});
     files.push({name:'manifest.json',data:new TextEncoder().encode(JSON.stringify(manifest,null,2))});
-    files.push({name:'اقرأني.txt',data:new TextEncoder().encode('حزمة تخصيص WallpaperHub\n\n- wallpaper.png: خلفية الهاتف بجودة عالية.\n- مجلد icons: تسع صور أيقونات PNG منفصلة.\n- manifest.json: معلومات الحزمة والألوان والنمط.\n\nطريقة الاستخدام: عيّن wallpaper.png كخلفية، ثم استخدم تطبيق Launcher يدعم تغيير أيقونات التطبيقات واختر صور PNG من مجلد icons.\n\nتنبيه: هذه ملفات صور وليست تطبيق APK، لذلك لا تثبّت الثيم تلقائياً على نظام الهاتف.')});
+    files.push({name:'اقرأني.txt',data:new TextEncoder().encode('حزمة ثيم WallpaperHub\n\nالمحتويات:\n- wallpaper.png: خلفية الهاتف بدقة 1080 × 1920.\n- icons/: تسع صور أيقونات PNG منفصلة.\n- theme-config.json: جميع إعدادات المصمم، بما فيها الألوان والساعة والأيقونات والمواضع ونوع الشاشة.\n- manifest.json: معلومات الحزمة والأصول.\n\nاستيراد الإعدادات إلى WallpaperHub: افتح استوديو التخصيص، اضغط استيراد ثيم، واختر ملف ZIP نفسه أو theme-config.json.\n\nتطبيق على الهاتف: احفظ wallpaper.png كخلفية، ثم استخدم Launcher يدعم الأيقونات المخصصة واختر صور icons واحدة تلو الأخرى.\n\nتنبيه: هذه حزمة ملفات وإعدادات وليست APK؛ لا يمكن لموقع ويب تثبيت ثيم النظام أو تغيير إعدادات Android/iPhone تلقائياً.')});
     return zipStored(files);
   }
   async function downloadThemePack(){
@@ -241,7 +353,7 @@
       link.download=`wallpaperhub-theme-${Date.now()}.zip`;
       link.click();
       setTimeout(()=>URL.revokeObjectURL(url),2500);
-      toast('تم تنزيل حزمة الخلفية و9 أيقونات منفصلة');
+      toast('تم تنزيل حزمة الهاتف مع الخلفية والأيقونات وجميع الإعدادات');
     }catch(error){
       console.error('STUDIO THEME EXPORT:',error);
       toast(error.message||'تعذر إنشاء حزمة الثيم');
@@ -251,6 +363,139 @@
     }
   }
     
+  function downloadBlob(blob,fileName){
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+  }
+  function downloadThemeConfig(){
+    try{
+      readControls();
+      const payload={
+        format:'wallpaperhub-theme',
+        version:2,
+        name:state.title,
+        createdAt:new Date().toISOString(),
+        config:designConfig()
+      };
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+      downloadBlob(blob,'wallpaperhub-theme-settings.json');
+      toast('تم تصدير جميع إعدادات الثيم إلى ملف JSON');
+    }catch(error){
+      console.error('STUDIO CONFIG EXPORT:',error);
+      toast(error.message||'تعذر تصدير الإعدادات');
+    }
+  }
+  async function unzipThemeConfig(file){
+    const buffer=await file.arrayBuffer();
+    const view=new DataView(buffer);
+    const bytes=new Uint8Array(buffer);
+    const decoder=new TextDecoder();
+    let offset=0;
+    let manifestText='';
+    let configText='';
+    while(offset+30<=bytes.length&&view.getUint32(offset,true)===0x04034b50){
+      const flags=view.getUint16(offset+6,true);
+      const method=view.getUint16(offset+8,true);
+      const compressedSize=view.getUint32(offset+18,true);
+      const nameLength=view.getUint16(offset+26,true);
+      const extraLength=view.getUint16(offset+28,true);
+      const nameStart=offset+30;
+      const name=decoder.decode(bytes.subarray(nameStart,nameStart+nameLength));
+      const dataStart=nameStart+nameLength+extraLength;
+      const dataEnd=dataStart+compressedSize;
+      if(dataEnd>bytes.length)throw new Error('ملف ZIP غير مكتمل أو تالف');
+      if(name==='theme-config.json'||name==='manifest.json'){
+        let payload=bytes.subarray(dataStart,dataEnd);
+        if(method===8){
+          if(typeof DecompressionStream!=='function')throw new Error('متصفحك لا يدعم فك ضغط هذه الحزمة؛ نزّل ملف JSON بدلاً منها');
+          const stream=new Blob([payload]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+          payload=new Uint8Array(await new Response(stream).arrayBuffer());
+        }else if(method!==0){
+          throw new Error('صيغة ضغط ZIP غير مدعومة. استخدم حزمة WallpaperHub الأصلية.');
+        }
+        const textValue=decoder.decode(payload);
+        if(name==='theme-config.json')configText=textValue;
+        else manifestText=textValue;
+      }
+      offset=dataEnd;
+      if(flags&8)throw new Error('حزمة ZIP تستخدم تنسيقاً غير مدعوم. أعد تنزيلها من WallpaperHub.');
+    }
+    const raw=configText||manifestText;
+    if(!raw)throw new Error('لم نعثر على إعدادات الثيم داخل ملف ZIP');
+    return JSON.parse(raw);
+  }
+  function normalizeImportedTheme(data){
+    if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('ملف الثيم غير صالح');
+    const config=data.config||data.theme?.config||data.manifest?.config||data;
+    if(!config||typeof config!=='object'||Array.isArray(config))throw new Error('لا يحتوي الملف على إعدادات قابلة للاستيراد');
+    if(config.format==='wallpaperhub-theme'&&config.config) return normalizeImportedTheme(config);
+    const allowedTools=['wallpaper','theme','icons','widget','lock'];
+    const safe={
+      ...config,
+      tool:allowedTools.includes(config.tool)?config.tool:'wallpaper',
+      title:String(data.name||data.title||config.title||'ثيم مستورد').slice(0,60)
+    };
+    if(safe.backgroundUrl){
+      try{
+        const url=new URL(String(safe.backgroundUrl),location.origin);
+        if(url.protocol!=='https:')safe.backgroundUrl=null;
+        else safe.backgroundUrl=url.href;
+      }catch(_error){safe.backgroundUrl=null}
+    }
+    return safe;
+  }
+  async function importThemeFile(file){
+    if(!file)return;
+    if(file.size>35*1024*1024){toast('حجم ملف الثيم كبير جداً؛ الحد الأقصى 35MB');return}
+    const button=$('#importThemeButton');
+    if(button)button.disabled=true;
+    try{
+      let parsed;
+      const isZip=/\.zip$|\.whubtheme$/i.test(file.name)||file.type==='application/zip';
+      if(isZip)parsed=await unzipThemeConfig(file);
+      else{
+        if(file.size>2*1024*1024)throw new Error('ملف إعدادات JSON أكبر من الحجم المتوقع');
+        parsed=JSON.parse(await file.text());
+      }
+      const config=normalizeImportedTheme(parsed);
+      await loadDraftIntoEditor({id:null,title:config.title||'ثيم مستورد',category:config.tool,config:config},{asCopy:true});
+      toast('تم استيراد الثيم بكل إعداداته. هذه نسخة خاصة بك.');
+      history.replaceState(null,'',location.pathname+location.hash);
+    }catch(error){
+      console.error('STUDIO THEME IMPORT:',error);
+      toast(error.message||'تعذر استيراد ملف الثيم');
+    }finally{
+      if(button)button.disabled=false;
+      $('#importThemeFile').value='';
+    }
+  }
+  async function loadSharedTheme(themeId){
+    const id=String(themeId||'').trim();
+    if(!/^[0-9a-f-]{20,60}$/i.test(id)){toast('رابط الثيم غير صالح');return}
+    if(!state.client){toast('تعذر الاتصال باستوديو الثيمات');return}
+    try{
+      toast('جاري تحميل إعدادات الثيم المشترك...');
+      const {data,error}=await state.client.from('studio_designs')
+        .select('id,title,category,config,image_url,created_at')
+        .eq('id',id)
+        .eq('visibility','published')
+        .single();
+      if(error||!data)throw error||new Error('لم نعثر على هذا الثيم أو لم يعد منشوراً');
+      await loadDraftIntoEditor(data,{asCopy:true});
+      history.replaceState(null,'',location.pathname+location.hash);
+      toast('تم استيراد ثيم المجتمع كنسخة مستقلة. يمكنك تعديله وحفظه باسمك.');
+    }catch(error){
+      console.warn('STUDIO SHARED THEME IMPORT:',error);
+      toast(error.message||'تعذر استيراد الثيم المشترك');
+    }
+  }
+
   function reset(){
     state.palette='violet';state.preset='aurora';state.title='لمسة بنفسجية';state.subtitle='اصنع لحظتك الخاصة';state.glow=65;state.clock=true;state.clockStyle='digital';state.clockFormat='24';state.clockSize=100;state.clockColor='auto';state.showDate=true;state.showStatusBar=true;state.screenMode=state.tool==='icons'||state.tool==='theme'||state.tool==='widget'?'home':'lock';state.iconShape='rounded';state.iconScale=100;state.showIconLabels=true;state.clockX=540;state.clockY=400;state.appsX=540;state.appsY=1050;state.subtitleX=540;state.subtitleY=1740;state.savedId=null;state.shareImageUrl=null;state.shareThemeUrl=null;state.shareSaved=false;state.shareConfigKey=null;state.successfulDestinations=new Set();
     $('#designTitle').value=state.title;$('#designSubtitle').value=state.subtitle;$('#glowStrength').value='65';$('#showClock').checked=true;$('#clockStyle').value='digital';$('#clockFormat').value='24';$('#clockSize').value='100';$('#clockColor').value='auto';$('#showDate').checked=true;$('#showStatusBar').checked=true;$('#iconShape').value='rounded';$('#iconScale').value='100';$('#showIconLabels').checked=true;
@@ -420,9 +665,23 @@
   $('#chooseBackgroundImage').addEventListener('click',()=>{if(!state.user){toast('سجّل الدخول أولاً');location.href='/login';return}$('#backgroundImageInput').click()});
   $('#backgroundImageInput').addEventListener('change',event=>onChooseBackground(event.target.files?.[0]));
   $('#removeBackgroundImage').addEventListener('click',()=>{loadBackground('').then(()=>{$('#removeBackgroundImage').classList.add('hidden');$('#backgroundImageStatus').textContent='JPG · PNG · WEBP · AVIF — حتى 15MB';toast('تمت إزالة الصورة من التصميم')})});
-  $('#downloadDesign').addEventListener('click',download);$('#downloadThemePack').addEventListener('click',downloadThemePack);$('#saveDraft').addEventListener('click',()=>saveDesign('draft'));$('#publishDesign').addEventListener('click',openPublishModal);$('#resetDesign').addEventListener('click',reset);$('#studioProfile').addEventListener('click',()=>{location.href=state.user?'/profile':'/login'});
+  $('#downloadDesign').addEventListener('click',download);
+  $('#downloadThemePack').addEventListener('click',downloadThemePack);
+  $('#downloadThemeConfig').addEventListener('click',downloadThemeConfig);
+  $('#importThemeButton').addEventListener('click',()=>$('#importThemeFile').click());
+  $('#importThemeFile').addEventListener('change',event=>importThemeFile(event.target.files?.[0]));
+  $('#gallerySearch').addEventListener('input',renderGallery);
+  $('.gallery-filter').forEach(button=>button.addEventListener('click',()=>{
+    state.galleryFilter=button.dataset.galleryFilter||'all';
+    syncChoice('.gallery-filter','galleryFilter',state.galleryFilter,'is-active');
+    renderGallery();
+  }));
+  $('#saveDraft').addEventListener('click',()=>saveDesign('draft'));
+  $('#publishDesign').addEventListener('click',openPublishModal);
+  $('#resetDesign').addEventListener('click',reset);
+  $('#studioProfile').addEventListener('click',()=>{location.href=state.user?'/profile':'/login'});
   $('#closePublishDestinations').addEventListener('click',closePublishModal);$('#publishDestinationsModal').addEventListener('click',event=>{if(event.target===$('#publishDestinationsModal'))closePublishModal()});$('#confirmMultiPublish').addEventListener('click',publishToSelectedDestinations);$('#selectAllForums').addEventListener('click',()=>{$$('#publishForumChoices input[type="checkbox"]').forEach(input=>input.checked=true)});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#publishDestinationsModal').classList.contains('hidden'))closePublishModal()});
-  syncChoice('.tool-card','tool',state.tool,'is-active');syncChoice('.screen-mode-button','screenMode',state.screenMode,'is-active');syncChoice('.palette-swatch','palette',state.palette,'selected');syncChoice('.preset-button','preset',state.preset,'selected');
+  syncChoice('.tool-card','tool',state.tool,'is-active');syncChoice('.screen-mode-button','screenMode',state.screenMode,'is-active');syncChoice('.palette-swatch','palette',state.palette,'selected');syncChoice('.preset-button','preset',state.preset,'selected');syncChoice('.gallery-filter','galleryFilter',state.galleryFilter,'is-active');
   render();if(document.fonts?.ready)document.fonts.ready.then(render).catch(()=>{});let lastLiveClockStamp='';setInterval(()=>{const now=new Date(),stamp=state.clockStyle==='analog'?`a-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`:`d-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}`;if(stamp!==lastLiveClockStamp){lastLiveClockStamp=stamp;render()}},1000);initSupabase();
 })();

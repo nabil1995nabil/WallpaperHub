@@ -32,6 +32,8 @@
     const imageUrl=safeUrl(data.image_url);
     if(!imageUrl)throw new Error("صورة التصميم غير متاحة");
     $("#creationPreviewImage").src=imageUrl;
+    const applyLink=$("#applyCreationTheme");
+    if(applyLink)applyLink.href="/studio.html?import="+encodeURIComponent(data.id);
     $("#creationPreviewImage").alt=data.title||"إبداع من المجتمع";
     text("#creationTitle",data.title||"إبداع من المجتمع");
     text("#creationDescription",c.subtitle||"تصميم شاركه أحد أعضاء مجتمع WallpaperHub.");

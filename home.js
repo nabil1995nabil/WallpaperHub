@@ -777,7 +777,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =========================================================
-   Community Press — published Studio designs
+   Community Creations — reads published Studio designs
 ========================================================= */
 (function(){
     "use strict";
@@ -788,22 +788,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if(!lanes.lock||!lanes.home||!lanes.wallpaper)return;
 
-    const editorial={
-        lock:{label:"شاشة القفل",kicker:"LOCK SCREEN",mark:"01"},
-        home:{label:"الشاشة الرئيسية",kicker:"HOME SCREEN",mark:"02"},
-        wallpaper:{label:"الخلفيات",kicker:"WALLPAPER ART",mark:"03"}
-    };
-
     function showState(kind,message){
-        const lane=lanes[kind];
-        if(!lane)return;
+        const lane=lanes[kind];if(!lane)return;
         lane.replaceChildren();
         const state=document.createElement("div");
-        state.className="community-paper-state";
+        state.className="community-creation-state";
         state.textContent=message;
         lane.appendChild(state);
     }
-
     function creationKind(item){
         const config=item.config||{};
         const mode=String(config.screenMode||"").toLowerCase();
@@ -813,27 +805,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if(["theme","icons","widget"].includes(tool))return "home";
         return "wallpaper";
     }
-
     function safeImageUrl(value){
         try{
             const url=new URL(String(value||""),window.location.origin);
             return ["https:","http:"].includes(url.protocol)?url.href:"";
         }catch(_error){return ""}
     }
-
-    function makeCard(item,kind){
+    function makeCard(item){
         const href=safeImageUrl(item.image_url);
         if(!href)return null;
-
-        const info=editorial[kind]||editorial.wallpaper;
         const link=document.createElement("a");
-        link.className="community-paper-story";
+        link.className="community-creation-card";
         link.href="community-creation.html?id="+encodeURIComponent(item.id);
-        link.setAttribute("aria-label",(item.title||"إبداع من المجتمع")+" — عرض تفاصيل الإبداع");
-
-        const imageFrame=document.createElement("span");
-        imageFrame.className="community-paper-story-image";
-
+        link.setAttribute("aria-label",(item.title||"إبداع من المجتمع")+" — عرض التفاصيل وتحميل الثيم");
         const img=document.createElement("img");
         img.src=href;
         img.alt=item.title||"إبداع من مجتمع WallpaperHub";
@@ -841,68 +825,34 @@ document.addEventListener("DOMContentLoaded", () => {
         img.decoding="async";
         img.referrerPolicy="no-referrer";
         img.addEventListener("error",()=>link.remove(),{once:true});
-
-        const index=document.createElement("span");
-        index.textContent="W.H / "+info.mark;
-        imageFrame.append(img,index);
-
-        const copy=document.createElement("span");
-        copy.className="community-paper-story-copy";
-
-        const kicker=document.createElement("span");
-        kicker.className="community-paper-story-kicker";
-        kicker.textContent=info.kicker;
-
+        const meta=document.createElement("span");
+        meta.className="community-creation-card-meta";
         const title=document.createElement("strong");
         title.textContent=item.title||"إبداع من المجتمع";
-
-        const meta=document.createElement("span");
-        meta.className="community-paper-story-meta";
-
-        const date=document.createElement("span");
+        const date=document.createElement("small");
         const parsed=item.created_at?new Date(item.created_at):null;
         date.textContent=parsed&&!Number.isNaN(parsed.getTime())?parsed.toLocaleDateString("ar-MA"):"WallpaperHub";
-
-        const open=document.createElement("span");
-        open.className="community-paper-story-link";
-        open.textContent="عرض التفاصيل ←";
-        meta.append(date,open);
-        copy.append(kicker,title,meta);
-
+        meta.append(title,date);
         if(item.config?.themeUrl){
-            const pack=document.createElement("span");
-            pack.className="community-paper-pack";
-            pack.textContent="ملف الثيم متاح";
-            copy.appendChild(pack);
+            const pack=document.createElement("small");
+            pack.className="community-creation-pack";
+            pack.textContent="📦 ملف الثيم متاح";
+            meta.appendChild(pack);
         }
-
-        link.append(imageFrame,copy);
+        link.append(img,meta);
         return link;
     }
-
     function renderLane(kind,items){
-        const lane=lanes[kind];
-        const count=document.querySelector('[data-creation-count="'+kind+'"]');
-        const cards=(Array.isArray(items)?items:[])
-            .slice(0,4)
-            .map(item=>makeCard(item,kind))
-            .filter(Boolean);
-
+        const lane=lanes[kind],count=document.querySelector('[data-creation-count="'+kind+'"]');
+        const cards=items.map(makeCard).filter(Boolean).slice(0,10);
         lane.replaceChildren();
-        if(count){
-            const total=Array.isArray(items)?items.length:0;
-            count.textContent=total>cards.length
-                ?cards.length+" من "+total
-                :cards.length+" مواد";
-        }
-
+        if(count)count.textContent=String(cards.length)+" تصاميم";
         if(!cards.length){
-            showState(kind,"لا توجد إبداعات منشورة في هذا القسم بعد. كن أول من يضيف عملاً إلى صفحات الجريدة.");
+            showState(kind,"لا توجد إبداعات منشورة في هذا القسم بعد. كن أول من يشارك تصميمه!");
             return;
         }
         cards.forEach(card=>lane.appendChild(card));
     }
-
     async function loadCommunityCreations(){
         try{
             const configResponse=await fetch("/api/supabase/config",{cache:"no-store"});
@@ -911,7 +861,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const base=String(config.url||"").replace(/\/+$/,"");
             const anonKey=String(config.anonKey||"");
             if(!base||!anonKey)throw new Error("إعدادات قاعدة البيانات غير مكتملة");
-
             const query=new URLSearchParams({
                 select:"id,title,category,config,image_url,created_at",
                 visibility:"eq.published",
@@ -924,7 +873,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 cache:"no-store"
             });
             if(!response.ok)throw new Error("تعذر تحميل إبداعات المجتمع");
-
             const records=await response.json();
             const groups={lock:[],home:[],wallpaper:[]};
             (Array.isArray(records)?records:[]).forEach(item=>{
@@ -934,15 +882,11 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.keys(groups).forEach(kind=>renderLane(kind,groups[kind]));
         }catch(error){
             console.warn("COMMUNITY CREATIONS:",error);
-            Object.keys(lanes).forEach(kind=>showState(kind,"تعذر تحميل هذا العمود مؤقتاً. حاول تحديث الصفحة لاحقاً."));
+            Object.keys(lanes).forEach(kind=>showState(kind,"المعرض غير متاح مؤقتاً. حاول تحديث الصفحة بعد قليل."));
         }
     }
-
-    if(document.readyState==="loading"){
-        document.addEventListener("DOMContentLoaded",loadCommunityCreations,{once:true});
-    }else{
-        loadCommunityCreations();
-    }
+    if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadCommunityCreations,{once:true});
+    else loadCommunityCreations();
 })();
 
 // Home header: hide on downward scroll and reveal on the first small upward movement.

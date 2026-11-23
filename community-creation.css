@@ -82,3 +82,15 @@ button{font:inherit}
 
 body.wh-page-community-creation .creation-heading h1,body.wh-page-community-creation .creation-info-panel h2{color:var(--purple)}
 body.wh-page-community-creation .creation-heading p,body.wh-page-community-creation .creation-description,body.wh-page-community-creation .creation-info-grid small,body.wh-page-community-creation .creation-preview-head small,body.wh-page-community-creation .creation-preview-foot,body.wh-page-community-creation .creation-downloads>p{color:var(--muted)}
+
+
+/* Theme import: one-click editable copy in WallpaperHub Studio */
+.creation-apply-block{display:grid;gap:7px;margin-top:15px}
+.creation-apply-theme{display:flex;align-items:center;gap:10px;min-height:61px;padding:10px 12px;color:#fff;background:linear-gradient(110deg,#6153db,#8b6ce8);border:1px solid rgba(112,91,213,.22);border-radius:13px;box-shadow:0 9px 20px rgba(105,82,203,.16);transition:transform .18s,box-shadow .18s}
+.creation-apply-theme:hover{transform:translateY(-2px);box-shadow:0 13px 25px rgba(105,82,203,.22)}
+.creation-apply-theme>.material-icons-round:first-child{display:grid;width:35px;height:35px;flex:0 0 35px;place-items:center;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);border-radius:10px;font-size:18px}
+.creation-apply-theme>span:nth-child(2){display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
+.creation-apply-theme b{font-size:10px;font-weight:900}
+.creation-apply-theme small{color:rgba(255,255,255,.78);font-size:8px;line-height:1.6}
+.creation-apply-theme .apply-arrow{flex:0 0 auto;font-size:17px}
+.creation-apply-note{color:var(--muted);font-size:8px;line-height:1.7;text-align:center}
