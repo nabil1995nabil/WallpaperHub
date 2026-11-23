@@ -544,7 +544,7 @@ async function videoExport(){
  if(!videoState.clips.length)return note("أضف فيديو أولًا");
  if(!window.MediaRecorder||!c.captureStream)return note("التصدير غير مدعوم في هذا المتصفح");
  const btn=$("#videoExport"),progress=$("#videoExportProgress"),status=$("#videoExportStatus");if(btn)btn.disabled=true;if(progress)progress.value=0;if(status)status.textContent="تحضير المشروع...";
- let canvasStream=null,sourceStream=null,musicStream=null,recordStream=null,rec=null,audioContext=null,audioDestination=null;
+ let canvasStream=null,sourceStream=null,musicStream=null,recordStream=null,rec=null,audioContext=null,audioDestination=null,musicTrack=false,audioWarning="";
  try{
   videoState.playing=false;videoState.exporting=true;if(videoState.raf)cancelAnimationFrame(videoState.raf);videoState.raf=0;
   videoEl.pause();videoMusicPlayer?.pause();canvasStream=c.captureStream(30);const tracks=[...canvasStream.getVideoTracks()];
@@ -559,16 +559,18 @@ async function videoExport(){
       audioContext.createMediaStreamSource(sourceStream).connect(audioDestination);
       audioContext.createMediaStreamSource(musicStream).connect(audioDestination);
       await audioContext.resume();
-      const mixed=audioDestination.stream.getAudioTracks()[0];if(mixed)tracks.push(mixed);
+      const mixed=audioDestination.stream.getAudioTracks()[0];if(mixed){tracks.push(mixed);musicTrack=true}
     }catch(error){
       console.warn("Audio mixing fallback:",error);
       const original=sourceStream.getAudioTracks()[0];if(original)tracks.push(original);
-      if(status)status.textContent="تعذر دمج الموسيقى؛ سيتم استخدام صوت الفيديو الأصلي فقط.";
+      audioWarning="تعذر دمج الموسيقى؛ سيتم استخدام صوت الفيديو الأصلي فقط.";
     }
   }else{
     const original=sourceStream?.getAudioTracks?.()[0],music=musicStream?.getAudioTracks?.()[0];
-    if(original)tracks.push(original);else if(music)tracks.push(music);
-    if(original&&music&&status)status.textContent="تنبيه: المتصفح لا يدعم مزج مسارين صوتيين؛ سيتم استخدام الصوت الأصلي فقط.";
+    if(original)tracks.push(original);
+    else if(music){tracks.push(music);musicTrack=true;}
+    if(original&&music)audioWarning="هذا المتصفح لا يمزج مسارين صوتيين؛ تم تصدير صوت الفيديو الأصلي فقط.";
+    else if(videoMusicObjectUrl&&!music)audioWarning="المتصفح لا يتيح التقاط ملف الموسيقى؛ تم تصدير الفيديو دون الموسيقى.";
   }
   const formats=["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];const mime=formats.find(t=>MediaRecorder.isTypeSupported(t));if(!mime)throw new Error("هذا المتصفح لا يدعم صيغة فيديو قابلة للتصدير");
   const ext=mime.startsWith("video/mp4")?"mp4":"webm";recordStream=new MediaStream(tracks);rec=new MediaRecorder(recordStream,{mimeType:mime,videoBitsPerSecond:10000000});
@@ -582,7 +584,7 @@ async function videoExport(){
    await new Promise(resolve=>{const tick=()=>{videoDrawFrame();videoUpdateTimeline();const local=Math.max(0,Math.min(clip.end-clip.start,videoEl.currentTime-clip.start))/(clip.speed||1);const pct=Math.min(100,((elapsed+local)/total)*100);if(progress)progress.value=pct;if(status)status.textContent="تصدير الفيديو · "+Math.round(pct)+"%";if(videoEl.currentTime>=clip.end-.03||videoEl.ended){videoEl.pause();resolve();return}requestAnimationFrame(tick)};tick()});
    elapsed+=Math.max(0,clip.end-clip.start)/(clip.speed||1);
   }
-  rec.stop();await done;const blob=new Blob(chunks,{type:mime});if(!blob.size)throw new Error("ملف التصدير فارغ");const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="wallpaperhub-video."+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);if(progress)progress.value=100;if(status)status.textContent="اكتمل التصدير · "+ext.toUpperCase();note("تم تصدير الفيديو بصيغة "+ext.toUpperCase());
+  rec.stop();await done;const blob=new Blob(chunks,{type:mime});if(!blob.size)throw new Error("ملف التصدير فارغ");const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="wallpaperhub-video."+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);if(progress)progress.value=100;if(status)status.textContent="اكتمل التصدير · "+ext.toUpperCase();note("تم تصدير الفيديو بصيغة "+ext.toUpperCase());if(audioWarning)note(audioWarning);
  }catch(error){console.error("Video export error:",error);if(status)status.textContent="تعذر التصدير: "+(error?.message||"خطأ غير معروف");note(error?.message||"تعذر تصدير الفيديو");try{if(rec&&rec.state!=="inactive")rec.stop()}catch(_error){}}
  finally{
   try{videoEl.pause();videoMusicPlayer?.pause()}catch(_error){}
