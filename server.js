@@ -7124,10 +7124,13 @@ function createTokenValue(){
     return "wall_live_" + crypto.randomBytes(32).toString("hex");
 }
 
+function hashApiToken(value){
+    return crypto.createHash("sha256").update(String(value || ""), "utf8").digest("hex");
+}
+
 function getPublicSupabaseKey(){
     const explicit = String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || "").trim();
     if(explicit) return explicit;
-
     const legacy = String(process.env.SUPABASE_KEY || "").trim();
     if(!legacy || legacy.startsWith("sb_secret_")) return "";
     try{
@@ -7145,8 +7148,9 @@ function normalizeAllowedOrigin(value){
     const raw = String(value || "").trim();
     if(!raw) return "";
     try{
-        const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
+        const url = new URL(raw.includes("://") ? raw : "https://" + raw);
         if(!["http:","https:"].includes(url.protocol)) return "";
+        if(url.username || url.password) return "";
         return url.origin.toLowerCase();
     }catch(_error){
         return "";
@@ -7163,349 +7167,240 @@ function requestOrigin(req){
     return "";
 }
 
+const DEVELOPER_API_DAILY_LIMITS = new Set([20,50,100,200]);
+const DEVELOPER_API_MAX_ACTIVE_TOKENS = 5;
+const DEVELOPER_API_TOKEN_COLUMNS =
+    "id,user_id,app_name,domain,daily_limit,requests,last_request_date,last_used,active,created_at";
 
-// ======================================
-// Developer API Tokens - Supabase Auth
-// ======================================
-
-function tokenResponse(token, includeSecret = false){
-    const result = {
-        id: token.id,
-        userId: token.user_id,
-        appName: token.app_name,
-        domain: token.domain,
-        limit: 20,
-        requests: token.requests || 0,
-        lastRequestDate: token.last_request_date,
-        lastUsed: token.last_used,
-        lastIp: token.last_ip,
-        active: Boolean(token.active),
-        created: token.created_at
+function tokenResponse(token){
+    return {
+        id:token.id,
+        appName:token.app_name || "تطبيق بدون اسم",
+        domain:token.domain || "",
+        dailyLimit:Number(token.daily_limit) || 200,
+        requests:Number(token.requests) || 0,
+        lastRequestDate:token.last_request_date || null,
+        lastUsed:token.last_used || null,
+        active:Boolean(token.active),
+        created:token.created_at || null
     };
-    if(includeSecret) result.token = token.token;
-    return result;
 }
 
-app.post("/api/tokens/create", async (req, res) => {
-    try {
-        const authenticatedUser = await getAuthenticatedUser(req);
-        if(!authenticatedUser) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+function setDeveloperPrivateResponse(res){
+    res.set("Cache-Control","private, no-store, max-age=0");
+    res.set("Pragma","no-cache");
+}
 
-        const appName = String(req.body?.appName || "My App").trim().slice(0, 100);
+app.post("/api/tokens/create", async (req,res) => {
+    setDeveloperPrivateResponse(res);
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,code:"AUTH_REQUIRED",message:"سجّل الدخول أولاً."});
+
+        const appName = String(req.body?.appName || "").trim();
         const domainInput = String(req.body?.domain || "").trim();
         const domain = normalizeAllowedOrigin(domainInput);
-        if(!appName) return res.status(400).json({success:false,message:"اسم التطبيق مطلوب"});
-        if(domainInput && !domain) return res.status(400).json({success:false,message:"النطاق غير صالح"});
+        const dailyLimit = Number(req.body?.dailyLimit);
 
-        const tokenData = {
-            id: Date.now(),
-            user_id: String(authenticatedUser.id),
-            app_name: appName,
+        if(appName.length < 2 || appName.length > 60){
+            return res.status(400).json({success:false,code:"INVALID_APP_NAME",message:"اسم التطبيق يجب أن يكون بين حرفين و60 حرفاً."});
+        }
+        if(!domainInput || !domain){
+            return res.status(400).json({success:false,code:"INVALID_DOMAIN",message:"أدخل نطاقاً صحيحاً يبدأ بـ https://"});
+        }
+        if(!DEVELOPER_API_DAILY_LIMITS.has(dailyLimit)){
+            return res.status(400).json({success:false,code:"INVALID_DAILY_LIMIT",message:"اختر حداً يومياً من الخيارات المتاحة."});
+        }
+
+        const {count,error:countError} = await supabase
+            .from("api_tokens")
+            .select("id",{count:"exact",head:true})
+            .eq("user_id",String(user.id))
+            .eq("active",true);
+        if(countError) throw countError;
+        if(Number(count || 0) >= DEVELOPER_API_MAX_ACTIVE_TOKENS){
+            return res.status(429).json({
+                success:false,
+                code:"ACTIVE_TOKEN_LIMIT",
+                message:"وصلت إلى الحد الأقصى: 5 مفاتيح نشطة. عطّل مفتاحاً قديماً قبل إنشاء آخر."
+            });
+        }
+
+        const secret = createTokenValue();
+        const payload = {
+            user_id:String(user.id),
+            app_name:appName,
             domain,
-            token: createTokenValue(),
-            daily_limit: 20,
-            requests: 0,
-            last_request_date: null,
-            last_used: null,
-            last_ip: null,
-            active: true,
-            created_at: new Date().toISOString()
+            token:"",
+            token_hash:hashApiToken(secret),
+            daily_limit:dailyLimit,
+            requests:0,
+            last_request_date:null,
+            last_used:null,
+            last_ip:null,
+            active:true
         };
 
-        const { data, error } = await supabase.from("api_tokens").insert([tokenData]).select("*").single();
-        if(error) throw error;
-
-        return res.json({success:true,token:tokenResponse(data,true),warning:"احفظ هذا المفتاح الآن. لن يتم عرضه كاملًا مرة أخرى."});
-    } catch(error) {
-        console.log("CREATE TOKEN ERROR:", error);
-        return res.status(500).json({success:false,message:error.message || "Failed to create token"});
-    }
-});
-
-app.get("/api/tokens/:userId", async (req, res) => {
-    try {
-        const authenticatedUser = await getAuthenticatedUser(req);
-        if(!authenticatedUser) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
-
-        const { data, error } = await supabase
+        const {data,error} = await supabase
             .from("api_tokens")
-            .select("id,user_id,app_name,domain,daily_limit,requests,last_request_date,last_used,last_ip,active,created_at")
-            .eq("user_id", String(authenticatedUser.id))
-            .order("created_at", {ascending:false});
+            .insert(payload)
+            .select(DEVELOPER_API_TOKEN_COLUMNS)
+            .single();
         if(error) throw error;
-        return res.json((data || []).map(token => tokenResponse(token,false)));
-    } catch(error) {
-        console.log("GET TOKEN ERROR:", error);
-        return res.status(500).json([]);
+
+        return res.status(201).json({
+            success:true,
+            token:{...tokenResponse(data),token:secret},
+            message:"احفظ المفتاح الآن؛ لن يظهر كاملاً مرة أخرى."
+        });
+    }catch(error){
+        console.error("CREATE DEVELOPER TOKEN ERROR:",error?.message || error);
+        return res.status(500).json({success:false,code:"TOKEN_CREATE_FAILED",message:"تعذر إنشاء المفتاح حالياً. حاول مرة أخرى."});
     }
 });
 
-app.delete("/api/tokens/:id", async (req, res) => {
-    try {
-        const authenticatedUser = await getAuthenticatedUser(req);
-        if(!authenticatedUser) return res.status(401).json({success:false,message:"يجب تسجيل الدخول"});
+app.get("/api/tokens/:userId", async (req,res) => {
+    setDeveloperPrivateResponse(res);
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,code:"AUTH_REQUIRED",message:"سجّل الدخول أولاً."});
+
+        // Ignore the path UID completely: ownership always comes from the verified session.
+        const {data,error} = await supabase
+            .from("api_tokens")
+            .select(DEVELOPER_API_TOKEN_COLUMNS)
+            .eq("user_id",String(user.id))
+            .order("created_at",{ascending:false})
+            .limit(20);
+        if(error) throw error;
+        return res.json((data || []).map(tokenResponse));
+    }catch(error){
+        console.error("LIST DEVELOPER TOKENS ERROR:",error?.message || error);
+        return res.status(500).json({success:false,code:"TOKEN_LIST_FAILED",message:"تعذر تحميل مفاتيحك حالياً."});
+    }
+});
+
+app.patch("/api/tokens/:id/status", async (req,res) => {
+    setDeveloperPrivateResponse(res);
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,code:"AUTH_REQUIRED",message:"سجّل الدخول أولاً."});
 
         const id = Number(req.params.id);
-        if(!Number.isFinite(id) || id <= 0) return res.status(400).json({success:false,message:"Invalid Token ID"});
+        if(!Number.isSafeInteger(id) || id <= 0){
+            return res.status(400).json({success:false,code:"INVALID_TOKEN_ID",message:"معرّف المفتاح غير صالح."});
+        }
+        if(typeof req.body?.active !== "boolean"){
+            return res.status(400).json({success:false,code:"INVALID_STATUS",message:"حالة المفتاح غير صالحة."});
+        }
 
-        const { data, error } = await supabase
+        const {data,error} = await supabase
+            .from("api_tokens")
+            .update({active:req.body.active})
+            .eq("id",id)
+            .eq("user_id",String(user.id))
+            .select("id,active")
+            .maybeSingle();
+        if(error) throw error;
+        if(!data) return res.status(404).json({success:false,code:"TOKEN_NOT_FOUND",message:"لم نعثر على هذا المفتاح في حسابك."});
+        return res.json({success:true,id:data.id,active:Boolean(data.active)});
+    }catch(error){
+        console.error("UPDATE DEVELOPER TOKEN ERROR:",error?.message || error);
+        return res.status(500).json({success:false,code:"TOKEN_UPDATE_FAILED",message:"تعذر تحديث المفتاح حالياً."});
+    }
+});
+
+app.delete("/api/tokens/:id", async (req,res) => {
+    setDeveloperPrivateResponse(res);
+    try{
+        const user = await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,code:"AUTH_REQUIRED",message:"سجّل الدخول أولاً."});
+
+        const id = Number(req.params.id);
+        if(!Number.isSafeInteger(id) || id <= 0){
+            return res.status(400).json({success:false,code:"INVALID_TOKEN_ID",message:"معرّف المفتاح غير صالح."});
+        }
+
+        const {data,error} = await supabase
             .from("api_tokens")
             .delete()
-            .eq("id", id)
-            .eq("user_id", String(authenticatedUser.id))
+            .eq("id",id)
+            .eq("user_id",String(user.id))
             .select("id")
             .maybeSingle();
         if(error) throw error;
-        if(!data) return res.status(404).json({success:false,message:"Token not found"});
+        if(!data) return res.status(404).json({success:false,code:"TOKEN_NOT_FOUND",message:"لم نعثر على هذا المفتاح في حسابك."});
         return res.json({success:true,id});
-    } catch(error) {
-        console.log("DELETE TOKEN ERROR:", error);
-        return res.status(500).json({success:false,message:error.message || "Failed to delete token"});
+    }catch(error){
+        console.error("DELETE DEVELOPER TOKEN ERROR:",error?.message || error);
+        return res.status(500).json({success:false,code:"TOKEN_DELETE_FAILED",message:"تعذر حذف المفتاح حالياً."});
     }
 });
 
-// ======================================
-// API Token Middleware - Supabase
-// ======================================
-
-async function verifyApiToken(
-    req,
-    res,
-    next
-){
-
-    try {
-
-        const token =
-            req.headers["x-api-key"];
-
-
-        // ======================================
-        // منع Token داخل الرابط
-        // ======================================
-
-        if(req.query.token){
-
-            return res.status(400).json({
-
-                success:
-                    false,
-
-                message:
-                    "Use X-API-Key header only"
-
-            });
-
+// API-key authentication for public developer endpoints.
+// The API key itself is never returned by list endpoints and is stored as SHA-256 only.
+async function verifyApiToken(req,res,next){
+    setDeveloperPrivateResponse(res);
+    try{
+        const queryKeys = Object.keys(req.query || {}).map(key=>key.toLowerCase());
+        if(queryKeys.some(key=>["token","api_key","apikey","key"].includes(key))){
+            return res.status(400).json({success:false,code:"API_KEY_IN_QUERY",message:"أرسل المفتاح في ترويسة X-API-Key فقط."});
         }
 
-
-        // ======================================
-        // Token غير موجود
-        // ======================================
-
-        if(!token){
-
-            return res.status(401).json({
-
-                success:
-                    false,
-
-                message:
-                    "API Token required"
-
-            });
-
+        const supplied = String(req.get("X-API-Key") || "").trim();
+        if(!supplied || supplied.length < 20 || supplied.length > 128 || !supplied.startsWith("wall_live_")){
+            return res.status(401).json({success:false,code:"API_KEY_REQUIRED",message:"مفتاح API غير موجود أو غير صالح."});
         }
 
+        const digest = hashApiToken(supplied);
+        const {data:hashedToken,error:hashError} = await supabase
+            .from("api_tokens")
+            .select(DEVELOPER_API_TOKEN_COLUMNS)
+            .eq("token_hash",digest)
+            .maybeSingle();
+        if(hashError) throw hashError;
 
-        // ======================================
-        // البحث في Supabase
-        // ======================================
-
-        const {
-            data: apiToken,
-            error
-        } =
-            await supabase
+        let apiToken = hashedToken || null;
+        if(!apiToken){
+            // Compatibility bridge for old plaintext keys; upgrade and erase the legacy value on first use.
+            const {data:legacyToken,error:legacyError} = await supabase
                 .from("api_tokens")
-                .select("*")
-                .eq(
-                    "token",
-                    token
-                )
+                .select(DEVELOPER_API_TOKEN_COLUMNS + ",token")
+                .eq("token",supplied)
                 .maybeSingle();
-
-
-        if(error){
-
-            throw error;
-
+            if(legacyError) throw legacyError;
+            if(legacyToken && legacyToken.token === supplied){
+                apiToken = {...legacyToken};
+                delete apiToken.token;
+                const {error:upgradeError} = await supabase
+                    .from("api_tokens")
+                    .update({token_hash:digest,token:""})
+                    .eq("id",legacyToken.id)
+                    .eq("token",supplied);
+                if(upgradeError) console.warn("LEGACY API TOKEN HASH UPGRADE:",upgradeError.message);
+            }
         }
 
-
-        // ======================================
-        // Token غير صحيح
-        // ======================================
-
-        if(
-            !apiToken ||
-            !apiToken.active
-        ){
-
-            return res.status(401).json({
-
-                success:
-                    false,
-
-                message:
-                    "Invalid Token"
-
-            });
-
+        if(!apiToken || !apiToken.active){
+            return res.status(401).json({success:false,code:"API_KEY_INVALID",message:"مفتاح API غير صالح أو متوقف."});
         }
 
-
-        // ======================================
-        // Domain restriction
-        // ======================================
         const allowedOrigin = normalizeAllowedOrigin(apiToken.domain || "");
         if(allowedOrigin){
             const incomingOrigin = requestOrigin(req);
             if(!incomingOrigin || incomingOrigin !== allowedOrigin){
-                return res.status(403).json({success:false,message:"Token is not allowed from this domain"});
+                return res.status(403).json({success:false,code:"API_ORIGIN_BLOCKED",message:"هذا المفتاح غير مفعّل لهذا النطاق."});
             }
         }
 
-        // ======================================
-        // معرفة IP
-        // ======================================
-
-        const forwarded =
-            req.headers["x-forwarded-for"];
-
-
-        const clientIp =
-
-            (
-                typeof forwarded === "string"
-
-                ?
-
-                forwarded
-                    .split(",")[0]
-                    .trim()
-
-                :
-
-                forwarded
-
-            )
-
-            ||
-
-            req.socket.remoteAddress
-
-            ||
-
-            "unknown";
-
-
-        // ======================================
-        // لا نقفل API Key على IP واحد.
-        // يمكن لنفس التطبيق استخدام المفتاح من عدة مستخدمين/خوادم.
-        // يبقى last_ip متاحًا للإحصائيات فقط.
-        // ======================================
-
-
-        // ======================================
-        // تاريخ اليوم
-        // ======================================
-
-        const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-
-        // ======================================
-        // إعادة العداد يومياً
-        // ======================================
-
-        if(
-            apiToken.last_request_date !==
-            today
-        ){
-
-            apiToken.requests =
-                0;
-
-            apiToken.last_request_date =
-                today;
-
-        }
-
-
-        // ======================================
-        // فحص الحد اليومي
-        // ======================================
-
-        apiToken.daily_limit = 20;
-        apiToken.requests = Number(apiToken.requests || 0);
-
-        if(
-            apiToken.requests >= 20
-        ){
-
-            return res.status(429).json({
-
-                success:
-                    false,
-
-                message:
-                    "Daily limit reached"
-
-            });
-
-        }
-
-
-        // لا نستهلك الحصة هنا؛ الحصة تقاس بعدد الخلفيات التي أُرجعت
-        // فعليًا، ويُسجل الاستهلاك داخل endpoint بعد تحديد عدد النتائج.
-        // ======================================
-        // تمرير بيانات Token إلى API
-        // ======================================
-
         req.apiToken = apiToken;
-        req.apiTokenClientIp = clientIp;
-        req.apiTokenToday = today;
-
-
+        req.apiTokenToday = new Date().toISOString().slice(0,10);
         next();
-
-
-    } catch(error){
-
-        console.log(
-            "TOKEN VERIFY ERROR:",
-            error
-        );
-
-
-        res.status(500).json({
-
-            success:
-                false,
-
-            message:
-                error.message ||
-                "Token verification failed"
-
-        });
-
+    }catch(error){
+        console.error("VERIFY DEVELOPER API KEY ERROR:",error?.message || error);
+        return res.status(503).json({success:false,code:"API_AUTH_UNAVAILABLE",message:"تعذر التحقق من المفتاح حالياً. حاول لاحقاً."});
     }
-
 }
-// ======================================
 // Gemini Chat
 // ======================================
 
@@ -8398,93 +8293,64 @@ app.post(
 );
 
 // ======================================
+// ======================================
 // Developer Protected Wall API
+// Each returned wallpaper consumes one unit from the daily quota.
+// The database function locks the token row, so concurrent requests cannot
+// overrun the quota or allocate the same offset twice.
 // ======================================
+app.get("/api/v1/wallpapers",verifyApiToken,async(req,res)=>{
+    try{
+        const allWallpapers = await getWallpapersFromSupabase();
+        const dailyLimit = Math.max(1,Math.min(200,Number(req.apiToken.daily_limit) || 200));
+        const maxItems = Math.min(Array.isArray(allWallpapers) ? allWallpapers.length : 0,dailyLimit);
 
-app.get(
-"/api/v1/wallpapers",
-verifyApiToken,
-async (req,res)=>{
-
-
-try{
-
-
-const allWallpapers = await getWallpapersFromSupabase();
-    const usedToday = req.apiToken.last_request_date === req.apiTokenToday
-        ? Number(req.apiToken.requests || 0)
-        : 0;
-    const remaining = Math.max(0, 20 - usedToday);
-
-    if(remaining <= 0){
-        return res.status(429).json({
-            success:false,
-            code:"DAILY_WALLPAPER_LIMIT_REACHED",
-            message:"تم استهلاك الحد اليومي: 20 خلفية. حاول غدًا.",
-            dailyLimit:20,
-            usedToday,
-            remaining:0
+        const {data:quotaData,error:quotaError} = await supabase.rpc("claim_developer_api_quota",{
+            p_token_id:req.apiToken.id,
+            p_today:req.apiTokenToday,
+            p_max_items:maxItems
         });
+        if(quotaError) throw quotaError;
+
+        const quota = Array.isArray(quotaData) ? quotaData[0] : quotaData;
+        if(!quota){
+            return res.status(503).json({success:false,code:"API_QUOTA_UNAVAILABLE",message:"تعذر تحديث الحصة اليومية."});
+        }
+
+        const granted = Math.max(0,Number(quota.granted) || 0);
+        const usedToday = Math.max(0,Number(quota.used) || 0);
+        const remaining = Math.max(0,Number(quota.remaining) || 0);
+        const actualDailyLimit = usedToday + remaining;
+
+        if(granted === 0 && remaining === 0){
+            return res.status(429).json({
+                success:false,
+                code:"DAILY_WALLPAPER_LIMIT_REACHED",
+                message:"تم استهلاك الحصة اليومية لهذا المفتاح. حاول غداً.",
+                dailyLimit:actualDailyLimit,
+                usedToday,
+                remaining:0
+            });
+        }
+
+        const start = Math.max(0,usedToday - granted);
+        const wallpapers = (Array.isArray(allWallpapers) ? allWallpapers : []).slice(start,start + granted);
+
+        return res.json({
+            success:true,
+            developer:req.apiToken.app_name || "WallpaperHub Developer",
+            count:wallpapers.length,
+            dailyLimit:actualDailyLimit,
+            usedToday,
+            remaining,
+            data:wallpapers
+        });
+    }catch(error){
+        console.error("DEVELOPER WALLPAPERS API ERROR:",error?.message || error);
+        return res.status(503).json({success:false,code:"DEVELOPER_API_UNAVAILABLE",message:"تعذر تحميل بيانات API حالياً. حاول لاحقاً."});
     }
-
-    // كل عنصر يتم إرجاعه يستهلك خلفية واحدة من الحصة اليومية.
-    const wallpapers = allWallpapers.slice(usedToday, usedToday + remaining);
-    const nextUsed = usedToday + wallpapers.length;
-    const now = new Date().toISOString();
-    const { error: usageError } = await supabase
-        .from("api_tokens")
-        .update({
-            requests:nextUsed,
-            last_request_date:req.apiTokenToday,
-            last_used:now,
-            last_ip:req.apiTokenClientIp || "unknown"
-        })
-        .eq("id", req.apiToken.id)
-        .eq("token", req.apiToken.token);
-
-    if(usageError) throw usageError;
-
-    res.json({
-        success:true,
-        developer:req.apiToken.app_name || req.apiToken.appName,
-        count:wallpapers.length,
-        dailyLimit:20,
-        usedToday:nextUsed,
-        remaining:Math.max(0,20-nextUsed),
-        data:wallpapers
-    });
-
-
-
-}catch(error){
-
-
-console.log(
-"DEVELOPER API ERROR:",
-error
-);
-
-
-res.status(500).json({
-
-success:false,
-
-error:
-error.message
-
 });
 
-
-}
-
-
-});
-
-
-
-
-
-// ======================================
 // Wallhaven Import
 // ======================================
 // Wallhaven Import
