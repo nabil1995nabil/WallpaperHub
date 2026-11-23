@@ -1,39 +1,19 @@
-// ==============================
- //Load Components
- //==============================
-
+// Shared page components
 const bottomNav = document.getElementById("bottomNav");
-
 if(bottomNav){
-
-fetch("bottom-nav.html")
-
-.then(response=>response.text())
-
-.then(html=>{
-
-bottomNav.innerHTML = html;
-
-// Initialize the active item after the asynchronous component is mounted.
-// Keep native anchors so keyboard, long-press and open-in-new-tab keep working.
-if (window.initBottomNavigation) {
-    window.initBottomNavigation(bottomNav);
-} else {
-    const currentParts = location.pathname.split("/").filter(Boolean);
-    const current = (currentParts.pop() || "home.html").toLowerCase();
-    bottomNav.querySelectorAll(".nav-item").forEach(item => {
-        const targetParts = (item.dataset.page || "").split(/[?#]/)[0].split("/").filter(Boolean);
-        const target = (targetParts.pop() || "").toLowerCase();
-        const active = target === current || (current === "index.html" && target === "home.html");
-        item.classList.toggle("active", active);
-        if (active) item.setAttribute("aria-current", "page");
-        else item.removeAttribute("aria-current");
-    });
-}
-document.body.classList.add("has-bottom-nav");
-
-});
-
+    document.body.classList.add("has-bottom-nav");
+    fetch("/bottom-nav.html",{cache:"force-cache"})
+        .then(response=>{
+            if(!response.ok)throw new Error("Bottom navigation request failed: "+response.status);
+            return response.text();
+        })
+        .then(html=>{
+            if(!html.includes('class="bottom-nav"'))throw new Error("Bottom navigation markup is invalid");
+            bottomNav.innerHTML=html;
+            if(window.initBottomNavigation)window.initBottomNavigation(bottomNav);
+            else{document.body.classList.remove("has-bottom-nav");console.warn("BOTTOM NAV: initializer is not available");}
+        })
+        .catch(error=>{document.body.classList.remove("has-bottom-nav");console.warn("BOTTOM NAV LOAD ERROR:",error)});
 }
 
 // ==============================

@@ -12,6 +12,7 @@
 <meta property="og:url" content="https://wallpaperhub-morocco.vercel.app/all-wallpapers.html">
 <title>الخلفيات | WallpaperHub</title>
 <link rel="stylesheet" href="all-wallpapers.css">
+<link rel="stylesheet" href="bottom-nav.css">
 <link rel="stylesheet" href="effects.css">
 <link rel="stylesheet" href="css/theme.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -182,23 +183,7 @@
     <span class="material-icons">keyboard_arrow_up</span>
 </button>
 
-<nav class="page-bottom-nav" aria-label="التنقل">
-    <button type="button" data-nav="home">
-        <span class="material-icons">home</span><span>الرئيسية</span>
-    </button>
-    <button type="button" data-nav="explore">
-        <span class="material-icons">explore</span><span>استكشف</span>
-    </button>
-    <button type="button" class="active" data-nav="wallpapers" aria-current="page">
-        <span class="material-icons">image</span><span>الخلفيات</span>
-    </button>
-    <button type="button" data-nav="favorites">
-        <span class="material-icons">favorite_border</span><span>المفضلة</span>
-    </button>
-    <button type="button" data-nav="account">
-        <span class="material-icons">person</span><span>حسابي</span>
-    </button>
-</nav>
+<div id="bottomNav"></div>
 
 <script src="all-wallpapers.js"></script>
 <script src="effects.js"></script>
@@ -217,5 +202,7 @@
   });
 })();
 </script>
+<script src="js/components.js"></script>
+<script src="bottom-nav-20d.js"></script>
 </body>
 </html>

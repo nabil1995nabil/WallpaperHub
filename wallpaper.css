@@ -901,7 +901,6 @@ body.viewer-open,body.phone-preview-open{overflow:hidden}
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 
-
 /* States owned by wallpaper.js */
 .download-options-modal.is-open{display:flex}
 .download-options-modal[aria-hidden="true"]:not(.is-open){display:none}
@@ -912,7 +911,6 @@ body.viewer-open,body.phone-preview-open{overflow:hidden}
 .comment-replies{margin-top:9px}
 .mention-tag{display:inline-block;padding:1px 5px;color:#d3c1ff;background:rgba(165,139,255,.15);border-radius:5px}
 .wallpaper-link-copy.copied{color:#fff;background:rgba(76,166,132,.28);border-color:rgba(107,214,176,.35)}
-
 
 /* =========================================================
    Theme switch integration
@@ -1232,22 +1230,6 @@ body.wallpaper-detail-page:not(.dark) .phone-preview-close{
   border-color:#e9e5ef;
 }
 body.wallpaper-detail-page:not(.dark) .phone-preview-note{color:#898396}
-
-body.wallpaper-detail-page.dark .bottom-nav{
-  --bottom-nav-bg:rgba(18,22,38,.94);
-  --bottom-nav-border:rgba(150,158,196,.20);
-  --bottom-nav-text:#aeb5ca;
-  --bottom-nav-active:#c2b6ff;
-  --bottom-nav-active-bg:rgba(151,129,255,.18);
-}
-body.wallpaper-detail-page:not(.dark) .bottom-nav{
-  --bottom-nav-bg:rgba(255,255,255,.97);
-  --bottom-nav-border:rgba(225,229,236,.9);
-  --bottom-nav-text:#7b8495;
-  --bottom-nav-active:#7154bf;
-  --bottom-nav-active-bg:#f0ebfb;
-}
-
 
 /* Small controls and community text — high contrast on white */
 body.wallpaper-detail-page:not(.dark) .download-options-close{

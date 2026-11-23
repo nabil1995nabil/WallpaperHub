@@ -1005,26 +1005,6 @@ scrollTopBtn.addEventListener("click",() => {
     window.scrollTo({top:0,behavior:"smooth"});
 });
 
-// Bottom navigation is intentionally a UI layer for now.
-// Routes can be connected later without changing the wallpaper grid.
-document.querySelectorAll(".page-bottom-nav button").forEach(button => {
-    button.addEventListener("click",() => {
-        const target = button.dataset.nav;
-        if(target === "home"){
-            location.href = "index.html";
-        }else if(target === "explore"){
-            searchInput.focus();
-            searchBox.scrollIntoView({behavior:"smooth",block:"center"});
-        }else if(target === "wallpapers"){
-            window.scrollTo({top:0,behavior:"smooth"});
-        }else if(target === "favorites"){
-            location.href = "favorites.html";
-        }else if(target === "account"){
-            location.href = "profile.html"; 
-        }
-    });
-});
-
 setView("grid");
 window.addEventListener("wallpaperhub:refresh-content",()=>{
     if(document.visibilityState==="visible") void loadWallpapers();

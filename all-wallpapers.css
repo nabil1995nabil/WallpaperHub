@@ -413,29 +413,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{
     box-shadow:0 9px 22px rgba(73,83,222,.24);
 }
 
-/* BOTTOM NAV */
-.page-bottom-nav{
-    position:fixed;left:10px;right:10px;bottom:9px;z-index:90;
-    height:66px;display:grid;grid-template-columns:repeat(5,1fr);
-    align-items:center;padding:5px;border-radius:21px;
-    background:rgba(255,255,255,.98);
-    border:1px solid #dfe4ec;
-    box-shadow:0 8px 25px rgba(28,39,64,.10);
-    backdrop-filter:blur(18px);
-    -webkit-backdrop-filter:blur(18px);
-}
-.page-bottom-nav button{
-    min-width:0;height:54px;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:2px;border-radius:16px;
-    color:#7a8699;background:transparent;cursor:pointer;
-}
-.page-bottom-nav button .material-icons{font-size:21px}
-.page-bottom-nav button span:last-child{font-size:8px;font-weight:750}
-.page-bottom-nav button.active{
-    color:#fff;background:linear-gradient(145deg,#6d5cf5,#4c76ff);
-    box-shadow:0 7px 17px rgba(82,78,255,.24);
-}
-
 /* COMPACT */
 .wallpapers-grid.compact-grid .wallpaper-card{aspect-ratio:1/1}
 .wallpapers-grid.compact-grid .wallpaper-overlay{padding-top:27px}
@@ -449,7 +426,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
     .filters{padding-inline:22px}
     .toolbar{padding-inline:22px}
     .wallpapers-grid{gap:12px;padding-inline:22px}
-    .page-bottom-nav{max-width:720px;left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 32px)}
+
 }
 @media(min-width:900px){
     .header-actions .header-more{display:flex}
