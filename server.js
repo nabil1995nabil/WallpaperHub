@@ -3471,6 +3471,7 @@ app.delete("/api/admin/community-reports/:id/message", async (req,res) => {
             .from("community_message_reports")
             .update({
                 status:"resolved",
+                message_deleted:true,
                 reviewed_by:String(admin.id),
                 reviewed_at:now,
                 admin_notes:"تم حذف الرسالة من لوحة الإدارة.",
