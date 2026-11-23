@@ -1,674 +1,426 @@
 import { supabase } from "../supabase.js";
 
-function addAdminPageBar(user){
-  if(document.getElementById("adminPageBar")) return;
-  const m=user?.user_metadata||{};
-  const name=m.full_name||m.name||m.user_name||user?.email?.split("@")[0]||"المدير";
-  const avatar=m.avatar_url||m.picture||m.avatar||"";
-  const bar=document.createElement("div");
-  bar.id="adminPageBar"; bar.className="admin-page-bar";
-  bar.innerHTML=`<a href="admin.html" class="admin-page-home">🏠 لوحة التحكم</a>
-    <div class="admin-page-account"><span class="admin-page-online">● متصل</span>
-    <div class="admin-page-avatar">${avatar?`<img src="${String(avatar).replace(/"/g,"&quot;")}" alt="">`:`<span>${String(name).slice(0,1)}</span>`}</div>
-    <div class="admin-page-user"><strong>${String(name).replace(/[&<>"]/g,"")}</strong><small>${String(user?.email||"").replace(/[&<>"]/g,"")}</small></div>
-    <button id="adminPageLogout" type="button">🚪 خروج</button></div>`;
-  document.body.prepend(bar);
-  document.getElementById("adminPageLogout").onclick=async()=>{await supabase.auth.signOut({scope:"local"});location.href="/profile.html";};
-  const style=document.createElement("style");
-  style.textContent=`.admin-page-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:8px 12px;background:#fff;border:1px solid #e4e7ec;border-radius:14px;box-shadow:0 5px 18px rgba(16,24,40,.05);font-family:Cairo,system-ui,sans-serif}.admin-page-home{color:#2563eb;text-decoration:none;font-weight:700;font-size:12px}.admin-page-account{display:flex;align-items:center;gap:8px}.admin-page-online{font-size:10px;color:#16a34a;font-weight:700}.admin-page-avatar{width:30px;height:30px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:grid;place-items:center;font-weight:800}.admin-page-avatar img{width:100%;height:100%;object-fit:cover}.admin-page-user{display:flex;flex-direction:column;min-width:0}.admin-page-user strong{font-size:11px}.admin-page-user small{font-size:9px;color:#64748b}.admin-page-account button{border:1px solid #e2e8f0;background:#fff;color:#ef4444;border-radius:9px;padding:6px 9px;font-size:10px}@media(max-width:600px){.admin-page-user{display:none}}`;
-  document.head.appendChild(style);
-}
+document.addEventListener("DOMContentLoaded", async () => {
+  const $ = id => document.getElementById(id);
+  const PAGE_SIZE = 24;
+  const API = "/api/wallpapers";
+  const CATEGORIES = [
+    ["nature","الطبيعة"],["amoled","AMOLED"],["games","الألعاب"],["cars","السيارات"],
+    ["animals","الحيوانات"],["anime","الأنمي"],["space","الفضاء"],["ai","الذكاء الاصطناعي"],
+    ["city","المدن"],["dark","داكن"],["4k","4K"],["sports","الرياضة"],["minimal","Minimal"],
+    ["rain","المطر"],["sunset","الغروب"],["architecture","العمارة"],["deep-space","الفضاء العميق"],
+    ["wallhaven","Wallhaven"],["unsplash","Unsplash"],["religious","الخلفيات الدينية"],["snow","الثلج والشتاء"],
+    ["aurora","الشفق القطبي"],["cyberpunk","سايبربانك"],["gradients","التدرجات"],["other","أخرى"]
+  ];
+  const CATEGORY_MAP = Object.fromEntries(CATEGORIES);
+  const state = { search:"", category:"all", type:"all", sort:"newest" };
+  let session = null;
+  let wallpapers = [];
+  let filtered = [];
+  let selected = new Set();
+  let pageOffset = 0;
+  let hasMore = true;
+  let loadingMore = false;
+  let movingIds = [];
+  let moveMode = "single";
 
-
-// ==========================================
-// WallpaperHub — Admin Wallpapers Manager
-// ==========================================
-
-const wallpaperContainer = document.getElementById("wallpaperContainer");
-
-let wallpapers = [];
-let selectedWallpapers = new Set();
-
-const CATEGORIES = [
-  ["nature", "🌿 الطبيعة"],
-  ["amoled", "🖤 AMOLED"],
-  ["games", "🎮 ألعاب"],
-  ["cars", "🚗 سيارات"],
-  ["animals", "🐾 حيوانات"],
-  ["anime", "🎌 أنمي"],
-  ["space", "🌌 فضاء"],
-  ["ai", "🤖 ذكاء اصطناعي"],
-  ["city", "🏙️ مدن"],
-  ["dark", "🌑 داكن"],
-  ["4k", "💎 4K"],
-  ["sports", "⚽ رياضة"],
-  ["minimal", "✨ مينيمال"],
-  ["rain", "🌧️ مطر"],
-  ["sunset", "🌅 غروب"],
-  ["architecture", "🏛️ عمارة"],
-  ["deep-space", "🌠 فضاء عميق"],
-  ["wallhaven", "🧱 Wallhaven"],
-  ["unsplash", "📷 Unsplash"],
-  ["other", "📦 أخرى"]
-];
-
-const categoryLabel = Object.fromEntries(CATEGORIES);
-
-const state = {
-  search: "",
-  category: "all",
-  type: "all",
-  sort: "newest"
-};
-
-// ===============================
-// مصادقة الأدمن مع الخادم
-// ===============================
-async function getAdminHeaders() {
-  const { data, error } = await supabase.auth.getSession();
-  const token = data?.session?.access_token;
-
-  if (error || !token) {
-    throw new Error("يجب تسجيل الدخول أولاً");
+  function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+    }[ch]));
   }
 
-  return {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  };
-}
+  function category(value) {
+    const key = String(value || "other").trim().toLowerCase();
+    return { key, label:CATEGORY_MAP[key] || key || "أخرى" };
+  }
 
+  function validMediaUrl(value) {
+    const url = String(value || "").trim();
+    return /^https?:\/\//i.test(url) ? url : "";
+  }
 
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+  function toast(text, error = false) {
+    const box = $("libraryToast");
+    box.textContent = text || "";
+    box.classList.toggle("error", Boolean(error));
+  }
 
-function getCategory(wall) {
-  return String(wall?.category || "other").trim().toLowerCase();
-}
-
-function getDate(wall) {
-  const value = wall?.date || wall?.createdAt || 0;
-  const time = new Date(value).getTime();
-  return Number.isFinite(time) ? time : 0;
-}
-
-function getFilteredWallpapers() {
-  let list = wallpapers.filter(Boolean);
-
-  const search = state.search.trim().toLowerCase();
-
-  if (search) {
-    list = list.filter(w => {
-      const haystack = [
-        w.id,
-        w.title,
-        w.category,
-        ...(Array.isArray(w.tags) ? w.tags : [])
-      ].join(" ").toLowerCase();
-
-      return haystack.includes(search);
+  async function requireAdmin() {
+    const result = await supabase.auth.getSession();
+    if (result.error || !result.data?.session) throw new Error("AUTH_REQUIRED");
+    const current = result.data.session;
+    const response = await fetch("/api/admin/me", {
+      headers: { Authorization:"Bearer " + current.access_token },
+      cache:"no-store"
     });
-  }
-
-  if (state.category !== "all") {
-    list = list.filter(w => getCategory(w) === state.category);
-  }
-
-  if (state.type !== "all") {
-    list = list.filter(w =>
-      state.type === "video"
-        ? w.type === "video" || w.animated === true
-        : w.type !== "video" && w.animated !== true
-    );
-  }
-
-  list.sort((a, b) => {
-    if (state.sort === "oldest") return getDate(a) - getDate(b);
-    if (state.sort === "downloads") return Number(b.downloads || 0) - Number(a.downloads || 0);
-    if (state.sort === "likes") return Number(b.likes || 0) - Number(a.likes || 0);
-    if (state.sort === "views") return Number(b.views || 0) - Number(a.views || 0);
-    return getDate(b) - getDate(a);
-  });
-
-  return list;
-}
-
-// ===============================
-// تحميل الخلفيات
-// ===============================
-
-async function loadWallpapers() {
-  setLoading(true);
-
-  try {
-    const response = await fetch("/api/wallpapers?_=" + Date.now(), {
-      cache: "no-store"
-    });
-
-    if (!response.ok) throw new Error("API ERROR");
-
-    const data = await response.json();
-    wallpapers = Array.isArray(data) ? data : [];
-
-    // لا نحتفظ بتحديد IDs لم تعد موجودة.
-    const existing = new Set(wallpapers.map(w => String(w.id)));
-    selectedWallpapers = new Set(
-      [...selectedWallpapers].filter(id => existing.has(String(id)))
-    );
-
-    renderAll();
-  } catch (error) {
-    console.error(error);
-    wallpaperContainer.innerHTML = `
-      <div class="empty-state error-state">
-        <div class="empty-icon">⚠️</div>
-        <h3>فشل تحميل الخلفيات</h3>
-        <p>تأكد من أن الخادم يعمل ثم حاول مرة أخرى.</p>
-        <button class="primary-btn" id="retryLoad">إعادة المحاولة</button>
-      </div>
-    `;
-    document.getElementById("retryLoad")?.addEventListener("click", loadWallpapers);
-  } finally {
-    setLoading(false);
-  }
-}
-
-function setLoading(isLoading) {
-  document.body.classList.toggle("is-loading", isLoading);
-}
-
-// ===============================
-// الواجهة
-// ===============================
-
-function renderAll() {
-  renderToolbar();
-  renderStats();
-  renderBulkBar();
-  renderWallpapers();
-}
-
-function renderStats() {
-  const total = wallpapers.length;
-  const selected = selectedWallpapers.size;
-
-  const counts = {};
-  wallpapers.forEach(w => {
-    const cat = getCategory(w);
-    counts[cat] = (counts[cat] || 0) + 1;
-  });
-
-  const statTotal = document.getElementById("statTotal");
-  const statSelected = document.getElementById("statSelected");
-  const statNature = document.getElementById("statNature");
-  const statUnsplash = document.getElementById("statUnsplash");
-  const statOther = document.getElementById("statOther");
-
-  if (statTotal) statTotal.textContent = total;
-  if (statSelected) statSelected.textContent = selected;
-  if (statNature) statNature.textContent = counts.nature || 0;
-  if (statUnsplash) statUnsplash.textContent = counts.unsplash || 0;
-  if (statOther) statOther.textContent = counts.other || 0;
-
-  const resultCount = document.getElementById("resultCount");
-  if (resultCount) resultCount.textContent = getFilteredWallpapers().length;
-}
-
-function renderToolbar() {
-  const search = document.getElementById("wallSearch");
-  const category = document.getElementById("categoryFilter");
-  const type = document.getElementById("typeFilter");
-  const sort = document.getElementById("sortFilter");
-
-  if (!search) return;
-
-  if (search.value !== state.search) search.value = state.search;
-
-  if (category && category.value !== state.category) category.value = state.category;
-  if (type && type.value !== state.type) type.value = state.type;
-  if (sort && sort.value !== state.sort) sort.value = state.sort;
-}
-
-function renderBulkBar() {
-  const bar = document.getElementById("bulkBar");
-  const count = document.getElementById("bulkCount");
-  if (!bar) return;
-
-  const hasSelection = selectedWallpapers.size > 0;
-  bar.classList.toggle("hidden", !hasSelection);
-
-  if (count) count.textContent = selectedWallpapers.size;
-}
-
-function renderWallpapers() {
-  if (!wallpaperContainer) return;
-
-  const list = getFilteredWallpapers();
-  wallpaperContainer.innerHTML = "";
-
-  if (!list.length) {
-    wallpaperContainer.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🖼️</div>
-        <h3>لا توجد خلفيات مطابقة</h3>
-        <p>غيّر البحث أو الفلاتر لرؤية المزيد من الخلفيات.</p>
-      </div>
-    `;
-    renderStats();
-    renderBulkBar();
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-
-  list.forEach(wall => {
-    const card = document.createElement("article");
-    card.className = "admin-wall" +
-      (selectedWallpapers.has(String(wall.id)) ? " is-selected" : "");
-
-    const isVideo = wall.type === "video" || wall.animated === true;
-    const media = isVideo
-      ? `<video src="${escapeHTML(wall.image)}" muted loop playsinline preload="metadata"></video>`
-      : `<img src="${escapeHTML(wall.thumbnail || wall.image)}" loading="lazy" alt="${escapeHTML(wall.title || "خلفية")}">`;
-
-    const category = getCategory(wall);
-    const categoryName = categoryLabel[category] || wall.category || "أخرى";
-
-    card.innerHTML = `
-      <label class="select-wrap" title="تحديد الخلفية">
-        <input type="checkbox" class="wall-select"
-          data-id="${escapeHTML(wall.id)}"
-          ${selectedWallpapers.has(String(wall.id)) ? "checked" : ""}>
-        <span class="custom-check">✓</span>
-      </label>
-
-      <div class="wall-media">
-        ${media}
-        <span class="media-type">${isVideo ? "🎞️ فيديو" : "🖼️ صورة"}</span>
-        <span class="wall-id">#${escapeHTML(wall.id)}</span>
-      </div>
-
-      <div class="admin-info">
-        <div class="title-row">
-          <h3 title="${escapeHTML(wall.title || "بدون اسم")}">
-            ${escapeHTML(wall.title || "بدون اسم")}
-          </h3>
-        </div>
-
-        <div class="category-pill">${escapeHTML(categoryName)}</div>
-
-        <div class="metrics">
-          <span>⬇️ ${Number(wall.downloads || 0)}</span>
-          <span>❤️ ${Number(wall.likes || 0)}</span>
-          <span>👁️ ${Number(wall.views || 0)}</span>
-        </div>
-
-        <div class="admin-actions">
-          <button class="edit-btn" data-action="edit" data-id="${escapeHTML(wall.id)}">
-            ✏️ تعديل
-          </button>
-          <button class="delete-btn" data-action="delete" data-id="${escapeHTML(wall.id)}">
-            🗑️ حذف
-          </button>
-        </div>
-      </div>
-    `;
-
-    const checkbox = card.querySelector(".wall-select");
-    checkbox.addEventListener("change", () => {
-      toggleSelection(wall.id, checkbox.checked);
-    });
-
-    card.querySelector('[data-action="edit"]')
-      ?.addEventListener("click", () => editWallpaper(wall.id));
-
-    card.querySelector('[data-action="delete"]')
-      ?.addEventListener("click", () => deleteWallpaper(wall.id));
-
-    fragment.appendChild(card);
-  });
-
-  wallpaperContainer.appendChild(fragment);
-  renderStats();
-  renderBulkBar();
-}
-
-// ===============================
-// التحديد
-// ===============================
-
-function toggleSelection(id, checked) {
-  const key = String(id);
-
-  if (checked) selectedWallpapers.add(key);
-  else selectedWallpapers.delete(key);
-
-  renderStats();
-  renderBulkBar();
-
-  const card = document.querySelector(`.wall-select[data-id="${CSS.escape(key)}"]`)
-    ?.closest(".admin-wall");
-
-  card?.classList.toggle("is-selected", checked);
-}
-
-function selectAllVisible() {
-  getFilteredWallpapers().forEach(w => selectedWallpapers.add(String(w.id)));
-  renderAll();
-}
-
-function clearSelection() {
-  selectedWallpapers.clear();
-  renderAll();
-}
-
-function selectCategory(category) {
-  state.category = category;
-  selectedWallpapers.clear();
-
-  const categoryFilter = document.getElementById("categoryFilter");
-  if (categoryFilter) categoryFilter.value = category;
-
-  renderAll();
-}
-
-function selectAllOfCurrentCategory() {
-  const list = getFilteredWallpapers();
-  list.forEach(w => selectedWallpapers.add(String(w.id)));
-  renderAll();
-}
-
-// ===============================
-// نقل متعدد إلى قسم
-// ===============================
-
-function openMoveModal() {
-  if (!selectedWallpapers.size) {
-    alert("حدد الخلفيات أولا.");
-    return;
-  }
-
-  const modal = document.getElementById("moveModal");
-  const count = document.getElementById("moveCount");
-  const select = document.getElementById("moveCategory");
-
-  if (!modal || !select) return;
-
-  select.innerHTML = CATEGORIES.map(([value, label]) =>
-    `<option value="${escapeHTML(value)}">${escapeHTML(label)}</option>`
-  ).join("");
-
-  if (count) count.textContent = selectedWallpapers.size;
-
-  modal.classList.remove("hidden");
-  document.body.classList.add("modal-open");
-}
-
-function closeMoveModal() {
-  document.getElementById("moveModal")?.classList.add("hidden");
-  document.body.classList.remove("modal-open");
-}
-
-async function moveSelectedWallpapers() {
-  const ids = [...selectedWallpapers];
-  const select = document.getElementById("moveCategory");
-  const targetCategory = select?.value;
-
-  if (!ids.length || !targetCategory) return;
-
-  const targetName = categoryLabel[targetCategory] || targetCategory;
-
-  if (!confirm(`سيتم نقل ${ids.length} خلفية إلى "${targetName}".\n\nسيتم تغيير القسم فقط ولن تتغير الإعجابات أو التحميلات أو المشاهدات.\n\nمتابعة؟`)) {
-    return;
-  }
-
-  const button = document.getElementById("confirmMoveBtn");
-  if (button) {
-    button.disabled = true;
-    button.dataset.original = button.textContent;
-    button.textContent = "جاري النقل...";
-  }
-
-  let success = 0;
-  let failed = 0;
-
-  try {
-    for (const id of ids) {
-      try {
-        const response = await fetch(`/api/admin/wallpapers/${encodeURIComponent(id)}/category`, {
-          method: "PATCH",
-          headers: await getAdminHeaders(),
-          body: JSON.stringify({ category: targetCategory })
-        });
-
-        if (!response.ok) {
-          failed++;
-          continue;
-        }
-
-        const wall = wallpapers.find(w => String(w.id) === String(id));
-        if (wall) wall.category = targetCategory;
-
-        success++;
-      } catch (error) {
-        console.error("Move error:", id, error);
-        failed++;
-      }
-    }
-
-    selectedWallpapers.clear();
-    closeMoveModal();
-
-    if (failed) {
-      alert(`تم نقل ${success} خلفية، وفشل نقل ${failed}.`);
-    } else {
-      alert(`تم نقل ${success} خلفية بنجاح إلى ${targetName}.`);
-    }
-
-    renderAll();
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = button.dataset.original || "تأكيد النقل";
-    }
-  }
-}
-
-// ===============================
-// حذف خلفية واحدة
-// ===============================
-
-async function deleteWallpaper(id) {
-  if (!confirm("هل تريد حذف هذه الخلفية؟\n\nتأكد قبل الحذف لأن العملية قد تكون غير قابلة للتراجع.")) {
-    return;
-  }
-
-  try {
-    const response = await fetch("/api/wallpapers/" + encodeURIComponent(id), {
-      method: "DELETE",
-      headers: await getAdminHeaders()
-    });
-
-    if (!response.ok) {
-      let message = "فشل الحذف";
-      try {
-        const data = await response.json();
-        message = data?.message || message;
-      } catch (_) {}
-      throw new Error(message);
-    }
-
-    selectedWallpapers.delete(String(id));
-    wallpapers = wallpapers.filter(w => String(w.id) !== String(id));
-
-    renderAll();
-  } catch (error) {
-    console.error(error);
-    alert(error?.message || "فشل حذف الخلفية.");
-  }
-}
-
-// ===============================
-// حذف متعدد
-// ===============================
-
-async function deleteSelectedWallpapers() {
-  const ids = [...selectedWallpapers];
-
-  if (!ids.length) {
-    alert("حدد الخلفيات أولا.");
-    return;
-  }
-
-  if (!confirm(`هل تريد حذف ${ids.length} خلفية؟\n\nتحذير: الحذف مختلف عن تغيير القسم وقد يؤثر على البيانات المرتبطة بهذه الخلفيات.\n\nهل أنت متأكد؟`)) {
-    return;
-  }
-
-  const button = document.getElementById("bulkDeleteBtn");
-  if (button) {
-    button.disabled = true;
-    button.textContent = "جاري الحذف...";
-  }
-
-  let success = 0;
-  let failed = 0;
-
-  try {
-    for (const id of ids) {
-      try {
-        const response = await fetch("/api/wallpapers/" + encodeURIComponent(id), {
-          method: "DELETE",
-          headers: await getAdminHeaders()
-        });
-
-        if (!response.ok) {
-          failed++;
-          continue;
-        }
-
-        wallpapers = wallpapers.filter(w => String(w.id) !== String(id));
-        success++;
-      } catch (error) {
-        console.error(error);
-        failed++;
-      }
-    }
-
-    selectedWallpapers.clear();
-    renderAll();
-
-    alert(
-      failed
-        ? `تم حذف ${success}، وفشل ${failed}.`
-        : `تم حذف ${success} خلفية بنجاح.`
-    );
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = "🗑️ حذف المحدد";
-    }
-  }
-}
-
-// ===============================
-// تعديل — محفوظ كسلوك قديم مؤقتا
-// ===============================
-
-function editWallpaper(id) {
-  alert("سيتم تعديل الخلفية رقم: " + id);
-}
-
-// ===============================
-// الأحداث
-// ===============================
-
-document.getElementById("wallSearch")?.addEventListener("input", e => {
-  state.search = e.target.value;
-  renderWallpapers();
-  renderStats();
-});
-
-document.getElementById("categoryFilter")?.addEventListener("change", e => {
-  state.category = e.target.value;
-  renderWallpapers();
-  renderStats();
-});
-
-document.getElementById("typeFilter")?.addEventListener("change", e => {
-  state.type = e.target.value;
-  renderWallpapers();
-  renderStats();
-});
-
-document.getElementById("sortFilter")?.addEventListener("change", e => {
-  state.sort = e.target.value;
-  renderWallpapers();
-});
-
-document.getElementById("selectAllBtn")?.addEventListener("click", selectAllVisible);
-document.getElementById("clearSelectionBtn")?.addEventListener("click", clearSelection);
-document.getElementById("selectCategoryBtn")?.addEventListener("click", selectAllOfCurrentCategory);
-document.getElementById("moveSelectedBtn")?.addEventListener("click", openMoveModal);
-document.getElementById("bulkDeleteBtn")?.addEventListener("click", deleteSelectedWallpapers);
-document.getElementById("refreshBtn")?.addEventListener("click", loadWallpapers);
-
-document.getElementById("closeMoveBtn")?.addEventListener("click", closeMoveModal);
-document.getElementById("cancelMoveBtn")?.addEventListener("click", closeMoveModal);
-document.getElementById("confirmMoveBtn")?.addEventListener("click", moveSelectedWallpapers);
-
-document.getElementById("moveModal")?.addEventListener("click", e => {
-  if (e.target.id === "moveModal") closeMoveModal();
-});
-
-document.getElementById("quickCategoryRow")?.addEventListener("click", e => {
-  const button = e.target.closest("[data-category]");
-  if (!button) return;
-
-  state.category = button.dataset.category;
-  const filter = document.getElementById("categoryFilter");
-  if (filter) filter.value = state.category;
-  renderAll();
-});
-
-window.deleteWallpaper = deleteWallpaper;
-window.editWallpaper = editWallpaper;
-window.openMoveModal = openMoveModal;
-window.closeMoveModal = closeMoveModal;
-window.selectAllVisible = selectAllVisible;
-window.clearSelection = clearSelection;
-
-// تشغيل
-(async () => {
-  try {
-    const headers = await getAdminHeaders();
-    const response = await fetch("/api/admin/me", { headers });
     const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.isAdmin) throw new Error("ADMIN_FORBIDDEN");
+    session = current;
+  }
 
-    if (!response.ok || !data.isAdmin) {
-      wallpaperContainer.innerHTML = `
-        <div class="empty-state error-state">
-          <div class="empty-icon">🔐</div>
-          <h3>لا تملك صلاحية الأدمن</h3>
-          <p>سجّل الدخول بحساب الأدمن ثم أعد فتح الصفحة.</p>
-        </div>`;
+  async function adminHeaders() {
+    if (!session?.access_token) throw new Error("انتهت جلسة الإدارة.");
+    return {
+      "Content-Type":"application/json",
+      Authorization:"Bearer " + session.access_token
+    };
+  }
+
+  async function fetchLibraryPage(offset) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 18000);
+    try {
+      const response = await fetch(API + "?limit=" + PAGE_SIZE + "&offset=" + offset, {
+        cache:"no-store",
+        signal:controller.signal
+      });
+      if (!response.ok) throw new Error("تعذر تحميل المكتبة (" + response.status + ")");
+      const data = await response.json();
+      return {
+        rows:Array.isArray(data) ? data : [],
+        hasMore:response.headers.get("X-Has-More") === "1",
+        nextOffset:Number(response.headers.get("X-Next-Offset") || (offset + (Array.isArray(data) ? data.length : 0)))
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function fillCategoryOptions() {
+    const options = CATEGORIES.map(([value,label]) => '<option value="' + esc(value) + '">' + esc(label) + '</option>').join("");
+    $("bulkCategory").innerHTML = '<option value="">نقل إلى قسم…</option>' + options;
+    $("singleCategory").innerHTML = '<option value="">اختر القسم الجديد</option>' + options;
+    $("categoryFilter").innerHTML = '<option value="all">كل الأقسام</option>' + options;
+  }
+
+  function visibleRows() {
+    const query = state.search.trim().toLowerCase();
+    let rows = wallpapers.filter(wall => {
+      const cat = category(wall.category).key;
+      const type = String(wall.type || (wall.animated ? "video" : "image")).toLowerCase();
+      const haystack = [wall.id, wall.title, wall.category, ...(Array.isArray(wall.tags) ? wall.tags : [])].join(" ").toLowerCase();
+      return (!query || haystack.includes(query)) &&
+        (state.category === "all" || cat === state.category) &&
+        (state.type === "all" || type === state.type || (state.type === "video" && wall.animated === true));
+    });
+    rows.sort((a,b) => {
+      if (state.sort === "title") return String(a.title || "").localeCompare(String(b.title || ""), "ar");
+      if (state.sort === "downloads") return Number(b.downloads || 0) - Number(a.downloads || 0);
+      if (state.sort === "likes") return Number(b.likes || 0) - Number(a.likes || 0);
+      if (state.sort === "views") return Number(b.views || 0) - Number(a.views || 0);
+      const idA = Number(a.id) || 0;
+      const idB = Number(b.id) || 0;
+      return state.sort === "oldest" ? idA - idB : idB - idA;
+    });
+    return rows;
+  }
+
+  function renderQuickCategories() {
+    const counts = new Map();
+    wallpapers.forEach(wall => {
+      const key = category(wall.category).key;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    const row = $("quickCategoryRow");
+    const categories = [["all","الكل"], ...CATEGORIES.filter(([key]) => counts.has(key))];
+    row.innerHTML = categories.map(([key,label]) => {
+      const count = key === "all" ? wallpapers.length : (counts.get(key) || 0);
+      return '<button type="button" data-category="' + esc(key) + '" class="' + (state.category === key ? "active" : "") + '">' + esc(label) + ' <b>' + count.toLocaleString("ar") + '</b></button>';
+    }).join("");
+  }
+
+  function renderStats() {
+    $("statTotal").textContent = wallpapers.length.toLocaleString("ar");
+    $("statCategoryCount").textContent = new Set(wallpapers.map(w => category(w.category).key)).size.toLocaleString("ar");
+    $("statSelected").textContent = selected.size.toLocaleString("ar");
+    $("libraryProgress").textContent = hasMore ? "…" : "100%";
+    $("resultCount").textContent = filtered.length.toLocaleString("ar") + " نتيجة";
+    $("bulkCount").textContent = selected.size.toLocaleString("ar");
+    $("bulkBar").hidden = selected.size === 0;
+    $("bulkMoveBtn").disabled = selected.size === 0 || !$("bulkCategory").value;
+  }
+
+  function render() {
+    filtered = visibleRows();
+    const grid = $("wallpaperGrid");
+    grid.replaceChildren();
+    $("emptyState").hidden = filtered.length > 0;
+    if (filtered.length) {
+      const fragment = document.createDocumentFragment();
+      filtered.forEach(wall => fragment.appendChild(makeCard(wall)));
+      grid.appendChild(fragment);
+    }
+    renderQuickCategories();
+    renderStats();
+    $("loadMoreBtn").hidden = !hasMore;
+    $("loadMoreState").textContent = hasMore ? ("تم تحميل " + wallpapers.length.toLocaleString("ar") + " خلفية، ويمكن جلب المزيد.") : "تم الوصول إلى نهاية المكتبة.";
+    $("libraryHint").textContent = "تُحمّل المكتبة على دفعات من " + PAGE_SIZE + " خلفية.";
+  }
+
+  function makeCard(wall) {
+    const id = String(wall.id);
+    const type = String(wall.type || (wall.animated ? "video" : "image")).toLowerCase();
+    const isVideo = type === "video" || wall.animated === true;
+    const url = validMediaUrl(wall.thumbnail || wall.image);
+    const selectedClass = selected.has(id) ? " is-selected" : "";
+    const media = url
+      ? (isVideo
+        ? '<video src="' + esc(url) + '" muted loop playsinline preload="metadata"></video>'
+        : '<img src="' + esc(url) + '" alt="' + esc(wall.title || "خلفية") + '" loading="lazy" decoding="async">')
+      : '<div class="wall-media-placeholder">WH</div>';
+    const card = document.createElement("article");
+    card.className = "wall-card" + selectedClass;
+    card.innerHTML =
+      '<div class="wall-media">' + media +
+      '<label class="wall-select-wrap" title="تحديد الخلفية"><input type="checkbox" class="wall-select" data-id="' + esc(id) + '" ' + (selected.has(id) ? "checked" : "") + '></label>' +
+      '<span class="media-badge">' + (type === "gif" ? "GIF" : isVideo ? "فيديو" : "صورة") + '</span>' +
+      '<span class="wall-id">#' + esc(id) + '</span></div>' +
+      '<div class="wall-body"><h3 class="wall-title" title="' + esc(wall.title || "بدون عنوان") + '">' + esc(wall.title || "بدون عنوان") + '</h3>' +
+      '<div class="wall-meta"><span class="category-pill">' + esc(category(wall.category).label) + '</span><span class="wall-id-text">#' + esc(id) + '</span></div>' +
+      '<div class="wall-metrics"><span>↓ ' + Number(wall.downloads || 0).toLocaleString("ar") + '</span><span>♥ ' + Number(wall.likes || 0).toLocaleString("ar") + '</span><span>◉ ' + Number(wall.views || 0).toLocaleString("ar") + '</span></div>' +
+      '<div class="wall-actions"><button type="button" data-action="move" data-id="' + esc(id) + '">تغيير القسم</button><button type="button" class="wall-delete" data-action="delete" data-id="' + esc(id) + '">حذف</button></div></div>';
+    return card;
+  }
+
+  async function loadFirstPage() {
+    const refresh = $("refreshBtn");
+    refresh.disabled = true;
+    $("syncStatus").textContent = "جارٍ تحديث المكتبة…";
+    $("wallpaperGrid").innerHTML = '<div class="loading-state"><span class="loader"></span><b>جارٍ تحميل الخلفيات…</b></div>';
+    $("emptyState").hidden = true;
+    wallpapers = [];
+    selected.clear();
+    pageOffset = 0;
+    hasMore = true;
+    try {
+      const page = await fetchLibraryPage(0);
+      wallpapers = page.rows;
+      pageOffset = page.nextOffset;
+      hasMore = page.hasMore;
+      $("syncStatus").textContent = "تم الاتصال — " + wallpapers.length.toLocaleString("ar") + " خلفية";
+      render();
+    } catch (error) {
+      console.error("LIBRARY LOAD ERROR:", error);
+      $("wallpaperGrid").innerHTML = '<div class="loading-state"><b>' + esc(error.message || "تعذر تحميل المكتبة") + '</b><small>تحقق من الاتصال ثم حاول مرة أخرى.</small></div>';
+      toast(error.message || "تعذر تحميل المكتبة", true);
+      $("syncStatus").textContent = "تعذر الاتصال";
+    } finally {
+      refresh.disabled = false;
+    }
+  }
+
+  async function loadMore() {
+    if (loadingMore || !hasMore) return;
+    loadingMore = true;
+    $("loadMoreBtn").disabled = true;
+    $("loadMoreBtn").textContent = "جارٍ تحميل الدفعة التالية…";
+    try {
+      const page = await fetchLibraryPage(pageOffset);
+      const known = new Set(wallpapers.map(w => String(w.id)));
+      page.rows.forEach(wall => { if (!known.has(String(wall.id))) wallpapers.push(wall); });
+      pageOffset = page.nextOffset;
+      hasMore = page.hasMore;
+      $("syncStatus").textContent = "تم تحميل " + wallpapers.length.toLocaleString("ar") + " خلفية";
+      render();
+    } catch (error) {
+      console.error("LIBRARY MORE ERROR:", error);
+      toast(error.message || "تعذر تحميل المزيد", true);
+    } finally {
+      loadingMore = false;
+      $("loadMoreBtn").disabled = false;
+      $("loadMoreBtn").textContent = "تحميل المزيد";
+    }
+  }
+
+  function openMove(ids, mode) {
+    movingIds = ids.map(String);
+    moveMode = mode;
+    const one = mode === "single";
+    const wall = wallpapers.find(item => String(item.id) === movingIds[0]);
+    $("moveModalTitle").textContent = one ? "تغيير قسم الخلفية" : "نقل الخلفيات المحددة";
+    $("modalDescription").textContent = one
+      ? ("الخلفية: " + (wall?.title || ("#" + movingIds[0])) + " — حدد القسم الجديد.")
+      : ("سيتم تحديث تصنيف " + movingIds.length.toLocaleString("ar") + " خلفية.");
+    $("singleCategory").value = one ? category(wall?.category).key : "";
+    $("moveModal").hidden = false;
+    document.body.classList.add("modal-open");
+  }
+
+  function closeModal() {
+    $("moveModal").hidden = true;
+    document.body.classList.remove("modal-open");
+    movingIds = [];
+  }
+
+  async function moveSelected() {
+    const target = $("singleCategory").value;
+    if (!movingIds.length || !target) {
+      toast("اختر التصنيف الجديد أولاً.", true);
       return;
     }
-
-    addAdminPageBar(data.user || (await supabase.auth.getUser()).data?.user);
-    loadWallpapers();
-  } catch (error) {
-    console.error("ADMIN AUTH ERROR:", error);
-    wallpaperContainer.innerHTML = `
-      <div class="empty-state error-state">
-        <div class="empty-icon">🔐</div>
-        <h3>انتهت جلسة تسجيل الدخول</h3>
-        <p>سجّل الدخول بحساب الأدمن ثم أعد فتح الصفحة.</p>
-      </div>`;
+    const ids = movingIds.slice();
+    if (moveMode === "bulk" && !window.confirm("نقل " + ids.length + " خلفية إلى قسم " + category(target).label + "؟")) return;
+    const button = $("confirmMove");
+    button.disabled = true;
+    button.textContent = "جارٍ الحفظ…";
+    let success = 0;
+    let failed = 0;
+    try {
+      const headers = await adminHeaders();
+      for (const id of ids) {
+        try {
+          const response = await fetch("/api/admin/wallpapers/" + encodeURIComponent(id) + "/category", {
+            method:"PATCH",
+            headers,
+            body:JSON.stringify({ category:target })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) throw new Error(data.message || "فشل تحديث التصنيف");
+          const item = wallpapers.find(w => String(w.id) === id);
+          if (item) item.category = target;
+          selected.delete(id);
+          success++;
+        } catch (error) {
+          console.error("MOVE WALLPAPER ERROR:", id, error);
+          failed++;
+        }
+      }
+      closeModal();
+      render();
+      if (failed) toast("تم نقل " + success + " وفشل " + failed + ". راجع الاتصال أو الصلاحيات.", true);
+      else toast("تم نقل " + success + " خلفية إلى " + category(target).label + ".");
+    } catch (error) {
+      toast(error.message || "تعذر تنفيذ النقل.", true);
+    } finally {
+      button.disabled = false;
+      button.textContent = "حفظ التصنيف";
+    }
   }
-})();
+
+  async function deleteOne(id, button) {
+    const wall = wallpapers.find(item => String(item.id) === String(id));
+    if (!window.confirm("حذف الخلفية " + (wall?.title || ("#" + id)) + " نهائياً؟")) return;
+    button.disabled = true;
+    const previous = button.textContent;
+    button.textContent = "جارٍ الحذف…";
+    try {
+      const response = await fetch(API + "/" + encodeURIComponent(id), {
+        method:"DELETE",
+        headers:await adminHeaders()
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) throw new Error(data.message || "فشل الحذف");
+      wallpapers = wallpapers.filter(item => String(item.id) !== String(id));
+      selected.delete(String(id));
+      render();
+      toast("تم حذف الخلفية بنجاح.");
+    } catch (error) {
+      toast(error.message || "تعذر حذف الخلفية.", true);
+      button.disabled = false;
+      button.textContent = previous;
+    }
+  }
+
+  async function deleteSelected() {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    if (!window.confirm("سيتم حذف " + ids.length + " خلفية نهائياً. هل تريد المتابعة؟")) return;
+    const button = $("bulkDeleteBtn");
+    button.disabled = true;
+    button.textContent = "جارٍ الحذف…";
+    let success = 0;
+    let failed = 0;
+    try {
+      const headers = await adminHeaders();
+      for (const id of ids) {
+        try {
+          const response = await fetch(API + "/" + encodeURIComponent(id), { method:"DELETE", headers });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) throw new Error(data.message || "فشل الحذف");
+          wallpapers = wallpapers.filter(item => String(item.id) !== id);
+          selected.delete(id);
+          success++;
+        } catch (error) {
+          console.error("BULK DELETE ERROR:", id, error);
+          failed++;
+        }
+      }
+      render();
+      if (failed) toast("تم حذف " + success + " وفشل " + failed + ".", true);
+      else toast("تم حذف " + success + " خلفية.");
+    } catch (error) {
+      toast(error.message || "تعذر تنفيذ الحذف.", true);
+    } finally {
+      button.disabled = false;
+      button.textContent = "حذف المحدد";
+    }
+  }
+
+  function selectVisible() {
+    filtered.forEach(wall => selected.add(String(wall.id)));
+    render();
+  }
+
+  function clearSelection() {
+    selected.clear();
+    render();
+  }
+
+  function bindEvents() {
+    $("wallSearch").addEventListener("input", event => { state.search = event.target.value; render(); });
+    $("categoryFilter").addEventListener("change", event => { state.category = event.target.value; render(); });
+    $("typeFilter").addEventListener("change", event => { state.type = event.target.value; render(); });
+    $("sortFilter").addEventListener("change", event => { state.sort = event.target.value; render(); });
+    $("quickCategoryRow").addEventListener("click", event => {
+      const button = event.target.closest("[data-category]");
+      if (!button) return;
+      state.category = button.dataset.category;
+      $("categoryFilter").value = state.category;
+      render();
+    });
+    $("wallpaperGrid").addEventListener("change", event => {
+      const input = event.target.closest(".wall-select");
+      if (!input) return;
+      const id = String(input.dataset.id);
+      if (input.checked) selected.add(id); else selected.delete(id);
+      render();
+    });
+    $("wallpaperGrid").addEventListener("click", event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const id = String(button.dataset.id);
+      if (button.dataset.action === "move") openMove([id], "single");
+      if (button.dataset.action === "delete") deleteOne(id, button);
+    });
+    $("bulkCategory").addEventListener("change", renderStats);
+    $("bulkMoveBtn").addEventListener("click", () => {
+      const target = $("bulkCategory").value;
+      if (!target) { toast("اختر القسم الجديد أولاً.", true); return; }
+      $("singleCategory").value = target;
+      openMove(Array.from(selected), "bulk");
+      $("singleCategory").value = target;
+    });
+    $("bulkDeleteBtn").addEventListener("click", deleteSelected);
+    $("selectAllBtn").addEventListener("click", selectVisible);
+    $("clearSelectionBtn").addEventListener("click", clearSelection);
+    $("refreshBtn").addEventListener("click", loadFirstPage);
+    $("loadMoreBtn").addEventListener("click", loadMore);
+    $("closeModal").addEventListener("click", closeModal);
+    $("cancelModal").addEventListener("click", closeModal);
+    $("confirmMove").addEventListener("click", moveSelected);
+    $("moveModal").addEventListener("click", event => { if (event.target.hasAttribute("data-close-modal")) closeModal(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("moveModal").hidden) closeModal(); });
+  }
+
+  fillCategoryOptions();
+  bindEvents();
+  try {
+    await requireAdmin();
+    await loadFirstPage();
+  } catch (error) {
+    console.error("WALLPAPER LIBRARY AUTH:", error);
+    $("syncStatus").textContent = "تعذر التحقق من الصلاحية";
+    $("wallpaperGrid").innerHTML = '<div class="loading-state"><b>' + esc(error.message === "ADMIN_FORBIDDEN" ? "هذا الحساب لا يملك صلاحية الأدمن." : "يجب تسجيل الدخول كأدمن.") + '</b></div>';
+  }
+});
