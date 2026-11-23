@@ -1,12 +1,11 @@
 const API_URL = "/api/wallpapers";
-const page = document.querySelector(".explore-page");
+
+const journalPage = document.querySelector(".journal-page");
 const featuredLink = document.getElementById("featuredWallpaperLink");
 const featuredImage = document.getElementById("featuredWallpaperImage");
 const featuredTitle = document.getElementById("featuredWallpaperTitle");
 const featuredMeta = document.getElementById("featuredWallpaperMeta");
-const curatedGrid = document.getElementById("curatedWallpaperGrid");
-const curatedSubtitle = document.getElementById("curatedSubtitle");
-const viewAllLink = document.getElementById("viewAllWallpapersLink");
+const collage = document.getElementById("curatedWallpaperGrid");
 const searchForm = document.getElementById("exploreSearchForm");
 const searchInput = document.getElementById("exploreSearchInput");
 const clearSearchButton = document.getElementById("clearExploreSearch");
@@ -18,7 +17,6 @@ const feedback = document.getElementById("exploreFeedback");
 const randomButton = document.getElementById("randomWallpaperBtn");
 
 const categoryLabels = {
-    all: "كل الخلفيات",
     nature: "الطبيعة",
     cars: "السيارات",
     games: "الألعاب",
@@ -28,15 +26,15 @@ const categoryLabels = {
     ai: "الذكاء الاصطناعي",
     amoled: "AMOLED",
     animals: "الحيوانات",
-    religious: "خلفيات دينية",
+    religious: "الخلفيات الدينية",
     city: "المدن",
     dark: "خلفيات داكنة",
     "4k": "4K",
     sports: "الرياضة",
     minimal: "Minimal",
-    ocean: "البحر والمحيطات",
+    ocean: "البحر",
     mountains: "الجبال",
-    sunset: "الغروب والشروق",
+    sunset: "الغروب",
     flowers: "الزهور",
     technology: "التقنية",
     abstract: "تصاميم تجريدية",
@@ -45,8 +43,20 @@ const categoryLabels = {
     snow: "الثلج والشتاء"
 };
 
+const memoryNotes = {
+    nature: ["مكان يستحق التأمل", "هدوء يشبه الصباح", "من دفتر الطبيعة"],
+    cars: ["تفاصيل لا تمرّ عابرة", "سرعة وأناقة", "من شوارع الخيال"],
+    anime: ["مشهد يبقى في الذاكرة", "قصة داخل صورة", "من عالم آخر"],
+    games: ["استراحة بين المراحل", "عالم من الخيال", "لقطة من المغامرة"],
+    space: ["بعيد… لكنه قريب", "رسالة من النجوم", "اتساع لا ينتهي"],
+    religious: ["طمأنينة للقلب", "لحظة سكون", "نور ومعنى"],
+    amoled: ["هدوء بلون الليل", "بساطة تليق بالشاشة", "مساحة من الظلال"],
+    animals: ["تفاصيل صغيرة وجميلة", "حياة في لقطة", "من دفتر الطبيعة"],
+    ai: ["خيال صار صورة", "تفاصيل من المستقبل", "فكرة خارج المألوف"],
+    default: ["احتفظ بهذه اللحظة", "صورة تستحق الوقوف", "تفصيل جميل من اليوم"]
+};
+
 let wallpapers = [];
-let currentMode = "popular";
 let featuredWallpaper = null;
 
 function normalize(value) {
@@ -58,41 +68,39 @@ function normalize(value) {
         .replace(/ى/g, "ي");
 }
 
-function getWallpaperImage(wallpaper) {
-    const value = String(
-        wallpaper?.thumbnail ||
-        wallpaper?.preview ||
-        wallpaper?.image ||
-        ""
-    ).trim();
-
-    if (!value) return "/assets/logo/no-image.png";
-    if (/^(https?:|data:|blob:|\/\/)/i.test(value)) {
-        return window.WallpaperHubSettings?.optimizeImageUrl?.(value) || value;
-    }
-    if (value.startsWith("/")) {
-        return window.WallpaperHubSettings?.optimizeImageUrl?.(value) || value;
-    }
-    if (value.startsWith("assets/")) return "/" + value;
-    return "/assets/wallpapers/" + value.replace(/^\/+/, "");
-}
-
-function wallpaperTitle(wallpaper) {
-    return String(wallpaper?.title || wallpaper?.name || "خلفية مميزة").trim();
+function numeric(value) {
+    const result = Number(value ?? 0);
+    return Number.isFinite(result) ? result : 0;
 }
 
 function wallpaperId(wallpaper) {
     return String(wallpaper?.id ?? "").trim();
 }
 
-function categoryName(wallpaper) {
-    const value = normalize(wallpaper?.category);
-    return categoryLabels[value] || String(wallpaper?.category || "مختارات WallpaperHub");
+function wallpaperTitle(wallpaper) {
+    return String(wallpaper?.title || wallpaper?.name || "").trim();
 }
 
-function numeric(value) {
-    const result = Number(value ?? 0);
-    return Number.isFinite(result) ? result : 0;
+function categoryName(wallpaper) {
+    const key = normalize(wallpaper?.category);
+    return categoryLabels[key] || String(wallpaper?.category || "مختارات");
+}
+
+function getImageUrl(wallpaper) {
+    const raw = String(wallpaper?.thumbnail || wallpaper?.preview || wallpaper?.image || "").trim();
+    if (!raw) return "/assets/logo/no-image.png";
+    if (/^(https?:|data:|blob:|\/\/)/i.test(raw) || raw.startsWith("/")) {
+        return window.WallpaperHubSettings?.optimizeImageUrl?.(raw) || raw;
+    }
+    if (raw.startsWith("assets/")) return "/" + raw;
+    return "/assets/wallpapers/" + raw.replace(/^\/+/, "");
+}
+
+function rememberWallpaper(wallpaper) {
+    const id = wallpaperId(wallpaper);
+    if (!id) return;
+    try { localStorage.setItem("selectedWallpaper", id); }
+    catch (error) { console.warn("Explore selection could not be saved:", error); }
 }
 
 function sortPopular(list) {
@@ -105,177 +113,129 @@ function sortPopular(list) {
 
 function sortLatest(list) {
     return [...list].sort((a, b) => {
-        const dateA = Date.parse(a.date || a.created_at || "");
-        const dateB = Date.parse(b.date || b.created_at || "");
-        if (Number.isFinite(dateA) && Number.isFinite(dateB) && dateA !== dateB) {
-            return dateB - dateA;
-        }
+        const aDate = Date.parse(a.created_at || a.date || "");
+        const bDate = Date.parse(b.created_at || b.date || "");
+        if (Number.isFinite(aDate) && Number.isFinite(bDate) && aDate !== bDate) return bDate - aDate;
         return numeric(b.id) - numeric(a.id);
     });
 }
 
-function rememberSelectedWallpaper(wallpaper) {
-    const id = wallpaperId(wallpaper);
-    if (!id) return;
-    try {
-        localStorage.setItem("selectedWallpaper", id);
-    } catch (error) {
-        console.warn("Could not save selected wallpaper:", error);
-    }
+function getMemoryNote(wallpaper, index) {
+    const key = normalize(wallpaper?.category);
+    const notes = memoryNotes[key] || memoryNotes.default;
+    return notes[index % notes.length];
 }
 
-function buildWallpaperCard(wallpaper) {
+function buildMemoryPhoto(wallpaper, index) {
+    const id = wallpaperId(wallpaper);
     const link = document.createElement("a");
-    link.className = "explore-wallpaper-card";
-    link.href = "wallpaper.html?id=" + encodeURIComponent(wallpaperId(wallpaper));
-    link.setAttribute("aria-label", "فتح خلفية " + wallpaperTitle(wallpaper));
-    link.addEventListener("click", () => rememberSelectedWallpaper(wallpaper));
+    link.className = "memory-photo memory-photo--" + ((index % 4) + 1);
+    link.href = "wallpaper.html?id=" + encodeURIComponent(id);
+    link.setAttribute("aria-label", "افتح خلفية " + (wallpaperTitle(wallpaper) || categoryName(wallpaper)));
+    link.addEventListener("click", () => rememberWallpaper(wallpaper));
 
-    const media = document.createElement("div");
-    media.className = "wallpaper-card-media";
+    const tape = document.createElement("span");
+    tape.className = "memory-photo-tape";
+    tape.setAttribute("aria-hidden", "true");
+
+    const photo = document.createElement("span");
+    photo.className = "memory-photo-image";
 
     const image = document.createElement("img");
-    image.src = getWallpaperImage(wallpaper);
-    image.alt = wallpaperTitle(wallpaper);
+    image.src = getImageUrl(wallpaper);
+    image.alt = wallpaperTitle(wallpaper) || categoryName(wallpaper);
     image.loading = "lazy";
     image.decoding = "async";
     image.addEventListener("error", () => {
         image.onerror = null;
         image.src = "/assets/logo/no-image.png";
     }, { once: true });
-    media.appendChild(image);
+    photo.appendChild(image);
 
-    const resolution = String(wallpaper?.resolution || "").toLowerCase();
-    if (resolution.includes("4k") || resolution.includes("2160") || resolution.includes("3840")) {
-        const quality = document.createElement("span");
-        quality.className = "wallpaper-quality";
-        quality.textContent = "4K";
-        media.appendChild(quality);
-    }
+    const caption = document.createElement("span");
+    caption.className = "memory-photo-caption";
 
-    const copy = document.createElement("div");
-    copy.className = "wallpaper-card-copy";
-
-    const category = document.createElement("span");
-    category.className = "wallpaper-card-category";
-    category.textContent = categoryName(wallpaper);
+    const overline = document.createElement("small");
+    overline.textContent = "قصاصة رقم " + String(index + 1).padStart(2, "0");
 
     const title = document.createElement("strong");
-    title.className = "wallpaper-card-title";
-    title.textContent = wallpaperTitle(wallpaper);
+    title.textContent = wallpaperTitle(wallpaper) || categoryName(wallpaper);
 
-    const stats = document.createElement("span");
-    stats.className = "card-stats";
+    const note = document.createElement("span");
+    note.textContent = getMemoryNote(wallpaper, index);
 
-    const downloads = document.createElement("span");
-    downloads.className = "card-stat";
-    const downloadIcon = document.createElement("span");
-    downloadIcon.className = "material-icons";
-    downloadIcon.textContent = "download";
-    const downloadValue = document.createElement("span");
-    downloadValue.textContent = numeric(wallpaper?.downloads).toLocaleString("ar-MA");
-    downloads.append(downloadIcon, downloadValue);
-
-    const likes = document.createElement("span");
-    likes.className = "card-stat";
-    const likeIcon = document.createElement("span");
-    likeIcon.className = "material-icons";
-    likeIcon.textContent = "favorite_border";
-    const likeValue = document.createElement("span");
-    likeValue.textContent = numeric(wallpaper?.likes).toLocaleString("ar-MA");
-    likes.append(likeIcon, likeValue);
-
-    stats.append(downloads, likes);
-    copy.append(category, title, stats);
-    link.append(media, copy);
+    caption.append(overline, title, note);
+    link.append(tape, photo, caption);
     return link;
 }
 
-function renderWallpaperCards(target, list, limit = 2) {
+function renderMemoryCollage(target, items, limit = 4) {
     target.replaceChildren();
-    const items = list.slice(0, limit);
-    items.forEach(wallpaper => target.appendChild(buildWallpaperCard(wallpaper)));
-    return items.length;
+    const selected = items.slice(0, limit);
+    selected.forEach((wallpaper, index) => target.appendChild(buildMemoryPhoto(wallpaper, index)));
+
+    if (!selected.length) {
+        const empty = document.createElement("p");
+        empty.className = "journal-empty";
+        empty.textContent = "لا توجد صور في هذه الصفحة بعد.";
+        target.appendChild(empty);
+    }
+    return selected.length;
 }
 
 function updateFeatured(wallpaper) {
     featuredWallpaper = wallpaper || null;
     if (!wallpaper) {
         featuredLink.href = "all-wallpapers.html";
-        featuredTitle.textContent = "اكتشف عالماً من الخلفيات";
-        featuredMeta.textContent = "اختر القسم الذي يشبه ذوقك وابدأ رحلتك";
-        featuredImage.alt = "";
         featuredImage.src = "/assets/logo/no-image.png";
-        featuredLink.setAttribute("aria-label", "تصفح جميع الخلفيات");
+        featuredTitle.textContent = "افتح الألبوم وابدأ الاكتشاف";
+        featuredMeta.textContent = "كل صورة لها حكاية";
         return;
     }
 
     const id = wallpaperId(wallpaper);
     featuredLink.href = "wallpaper.html?id=" + encodeURIComponent(id);
-    featuredLink.setAttribute("aria-label", "فتح الخلفية " + wallpaperTitle(wallpaper));
-    featuredLink.onclick = () => rememberSelectedWallpaper(wallpaper);
-    featuredImage.src = getWallpaperImage(wallpaper);
-    featuredImage.alt = wallpaperTitle(wallpaper);
+    featuredLink.setAttribute("aria-label", "افتح صورة " + (wallpaperTitle(wallpaper) || categoryName(wallpaper)));
+    featuredLink.onclick = () => rememberWallpaper(wallpaper);
+    featuredImage.src = getImageUrl(wallpaper);
+    featuredImage.alt = wallpaperTitle(wallpaper) || categoryName(wallpaper);
     featuredImage.onerror = () => {
         featuredImage.onerror = null;
         featuredImage.src = "/assets/logo/no-image.png";
     };
-    featuredTitle.textContent = wallpaperTitle(wallpaper);
-    const resolution = wallpaper?.resolution ? " • " + String(wallpaper.resolution) : "";
-    featuredMeta.textContent = categoryName(wallpaper) + resolution;
-}
-
-function renderCurated() {
-    const sorted = currentMode === "latest" ? sortLatest(wallpapers) : sortPopular(wallpapers);
-    const featuredId = wallpaperId(featuredWallpaper);
-    const selected = sorted.filter(item => wallpaperId(item) !== featuredId);
-    const count = renderWallpaperCards(curatedGrid, selected, 2);
-
-    curatedSubtitle.textContent = currentMode === "latest"
-        ? "وصلت حديثاً إلى المكتبة، وربما تصبح خلفيتك المفضلة."
-        : "خلفيتان فقط من اختيارات المجتمع الأكثر رواجاً.";
-
-    viewAllLink.href = currentMode === "latest"
-        ? "all-wallpapers.html?type=latest"
-        : "all-wallpapers.html?type=popular";
-
-    if (!count) {
-        const empty = document.createElement("p");
-        empty.className = "search-empty";
-        empty.textContent = "ستظهر الاختيارات هنا بمجرد توفر المزيد من الخلفيات.";
-        curatedGrid.appendChild(empty);
-    }
+    featuredTitle.textContent = wallpaperTitle(wallpaper) || categoryName(wallpaper);
+    featuredMeta.textContent = categoryName(wallpaper) + " · لقطة من مكتبة WallpaperHub";
 }
 
 function renderSearchResults() {
     const query = normalize(searchInput.value);
     const active = query.length > 0;
-    page.classList.toggle("is-searching", active);
+    journalPage.classList.toggle("is-searching", active);
     searchResultsSection.hidden = !active;
     clearSearchButton.hidden = !active;
 
     if (!active) {
         searchResultsGrid.replaceChildren();
-        searchEmptyState.hidden = true;
         searchResultsCount.textContent = "";
+        searchEmptyState.hidden = true;
         return;
     }
 
     const found = wallpapers.filter(wallpaper => {
-        const haystack = normalize([
+        const fields = [
             wallpaper?.title,
             wallpaper?.category,
             wallpaper?.description,
             ...(Array.isArray(wallpaper?.tags) ? wallpaper.tags : []),
             ...(Array.isArray(wallpaper?.colors) ? wallpaper.colors : [])
-        ].join(" "));
-        return haystack.includes(query);
-    }).slice(0, 6);
+        ];
+        return normalize(fields.join(" ")).includes(query);
+    }).slice(0, 8);
 
     searchResultsCount.textContent = found.length.toLocaleString("ar-MA") + " نتيجة";
-    searchResultsGrid.replaceChildren();
-    found.forEach(wallpaper => searchResultsGrid.appendChild(buildWallpaperCard(wallpaper)));
+    renderMemoryCollage(searchResultsGrid, found, 8);
     searchEmptyState.hidden = found.length > 0;
+    if (!found.length) searchResultsGrid.replaceChildren();
 }
 
 async function loadWallpapersFromSupabase() {
@@ -287,7 +247,6 @@ async function loadWallpapersFromSupabase() {
         .limit(120);
 
     if (error) throw error;
-
     return (data || []).map(row => ({
         id: row.id,
         title: row.title ?? "",
@@ -309,7 +268,6 @@ async function loadWallpapersFromSupabase() {
 async function fetchWallpapers() {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 12000);
-
     try {
         const response = await fetch(API_URL, {
             method: "GET",
@@ -317,46 +275,31 @@ async function fetchWallpapers() {
             cache: "default",
             signal: controller.signal
         });
-
         if (!response.ok) throw new Error("Wallpaper API returned " + response.status);
         const data = await response.json();
         if (!Array.isArray(data)) throw new Error("Wallpaper API response is invalid");
-        if (data.length) return data;
-        return await loadWallpapersFromSupabase();
-    } catch (apiError) {
-        console.warn("EXPLORE API FALLBACK:", apiError);
+        return data.length ? data : await loadWallpapersFromSupabase();
+    } catch (error) {
+        console.warn("Explore API fallback:", error);
         return await loadWallpapersFromSupabase();
     } finally {
         window.clearTimeout(timeout);
     }
 }
 
-function setMode(mode) {
-    currentMode = mode === "latest" ? "latest" : "popular";
-    document.querySelectorAll(".mode-button").forEach(button => {
-        const active = button.dataset.mode === currentMode;
-        button.classList.toggle("is-active", active);
-        button.setAttribute("aria-selected", active ? "true" : "false");
-    });
-    renderCurated();
-}
-
 function openRandomWallpaper() {
     if (!wallpapers.length) {
         feedback.hidden = false;
-        feedback.textContent = "لا توجد خلفيات متاحة حالياً. أعد المحاولة بعد قليل.";
+        feedback.textContent = "لا توجد خلفيات متاحة حالياً. جرّب مرة أخرى بعد قليل.";
         return;
     }
-    const selected = wallpapers[Math.floor(Math.random() * wallpapers.length)];
-    rememberSelectedWallpaper(selected);
-    window.location.href = "wallpaper.html?id=" + encodeURIComponent(wallpaperId(selected));
+    const chosen = wallpapers[Math.floor(Math.random() * wallpapers.length)];
+    rememberWallpaper(chosen);
+    window.location.href = "wallpaper.html?id=" + encodeURIComponent(wallpaperId(chosen));
 }
 
-async function initializeExplore() {
+async function initializeJournal() {
     randomButton.addEventListener("click", openRandomWallpaper);
-    document.querySelectorAll(".mode-button").forEach(button => {
-        button.addEventListener("click", () => setMode(button.dataset.mode));
-    });
 
     searchForm.addEventListener("submit", event => {
         event.preventDefault();
@@ -373,23 +316,42 @@ async function initializeExplore() {
         wallpapers = await fetchWallpapers();
         if (!Array.isArray(wallpapers)) wallpapers = [];
 
-        const latest = sortLatest(wallpapers);
         const popular = sortPopular(wallpapers);
+        const latest = sortLatest(wallpapers);
+        const selected = [];
+        const candidates = [
+            popular[1],
+            latest[0],
+            [...wallpapers].sort((a, b) => numeric(b.likes) - numeric(a.likes))[0],
+            popular[2],
+            latest[1],
+            popular[3]
+        ];
+
+        const seen = new Set();
+        candidates.forEach(item => {
+            if (!item) return;
+            const id = wallpaperId(item);
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            selected.push(item);
+        });
+
         updateFeatured(popular[0] || latest[0] || null);
-        setMode("popular");
+        renderMemoryCollage(collage, selected.slice(0, 4), 4);
 
         if (!wallpapers.length) {
             feedback.hidden = false;
-            feedback.textContent = "لم تصل خلفيات إلى المكتبة بعد. يمكنك تصفح الأقسام أو العودة لاحقاً.";
+            feedback.textContent = "دفترنا ينتظر الصور الأولى. ستظهر الخلفيات هنا بمجرد توفرها في المكتبة.";
         }
     } catch (error) {
-        console.error("EXPLORE PAGE LOAD ERROR:", error);
+        console.error("Explore journal load error:", error);
         feedback.hidden = false;
-        feedback.textContent = "تعذر تحميل الخلفيات الآن. تحقق من الاتصال ثم أعد تحميل الصفحة.";
-        curatedGrid.replaceChildren();
+        feedback.textContent = "تعذر فتح صفحات الألبوم الآن. تحقق من الاتصال ثم أعد تحميل الصفحة.";
+        collage.replaceChildren();
         updateFeatured(null);
-        renderCurated();
+        renderMemoryCollage(collage, [], 4);
     }
 }
 
-initializeExplore();
+initializeJournal();
