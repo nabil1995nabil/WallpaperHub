@@ -562,72 +562,15 @@ body.wh-page-premium-user.dark .premium-muted {
     color:var(--wh-muted);
 }
 
-/* ---------- Photo editor ---------- */
-body.wh-page-photo-editor.dark,
-body.wh-page-photo-editor.dark .editor-app,
-body.wh-page-photo-editor.dark .editor-main {
-    color:var(--editor-text);
-    background:var(--editor-bg);
+/* ---------- WallpaperHub Creative Studio ---------- */
+body.wh-page-photo-editor {
+    color-scheme: dark;
+    color: #f2f5ff;
+    background: #0b0d14;
 }
-body.wh-page-photo-editor.dark .editor-header,
-body.wh-page-photo-editor.dark .control-panel,
-body.wh-page-photo-editor.dark .editor-toolbar,
-body.wh-page-photo-editor.dark .video-deck,
-body.wh-page-photo-editor.dark .video-control-card,
-body.wh-page-photo-editor.dark .quality-menu,
-body.wh-page-photo-editor.dark .sticker-search {
-    color:var(--editor-text);
-    background:var(--editor-surface);
-    border-color:var(--editor-line);
-}
-body.wh-page-photo-editor.dark .header-btn:not(.save-btn),
-body.wh-page-photo-editor.dark .quality-btn,
-body.wh-page-photo-editor.dark .header-plus,
-body.wh-page-photo-editor.dark .zoom-tools button,
-body.wh-page-photo-editor.dark .history-btn,
-body.wh-page-photo-editor.dark .inline-option,
-body.wh-page-photo-editor.dark .inline-action:not(.primary),
-body.wh-page-photo-editor.dark .tool,
-body.wh-page-photo-editor.dark .mode-tab,
-body.wh-page-photo-editor.dark .video-head-actions button,
-body.wh-page-photo-editor.dark .video-transport button,
-body.wh-page-photo-editor.dark .video-clip,
-body.wh-page-photo-editor.dark .video-chips button {
-    color:#dce5f2;
-    background:#202b3c;
-    border-color:#344256;
-}
-body.wh-page-photo-editor.dark .stage,
-body.wh-page-photo-editor.dark .video-timeline {
-    background:#101722;
-}
-body.wh-page-photo-editor.dark .mode-tab.active,
-body.wh-page-photo-editor.dark .tool.active {
-    color:#c4bdff;
-    background:#2a2b4d;
-}
-body.wh-page-photo-editor.dark .inline-title,
-body.wh-page-photo-editor.dark .control-title,
-body.wh-page-photo-editor.dark .section-title {
-    color:#c3bdff;
-}
-body.wh-page-photo-editor.dark .history-btn,
-body.wh-page-photo-editor.dark .video-control-card small,
-body.wh-page-photo-editor.dark .video-project small,
-body.wh-page-photo-editor.dark .inline-kicker {
-    color:var(--editor-muted);
-}
-body.wh-page-photo-editor.dark .editor-header input,
-body.wh-page-photo-editor.dark .control-panel input:not([type=range]),
-body.wh-page-photo-editor.dark .control-panel select {
-    color:var(--editor-text);
-    background:#101722;
-    border-color:var(--editor-line);
-}
-/* Existing cinematic video mode has its own intentional near-black/yellow palette. */
-body.wh-page-photo-editor.video-mode .video-deck,
-body.wh-page-photo-editor.video-mode .stage {
-    color:#f5f5f7;
+body.wh-page-photo-editor .editor-app {
+    color: #f2f5ff;
+    background: #0b0d14;
 }
 
 /* ---------- ArtGuru and other dark-first creative workspace ---------- */
@@ -936,13 +879,6 @@ body.wh-page-premium-user.dark .premium-page h3 {
     color:#f1d69a;
     text-shadow:0 1px 18px rgba(224,185,103,.12);
 }
-body.wh-page-photo-editor.dark #inlineTitle,
-body.wh-page-photo-editor.dark .inline-title,
-body.wh-page-photo-editor.dark .tool-title {
-    color:#c7c0ff;
-}
-
-
 /* Premium profile uses a restrained champagne accent on its real title elements. */
 body.wh-page-premium-user .hero-copy h1,
 body.wh-page-premium-user .section-heading h2,
