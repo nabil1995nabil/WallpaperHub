@@ -2,7 +2,7 @@
 const bottomNav = document.getElementById("bottomNav");
 if(bottomNav){
     document.body.classList.add("has-bottom-nav");
-    fetch("/bottom-nav.html",{cache:"force-cache"})
+    fetch("/bottom-nav.html?v=20261123-explore-1",{cache:"reload"})
         .then(response=>{
             if(!response.ok)throw new Error("Bottom navigation request failed: "+response.status);
             return response.text();
