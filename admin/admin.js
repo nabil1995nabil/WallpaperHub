@@ -1,6 +1,5 @@
 // ==========================================
-// WallpaperHub Admin JS
-// Part 1/5
+// WallpaperHub Admin Dashboard and Publisher
 // ==========================================
 
 // Supabase Auth: هوية ناشر الخلفية تأتي من الحساب المسجل فقط.
