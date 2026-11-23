@@ -1346,3 +1346,9 @@ opacity:.15;
     .today-actions { gap: 6px; }
     .today-weather-btn { padding: 7px 9px; font-size: 10px; }
 }
+
+
+/* Keep Today's Wallpaper close to the Popular section on the homepage. */
+#todaySection.home-today-slot .today-section {
+    margin-top: 0;
+}
