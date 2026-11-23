@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
-    <link rel="stylesheet" href="home.css?v=20261123-home-spacing-1">
+    <link rel="stylesheet" href="home.css?v=20261123-community-root-1">
 <link rel="stylesheet" href="slider.css?v=20261120-smooth-home">
     <link rel="stylesheet" href="home-categories.css">
     <link rel="stylesheet" href="today.css?v=20261123-daily-refresh-1">
@@ -194,75 +194,60 @@
 </section>
 
 
-<!-- ==================================================
-     7. مجتمع WallpaperHub
-================================================== -->
-<section class="community-section">
-    <canvas id="communityMotionCanvas" class="community-motion-canvas" aria-hidden="true"></canvas>
-    <div class="community-glow glow-one"></div>
-    <div class="community-glow glow-two"></div>
-
+<!-- 7. بطاقة مجتمع WallpaperHub -->
+<section class="community-section" aria-labelledby="communityCardTitle">
     <div class="community-content">
         <span class="community-label">WALLPAPERHUB COMMUNITY</span>
-
-        <h2>انضم إلى مجتمع <strong>WallpaperHub</strong></h2>
-
-        <p>
-            اكتشف، احفظ وشارك. اجعل شاشتك أجمل كل يوم
-            وكن جزءًا من مجتمع محبي الخلفيات.
-        </p>
-
-        <a href="categories.html" class="community-cta">
-            ابدأ الآن
-            <span>←</span>
+        <h2 id="communityCardTitle">شغفك بالخلفيات أجمل <strong>حين تشاركه</strong></h2>
+        <p>مساحة تجمع محبي الخلفيات؛ اكتشف إبداعات الأعضاء، شارك اختياراتك، وتواصل مع أشخاص يشاركونك الاهتمام.</p>
+        <div class="community-highlights" aria-label="مميزات المجتمع">
+            <span><span class="material-icons" aria-hidden="true">forum</span> تواصل ومشاركة</span>
+            <span><span class="material-icons" aria-hidden="true">mic</span> محادثات صوتية ومرئية</span>
+            <span><span class="material-icons" aria-hidden="true">palette</span> إبداعات الأعضاء</span>
+        </div>
+        <a href="/social.html" class="community-cta">
+            <span>اكتشف المجتمع</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </a>
     </div>
 
-    <div class="community-stats">
-        <div class="community-stat">
-            <span class="material-icons">image</span>
-            <strong>287</strong>
-            <small>خلفية مميزة</small>
+    <div class="community-visual" aria-hidden="true">
+        <div class="community-visual-orbit orbit-one"></div>
+        <div class="community-visual-orbit orbit-two"></div>
+        <div class="community-preview preview-back">
+            <span class="preview-spark">✦</span>
+            <span class="preview-line line-short"></span>
+            <span class="preview-line"></span>
+            <span class="preview-line line-mid"></span>
         </div>
-
-        <div class="community-stat">
-            <span class="material-icons">groups</span>
-            <strong>1.2K</strong>
-            <small>مستخدم نشط</small>
+        <div class="community-preview preview-front">
+            <div class="preview-head">
+                <span class="preview-avatar"><span class="material-icons">groups</span></span>
+                <span class="preview-heading">
+                    <strong>مساحة الأعضاء</strong>
+                    <small>أفكار وخلفيات تلهمك</small>
+                </span>
+                <span class="preview-menu">•••</span>
+            </div>
+            <div class="preview-message message-one">
+                <span class="message-icon"><span class="material-icons">image</span></span>
+                <span><strong>شارك خلفيتك</strong><small>دع الآخرين يكتشفون ذوقك</small></span>
+            </div>
+            <div class="preview-message message-two">
+                <span class="message-icon"><span class="material-icons">forum</span></span>
+                <span><strong>ابدأ محادثة</strong><small>تبادل الأفكار مع المجتمع</small></span>
+            </div>
+            <div class="preview-footer">
+                <span></span><span></span><span></span>
+                <small>WallpaperHub</small>
+            </div>
         </div>
-
-        <div class="community-stat">
-            <span class="material-icons">download</span>
-            <strong>50K</strong>
-            <small>عملية تحميل</small>
-        </div>
-
-        <div class="community-stat">
-            <span class="material-icons">favorite</span>
-            <strong>12K</strong>
-            <small>إعجاب</small>
-        </div>
+        <span class="community-float-star star-one">✦</span>
+        <span class="community-float-star star-two">✧</span>
     </div>
-</section>
-
-
-<!-- ==================================================
-     8. الأكثر إعجاباً
-================================================== -->
-<section class="wall-section">
-    <div class="title">
-        <div>
-            <span class="section-kicker">FAVORITES</span>
-            <h3>❤️ الأكثر إعجاباً</h3>
-        </div>
-        <a href="all-wallpapers.html?type=liked">عرض الكل</a>
-    </div>
-
-    <div class="wall-grid" id="likedWallpapers"></div>
-</section>
-
-
-<!-- ==================================================
+</section>\n\n<!-- ==================================================
      9. المقترحة لك
 ================================================== -->
 <section class="wall-section">
@@ -453,7 +438,7 @@
 <script src="home-categories.js?v=20261120-smooth-home"></script>
 <script src="today.js?v=20261123-daily-refresh-1"></script>
 <script src="js/performance-engine.js"></script>
-<script type="module" src="home.js?v=20261121-home-notice-1"></script>
+<script type="module" src="home.js?v=20261123-community-root-1"></script>
 <script src="theme.js"></script>
 <script src="effects.js"></script>
 <script src="sidebar.js"></script>
