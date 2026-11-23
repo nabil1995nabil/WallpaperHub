@@ -3435,7 +3435,7 @@ app.delete("/api/admin/community-reports/:id/message", async (req,res) => {
 
         const {data:report,error:reportError} = await supabase
             .from("community_message_reports")
-            .select("id,message_id")
+            .select("id,message_id,target_user_id,reporter_id")
             .eq("id",reportId)
             .maybeSingle();
 
@@ -3479,6 +3479,22 @@ app.delete("/api/admin/community-reports/:id/message", async (req,res) => {
             .eq("message_id",String(report.message_id));
 
         if(updateError) throw updateError;
+
+        try{
+            await writeAdminAuditLog({
+                adminUserId:admin.id,
+                targetUserId:report.target_user_id || null,
+                action:"community_report_message_deleted",
+                details:{
+                    report_id:String(report.id),
+                    message_id:String(report.message_id),
+                    reporter_id:report.reporter_id ? String(report.reporter_id) : null,
+                    related_reports_updated:true
+                }
+            });
+        }catch(auditError){
+            console.log("REPORTED MESSAGE DELETE AUDIT ERROR:",auditError?.message || auditError);
+        }
 
         return res.json({success:true,messageId:String(report.message_id)});
     }catch(error){
@@ -4051,35 +4067,7 @@ app.get(
         try{
             let source = fs.readFileSync(adminFile,"utf8");
 
-            if(!source.includes('data-community-reports-link')){
-                const menuAnchor = '<li onclick="openUserManagement()">\n👥 إدارة المستخدمين\n</li>';
-
-                if(source.includes(menuAnchor)){
-                    source = source.replace(
-                        menuAnchor,
-                        `${menuAnchor}\n\n<li data-community-reports-link onclick="openCommunityReports()">\n🚩 بلاغات المجتمع\n</li>`
-                    );
-                }else{
-                    source = source.replace(
-                        '</ul>',
-                        '<li data-community-reports-link onclick="openCommunityReports()">🚩 بلاغات المجتمع</li>\n</ul>'
-                    );
-                }
-
-                const script = `
-<script>
-window.openCommunityReports=function(){
-    location.href="/admin/community-reports.html";
-};
-</script>`;
-
-                source = source.replace(
-                    '</body>',
-                    `${script}\n</body>`
-                );
-            }
-
-            res.set("Content-Type","text/html; charset=utf-8");
+                        res.set("Content-Type","text/html; charset=utf-8");
             res.set("Cache-Control","no-store, no-cache, must-revalidate");
             return res.send(source);
         }catch(error){

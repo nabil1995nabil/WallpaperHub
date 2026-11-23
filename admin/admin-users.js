@@ -102,6 +102,12 @@ let selectedDetail = null;
 let activeFilter = "all";
 let currentPage = 1;
 const PAGE_SIZE = 18;
+let communityReports = [];
+let activeReportStatus = "all";
+let activeReportPriority = "all";
+let activeMemberReportKind = "all";
+let selectedCommunityReport = null;
+let activeWorkspace = "members";
 
 function esc(v){
   return String(v ?? "").replace(/[&<>"']/g, c => ({
@@ -467,6 +473,9 @@ function fillDetail(detail){
   renderUserWallpapers(detail?.wallpapers || []);
   renderAudit(detail?.audit_logs || []);
   renderWarningHistory(detail?.warnings || []);
+  activeMemberReportKind="all";
+  $("#memberReportFilters [data-member-report-kind]").forEach(button=>button.classList.toggle("active",button.dataset.memberReportKind==="all"));
+  renderMemberReports(u);
   if(u?.id || u?.uid) loadModerationState(u.id || u.uid).catch(error=>console.warn("MODERATION STATE:",error));
 }
 
@@ -484,7 +493,10 @@ async function loadUserDetail(id){
 }
 
 async function openDrawer(id){
-  const u = users.find(x => String(x.id) === String(id));
+  setWorkspace("members");
+  selectedCommunityReport=null;
+  $("#memberReportDetails").hidden=true;
+  const u = users.find(x => String(x.id || x.uid) === String(id));
   if(!u) return;
   selected = u;
   renderUsers();
@@ -522,7 +534,152 @@ function closeDrawer(){
   $("#userDrawer").setAttribute("aria-hidden","true");
   selected = null;
   selectedDetail = null;
+  selectedCommunityReport = null;
   renderUsers();
+}
+
+
+function reportStatusLabel(value){return ({pending:"قيد الانتظار",reviewing:"قيد المراجعة",resolved:"تمت المعالجة",dismissed:"مرفوض"})[value]||value||"—";}
+function reportPriorityLabel(value){return ({normal:"عادية",high:"عالية",urgent:"عاجلة"})[value]||value||"—";}
+function reportStatusClass(value){return ["pending","reviewing","resolved","dismissed"].includes(String(value||""))?String(value):"";}
+function reportSafeUrl(value){const url=String(value||"").trim();return /^https?:\/\//i.test(url)?url:"";}
+function setWorkspace(name){
+  activeWorkspace=name==="reports"?"reports":"members";
+  const reportsMode=activeWorkspace==="reports";
+  $("#workspaceTabs [data-workspace]").forEach(button=>{
+    button.classList.toggle("active",button.dataset.workspace===activeWorkspace);
+    button.setAttribute("aria-pressed",button.dataset.workspace===activeWorkspace?"true":"false");
+  });
+  $("#usersToolbar").hidden=reportsMode;
+  $("#membersWorkspace").hidden=reportsMode;
+  $("#reportsWorkspace").hidden=!reportsMode;
+  $("#workspaceHeading").textContent=reportsMode?"صندوق البلاغات":"مكتبة المستخدمين";
+  $("#workspaceDescription").textContent=reportsMode?"مراجعة البلاغات وفتح صفحة العضو المستهدف لاتخاذ الإجراء.":"إدارة الحسابات والبلاغات والقيود من مكان واحد.";
+}
+function renderCommunityReportStats(stats={}){
+  $("#reportsStatTotal").textContent=Number(stats.total??communityReports.length).toLocaleString("ar");
+  $("#reportsStatPending").textContent=Number(stats.pending??communityReports.filter(r=>r.status==="pending").length).toLocaleString("ar");
+  $("#reportsStatReviewing").textContent=Number(stats.reviewing??communityReports.filter(r=>r.status==="reviewing").length).toLocaleString("ar");
+  $("#reportsStatResolved").textContent=Number(stats.resolved??communityReports.filter(r=>r.status==="resolved").length).toLocaleString("ar");
+  $("#reportsStatHigh").textContent=Number(stats.highPriority??communityReports.filter(r=>["high","urgent"].includes(r.priority)&&!["resolved","dismissed"].includes(r.status)).length).toLocaleString("ar");
+  $("#workspaceReportCount").textContent=communityReports.filter(r=>!["resolved","dismissed"].includes(r.status)).length.toLocaleString("ar");
+}
+function filteredCommunityReports(){
+  const query=($("#reportSearch")?.value||"").trim().toLowerCase();
+  return communityReports.filter(report=>{
+    if(activeReportStatus!=="all"&&report.status!==activeReportStatus)return false;
+    if(activeReportPriority!=="all"&&report.priority!==activeReportPriority)return false;
+    if(!query)return true;
+    return [report.reporterName,report.reporterUsername,report.reporterEmail,report.targetUserName,report.targetUserEmail,report.messageText,report.reasonLabel,report.details,report.adminNotes].join(" ").toLowerCase().includes(query);
+  });
+}
+function renderCommunityReports(){
+  const list=$("#communityReportsList");if(!list)return;
+  const rows=filteredCommunityReports().sort((a,b)=>(new Date(b.createdAt||0).getTime()||0)-(new Date(a.createdAt||0).getTime()||0));
+  $("#reportsResultCount").textContent=rows.length.toLocaleString("ar")+" بلاغ";
+  if(!rows.length){list.innerHTML='<div class="report-empty-state"><span class="material-icons-round">flag</span><b>لا توجد بلاغات مطابقة</b><small>غيّر البحث أو حالة البلاغ أو الأولوية.</small></div>';return;}
+  list.innerHTML=rows.map(report=>{
+    const message=String(report.messageText||"").trim()||(report.messageImageUrl?"صورة مرفقة":report.messageFileUrl?"ملف مرفق":"رسالة بلا نص");
+    const status=reportStatusClass(report.status),priority=String(report.priority||"normal");
+    return '<article class="community-report-row"><div class="community-report-copy">'+
+      '<div class="community-report-top"><strong>'+esc(report.reasonLabel||"بلاغ مجتمع")+'</strong><time>'+esc(fmt(report.createdAt))+'</time></div>'+
+      '<div class="community-report-people">المبلّغ: <b>'+esc(report.reporterName||"عضو")+'</b> · العضو المستهدف: <b>'+esc(report.targetUserName||"عضو")+'</b></div>'+
+      '<div class="community-report-message">'+esc(message.slice(0,240))+'</div>'+
+      '<div class="community-report-badges"><span class="report-chip '+status+'">'+esc(reportStatusLabel(report.status))+'</span><span class="report-chip '+esc(priority)+'">الأولوية: '+esc(reportPriorityLabel(priority))+'</span><span class="report-chip">تكرار الرسالة: '+esc(report.duplicateCount||1)+'</span></div>'+
+      '</div><button class="report-open-record" type="button" data-open-report="'+esc(report.id)+'">فتح ملف العضو</button></article>';
+  }).join("");
+}
+async function loadCommunityReports(){
+  const state=$("#reportsLoadState");if(state)state.textContent="جارٍ تحديث البلاغات...";
+  try{
+    const data=await api("/api/admin/community-reports?limit=2000");
+    communityReports=Array.isArray(data.reports)?data.reports:[];
+    renderCommunityReportStats(data.stats||{});renderCommunityReports();
+    if(selected){
+      renderMemberReports(selected);
+      if(selectedCommunityReport){
+        selectedCommunityReport=communityReports.find(r=>String(r.id)===String(selectedCommunityReport.id))||null;
+        if(selectedCommunityReport)openMemberReportDetails(selectedCommunityReport.id);else closeMemberReportDetails();
+      }
+    }
+    if(state)state.textContent="متصل · "+communityReports.length.toLocaleString("ar")+" بلاغ";
+  }catch(error){
+    if(state)state.textContent="تعذر تحميل البلاغات";
+    if(error?.code==="AUTH_REQUIRED"){showToast(error.message||"انتهت جلسة الإدارة");return;}
+    if(!communityReports.length)$("#communityReportsList").innerHTML='<div class="report-empty-state"><span class="material-icons-round">error_outline</span><b>'+esc(error.message||"تعذر تحميل البلاغات")+'</b><small>تحقق من اتصال لوحة الإدارة بالخادم.</small></div>';
+    console.error("ADMIN COMMUNITY REPORTS:",error);
+  }
+}
+function renderMemberReports(user){
+  const list=$("#memberReportsList");if(!list)return;
+  const uid=String(user?.id||user?.uid||"");
+  const linked=communityReports.filter(r=>String(r.targetUserId||"")===uid||String(r.reporterId||"")===uid);
+  const received=linked.filter(r=>String(r.targetUserId||"")===uid);
+  const sent=linked.filter(r=>String(r.reporterId||"")===uid);
+  $("#memberReportsCount").textContent=linked.length.toLocaleString("ar");
+  const rows=activeMemberReportKind==="received"?received:activeMemberReportKind==="sent"?sent:linked;
+  if(!rows.length){list.innerHTML='<div class="placeholder">'+(activeMemberReportKind==="received"?"لا توجد بلاغات تستهدف هذا العضو.":activeMemberReportKind==="sent"?"لم يرسل هذا العضو بلاغات.":"لا توجد بلاغات مرتبطة بهذا الحساب.")+'</div>';return;}
+  list.innerHTML=rows.slice().sort((a,b)=>(new Date(b.createdAt||0).getTime()||0)-(new Date(a.createdAt||0).getTime()||0)).map(report=>{
+    const receivedByCurrent=String(report.targetUserId||"")===uid,status=reportStatusClass(report.status);
+    const relation=receivedByCurrent?"بلاغ وارد على العضو":"بلاغ أرسله العضو";
+    return '<button type="button" class="member-report-row" data-member-report-id="'+esc(report.id)+'"><span><strong>'+esc(report.reasonLabel||"بلاغ")+' · '+esc(relation)+'</strong><small>'+esc(receivedByCurrent?"المبلّغ: "+(report.reporterName||"عضو"):"المستخدم المستهدف: "+(report.targetUserName||"عضو"))+' · '+esc(fmt(report.createdAt))+'</small><span class="community-report-badges"><span class="report-chip '+status+'">'+esc(reportStatusLabel(report.status))+'</span><span class="report-chip '+esc(report.priority||"normal")+'">'+esc(reportPriorityLabel(report.priority))+'</span></span></span><span class="material-icons-round">chevron_left</span></button>';
+  }).join("");
+}
+function closeMemberReportDetails(){selectedCommunityReport=null;$("#memberReportDetails").hidden=true;}
+function openMemberReportDetails(reportId){
+  const report=communityReports.find(item=>String(item.id)===String(reportId));if(!report)return;
+  selectedCommunityReport=report;$("#memberReportDetails").hidden=false;
+  $("#memberReportTitle").textContent="بلاغ: "+(report.reasonLabel||"المجتمع");
+  $("#memberReportReporter").textContent=(report.reporterName||"عضو")+(report.reporterUsername?" · @"+report.reporterUsername:"");
+  $("#memberReportTarget").textContent=report.targetUserName||"عضو";
+  $("#memberReportDate").textContent=fmt(report.createdAt);
+  $("#memberReportDuplicates").textContent=String(report.duplicateCount||1);
+  $("#memberReportReason").textContent=report.reasonLabel||"—";
+  $("#memberReportPriorityBadge").textContent="الأولوية: "+reportPriorityLabel(report.priority);
+  $("#memberReportPriorityBadge").className="badge "+String(report.priority||"normal");
+  $("#memberReportStatusBadge").textContent=reportStatusLabel(report.status);
+  $("#memberReportStatusBadge").className="badge "+reportStatusClass(report.status);
+  $("#memberReportExtra").textContent=report.details||"لا توجد تفاصيل إضافية.";
+  $("#memberReportMessageDate").textContent=report.messageCreatedAt?"وقت إرسال الرسالة: "+fmt(report.messageCreatedAt):"";
+  $("#memberReportMessageText").textContent=String(report.messageText||"").trim()||(report.messageImageUrl?"صورة مرفقة":report.messageFileUrl?"ملف مرفق":"رسالة بلا نص");
+  const imageUrl=reportSafeUrl(report.messageImageUrl),image=$("#memberReportMessageImage");image.hidden=!imageUrl;if(imageUrl)image.src=imageUrl;else image.removeAttribute("src");
+  const fileUrl=reportSafeUrl(report.messageFileUrl),file=$("#memberReportMessageFile");file.hidden=!fileUrl;
+  if(fileUrl){file.href=fileUrl;file.textContent="فتح الملف المرفق: "+(report.messageFileName||"ملف");}else{file.removeAttribute("href");file.textContent="";}
+  $("#memberReportMessageDeleted").hidden=!report.messageDeleted;
+  $("#memberReportStatusSelect").value=["pending","reviewing","resolved","dismissed"].includes(report.status)?report.status:"pending";
+  $("#memberReportPrioritySelect").value=["normal","high","urgent"].includes(report.priority)?report.priority:"normal";
+  $("#memberReportNotes").value=report.adminNotes||"";
+  $("#deleteMemberReportedMessage").hidden=!report.messageId||Boolean(report.messageDeleted);
+  $("#openMemberReportTarget").hidden=!report.targetUserId||String(report.targetUserId)===String(selected?.id||selected?.uid||"");
+}
+async function openReportFromQueue(reportId){
+  const report=communityReports.find(item=>String(item.id)===String(reportId));if(!report){showToast("البلاغ لم يعد موجوداً في السجل");return;}
+  const targetId=String(report.targetUserId||"");if(!targetId){showToast("لا يوجد حساب مستهدف مرتبط بهذا البلاغ");return;}
+  const user=users.find(item=>String(item.id||item.uid)===targetId);if(!user){showToast("تعذر العثور على حساب العضو المستهدف في قائمة الحسابات");return;}
+  setWorkspace("members");await openDrawer(targetId);openMemberReportDetails(reportId);
+  $("#detailReportsSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function saveCurrentCommunityReport(){
+  if(!selectedCommunityReport)return;
+  const reportId=String(selectedCommunityReport.id),button=$("#saveMemberReport");button.disabled=true;
+  try{
+    await api("/api/admin/community-reports/"+encodeURIComponent(reportId),{method:"PATCH",body:JSON.stringify({status:$("#memberReportStatusSelect").value,priority:$("#memberReportPrioritySelect").value,adminNotes:$("#memberReportNotes").value})});
+    showToast("تم حفظ قرار البلاغ في سجل الإدارة");await loadCommunityReports();
+    if(selectedCommunityReport)openMemberReportDetails(reportId);
+  }catch(error){showToast(error.message||"تعذر حفظ قرار البلاغ");}
+  finally{button.disabled=false;}
+}
+async function deleteCurrentReportedMessage(){
+  if(!selectedCommunityReport?.messageId)return;
+  if(!confirm("حذف الرسالة المبلّغ عنها؟ سيتم الاحتفاظ بسجل البلاغ وتحديث حالته إلى تمت المعالجة."))return;
+  const reportId=String(selectedCommunityReport.id),button=$("#deleteMemberReportedMessage");button.disabled=true;
+  try{
+    await api("/api/admin/community-reports/"+encodeURIComponent(reportId)+"/message",{method:"DELETE"});
+    showToast("تم حذف الرسالة وحفظ أثر الإجراء");await loadCommunityReports();
+    if(selected)await loadUserDetail(selected.id||selected.uid);
+    openMemberReportDetails(reportId);
+  }catch(error){showToast(error.message||"تعذر حذف الرسالة المبلّغ عنها");}
+  finally{button.disabled=false;}
 }
 
 async function loadUsers(){
@@ -601,7 +758,8 @@ function addDrawerJumpHandlers(){
     account:"#detailAccountSection",
     security:"#detailSecuritySection",
     medals:"#detailMedalsSection",
-    audit:"#detailAuditSection"
+    audit:"#detailAuditSection",
+    reports:"#detailReportsSection"
   };
 
   $$("[data-drawer-jump]").forEach(button => {
@@ -990,7 +1148,43 @@ async function runModerationAction(targetUid,actionName,body){
 
 /* ---------- UI events ---------- */
 
-$("#refreshUsers").onclick = loadUsers;
+$("#refreshUsers").onclick = ()=>{loadUsers();loadCommunityReports();};
+$("#workspaceTabs")?.addEventListener("click",event=>{
+  const button=event.target.closest("[data-workspace]");if(!button)return;
+  if(button.dataset.workspace==="reports"&&selected)closeDrawer();
+  setWorkspace(button.dataset.workspace);
+});
+$("#refreshCommunityReports")?.addEventListener("click",loadCommunityReports);
+$("#reportSearch")?.addEventListener("input",renderCommunityReports);
+$("#reportStatusFilters")?.addEventListener("click",event=>{
+  const button=event.target.closest("[data-report-status]");if(!button)return;
+  activeReportStatus=button.dataset.reportStatus;
+  $("#reportStatusFilters [data-report-status]").forEach(item=>item.classList.toggle("active",item===button));
+  renderCommunityReports();
+});
+$("#reportPriorityFilter")?.addEventListener("change",event=>{activeReportPriority=event.target.value;renderCommunityReports();});
+$("#communityReportsList")?.addEventListener("click",event=>{
+  const button=event.target.closest("[data-open-report]");if(button)openReportFromQueue(button.dataset.openReport);
+});
+$("#memberReportFilters")?.addEventListener("click",event=>{
+  const button=event.target.closest("[data-member-report-kind]");if(!button)return;
+  activeMemberReportKind=button.dataset.memberReportKind;
+  $("#memberReportFilters [data-member-report-kind]").forEach(item=>item.classList.toggle("active",item===button));
+  renderMemberReports(selected);
+});
+$("#memberReportsList")?.addEventListener("click",event=>{
+  const button=event.target.closest("[data-member-report-id]");if(button)openMemberReportDetails(button.dataset.memberReportId);
+});
+$("#closeMemberReport")?.addEventListener("click",closeMemberReportDetails);
+$("#saveMemberReport")?.addEventListener("click",saveCurrentCommunityReport);
+$("#deleteMemberReportedMessage")?.addEventListener("click",deleteCurrentReportedMessage);
+$("#openMemberReportTarget")?.addEventListener("click",async()=>{
+  const targetId=String(selectedCommunityReport?.targetUserId||"");if(!targetId)return;
+  const reportId=String(selectedCommunityReport.id),user=users.find(item=>String(item.id||item.uid)===targetId);
+  if(!user){showToast("تعذر العثور على العضو المستهدف");return;}
+  await openDrawer(targetId);openMemberReportDetails(reportId);
+  $("#detailReportsSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+});
 $("#closeDrawer").onclick = closeDrawer;
 $("#drawerBackdrop").onclick = closeDrawer;
 
@@ -1264,3 +1458,4 @@ $("#resetMedals").onclick = async () => {
 
 addDrawerJumpHandlers();
 loadUsers();
+loadCommunityReports();

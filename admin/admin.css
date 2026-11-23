@@ -1432,19 +1432,6 @@ font-size:12px;
 }
 
 
-/* ===========================
-   Community Reports Menu
-   =========================== */
-.menu .community-reports-menu{
-    background:linear-gradient(135deg,#ef4444,#f97316);
-    color:#fff;
-}
-
-.menu .community-reports-menu:hover{
-    background:linear-gradient(135deg,#dc2626,#ea580c);
-}
-
-
 /* WallpaperHub admin metadata additions */
 .wall-auto-metadata{
   display:block;margin-top:9px;padding:11px 13px;border-radius:11px;

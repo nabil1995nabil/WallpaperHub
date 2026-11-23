@@ -21,7 +21,11 @@
 </div>
 <main class="users-page">
 <header class="notebook-cover"><div class="cover-brand"><span class="cover-symbol"><span class="material-icons-round">auto_stories</span></span><span>WALLPAPERHUB <small>ADMIN ARCHIVE</small></span></div><div class="cover-title"><span class="eyebrow">THE MEMBER REGISTER · VOL. 01</span><h1>دفتر الأعضاء</h1><p>لكل حساب صفحة، ولكل إجراء أثر واضح في السجل.</p></div><div class="cover-stamp"><span>WH</span><small>MEMBER<br>ARCHIVE</small></div><div class="cover-bottom"><span>سجل الحسابات وإدارة المجتمع</span><span>EST. WALLPAPERHUB</span></div></header>
-<header class="page-header"><div><span class="eyebrow">فهرس الحسابات</span><h2>مكتبة المستخدمين</h2><p>ابحث في السجل، ثم افتح صفحة أي عضو لإدارة حسابه بالتفصيل.</p></div><button class="refresh-btn" id="refreshUsers" type="button"><span class="material-icons-round">refresh</span> تحديث السجل</button></header>
+<header class="page-header"><div><span class="eyebrow">مركز الإدارة الموحد</span><h2 id="workspaceHeading">مكتبة المستخدمين</h2><p id="workspaceDescription">إدارة الحسابات والبلاغات والقيود من مكان واحد.</p></div><button class="refresh-btn" id="refreshUsers" type="button"><span class="material-icons-round">refresh</span> تحديث البيانات</button></header>
+<nav class="workspace-switcher" id="workspaceTabs" aria-label="أقسام إدارة المستخدمين">
+ <button class="workspace-tab active" type="button" data-workspace="members"><span class="material-icons-round">menu_book</span> دفتر الأعضاء</button>
+ <button class="workspace-tab" type="button" data-workspace="reports"><span class="material-icons-round">flag</span> صندوق البلاغات <b id="workspaceReportCount">0</b></button>
+</nav>
 
 <section class="stats-grid" aria-label="إحصائيات المستخدمين">
  <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">groups</span></span><div><b id="statTotal">—</b><small>كل الحسابات</small></div></article>
@@ -32,11 +36,40 @@
  <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">pause_circle</span></span><div><b id="statDisabled">—</b><small>حسابات معطلة</small></div></article>
  <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">admin_panel_settings</span></span><div><b id="statAdmins">—</b><small>مشرفون</small></div></article>
 </section>
-<section class="toolbar"><div class="search-box"><span class="material-icons-round">search</span><input id="userSearch" type="search" placeholder="ابحث بالاسم أو اسم المستخدم أو UID أو البريد..." autocomplete="off" aria-label="البحث في سجل الأعضاء"></div>
+<section class="toolbar" id="usersToolbar"><div class="search-box"><span class="material-icons-round">search</span><input id="userSearch" type="search" placeholder="ابحث بالاسم أو اسم المستخدم أو UID أو البريد..." autocomplete="off" aria-label="البحث في سجل الأعضاء"></div>
 <div class="filter-line"><div class="filters" id="filters" aria-label="تصفية المستخدمين">
 <button class="filter active" data-filter="all" type="button">الكل</button><button class="filter" data-filter="active" type="button">نشط</button><button class="filter" data-filter="online" type="button">متصل حديثاً</button><button class="filter" data-filter="verified" type="button">موثق</button><button class="filter" data-filter="unverified" type="button">غير موثق</button><button class="filter" data-filter="banned" type="button">محظور</button><button class="filter" data-filter="disabled" type="button">معطل</button><button class="filter" data-filter="admin" type="button">Admin</button><button class="filter" data-filter="moderator" type="button">Moderator</button><button class="filter" data-filter="new" type="button">جديد اليوم</button>
 </div><span id="loadState" class="load-state">جارٍ الاتصال...</span></div></section>
-<section class="book-spread" aria-label="دفتر إدارة المستخدمين">
+
+<section class="reports-workspace" id="reportsWorkspace" hidden>
+ <div class="reports-overview">
+  <article><span class="report-overview-icon"><span class="material-icons-round">flag</span></span><div><b id="reportsStatTotal">0</b><small>إجمالي البلاغات</small></div></article>
+  <article><span class="report-overview-icon pending"><span class="material-icons-round">pending_actions</span></span><div><b id="reportsStatPending">0</b><small>قيد الانتظار</small></div></article>
+  <article><span class="report-overview-icon reviewing"><span class="material-icons-round">manage_search</span></span><div><b id="reportsStatReviewing">0</b><small>قيد المراجعة</small></div></article>
+  <article><span class="report-overview-icon resolved"><span class="material-icons-round">task_alt</span></span><div><b id="reportsStatResolved">0</b><small>تمت معالجتها</small></div></article>
+  <article><span class="report-overview-icon urgent"><span class="material-icons-round">priority_high</span></span><div><b id="reportsStatHigh">0</b><small>أولوية مرتفعة</small></div></article>
+ </div>
+ <div class="reports-board">
+  <div class="reports-board-head"><div><span class="eyebrow">COMMUNITY & USER REPORTS</span><h2>سجل البلاغات</h2><p>افتح أي بلاغ للانتقال إلى صفحة العضو المرتبط به ومراجعته هناك.</p></div><button class="refresh-btn" id="refreshCommunityReports" type="button"><span class="material-icons-round">refresh</span> تحديث البلاغات</button></div>
+  <div class="reports-toolbar">
+   <label class="search-box"><span class="material-icons-round">search</span><input id="reportSearch" type="search" placeholder="ابحث عن المبلّغ أو العضو أو الرسالة أو السبب..." autocomplete="off"></label>
+   <div class="reports-filter-row">
+    <div class="report-status-filters" id="reportStatusFilters">
+     <button class="report-filter active" data-report-status="all" type="button">الكل</button>
+     <button class="report-filter" data-report-status="pending" type="button">قيد الانتظار</button>
+     <button class="report-filter" data-report-status="reviewing" type="button">قيد المراجعة</button>
+     <button class="report-filter" data-report-status="resolved" type="button">تمت المعالجة</button>
+     <button class="report-filter" data-report-status="dismissed" type="button">مرفوض</button>
+    </div>
+    <select id="reportPriorityFilter" aria-label="تصفية حسب الأولوية"><option value="all">كل الأولويات</option><option value="urgent">عاجلة</option><option value="high">عالية</option><option value="normal">عادية</option></select>
+    <span class="report-load-state" id="reportsLoadState">جارٍ تحميل البلاغات...</span>
+   </div>
+  </div>
+  <div class="community-reports-list" id="communityReportsList" aria-live="polite"><div class="placeholder">جارٍ جلب سجل البلاغات...</div></div>
+  <footer class="reports-board-foot"><span id="reportsResultCount">0 بلاغ</span><span>القرارات تُحفظ في سجلات الإدارة المرتبطة بملف العضو</span></footer>
+ </div>
+</section>
+<section class="book-spread" id="membersWorkspace" aria-label="دفتر إدارة المستخدمين">
 <section class="index-panel"><div class="index-heading"><div><span class="eyebrow">INDEX / 001</span><h2>فهرس الأسماء</h2><p>اختر اسماً لفتح صفحته داخل الدفتر.</p></div><span class="index-bookmark"><span class="material-icons-round">menu_book</span></span></div>
 <div class="list-head"><div><strong>قائمة الأعضاء</strong><span id="resultCount">0 مستخدم</span></div><span class="index-sort-label">الأحدث أولاً</span></div>
 <div id="usersList" class="users-list" aria-live="polite"></div><div id="emptyState" class="empty-state" hidden><span class="material-icons-round">person_search</span><h3>لا توجد نتائج في هذا الفهرس</h3><p>جرّب كلمة بحث أو تصنيفاً آخر.</p></div>
@@ -53,6 +86,7 @@
     <button type="button" data-drawer-jump="security">الأمان</button>
     <button type="button" data-drawer-jump="medals">الميداليات</button>
     <button type="button" data-drawer-jump="audit">السجل</button>
+    <button type="button" data-drawer-jump="reports">البلاغات</button>
   </div>
   <div class="drawer-scroll">
     <section class="identity-card">
@@ -61,6 +95,48 @@
       <a id="detailProfileLink" class="profile-link" href="#" target="_blank" rel="noopener"><span class="material-icons-round">open_in_new</span></a>
     </section>
 
+
+<section class="detail-section member-reports-section" id="detailReportsSection">
+ <div class="section-title"><span class="material-icons-round">flag</span><h3>بلاغات هذا العضو</h3><span class="badge report-count-badge" id="memberReportsCount">0</span></div>
+ <p class="muted">البلاغات التي استهدفت هذا العضو والبلاغات التي أرسلها بنفسه محفوظة هنا في ملفه.</p>
+ <div class="member-report-filters" id="memberReportFilters">
+  <button class="member-report-filter active" data-member-report-kind="all" type="button">الكل</button>
+  <button class="member-report-filter" data-member-report-kind="received" type="button">بلاغات ضده</button>
+  <button class="member-report-filter" data-member-report-kind="sent" type="button">أرسلها</button>
+ </div>
+ <div class="member-reports-list" id="memberReportsList"><div class="placeholder">يتم تحميل البلاغات المرتبطة بالعضو...</div></div>
+ <section class="member-report-detail" id="memberReportDetails" hidden>
+  <div class="member-report-detail-head"><div><span class="eyebrow">REPORT FILE</span><h4 id="memberReportTitle">تفاصيل البلاغ</h4></div><button type="button" class="icon-btn" id="closeMemberReport" aria-label="إغلاق تفاصيل البلاغ"><span class="material-icons-round">close</span></button></div>
+  <div class="member-report-facts">
+   <div><small>صاحب البلاغ</small><b id="memberReportReporter">—</b></div>
+   <div><small>العضو المستهدف</small><b id="memberReportTarget">—</b></div>
+   <div><small>تاريخ البلاغ</small><b id="memberReportDate">—</b></div>
+   <div><small>عدد البلاغات على الرسالة</small><b id="memberReportDuplicates">1</b></div>
+  </div>
+  <div class="member-report-reason-row"><span class="badge" id="memberReportReason">—</span><span class="badge" id="memberReportPriorityBadge">—</span><span class="badge" id="memberReportStatusBadge">—</span></div>
+  <p class="member-report-extra" id="memberReportExtra">لا توجد تفاصيل إضافية.</p>
+  <div class="member-reported-message">
+   <div class="member-reported-message-head"><span class="material-icons-round">chat</span><b>محتوى الرسالة المبلّغ عنها</b></div>
+   <small id="memberReportMessageDate"></small><p id="memberReportMessageText">—</p>
+   <img id="memberReportMessageImage" alt="الصورة المرفقة بالرسالة" hidden>
+   <a id="memberReportMessageFile" target="_blank" rel="noopener noreferrer" hidden></a>
+   <small id="memberReportMessageDeleted" class="message-deleted-note" hidden>تم حذف الرسالة الأصلية مسبقاً.</small>
+  </div>
+  <div class="member-report-controls">
+   <div class="section-title"><span class="material-icons-round">tune</span><h3>قرار مراجعة البلاغ</h3></div>
+   <div class="form-grid">
+    <label>حالة البلاغ<select id="memberReportStatusSelect"><option value="pending">قيد الانتظار</option><option value="reviewing">قيد المراجعة</option><option value="resolved">تمت المعالجة</option><option value="dismissed">مرفوض</option></select></label>
+    <label>الأولوية<select id="memberReportPrioritySelect"><option value="normal">عادية</option><option value="high">عالية</option><option value="urgent">عاجلة</option></select></label>
+   </div>
+   <label class="member-report-notes">ملاحظات الإدارة<textarea id="memberReportNotes" rows="3" maxlength="3000" placeholder="اكتب سبب القرار أو ملاحظات المتابعة..."></textarea></label>
+   <div class="member-report-actions">
+    <button type="button" class="primary-btn" id="saveMemberReport"><span class="material-icons-round">save</span> حفظ القرار</button>
+    <button type="button" class="danger-btn" id="deleteMemberReportedMessage"><span class="material-icons-round">delete_outline</span> حذف الرسالة</button>
+    <button type="button" class="secondary-btn" id="openMemberReportTarget"><span class="material-icons-round">person_search</span> فتح ملف العضو المستهدف</button>
+   </div>
+  </div>
+ </section>
+</section>
     <section class="detail-section" id="detailAccountSection">
       <div class="section-title"><span class="material-icons-round">manage_accounts</span><h3>ملف المستخدم الإداري</h3></div>
       <div class="info-grid">
