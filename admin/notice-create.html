@@ -1,51 +1,120 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إدارة الإعلانات - WallpaperHub</title>
-<link rel="stylesheet" href="notice-create.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f2f0e9">
+  <title>جريدة الإعلانات | WallpaperHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/notice-create.css?v=newspaper-20261123-1">
 </head>
-<body>
-<div class="admin-wrapper">
-<header class="admin-header">
-  <div class="admin-title">
-    <h1>⚙️ مركز إدارة الإعلانات</h1>
-    <p>قم بإنشاء ونشر الإعلانات والإشعارات العامة للمستخدمين</p>
-  </div>
-  <span class="admin-badge">حساب أدمن موثق</span>
-</header>
+<body class="notice-newspaper">
+  <main class="newspaper-shell">
+    <header class="paper-masthead">
+      <div class="masthead-meta"><a href="/admin/admin.html">← لوحة الإدارة</a><span>WALLPAPERHUB / PRESS ROOM</span><a href="/notifications.html" target="_blank" rel="noopener">صفحة الإشعارات ↗</a></div>
+      <div class="masthead-brand">
+        <span class="masthead-seal">WH</span>
+        <div><span class="masthead-overline">THE WALLPAPERHUB DAILY</span><h1>جريدة WallpaperHub</h1><p>مساحة تحرير الإعلانات والأخبار الرسمية</p></div>
+        <span class="issue-stamp">عدد الإدارة<br><b>01</b></span>
+      </div>
+      <div class="masthead-rule"><span>إعلانات عامة</span><span>تحديثات</span><span>فعاليات المجتمع</span><span>تحرير ونشر</span></div>
+    </header>
 
-<div class="stats-grid">
-  <div class="stat-card"><div class="stat-icon">📢</div><div class="stat-info"><h4 id="stat-total">0</h4><span>إجمالي الإعلانات</span></div></div>
-  <div class="stat-card"><div class="stat-icon">👁️</div><div class="stat-info"><h4 id="stat-views">0</h4><span>إجمالي المشاهدات</span></div></div>
-  <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-info"><h4 id="stat-interactions">0</h4><span>التفاعلات</span></div></div>
-</div>
+    <section class="paper-stats" aria-label="إحصائيات الإعلانات">
+      <article><span class="stat-mark">01</span><div><b id="stat-total">0</b><small>إجمالي الإعلانات</small></div></article>
+      <article><span class="stat-mark">02</span><div><b id="stat-views">0</b><small>المشاهدات المسجلة</small></div></article>
+      <article><span class="stat-mark">03</span><div><b id="stat-interactions">0</b><small>الإعجابات المسجلة</small></div></article>
+      <div class="paper-status"><span class="status-dot"></span><span>غرفة التحرير متصلة</span></div>
+    </section>
 
-<div class="dashboard-grid">
-<section class="panel-box">
-<h2>✨ نشر إعلان جديد</h2>
-<form id="create-ad-form">
-<div class="form-group"><label>عنوان الإعلان</label><input type="text" id="ad-title" class="form-control" placeholder="أدخل عنوان الإعلان" required></div>
-<div class="form-group"><label>التصنيف</label><select id="ad-category" class="form-control">
-<option value="admin">📢 إعلان عام</option><option value="update">🚀 تحديث جديد</option><option value="event">🎉 فعالية</option>
-</select></div>
-<div class="form-group"><label>رابط الصورة</label><input type="url" id="ad-image" class="form-control" placeholder="https://"></div>
-<div class="form-group"><label>أو اختر صورة</label>
-<input type="file" id="ad-file" accept="image/*" class="file-input">
-<label for="ad-file" class="file-upload-btn">📁 اختيار صورة</label>
-<div id="file-preview-name" class="file-name-preview"></div></div>
-<div class="form-group"><label>محتوى الإعلان</label><textarea id="ad-content" class="form-control" placeholder="اكتب الإعلان هنا..." required></textarea></div>
-<button type="submit" class="btn-submit" id="publish-btn">🚀 نشر الإعلان</button>
-</form>
-</section>
+    <section class="editor-layout">
+      <section class="editor-column">
+        <div class="column-heading"><span class="column-kicker">EDITORIAL DESK / 01</span><h2>تحرير إعلان جديد</h2><p>أدخل الخبر ثم راجع معاينته قبل النشر.</p></div>
+        <form id="create-ad-form" class="editor-form">
+          <div class="editor-state" id="ad-editor-state"><span class="editor-state-dot"></span> إعلان جديد — جاهز للتحرير</div>
+          <div class="form-group">
+            <label for="ad-title">العنوان الرئيسي</label>
+            <input type="text" id="ad-title" maxlength="140" placeholder="اكتب عنواناً واضحاً وجذاباً" required>
+            <small class="field-meta"><span>عنوان الإعلان</span><span id="title-count">0 / 140</span></small>
+          </div>
+          <div class="form-group">
+            <label for="ad-category">قسم الجريدة</label>
+            <select id="ad-category" class="form-control">
+              <option value="admin">📢 إعلان عام</option>
+              <option value="update">🚀 تحديث جديد</option>
+              <option value="event">🎉 فعالية</option>
+            </select>
+            <small class="field-hint">سيظهر التصنيف نفسه في الإعلان المنشور.</small>
+          </div>
+          <div class="form-group">
+            <label for="ad-content">نص الإعلان</label>
+            <textarea id="ad-content" rows="7" maxlength="6000" placeholder="اكتب تفاصيل الإعلان هنا..." required></textarea>
+            <small class="field-meta"><span>محتوى الخبر</span><span id="content-count">0 / 6000</span></small>
+          </div>
+          <div class="form-group">
+            <label for="ad-image">رابط الصورة (اختياري)</label>
+            <input type="url" id="ad-image" placeholder="https://example.com/image.jpg">
+          </div>
+          <div class="form-group">
+            <label>أو اختر صورة من جهازك</label>
+            <input type="file" id="ad-file" accept="image/png,image/jpeg,image/webp,image/gif">
+            <div class="file-name-preview" id="file-preview-name">لم يتم اختيار صورة</div>
+            <small class="field-hint">الحد الأقصى 5 ميغابايت للصورة الواحدة.</small>
+          </div>
+          <label class="push-option" for="ad-send-push">
+            <input type="checkbox" id="ad-send-push" checked>
+            <span class="push-copy"><b>إرسال إشعار فوري للمستخدمين</b><small>عند التفعيل يُرسل تنبيه جديد مع نشر الإعلان. يمكنك إيقافه دون التأثير على ظهور الإعلان.</small></span>
+            <span class="push-check">✓</span>
+          </label>
+          <div class="editor-actions">
+            <button type="submit" class="publish-button" id="publish-btn">نشر الإعلان <span>↗</span></button>
+            <button type="button" class="cancel-edit-button" id="ad-cancel-edit" hidden>إلغاء التعديل</button>
+            <button type="button" class="preview-jump-button" id="ad-preview-jump">معاينة الإعلان ↓</button>
+          </div>
+        </form>
+        <div id="ad-toast" class="ad-toast" role="status" aria-live="polite"></div>
+      </section>
 
-<section class="panel-box">
-<h2>📋 الإعلانات المنشورة</h2>
-<div class="ads-list" id="ads-container"></div>
-</section>
-</div>
-</div>
-<script type="module" src="notice-create.js"></script>
+      <aside class="preview-column" id="ad-preview">
+        <div class="column-heading"><span class="column-kicker">LIVE PROOF / 02</span><h2>معاينة الصحيفة</h2><p>تتغير المعاينة تلقائياً مع كل تعديل.</p></div>
+        <article class="newspaper-preview">
+          <div class="preview-paper-top"><span>W.H. DAILY</span><span>إصدار رقمي</span></div>
+          <div class="preview-image-wrap" id="preview-image-wrap" hidden><img id="preview-image" alt="معاينة صورة الإعلان"></div>
+          <div class="preview-no-image" id="preview-no-image"><span>WH</span><small>صورة الخبر اختيارية</small></div>
+          <span class="preview-category" id="preview-category">إعلان عام</span>
+          <h3 id="preview-title">عنوان الإعلان سيظهر هنا</h3>
+          <div class="preview-byline"><span>تحرير WallpaperHub</span><span id="preview-date">الآن</span></div>
+          <div class="preview-divider"></div>
+          <p id="preview-content">اكتب نص الإعلان ليظهر هنا داخل معاينة الجريدة. يمكنك مراجعة العنوان والصورة والنص قبل النشر.</p>
+          <div class="preview-end"><span></span><b>WALLPAPERHUB</b><span></span></div>
+        </article>
+        <div class="preview-note"><b>ملاحظة التحرير</b><p>تُعرض المعاينة لغرض مراجعة الشكل والنص. النشر الفعلي يتم عند الضغط على زر النشر وحفظ البيانات في قاعدة الموقع.</p></div>
+      </aside>
+    </section>
+
+    <section class="archive-section">
+      <header class="archive-header">
+        <div><span class="column-kicker">THE ARCHIVE / 03</span><h2>أرشيف الإعلانات المنشورة</h2><p>راجع الإعلانات الحالية أو عدّلها أو احذفها من قاعدة البيانات.</p></div>
+        <button type="button" id="ad-refresh-list" class="refresh-button">↻ تحديث الأرشيف</button>
+      </header>
+      <div class="archive-toolbar">
+        <label class="archive-search"><span>⌕</span><input id="ad-search" type="search" placeholder="ابحث في العناوين والمحتوى..."></label>
+        <select id="ads-category-filter" aria-label="تصفية حسب القسم">
+          <option value="all">كل الأقسام</option><option value="admin">إعلان عام</option><option value="update">تحديث جديد</option><option value="event">فعالية</option>
+        </select>
+        <select id="ads-sort" aria-label="ترتيب الإعلانات">
+          <option value="newest">الأحدث أولاً</option><option value="oldest">الأقدم أولاً</option><option value="views">الأكثر مشاهدة</option><option value="likes">الأكثر تفاعلاً</option>
+        </select>
+        <span id="ads-result-count" class="result-count">0 إعلان</span>
+      </div>
+      <div id="ads-container" class="ads-archive"><div class="archive-loading">جارٍ تحميل أرشيف الإعلانات...</div></div>
+    </section>
+
+    <footer class="paper-footer"><span>WALLPAPERHUB PRESS ROOM</span><span>إدارة الإعلانات الرسمية</span><a href="/admin/admin.html">العودة للوحة القيادة ↑</a></footer>
+  </main>
+  <script type="module" src="/admin/admin-auth.js"></script>
+  <script type="module" src="/admin/notice-create.js?v=newspaper-20261123-1"></script>
 </body>
 </html>
