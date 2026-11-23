@@ -1,63 +1,48 @@
-<section class="today-section">
+<section class="today-section" aria-label="خلفية اليوم وWallpaperHub AI">
     <div class="banners-grid">
-        
-        <!-- 1. بطاقة خلفية اليوم (على اليسار) -->
-        <div class="today-card">
+        <article class="today-card">
+            <div class="today-image-wrapper" aria-hidden="true">
+                <img id="todayImage" alt="" loading="lazy" decoding="async">
+            </div>
             <div class="today-content">
                 <div class="today-badge-wrapper">
-                    <span class="today-icon">🌱</span>
-                    <span class="today-label">خلفية اليوم</span>
+                    <span class="today-icon" aria-hidden="true">✦</span>
+                    <span class="today-label">اختيار اليوم</span>
+                    <span class="today-date" id="todayDate"></span>
                 </div>
-                <h2 id="todayTitle">هدوء الطبيعة</h2>
-                <p id="todayDescription">جمال العالم بين يديك</p>
-                
+                <h2 id="todayTitle">نختار لك صورة اليوم</h2>
+                <p id="todayDescription">لحظة جميلة تستحق أن ترافق شاشتك.</p>
                 <div class="today-actions">
-                    <button id="todayView" class="today-btn">
-                        <span>عرض الآن</span>
-                        <span class="btn-arrow">←</span>
+                    <button id="todayView" class="today-btn" type="button">
+                        <span>شاهد الخلفية</span>
+                        <span class="btn-arrow" aria-hidden="true">←</span>
                     </button>
-                    <button id="todayWeatherButton" class="today-weather-btn" type="button" aria-label="تفعيل اختيار الخلفية حسب الطقس">
-                        <span aria-hidden="true">☁</span>
-                        <span id="todayWeatherButtonLabel">حسب الطقس</span>
+                    <button id="todayChange" class="today-change-btn" type="button">
+                        <span aria-hidden="true">↻</span>
+                        <span>خلفية أخرى</span>
                     </button>
                 </div>
             </div>
+        </article>
 
-            <div class="today-image-wrapper">
-                <img id="todayImage" alt="خلفية اليوم">
-            </div>
-        </div>
-
-        <!-- 2. بطاقة الذكاء الاصطناعي (على اليمين - مطابقة للصورة) -->
-        <div class="ai-card">
-            <!-- AI FAB — Siri-style animated orb -->
-            <div class="ai-fab" id="aiFab" role="button" tabindex="0"
-                 aria-label="فتح WallpaperHub AI" title="WallpaperHub AI">
-                <canvas id="aiCanvas" width="180" height="180"></canvas>
-            </div>
-<div class="ai-content">
+        <article class="ai-card">
+            <div class="ai-card-glow ai-card-glow-one" aria-hidden="true"></div>
+            <div class="ai-card-glow ai-card-glow-two" aria-hidden="true"></div>
+            <a class="ai-fab" id="aiFab" href="ai.html" aria-label="افتح WallpaperHub AI" title="WallpaperHub AI">
+                <canvas id="aiCanvas" width="200" height="200" aria-hidden="true"></canvas>
+            </a>
+            <div class="ai-content">
                 <div class="ai-badge-wrapper">
                     <span class="ai-badge-icon">AI</span>
-                    <span class="ai-title">أنشئ خلفيات بالذكاء الاصطناعي</span>
+                    <span class="ai-title">WallpaperHub AI</span>
                 </div>
-                <p class="ai-desc">حول أفكارك إلى خلفيات مذهلة بضغطة واحدة</p>
-                
+                <h2 class="ai-heading">فكرتك تصبح خلفية</h2>
+                <p class="ai-desc">اكتب ما تتخيله، ودع الذكاء الاصطناعي يصنعه لك.</p>
                 <a href="ai.html" id="aiBtn" class="ai-btn">
-                    <span>جرب الآن</span>
-                    <span class="btn-arrow">←</span>
+                    <span>ابدأ الإبداع</span>
+                    <span class="btn-arrow" aria-hidden="true">←</span>
                 </a>
             </div>
-
-            <div class="ai-visual-wrapper">
-                <div class="ai-floating-cards">
-                    <div class="mini-floating-card card-back-2"></div>
-                    <div class="mini-floating-card card-back-1"></div>
-                    <div class="mini-floating-card card-main">
-                        <img src="assets/wallpapers/ai-preview.jpg" alt="AI Wallpaper" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300&auto=format&fit=crop'">
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        </article>
     </div>
 </section>
