@@ -1949,7 +1949,7 @@ function openWallpapers(){
 
 
 location.href =
-"wallpapers.html";
+"/admin/wallpapers.html";
 
 
 }
@@ -1974,7 +1974,7 @@ window.openUserManagement = openUserManagement;
 // ==========================================
 
 function openCommunityReports(){
-    location.href = "community-reports.html";
+    location.href = "/admin/community-reports.html";
 }
 
 window.openCommunityReports = openCommunityReports;
@@ -1986,7 +1986,7 @@ window.openCommunityReports = openCommunityReports;
 function openNoticeCreator(){
 
     location.href =
-    "notice-create.html";
+    "/admin/notice-create.html";
 
 }
 
@@ -2001,7 +2001,7 @@ openNoticeCreator;
 function openAIControl(){
 
     location.href =
-    "ai-control.html";
+    "/admin/ai-control.html";
 
 }
 
@@ -2022,7 +2022,7 @@ loadDashboard();
 // ==========================================
 
 function openWallpaperOrganizer(){
-    location.href = "organizer.html";
+    location.href = "/admin/organizer.html";
 }
 
 window.openWallpaperOrganizer = openWallpaperOrganizer;
