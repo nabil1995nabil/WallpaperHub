@@ -1,17 +1,14 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>إدارة المستخدمين</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-  <link rel="stylesheet" href="/admin/admin-users.css?v=moderation-fixed-20261023-3">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f0e5">
+<title>دفتر الأعضاء | WallpaperHub Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin-users.css?v=book-ledger-20261123-1">
 </head>
-<body>
-
+<body class="admin-ledger-page">
 <div class="admin-user-bar" id="adminUserBar" aria-label="حساب الأدمن الحالي">
   <div class="admin-user-avatar" id="adminPageUserAvatar">
     <span class="material-icons-round">person</span>
@@ -22,50 +19,32 @@
   </div>
   <span class="admin-user-status" title="جلسة الأدمن نشطة"></span>
 </div>
-
 <main class="users-page">
-  <header class="page-header">
-    <div>
-      <span class="eyebrow">ADMIN CENTER</span>
-      <h1>إدارة المستخدمين</h1>
-      <p>إدارة الحسابات، الصلاحيات، التوثيق، الميداليات والأمان من مكان واحد.</p>
-    </div>
-    <button class="refresh-btn" id="refreshUsers"><span class="material-icons-round">refresh</span> تحديث</button>
-  </header>
+<header class="notebook-cover"><div class="cover-brand"><span class="cover-symbol"><span class="material-icons-round">auto_stories</span></span><span>WALLPAPERHUB <small>ADMIN ARCHIVE</small></span></div><div class="cover-title"><span class="eyebrow">THE MEMBER REGISTER · VOL. 01</span><h1>دفتر الأعضاء</h1><p>لكل حساب صفحة، ولكل إجراء أثر واضح في السجل.</p></div><div class="cover-stamp"><span>WH</span><small>MEMBER<br>ARCHIVE</small></div><div class="cover-bottom"><span>سجل الحسابات وإدارة المجتمع</span><span>EST. WALLPAPERHUB</span></div></header>
+<header class="page-header"><div><span class="eyebrow">فهرس الحسابات</span><h2>مكتبة المستخدمين</h2><p>ابحث في السجل، ثم افتح صفحة أي عضو لإدارة حسابه بالتفصيل.</p></div><button class="refresh-btn" id="refreshUsers" type="button"><span class="material-icons-round">refresh</span> تحديث السجل</button></header>
 
-  <section class="stats-grid" aria-label="إحصائيات المستخدمين">
-    <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">groups</span></span><div><b id="statTotal">—</b><small>إجمالي المستخدمين</small></div></article>
-    <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">person_add</span></span><div><b id="statNew">—</b><small>المستخدمون الجدد اليوم</small></div></article>
-    <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">verified</span></span><div><b id="statVerified">—</b><small>الموثقون</small></div></article>
-    <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">block</span></span><div><b id="statBanned">—</b><small>المحظورون</small></div></article>
-    <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">radio_button_checked</span></span><div><b id="statActive">—</b><small>النشطون الآن</small></div></article>
-  </section>
-
-  <section class="toolbar">
-    <div class="search-box"><span class="material-icons-round">search</span><input id="userSearch" placeholder="ابحث بالاسم أو username أو UID أو البريد..." autocomplete="off"></div>
-    <div class="filters" id="filters">
-      <button class="filter active" data-filter="all">الكل</button>
-      <button class="filter" data-filter="active">نشط</button>
-      <button class="filter" data-filter="verified">موثق</button>
-      <button class="filter" data-filter="unverified">غير موثق</button>
-      <button class="filter" data-filter="banned">محظور</button>
-      <button class="filter" data-filter="admin">Admin</button>
-      <button class="filter" data-filter="new">جديد</button>
-    </div>
-  </section>
-
-  <section class="users-layout">
-    <div class="users-list-panel">
-      <div class="list-head"><div><h2>المستخدمون</h2><span id="resultCount">0 مستخدم</span></div><span id="loadState">جاهز</span></div>
-      <div id="usersList" class="users-list"></div>
-      <div id="emptyState" class="empty-state" hidden><span class="material-icons-round">person_search</span><h3>لا توجد نتائج</h3><p>جرّب تغيير البحث أو الفلتر.</p></div>
-    </div>
-  </section>
-</main>
-
-<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<section class="stats-grid" aria-label="إحصائيات المستخدمين">
+ <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">groups</span></span><div><b id="statTotal">—</b><small>كل الحسابات</small></div></article>
+ <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">person_add</span></span><div><b id="statNew">—</b><small>انضموا اليوم</small></div></article>
+ <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">verified</span></span><div><b id="statVerified">—</b><small>حسابات موثقة</small></div></article>
+ <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">radio_button_checked</span></span><div><b id="statActive">—</b><small>نشطون الآن</small></div></article>
+ <article class="stat-card stat-warning"><span class="stat-icon"><span class="material-icons-round">block</span></span><div><b id="statBanned">—</b><small>حسابات محظورة</small></div></article>
+ <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">pause_circle</span></span><div><b id="statDisabled">—</b><small>حسابات معطلة</small></div></article>
+ <article class="stat-card"><span class="stat-icon"><span class="material-icons-round">admin_panel_settings</span></span><div><b id="statAdmins">—</b><small>مشرفون</small></div></article>
+</section>
+<section class="toolbar"><div class="search-box"><span class="material-icons-round">search</span><input id="userSearch" type="search" placeholder="ابحث بالاسم أو اسم المستخدم أو UID أو البريد..." autocomplete="off" aria-label="البحث في سجل الأعضاء"></div>
+<div class="filter-line"><div class="filters" id="filters" aria-label="تصفية المستخدمين">
+<button class="filter active" data-filter="all" type="button">الكل</button><button class="filter" data-filter="active" type="button">نشط</button><button class="filter" data-filter="online" type="button">متصل حديثاً</button><button class="filter" data-filter="verified" type="button">موثق</button><button class="filter" data-filter="unverified" type="button">غير موثق</button><button class="filter" data-filter="banned" type="button">محظور</button><button class="filter" data-filter="disabled" type="button">معطل</button><button class="filter" data-filter="admin" type="button">Admin</button><button class="filter" data-filter="moderator" type="button">Moderator</button><button class="filter" data-filter="new" type="button">جديد اليوم</button>
+</div><span id="loadState" class="load-state">جارٍ الاتصال...</span></div></section>
+<section class="book-spread" aria-label="دفتر إدارة المستخدمين">
+<section class="index-panel"><div class="index-heading"><div><span class="eyebrow">INDEX / 001</span><h2>فهرس الأسماء</h2><p>اختر اسماً لفتح صفحته داخل الدفتر.</p></div><span class="index-bookmark"><span class="material-icons-round">menu_book</span></span></div>
+<div class="list-head"><div><strong>قائمة الأعضاء</strong><span id="resultCount">0 مستخدم</span></div><span class="index-sort-label">الأحدث أولاً</span></div>
+<div id="usersList" class="users-list" aria-live="polite"></div><div id="emptyState" class="empty-state" hidden><span class="material-icons-round">person_search</span><h3>لا توجد نتائج في هذا الفهرس</h3><p>جرّب كلمة بحث أو تصنيفاً آخر.</p></div>
+<div class="index-pagination"><button id="prevUsers" type="button" disabled aria-label="الصفحة السابقة"><span class="material-icons-round">chevron_right</span> السابق</button><span id="pageIndicator">1 / 1</span><button id="nextUsers" type="button" disabled aria-label="الصفحة التالية">التالي <span class="material-icons-round">chevron_left</span></button></div>
+<div class="index-foot"><span>W.H. / USERS</span><span>فهرس إداري خاص</span></div></section>
+<section class="record-page-shell" aria-label="صفحة المستخدم المحدد"><div id="userEmptyPage" class="empty-record-page"><div class="empty-page-watermark">WH</div><span class="empty-page-icon"><span class="material-icons-round">auto_stories</span></span><span class="eyebrow">OPEN A MEMBER PAGE</span><h2>اختر مستخدماً من الفهرس</h2><p>ستظهر هنا صفحته الخاصة، مع معلومات الحساب والإجراءات والسجل.</p><div class="empty-page-rule"><span>دفتر الأعضاء</span><span>—</span><span>صفحة مستقلة لكل حساب</span></div></div>
 <aside class="user-drawer" id="userDrawer" aria-hidden="true">
-  <div class="drawer-head">
+  <div class="drawer-head"><div class="record-number">سجل رقم <b id="recordPageNumber">—</b></div>
     <div><span class="eyebrow">USER MANAGEMENT</span><h2 id="drawerTitle">ملف المستخدم</h2></div>
     <button class="icon-btn" id="closeDrawer" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
   </div>
@@ -116,14 +95,15 @@
       <div class="action-row"><button class="secondary-btn" id="addMedal"><span class="material-icons-round">add</span> إضافة ميدالية</button><button class="secondary-btn" id="resetMedals"><span class="material-icons-round">restart_alt</span> إعادة ضبط</button></div>
     </section>
 
-    <section class="detail-section">
-      <div class="section-title"><span class="material-icons-round">analytics</span><h3>الإحصائيات المتقدمة</h3></div>
+    <section class="detail-section" id="detailMetricsSection">
+      <div class="section-title"><span class="material-icons-round">analytics</span><h3>أثر المستخدم</h3></div>
       <div class="metric-grid">
         <div><b id="metricWallpapers">0</b><span>خلفيات منشورة</span></div><div><b id="metricViews">0</b><span>مشاهدات</span></div>
         <div><b id="metricDownloads">0</b><span>تحميلات</span></div><div><b id="metricLikes">0</b><span>إعجابات</span></div>
         <div><b id="metricFavorites">0</b><span>مفضلة</span></div><div><b id="metricTop">—</b><span>الأكثر مشاهدة</span></div>
       </div>
-      <div class="activity-note">إحصائيات النشر والمشاهدات والتحميلات والإعجابات والمفضلة تُحسب من بيانات الحساب الحالية.</div>
+      <div class="activity-note">ملخص أعمال وتفاعل هذا الحساب وفق البيانات المتاحة في الموقع.</div>
+      <div class="wallpapers-ledger"><h4>أحدث الخلفيات المنشورة</h4><div id="wallpapersList" class="wallpapers-list"><div class="placeholder">لم تُحمّل الأعمال بعد.</div></div></div>
     </section>
 
     <section class="detail-section danger-section" id="detailSecuritySection">
@@ -134,6 +114,7 @@
         <button class="danger-btn" id="permanentBan">حظر دائم</button>
         <button class="secondary-btn" id="unbanUser">إلغاء الحظر</button>
       </div>
+      <div class="account-state-actions"><button class="danger-btn" id="disableAccount" type="button">تعطيل الحساب</button><button class="primary-btn" id="enableAccount" type="button" hidden>إعادة تفعيل الحساب</button><small id="accountStateHint">التعطيل يمنع تسجيل الدخول، والتفعيل يعيد الوصول للحساب.</small></div>
       <div class="form-grid">
         <label>سبب الإجراء<input id="actionReason" placeholder="سبب الحظر أو التحذير"></label>
         <label>مدة الحظر
@@ -224,8 +205,8 @@
     </section>
   </div>
 </aside>
-
+</section></section></main>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
 <div id="toast" class="toast" role="status"></div>
-<script type="module" src="/admin/admin-users.js?v=moderation-fixed-20261023-3"></script>
-</body>
-</html>
+<script type="module" src="/admin/admin-users.js?v=book-ledger-20261123-1"></script>
+</body></html>

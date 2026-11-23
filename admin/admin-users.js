@@ -100,6 +100,8 @@ let users = [];
 let selected = null;
 let selectedDetail = null;
 let activeFilter = "all";
+let currentPage = 1;
+const PAGE_SIZE = 18;
 
 function esc(v){
   return String(v ?? "").replace(/[&<>"']/g, c => ({
@@ -204,6 +206,8 @@ function renderStats(stats){
     new_today:users.filter(isNew).length,
     verified:users.filter(u => u.is_verified).length,
     banned:users.filter(isBanned).length,
+    disabled:users.filter(u => String(u?.status || "").toLowerCase() === "disabled").length,
+    admins:users.filter(u => String(u?.role || u?.control_role || "").toLowerCase() === "admin").length,
     active_now:users.filter(u => {
       if(!u.last_sign_in_at) return false;
       const t = new Date(u.last_sign_in_at).getTime();
@@ -217,57 +221,60 @@ function renderStats(stats){
   $("#statVerified").textContent = s.verified ?? fallback.verified;
   $("#statBanned").textContent = s.banned ?? fallback.banned;
   $("#statActive").textContent = s.active_now ?? fallback.active_now;
+  if($("#statDisabled")) $("#statDisabled").textContent = s.disabled ?? fallback.disabled;
+  if($("#statAdmins")) $("#statAdmins").textContent = s.admins ?? fallback.admins;
 }
 
 function matches(u){
-  const q = $("#userSearch").value.trim().toLowerCase();
-
-  if(q && !`${u.name || ""} ${u.username || ""} ${u.uid || u.id || ""} ${u.email || ""}`
-    .toLowerCase().includes(q)){
-    return false;
-  }
-
-  if(activeFilter === "active" && !isActive(u)) return false;
-  if(activeFilter === "verified" && !u.is_verified) return false;
-  if(activeFilter === "unverified" && u.is_verified) return false;
-  if(activeFilter === "banned" && !isBanned(u)) return false;
-  if(activeFilter === "admin" &&
-     String(u.role || u.control_role || "").toLowerCase() !== "admin") return false;
-  if(activeFilter === "new" && !isNew(u)) return false;
-
+  const query = ($("#userSearch")?.value || "").trim().toLowerCase();
+  const searchable = [u.name,u.username,u.uid || u.id,u.email].join(" ").toLowerCase();
+  if(query && !searchable.includes(query)) return false;
+  const status=String(u?.status || "active").toLowerCase();
+  const role=String(u?.role || u?.control_role || "user").toLowerCase();
+  const activity=new Date(u?.last_activity_at || u?.last_sign_in_at || 0).getTime();
+  const online=Number.isFinite(activity) && activity>0 && Date.now()-activity<=15*60*1000;
+  if(activeFilter==="active" && status!=="active") return false;
+  if(activeFilter==="disabled" && status!=="disabled") return false;
+  if(activeFilter==="online" && !online) return false;
+  if(activeFilter==="verified" && !u.is_verified) return false;
+  if(activeFilter==="unverified" && u.is_verified) return false;
+  if(activeFilter==="banned" && !isBanned(u)) return false;
+  if(activeFilter==="admin" && role!=="admin") return false;
+  if(activeFilter==="moderator" && role!=="moderator") return false;
+  if(activeFilter==="new" && !isNew(u)) return false;
   return true;
 }
-
+function renderPagination(total){
+  const pages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  currentPage=Math.min(Math.max(1,currentPage),pages);
+  const prev=$("#prevUsers"),next=$("#nextUsers"),label=$("#pageIndicator");
+  if(prev)prev.disabled=currentPage<=1;
+  if(next)next.disabled=currentPage>=pages;
+  if(label)label.textContent=currentPage+" / "+pages;
+}
 function renderUsers(){
-  const list = $("#usersList");
-  const rows = users.filter(matches);
-
-  $("#resultCount").textContent = `${rows.length} مستخدم`;
-
-  list.innerHTML = rows.map(u => `
-    <article class="user-row" data-id="${esc(u.id)}">
-      <img class="user-avatar" src="${esc(avatar(u))}" alt="">
-      <div class="user-main">
-        <strong>${esc(u.name || u.username || "مستخدم")}</strong>
-        <small>@${esc(u.username || "—")} · ${esc(u.uid || u.id)}</small>
-      </div>
-      <div class="row-status">
-        ${u.is_verified ? '<span class="badge verified">موثق</span>' : ""}
-        ${u.role === "admin" ? '<span class="badge admin">Admin</span>' : ""}
-        ${u.role === "moderator" ? '<span class="badge">Moderator</span>' : ""}
-        ${isBanned(u) ? '<span class="badge banned">محظور</span>' : ""}
-      </div>
-      <span class="row-last">${fmt(u.last_activity_at || u.last_sign_in_at)}</span>
-    </article>
-  `).join("");
-
-  $("#emptyState").hidden = rows.length > 0;
-
-  $$(".user-row").forEach(row => {
-    row.addEventListener("click", () => openDrawer(row.dataset.id));
+  const list=$("#usersList"); if(!list)return;
+  const filtered=users.filter(matches).sort((a,b)=>(new Date(b.created_at||0).getTime()||0)-(new Date(a.created_at||0).getTime()||0));
+  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)); currentPage=Math.min(Math.max(1,currentPage),pages);
+  const start=(currentPage-1)*PAGE_SIZE,rows=filtered.slice(start,start+PAGE_SIZE);
+  $("#resultCount").textContent=filtered.length+" من "+users.length+" مستخدم";
+  list.innerHTML=rows.map((u,index)=>{
+    const id=String(u.id||u.uid||""),role=String(u.role||u.control_role||"user").toLowerCase(),status=String(u.status||"active").toLowerCase(),name=u.name||u.username||"مستخدم";
+    const state=isBanned(u)?'<span class="badge banned">محظور</span>':status==="disabled"?'<span class="badge disabled">معطل</span>':'<span class="badge">نشط</span>';
+    const active=selected&&String(selected.id||selected.uid)===id?" selected":"";
+    const verified=u.is_verified?'<span class="badge verified">موثق</span>':"";
+    const roleTag=role==="admin"?'<span class="badge admin">Admin</span>':role==="moderator"?'<span class="badge">Moderator</span>':"";
+    return '<article class="user-row'+active+'" data-id="'+esc(id)+'" tabindex="0" role="button" aria-label="فتح صفحة '+esc(name)+'">'+
+      '<img class="user-avatar" src="'+esc(avatar(u))+'" alt="" loading="lazy" referrerpolicy="no-referrer">'+
+      '<div class="user-main"><strong>'+esc(name)+'</strong><small>@'+esc(u.username||"—")+' · '+esc(u.email||u.uid||id)+'</small><div class="row-status">'+verified+roleTag+state+'</div></div>'+
+      '<div class="row-meta"><span class="row-number">'+String(start+index+1).padStart(3,"0")+'</span></div></article>';
+  }).join("");
+  $("#emptyState").hidden=filtered.length>0; renderPagination(filtered.length);
+  $$(".user-row").forEach(row=>{
+    const open=()=>openDrawer(row.dataset.id); row.addEventListener("click",open);
+    row.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();open();}});
   });
 }
-
 /* Backend returns owned medals as { key, awarded_at, metadata }.
    Older frontend code expected medal_key, so normalize both shapes here. */
 function medalKey(row){
@@ -354,6 +361,16 @@ function renderMedals(detail){
   }));
 }
 
+function renderUserWallpapers(rows){
+  const box=$("#wallpapersList"); if(!box)return;
+  if(!Array.isArray(rows)||!rows.length){box.innerHTML='<div class="placeholder">لا توجد خلفيات منشورة مسجلة لهذا الحساب.</div>';return;}
+  box.innerHTML=rows.slice(0,15).map(w=>{
+    const title=w.title||"خلفية بدون عنوان",image=w.thumbnail||w.image||"";
+    const counts=Number(w.views||0).toLocaleString("ar")+" مشاهدة · "+Number(w.downloads||0).toLocaleString("ar")+" تحميل";
+    const imageHtml=image?'<img src="'+esc(image)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'<span class="wallpaper-thumb-empty"></span>';
+    return '<article class="wallpaper-record">'+imageHtml+'<div><strong>'+esc(title)+'</strong><small>'+esc(fmt(w.date||w.created_at))+'</small></div><span class="wallpaper-counts">'+esc(counts)+'</span></article>';
+  }).join("");
+}
 function renderAudit(logs){
   const box = $("#auditLog");
   if(!box) return;
@@ -382,6 +399,8 @@ function fillDetail(detail){
 
   $("#detailAvatar").src = avatar(u);
   $("#detailName").textContent = u.name || u.username || "مستخدم";
+  if($("#recordPageNumber")){const i=users.findIndex(x=>String(x.id||x.uid)===String(u.id||u.uid));$("#recordPageNumber").textContent=i>=0?String(i+1).padStart(3,"0"):"—";}
+  $("#drawerTitle").textContent="صفحة العضو";
   $("#detailUsername").textContent = u.username ? `@${u.username}` : "—";
 
   $("#detailBadges").innerHTML = `
@@ -395,6 +414,9 @@ function fillDetail(detail){
   $("#detailStatus").textContent =
     u.status === "disabled" ? "معطل" :
     isBanned(u) ? "محظور" : "نشط";
+  if($("#disableAccount")) $("#disableAccount").hidden = u.status === "disabled" || isBanned(u);
+  if($("#enableAccount")) $("#enableAccount").hidden = u.status !== "disabled";
+  if($("#accountStateHint")) $("#accountStateHint").textContent = isBanned(u) ? "الحساب محظور؛ استخدم إلغاء الحظر لإعادة فتحه." : u.status === "disabled" ? "الحساب معطل؛ أعد تفعيله للسماح بتسجيل الدخول." : "التعطيل يمنع تسجيل الدخول، والتفعيل يعيد الوصول للحساب.";
 
   $("#detailRole").textContent =
     String(control.role || u.role || "user").toUpperCase();
@@ -442,6 +464,7 @@ function fillDetail(detail){
   setBanFields(control.ban_until || u.ban_until || null);
 
   renderMedals(detail);
+  renderUserWallpapers(detail?.wallpapers || []);
   renderAudit(detail?.audit_logs || []);
   renderWarningHistory(detail?.warnings || []);
   if(u?.id || u?.uid) loadModerationState(u.id || u.uid).catch(error=>console.warn("MODERATION STATE:",error));
@@ -464,10 +487,13 @@ async function openDrawer(id){
   const u = users.find(x => String(x.id) === String(id));
   if(!u) return;
   selected = u;
+  renderUsers();
   resetModerationInputs();
   setModerationLoadingState();
 
   $("#userDrawer").classList.add("open");
+  $("#userEmptyPage").hidden = true;
+  document.body.classList.add("user-record-open");
   $("#drawerBackdrop").classList.add("open");
   $("#userDrawer").setAttribute("aria-hidden","false");
 
@@ -490,10 +516,13 @@ function closeDrawer(){
   detailRequestVersion++;
   moderationRequestVersion++;
   $("#userDrawer").classList.remove("open");
+  $("#userEmptyPage").hidden = false;
+  document.body.classList.remove("user-record-open");
   $("#drawerBackdrop").classList.remove("open");
   $("#userDrawer").setAttribute("aria-hidden","true");
   selected = null;
   selectedDetail = null;
+  renderUsers();
 }
 
 async function loadUsers(){
@@ -965,14 +994,18 @@ $("#refreshUsers").onclick = loadUsers;
 $("#closeDrawer").onclick = closeDrawer;
 $("#drawerBackdrop").onclick = closeDrawer;
 
-$("#userSearch").oninput = renderUsers;
+$("#userSearch").oninput=()=>{currentPage=1;renderUsers();};
+$("#prevUsers")?.addEventListener("click",()=>{currentPage=Math.max(1,currentPage-1);renderUsers();});
+$("#nextUsers")?.addEventListener("click",()=>{currentPage++;renderUsers();});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&selected)closeDrawer();});
 
 $("#filters").addEventListener("click", e => {
   const button = e.target.closest(".filter");
   if(!button) return;
 
   activeFilter = button.dataset.filter;
-  $$(".filter").forEach(x => x.classList.remove("active"));
+  currentPage = 1;
+  $(".filter").forEach(x => x.classList.remove("active"));
   button.classList.add("active");
   renderUsers();
 });
@@ -1083,10 +1116,17 @@ $("#unbanUser").onclick = async () => {
   );
 };
 
-$("#warnUser").onclick = () => {
-  if(!selected) return;
-  openWarningModal(selected);
-};
+$("#warnUser").onclick=()=>{if(!selected)return;openWarningModal(selected);};
+$("#disableAccount")?.addEventListener("click",async()=>{
+  if(!selected||isBanned(selected)||selected.status==="disabled")return;
+  if(!confirm("تعطيل هذا الحساب؟ لن يتمكن صاحبه من تسجيل الدخول حتى إعادة التفعيل."))return;
+  await action("/api/admin/users/"+encodeURIComponent(selected.id||selected.uid)+"/control",{status:"disabled"},"تم تعطيل الحساب");
+});
+$("#enableAccount")?.addEventListener("click",async()=>{
+  if(!selected||selected.status!=="disabled")return;
+  if(!confirm("إعادة تفعيل الحساب والسماح بتسجيل الدخول؟"))return;
+  await action("/api/admin/users/"+encodeURIComponent(selected.id||selected.uid)+"/control",{status:"active"},"تمت إعادة تفعيل الحساب");
+});
 
 $("#banDuration")?.addEventListener("change", updateCustomBanVisibility);
 

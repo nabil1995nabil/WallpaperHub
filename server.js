@@ -1452,7 +1452,7 @@ app.get("/api/admin/users", async (req,res)=>{
                 : Promise.resolve({data:[],error:null}),
             ids.length
                 ? supabase.from("user_admin_controls")
-                    .select("user_id,role,status,warning_level,ban_type,ban_reason,ban_until,admin_notes,community_ban_until,community_ban_permanent,community_ban_reason,community_chat_freeze_until,community_chat_freeze_permanent,community_chat_freeze_reason,community_voice_freeze_until,community_voice_freeze_permanent,community_voice_freeze_reason")
+                    .select("user_id,role,status,warning_level,ban_type,ban_reason,ban_until,admin_notes,community_ban_until,community_ban_permanent,community_ban_reason,community_chat_freeze_until,community_chat_freeze_permanent,community_chat_freeze_reason,community_voice_freeze_until,community_voice_freeze_permanent,community_voice_freeze_reason,video_chat_ban_until,video_chat_ban_permanent,video_chat_ban_reason,publish_ban_until,publish_ban_permanent,publish_ban_reason,comments_ban_until,comments_ban_permanent,comments_ban_reason")
                     .in("user_id", ids)
                 : Promise.resolve({data:[],error:null})
         ]);
@@ -1461,7 +1461,11 @@ app.get("/api/admin/users", async (req,res)=>{
         if(controlsResult.error) throw controlsResult.error;
 
         const profileMap = new Map((profilesResult.data || []).map(row=>[String(row.user_id),row]));
-        const controlMap = new Map((controlsResult.data || []).map(row=>[String(row.user_id),row]));
+        const normalizedControls = await Promise.all((controlsResult.data || []).map(async row=>{
+            try{return await clearExpiredAccountBan(row.user_id,row);}
+            catch(expiryError){console.warn("ADMIN LIST EXPIRED BAN SYNC:",expiryError?.message||expiryError);return row;}
+        }));
+        const controlMap = new Map(normalizedControls.map(row=>[String(row.user_id),row]));
 
         let result = users.map(user =>
             adminUserSummary(
@@ -1750,6 +1754,9 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
             return res.status(400).json({success:false,message:"لا يمكن للأدمن تعطيل أو حظر حسابه الحالي"});
         }
 
+        const target = await supabase.auth.admin.getUserById(uid);
+        if(target?.error || !target?.data?.user){return res.status(404).json({success:false,message:"المستخدم غير موجود"});}
+
         const current = await getUserAdminControl(uid);
         const nextRole = requestedRole ?? current.role;
         const nextStatus = requestedStatus ?? current.status;
@@ -1796,7 +1803,6 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
         if(controlError) throw controlError;
 
         // role في app_metadata يبقى جهة خادم. user_metadata لا يستخدم للصلاحيات.
-        const target = await supabase.auth.admin.getUserById(uid);
         if(target?.data?.user){
             const existingMeta = target.data.user.app_metadata || {};
             const nextAppMeta = {
@@ -1806,7 +1812,10 @@ app.patch("/api/admin/users/:uid/control", async(req,res)=>{
             };
 
             let banDuration = "none";
-            if(nextStatus === "banned"){
+            if(nextStatus === "disabled"){
+                // تعطيل الحساب يوقف تسجيل الدخول من Supabase Auth أيضاً.
+                banDuration = "876000h";
+            }else if(nextStatus === "banned"){
                 if(payload.ban_type === "temporary"){
                     const seconds = Math.max(
                         1,
