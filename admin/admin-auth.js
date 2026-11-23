@@ -48,7 +48,8 @@ function paintAccount(user){
 
     const nameEls = [
         document.getElementById("adminUserName"),
-        document.getElementById("adminPageName")
+        document.getElementById("adminPageName"),
+        document.getElementById("adminUserNameCard")
     ];
     const emailEls = [
         document.getElementById("adminUserEmail"),
