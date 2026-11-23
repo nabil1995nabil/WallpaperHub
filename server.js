@@ -5432,7 +5432,7 @@ app.get(
             const { data, error } = await supabase
                 .from("wallpapers")
                 .select("*")
-                .order("id", { ascending: true })
+                .order("id", { ascending: false })
                 // نطلب عنصرًا إضافيًا لمعرفة هل توجد صفحة أخرى.
                 .range(offset, offset + limit);
 
