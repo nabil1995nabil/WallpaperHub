@@ -1964,7 +1964,7 @@ openWallpapers;
 // ==========================================
 
 function openUserManagement(){
-    location.href = "admin-users.html";
+    location.href = "/admin/admin-users.html";
 }
 
 window.openUserManagement = openUserManagement;

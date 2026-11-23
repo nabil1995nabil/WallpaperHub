@@ -17,7 +17,7 @@ async function loadAdminIdentity(){
   try{
     const { data, error } = await supabase.auth.getSession();
     if(error || !data?.session){
-      window.location.href = "/admin.html";
+      location.href = "/admin";
       return;
     }
 
@@ -32,7 +32,7 @@ async function loadAdminIdentity(){
 
     const result = await response.json().catch(() => ({}));
     if(!response.ok || !result.isAdmin){
-      window.location.href = "/admin.html";
+      location.href = "/admin";
       return;
     }
 
@@ -537,7 +537,7 @@ async function loadUsers(){
   }catch(error){
     if(error?.code === "AUTH_REQUIRED"){
       showToast("انتهت جلسة الإدارة، سيتم الرجوع إلى لوحة التحكم");
-      setTimeout(() => { window.location.href = "/admin.html"; }, 900);
+      setTimeout(() => { location.href = "/admin"; }, 900);
       return;
     }
 
