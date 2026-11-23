@@ -1,5 +1,3 @@
-import { supabase } from "./supabase.js";
-
 const API_URL = "/api/wallpapers";
 const page = document.querySelector(".explore-page");
 const featuredLink = document.getElementById("featuredWallpaperLink");
@@ -281,6 +279,7 @@ function renderSearchResults() {
 }
 
 async function loadWallpapersFromSupabase() {
+    const { supabase } = await import("./supabase.js");
     const { data, error } = await supabase
         .from("wallpapers")
         .select("*")
