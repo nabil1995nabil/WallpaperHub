@@ -2007,14 +2007,5 @@ openAIControl;
 
 loadDashboard();
 
-// ==========================================
-// فتح منظم الخلفيات
-// ==========================================
-
-function openWallpaperOrganizer(){
-    location.href = "/admin/organizer.html";
-}
-
-window.openWallpaperOrganizer = openWallpaperOrganizer;
 
 
