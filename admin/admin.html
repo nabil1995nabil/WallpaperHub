@@ -1,689 +1,195 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>WallpaperHub Admin</title>
-
-<link rel="stylesheet" href="/admin/admin.css">
-
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f7f4">
+  <title>لوحة إدارة WallpaperHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/admin.css?v=admin-desk-20261123-1">
 </head>
-
-
 <body class="admin-main-page">
-
-
-<div class="sidebar">
-
-<div class="logo">
-
-<h2>WallpaperHub</h2>
-
-<p>Admin Panel</p>
-
-</div>
-
-<div class="admin-account-card">
-    <div class="admin-account-avatar" id="adminUserAvatar"><span>W</span></div>
-    <div class="admin-account-info">
-        <strong id="adminUserName">المدير</strong>
-        <small id="adminUserEmail">جاري التحقق...</small>
-    </div>
-    <span class="admin-account-dot"></span>
-</div>
-
-
-<ul class="menu">
-
-<li class="active">
-🏠 لوحة التحكم
-</li>
-
-<li onclick="openNoticeCreator()">
-📢 نشر إعلان
-</li>
-
-
-
-<li class="wallpaper-review-menu" onclick="openWallpaperReview()">
-🛡️ مراجعة الخلفيات
-</li>
-
-<li onclick="openUserManagement()">
-👥 إدارة المستخدمين والبلاغات
-</li>
-
-<li onclick="openWallpapers()">
-🖼️ الخلفيات
-</li>
-
-<li class="ai-generated-menu" onclick="openAIGeneratedWallpapers()">
-خلفيات gemini
-</li>
-
-<li onclick="openWallpaperOrganizer()">
-🧩 منظم الخلفيات
-</li>
-
-<li onclick="openAIControl()">
-🤖 الذكاء الاصطناعي
-</li>
-
-<li>
-📂 الأقسام
-</li>
-
-
-<li>
-🎞️ الخلفيات المتحركة
-</li>
-
-
-<li>
-⚙️ الإعدادات
-</li>
-
-
-<li id="logoutBtn">
-🚪 تسجيل الخروج
-</li>
-
-
-</ul>
-
-</div>
-
-
-
-
-<div class="main">
-
-
-<header>
-
-<h1>لوحة التحكم</h1>
-
-<p>
-إدارة خلفيات WallpaperHub
-</p>
-
-</header>
-
-
-
-
-<div class="cards">
-
-
-<div class="card">
-
-<h3 id="wallpapersCount">
-0
-</h3>
-
-<span>
-إجمالي الخلفيات
-</span>
-
-</div>
-
-
-
-<div class="card">
-
-<h3 id="downloadsCount">
-0
-</h3>
-
-<span>
-إجمالي التحميلات
-</span>
-
-</div>
-
-
-
-<div class="card">
-
-<h3 id="favoritesCount">
-0
-</h3>
-
-<span>
-الإعجابات
-</span>
-
-</div>
-
-
-
-<div class="card">
-
-<h3>
-1
-</h3>
-
-<span>
-المدير
-</span>
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-<section class="add-wallpaper">
-
-
-<h2>
-➕ نشر خلفية جديدة
-</h2>
-
-
-
-
-<form id="wallpaperForm">
-
-
-
-<div class="form-grid">
-
-
-
-
-
-<!-- عنوان -->
-
-<div class="form-group">
-
-<label>
-اسم الخلفية
-</label>
-
-
-<input
-id="wallTitle"
-type="text"
-placeholder="مثال: Rain Night"
->
-
-</div>
-
-
-
-
-
-<!-- نوع الملف -->
-
-<div class="form-group">
-
-<label>
-نوع الخلفية
-</label>
-
-
-<select id="wallType">
-
-
-<option value="image">
-🖼 صورة
-</option>
-
-
-<option value="video">
-🎞 فيديو متحرك
-</option>
-
-
-<option value="gif">
-🌀 GIF
-</option>
-
-
-</select>
-
-</div>
-
-
-
-
-
-
-<!-- القسم -->
-
-<div class="form-group">
-
-<label>
-القسم
-</label>
-
-
-<select id="wallCategory">
-
-
-<option value="nature">
-🌿 الطبيعة
-</option>
-
-
-<option value="cars">
-🚗 السيارات
-</option>
-
-
-<option value="games">
-🎮 الألعاب
-</option>
-
-
-<option value="space">
-🌌 الفضاء
-</option>
-
-
-<option value="ai">
-🤖 الذكاء الاصطناعي
-</option>
-
-
-<option value="amoled">
-🖤 AMOLED
-</option>
-
-
-<option value="animals">
-🐾 الحيوانات
-</option>
-
-
-<option value="anime">
-🌀 الأنمي
-</option>
-
-
-<option value="city">
-🏙️ المدن
-</option>
-
-
-<option value="sports">
-⚽ الرياضة
-</option>
-
-<option value="4k">
-💎 4K
-</option>
-
-<option value="minimal">
-✨ Minimal
-</option>
-
-<option value="rain">
-🌧️ المطر
-</option>
-
-<option value="sunset">
-🌅 الغروب
-</option>
-
-<option value="architecture">
-🏛️ العمارة
-</option>
-
-
-<option value="religious">🕌 الخلفيات الدينية</option>
-<option value="snow">❄️ الثلج والشتاء</option>
-<option value="aurora">🌌 الشفق القطبي</option>
-<option value="cyberpunk">🌃 سايبربانك</option>
-<option value="gradients">🎨 التدرجات والألوان</option>
-<option value="deep-space">
-🚀 الفضاء العميق
-</option>
-
-</select>
-
-
-</div>
-
-
-
-
-
-
-<!-- الدقة -->
-
-<div class="form-group">
-
-<label>
-الدقة
-</label>
-
-
-<input
-id="wallResolution"
-placeholder="1440×3200"
->
-
-
-</div>
-
-
-
-
-
-<!-- الحجم -->
-
-<div class="form-group">
-
-<label>
-الحجم
-</label>
-
-
-<input
-id="wallSize"
-placeholder="5 MB"
->
-
-
-</div>
-
-
-
-
-
-
-
-
-<!-- Metadata enhancements (no database schema change) -->
-<div class="form-group">
-<label for="wallDevice">الجهاز المستهدف</label>
-<select id="wallDevice">
-<option value="all">📱💻 جميع الأجهزة</option>
-<option value="phone">📱 الهاتف</option>
-<option value="desktop">💻 الكمبيوتر</option>
-<option value="tablet">📟 الجهاز اللوحي</option>
-</select>
-<small>اختيار تنظيمي في واجهة النشر؛ لا يُحفظ في قاعدة البيانات الحالية.</small>
-</div>
-<div class="form-group">
-<label for="wallColors">الألوان الرئيسية</label>
-<input id="wallColors" type="text" placeholder="#111827, #60a5fa">
-<small>يمكن تركه فارغًا.</small>
-</div>
-<!-- الوسوم -->
-
-
-<div class="form-group full">
-
-
-<label>
-الوسوم
-</label>
-
-
-<input
-id="wallTags"
-placeholder="nature,forest,green"
->
-
-
-</div>
-
-
-
-
-
-
-
-
-<!-- الملف -->
-
-<div class="form-group full">
-
-
-<label>
-ملف الخلفية
-</label>
-
-
-<input
-
-type="file"
-
-id="wallImage"
-
-accept="image/*,video/*"
-
-multiple
-
->
-
-
-<small id="wallAutoMetadata" class="wall-auto-metadata">ستظهر الدقة والحجم تلقائيًا بعد اختيار ملف واحد.</small>
-
-<small id="selectedImagesCount">
-
-لم يتم اختيار ملفات
-
-</small>
-
-
-</div>
-
-
-
-
-
-
-<!-- صورة مصغرة للفيديو -->
-
-<div class="form-group full">
-
-
-<label>
-صورة المعاينة للفيديو
-</label>
-
-
-<input
-
-type="file"
-
-id="videoThumbnail"
-
-accept="image/*"
-
->
-
-
-</div>
-
-
-
-
-
-
-<!-- المعاينة -->
-
-
-<div class="preview-box full">
-
-
-<div
-id="imagesPreview"
-class="images-preview">
-
-
-<p class="preview-empty">
-
-اختر الملفات
-
-</p>
-
-
-</div>
-
-
-</div>
-
-<!-- Upload Progress -->
-
-<div class="upload-progress-box full" id="uploadProgressBox">
-
-<div class="upload-progress-info">
-
-<span class="upload-progress-title">
-📤 تقدم النشر
-</span>
-
-<span id="uploadProgressText">
-0 / 0
-</span>
-
-</div>
-
-<div class="upload-progress-status-row">
-    <span id="uploadNetworkStatus" class="upload-network-status is-online">
-        ● متصل — الرفع جاهز
-    </span>
-    <span id="uploadCurrentFile">لا يوجد رفع حالي</span>
-</div>
-
-<div class="upload-progress">
-
-<div
-id="uploadProgressBar"
-class="upload-progress-bar">
-</div>
-
-</div>
-
-<div class="upload-progress-actions">
-    <button id="pauseUploadBtn" type="button" class="upload-control-btn upload-pause-btn" disabled>
-        <span>⏸</span>
-        <span>إيقاف الرفع</span>
-    </button>
-
-    <button id="resumeUploadBtn" type="button" class="upload-control-btn upload-resume-btn" disabled>
-        <span>▶</span>
-        <span>متابعة الرفع</span>
-    </button>
-
-    <span id="uploadRetryInfo" class="upload-retry-info"></span>
-</div>
-
-<div id="uploadOfflineNotice" class="upload-offline-notice" hidden>
-    انقطع الاتصال. تم حفظ موضع الرفع الحالي، وسيستأنف تلقائيًا عند عودة الإنترنت.
-</div>
-
-</div>
-
-<!-- خيارات -->
-
-
-<div class="checks">
-
-
-<label>
-
-<input
-type="checkbox"
-id="todayWallpaper"
->
-
-خلفية اليوم
-
-</label>
-
-
-
-<label>
-
-<input
-type="checkbox"
-id="popular"
->
-
-الأكثر شعبية
-
-</label>
-
-
-<label id="is360Option">
-
-<input
-type="checkbox"
-id="is360"
->
-
-🌐 خلفية 360°
-
-</label>
-
-
-</div>
-
-
-
-
-
-
-
-<button
-id="saveWallpaper"
-type="submit"
->
-
-🚀 نشر الخلفية
-
-</button>
-
-
-
-
-</div>
-
-
-</form>
-
-
-</section>
-
-
-
-</div>
-
-
-
-
-<script>
-function openAIGeneratedWallpapers(){
-    location.href = "ai-generator.html";
-}
-function openWallpaperReview(){
-    location.href = "admin-review.html";
-}
-</script>
-
-<script type="module" src="/admin/admin-auth.js"></script>
-<script>
-window.openAIGeneratedWallpapers=function(){ location.href="ai-generator.html"; };
-</script>
-<script type="module" src="/admin/admin.js"></script>
-
-
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <a class="logo" href="/admin/admin.html" aria-label="WallpaperHub لوحة الإدارة">
+        <span class="logo-mark">WH</span>
+        <span class="logo-copy"><strong>WallpaperHub</strong><small>ADMIN DESK</small></span>
+      </a>
+
+      <div class="admin-account-card">
+        <div class="admin-account-avatar" id="adminUserAvatar"><span>W</span></div>
+        <div class="admin-account-info">
+          <strong id="adminUserName">المدير</strong>
+          <small id="adminUserEmail">جاري التحقق...</small>
+        </div>
+        <span class="admin-account-dot" title="جلسة نشطة"></span>
+      </div>
+
+      <nav class="admin-navigation" aria-label="التنقل الإداري">
+        <span class="nav-caption">مساحة العمل</span>
+        <a class="nav-link active" href="/admin/admin.html" aria-current="page"><span>▦</span> لوحة القيادة</a>
+        <a class="nav-link" href="/admin/notice-create.html"><span>▤</span> جريدة الإعلانات</a>
+        <a class="nav-link" href="/admin/admin-review.html"><span>◉</span> مراجعة الخلفيات</a>
+        <a class="nav-link" href="/admin/wallpapers.html"><span>▧</span> مكتبة الخلفيات</a>
+        <a class="nav-link" href="/admin/admin-users.html"><span>♧</span> إدارة المستخدمين والبلاغات</a>
+        <span class="nav-caption nav-caption-spaced">الأدوات</span>
+        <a class="nav-link" href="/admin/ai-control.html"><span>✳</span> أدوات الذكاء الاصطناعي</a>
+        <a class="nav-link nav-link-publish" href="#publish-wallpaper"><span>＋</span> نشر خلفية جديدة</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-mark">W</span>
+        <span><b>إدارة المحتوى</b><small>WallpaperHub Morocco</small></span>
+      </div>
+      <button id="logoutBtn" class="logout-btn" type="button"><span>↪</span> تسجيل الخروج</button>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-topbar">
+        <div>
+          <span class="topbar-kicker">ADMINISTRATION / OVERVIEW</span>
+          <h1>لوحة القيادة</h1>
+          <p>كل أدوات إدارة WallpaperHub في مساحة واحدة مرتبة.</p>
+        </div>
+        <a class="topbar-home" href="/" target="_blank" rel="noopener">عرض الموقع <span>↗</span></a>
+      </header>
+
+      <section class="welcome-strip">
+        <div class="welcome-copy">
+          <span class="welcome-kicker">WALLPAPERHUB MOROCCO</span>
+          <h2>مساحة عملك، بلا ازدحام.</h2>
+          <p>تابع مكتبة المحتوى، راجع المشاركات، وأدر المجتمع من مكان واضح.</p>
+        </div>
+        <div class="welcome-stamp"><strong>WH</strong><small>ADMIN<br>EDITION</small></div>
+      </section>
+
+      <section class="section-heading">
+        <div><span class="section-kicker">LIVE OVERVIEW</span><h2>ملخص المكتبة</h2></div>
+        <a href="/admin/wallpapers.html" class="text-link">إدارة كل الخلفيات <span>←</span></a>
+      </section>
+
+      <section class="cards" aria-label="إحصائيات الموقع">
+        <article class="card stat-card">
+          <span class="stat-symbol">▧</span>
+          <div><strong id="wallpapersCount">—</strong><small>إجمالي الخلفيات</small></div>
+        </article>
+        <article class="card stat-card">
+          <span class="stat-symbol">↓</span>
+          <div><strong id="downloadsCount">—</strong><small>إجمالي التحميلات</small></div>
+        </article>
+        <article class="card stat-card">
+          <span class="stat-symbol">♡</span>
+          <div><strong id="favoritesCount">—</strong><small>الإعجابات</small></div>
+        </article>
+        <article class="card stat-card stat-admin-card">
+          <span class="stat-symbol">✦</span>
+          <div><strong id="adminUserNameCard">مدير الموقع</strong><small>جلسة الإدارة الحالية</small></div>
+        </article>
+      </section>
+
+      <section class="section-heading quick-heading">
+        <div><span class="section-kicker">QUICK ACCESS</span><h2>اختصارات الإدارة</h2></div>
+      </section>
+      <section class="quick-actions">
+        <a href="/admin/notice-create.html" class="quick-action"><span class="quick-icon">▤</span><span><b>نشر إعلان</b><small>إنشاء إعلان ومراجعته وحذفه</small></span><i>←</i></a>
+        <a href="/admin/admin-review.html" class="quick-action"><span class="quick-icon">◉</span><span><b>مراجعة الخلفيات</b><small>متابعة المحتوى المرسل للمراجعة</small></span><i>←</i></a>
+        <a href="/admin/admin-users.html" class="quick-action"><span class="quick-icon">♧</span><span><b>إدارة المستخدمين</b><small>الحسابات والقيود والبلاغات</small></span><i>←</i></a>
+        <a href="/admin/wallpapers.html" class="quick-action"><span class="quick-icon">▧</span><span><b>مكتبة الخلفيات</b><small>التصنيف والنقل والحذف الجماعي</small></span><i>←</i></a>
+      </section>
+
+      <section class="add-wallpaper" id="publish-wallpaper">
+        <div class="publish-heading">
+          <div><span class="section-kicker">CONTENT PUBLISHING / 01</span><h2>نشر خلفية جديدة</h2><p>ارفع الصور أو الفيديوهات، وأضف التصنيف والوسوم قبل النشر.</p></div>
+          <span class="publish-number">01</span>
+        </div>
+
+        <form id="wallpaperForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="wallTitle">اسم الخلفية</label>
+              <input id="wallTitle" type="text" placeholder="مثال: Rainy Night" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="wallType">نوع الخلفية</label>
+              <select id="wallType">
+                <option value="image">صورة</option>
+                <option value="video">فيديو متحرك</option>
+                <option value="gif">GIF</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="wallCategory">القسم</label>
+              <select id="wallCategory">
+                <option value="nature">🌿 الطبيعة</option>
+                <option value="cars">🚗 السيارات</option>
+                <option value="games">🎮 الألعاب</option>
+                <option value="space">🌌 الفضاء</option>
+                <option value="ai">✳ الذكاء الاصطناعي</option>
+                <option value="amoled">◼ AMOLED</option>
+                <option value="animals">🐾 الحيوانات</option>
+                <option value="anime">🎨 الأنمي</option>
+                <option value="city">🏙 المدن</option>
+                <option value="sports">⚽ الرياضة</option>
+                <option value="4k">◇ 4K</option>
+                <option value="minimal">Minimal</option>
+                <option value="rain">🌧 المطر</option>
+                <option value="sunset">🌅 الغروب</option>
+                <option value="architecture">🏛 العمارة</option>
+                <option value="religious">🕌 الخلفيات الدينية</option>
+                <option value="snow">❄ الثلج والشتاء</option>
+                <option value="aurora">🌌 الشفق القطبي</option>
+                <option value="cyberpunk">🌃 سايبربانك</option>
+                <option value="gradients">🎨 التدرجات والألوان</option>
+                <option value="deep-space">🚀 الفضاء العميق</option>
+                <option value="other">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="wallTags">الوسوم</label>
+              <input id="wallTags" type="text" placeholder="nature, forest, green">
+              <small id="wallTagsStatus" class="field-hint">تُستخدم الوسوم لتحسين البحث واكتشاف الخلفيات المشابهة.</small>
+            </div>
+            <div class="form-group full">
+              <label for="wallImage">ملفات الخلفية</label>
+              <input type="file" id="wallImage" accept="image/*,video/*" multiple>
+              <small id="wallAutoMetadata" class="field-hint">ستظهر الدقة والحجم تلقائياً بعد اختيار الملفات.</small>
+              <small id="selectedImagesCount" class="field-hint">لم يتم اختيار ملفات</small>
+            </div>
+            <div class="form-group full">
+              <label for="videoThumbnail">صورة معاينة الفيديو (اختياري)</label>
+              <input type="file" id="videoThumbnail" accept="image/*">
+            </div>
+            <div class="preview-box full">
+              <div class="form-subheading"><b>معاينة الملفات</b><small>يمكن إزالة أي ملف من الاختيار قبل النشر.</small></div>
+              <div id="imagesPreview" class="images-preview"><p class="preview-empty">ستظهر معاينة الملفات المختارة هنا.</p></div>
+            </div>
+            <div class="upload-progress-box full" id="uploadProgressBox">
+              <div class="upload-progress-info"><span class="upload-progress-title">تقدم الرفع</span><span id="uploadProgressText">0 / 0</span></div>
+              <div class="upload-progress-status-row"><span id="uploadNetworkStatus" class="upload-network-status is-online">● متصل — الرفع جاهز</span><span id="uploadCurrentFile">لا يوجد رفع حالي</span></div>
+              <div class="upload-progress"><div id="uploadProgressBar" class="upload-progress-bar"></div></div>
+              <span id="uploadRetryInfo" class="upload-retry-info"></span>
+              <div id="uploadOfflineNotice" class="upload-offline-notice" hidden>انقطع الاتصال. ستتم إعادة محاولة الرفع عند عودة الإنترنت.</div>
+            </div>
+            <div class="checks full">
+              <label><input type="checkbox" id="todayWallpaper"> <span>اختيار كخلفية اليوم</span></label>
+              <label><input type="checkbox" id="popular"> <span>تمييز ضمن الأكثر شعبية</span></label>
+              <label id="is360Option"><input type="checkbox" id="is360"> <span>خلفية بانورامية 360°</span></label>
+            </div>
+            <div class="submit-row full">
+              <button id="saveWallpaper" type="submit">رفع ونشر الخلفية <span>↗</span></button>
+              <small>تظهر الخلفيات المنشورة في المكتبة بعد نجاح الحفظ.</small>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <footer class="dashboard-footer"><span>WALLPAPERHUB / ADMIN DESK</span><span>إدارة المحتوى والمجتمع</span></footer>
+    </main>
+  </div>
+
+  <script type="module" src="/admin/admin-auth.js"></script>
+  <script type="module" src="/admin/admin.js?v=admin-desk-20261123-1"></script>
 </body>
-
-
 </html>
