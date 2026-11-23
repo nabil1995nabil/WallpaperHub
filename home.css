@@ -1069,3 +1069,30 @@ body.dark{
         animation:none !important;
     }
 }
+
+
+/* Homepage spacing + compact ad banner (2026-11-23) */
+.home-popular-section {
+    margin-bottom: 8px;
+}
+.home-today-slot .today-section {
+    margin-top: 0;
+}
+.ad-container.home-latest-ad {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(360px, calc(100% - 32px));
+    height: 90px;
+    min-height: 90px;
+    margin: 10px auto 12px;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 12px;
+}
+.ad-container.home-latest-ad .adsbygoogle {
+    display: block !important;
+    width: 100% !important;
+    height: 90px !important;
+    min-height: 90px;
+}
