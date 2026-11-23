@@ -1,292 +1,122 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f7f8fc">
-  <meta name="description" content="استوديو WallpaperHub: صمّم ثيم هاتفك، شاركه بكل إعداداته، واستورد ثيمات المجتمع.">
-  <title>WallpaperHub Studio | استوديو التخصيص</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-  <link rel="stylesheet" href="studio.css?v=20261123-theme-system-1">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2eee4"><meta name="description" content="جريدة WallpaperHub Studio — صمّم ثيم هاتفك وشاركه بكل إعداداته مع المجتمع.">
+<title>جريدة الاستوديو | WallpaperHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link rel="stylesheet" href="studio.css?v=20261123-newspaper-1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="studio-app">
-    <header class="studio-topbar">
-      <a class="studio-brand" href="/home.html" aria-label="WallpaperHub الرئيسية">
-        <span class="brand-logo"><span class="material-icons-round">wallpaper</span></span>
-        <span class="brand-name">Wallpaper<span>Hub</span><small>STUDIO</small></span>
-      </a>
-      <div class="topbar-center"><span class="topbar-live"><i></i> استوديو التخصيص</span></div>
-      <div class="topbar-actions">
-        <a class="topbar-link" href="/social.html"><span class="material-icons-round">groups</span><span>المجتمع</span></a>
-        <button class="studio-user" id="studioProfile" type="button" aria-label="الملف الشخصي"><span id="studioAvatar">U</span></button>
-      </div>
-    </header>
+<div class="studio-app newspaper">
+<div class="edition-strip"><span>منصة الإبداع والتخصيص</span><span>WALLPAPERHUB · THE CREATIVE EDITION</span><span>عدد مفتوح للقراء والمبدعين</span></div>
+<header class="studio-topbar">
+<a class="studio-brand" href="/home.html" aria-label="WallpaperHub الرئيسية"><span class="brand-logo"><span class="material-icons-round">wallpaper</span></span><span class="brand-name">Wallpaper<span>Hub</span><small>STUDIO EDITION</small></span></a>
+<div class="topbar-center">جريدة التخصيص الرقمي</div>
+<div class="topbar-actions"><a class="topbar-link" href="/social.html"><span class="material-icons-round">groups</span><span>المجتمع</span></a><button class="studio-user" id="studioProfile" type="button" aria-label="الملف الشخصي"><span id="studioAvatar">U</span></button></div>
+</header>
+<nav class="paper-nav" aria-label="التنقل داخل الاستوديو">
+<a href="#toolsTitle">أقسام التخصيص</a><a href="#studioEditor">غرفة التصميم</a><a href="#draftTitle">أرشيفي</a><a href="#galleryTitle">معرض المجتمع</a>
+<button id="importThemeButton" type="button"><span class="material-icons-round">file_upload</span> استيراد ثيم</button><input id="importThemeFile" type="file" accept=".zip,.json,.whubtheme,application/zip,application/json" hidden>
+</nav>
+<main class="studio-main">
+<section class="studio-welcome" aria-labelledby="welcomeTitle">
+<div class="edition-heading"><span>العدد الخاص · عالم الشاشات</span><span>تصميم · إلهام · مشاركة</span></div>
+<div class="lead-story">
+<div class="welcome-copy"><span class="eyebrow">WALLPAPERHUB CREATIVE JOURNAL</span><h1 id="welcomeTitle">كل شاشة<br><em>لها حكاية.</em></h1>
+<p>من فكرة صغيرة إلى هوية كاملة لهاتفك. صمّم خلفيتك، رتّب الألوان والأيقونات، ثم شارك ثيمك بكل تفاصيله ليعيد أعضاء المجتمع اكتشافه وتركيبه في استوديوهاتهم.</p>
+<div class="welcome-actions"><a href="#studioEditor" class="button button-primary"><span class="material-icons-round">edit</span> ابدأ كتابة حكايتك</a><a href="#communityCreations" class="button button-soft"><span class="material-icons-round">auto_stories</span> تصفّح الإبداعات</a></div>
+<div class="welcome-benefits"><span><i class="material-icons-round">tune</i> تحكم كامل بالإعدادات</span><span><i class="material-icons-round">share</i> رابط لكل ثيم</span><span><i class="material-icons-round">file_download</i> حزمة قابلة للاستيراد</span></div></div>
+<div class="welcome-visual"><div class="cover-frame"><div class="cover-kicker">غلاف هذا العدد</div><div class="cover-phone"><div class="cover-phone-screen"><div class="cover-phone-status"><span>9:41</span><span>● ● ▰</span></div><div class="cover-phone-time">10:28</div><div class="cover-phone-date">الأحد · وقتك أجمل</div><div class="cover-sun"></div><div class="cover-hill hill-one"></div><div class="cover-hill hill-two"></div><div class="cover-dock"><i>◉</i><i>▣</i><i>✉</i><i>✦</i></div></div></div><div class="cover-caption">تصميمك القادم<br><b>يبدأ من هنا</b></div></div><span class="cover-seal">صمّم<br>بذوقك</span></div>
+</div><div class="welcome-footer"><span>01 — الافتتاحية</span><span>من ورق الجريدة إلى شاشة هاتفك</span><span>W H / STUDIO</span></div>
+</section>
 
-    <main class="studio-main">
-      <section class="studio-welcome">
-        <div class="welcome-copy">
-          <span class="eyebrow"><i></i> MAKE IT YOURS · SHARE IT WITH EVERYONE</span>
-          <h1>ثيمك، ذوقك، <em>بصمتك.</em></h1>
-          <p>صمّم شاشة هاتفك، احفظ كل الإعدادات، وشاركها كرابط أو حزمة يستطيع أي عضو استيرادها إلى استوديوه.</p>
-          <div class="welcome-actions">
-            <a href="#studioEditor" class="button button-primary"><span class="material-icons-round">auto_awesome</span> ابدأ التصميم</a>
-            <button class="button button-soft" id="importThemeButton" type="button"><span class="material-icons-round">file_upload</span> استيراد ثيم</button>
-            <input id="importThemeFile" type="file" accept=".zip,.json,.whubtheme,application/zip,application/json" hidden>
-          </div>
-          <div class="welcome-benefits">
-            <span><i class="material-icons-round">tune</i> إعدادات كاملة</span>
-            <span><i class="material-icons-round">link</i> مشاركة برابط</span>
-            <span><i class="material-icons-round">devices</i> حزمة للهاتف</span>
-          </div>
-        </div>
-        <div class="welcome-visual" aria-hidden="true">
-          <div class="welcome-orbit orbit-a"></div><div class="welcome-orbit orbit-b"></div>
-          <div class="welcome-phone">
-            <div class="welcome-phone-screen">
-              <div class="welcome-status"><span>9:41</span><span>● ● ▰</span></div>
-              <div class="welcome-time">10:28</div>
-              <div class="welcome-date">الأحد، 23 نوفمبر</div>
-              <div class="welcome-glow"></div>
-              <div class="welcome-mountain mountain-one"></div>
-              <div class="welcome-mountain mountain-two"></div>
-              <div class="welcome-apps"><i>✦</i><i>◉</i><i>▣</i><i>✉</i></div>
-            </div>
-          </div>
-          <span class="visual-tag tag-one"><i class="material-icons-round">palette</i> ألوانك</span>
-          <span class="visual-tag tag-two"><i class="material-icons-round">widgets</i> تفاصيلك</span>
-        </div>
-        <div class="welcome-footer"><span>01</span><span>DESIGN · PREVIEW · SHARE · INSTALL</span><span>WALLPAPERHUB</span></div>
-      </section>
+<section class="tool-section" aria-labelledby="toolsTitle">
+<div class="section-heading"><div><span class="section-kicker">فهرس العدد · ٠١</span><h2 id="toolsTitle">أقسام التخصيص</h2><p>اختر باباً من أبواب التصميم وابدأ مشروعك.</p></div><span class="heading-icon">الفهرس</span></div>
+<div class="tool-grid" id="toolGrid">
+<button class="tool-card is-active" data-tool="wallpaper" type="button" aria-pressed="true"><span class="tool-number">01</span><span class="tool-icon icon-wallpaper"><span class="material-icons-round">image</span></span><b>الخلفيات</b><small>صورة الغلاف التي تختارها لهاتفك</small><span class="tool-card-arrow material-icons-round">arrow_back</span></button>
+<button class="tool-card" data-tool="theme" type="button" aria-pressed="false"><span class="tool-number">02</span><span class="tool-icon icon-theme"><span class="material-icons-round">palette</span></span><b>ثيم الهاتف</b><small>ألوان وهوية بصرية متكاملة</small><span class="tool-card-arrow material-icons-round">arrow_back</span></button>
+<button class="tool-card" data-tool="icons" type="button" aria-pressed="false"><span class="tool-number">03</span><span class="tool-icon icon-icons"><span class="material-icons-round">apps</span></span><b>الأيقونات</b><small>ترتيب موحّد لرموز التطبيقات</small><span class="tool-card-arrow material-icons-round">arrow_back</span></button>
+<button class="tool-card" data-tool="widget" type="button" aria-pressed="false"><span class="tool-number">04</span><span class="tool-icon icon-widget"><span class="material-icons-round">widgets</span></span><b>الودجات</b><small>الوقت والتاريخ ومعلومات الشاشة</small><span class="tool-card-arrow material-icons-round">arrow_back</span></button>
+<button class="tool-card" data-tool="lock" type="button" aria-pressed="false"><span class="tool-number">05</span><span class="tool-icon icon-lock"><span class="material-icons-round">lock</span></span><b>شاشة القفل</b><small>مكان الساعة والعبارة والتاريخ</small><span class="tool-card-arrow material-icons-round">arrow_back</span></button>
+</div></section>
 
-      <section class="tool-section" aria-labelledby="toolsTitle">
-        <div class="section-heading">
-          <div><span class="section-kicker">CHOOSE YOUR CANVAS</span><h2 id="toolsTitle">ماذا تريد أن تخصّص؟</h2><p>كل أداة تغيّر لوحة التصميم ومعاينة الهاتف مباشرة.</p></div>
-          <span class="heading-icon material-icons-round">dashboard_customize</span>
-        </div>
-        <div class="tool-grid" id="toolGrid">
-          <button class="tool-card is-active" data-tool="wallpaper" type="button" aria-pressed="true">
-            <span class="tool-icon icon-wallpaper"><span class="material-icons-round">image</span></span><b>الخلفية</b><small>صورة أو تصميم فني</small><span class="tool-card-arrow material-icons-round">arrow_back</span>
-          </button>
-          <button class="tool-card" data-tool="theme" type="button" aria-pressed="false">
-            <span class="tool-icon icon-theme"><span class="material-icons-round">palette</span></span><b>ثيم الهاتف</b><small>ألوان ومظهر متكامل</small><span class="tool-card-arrow material-icons-round">arrow_back</span>
-          </button>
-          <button class="tool-card" data-tool="icons" type="button" aria-pressed="false">
-            <span class="tool-icon icon-icons"><span class="material-icons-round">apps</span></span><b>الأيقونات</b><small>أشكال وأحجام موحّدة</small><span class="tool-card-arrow material-icons-round">arrow_back</span>
-          </button>
-          <button class="tool-card" data-tool="widget" type="button" aria-pressed="false">
-            <span class="tool-icon icon-widget"><span class="material-icons-round">widgets</span></span><b>الودجات</b><small>ساعة وتقويم ومعلومات</small><span class="tool-card-arrow material-icons-round">arrow_back</span>
-          </button>
-          <button class="tool-card" data-tool="lock" type="button" aria-pressed="false">
-            <span class="tool-icon icon-lock"><span class="material-icons-round">lock</span></span><b>شاشة القفل</b><small>الساعة والتاريخ والعبارة</small><span class="tool-card-arrow material-icons-round">arrow_back</span>
-          </button>
-        </div>
-      </section>
+<section class="editor-section" id="studioEditor" aria-labelledby="editorTitle">
+<div class="section-heading editor-heading"><div><span class="section-kicker">غرفة التحرير · ٠٢</span><h2 id="editorTitle">اصنع صفحتك الخاصة</h2><p>التفاصيل الدقيقة تصنع الفرق. كل تعديل يظهر في معاينة الهاتف.</p></div><span class="live-pill"><i></i> تحديث مباشر</span></div>
+<div class="editor-layout">
+<aside class="control-panel" aria-label="إعدادات تصميم الثيم">
+<div class="panel-heading"><span class="panel-heading-icon material-icons-round">tune</span><div><b>لوحة المحرر</b><small id="activeToolLabel">تصميم الخلفيات</small></div><span class="panel-step">EDITOR</span></div>
+<div class="control-block"><div class="block-title"><span>هوية التصميم</span><small>THE STORY</small></div>
+<label class="field-label" for="designTitle">عنوان الثيم</label><input class="studio-input" id="designTitle" maxlength="60" value="لمسة بنفسجية" placeholder="اكتب عنواناً لتصميمك">
+<label class="field-label" for="designSubtitle">عبارة تظهر على الشاشة <span>اختياري</span></label><input class="studio-input" id="designSubtitle" maxlength="48" value="اصنع لحظتك الخاصة" placeholder="كلمات قليلة تعبّر عنك"></div>
+<div class="control-block"><div class="block-title"><span>لوحة الألوان</span><small>THE PALETTE</small></div>
+<div class="palette-row" id="paletteRow" role="group" aria-label="لوحة الألوان">
+<button type="button" class="palette-swatch selected" data-palette="violet" aria-label="بنفسجي" aria-pressed="true"><i></i></button><button type="button" class="palette-swatch" data-palette="ocean" aria-label="محيطي" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="sunset" aria-label="غروب" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="forest" aria-label="غابة" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="mono" aria-label="هادئ" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="rose" aria-label="وردي" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="amber" aria-label="ذهبي" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="ice" aria-label="ثلجي" aria-pressed="false"><i></i></button><button type="button" class="palette-swatch" data-palette="emerald" aria-label="زمردي" aria-pressed="false"><i></i></button>
+</div><div class="custom-image-tools"><input id="backgroundImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+<button class="custom-image-button" id="chooseBackgroundImage" type="button"><span class="material-icons-round">add_photo_alternate</span><span><b>اختر صورة من جهازك</b><small>اجعل صورتك خلفية رئيسية للثيم</small></span><span class="material-icons-round image-pick-arrow">arrow_back</span></button>
+<button class="remove-background-button hidden" id="removeBackgroundImage" type="button"><span class="material-icons-round">close</span> إزالة الصورة</button><small class="image-upload-hint" id="backgroundImageStatus">JPG · PNG · WEBP · AVIF — حتى 15MB</small></div></div>
+<div class="control-block"><div class="block-title"><span>طابع الخلفية</span><small>ART DIRECTION</small></div>
+<div class="preset-grid" id="presetGrid" role="group" aria-label="أنماط الخلفية">
+<button type="button" class="preset-button selected" data-preset="aurora" aria-pressed="true"><span class="preset-thumb preset-aurora"></span><small>الشفق</small></button><button type="button" class="preset-button" data-preset="mountain" aria-pressed="false"><span class="preset-thumb preset-mountain"></span><small>الجبال</small></button><button type="button" class="preset-button" data-preset="waves" aria-pressed="false"><span class="preset-thumb preset-waves"></span><small>الموج</small></button><button type="button" class="preset-button" data-preset="minimal" aria-pressed="false"><span class="preset-thumb preset-minimal"></span><small>بسيط</small></button><button type="button" class="preset-button" data-preset="geometry" aria-pressed="false"><span class="preset-thumb preset-geometry"></span><small>هندسي</small></button><button type="button" class="preset-button" data-preset="dots" aria-pressed="false"><span class="preset-thumb preset-dots"></span><small>نقاط</small></button><button type="button" class="preset-button" data-preset="stripes" aria-pressed="false"><span class="preset-thumb preset-stripes"></span><small>خطوط</small></button>
+</div><label class="range-label" for="glowStrength"><span>شدة الإضاءة</span><output id="glowValue">65%</output></label><input type="range" id="glowStrength" min="0" max="100" value="65"></div>
+<details class="advanced-controls" open><summary><span class="material-icons-round">phone_android</span><span>الساعة وشاشة القفل</span><small>01 · LOCK SCREEN</small></summary>
+<label class="toggle-row"><span><b>إظهار الساعة</b><small>وقت حقيقي يتحدث تلقائياً</small></span><input id="showClock" type="checkbox" checked><i></i></label>
+<div class="advanced-control-grid">
+<label class="field-label" for="clockStyle">نوع الساعة<select class="studio-input" id="clockStyle"><option value="digital">رقمية</option><option value="analog">عقارب</option></select></label>
+<label class="field-label" for="clockFormat">تنسيق الوقت<select class="studio-input" id="clockFormat"><option value="24">24 ساعة</option><option value="12">12 ساعة</option></select></label>
+<label class="field-label" for="clockColor">لون الساعة<select class="studio-input" id="clockColor"><option value="auto">متناسق</option><option value="white">أبيض</option><option value="dark">داكن</option><option value="gold">ذهبي</option></select></label>
+<label class="field-label" for="clockSize">حجم الساعة <output id="clockSizeValue">100%</output><input type="range" id="clockSize" min="70" max="150" value="100"></label></div>
+<label class="toggle-row compact-toggle"><span><b>إظهار التاريخ</b><small>التاريخ الفعلي حسب جهازك</small></span><input id="showDate" type="checkbox" checked><i></i></label>
+<label class="toggle-row compact-toggle"><span><b>شريط الحالة</b><small>وقت صغير أعلى المعاينة</small></span><input id="showStatusBar" type="checkbox" checked><i></i></label>
+</details>
+<details class="advanced-controls"><summary><span class="material-icons-round">apps</span><span>الأيقونات والودجات</span><small>02 · HOME SCREEN</small></summary>
+<div class="advanced-control-grid"><label class="field-label" for="iconShape">شكل الأيقونة<select class="studio-input" id="iconShape"><option value="rounded">مستدير</option><option value="circle">دائري</option><option value="square">مربع</option></select></label>
+<label class="field-label" for="iconScale">حجم الأيقونات <output id="iconScaleValue">100%</output><input type="range" id="iconScale" min="75" max="125" value="100"></label></div>
+<label class="toggle-row compact-toggle"><span><b>أسماء التطبيقات</b><small>اسم أسفل كل أيقونة</small></span><input id="showIconLabels" type="checkbox" checked><i></i></label></details>
+<div class="platform-note"><span class="material-icons-round">info</span><p>يمكن مشاركة الإعدادات كاملة. تطبيق الخلفية والأيقونات على نظام الهاتف يتم عبر إعدادات الجهاز أو Launcher متوافق؛ المتصفح لا يغيّر نظام الهاتف تلقائياً.</p></div>
+<div class="control-actions">
+<button class="button button-primary full-button" id="downloadDesign" type="button"><span class="material-icons-round">download</span> تنزيل صورة التصميم PNG</button>
+<button class="button button-accent full-button" id="downloadThemePack" type="button"><span class="material-icons-round">inventory_2</span> تنزيل حزمة الهاتف ZIP</button>
+<button class="button button-outline full-button" id="downloadThemeConfig" type="button"><span class="material-icons-round">data_object</span> تصدير كل الإعدادات JSON</button>
+<div class="control-action-split"><button class="button button-soft" id="saveDraft" type="button"><span class="material-icons-round">bookmark_add</span> حفظ مسودة</button><button class="button button-publish" id="publishDesign" type="button"><span class="material-icons-round">share</span> مشاركة الثيم</button></div>
+</div><p class="privacy-note"><span class="material-icons-round">shield</span> المسودات خاصة بك، ولا يظهر الثيم للآخرين إلا بعد نشره.</p>
+</aside>
 
-      <section class="editor-section" id="studioEditor" aria-labelledby="editorTitle">
-        <div class="section-heading editor-heading">
-          <div><span class="section-kicker">YOUR DESIGN WORKSPACE</span><h2 id="editorTitle">مساحة التصميم</h2><p>كل شيء تحفظه ينتقل مع الثيم عند مشاركته.</p></div>
-          <span class="live-pill"><i></i> معاينة مباشرة</span>
-        </div>
+<section class="preview-panel" aria-label="معاينة هاتفك">
+<div class="preview-head"><div><span class="preview-eyebrow">THE FRONT PAGE</span><b>صورة الغلاف · معاينة هاتفك</b><small>اسحب الساعة أو الأيقونات أو العبارة لتغيير مكانها.</small></div><span class="preview-resolution">1080 × 1920</span></div>
+<div class="screen-mode-switch" id="screenModeSwitch" aria-label="وضع معاينة الهاتف"><button type="button" class="screen-mode-button is-active" data-screen-mode="lock" aria-pressed="true">القفل</button><button type="button" class="screen-mode-button" data-screen-mode="home" aria-pressed="false">الرئيسية</button><button type="button" class="screen-mode-button" data-screen-mode="wallpaper" aria-pressed="false">الخلفية</button></div>
+<div class="phone-stage"><div class="phone-frame"><span class="phone-camera"></span><canvas id="designCanvas" width="1080" height="1920" aria-label="معاينة تفاعلية للهاتف"></canvas></div></div>
+<div class="preview-footer"><span><i></i> الصورة تتغير مع كل تعديل</span><button id="resetDesign" type="button"><span class="material-icons-round">restart_alt</span> إعادة التصميم</button></div>
+<div class="preview-meta"><span><b>9:16</b> مقاس الشاشة</span><span><b>1080 × 1920</b> دقة التصدير</span><span><b>PNG</b> صورة عالية الجودة</span></div><div class="preview-caption"><span>المشهد الرئيسي</span><b>تصميمك كما سيظهر على شاشة الهاتف</b></div>
+</section>
+</div></section>
 
-        <div class="editor-layout">
-          <aside class="control-panel">
-            <div class="panel-heading">
-              <span class="panel-heading-icon material-icons-round">tune</span>
-              <div><b>محرر الثيم</b><small id="activeToolLabel">تصميم الخلفيات</small></div>
-              <span class="panel-step">01 / 04</span>
-            </div>
+<section class="installation-section"><div class="installation-copy"><span class="section-kicker">من الاستوديو إلى هاتفك</span><h2>الثيم لا يبقى فكرة على الورق</h2><p>حزمة واحدة تجمع الخلفية والأيقونات والإعدادات. انشر رابطك ليتمكن الآخرون من استيراد التصميم داخل استوديوهاتهم.</p></div>
+<div class="installation-steps"><div><span>01</span><b>صمّم</b><small>اضبط الألوان والخلفية والساعة.</small></div><div><span>02</span><b>شارك</b><small>انشر الثيم كرابط أو حزمة كاملة.</small></div><div><span>03</span><b>استورد وطبّق</b><small>استورد الإعدادات وطبّق الملفات على جهازك.</small></div></div></section>
 
-            <div class="control-block">
-              <div class="block-title"><span>هوية التصميم</span><small>DESIGN IDENTITY</small></div>
-              <label class="field-label" for="designTitle">اسم الثيم</label>
-              <input class="studio-input" id="designTitle" maxlength="60" value="لمسة بنفسجية" placeholder="مثلاً: غروب هادئ">
-              <label class="field-label" for="designSubtitle">عبارة على الشاشة <span>اختياري</span></label>
-              <input class="studio-input" id="designSubtitle" maxlength="48" value="اصنع لحظتك الخاصة" placeholder="اكتب عبارة قصيرة">
-            </div>
+<section class="draft-section" id="draftSection" aria-labelledby="draftTitle"><div class="section-heading"><div><span class="section-kicker">أرشيف المصمم · ٠٣</span><h2 id="draftTitle">مسوداتي المحفوظة</h2><p>ملفاتك الخاصة التي تستطيع الرجوع إليها في أي وقت.</p></div><span class="heading-icon">الأرشيف</span></div>
+<div class="draft-grid" id="draftGrid"><div class="gallery-loading"><span class="material-icons-round">bookmark_border</span><b>سجّل الدخول لفتح أرشيفك</b><small>احفظ تصميمك كمسودة لتكمل العمل عليه لاحقاً.</small></div></div></section>
 
-            <div class="control-block">
-              <div class="block-title"><span>ألوان الثيم</span><small>COLOR PALETTE</small></div>
-              <div class="palette-row" id="paletteRow" role="group" aria-label="لوحة الألوان">
-                <button type="button" class="palette-swatch selected" data-palette="violet" aria-label="بنفسجي" aria-pressed="true"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="ocean" aria-label="محيطي" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="sunset" aria-label="غروب" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="forest" aria-label="غابة" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="mono" aria-label="هادئ" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="rose" aria-label="وردي" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="amber" aria-label="ذهبي" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="ice" aria-label="ثلجي" aria-pressed="false"><i></i></button>
-                <button type="button" class="palette-swatch" data-palette="emerald" aria-label="زمردي" aria-pressed="false"><i></i></button>
-              </div>
-              <div class="custom-image-tools">
-                <input id="backgroundImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
-                <button class="custom-image-button" id="chooseBackgroundImage" type="button">
-                  <span class="material-icons-round">add_photo_alternate</span>
-                  <span><b>استخدم صورة من جهازك</b><small>أضف صورتك كخلفية قابلة للتنسيق</small></span>
-                  <span class="material-icons-round image-pick-arrow">arrow_back</span>
-                </button>
-                <button class="remove-background-button hidden" id="removeBackgroundImage" type="button"><span class="material-icons-round">close</span> إزالة الصورة</button>
-                <small class="image-upload-hint" id="backgroundImageStatus">JPG · PNG · WEBP · AVIF — حتى 15MB</small>
-              </div>
-            </div>
+<section class="gallery-section" id="communityCreations" aria-labelledby="galleryTitle"><div class="section-heading gallery-heading"><div><span class="section-kicker">معرض القراء والمبدعين · ٠٤</span><h2 id="galleryTitle">صفحات من إبداع المجتمع</h2><p>كل تصميم منشور يحمل إعداداته ورابطه؛ افتحه واستورد نسخته إلى استوديوك.</p></div><span class="heading-icon">المعرض</span></div>
+<div class="gallery-toolbar"><label class="gallery-search"><span class="material-icons-round">search</span><input id="gallerySearch" type="search" placeholder="ابحث في أرشيف الثيمات..."></label>
+<div class="gallery-filters" id="galleryFilters" aria-label="تصفية الثيمات"><button type="button" class="gallery-filter is-active" data-gallery-filter="all">كل الصفحات</button><button type="button" class="gallery-filter" data-gallery-filter="lock">شاشة القفل</button><button type="button" class="gallery-filter" data-gallery-filter="home">الشاشة الرئيسية</button><button type="button" class="gallery-filter" data-gallery-filter="wallpaper">الخلفيات</button></div></div>
+<div class="creation-grid" id="creationGrid"><div class="gallery-loading"><span class="material-icons-round">auto_stories</span><b>أرشيف إبداعات المجتمع</b><small>ستظهر هنا الثيمات التي نشرها الأعضاء.</small></div></div></section>
+<footer class="studio-footer"><a href="/social.html">مجتمع WallpaperHub</a><span>اصنعه، شاركه، واترك بصمتك.</span><a href="/home.html">الصفحة الرئيسية</a></footer>
+</main></div>
 
-            <div class="control-block">
-              <div class="block-title"><span>خلفيات جاهزة</span><small>ART DIRECTION</small></div>
-              <div class="preset-grid" id="presetGrid" role="group" aria-label="أنماط الخلفية">
-                <button type="button" class="preset-button selected" data-preset="aurora" aria-pressed="true"><span class="preset-thumb preset-aurora"></span><small>الشفق</small></button>
-                <button type="button" class="preset-button" data-preset="mountain" aria-pressed="false"><span class="preset-thumb preset-mountain"></span><small>الجبال</small></button>
-                <button type="button" class="preset-button" data-preset="waves" aria-pressed="false"><span class="preset-thumb preset-waves"></span><small>الموج</small></button>
-                <button type="button" class="preset-button" data-preset="minimal" aria-pressed="false"><span class="preset-thumb preset-minimal"></span><small>بسيط</small></button>
-                <button type="button" class="preset-button" data-preset="geometry" aria-pressed="false"><span class="preset-thumb preset-geometry"></span><small>هندسي</small></button>
-                <button type="button" class="preset-button" data-preset="dots" aria-pressed="false"><span class="preset-thumb preset-dots"></span><small>نقاط</small></button>
-                <button type="button" class="preset-button" data-preset="stripes" aria-pressed="false"><span class="preset-thumb preset-stripes"></span><small>خطوط</small></button>
-              </div>
-              <label class="range-label" for="glowStrength"><span>قوة الإضاءة والتوهج</span><output id="glowValue">65%</output></label>
-              <input type="range" id="glowStrength" min="0" max="100" value="65">
-            </div>
-
-            <details class="advanced-controls" open>
-              <summary><span class="material-icons-round">phone_android</span><span>الشاشة والساعة</span><small>SCREEN DETAILS</small></summary>
-              <label class="toggle-row"><span><b>إظهار الساعة</b><small>الوقت الحقيقي حسب جهازك</small></span><input id="showClock" type="checkbox" checked><i></i></label>
-              <div class="advanced-control-grid">
-                <label class="field-label" for="clockStyle">نمط الساعة
-                  <select class="studio-input" id="clockStyle"><option value="digital">رقمية</option><option value="analog">عقارب</option></select>
-                </label>
-                <label class="field-label" for="clockFormat">تنسيق الوقت
-                  <select class="studio-input" id="clockFormat"><option value="24">24 ساعة</option><option value="12">12 ساعة</option></select>
-                </label>
-                <label class="field-label" for="clockColor">لون الساعة
-                  <select class="studio-input" id="clockColor"><option value="auto">متناسق</option><option value="white">أبيض</option><option value="dark">داكن</option><option value="gold">ذهبي</option></select>
-                </label>
-                <label class="field-label" for="clockSize">حجم الساعة <output id="clockSizeValue">100%</output>
-                  <input type="range" id="clockSize" min="70" max="150" value="100">
-                </label>
-              </div>
-              <label class="toggle-row compact-toggle"><span><b>إظهار التاريخ</b><small>التاريخ الفعلي</small></span><input id="showDate" type="checkbox" checked><i></i></label>
-              <label class="toggle-row compact-toggle"><span><b>شريط الحالة</b><small>الوقت أعلى الشاشة</small></span><input id="showStatusBar" type="checkbox" checked><i></i></label>
-            </details>
-
-            <details class="advanced-controls">
-              <summary><span class="material-icons-round">apps</span><span>الأيقونات والودجات</span><small>HOME SCREEN</small></summary>
-              <div class="advanced-control-grid">
-                <label class="field-label" for="iconShape">شكل الأيقونة
-                  <select class="studio-input" id="iconShape"><option value="rounded">مستدير</option><option value="circle">دائري</option><option value="square">مربع</option></select>
-                </label>
-                <label class="field-label" for="iconScale">حجم الأيقونات <output id="iconScaleValue">100%</output>
-                  <input type="range" id="iconScale" min="75" max="125" value="100">
-                </label>
-              </div>
-              <label class="toggle-row compact-toggle"><span><b>أسماء التطبيقات</b><small>إظهار الاسم أسفل الأيقونة</small></span><input id="showIconLabels" type="checkbox" checked><i></i></label>
-            </details>
-
-            <div class="platform-note">
-              <span class="material-icons-round">info</span>
-              <p>تستطيع مشاركة الإعدادات كاملة. أما تركيب الخلفية والأيقونات على نظام الهاتف فيتم عبر خيارات الجهاز أو تطبيق Launcher متوافق؛ المتصفح لا يغيّر نظام Android أو iPhone تلقائياً.</p>
-            </div>
-
-            <div class="control-actions">
-              <button class="button button-primary full-button" id="downloadDesign" type="button"><span class="material-icons-round">download</span> تنزيل صورة المعاينة PNG</button>
-              <button class="button button-accent full-button" id="downloadThemePack" type="button"><span class="material-icons-round">inventory_2</span> تنزيل حزمة الهاتف ZIP</button>
-              <button class="button button-outline full-button" id="downloadThemeConfig" type="button"><span class="material-icons-round">data_object</span> تصدير كل الإعدادات JSON</button>
-              <div class="control-action-split">
-                <button class="button button-soft" id="saveDraft" type="button"><span class="material-icons-round">bookmark_add</span> حفظ مسودة</button>
-                <button class="button button-publish" id="publishDesign" type="button"><span class="material-icons-round">share</span> مشاركة الثيم</button>
-              </div>
-            </div>
-            <p class="privacy-note"><span class="material-icons-round">shield</span> مسوداتك لا تظهر للآخرين. لا يصبح الثيم عاماً إلا عند نشره.</p>
-          </aside>
-
-          <section class="preview-panel" aria-label="معاينة الهاتف">
-            <div class="preview-head">
-              <div><span class="preview-eyebrow">LIVE DEVICE PREVIEW</span><b>هكذا سيبدو هاتفك</b><small>اسحب الساعة أو الأيقونات أو العبارة لتغيير موضعها.</small></div>
-              <span class="preview-resolution">1080 × 1920</span>
-            </div>
-            <div class="screen-mode-switch" id="screenModeSwitch" aria-label="وضع معاينة الهاتف">
-              <button type="button" class="screen-mode-button is-active" data-screen-mode="lock" aria-pressed="true">القفل</button>
-              <button type="button" class="screen-mode-button" data-screen-mode="home" aria-pressed="false">الرئيسية</button>
-              <button type="button" class="screen-mode-button" data-screen-mode="wallpaper" aria-pressed="false">الخلفية</button>
-            </div>
-            <div class="phone-stage">
-              <div class="phone-frame"><span class="phone-camera"></span><canvas id="designCanvas" width="1080" height="1920" aria-label="معاينة تفاعلية للهاتف"></canvas></div>
-            </div>
-            <div class="preview-footer">
-              <span><i></i> المعاينة تتحدث مباشرة</span>
-              <button id="resetDesign" type="button"><span class="material-icons-round">restart_alt</span> إعادة التصميم</button>
-            </div>
-            <div class="preview-meta"><span><b>9:16</b> نسبة الشاشة</span><span><b>1080 × 1920</b> جودة التصدير</span><span><b>PNG</b> صيغة الصورة</span></div>
-          </section>
-        </div>
-      </section>
-
-      <section class="installation-section">
-        <div class="installation-copy">
-          <span class="section-kicker">FROM STUDIO TO YOUR PHONE</span>
-          <h2>من التصميم إلى هاتفك</h2>
-          <p>حزمة الهاتف تجمع الخلفية وصور الأيقونات وإعدادات التصميم في ملف واحد. شاركها مع أصدقائك أو احتفظ بها للعودة إليها لاحقاً.</p>
-        </div>
-        <div class="installation-steps">
-          <div><span>01</span><b>صمّم</b><small>اختر الألوان والساعة والأيقونات.</small></div>
-          <div><span>02</span><b>شارك أو نزّل</b><small>رابط مجتمع أو حزمة قابلة للاستيراد.</small></div>
-          <div><span>03</span><b>طبّق على الهاتف</b><small>عيّن الخلفية وطبّق الأيقونات عبر Launcher.</small></div>
-        </div>
-      </section>
-
-      <section class="draft-section" id="draftSection" aria-labelledby="draftTitle">
-        <div class="section-heading">
-          <div><span class="section-kicker">YOUR PRIVATE WORKSPACE</span><h2 id="draftTitle">مسوداتي</h2><p>تابع تصاميمك الخاصة من حيث توقفت.</p></div>
-          <span class="heading-icon material-icons-round">bookmark</span>
-        </div>
-        <div class="draft-grid" id="draftGrid"><div class="gallery-loading"><span class="material-icons-round">bookmark_border</span><b>سجّل الدخول لحفظ مسوداتك</b><small>يمكنك تنزيل التصميم أو تسجيل الدخول للاحتفاظ به.</small></div></div>
-      </section>
-
-      <section class="gallery-section" id="communityCreations" aria-labelledby="galleryTitle">
-        <div class="section-heading gallery-heading">
-          <div><span class="section-kicker">THE COMMUNITY LIBRARY</span><h2 id="galleryTitle">مكتبة ثيمات المجتمع</h2><p>استكشف تصاميم الأعضاء، افتح تفاصيلها، أو استورد إعداداتها إلى استوديوك.</p></div>
-          <span class="heading-icon material-icons-round">auto_awesome</span>
-        </div>
-        <div class="gallery-toolbar">
-          <label class="gallery-search"><span class="material-icons-round">search</span><input id="gallerySearch" type="search" placeholder="ابحث عن ثيم أو تصميم..."></label>
-          <div class="gallery-filters" id="galleryFilters" aria-label="تصفية الثيمات">
-            <button type="button" class="gallery-filter is-active" data-gallery-filter="all">الكل</button>
-            <button type="button" class="gallery-filter" data-gallery-filter="lock">شاشة القفل</button>
-            <button type="button" class="gallery-filter" data-gallery-filter="home">الرئيسية</button>
-            <button type="button" class="gallery-filter" data-gallery-filter="wallpaper">الخلفيات</button>
-          </div>
-        </div>
-        <div class="creation-grid" id="creationGrid"><div class="gallery-loading"><span class="material-icons-round">auto_awesome</span><b>اكتشف ثيمات المجتمع</b><small>ستظهر التصاميم المنشورة هنا.</small></div></div>
-      </section>
-
-      <footer class="studio-footer"><a href="/social.html">مجتمع WallpaperHub</a><span>اصنعه، شاركه، واترك بصمتك.</span><a href="/home.html">الرئيسية</a></footer>
-    </main>
-  </div>
-
-  <div class="publish-destinations-backdrop hidden" id="publishDestinationsModal" aria-hidden="true">
-    <section class="publish-destinations-modal" role="dialog" aria-modal="true" aria-labelledby="publishDestinationsTitle">
-      <header class="publish-modal-header">
-        <span class="publish-modal-mark material-icons-round">share</span>
-        <div><h2 id="publishDestinationsTitle">شارك ثيمك مع المجتمع</h2><p>سيُحفظ الثيم بكل إعداداته، وسيحصل على صفحة ورابط مستقل للاستيراد.</p></div>
-        <button id="closePublishDestinations" type="button" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
-      </header>
-      <label class="field-label" for="publishCaption">وصف الثيم <span>اختياري</span></label>
-      <textarea id="publishCaption" class="studio-input publish-caption" maxlength="1800" rows="3" placeholder="احكِ للمجتمع عن فكرتك..."></textarea>
-      <div class="destination-list">
-        <label class="destination-option"><input type="checkbox" id="publishToPosts" checked><span class="destination-icon posts"><span class="material-icons-round">dynamic_feed</span></span><span><b>منشورات المجتمع</b><small>شارك صورة الثيم ورابطه مع الإعجابات والتعليقات</small></span><i></i></label>
-        <label class="destination-option"><input type="checkbox" id="publishToGeneral"><span class="destination-icon chat"><span class="material-icons-round">forum</span></span><span><b>دردشة المجتمع العامة</b><small>أرسل صورة الثيم ورابطه في الغرفة العامة</small></span><i></i></label>
-      </div>
-      <div class="forum-destinations">
-        <div class="forum-destinations-heading"><div><b>منتدياتي</b><small>اختر المنتديات التي أنت عضو فيها</small></div><button id="selectAllForums" type="button" disabled>تحديد الكل</button></div>
-        <div id="publishForumChoices" class="publish-forum-choices"><div class="forum-choice-empty">جاري تحميل منتدياتك...</div></div>
-      </div>
-      <div class="publish-modal-footer"><span class="publish-gallery-note"><span class="material-icons-round">verified</span> إعدادات الثيم ستبقى محفوظة في صفحة المشاركة</span><button id="confirmMultiPublish" class="button button-publish" type="button"><span class="material-icons-round">send</span> نشر الثيم</button></div>
-      <div id="multiPublishStatus" class="multi-publish-status hidden" role="status" aria-live="polite"></div>
-    </section>
-  </div>
-
-  <div class="studio-toast" id="studioToast" role="status" aria-live="polite"></div>
-  <script src="studio.js?v=20261123-theme-system-1"></script>
-</body>
-</html>
+<div class="publish-destinations-backdrop hidden" id="publishDestinationsModal" aria-hidden="true">
+<section class="publish-destinations-modal" role="dialog" aria-modal="true" aria-labelledby="publishDestinationsTitle">
+<header class="publish-modal-header"><span class="publish-modal-mark material-icons-round">share</span><div><h2 id="publishDestinationsTitle">شارك ثيمك مع المجتمع</h2><p>سيحصل تصميمك على صفحة خاصة ورابط يستطيع الآخرون استيراده بكل إعداداته.</p></div><button id="closePublishDestinations" type="button" aria-label="إغلاق"><span class="material-icons-round">close</span></button></header>
+<label class="field-label" for="publishCaption">كلمة المحرر <span>اختياري</span></label><textarea id="publishCaption" class="studio-input publish-caption" maxlength="1800" rows="3" placeholder="اكتب نبذة عن فكرتك أو الإلهام وراء الثيم..."></textarea>
+<div class="destination-list">
+<label class="destination-option"><input type="checkbox" id="publishToPosts" checked><span class="destination-icon posts"><span class="material-icons-round">dynamic_feed</span></span><span><b>منشورات المجتمع</b><small>صورة الثيم ورابط الاستيراد مع التفاعل والتعليقات</small></span><i></i></label>
+<label class="destination-option"><input type="checkbox" id="publishToGeneral"><span class="destination-icon chat"><span class="material-icons-round">forum</span></span><span><b>دردشة المجتمع العامة</b><small>رسالة تحمل صورة الثيم ورابطه</small></span><i></i></label>
+</div>
+<div class="forum-destinations"><div class="forum-destinations-heading"><div><b>منتدياتي</b><small>اختر المنتديات التي أنت عضو فيها</small></div><button id="selectAllForums" type="button" disabled>تحديد الكل</button></div><div id="publishForumChoices" class="publish-forum-choices"><div class="forum-choice-empty">جاري تحميل منتدياتك...</div></div></div>
+<div class="publish-modal-footer"><span class="publish-gallery-note"><span class="material-icons-round">verified</span> سيظهر الثيم في معرض الاستوديو مع إعداداته الكاملة</span><button id="confirmMultiPublish" class="button button-publish" type="button"><span class="material-icons-round">send</span> نشر الثيم</button></div><div id="multiPublishStatus" class="multi-publish-status hidden" role="status" aria-live="polite"></div>
+</section></div>
+<div class="studio-toast" id="studioToast" role="status" aria-live="polite"></div>
+<script src="studio.js?v=20261123-theme-system-1"></script>
+</body></html>
