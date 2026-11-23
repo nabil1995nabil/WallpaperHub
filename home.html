@@ -194,19 +194,25 @@
 </section>
 
 
-<!-- 7. بطاقة مجتمع WallpaperHub -->
-<section class="community-section" aria-labelledby="communityCardTitle">
+<!-- 7. دفتر ذكريات مجتمع WallpaperHub -->
+<section class="community-section community-journal" aria-labelledby="communityCardTitle">
     <div class="community-content">
-        <span class="community-label">WALLPAPERHUB COMMUNITY</span>
-        <h2 id="communityCardTitle">شغفك بالخلفيات أجمل <strong>حين تشاركه</strong></h2>
-        <p>مساحة تجمع محبي الخلفيات؛ اكتشف إبداعات الأعضاء، شارك اختياراتك، وتواصل مع أشخاص يشاركونك الاهتمام.</p>
+        <span class="community-label">
+            <span class="community-label-dot" aria-hidden="true"></span>
+            <span>دفتر المجتمع</span>
+            <small>COMMUNITY JOURNAL</small>
+        </span>
+        <h2 id="communityCardTitle">كل خلفية لها حكاية… شاركنا <strong>ذكرياتك</strong></h2>
+        <p>مكان يجمع إبداعات الأعضاء، اختياراتهم، واللحظات الجميلة التي تصنع مجتمع WallpaperHub.</p>
+
         <div class="community-highlights" aria-label="مميزات المجتمع">
-            <span><span class="material-icons" aria-hidden="true">forum</span> تواصل ومشاركة</span>
-            <span><span class="material-icons" aria-hidden="true">mic</span> محادثات صوتية ومرئية</span>
-            <span><span class="material-icons" aria-hidden="true">palette</span> إبداعات الأعضاء</span>
+            <span><span class="material-icons" aria-hidden="true">photo_library</span> إبداعات الأعضاء</span>
+            <span><span class="material-icons" aria-hidden="true">forum</span> حوار ومشاركة</span>
+            <span><span class="material-icons" aria-hidden="true">graphic_eq</span> لقاءات صوتية ومرئية</span>
         </div>
+
         <a href="/social.html" class="community-cta">
-            <span>اكتشف المجتمع</span>
+            <span>افتح دفتر المجتمع</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -214,40 +220,74 @@
     </div>
 
     <div class="community-visual" aria-hidden="true">
-        <div class="community-visual-orbit orbit-one"></div>
-        <div class="community-visual-orbit orbit-two"></div>
-        <div class="community-preview preview-back">
-            <span class="preview-spark">✦</span>
-            <span class="preview-line line-short"></span>
-            <span class="preview-line"></span>
-            <span class="preview-line line-mid"></span>
+        <div class="journal-sheet">
+            <div class="journal-rings"><i></i><i></i><i></i><i></i><i></i></div>
+
+            <div class="journal-topline">
+                <span>ألبوم المجتمع</span>
+                <small>MEMORIES · 01</small>
+            </div>
+
+            <div class="journal-collage">
+                <div class="journal-photo journal-photo-sunset">
+                    <svg viewBox="0 0 260 160" role="presentation" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="journalSkyA" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0" stop-color="#df9c83"/>
+                                <stop offset=".58" stop-color="#f4c6a2"/>
+                                <stop offset="1" stop-color="#f6dfc1"/>
+                            </linearGradient>
+                            <linearGradient id="journalWaterA" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#597d83"/>
+                                <stop offset="1" stop-color="#233e4d"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="260" height="160" fill="url(#journalSkyA)"/>
+                        <circle cx="183" cy="48" r="21" fill="#ffe7b9"/>
+                        <path d="M0 103 48 58 82 91 129 43 178 100 216 67 260 105V160H0Z" fill="#9b7777"/>
+                        <path d="m0 111 57-29 42 27 45-35 57 40 31-20 28 16v50H0Z" fill="#526b69"/>
+                        <path d="M0 114c55-5 84 9 130 3s77-12 130-2v45H0Z" fill="url(#journalWaterA)"/>
+                        <path d="M103 129c33-5 62-5 95 0M128 143c24-3 46-3 70 0" stroke="#f5d8b4" stroke-opacity=".65" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span class="journal-photo-caption">لحظة هادئة</span>
+                </div>
+
+                <div class="journal-photo journal-photo-night">
+                    <svg viewBox="0 0 180 160" role="presentation" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="journalSkyB" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0" stop-color="#29375a"/>
+                                <stop offset="1" stop-color="#65758a"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="180" height="160" fill="url(#journalSkyB)"/>
+                        <circle cx="126" cy="38" r="18" fill="#f7e7bd"/>
+                        <circle cx="134" cy="31" r="18" fill="#35425f"/>
+                        <g fill="#fff1cf">
+                            <circle cx="29" cy="29" r="1.8"/><circle cx="70" cy="48" r="1.4"/>
+                            <circle cx="96" cy="19" r="1.5"/><circle cx="152" cy="72" r="1.2"/>
+                        </g>
+                        <path d="M0 106 37 64 65 98 103 55 142 104 180 73V160H0Z" fill="#384c58"/>
+                        <path d="M0 118 38 91 65 112 102 83 136 115 180 90V160H0Z" fill="#243c42"/>
+                        <path d="M0 135c34-7 62-5 90 0s58 5 90-2v27H0Z" fill="#182e37"/>
+                    </svg>
+                    <span class="journal-photo-caption">ليلة ملهمة</span>
+                </div>
+            </div>
+
+            <div class="journal-note-line">
+                <span class="journal-note-star">✦</span>
+                <span>كل مشاركة تضيف حكاية</span>
+                <span class="journal-note-heart">♥</span>
+            </div>
         </div>
-        <div class="community-preview preview-front">
-            <div class="preview-head">
-                <span class="preview-avatar"><span class="material-icons">groups</span></span>
-                <span class="preview-heading">
-                    <strong>مساحة الأعضاء</strong>
-                    <small>أفكار وخلفيات تلهمك</small>
-                </span>
-                <span class="preview-menu">•••</span>
-            </div>
-            <div class="preview-message message-one">
-                <span class="message-icon"><span class="material-icons">image</span></span>
-                <span><strong>شارك خلفيتك</strong><small>دع الآخرين يكتشفون ذوقك</small></span>
-            </div>
-            <div class="preview-message message-two">
-                <span class="message-icon"><span class="material-icons">forum</span></span>
-                <span><strong>ابدأ محادثة</strong><small>تبادل الأفكار مع المجتمع</small></span>
-            </div>
-            <div class="preview-footer">
-                <span></span><span></span><span></span>
-                <small>WallpaperHub</small>
-            </div>
-        </div>
-        <span class="community-float-star star-one">✦</span>
-        <span class="community-float-star star-two">✧</span>
+
+        <span class="journal-tape"></span>
+        <span class="journal-sticker"><b>✦</b> ذكرياتنا</span>
     </div>
-</section>\n\n<!-- ==================================================
+</section>
+
+<!-- ==================================================
      9. المقترحة لك
 ================================================== -->
 <section class="wall-section">
