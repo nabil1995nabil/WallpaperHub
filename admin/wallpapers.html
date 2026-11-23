@@ -1,238 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
-  <title>الخلفيات - WallpaperHub</title>
-  <link rel="stylesheet" href="wallpapers.css">
-
-<style id="wallpaperhub-light-theme">
-:root{
-  color-scheme:light;
-  --bg:#fff;
-  --surface:#fff;
-  --surface-soft:#f8fafc;
-  --surface-hover:#f2f4f7;
-  --text:#101828;
-  --muted:#667085;
-  --border:#e4e7ec;
-  --border-strong:#d0d5dd;
-  --accent:#4f46e5;
-  --accent-soft:#eef2ff;
-  --danger:#b42318;
-  --shadow:0 10px 30px rgba(16,24,40,.07);
-}
-html,body{background:var(--bg)!important;color:var(--text)!important;}
-body{
-  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif!important;
-  line-height:1.65;
-}
-.page-header,.manager-panel,.bulk-bar,.stat-card,.admin-wall,.modal-card{
-  background:var(--surface)!important;
-  color:var(--text)!important;
-  border-color:var(--border)!important;
-  box-shadow:var(--shadow);
-}
-.page-header{border-bottom:1px solid var(--border)!important;}
-h1,h2,h3,strong,b{color:var(--text)!important;font-weight:750;}
-p,small,.grid-heading span,.quick-title,.eyebrow{color:var(--muted)!important;}
-input,select{
-  background:#fff!important;color:var(--text)!important;
-  border:1px solid var(--border-strong)!important;
-}
-input::placeholder{color:#98a2b3!important;}
-input:focus,select:focus{
-  outline:none;border-color:var(--accent)!important;
-  box-shadow:0 0 0 3px rgba(79,70,229,.12)!important;
-}
-.quick-categories button,.ghost-btn{
-  background:#fff!important;color:#344054!important;
-  border:1px solid var(--border)!important;
-}
-.quick-categories button:hover,.ghost-btn:hover{
-  background:var(--surface-hover)!important;color:var(--text)!important;
-  border-color:#c7d2fe!important;
-}
-.result-badge,.category-pill{
-  background:var(--accent-soft)!important;
-  color:#3730a3!important;border:1px solid #c7d2fe!important;
-}
-.media-type,.wall-id{
-  background:rgba(16,24,40,.82)!important;color:#fff!important;
-}
-.safe-note{
-  background:var(--surface-soft)!important;color:#475467!important;
-  border:1px solid var(--border)!important;
-}
-.modal{background:rgba(16,24,40,.38)!important;backdrop-filter:blur(5px);}
-.danger-btn{color:var(--danger)!important;}
-.header-refresh,.move-btn,.primary-btn{
-  box-shadow:0 4px 12px rgba(16,24,40,.08);
-}
-</style>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <title>مكتبة الخلفيات | WallpaperHub Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/wallpapers.css?v=library-desk-20261123-1">
 </head>
+<body class="wallpaper-library-page">
+  <main class="library-shell">
+    <header class="library-header">
+      <div class="library-brand"><span class="library-brand-mark">WH</span><div><span class="page-kicker">WALLPAPERHUB / CONTENT LIBRARY</span><h1>مكتبة الخلفيات</h1><p>التصنيف والتنظيم والحذف من مركز واحد.</p></div></div>
+      <div class="header-tools"><span id="syncStatus" class="sync-status">جارٍ الاتصال…</span><button type="button" id="refreshBtn" class="refresh-btn">↻ تحديث المكتبة</button></div>
+    </header>
 
-<body>
-  <header class="page-header">
-    <div class="header-icon">🖼️</div>
-    <div>
-      <h1>جميع الخلفيات</h1>
-      <p>إدارة وتصنيف خلفيات WallpaperHub من مكان واحد</p>
-    </div>
-    <button id="refreshBtn" class="header-refresh">↻ تحديث</button>
-  </header>
-
-  <main>
-    <!-- الإضافات الجديدة في الأعلى -->
-    <section class="manager-panel">
-      <div class="panel-heading">
-        <div>
-          <span class="eyebrow">ADMIN MANAGER</span>
-          <h2>إدارة وتصنيف الخلفيات</h2>
-        </div>
-        <span class="result-badge"><b id="resultCount">0</b> نتيجة</span>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-card">
-          <span>🖼️</span>
-          <div><small>إجمالي الخلفيات</small><strong id="statTotal">0</strong></div>
-        </div>
-        <div class="stat-card selected-stat">
-          <span>☑️</span>
-          <div><small>المحدد حاليًا</small><strong id="statSelected">0</strong></div>
-        </div>
-        <div class="stat-card">
-          <span>🌿</span>
-          <div><small>الطبيعة</small><strong id="statNature">0</strong></div>
-        </div>
-        <div class="stat-card">
-          <span>📷</span>
-          <div><small>Unsplash</small><strong id="statUnsplash">0</strong></div>
-        </div>
-        <div class="stat-card">
-          <span>📦</span>
-          <div><small>أخرى</small><strong id="statOther">0</strong></div>
-        </div>
-      </div>
-
-      <div class="filters">
-        <label class="search-box">
-          <span>⌕</span>
-          <input id="wallSearch" type="search" placeholder="ابحث بالاسم أو ID أو الوسوم...">
-        </label>
-
-        <label class="filter-box">
-          <span>🗂️</span>
-          <select id="categoryFilter">
-            <option value="all">كل الأقسام</option>
-            <option value="nature">🌿 الطبيعة</option>
-            <option value="amoled">🖤 AMOLED</option>
-            <option value="games">🎮 ألعاب</option>
-            <option value="cars">🚗 سيارات</option>
-            <option value="animals">🐾 حيوانات</option>
-            <option value="anime">🎌 أنمي</option>
-            <option value="space">🌌 فضاء</option>
-            <option value="ai">🤖 ذكاء اصطناعي</option>
-            <option value="city">🏙️ مدن</option>
-            <option value="dark">🌑 داكن</option>
-            <option value="4k">💎 4K</option>
-            <option value="sports">⚽ رياضة</option>
-            <option value="minimal">✨ مينيمال</option>
-            <option value="rain">🌧️ مطر</option>
-            <option value="sunset">🌅 غروب</option>
-            <option value="architecture">🏛️ عمارة</option>
-            <option value="deep-space">🌠 فضاء عميق</option>
-            <option value="wallhaven">🧱 Wallhaven</option>
-            <option value="unsplash">📷 Unsplash</option>
-            <option value="other">📦 أخرى</option>
-          </select>
-        </label>
-
-        <label class="filter-box">
-          <span>🎞️</span>
-          <select id="typeFilter">
-            <option value="all">كل الأنواع</option>
-            <option value="image">🖼️ صور فقط</option>
-            <option value="video">🎞️ فيديو / متحركة</option>
-          </select>
-        </label>
-
-        <label class="filter-box">
-          <span>↕️</span>
-          <select id="sortFilter">
-            <option value="newest">الأحدث أولًا</option>
-            <option value="oldest">الأقدم أولًا</option>
-            <option value="downloads">الأكثر تحميلًا</option>
-            <option value="likes">الأكثر إعجابًا</option>
-            <option value="views">الأكثر مشاهدة</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="quick-title">أقسام سريعة</div>
-      <div id="quickCategoryRow" class="quick-categories">
-        <button data-category="all">الكل</button>
-        <button data-category="nature">🌿 الطبيعة</button>
-        <button data-category="amoled">🖤 AMOLED</button>
-        <button data-category="anime">🎌 أنمي</button>
-        <button data-category="games">🎮 ألعاب</button>
-        <button data-category="cars">🚗 سيارات</button>
-        <button data-category="space">🌌 فضاء</button>
-        <button data-category="animals">🐾 حيوانات</button>
-        <button data-category="wallhaven">🧱 Wallhaven</button>
-        <button data-category="unsplash">📷 Unsplash</button>
-        <button data-category="other">📦 أخرى</button>
-      </div>
+    <section class="library-stats">
+      <article><span class="stat-symbol">▧</span><div><b id="statTotal">0</b><small>خلفيات تم تحميلها</small></div></article>
+      <article><span class="stat-symbol">▦</span><div><b id="statCategoryCount">0</b><small>أقسام ظاهرة</small></div></article>
+      <article><span class="stat-symbol">✓</span><div><b id="statSelected">0</b><small>محدد حالياً</small></div></article>
+      <article><span class="stat-symbol">↻</span><div><b id="libraryProgress">0%</b><small>تقدم تحميل المكتبة</small></div></article>
     </section>
 
-    <section id="bulkBar" class="bulk-bar hidden">
-      <div class="bulk-info">
-        <span class="bulk-check">✓</span>
-        <strong><span id="bulkCount">0</span> خلفية محددة</strong>
+    <section class="library-panel">
+      <div class="panel-heading"><div><span class="page-kicker">LIBRARY CONTROL</span><h2>ابحث ورتّب المحتوى</h2></div><span class="result-badge" id="resultCount">0 نتيجة</span></div>
+      <div class="library-filters">
+        <label class="search-field"><span>⌕</span><input id="wallSearch" type="search" placeholder="ابحث بالعنوان أو المعرّف أو الوسوم..." autocomplete="off"></label>
+        <label><span class="filter-label">القسم</span><select id="categoryFilter"><option value="all">كل الأقسام</option></select></label>
+        <label><span class="filter-label">النوع</span><select id="typeFilter"><option value="all">كل الأنواع</option><option value="image">صور</option><option value="video">فيديو</option><option value="gif">GIF</option></select></label>
+        <label><span class="filter-label">الترتيب</span><select id="sortFilter"><option value="newest">الأحدث أولاً</option><option value="oldest">الأقدم أولاً</option><option value="title">حسب العنوان</option><option value="downloads">الأكثر تحميلاً</option><option value="likes">الأكثر إعجاباً</option><option value="views">الأكثر مشاهدة</option></select></label>
       </div>
+      <div class="quick-row-head"><b>أقسام سريعة</b><small>اختر قسماً لتصفية المكتبة</small></div>
+      <div class="quick-categories" id="quickCategoryRow"><button type="button" data-category="all" class="active">الكل</button></div>
+    </section>
+
+    <section class="bulk-panel" id="bulkBar" hidden>
+      <div class="bulk-info"><span class="bulk-check">✓</span><div><b><span id="bulkCount">0</span> خلفية محددة</b><small>اختر إجراءً لتطبيقه على العناصر المحددة.</small></div></div>
       <div class="bulk-actions">
-        <button id="selectAllBtn" class="ghost-btn">☑️ تحديد الظاهر</button>
-        <button id="selectCategoryBtn" class="ghost-btn">📌 تحديد هذا القسم</button>
-        <button id="moveSelectedBtn" class="move-btn">📁 نقل إلى قسم</button>
-        <button id="clearSelectionBtn" class="ghost-btn">إلغاء التحديد</button>
-        <button id="bulkDeleteBtn" class="danger-btn">🗑️ حذف المحدد</button>
+        <button type="button" id="selectAllBtn" class="soft-btn">تحديد النتائج الظاهرة</button>
+        <select id="bulkCategory"><option value="">نقل إلى قسم…</option></select>
+        <button type="button" id="bulkMoveBtn" class="primary-btn" disabled>نقل المحدد</button>
+        <button type="button" id="bulkDeleteBtn" class="danger-btn">حذف المحدد</button>
+        <button type="button" id="clearSelectionBtn" class="soft-btn">إلغاء التحديد</button>
       </div>
     </section>
 
-    <div class="grid-heading">
-      <h2>الخلفيات المنشورة</h2>
-      <span>حدد عدة خلفيات ثم اختر القسم الذي تريد نقلها إليه</span>
-    </div>
+    <div class="grid-heading"><div><span class="page-kicker">PUBLISHED CONTENT</span><h2>الخلفيات المنشورة</h2></div><small id="libraryHint">يتم تحميل المكتبة على دفعات لتبقى الصفحة سريعة.</small></div>
+    <div id="wallpaperGrid" class="wallpaper-grid"><div class="loading-state" id="loadingState"><span class="loader"></span><b>جارٍ تحميل الخلفيات…</b></div></div>
+    <div class="load-more-wrap"><button type="button" id="loadMoreBtn" class="load-more-btn" hidden>تحميل المزيد</button><span id="loadMoreState" class="load-more-state"></span></div>
+    <div id="emptyState" class="empty-state" hidden><span class="empty-symbol">▧</span><b>لا توجد خلفيات مطابقة</b><small>جرّب تعديل البحث أو الفلاتر.</small></div>
+    <div id="libraryToast" class="library-toast" role="status" aria-live="polite"></div>
 
-    <div id="wallpaperContainer"></div>
+    <footer class="library-footer"><a href="/admin/admin.html">← العودة إلى لوحة القيادة</a><span>المعرّفات والإحصائيات محفوظة عند تغيير التصنيف فقط.</span></footer>
   </main>
 
-  <!-- نافذة نقل جماعي -->
-  <div id="moveModal" class="modal hidden">
-    <div class="modal-card">
-      <button id="closeMoveBtn" class="modal-close" aria-label="إغلاق">×</button>
-      <div class="modal-icon">📁</div>
-      <h2>نقل الخلفيات</h2>
-      <p>سيتم نقل <strong id="moveCount">0</strong> خلفية إلى قسم جديد.</p>
-
-      <label class="modal-label">اختر القسم الجديد</label>
-      <select id="moveCategory"></select>
-
-      <div class="safe-note">
-        🔒 سيتم تعديل <b>category</b> فقط.<br>
-        ❤️ الإعجابات و 🔖 المحفوظات و 📥 التحميلات و 👁️ المشاهدات لن يتم تعديلها.
-      </div>
-
-      <div class="modal-actions">
-        <button id="cancelMoveBtn" class="ghost-btn">إلغاء</button>
-        <button id="confirmMoveBtn" class="move-btn">تأكيد النقل</button>
-      </div>
-    </div>
+  <div id="moveModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="moveModalTitle">
+      <button type="button" id="closeModal" class="modal-close" aria-label="إغلاق">×</button>
+      <span class="modal-mark">▦</span>
+      <span class="page-kicker">CATEGORY MANAGEMENT</span>
+      <h2 id="moveModalTitle">تغيير القسم</h2>
+      <p id="modalDescription">اختر القسم الذي تريد نقل الخلفية إليه.</p>
+      <label class="modal-label" for="singleCategory">التصنيف الجديد</label>
+      <select id="singleCategory"></select>
+      <div class="modal-safe-note">سيتم تعديل التصنيف فقط. لن تتغير الصورة أو المعرّف أو الإعجابات أو المحفوظات أو التحميلات أو المشاهدات.</div>
+      <div class="modal-actions"><button type="button" id="cancelModal" class="soft-btn">إلغاء</button><button type="button" id="confirmMove" class="primary-btn">حفظ التصنيف</button></div>
+    </section>
   </div>
 
-  <script type="module" src="wallpapers.js"></script>
+  <script type="module" src="/admin/admin-auth.js"></script>
+  <script type="module" src="/admin/wallpapers.js?v=library-desk-20261123-1"></script>
 </body>
 </html>
