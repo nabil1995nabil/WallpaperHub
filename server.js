@@ -9017,104 +9017,64 @@ app.post(
 
 // إنشاء إعلان جديد
 app.post(
-"/api/admin/announcements",
-async (req,res)=>{
+  "/api/admin/announcements",
+  async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
 
-try{
-            const admin = await requireAdmin(req, res);
-            if(!admin) return;
+      const title = String(req.body?.title || "").trim();
+      const content = String(req.body?.content || "").trim();
+      const requestedCategory = String(req.body?.category || "admin").trim().toLowerCase();
+      const category = ["admin", "update", "event"].includes(requestedCategory) ? requestedCategory : "admin";
+      const image = typeof req.body?.image === "string" ? req.body.image.trim() : "";
 
-const newAnnouncement = {
+      if (!title || !content) {
+        return res.status(400).json({ success:false, message:"عنوان الإعلان ومحتواه مطلوبان." });
+      }
+      if (title.length > 140 || content.length > 6000) {
+        return res.status(400).json({ success:false, message:"تجاوز العنوان أو المحتوى الحد المسموح." });
+      }
+      if (image.length > 7 * 1024 * 1024) {
+        return res.status(413).json({ success:false, message:"حجم الصورة كبير جدًا. اختر صورة أصغر." });
+      }
 
-type:
-req.body.category ||
-"admin",
+      const newAnnouncement = {
+        type:category,
+        title,
+        content,
+        image,
+        likes:0,
+        views:0,
+        date:new Date().toLocaleString("ar-MA")
+      };
 
-title:
-req.body.title ||
-"",
+      const { data, error } = await supabase
+        .from("announcements")
+        .insert(newAnnouncement)
+        .select()
+        .single();
 
+      if (error) throw error;
 
-content:
-req.body.content ||
-"",
+      // خيار الإشعار الفوري مستقل عن حفظ الإعلان.
+      if (req.body?.sendPush !== false) {
+        sendPushToAll({
+          type:"announcement",
+          title:cleanPushText(data?.title || "إعلان جديد من WallpaperHub",80),
+          body:cleanPushText(data?.content || "تم نشر إعلان جديد",180),
+          url:"/notifications.html",
+          tag:`wh-announcement-${data?.id || Date.now()}`
+        }).catch(()=>{});
+      }
 
-
-image:
-req.body.image ||
-"",
-
-
-likes:0,
-
-views:0,
-
-
-date:
-new Date()
-.toLocaleString("ar-MA")
-
-};
-
-
-
-
-const { data, error } =
-await supabase
-.from("announcements")
-.insert(newAnnouncement)
-.select()
-.single();
-
-
-
-if(error){
-throw error;
-}
-
-sendPushToAll({
-    type:"announcement",
-    title:cleanPushText(data?.title || "إعلان جديد من WallpaperHub",80),
-    body:cleanPushText(data?.content || "تم نشر إعلان جديد",180),
-    url:"/notifications.html",tag:`wh-announcement-${data?.id || Date.now()}`
-}).catch(()=>{});
-
-res.json({
-
-success:true,
-
-announcement:data
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"CREATE ANNOUNCEMENT ERROR:",
-error
+      return res.status(201).json({ success:true, announcement:data });
+    } catch (error) {
+      console.log("CREATE ANNOUNCEMENT ERROR:", error?.message || error);
+      return res.status(500).json({ success:false, message:error.message || "تعذر إنشاء الإعلان." });
+    }
+  }
 );
-
-
-res.status(500).json({
-
-success:false,
-error:error.message
-
-});
-
-
-}
-
-});
-
-
-
-
-
-
 
 // جلب الإعلانات للأدمن
 
@@ -9177,65 +9137,36 @@ res.status(500).json([]);
 // حذف إعلان
 
 app.delete(
-"/api/admin/announcements/:id",
-async (req,res)=>{
+  "/api/admin/announcements/:id",
+  async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
 
+      const id = Number(req.params.id);
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        return res.status(400).json({ success:false, message:"معرّف الإعلان غير صالح." });
+      }
 
-try{
-            const admin = await requireAdmin(req, res);
-            if(!admin) return;
+      const { data, error } = await supabase
+        .from("announcements")
+        .delete()
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
 
-const id =
-Number(req.params.id);
+      if (error) throw error;
+      if (!data) {
+        return res.status(404).json({ success:false, message:"الإعلان غير موجود أو تم حذفه مسبقًا." });
+      }
 
-
-
-const { error } =
-await supabase
-.from("announcements")
-.delete()
-.eq(
-"id",
-id
+      return res.json({ success:true, id:data.id });
+    } catch (error) {
+      console.log("DELETE ANNOUNCEMENT ERROR:", error?.message || error);
+      return res.status(500).json({ success:false, message:error.message || "تعذر حذف الإعلان." });
+    }
+  }
 );
-
-
-
-if(error){
-throw error;
-}
-
-
-
-res.json({
-
-success:true
-
-});
-
-
-
-}catch(error){
-
-
-console.log(
-"DELETE ANNOUNCEMENT ERROR:",
-error
-);
-
-
-
-res.status(500).json({
-
-success:false
-
-});
-
-
-}
-
-
-});
 
 // ======================================
 // User Announcements API
@@ -9286,37 +9217,77 @@ res.status(500).json([]);
 // ======================================
 
 app.put(
-    "/api/admin/notifications/:id",
-    async(req,res)=>{
-        try{
-            const admin = await requireAdmin(req, res);
-            if(!admin) return;            const id = Number(req.params.id);
-            const updates = {};
-            if(req.body.title !== undefined) updates.title = req.body.title;
-            if(req.body.content !== undefined) updates.content = req.body.content;
-            if(req.body.image !== undefined) updates.image = req.body.image;
-            if(req.body.category !== undefined) updates.type = req.body.category;
+  "/api/admin/notifications/:id",
+  async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
 
-            if(Object.keys(updates).length === 0){
-                return res.status(400).json({ success:false, message:"No valid fields" });
-            }
+      const id = Number(req.params.id);
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        return res.status(400).json({ success:false, message:"معرّف الإعلان غير صالح." });
+      }
 
-            const { data, error } = await supabase
-                .from("announcements")
-                .update(updates)
-                .eq("id", id)
-                .select("*")
-                .maybeSingle();
-
-            if(error) throw error;
-            if(!data) return res.status(404).json({ success:false, message:"Announcement not found" });
-
-            res.json({ success:true, notification:data, announcement:data });
-        }catch(error){
-            console.log("UPDATE ANNOUNCEMENT ERROR:", error);
-            res.status(500).json({ success:false, message:error.message });
+      const updates = {};
+      if (req.body?.title !== undefined) {
+        const title = String(req.body.title || "").trim();
+        if (!title || title.length > 140) {
+          return res.status(400).json({ success:false, message:"عنوان الإعلان مطلوب وبحد أقصى 140 حرفًا." });
         }
+        updates.title = title;
+      }
+      if (req.body?.content !== undefined) {
+        const content = String(req.body.content || "").trim();
+        if (!content || content.length > 6000) {
+          return res.status(400).json({ success:false, message:"محتوى الإعلان مطلوب وبحد أقصى 6000 حرف." });
+        }
+        updates.content = content;
+      }
+      if (req.body?.image !== undefined) {
+        const image = typeof req.body.image === "string" ? req.body.image.trim() : "";
+        if (image.length > 7 * 1024 * 1024) {
+          return res.status(413).json({ success:false, message:"حجم الصورة كبير جدًا." });
+        }
+        updates.image = image;
+      }
+      if (req.body?.category !== undefined) {
+        const category = String(req.body.category || "admin").trim().toLowerCase();
+        updates.type = ["admin", "update", "event"].includes(category) ? category : "admin";
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ success:false, message:"لم يتم تقديم أي تعديلات صالحة." });
+      }
+
+      const { data, error } = await supabase
+        .from("announcements")
+        .update(updates)
+        .eq("id", id)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        return res.status(404).json({ success:false, message:"الإعلان غير موجود." });
+      }
+
+      // لا يُرسل إشعار عند تعديل إعلان إلا بطلب صريح من المحرر.
+      if (req.body?.sendPush === true) {
+        sendPushToAll({
+          type:"announcement",
+          title:cleanPushText(data?.title || "تحديث إعلان من WallpaperHub",80),
+          body:cleanPushText(data?.content || "تم تحديث إعلان",180),
+          url:"/notifications.html",
+          tag:`wh-announcement-update-${data?.id || Date.now()}`
+        }).catch(()=>{});
+      }
+
+      return res.json({ success:true, notification:data, announcement:data });
+    } catch (error) {
+      console.log("UPDATE ANNOUNCEMENT ERROR:", error?.message || error);
+      return res.status(500).json({ success:false, message:error.message || "تعذر تعديل الإعلان." });
     }
+  }
 );
 
 // ======================================
