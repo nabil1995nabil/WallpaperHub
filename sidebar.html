@@ -1,104 +1,36 @@
-<!-- Drawer Overlay -->
-<div id="drawerOverlay" class="drawer-overlay"></div>
-
-
-<!-- Side Drawer -->
-<div id="sideDrawer" class="side-drawer">
-
-
-    <div class="drawer-header">
-
-        <span id="drawerClose">
-            ✕
-        </span>
-
-
-        <a class="drawer-publish-link" href="publish.html" aria-label="الانتقال إلى نشر الخلفيات" title="نشر الخلفيات">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M12 3v12"></path>
-                <path d="m7 8 5-5 5 5"></path>
-                <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
-            </svg>
-        </a>
-
-        <div class="drawer-brand">
-
-            <h2>
-                WallpaperHub
-            </h2>
-
-            <p>
-                خلفيات بجودة عالية
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-
-
-    <div class="drawer-menu">
-
-
-        <a href="notice.html" data-badge-section="notice">
-            📌 Notice
-        </a>
-
-
-
-        <a href="#">
-            📱 مشاركة التطبيق
-        </a>
-
-
-
-        <a href="#">
-            ⭐ تقييم التطبيق
-        </a>
-
-
-
-        <a href="artguru.html">
-            ✨ تحسين الصور بالذكاء الاصطناعي
-        </a>
-
-
-
-        <a href="community.html" class="community-sidebar-link" data-badge-section="community">
-            <span class="community-sidebar-icon">👥</span>
-            <span>المجتمع</span>
-        </a>
-
-
-        <hr>
-
-
-
-        <a href="developers.html">
-            🔑 API Developer
-        </a>
-
-
-
-        <a href="settings.html">
-            ⚙️ الإعدادات
-        </a>
-
-
-
-        <a href="about.html">
-            ℹ️ حول التطبيق
-        </a>
-
-        <a href="community-appeal.html" data-badge-section="contact">
-            ✉️ تواصل معنا
-        </a>
-
-
-
-    </div>
-
-
-</div>
+<div id="drawerOverlay" class="drawer-overlay" aria-hidden="true"></div>
+<aside id="sideDrawer" class="side-drawer" aria-label="القائمة الرئيسية" aria-hidden="true">
+  <header class="drawer-header">
+    <button id="drawerClose" class="drawer-close" type="button" aria-label="إغلاق القائمة"><span class="material-icons" aria-hidden="true">close</span></button>
+    <a class="drawer-publish-link" href="publish.html" aria-label="الانتقال إلى نشر الخلفيات" title="نشر الخلفيات">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="m7 8 5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>
+    </a>
+    <a class="drawer-brand" href="home.html">
+      <span class="drawer-brand-mark" aria-hidden="true">W</span>
+      <span class="drawer-brand-copy"><strong>Wallpaper<span>Hub</span></strong><small>مساحتك للاكتشاف والإبداع</small></span>
+    </a>
+    <div class="drawer-header-note">YOUR WORLD · YOUR STYLE</div>
+  </header>
+  <nav class="drawer-menu" aria-label="روابط الموقع">
+    <section class="drawer-group" aria-labelledby="drawerDiscover">
+      <h2 class="drawer-group-title" id="drawerDiscover">اكتشف وتفاعل</h2>
+      <a href="home.html"><span class="material-icons" aria-hidden="true">home</span><span>الرئيسية</span></a>
+      <a href="notice.html" data-badge-section="notice"><span class="material-icons" aria-hidden="true">notifications</span><span>الإشعارات والإعلانات</span></a>
+      <a href="community.html" class="community-sidebar-link" data-badge-section="community"><span class="material-icons" aria-hidden="true">groups</span><span>المجتمع</span></a>
+      <a href="roadmap.html" class="roadmap-sidebar-link"><span class="material-icons" aria-hidden="true">auto_stories</span><span>خارطة الطريق</span><span class="drawer-link-note">المستقبل</span></a>
+    </section>
+    <section class="drawer-group" aria-labelledby="drawerCreate">
+      <h2 class="drawer-group-title" id="drawerCreate">أنشئ وطوّر</h2>
+      <a href="artguru.html"><span class="material-icons" aria-hidden="true">auto_awesome</span><span>تحسين الصور بالذكاء الاصطناعي</span></a>
+      <a href="studio.html"><span class="material-icons" aria-hidden="true">movie_edit</span><span>استوديو الإبداع</span></a>
+    </section>
+    <section class="drawer-group" aria-labelledby="drawerMore">
+      <h2 class="drawer-group-title" id="drawerMore">المساعدة والمعلومات</h2>
+      <a href="developers.html"><span class="material-icons" aria-hidden="true">code</span><span>واجهة المطورين API</span></a>
+      <a href="settings.html"><span class="material-icons" aria-hidden="true">tune</span><span>الإعدادات</span></a>
+      <a href="about.html"><span class="material-icons" aria-hidden="true">info</span><span>حول WallpaperHub</span></a>
+      <a href="community-appeal.html" data-badge-section="contact"><span class="material-icons" aria-hidden="true">mail</span><span>تواصل معنا</span></a>
+    </section>
+  </nav>
+  <footer class="drawer-footer"><span class="drawer-footer-mark" aria-hidden="true">✦</span><span>كل فكرة جميلة تبدأ بخطوة.</span><small>WALLPAPERHUB MOROCCO</small></footer>
+</aside>

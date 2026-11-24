@@ -1,0 +1,127 @@
+/* WallpaperHub · Future Memory Book */
+:root{--paper:#fbf8f1;--ink:#2f3544;--muted:#7d8491;--accent:#6664b7;--line:#e9e2d5;--shadow:0 13px 32px rgba(73,61,42,.09);--sprite:url("/assets/roadmap/future-notes-sprite.webp")}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body.wh-roadmap-page{margin:0;min-height:100vh;color:var(--ink);background:radial-gradient(circle at 8% 14%,rgba(226,202,158,.18),transparent 23%),radial-gradient(circle at 91% 39%,rgba(167,176,215,.13),transparent 25%),linear-gradient(180deg,#f4f0e7 0%,#f8f6f0 46%,#f2eee5 100%);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+.roadmap-topbar{position:sticky;top:0;z-index:90;min-height:66px;display:flex;align-items:center;gap:16px;padding:9px max(20px,calc((100vw - 1120px)/2));background:rgba(250,248,243,.88);border-bottom:1px solid rgba(221,214,200,.72);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%)}
+.roadmap-brand{display:flex;align-items:center;gap:9px;margin-inline-end:auto;color:inherit;text-decoration:none}
+.roadmap-brand-mark{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:#fff;color:#5b62c8;border:1px solid #e4e6f6;font-size:17px;font-weight:850;box-shadow:0 3px 9px rgba(73,88,180,.09)}
+.roadmap-brand>span:last-child{display:flex;flex-direction:column;gap:2px}
+.roadmap-brand strong{font-size:12px;font-weight:800;letter-spacing:-.2px}
+.roadmap-brand small{font-size:9px;color:#8b8b96}
+.roadmap-top-home{display:inline-flex;align-items:center;gap:5px;color:#777c89;text-decoration:none;font-size:10px;font-weight:650}
+.roadmap-top-home .material-icons{font-size:16px}
+.roadmap-top-home:hover{color:var(--accent)}
+.roadmap-menu-btn{color:#384052}
+.roadmap-page{width:min(1080px,calc(100% - 34px));margin:28px auto 0;padding-bottom:32px}
+.journal-cover{position:relative;min-height:340px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) 205px;align-items:center;gap:24px;padding:40px 48px 26px;border:1px solid #e7dece;border-radius:7px;background:linear-gradient(90deg,transparent 0,transparent 96%,rgba(207,195,174,.26) 96%,rgba(207,195,174,.26) 96.3%,transparent 96.3%),repeating-linear-gradient(0deg,rgba(160,148,127,.045) 0,rgba(160,148,127,.045) 1px,transparent 1px,transparent 31px),#fffdf8;box-shadow:0 16px 38px rgba(80,65,43,.11);transform:rotate(-.25deg)}
+.journal-cover:before{content:"";position:absolute;top:0;bottom:0;right:21px;width:1px;background:rgba(204,154,151,.32)}
+.cover-paperclip{position:absolute;top:-2px;left:112px;width:22px;height:62px;border:3px solid #aab2bb;border-bottom:0;border-radius:13px 13px 0 0;transform:rotate(7deg);opacity:.7}
+.cover-copy{position:relative;z-index:1;max-width:650px}
+.journal-eyebrow{display:flex;align-items:center;gap:8px;color:#92909a;font-size:8px;font-weight:850;letter-spacing:1.5px;direction:ltr;justify-content:flex-end}
+.journal-eyebrow-star{color:#c59e54;font-size:15px}
+.cover-overline{margin:21px 0 7px;color:#9a896f;font-size:11px;font-weight:700}
+.cover-copy h1{margin:0;color:#34384a;font-family:Georgia,"Times New Roman",serif;font-size:clamp(29px,4.6vw,48px);font-weight:750;line-height:1.22;letter-spacing:-1.2px}
+.cover-copy h1 em{color:#6b69ad;font-style:normal}
+.cover-intro{max-width:590px;margin:15px 0 0;color:#747987;font-size:12px;line-height:2.05}
+.cover-signature{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:580px;margin-top:21px}
+.cover-underline{padding-bottom:4px;border-bottom:1px solid #d8c18c;color:#6b6479;font-size:12px;font-weight:700}
+.cover-date{color:#b0a89a;font-size:8px;letter-spacing:1px;direction:ltr}
+.cover-polaroid{position:relative;z-index:1;width:177px;margin:10px 0 0;padding:9px 9px 14px;background:#fff;box-shadow:0 10px 24px rgba(58,50,39,.16);transform:rotate(4.5deg)}
+.photo-sprite{display:block;width:100%;height:100%;background-image:var(--sprite);background-size:400% 200%;background-repeat:no-repeat}
+.photo-1{background-position:0% 0%}.photo-2{background-position:33.3333% 0%}.photo-3{background-position:66.6667% 0%}.photo-4{background-position:100% 0%}
+.photo-5{background-position:0% 100%}.photo-6{background-position:33.3333% 100%}.photo-7{background-position:66.6667% 100%}.photo-8{background-position:100% 100%}
+.cover-polaroid .photo-sprite{height:190px}
+.cover-polaroid figcaption{padding-top:10px;color:#77717a;text-align:center;font-family:Georgia,serif;font-size:11px}
+.cover-sticker{position:absolute;left:24px;bottom:52px;width:66px;height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #e4d3ac;border-radius:50%;background:#fff7e4;color:#a98950;box-shadow:0 5px 12px rgba(92,71,36,.08);transform:rotate(-12deg)}
+.cover-sticker span,.cover-sticker small{font-size:7px;letter-spacing:1px;font-weight:800}
+.cover-sticker strong{font-size:18px;line-height:1}
+.cover-bottom-line{position:absolute;bottom:0;right:0;left:0;display:flex;justify-content:space-between;align-items:center;padding:10px 29px;border-top:1px solid #eee6d8;color:#aba18f;font-size:9px}
+.cover-bottom-line span:first-child{font-family:Georgia,serif;font-size:16px;color:#b7a27f}
+.roadmap-intro-note{position:relative;width:min(690px,90%);margin:27px auto 53px;padding:17px 24px 16px;background:#f9f0d9;border:1px solid #eadcb9;box-shadow:0 7px 18px rgba(93,76,43,.08);transform:rotate(.65deg);text-align:center}
+.roadmap-intro-note p{margin:0;color:#6d6251;font-size:12px;line-height:2}
+.roadmap-intro-note small{display:block;margin-top:7px;color:#aa9b7c;font-size:9px}
+.intro-pin{position:absolute;top:-12px;left:50%;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#d9ad69;color:#fff;font-size:11px;box-shadow:0 2px 5px rgba(80,55,20,.2)}
+.roadmap-section-heading{margin:0 0 27px;text-align:center}
+.section-handwrite{display:inline-block;color:#a78c61;font-size:11px;font-weight:750;transform:rotate(-2deg)}
+.roadmap-section-heading h2{margin:8px 0 5px;color:#3b4050;font-family:Georgia,serif;font-size:clamp(23px,3.4vw,32px)}
+.roadmap-section-heading p{margin:0;color:#898d97;font-size:11px}
+.memory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:23px 25px}
+.memory-card{position:relative;min-width:0;padding:21px 21px 13px;background:#fffefa;border:1px solid #eae4d8;border-radius:4px;box-shadow:var(--shadow);transform:rotate(-.45deg)}
+.memory-card:nth-child(2n){transform:rotate(.55deg);background:#fffdf9}
+.memory-card:nth-child(3n){margin-top:10px}
+.memory-card:nth-child(2),.memory-card:nth-child(7){grid-column:1/-1}
+.memory-card:nth-child(2){transform:rotate(.25deg);background:#fffaf0;border-color:#eee1c7}
+.memory-card:nth-child(7){transform:rotate(-.15deg)}
+.memory-tape{position:absolute;top:-9px;left:42px;width:67px;height:20px;background:rgba(222,211,173,.58);transform:rotate(-6deg);box-shadow:0 1px 2px rgba(70,60,40,.04)}
+.tape-gold{left:auto;right:54px;background:rgba(221,190,130,.48);transform:rotate(4deg)}
+.tape-blue{background:rgba(176,198,215,.48)}
+.tape-rose{left:auto;right:35px;background:rgba(220,183,187,.45);transform:rotate(7deg)}
+.tape-lilac{background:rgba(193,184,222,.48)}
+.tape-green{left:auto;right:75px;background:rgba(180,202,175,.5)}
+.memory-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.memory-number{color:#c2ad87;font-family:Georgia,serif;font-size:23px;font-weight:700;letter-spacing:-1px}
+.memory-status{padding:4px 8px;border-radius:20px;background:#f2f1ea;color:#898776;font-size:8px;font-weight:750}
+.memory-card-body{display:flex;align-items:flex-start;gap:17px;direction:rtl}
+.memory-figure{flex:0 0 112px;width:112px;margin:1px 0 0;padding:6px 6px 9px;background:#fff;border:1px solid #eee9df;box-shadow:0 4px 10px rgba(64,54,40,.10);transform:rotate(1.5deg)}
+.memory-figure .photo-sprite{height:139px}
+.memory-figure figcaption{padding-top:7px;color:#918879;font-family:Georgia,serif;font-size:9px;text-align:center}
+.memory-copy{flex:1;min-width:0}
+.memory-kicker{color:#a49a88;font-size:8px;font-weight:850;letter-spacing:1.2px;direction:ltr;display:block}
+.memory-copy h3{margin:5px 0 7px;color:#34394a;font-size:16px;line-height:1.5;font-weight:800}
+.memory-copy p{margin:0 0 9px;color:#777d89;font-size:10.5px;line-height:1.9}
+.memory-copy ul{display:grid;grid-template-columns:1fr;gap:5px;margin:0;padding:0 15px 0 0;color:#555e6d;font-size:10px;line-height:1.75}
+.memory-copy li::marker{color:#c2a66e}
+.memory-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:9px;border-top:1px dashed #e8e1d4;color:#a49a89;font-family:Georgia,serif;font-size:10px}
+.memory-card-foot span:last-child{color:#c4a56b}
+.memory-points .memory-card-body{gap:24px}
+.memory-points .memory-figure{flex-basis:145px;width:145px;transform:rotate(-1.6deg)}
+.memory-points .memory-figure .photo-sprite{height:175px}
+.memory-points .memory-copy ul{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:25px}
+.points-note{display:flex;align-items:center;gap:9px;margin:17px 0 0;padding:10px 13px;border:1px solid #eee1c7;border-radius:5px;background:#fff5df;color:#87714d;font-size:10px}
+.points-note .material-icons{font-size:18px;color:#c29b53}
+.memory-security .memory-copy ul{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px}
+.roadmap-status-note{position:relative;display:flex;align-items:center;gap:24px;margin:44px auto 31px;padding:22px 25px;width:min(880px,96%);background:#eef1e7;border:1px solid #dfe5d6;box-shadow:0 9px 22px rgba(58,70,50,.08);transform:rotate(.3deg)}
+.status-note-pin{position:absolute;top:-12px;right:36px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#9aa985;color:#fff;font-size:11px;box-shadow:0 2px 5px rgba(40,60,35,.18)}
+.status-note-copy{flex:1;min-width:0}
+.status-note-copy h2{margin:7px 0;color:#414b43;font-family:Georgia,serif;font-size:18px}
+.status-note-copy p{margin:0;color:#737e73;font-size:10.5px;line-height:1.9}
+.status-note-photo{flex:0 0 117px;width:117px;margin:0;padding:6px 6px 8px;background:#fff;box-shadow:0 5px 13px rgba(45,57,40,.11);transform:rotate(4deg)}
+.status-note-photo .photo-sprite{height:105px}
+.status-note-photo figcaption{padding-top:6px;color:#92988b;font-family:Georgia,serif;font-size:8px;text-align:center}
+.status-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px}
+.status-legend span{display:inline-flex;align-items:center;gap:6px;color:#727b72;font-size:9px}
+.status-legend i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.status-planned{background:#c9a66c}.status-building{background:#7b89ca}.status-live{background:#71a47d}
+.roadmap-footer{padding:25px 12px 9px;text-align:center}
+.footer-sparkle{color:#c8a96e;font-size:16px}
+.roadmap-footer p{margin:6px 0;color:#5e6170;font-family:Georgia,serif;font-size:16px;font-weight:700}
+.roadmap-footer strong{display:block;color:#9992a0;font-size:9px;font-weight:700;letter-spacing:.35px}
+.roadmap-footer>a{display:inline-flex;align-items:center;gap:7px;margin-top:13px;color:#6b6da8;text-decoration:none;font-size:10px;font-weight:750}
+body.dark.wh-roadmap-page{background:linear-gradient(180deg,#171b27,#1b1e28 50%,#191d28);color:#e8eaf2}
+body.dark .roadmap-topbar{background:rgba(27,31,43,.9);border-color:#34394a}
+body.dark .roadmap-brand,body.dark .roadmap-top-home{color:#e4e6ef}
+body.dark .roadmap-brand small{color:#a6adc0}
+body.dark .roadmap-menu-btn{color:#e5e8f3}
+body.dark .journal-cover{background:repeating-linear-gradient(0deg,rgba(210,210,220,.035) 0,rgba(210,210,220,.035) 1px,transparent 1px,transparent 31px),#222736;border-color:#3c4254}
+body.dark .cover-copy h1,body.dark .roadmap-section-heading h2,body.dark .memory-copy h3{color:#eef0f7}
+body.dark .cover-intro,body.dark .roadmap-section-heading p,body.dark .memory-copy p,body.dark .memory-copy ul{color:#b8bfce}
+body.dark .cover-overline,body.dark .journal-eyebrow,body.dark .cover-date{color:#aeb5c5}
+body.dark .cover-underline,body.dark .cover-polaroid figcaption{color:#c5b894}
+body.dark .roadmap-intro-note{background:#373328;border-color:#58503c}
+body.dark .roadmap-intro-note p,body.dark .roadmap-intro-note small{color:#d3c6a6}
+body.dark .memory-card{background:#222735;border-color:#3d4354}
+body.dark .memory-card:nth-child(2){background:#2c2a27;border-color:#514938}
+body.dark .memory-card-foot{border-color:#45495a;color:#aeb5c4}
+body.dark .memory-status{background:#333747;color:#c2c7d4}
+body.dark .points-note{background:#3a3327;border-color:#5a4b32;color:#e1c991}
+body.dark .roadmap-status-note{background:#29342d;border-color:#3d5746}
+body.dark .status-note-copy h2{color:#e5eee3}
+body.dark .status-note-copy p,body.dark .status-legend span{color:#b3c0b1}
+body.dark .roadmap-footer p{color:#d9dce7}
+body.dark .roadmap-footer strong{color:#9fa7ba}
+@media(min-width:900px){.memory-wallpapers{margin-left:9px}.memory-studio{margin-right:7px}.memory-community{margin-top:18px}.memory-ai{margin-top:12px}}
+@media(max-width:760px){.roadmap-page{width:min(100% - 24px,620px);margin-top:16px}.journal-cover{grid-template-columns:minmax(0,1fr) 130px;gap:14px;min-height:300px;padding:31px 27px 27px 22px}.cover-polaroid{width:124px;padding:6px 6px 10px}.cover-polaroid .photo-sprite{height:142px}.cover-copy h1{font-size:clamp(25px,5.8vw,37px)}.cover-intro{font-size:10.5px}.cover-sticker{width:54px;height:54px;left:13px;bottom:45px}.cover-sticker span,.cover-sticker small{font-size:6px}.memory-grid{gap:18px}.memory-card{padding:18px 15px 12px}.memory-card-body{gap:12px}.memory-figure{flex-basis:91px;width:91px;padding:5px 5px 7px}.memory-figure .photo-sprite{height:118px}.memory-points .memory-figure{flex-basis:115px;width:115px}.memory-points .memory-figure .photo-sprite{height:144px}.memory-copy h3{font-size:14px}.memory-copy p{font-size:10px}.memory-copy ul{font-size:9.5px}}
+@media(max-width:560px){.roadmap-topbar{min-height:58px;padding:7px 12px}.roadmap-brand-mark{width:29px;height:29px}.roadmap-brand strong{font-size:11px}.roadmap-top-home{font-size:9px}.roadmap-page{width:calc(100% - 20px);margin-top:12px}.journal-cover{display:block;min-height:0;padding:29px 22px 59px}.journal-cover:before{right:12px}.journal-eyebrow{font-size:7px}.cover-overline{margin-top:18px;font-size:10px}.cover-copy h1{font-size:32px}.cover-intro{max-width:100%;padding-left:4px;font-size:10px}.cover-signature{display:block;margin-top:16px}.cover-date{display:block;margin-top:11px}.cover-polaroid{position:absolute;left:21px;bottom:29px;width:79px;margin:0;padding:4px 4px 6px;transform:rotate(-5deg)}.cover-polaroid .photo-sprite{height:66px}.cover-polaroid figcaption{padding-top:5px;font-size:7px}.cover-sticker{left:auto;right:19px;bottom:33px;width:45px;height:45px}.cover-sticker strong{font-size:13px}.cover-bottom-line{padding:7px 16px;font-size:8px}.roadmap-intro-note{width:94%;margin:20px auto 40px;padding:15px 15px 13px}.roadmap-intro-note p{font-size:10.5px}.roadmap-section-heading{margin-bottom:24px}.roadmap-section-heading h2{font-size:23px}.memory-grid{grid-template-columns:1fr;gap:18px}.memory-card,.memory-card:nth-child(2n),.memory-card:nth-child(3n),.memory-card:nth-child(2),.memory-card:nth-child(7){grid-column:auto;margin:0;transform:rotate(-.2deg)}.memory-card:nth-child(2n){transform:rotate(.25deg)}.memory-card-body{gap:13px}.memory-figure{flex-basis:102px;width:102px}.memory-figure .photo-sprite{height:126px}.memory-copy h3{font-size:15px}.memory-copy p{font-size:10.5px}.memory-copy ul{font-size:9.7px;gap:4px}.memory-points .memory-card-body{gap:13px}.memory-points .memory-figure{flex-basis:104px;width:104px}.memory-points .memory-figure .photo-sprite{height:132px}.memory-points .memory-copy ul,.memory-security .memory-copy ul{grid-template-columns:1fr}.roadmap-status-note{width:100%;gap:13px;padding:18px 15px;margin-top:32px}.status-note-photo{flex-basis:82px;width:82px;padding:4px 4px 6px}.status-note-photo .photo-sprite{height:78px}.status-note-photo figcaption{font-size:7px}.status-note-copy h2{font-size:15px}.status-note-copy p{font-size:9.5px}.status-legend{gap:7px 10px}.status-legend span{font-size:8px}.roadmap-footer p{font-size:14px}}
+@media(max-width:360px){.roadmap-top-home span:last-child{display:none}.cover-copy h1{font-size:28px}.memory-figure{flex-basis:88px;width:88px}.memory-figure .photo-sprite{height:111px}.memory-points .memory-figure{flex-basis:90px;width:90px}.memory-points .memory-figure .photo-sprite{height:112px}.memory-card{padding-inline:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

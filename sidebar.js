@@ -2,7 +2,7 @@
 // Load Sidebar HTML
 // ======================
 
-fetch("sidebar.html")
+fetch("sidebar.html?v=20261124-future-notes-1",{cache:"no-cache"})
 .then(response => response.text())
 .then(data => {
 
@@ -13,6 +13,13 @@ fetch("sidebar.html")
     if(container){
 
         container.innerHTML = data;
+        const currentPage = location.pathname.split("/").pop() || "home.html";
+        container.querySelectorAll(".drawer-menu a[href]").forEach(link => {
+          if (link.getAttribute("href") === currentPage) {
+            link.classList.add("is-current");
+            link.setAttribute("aria-current", "page");
+          }
+        });
 
     }
 
@@ -69,6 +76,7 @@ function openDrawer(){
     if(menuBtn){
 
         menuBtn.classList.add("active");
+        menuBtn.setAttribute("aria-expanded", "true");
 
     }
 
@@ -76,6 +84,7 @@ function openDrawer(){
     if(sideDrawer){
 
         sideDrawer.classList.add("show");
+        sideDrawer.setAttribute("aria-hidden", "false");
 
     }
 
@@ -83,6 +92,7 @@ function openDrawer(){
     if(drawerOverlay){
 
         drawerOverlay.classList.add("show");
+        drawerOverlay.setAttribute("aria-hidden", "false");
 
     }
 
@@ -116,6 +126,7 @@ function closeDrawer(){
         sideDrawer.classList.remove(
             "show"
         );
+        sideDrawer.setAttribute("aria-hidden", "true");
 
     }
 
@@ -126,6 +137,7 @@ function closeDrawer(){
         drawerOverlay.classList.remove(
             "show"
         );
+        drawerOverlay.setAttribute("aria-hidden", "true");
 
     }
 
@@ -142,6 +154,7 @@ function closeDrawer(){
         menuBtn.classList.remove(
             "active"
         );
+        menuBtn.setAttribute("aria-expanded", "false");
 
     }
 
