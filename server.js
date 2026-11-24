@@ -3617,7 +3617,8 @@ app.get("/sitemap.xml", async (req, res) => {
         "categories.html",
         "social.html",
         "support.html",
-        "privacy.html"
+        "privacy.html",
+        "roadmap.html"
     ];
 
     for (const page of publicPages) {
