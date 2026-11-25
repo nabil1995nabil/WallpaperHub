@@ -23,7 +23,7 @@ function createSpreads(book){const list=[{right:coverPage(book),left:'<section c
 }
 function renderSpread(){const spread=spreads[spreadIndex];if(!spread)return;$("mbSpread").innerHTML=(spread.right||"")+(spread.left||"");$("mbBack").disabled=spreadIndex===0;$("mbForward").disabled=spreadIndex===spreads.length-1;$("mbPageCount").textContent=(spreadIndex+1)+" / "+spreads.length;$("mbProgress").style.width=((spreadIndex+1)/spreads.length*100)+"%";}
 function turn(delta){const next=spreadIndex+delta;if(next<0||next>=spreads.length)return;const node=$("mbSpread");node.classList.remove("turn-next","turn-prev");void node.offsetWidth;node.classList.add(delta>0?"turn-next":"turn-prev");window.setTimeout(()=>{spreadIndex=next;renderSpread();node.classList.remove("turn-next","turn-prev");},260);}
-async function loadBook(month){currentMonth=month;$("mbMonth").value=month;$("mbNext").disabled=month>=monthNow();$("mbLogin").hidden=true;$("mbBookArea").hidden=true;showStatus("يتم تجهيز صفحات "+month+"…");
+async function loadBook(month){currentMonth=month;$("mbMonth").value=month;$("mbMonth").min=monthShift(monthNow(),-36);$("mbMonth").max=monthNow();$("mbPrevious").disabled=month<=monthShift(monthNow(),-36);$("mbNext").disabled=month>=monthNow();$("mbLogin").hidden=true;$("mbBookArea").hidden=true;showStatus("يتم تجهيز صفحات "+month+"…");
  try{
   const {data,error}=await supabase.auth.getSession();if(error)throw error;const token=data?.session?.access_token;
   if(!token){showStatus("");$("mbLogin").hidden=false;return;}
@@ -36,6 +36,7 @@ $("mbPrevious").addEventListener("click",()=>loadBook(monthShift(currentMonth,-1
 $("mbNext").addEventListener("click",()=>{const next=monthShift(currentMonth,1);if(next<=monthNow())loadBook(next);});
 $("mbMonth").addEventListener("change",()=>{if($("mbMonth").value&&$("mbMonth").value<=monthNow())loadBook($("mbMonth").value);else $("mbMonth").value=currentMonth;});
 $("mbBack").addEventListener("click",()=>turn(-1));$("mbForward").addEventListener("click",()=>turn(1));
-$("mbPrint").addEventListener("click",()=>{if(currentBook)window.print();});
+$("mbPrint").addEventListener("click",()=>{if(!currentBook||!spreads.length)return;const target=$("mbPrintBook");target.innerHTML=spreads.map(spread=>'<div class="mb-print-spread">'+(spread.right||"")+(spread.left||"")+'</div>').join("");target.hidden=false;window.print();});
+window.addEventListener("afterprint",()=>{const target=$("mbPrintBook");target.hidden=true;target.innerHTML="";});
 document.addEventListener("keydown",event=>{if($("mbBookArea").hidden)return;if(event.key==="ArrowLeft")turn(1);if(event.key==="ArrowRight")turn(-1);});
 loadBook(monthNow());
