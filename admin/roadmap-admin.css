@@ -50,7 +50,7 @@ button{cursor:pointer}
 .upload-instructions b,.upload-instructions small{display:block}
 .upload-instructions b{color:#545b6c;font-size:10px}
 .upload-instructions small{margin-top:3px;color:#9a9fab;font-size:8px}
-.roadmap-image-preview{position:relative;z-index:3;width:100%;max-height:200px;margin:10px 0 6px;overflow:hidden;border-radius:9px;background:#f1f0eb;text-align:center}
+.roadmap-image-preview{pointer-events:none;position:relative;z-index:3;width:100%;max-height:200px;margin:10px 0 6px;overflow:hidden;border-radius:9px;background:#f1f0eb;text-align:center}
 .roadmap-image-preview img{display:block;width:100%;max-height:200px;object-fit:contain}
 .roadmap-image-preview .preview-filename{padding:6px;color:#828897;font-size:8px}
 .upload-progress{position:relative;z-index:3;height:5px;margin:9px 0;border-radius:99px;background:#e9eaf2;overflow:hidden}
