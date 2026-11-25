@@ -11534,14 +11534,14 @@ function whMonthOffsetMinutes(utcMilliseconds){
     });
     const zone=formatter.formatToParts(new Date(utcMilliseconds))
         .find(part=>part.type==="timeZoneName")?.value||"GMT";
-    const match=zone.match(/^GMT(?:(\\+|\\-)(\\d{1,2})(?::?(\\d{2}))?)?$/);
+    const match=zone.match(/^GMT(?:(\+|\-)(\d{1,2})(?::?(\d{2}))?)?$/);
     if(!match) return 0;
     const sign=match[1]==="-"?-1:1;
     return sign*((Number(match[2]||0)*60)+Number(match[3]||0));
 }
 
 function whCasablancaMonthBounds(monthKey){
-    if(!/^\\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) throw new Error("صيغة الشهر غير صحيحة.");
+    if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) throw new Error("صيغة الشهر غير صحيحة.");
     const year=Number(monthKey.slice(0,4));
     const month=Number(monthKey.slice(5,7));
     const nextYear=month===12?year+1:year;
