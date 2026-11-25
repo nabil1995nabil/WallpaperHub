@@ -2657,7 +2657,7 @@ function dbbyteHmac(key, value, encoding){
     return crypto.createHmac("sha256", key).update(value, "utf8").digest(encoding);
 }
 
-function createDbbytePresignedPutUrl({bucket, key, accessKeyId, secretAccessKey}){
+function createDbbytePresignedPutUrl({bucket, key, accessKeyId, secretAccessKey, method="PUT"}){
     const host = "s3.dbbyte.com";
     const region = "auto";
     const service = "s3";
@@ -2680,7 +2680,7 @@ function createDbbytePresignedPutUrl({bucket, key, accessKeyId, secretAccessKey}
 
     const canonicalHeaders = "host:" + host + "\n";
     const canonicalRequest = [
-        "PUT",
+        String(method || "PUT").toUpperCase(),
         canonicalUri,
         query,
         canonicalHeaders,
@@ -2775,6 +2775,60 @@ app.post("/api/publish/dbbyte-upload-url", async (req, res) => {
 });
 
 // ======================================
+
+// ======================================
+// Roadmap media upload and safe cleanup
+// ======================================
+async function deleteRoadmapImageIfUnused(imageKey){
+    const key=String(imageKey||"").trim();
+    if(!key || !key.startsWith("roadmap/") || key.includes("..")) return false;
+    const {count,error:countError}=await supabase.from("roadmap_items")
+      .select("id",{count:"exact",head:true}).eq("image_key",key);
+    if(countError) throw countError;
+    if(Number(count||0)>0) return false;
+    const accessKeyId=String(process.env.DBBYTE_ACCESS_KEY_ID||"").trim();
+    const secretAccessKey=String(process.env.DBBYTE_SECRET_ACCESS_KEY||"").trim();
+    const bucket=String(process.env.DBBYTE_BUCKET||"wallpaperhub-assets").trim();
+    if(!accessKeyId || !secretAccessKey) return false;
+    const deleteUrl=createDbbytePresignedPutUrl({bucket,key,accessKeyId,secretAccessKey,method:"DELETE"});
+    const response=await fetch(deleteUrl,{method:"DELETE"});
+    if(!response.ok && response.status!==404) throw new Error("DBByte image cleanup failed ("+response.status+")");
+    return true;
+}
+
+app.post("/api/admin/roadmap/media-url", async(req,res)=>{
+  try{
+    const admin=await requireAdmin(req,res);
+    if(!admin) return;
+    const accessKeyId=String(process.env.DBBYTE_ACCESS_KEY_ID||"").trim();
+    const secretAccessKey=String(process.env.DBBYTE_SECRET_ACCESS_KEY||"").trim();
+    const bucket=String(process.env.DBBYTE_BUCKET||"wallpaperhub-assets").trim();
+    const publicToken=String(process.env.DBBYTE_CDN_PUBLIC_TOKEN||"").trim();
+    if(!accessKeyId || !secretAccessKey || !publicToken){
+      return res.status(503).json({success:false,message:"إعداد DBByte غير مكتمل على الخادم."});
+    }
+    if(!/^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/.test(bucket)){
+      return res.status(503).json({success:false,message:"قيمة حاوية DBByte غير صالحة."});
+    }
+    const mimeType=String(req.body?.mimeType||"").trim().toLowerCase();
+    const size=Number(req.body?.size||0);
+    const extensions={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif","image/gif":"gif"};
+    if(!extensions[mimeType]) return res.status(400).json({success:false,message:"اختر صورة PNG أو JPG أو WebP أو AVIF أو GIF."});
+    if(!Number.isFinite(size)||size<=0||size>10*1024*1024){
+      return res.status(413).json({success:false,message:"الحد الأقصى للصورة هو 10 ميغابايت."});
+    }
+    const key="roadmap/"+Date.now()+"-"+crypto.randomBytes(12).toString("hex")+"."+extensions[mimeType];
+    const uploadUrl=createDbbytePresignedPutUrl({bucket,key,accessKeyId,secretAccessKey});
+    const publicUrl="https://cdn.dbbyte.com/"+encodeURIComponent(publicToken)+"/"+
+      encodeURIComponent(bucket)+"/"+encodeURIComponent(key);
+    return res.json({success:true,method:"PUT",key,uploadUrl,publicUrl,expiresIn:300});
+  }catch(error){
+    console.error("ROADMAP MEDIA SIGNING ERROR:",error?.message||error);
+    return res.status(500).json({success:false,message:"تعذر تجهيز رفع الصورة."});
+  }
+});
+
+
 // Legacy ImageKit upload signature (kept for existing workflows).
 // ======================================
 app.post("/api/publish/media-signature", async (req, res) => {
@@ -9012,6 +9066,181 @@ app.post(
 );
 
 // ======================================
+
+// ======================================
+// Public and Admin Roadmap API
+// ======================================
+const ROADMAP_CATEGORIES = new Set(["wallpapers","rewards","studio","community","identity","ai","performance","general"]);
+const ROADMAP_STATUSES = new Set(["planned","in_progress","released"]);
+
+function normalizeRoadmapPayload(body, partial=false){
+  const source=body&&typeof body==="object"&&!Array.isArray(body)?body:{};
+  const output={};
+  if(!partial||source.title!==undefined){
+    const title=String(source.title||"").trim();
+    if(!title||title.length>180) throw new Error("اكتب عنواناً لا يتجاوز 180 حرفاً.");
+    output.title=title;
+  }
+  if(!partial||source.category!==undefined){
+    const category=String(source.category||"general").trim().toLowerCase();
+    if(!ROADMAP_CATEGORIES.has(category)) throw new Error("القسم المختار غير صالح.");
+    output.category=category;
+  }
+  if(!partial||source.summary!==undefined){
+    const summary=String(source.summary||"").trim();
+    if(summary.length>500) throw new Error("المقدمة القصيرة تتجاوز 500 حرف.");
+    output.summary=summary;
+  }
+  if(!partial||source.content!==undefined){
+    const content=String(source.content||"").trim();
+    if(content.length>6000) throw new Error("التفاصيل تتجاوز 6000 حرف.");
+    output.content=content;
+  }
+  if(!partial||source.bullets!==undefined){
+    const raw=Array.isArray(source.bullets)?source.bullets:[];
+    const bullets=raw.map(item=>String(item||"").trim()).filter(Boolean);
+    if(bullets.length>12||bullets.some(item=>item.length>240)){
+      throw new Error("أضف حتى 12 نقطة، وبحد أقصى 240 حرفاً لكل نقطة.");
+    }
+    output.bullets=bullets;
+  }
+  if(!partial||source.status!==undefined){
+    const status=String(source.status||"planned").trim();
+    if(!ROADMAP_STATUSES.has(status)) throw new Error("حالة المشروع غير صالحة.");
+    output.status=status;
+  }
+  if(!partial||source.sort_order!==undefined){
+    const sortOrder=Number(source.sort_order??100);
+    if(!Number.isInteger(sortOrder)||sortOrder<0||sortOrder>10000){
+      throw new Error("ترتيب العرض يجب أن يكون رقماً بين 0 و10000.");
+    }
+    output.sort_order=sortOrder;
+  }
+  if(!partial||source.is_published!==undefined){
+    if(typeof source.is_published!=="boolean") throw new Error("حالة النشر غير صالحة.");
+    output.is_published=source.is_published;
+  }
+  if(!partial||source.image_url!==undefined||source.image_key!==undefined){
+    const imageUrl=String(source.image_url||"").trim();
+    const imageKey=String(source.image_key||"").trim();
+    if(imageUrl){
+      if(!isAllowedWallpaperImageUrl(imageUrl)) throw new Error("رابط الصورة غير مسموح.");
+      if(imageKey){
+        if(!imageKey.startsWith("roadmap/")||imageKey.includes("..")||imageKey.length>300){
+          throw new Error("مسار صورة خارطة الطريق غير صالح.");
+        }
+        const token=String(process.env.DBBYTE_CDN_PUBLIC_TOKEN||"").trim();
+        const bucket=String(process.env.DBBYTE_BUCKET||"wallpaperhub-assets").trim();
+        const expected="https://cdn.dbbyte.com/"+encodeURIComponent(token)+"/"+
+          encodeURIComponent(bucket)+"/"+encodeURIComponent(imageKey);
+        if(imageUrl!==expected) throw new Error("الصورة لا تطابق ملف الرفع الموثّق.");
+      }
+    }else if(imageKey){
+      throw new Error("مسار الصورة موجود دون رابط صورة.");
+    }
+    output.image_url=imageUrl||null;
+    output.image_key=imageKey||null;
+  }
+  return output;
+}
+
+app.get("/api/roadmap",async(req,res)=>{
+  try{
+    const {data,error}=await supabase.from("roadmap_items")
+      .select("id,category,title,summary,content,bullets,image_url,status,sort_order,created_at,updated_at")
+      .eq("is_published",true).order("sort_order",{ascending:true}).order("created_at",{ascending:true});
+    if(error) throw error;
+    res.set("Cache-Control","no-store");
+    return res.json({success:true,items:data||[]});
+  }catch(error){
+    console.error("PUBLIC ROADMAP LOAD ERROR:",error?.message||error);
+    return res.status(500).json({success:false,message:"تعذر تحميل خارطة الطريق.",items:[]});
+  }
+});
+
+app.get("/api/admin/roadmap",async(req,res)=>{
+  try{
+    const admin=await requireAdmin(req,res);
+    if(!admin) return;
+    const {data,error}=await supabase.from("roadmap_items").select("*")
+      .order("sort_order",{ascending:true}).order("created_at",{ascending:false});
+    if(error) throw error;
+    res.set("Cache-Control","no-store");
+    return res.json({success:true,items:data||[]});
+  }catch(error){
+    console.error("ADMIN ROADMAP LOAD ERROR:",error?.message||error);
+    return res.status(500).json({success:false,message:"تعذر تحميل أفكار خارطة الطريق.",items:[]});
+  }
+});
+
+app.post("/api/admin/roadmap",async(req,res)=>{
+  try{
+    const admin=await requireAdmin(req,res);
+    if(!admin) return;
+    const payload=normalizeRoadmapPayload(req.body,false);
+    payload.created_by=String(admin.id);
+    const {data,error}=await supabase.from("roadmap_items").insert(payload).select("*").single();
+    if(error) throw error;
+    return res.status(201).json({success:true,item:data});
+  }catch(error){
+    console.error("ADMIN ROADMAP CREATE ERROR:",error?.message||error);
+    return res.status(400).json({success:false,message:error?.message||"تعذر إضافة الفكرة."});
+  }
+});
+
+app.put("/api/admin/roadmap/:id",async(req,res)=>{
+  try{
+    const admin=await requireAdmin(req,res);
+    if(!admin) return;
+    const id=Number(req.params.id);
+    if(!Number.isSafeInteger(id)||id<=0) return res.status(400).json({success:false,message:"معرّف الفكرة غير صالح."});
+    const {data:existing,error:readError}=await supabase.from("roadmap_items")
+      .select("id,image_key").eq("id",id).maybeSingle();
+    if(readError) throw readError;
+    if(!existing) return res.status(404).json({success:false,message:"الفكرة غير موجودة."});
+    const updates=normalizeRoadmapPayload(req.body,true);
+    updates.updated_at=new Date().toISOString();
+    if(!Object.keys(updates).length) return res.status(400).json({success:false,message:"لا توجد تعديلات لحفظها."});
+    const {data,error}=await supabase.from("roadmap_items").update(updates).eq("id",id).select("*").single();
+    if(error) throw error;
+    const oldKey=String(existing.image_key||"");
+    const newKey=String(data.image_key||"");
+    if(oldKey&&oldKey!==newKey){
+      deleteRoadmapImageIfUnused(oldKey).catch(cleanupError=>
+        console.warn("ROADMAP OLD IMAGE CLEANUP:",cleanupError?.message||cleanupError));
+    }
+    return res.json({success:true,item:data});
+  }catch(error){
+    console.error("ADMIN ROADMAP UPDATE ERROR:",error?.message||error);
+    return res.status(400).json({success:false,message:error?.message||"تعذر حفظ التعديلات."});
+  }
+});
+
+app.delete("/api/admin/roadmap/:id",async(req,res)=>{
+  try{
+    const admin=await requireAdmin(req,res);
+    if(!admin) return;
+    const id=Number(req.params.id);
+    if(!Number.isSafeInteger(id)||id<=0) return res.status(400).json({success:false,message:"معرّف الفكرة غير صالح."});
+    const {data:existing,error:readError}=await supabase.from("roadmap_items")
+      .select("id,image_key").eq("id",id).maybeSingle();
+    if(readError) throw readError;
+    if(!existing) return res.status(404).json({success:false,message:"الفكرة غير موجودة أو حُذفت."});
+    const {data,error}=await supabase.from("roadmap_items").delete().eq("id",id).select("id").maybeSingle();
+    if(error) throw error;
+    if(!data) return res.status(404).json({success:false,message:"الفكرة غير موجودة أو حُذفت."});
+    if(existing.image_key){
+      deleteRoadmapImageIfUnused(existing.image_key).catch(cleanupError=>
+        console.warn("ROADMAP DELETED IMAGE CLEANUP:",cleanupError?.message||cleanupError));
+    }
+    return res.json({success:true,id:data.id});
+  }catch(error){
+    console.error("ADMIN ROADMAP DELETE ERROR:",error?.message||error);
+    return res.status(500).json({success:false,message:error?.message||"تعذر حذف الفكرة."});
+  }
+});
+
+
 // Admin Announcements API (Supabase)
 // ======================================
 

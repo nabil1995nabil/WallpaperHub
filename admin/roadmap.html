@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f4ee">
+  <title>إدارة خارطة الطريق | WallpaperHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/roadmap-admin.css?v=20261125-roadmap-admin-1">
+</head>
+<body class="roadmap-admin-page">
+  <main class="roadmap-admin-shell">
+    <header class="roadmap-admin-topbar">
+      <a class="back-dashboard" href="/admin/admin.html"><span aria-hidden="true">←</span> لوحة الإدارة</a>
+      <div class="admin-brand"><span class="admin-brand-mark">WH</span><span><strong>WallpaperHub</strong><small>FUTURE EDITORIAL DESK</small></span></div>
+      <a class="view-roadmap" href="/roadmap.html" target="_blank" rel="noopener">عرض خارطة الطريق ↗</a>
+    </header>
+
+    <section class="roadmap-admin-intro">
+      <div>
+        <span class="editor-overline">THE FUTURE NOTEBOOK / ADMIN</span>
+        <h1>غرفة تحرير المستقبل</h1>
+        <p>اكتب الفكرة، أرفق صورتها، حدّد حالتها، ثم انشرها لتظهر مباشرة في دفتر خارطة الطريق.</p>
+      </div>
+      <div class="intro-seal"><span>✦</span><b>IDEAS</b><small>IN MOTION</small></div>
+    </section>
+
+    <section class="roadmap-admin-stats" aria-label="ملخص خارطة الطريق">
+      <article><span>01</span><b id="roadmapStatTotal">—</b><small>كل الأفكار</small></article>
+      <article><span>02</span><b id="roadmapStatPublished">—</b><small>منشورة</small></article>
+      <article><span>03</span><b id="roadmapStatProgress">—</b><small>قيد التطوير</small></article>
+      <article><span>04</span><b id="roadmapStatDrafts">—</b><small>مسودات مخفية</small></article>
+    </section>
+
+    <section class="roadmap-editor-layout">
+      <section class="editor-paper">
+        <header class="editor-section-heading">
+          <div><span class="editor-overline">EDITOR / 01</span><h2 id="roadmapFormTitle">اكتب فكرة جديدة</h2><p>هذه البيانات هي التي ستظهر للزوار في الصفحة العامة.</p></div>
+          <span class="editor-paper-number">01</span>
+        </header>
+
+        <form id="roadmapForm" novalidate>
+          <input type="hidden" id="roadmapItemId">
+          <div class="roadmap-form-grid">
+            <div class="roadmap-field full">
+              <label for="roadmapTitleInput">عنوان الفكرة</label>
+              <input id="roadmapTitleInput" type="text" maxlength="180" placeholder="مثلاً: متجر المكافآت وتجارب الأعضاء" required>
+              <small class="field-count"><span>عنوان واضح ومباشر</span><span id="roadmapTitleCount">0 / 180</span></small>
+            </div>
+
+            <div class="roadmap-field">
+              <label for="roadmapCategory">القسم الرئيسي</label>
+              <select id="roadmapCategory">
+                <option value="wallpapers">عالم الخلفيات الذكي</option>
+                <option value="rewards">النقاط والمكافآت</option>
+                <option value="studio">استوديو الإبداع</option>
+                <option value="community">المجتمع</option>
+                <option value="identity">هوية العضو والامتيازات</option>
+                <option value="ai">الذكاء الاصطناعي</option>
+                <option value="performance">الأداء والأمان</option>
+                <option value="general">فكرة عامة / قسم جديد</option>
+              </select>
+            </div>
+
+            <div class="roadmap-field">
+              <label for="roadmapStatus">حالة المشروع</label>
+              <select id="roadmapStatus">
+                <option value="planned">قيد التخطيط</option>
+                <option value="in_progress">قيد التطوير</option>
+                <option value="released">تم الإطلاق</option>
+              </select>
+            </div>
+
+            <div class="roadmap-field full">
+              <label for="roadmapSummary">مقدمة قصيرة</label>
+              <textarea id="roadmapSummary" rows="2" maxlength="500" placeholder="جملة أو جملتان تجذبان القارئ إلى الفكرة..."></textarea>
+              <small class="field-count"><span>تظهر تحت عنوان الفكرة</span><span id="roadmapSummaryCount">0 / 500</span></small>
+            </div>
+
+            <div class="roadmap-field full">
+              <label for="roadmapContent">الشرح والتفاصيل</label>
+              <textarea id="roadmapContent" rows="5" maxlength="6000" placeholder="اشرح ماذا نريد أن نبني، ولماذا ستكون هذه الميزة مفيدة للأعضاء..."></textarea>
+              <small class="field-count"><span>يمكنك كتابة وصف موسّع</span><span id="roadmapContentCount">0 / 6000</span></small>
+            </div>
+
+            <div class="roadmap-field full">
+              <label for="roadmapBullets">تفاصيل ومميزات الفكرة</label>
+              <textarea id="roadmapBullets" rows="5" placeholder="اكتب كل نقطة في سطر مستقل&#10;مثال: مهام أسبوعية وتحديات موسمية&#10;مثال: سجل للنقاط ومصدر كل عملية"></textarea>
+              <small class="field-hint">كل سطر يتحول إلى نقطة مستقلة داخل صفحة خارطة الطريق. الحد الأقصى 12 نقطة.</small>
+            </div>
+
+            <div class="roadmap-field full">
+              <label for="roadmapImage">صورة مرتبطة بالفكرة</label>
+              <div class="image-upload-box">
+                <input id="roadmapImage" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif">
+                <div class="upload-instructions"><span class="upload-icon">＋</span><span><b>اختر صورة من جهازك</b><small>PNG أو JPG أو WebP أو AVIF أو GIF · حتى 10 MB</small></span></div>
+                <div id="roadmapImagePreview" class="roadmap-image-preview" hidden></div>
+                <div class="upload-progress" id="roadmapUploadProgress" hidden><span id="roadmapUploadProgressBar"></span></div>
+                <small id="roadmapImageStatus" class="field-hint">الصورة ستُرفع إلى مساحة ملفات WallpaperHub عند حفظ الفكرة.</small>
+                <button id="roadmapRemoveImage" class="remove-image-button" type="button" hidden>إزالة الصورة الحالية</button>
+              </div>
+            </div>
+
+            <div class="roadmap-field">
+              <label for="roadmapSortOrder">ترتيب الظهور</label>
+              <input id="roadmapSortOrder" type="number" min="0" max="10000" step="1" value="100">
+              <small class="field-hint">الرقم الأصغر يظهر أولاً.</small>
+            </div>
+
+            <label class="publish-toggle">
+              <input id="roadmapIsPublished" type="checkbox" checked>
+              <span class="toggle-ui"></span>
+              <span><b>نشر هذه الفكرة للزوار</b><small>عند إلغاء التحديد تبقى الفكرة محفوظة كمسودة في لوحة الأدمن.</small></span>
+            </label>
+          </div>
+
+          <div class="roadmap-editor-actions">
+            <button id="roadmapSave" class="roadmap-save-button" type="submit">حفظ ونشر الفكرة <span>↗</span></button>
+            <button id="roadmapCancelEdit" class="roadmap-cancel-button" type="button" hidden>إلغاء التعديل</button>
+            <span id="roadmapEditorState" class="editor-state">فكرة جديدة · جاهزة للتحرير</span>
+          </div>
+        </form>
+        <div id="roadmapToast" class="roadmap-toast" role="status" aria-live="polite"></div>
+      </section>
+
+      <aside class="roadmap-live-preview">
+        <header class="editor-section-heading">
+          <div><span class="editor-overline">LIVE NOTE / 02</span><h2>معاينة القصاصة</h2><p>شاهد شكل الفكرة قبل إضافتها إلى الدفتر.</p></div>
+          <span class="preview-sparkle">✦</span>
+        </header>
+        <article class="preview-memory-card">
+          <div class="preview-tape"></div>
+          <div class="preview-memory-meta"><span id="previewCategory">عالم الخلفيات الذكي</span><span id="previewStatus">قيد التخطيط</span></div>
+          <div class="preview-memory-image" id="previewImageEmpty"><span>✦</span><small>صورة الفكرة ستظهر هنا</small></div>
+          <img id="previewMemoryImage" class="preview-memory-image-file" alt="معاينة صورة الفكرة" hidden>
+          <div class="preview-memory-copy">
+            <span class="preview-memory-kicker">A NOTE FROM THE FUTURE</span>
+            <h3 id="previewRoadmapTitle">عنوان الفكرة سيظهر هنا</h3>
+            <p id="previewRoadmapSummary">اكتب مقدمة قصيرة ليظهر شكل الفكرة في الدفتر.</p>
+            <p id="previewRoadmapContent" class="preview-long-copy">ستظهر تفاصيل المشروع هنا بعد كتابتها.</p>
+            <ul id="previewRoadmapBullets"><li>ستظهر النقاط والمميزات هنا</li></ul>
+          </div>
+          <div class="preview-memory-footer">WALLPAPERHUB · FUTURE NOTES <span>✧</span></div>
+        </article>
+        <div class="preview-guideline"><b>ملاحظة النشر</b><p>يمكنك حفظ الفكرة كمسودة أولاً، أو نشرها مباشرة. عند تغيير حالتها إلى «تم الإطلاق» ستظهر هذه الحالة بوضوح للزوار.</p></div>
+      </aside>
+    </section>
+
+    <section class="roadmap-archive">
+      <header class="archive-toolbar">
+        <div><span class="editor-overline">THE IDEA ARCHIVE / 03</span><h2>أرشيف خارطة الطريق</h2><p>كل الأفكار المنشورة والمسودات محفوظة هنا.</p></div>
+        <button id="roadmapRefresh" type="button">↻ تحديث القائمة</button>
+      </header>
+      <div class="archive-filters">
+        <input id="roadmapSearch" type="search" placeholder="ابحث بعنوان الفكرة أو محتواها...">
+        <select id="roadmapFilterCategory">
+          <option value="all">كل الأقسام</option>
+          <option value="wallpapers">الخلفيات</option>
+          <option value="rewards">النقاط والمكافآت</option>
+          <option value="studio">الاستوديو</option>
+          <option value="community">المجتمع</option>
+          <option value="identity">هوية العضو</option>
+          <option value="ai">الذكاء الاصطناعي</option>
+          <option value="performance">الأداء والأمان</option>
+          <option value="general">أفكار عامة</option>
+        </select>
+        <select id="roadmapFilterStatus">
+          <option value="all">كل الحالات</option>
+          <option value="planned">قيد التخطيط</option>
+          <option value="in_progress">قيد التطوير</option>
+          <option value="released">تم الإطلاق</option>
+          <option value="draft">مسودات مخفية</option>
+        </select>
+      </div>
+      <div class="archive-result-count" id="roadmapResultCount">— فكرة</div>
+      <div id="roadmapArchiveList" class="roadmap-archive-list"><div class="archive-loading">جارٍ تحميل الأفكار...</div></div>
+    </section>
+
+    <footer class="roadmap-admin-footer"><span>WALLPAPERHUB / EDITORIAL DESK</span><span>كل فكرة جديدة صفحة أخرى في المستقبل.</span></footer>
+  </main>
+  <script type="module" src="/admin/roadmap-admin.js?v=20261125-roadmap-admin-1"></script>
+</body>
+</html>
