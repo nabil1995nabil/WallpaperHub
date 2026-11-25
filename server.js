@@ -11485,6 +11485,298 @@ app.patch("/api/announcements/:id/read", async (req, res) => {
     }
 });
 
+
+
+// ======================================
+// Virtual Gallery — public gallery for published wallpapers
+// Monthly Achievement Book — authenticated, private monthly reports
+// ======================================
+function whSafePublicImageUrl(value){
+    const raw=String(value||"").trim();
+    return isAllowedWallpaperImageUrl(raw) ? raw : "";
+}
+
+app.get("/api/virtual-gallery", async(req,res)=>{
+    try{
+        const limit=Math.min(Math.max(Number.parseInt(req.query.limit,10)||9,1),24);
+        const offset=Math.max(Number.parseInt(req.query.offset,10)||0,0);
+        const {data,error}=await supabase.from("wallpapers")
+            .select("id,title,category,thumbnail,image,resolution,author,type,animated,is_360")
+            .order("id",{ascending:false})
+            .range(offset,offset+limit-1);
+        if(error) throw error;
+        const items=(data||[]).map(row=>{
+            const image=whSafePublicImageUrl(row.thumbnail)||whSafePublicImageUrl(row.image);
+            return image ? {
+                id:Number(row.id),
+                title:String(row.title||"عمل فني بلا عنوان").slice(0,180),
+                category:String(row.category||"عام").slice(0,80),
+                image,
+                resolution:String(row.resolution||"").slice(0,40),
+                author:String(row.author||"WallpaperHub").slice(0,100),
+                animated:Boolean(row.animated),
+                is360:Boolean(row.is_360)
+            } : null;
+        }).filter(Boolean);
+        res.set("Cache-Control","public, max-age=0, s-maxage=60, stale-while-revalidate=180");
+        return res.json({success:true,items,hasMore:(data||[]).length===limit,nextOffset:offset+(data||[]).length});
+    }catch(error){
+        console.error("VIRTUAL GALLERY API ERROR:",error?.message||error);
+        return res.status(500).json({success:false,message:"تعذر تحميل المعرض الافتراضي.",items:[]});
+    }
+});
+
+function whMonthOffsetMinutes(utcMilliseconds){
+    const formatter=new Intl.DateTimeFormat("en-US",{
+        timeZone:"Africa/Casablanca",
+        timeZoneName:"longOffset",
+        year:"numeric"
+    });
+    const zone=formatter.formatToParts(new Date(utcMilliseconds))
+        .find(part=>part.type==="timeZoneName")?.value||"GMT";
+    const match=zone.match(/^GMT(?:(\\+|\\-)(\\d{1,2})(?::?(\\d{2}))?)?$/);
+    if(!match) return 0;
+    const sign=match[1]==="-"?-1:1;
+    return sign*((Number(match[2]||0)*60)+Number(match[3]||0));
+}
+
+function whCasablancaMonthBounds(monthKey){
+    if(!/^\\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) throw new Error("صيغة الشهر غير صحيحة.");
+    const year=Number(monthKey.slice(0,4));
+    const month=Number(monthKey.slice(5,7));
+    const nextYear=month===12?year+1:year;
+    const nextMonth=month===12?1:month+1;
+    const startWall=Date.UTC(year,month-1,1,0,0,0);
+    const endWall=Date.UTC(nextYear,nextMonth-1,1,0,0,0);
+    const startMs=startWall-whMonthOffsetMinutes(startWall)*60000;
+    const endMs=endWall-whMonthOffsetMinutes(endWall)*60000;
+    return {
+        monthStart:monthKey+"-01",
+        startISO:new Date(startMs).toISOString(),
+        endISO:new Date(endMs).toISOString(),
+        monthLabel:new Intl.DateTimeFormat("ar-MA",{month:"long",year:"numeric",timeZone:"Africa/Casablanca"}).format(new Date(startMs))
+    };
+}
+
+function whCurrentMonthKey(){
+    const parts=new Intl.DateTimeFormat("en-CA",{
+        timeZone:"Africa/Casablanca",year:"numeric",month:"2-digit"
+    }).formatToParts(new Date());
+    const year=parts.find(part=>part.type==="year")?.value;
+    const month=parts.find(part=>part.type==="month")?.value;
+    return String(year||"")+"-"+String(month||"");
+}
+
+function whSumPoints(rows){
+    return (rows||[]).reduce((sum,row)=>sum+Number(row.points||0),0);
+}
+
+function whMonthlyAchievementList(stats){
+    const entries=[];
+    if(stats.publishedWallpapers>0) entries.push({icon:"image",title:"صانع اللحظات البصرية",description:"نشرت "+stats.publishedWallpapers+" خلفية خلال هذا الشهر."});
+    if(stats.commentsWritten>=1) entries.push({icon:"chat",title:"صوت حاضر في المجتمع",description:"كتبت "+stats.commentsWritten+" تعليقاً وشاركت أفكارك."});
+    if(stats.likesGiven>=1) entries.push({icon:"favorite",title:"ناشر التقدير",description:"قدمت "+stats.likesGiven+" إعجاباً لأعمال أعجبتك."});
+    if(stats.favoritesAdded>=1) entries.push({icon:"bookmark",title:"جامع الإلهام",description:"أضفت "+stats.favoritesAdded+" عملاً إلى مفضلتك."});
+    if(stats.socialPosts>=1) entries.push({icon:"forum",title:"مشارك في المجتمع",description:"نشرت "+stats.socialPosts+" منشوراً."});
+    if(stats.studioDesigns>=1) entries.push({icon:"palette",title:"صانع إبداع",description:"حفظت "+stats.studioDesigns+" تصميماً في الاستوديو."});
+    if(stats.medalsEarned>=1) entries.push({icon:"workspace_premium",title:"إنجاز جديد",description:"حصلت على "+stats.medalsEarned+" ميدالية جديدة."});
+    if(stats.pointsEarned>0) entries.push({icon:"stars",title:"رصيد من العطاء",description:"جمعت "+stats.pointsEarned.toFixed(1)+" نقطة من أنشطة موثقة."});
+    if(stats.receivedLikes>=5) entries.push({icon:"auto_awesome",title:"أعمال لفتت الانتباه",description:"تلقت خلفياتك "+stats.receivedLikes+" إعجاباً من الأعضاء."});
+    return entries;
+}
+
+async function whBuildMonthlyBookReport(userId,monthKey,bounds){
+    const uid=String(userId);
+    const fromMonth=(table,columns,ownerColumn)=>{
+        return supabase.from(table).select(columns)
+            .eq(ownerColumn,uid).gte("created_at",bounds.startISO)
+            .lt("created_at",bounds.endISO).limit(500);
+    };
+    const tasks=[
+        supabase.from("wallpaper_points_ledger").select("wallpaper_id,points,created_at")
+            .eq("user_id",uid).eq("reason","wallpaper_published")
+            .gte("created_at",bounds.startISO).lt("created_at",bounds.endISO).order("created_at",{ascending:true}).limit(300),
+        supabase.from("user_points_reward_events").select("points,reason,reward_type,reference_id,created_at")
+            .eq("user_id",uid).gte("created_at",bounds.startISO).lt("created_at",bounds.endISO).order("created_at",{ascending:true}).limit(500),
+        fromMonth("comments",'id,text,"wallpaperId",created_at',"userId"),
+        fromMonth("likes","id,wallpaper_id,created_at","user_id"),
+        fromMonth("favorites","id,wallpaper_id,created_at","user_id"),
+        fromMonth("social_posts","id,body,media_url,media_type,created_at,like_count,comment_count","user_id").eq("is_deleted",false),
+        fromMonth("social_post_comments","id,body,post_id,created_at","user_id").eq("is_deleted",false),
+        fromMonth("social_post_likes","post_id,created_at","user_id"),
+        fromMonth("studio_designs","id,title,category,image_url,created_at","user_id"),
+        supabase.from("user_medals").select("medal_key,awarded_at")
+            .eq("user_id",uid).gte("awarded_at",bounds.startISO).lt("awarded_at",bounds.endISO).limit(100),
+        supabase.from("user_profile_sync").select("full_name,username,avatar_url")
+            .eq("user_id",uid).maybeSingle()
+    ];
+    const results=await Promise.all(tasks);
+    for(let i=0;i<results.length;i++) if(results[i]?.error) throw results[i].error;
+    const publishedRows=results[0].data||[];
+    const rewardRows=results[1].data||[];
+    const comments=results[2].data||[];
+    const likes=results[3].data||[];
+    const favorites=results[4].data||[];
+    const socialPosts=results[5].data||[];
+    const socialComments=results[6].data||[];
+    const socialLikes=results[7].data||[];
+    const studioDesigns=results[8].data||[];
+    const medals=results[9].data||[];
+    const profile=results[10].data||{};
+
+    const wallpaperIds=[...new Set(publishedRows.map(row=>Number(row.wallpaper_id)).filter(id=>Number.isSafeInteger(id)&&id>0))];
+    let publishedWallpapers=[];
+    let receivedLikes=[];
+    let receivedComments=[];
+    if(wallpaperIds.length){
+        const {data:wallpaperRows,error:wallpaperError}=await supabase.from("wallpapers")
+            .select("id,title,category,thumbnail,image,resolution,author,user_id")
+            .in("id",wallpaperIds).eq("user_id",uid);
+        if(wallpaperError) throw wallpaperError;
+        const publishedAt=new Map(publishedRows.map(row=>[String(row.wallpaper_id),row.created_at]));
+        publishedWallpapers=(wallpaperRows||[]).map(row=>{
+            const image=whSafePublicImageUrl(row.thumbnail)||whSafePublicImageUrl(row.image);
+            if(!image) return null;
+            return {
+                id:Number(row.id),title:String(row.title||"خلفية بلا عنوان").slice(0,180),
+                category:String(row.category||"عام").slice(0,80),image,
+                resolution:String(row.resolution||"").slice(0,40),
+                publishedAt:publishedAt.get(String(row.id))||null
+            };
+        }).filter(Boolean).sort((a,b)=>String(a.publishedAt).localeCompare(String(b.publishedAt)));
+        const wallpaperIdStrings=wallpaperIds.map(String);
+        const impactTasks=[
+            supabase.from("likes").select("id,wallpaper_id,created_at").in("wallpaper_id",wallpaperIds)
+                .neq("user_id",uid).gte("created_at",bounds.startISO).lt("created_at",bounds.endISO).limit(500),
+            supabase.from("comments").select("id,text,wallpaperId,created_at").in("wallpaperId",wallpaperIdStrings)
+                .neq("userId",uid).gte("created_at",bounds.startISO).lt("created_at",bounds.endISO).limit(500)
+        ];
+        const impact=await Promise.all(impactTasks);
+        for(const item of impact) if(item.error) throw item.error;
+        receivedLikes=impact[0].data||[];
+        receivedComments=impact[1].data||[];
+    }
+    const medalKeys=[...new Set(medals.map(row=>String(row.medal_key||"")).filter(Boolean))];
+    let medalCatalog=[];
+    if(medalKeys.length){
+        const {data,error}=await supabase.from("medal_definitions")
+            .select("key,title,description,icon").in("key",medalKeys);
+        if(error) throw error;
+        medalCatalog=data||[];
+    }
+    const medalMap=new Map(medalCatalog.map(item=>[String(item.key),item]));
+    const medalItems=medals.map(row=>{
+        const definition=medalMap.get(String(row.medal_key))||{};
+        return {
+            key:String(row.medal_key),
+            title:String(definition.title||row.medal_key),
+            description:String(definition.description||""),
+            icon:String(definition.icon||"workspace_premium"),
+            awardedAt:row.awarded_at
+        };
+    });
+
+    const pointsEarned=Number((whSumPoints(publishedRows)+whSumPoints(rewardRows)).toFixed(2));
+    const stats={
+        publishedWallpapers:publishedRows.length,
+        commentsWritten:comments.length+socialComments.length,
+        likesGiven:likes.length+socialLikes.length,
+        favoritesAdded:favorites.length,
+        socialPosts:socialPosts.length,
+        studioDesigns:studioDesigns.length,
+        medalsEarned:medals.length,
+        pointsEarned,
+        receivedLikes:receivedLikes.length,
+        receivedComments:receivedComments.length
+    };
+    const achievements=whMonthlyAchievementList(stats);
+    const sortedEvents=[
+        ...publishedRows.map(row=>({type:"publication",date:row.created_at,label:"نشر خلفية",detail:"أضيف عمل جديد إلى مكتبتك."})),
+        ...comments.map(row=>({type:"comment",date:row.created_at,label:"كتابة تعليق",detail:String(row.text||"").slice(0,120)})),
+        ...socialPosts.map(row=>({type:"post",date:row.created_at,label:"منشور مجتمعي",detail:String(row.body||"").slice(0,120)})),
+        ...studioDesigns.map(row=>({type:"design",date:row.created_at,label:"تصميم محفوظ",detail:String(row.title||"").slice(0,100)})),
+        ...medals.map(row=>({type:"medal",date:row.awarded_at,label:"ميدالية جديدة",detail:String(medalMap.get(String(row.medal_key))?.title||row.medal_key)}))
+    ].filter(item=>item.date).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,12);
+
+    const report={
+        schemaVersion:1,
+        monthKey,
+        monthLabel:bounds.monthLabel,
+        user:{
+            name:String(profile.full_name||profile.username||"عضو WallpaperHub").slice(0,100),
+            username:String(profile.username||"").slice(0,60),
+            avatarUrl:whSafePublicImageUrl(profile.avatar_url)
+        },
+        stats,
+        pointsBreakdown:{
+            wallpaperPublishing:Number(whSumPoints(publishedRows).toFixed(2)),
+            communityAndActivity:Number(whSumPoints(rewardRows).toFixed(2))
+        },
+        achievements,
+        wallpapers:publishedWallpapers.slice(0,16),
+        medals:medalItems,
+        recentComments:comments.slice(-8).reverse().map(row=>({text:String(row.text||"").slice(0,220),createdAt:row.created_at})),
+        socialPosts:socialPosts.slice(-6).reverse().map(row=>({
+            body:String(row.body||"").slice(0,260),
+            mediaUrl:whSafePublicImageUrl(row.media_url),
+            mediaType:String(row.media_type||""),
+            createdAt:row.created_at
+        })),
+        studioDesigns:studioDesigns.slice(-6).reverse().map(row=>({
+            title:String(row.title||"تصميم").slice(0,120),
+            category:String(row.category||"").slice(0,80),
+            imageUrl:whSafePublicImageUrl(row.image_url),
+            createdAt:row.created_at
+        })),
+        communityImpact:{receivedLikes:receivedLikes.length,receivedComments:receivedComments.length},
+        timeline:sortedEvents,
+        generatedAt:new Date().toISOString()
+    };
+    return report;
+}
+
+app.get("/api/user/monthly-book",async(req,res)=>{
+    try{
+        const user=await getAuthenticatedUser(req);
+        if(!user) return res.status(401).json({success:false,message:"سجّل الدخول لفتح كتاب إنجازاتك."});
+        const monthKey=String(req.query.month||whCurrentMonthKey()).trim();
+        const currentMonth=whCurrentMonthKey();
+        if(!/^\\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)||monthKey>currentMonth){
+            return res.status(400).json({success:false,message:"اختر شهراً صحيحاً ليس في المستقبل."});
+        }
+        const requestedYear=Number(monthKey.slice(0,4));
+        const currentYear=Number(currentMonth.slice(0,4));
+        const ageMonths=(currentYear-requestedYear)*12+(Number(currentMonth.slice(5,7))-Number(monthKey.slice(5,7)));
+        if(ageMonths>36) return res.status(400).json({success:false,message:"الكتاب متاح لآخر 36 شهراً."});
+        const bounds=whCasablancaMonthBounds(monthKey);
+        if(monthKey<currentMonth){
+            const {data:stored,error:storedError}=await supabase.from("user_monthly_books")
+                .select("report,generated_at").eq("user_id",String(user.id))
+                .eq("month_start",bounds.monthStart).maybeSingle();
+            if(storedError) throw storedError;
+            if(stored?.report?.schemaVersion===1){
+                res.set("Cache-Control","private, no-store");
+                return res.json({success:true,book:stored.report,generatedAt:stored.generated_at,cached:true});
+            }
+        }
+        const report=await whBuildMonthlyBookReport(String(user.id),monthKey,bounds);
+        const {data:saved,error:saveError}=await supabase.from("user_monthly_books").upsert({
+            user_id:String(user.id),month_start:bounds.monthStart,
+            report,generated_at:new Date().toISOString(),updated_at:new Date().toISOString()
+        },{onConflict:"user_id,month_start"}).select("generated_at").single();
+        if(saveError) throw saveError;
+        res.set("Cache-Control","private, no-store");
+        return res.json({success:true,book:report,generatedAt:saved?.generated_at||report.generatedAt,cached:false});
+    }catch(error){
+        console.error("MONTHLY BOOK API ERROR:",error?.message||error);
+        return res.status(500).json({success:false,message:"تعذر تجهيز كتاب الإنجازات الآن. حاول مرة أخرى."});
+    }
+});
+
+// ======================================
+// End Virtual Gallery / Monthly Book
+// ======================================
+
 // Start / Export Server
 // ======================================
 // Vercel imports the Express app directly.

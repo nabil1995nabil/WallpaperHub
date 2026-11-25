@@ -2,7 +2,7 @@
 // Load Sidebar HTML
 // ======================
 
-fetch("sidebar.html?v=20261124-future-notes-1",{cache:"no-cache"})
+fetch("sidebar.html?v=20261125-virtual-world-1",{cache:"no-cache"})
 .then(response => response.text())
 .then(data => {
 
