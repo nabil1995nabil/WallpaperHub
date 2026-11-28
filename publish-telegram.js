@@ -183,7 +183,19 @@ $("phonePreviewBtn").addEventListener("click",e=>{const on=previewGrid.classList
 $("cropBtn").addEventListener("click",e=>{const on=previewGrid.classList.toggle("crop-mode");e.currentTarget.setAttribute("aria-pressed",String(on));});
 function proposeTags(){
   const category=$("wallCategory").value,title=$("wallTitle").value||selectedFiles[0]?.name.replace(/\.[^.]+$/,"")||"";
-  const common={religious:["religious","islamic","quran","mosque","faith","spiritual","dua","dhikr"],nature:["nature","landscape","scenery","outdoors"],cars:["cars","automotive","vehicle"],games:["gaming","game","digital art"],space:["space","galaxy","stars","cosmos"],ai:["ai","digital art","generative art"],amoled:["amoled","dark","black wallpaper"],animals:["animals","wildlife"],anime:["anime","illustration"],city:["city","urban","architecture"],sports:["sports","athlete"],"4k":["4k","high resolution"],minimal:["minimal","clean design"],rain:["rain","weather","moody"],sunset:["sunset","sky","golden hour"],architecture:["architecture","building"]};
+  const common={
+    religious:["religious","islamic","quran","mosque","faith","spiritual","dua","dhikr"],
+    nature:["nature","landscape","scenery","outdoors"],animals:["animals","wildlife","pets"],city:["city","urban","skyline"],
+    architecture:["architecture","building","facade"],space:["space","galaxy","stars","cosmos"],"deep-space":["deep space","nebula","galaxy"],
+    ocean:["ocean","sea","marine","waves"],mountains:["mountains","landscape","peaks"],flowers:["flowers","botanical","floral"],
+    cars:["cars","automotive","vehicle"],sports_cars:["sports cars","supercar","racing"],bikes:["motorcycle","bikes","cycling"],sports:["sports","athlete","stadium"],
+    games:["gaming","game","digital art"],anime:["anime","illustration"],ai:["ai","digital art","generative art"],technology:["technology","tech","digital"],
+    amoled:["amoled","dark","black wallpaper"],dark:["dark","black","night"],minimal:["minimal","clean design","simple"],
+    abstract:["abstract","art","shapes"],colors:["colors","palette","colorful"],"3d":["3d","render","three dimensional"],neon:["neon","glow","lights"],
+    cyberpunk:["cyberpunk","neon city","futuristic"],gradients:["gradient","colors","background"],
+    snow:["snow","winter","ice"],aurora:["aurora","northern lights","sky"],rain:["rain","weather","moody"],sunset:["sunset","sunrise","golden hour"],
+    "4k":["4k","ultra hd","high resolution"],other:["wallpaper","background","creative"]
+  };
   const fromTitle=title.toLowerCase().split(/[\s_-]+/).filter(x=>x.length>2);
   $("wallTags").value=[...new Set([...(common[category]||[]),...fromTitle])].slice(0,15).join(", ");
 }
