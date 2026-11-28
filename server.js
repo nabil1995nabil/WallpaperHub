@@ -183,7 +183,7 @@ function cleanUserSettingsPreferences(value){
   else if(key==="homeLayoutMode"){if(["one-row","two-rows"].includes(String(source[key]||"")))clean[key]=String(source[key]);}
   else if(key==="homeCardSize"){
    const size=Number(source[key]);
-   if(Number.isFinite(size))clean[key]=Math.min(130,Math.max(70,Math.round(size)));
+   if(Number.isFinite(size))clean[key]=Math.min(130,Math.max(70,Math.round(size/5)*5));
   }
   else if(typeof source[key]==="boolean")clean[key]=source[key];
  }
