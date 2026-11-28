@@ -120,7 +120,13 @@ const CATEGORY_INLINE_SVGS = {
 function applyCategoryIcon(card, key) {
     const icon = card.querySelector(".home-category-icon");
     if (!icon) return;
-    icon.innerHTML = CATEGORY_INLINE_SVGS[key] || CATEGORY_INLINE_SVGS.all;
+    const customSvg = CATEGORY_INLINE_SVGS[key];
+    if (customSvg) {
+        icon.innerHTML = customSvg;
+        return;
+    }
+    const definition = HOME_CATEGORY_DEFINITIONS.find(item => item.key === key);
+    icon.textContent = definition?.emoji || "🖼️";
 }
 
 function createCategoryCard(item) {
