@@ -1662,3 +1662,44 @@ body.dark{
     display: block;
     width: 100%;
 }
+
+
+/* Islamic companion shortcut belongs beside the religious wallpapers section link. */
+.home-dynamic-section[data-home-category="religious"] .religious-section-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    flex:0 0 auto;
+}
+.home-dynamic-section[data-home-category="religious"] .religious-section-actions a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:36px;
+    padding:0 11px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:800;
+    white-space:nowrap;
+    text-decoration:none;
+}
+.home-dynamic-section[data-home-category="religious"] .religious-section-actions .religious-view-all{
+    min-height:36px;
+    padding:0 4px;
+    color:var(--primary);
+}
+.home-dynamic-section[data-home-category="religious"] .religious-section-actions .religious-general-link{
+    border:1px solid #dce9dd;
+    background:#eef5ed;
+    color:#286247;
+    transition:background .18s ease,transform .18s ease;
+}
+.home-dynamic-section[data-home-category="religious"] .religious-section-actions .religious-general-link:active{
+    transform:scale(.97);
+    background:#e3efe2;
+}
+@media(max-width:380px){
+    .home-dynamic-section[data-home-category="religious"] .religious-section-actions{gap:5px}
+    .home-dynamic-section[data-home-category="religious"] .religious-section-actions a{padding-inline:8px;font-size:11px}
+}
