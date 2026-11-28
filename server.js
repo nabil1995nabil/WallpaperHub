@@ -2513,6 +2513,8 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const GEMINI_MODEL = "gemini-3.8-flash";
 const GEMINI_IMAGE_MODEL = "gemini-nano-banana-2.1";
+const IMAGEKIT_PRIVATE_KEY = String(process.env.IMAGEKIT_PRIVATE_KEY || "").trim();
+const IMAGEKIT_URL_ENDPOINT = String(process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/2xcgjj3oe").trim().replace(/\/+$/, "");
 
 // ======================================
 // Artguru Open API
@@ -7850,6 +7852,65 @@ async function uploadBase64ToCloudinary(base64, mimeType = "image/jpeg", folder 
     return data;
 }
 
+function whBuildMultipartBody(fields,boundary){
+    const chunks=[];
+    for(const [name,value] of Object.entries(fields)){
+        chunks.push(Buffer.from(
+            "--"+boundary+"\r\n"+
+            'Content-Disposition: form-data; name="'+name+'"\r\n\r\n'+
+            String(value)+"\r\n",
+            "utf8"
+        ));
+    }
+    chunks.push(Buffer.from("--"+boundary+"--\r\n","utf8"));
+    return Buffer.concat(chunks);
+}
+
+async function uploadBase64ToImageKit(base64,mimeType="image/jpeg",folder="/wallpaperhub/ai-previews"){
+    if(!IMAGEKIT_PRIVATE_KEY)throw new Error("مفتاح ImageKit غير مضبوط على الخادم.");
+    const extension=String(mimeType).toLowerCase()==="image/png"?"png":
+        String(mimeType).toLowerCase()==="image/webp"?"webp":"jpg";
+    const fileName="wallpaperhub-ai-"+Date.now()+"-"+crypto.randomBytes(5).toString("hex")+"."+extension;
+    const boundary="----WallpaperHub"+crypto.randomBytes(12).toString("hex");
+    const dataUri="data:"+mimeType+";base64,"+base64;
+    const body=whBuildMultipartBody({
+        file:dataUri,
+        fileName,
+        folder,
+        useUniqueFileName:"true"
+    },boundary);
+
+    const response=await fetch("https://upload.imagekit.io/api/v1/files/upload",{
+        method:"POST",
+        headers:{
+            Authorization:"Basic "+Buffer.from(IMAGEKIT_PRIVATE_KEY+":").toString("base64"),
+            "Content-Type":"multipart/form-data; boundary="+boundary,
+            "Content-Length":String(body.length)
+        },
+        body,
+        timeout:120000
+    });
+    const raw=await response.text();
+    let data;
+    try{data=JSON.parse(raw)}catch(_error){data=null}
+    if(!response.ok||!data||!data.url){
+        const detail=data?.message||data?.help||raw.slice(0,350)||response.statusText;
+        throw new Error("ImageKit upload failed ("+response.status+"): "+detail);
+    }
+
+    const uploadedUrl=String(data.url);
+    try{
+        const actual=new URL(uploadedUrl);
+        const expected=new URL(IMAGEKIT_URL_ENDPOINT);
+        if(actual.hostname!==expected.hostname||!actual.pathname.startsWith(expected.pathname+"/")){
+            throw new Error("ImageKit returned an unexpected URL.");
+        }
+    }catch(error){
+        throw new Error("ImageKit returned an invalid image URL.");
+    }
+    return data;
+}
+
 // Preview generation is intentionally separate from the public wallpapers catalogue.
 // The generated image is stored as AI media, never inserted into the wallpaper library.
 app.post("/api/ai/generate-preview",async(req,res)=>{
@@ -7857,8 +7918,8 @@ app.post("/api/ai/generate-preview",async(req,res)=>{
         if(!GEMINI_API_KEY){
             return res.status(503).json({success:false,message:"خدمة إنشاء الصور غير مهيأة حاليًا. راجع إعداد مفتاح Gemini على الخادم."});
         }
-        if(!CLOUDINARY_CLOUD_NAME||!CLOUDINARY_API_KEY||!CLOUDINARY_API_SECRET){
-            return res.status(503).json({success:false,message:"خدمة حفظ الصور غير مهيأة حاليًا."});
+        if(!IMAGEKIT_PRIVATE_KEY){
+            return res.status(503).json({success:false,message:"خدمة حفظ الصور غير مهيأة حاليًا. راجع إعداد ImageKit على الخادم."});
         }
         if(!allowAiImageRequest(req)){
             return res.status(429).json({success:false,message:"أنشأت عدة صور خلال وقت قصير. انتظر قليلًا ثم حاول مجددًا."});
@@ -7889,15 +7950,15 @@ app.post("/api/ai/generate-preview",async(req,res)=>{
         ].join("\n");
 
         const generated=await generateGeminiImage(generationPrompt,{aspectRatio,imageSize});
-        const uploaded=await uploadBase64ToCloudinary(
+        const uploaded=await uploadBase64ToImageKit(
             generated.base64,
             generated.mimeType,
-            "wallpaperhub/ai-previews"
+            "/wallpaperhub/ai-previews"
         );
         res.set("Cache-Control","private, no-store");
         return res.json({
             success:true,
-            imageUrl:uploaded.secure_url,
+            imageUrl:uploaded.url,
             model:GEMINI_IMAGE_MODEL,
             resolution:imageSize,
             aspectRatio
@@ -7905,11 +7966,11 @@ app.post("/api/ai/generate-preview",async(req,res)=>{
     }catch(error){
         console.error("AI IMAGE PREVIEW ERROR:",error?.message||error);
         const reason=String(error?.message||"");
-        const publicMessage=reason.includes("مفتاح Gemini")
-            ?"خدمة توليد الصور غير مهيأة حاليًا. راجع إعداد مفتاح Gemini على الخادم."
+        const publicMessage=reason.includes("مفتاح Gemini")||reason.includes("مفتاح ImageKit")
+            ?"خدمة توليد الصور أو حفظها غير مهيأة حاليًا. راجع إعدادات الخادم."
             :reason.includes("دقة الصورة")||reason.includes("نسبة أبعاد")||reason.includes("طويل جدًا")
                 ?reason
-                :"تعذر إنشاء الصورة الآن. تحقق من رصيد خدمة Gemini وحاول مرة أخرى.";
+                :"تعذر إنشاء الصورة أو حفظها الآن. تحقق من رصيد مزوّد الخدمة وحاول مرة أخرى.";
         return res.status(502).json({success:false,message:publicMessage});
     }
 });
