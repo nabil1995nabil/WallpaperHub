@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="google" content="notranslate">
+  <meta name="theme-color" content="#123c32">
+  <meta name="description" content="مساحة إيمانية من WallpaperHub: قراءة القرآن الكريم والاستماع إليه، الأحاديث النبوية، التسبيح ومواقيت الصلاة حول العالم.">
+  <link rel="canonical" href="https://wallpaperhub-morocco.vercel.app/islamic.html">
+  <title>سكينة | القرآن والذكر والصلاة — WallpaperHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="bottom-nav.css">
+  <link rel="stylesheet" href="islamic.css?v=20261128-islamic-v1">
+</head>
+<body class="islamic-page" translate="no">
+  <header class="islamic-topbar">
+    <a class="islamic-brand" href="/home.html" aria-label="العودة إلى WallpaperHub">
+      <span class="brand-mark"><span class="material-icons-round">auto_awesome</span></span>
+      <span><b>Wallpaper<span>Hub</span></b><small>مساحة إيمانية</small></span>
+    </a>
+    <div class="topbar-actions">
+      <span class="sync-indicator" id="syncStatus"><i></i> جارٍ تجهيز المزامنة</span>
+      <a class="profile-link" href="/profile.html" aria-label="حسابي"><span class="material-icons-round">person_outline</span></a>
+    </div>
+  </header>
+
+  <main class="islamic-main">
+    <section class="sukoon-hero">
+      <div class="hero-pattern" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <span class="hero-kicker"><i></i> ركن السكينة · WALLPAPERHUB</span>
+        <h1>مساحةٌ <em>تطمئنّ</em> فيها الروح</h1>
+        <p>اقرأ، استمع، اذكر الله، وتابع صلاتك أينما كنت. كل ما تحتاجه في ركن واحد هادئ.</p>
+        <div class="hero-actions">
+          <button type="button" class="hero-primary" data-open-panel="quran"><span class="material-icons-round">menu_book</span> افتح المصحف</button>
+          <button type="button" class="hero-secondary" data-open-panel="prayer">مواقيت الصلاة <span class="material-icons-round">arrow_back</span></button>
+        </div>
+      </div>
+      <div class="hero-calligraphy" aria-label="بسم الله الرحمن الرحيم">
+        <span class="calligraphy-label">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span>
+        <div class="calligraphy-line"></div>
+        <small>وَاذْكُر رَّبَّكَ إِذَا نَسِيتَ</small>
+      </div>
+      <div class="hero-meta">
+        <div><span>التاريخ الهجري</span><b id="hijriDate">—</b></div>
+        <div><span>الموقع المعتمد</span><b id="heroLocation">مراكش، المغرب</b></div>
+        <div><span>الوقت المحلي</span><b id="cityClock">--:--</b></div>
+      </div>
+    </section>
+
+    <section class="prayer-overview" aria-labelledby="prayerOverviewTitle">
+      <div class="prayer-overview-head">
+        <div>
+          <span class="section-eyebrow">مواقيت اليوم</span>
+          <h2 id="prayerOverviewTitle">صلاتك على وقتها</h2>
+          <p id="prayerMetaLine">جارٍ تحميل مواقيت الصلاة حسب مدينتك…</p>
+        </div>
+        <button class="text-action" type="button" data-open-panel="prayer">تغيير الموقع <span class="material-icons-round">tune</span></button>
+      </div>
+      <div class="next-prayer-card">
+        <div class="next-prayer-info">
+          <span class="next-prayer-label"><i></i> الصلاة القادمة</span>
+          <strong id="nextPrayerName">—</strong>
+          <small id="nextPrayerTime">—</small>
+        </div>
+        <div class="next-prayer-countdown">
+          <span>المتبقي على الأذان</span>
+          <b id="prayerCountdown">--:--:--</b>
+        </div>
+        <div class="next-prayer-ornament" aria-hidden="true"><span class="material-icons-round">mosque</span></div>
+      </div>
+      <div class="prayer-times-row" id="prayerTimesList" aria-live="polite">
+        <div class="prayer-skeleton"></div><div class="prayer-skeleton"></div><div class="prayer-skeleton"></div><div class="prayer-skeleton"></div><div class="prayer-skeleton"></div>
+      </div>
+    </section>
+
+    <section class="daily-verse-strip">
+      <div class="daily-verse-symbol"><span class="material-icons-round">format_quote</span></div>
+      <div class="daily-verse-copy">
+        <span>وقفة مع آية</span>
+        <p id="dailyVerseText">إِنَّ مَعَ الْعُسْرِ يُسْرًا</p>
+        <small id="dailyVerseReference">سورة الشرح · 6</small>
+      </div>
+      <button type="button" class="verse-open" data-open-panel="quran" aria-label="افتح المصحف"><span class="material-icons-round">open_in_new</span></button>
+    </section>
+
+    <nav class="islamic-tabs" aria-label="أقسام الركن الإسلامي" role="tablist">
+      <button type="button" class="islamic-tab active" role="tab" aria-selected="true" data-panel="quran"><span class="material-icons-round">menu_book</span><b>المصحف</b></button>
+      <button type="button" class="islamic-tab" role="tab" aria-selected="false" data-panel="hadith"><span class="material-icons-round">auto_stories</span><b>الأحاديث</b></button>
+      <button type="button" class="islamic-tab" role="tab" aria-selected="false" data-panel="adhkar"><span class="material-icons-round">toll</span><b>الأذكار والتسبيح</b></button>
+      <button type="button" class="islamic-tab" role="tab" aria-selected="false" data-panel="prayer"><span class="material-icons-round">schedule</span><b>المواقيت</b></button>
+    </nav>
+
+    <section class="content-panel active" id="panel-quran" role="tabpanel">
+      <div class="panel-heading">
+        <div><span class="section-eyebrow">الكتاب الكريم</span><h2>المصحف الشريف</h2><p>قراءة واضحة واستماع متواصل، واحفظ موضعك لتعود إليه متى شئت.</p></div>
+        <span class="panel-seal"><span class="material-icons-round">auto_awesome</span></span>
+      </div>
+      <div class="reader-toolbar">
+        <label class="field-wrap"><span>السورة</span><select id="surahSelect" aria-label="اختر السورة"><option value="1">الفاتحة</option></select></label>
+        <label class="field-wrap reciter-field"><span>القارئ</span><select id="reciterSelect" aria-label="اختر القارئ">
+          <option value="ar.alafasy">مشاري العفاسي</option>
+          <option value="ar.abdulbasitmurattal">عبد الباسط عبد الصمد — مرتل</option>
+          <option value="ar.husary">محمود خليل الحصري</option>
+          <option value="ar.minshawi">محمد صديق المنشاوي</option>
+          <option value="ar.abdurrahmaansudais">عبد الرحمن السديس</option>
+        </select></label>
+        <div class="font-controls" aria-label="حجم خط المصحف">
+          <button type="button" id="fontDown" aria-label="تصغير الخط">−</button><span id="fontSizeLabel">30</span><button type="button" id="fontUp" aria-label="تكبير الخط">+</button>
+        </div>
+      </div>
+      <div class="reader-progress">
+        <div><span id="surahProgressLabel">السورة 1 من 114</span><b id="ayahProgressLabel">الآية 1</b></div>
+        <div class="progress-track"><i id="readerProgressBar"></i></div>
+      </div>
+      <article class="mushaf-book" aria-label="صفحة المصحف">
+        <div class="mushaf-page">
+          <div class="mushaf-page-top"><span>القرآن الكريم</span><i></i><span id="mushafPageNumber">المصحف</span></div>
+          <div class="surah-title-frame"><span id="surahTitle">سُورَةُ الْفَاتِحَة</span><small id="surahSubTitle">مكية · 7 آيات</small></div>
+          <p class="bismillah" id="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+          <div class="mushaf-verses" id="quranVerses" aria-live="polite">
+            <p class="reader-loading">يتم تجهيز صفحات المصحف…</p>
+          </div>
+          <div class="mushaf-page-bottom"><span>رواية حفص عن عاصم</span><span>WallpaperHub · المصحف</span></div>
+        </div>
+      </article>
+      <div class="reader-search-row">
+        <label class="search-field"><span class="material-icons-round">search</span><input id="quranSearch" type="search" placeholder="ابحث داخل السورة الحالية…" autocomplete="off"></label>
+        <button type="button" class="soft-button" id="saveBookmark"><span class="material-icons-round">bookmark_add</span> حفظ موضع القراءة</button>
+      </div>
+      <div class="audio-player">
+        <div class="audio-cover"><span class="material-icons-round">graphic_eq</span></div>
+        <div class="audio-info"><b id="audioSurahName">تلاوة القرآن الكريم</b><small id="audioAyahInfo">اختر آية لبدء الاستماع</small><div class="audio-progress"><i id="audioProgress"></i></div></div>
+        <div class="audio-controls">
+          <button type="button" id="audioPrev" aria-label="الآية السابقة"><span class="material-icons-round">skip_previous</span></button>
+          <button type="button" id="audioPlay" class="audio-play" aria-label="تشغيل"><span class="material-icons-round">play_arrow</span></button>
+          <button type="button" id="audioNext" aria-label="الآية التالية"><span class="material-icons-round">skip_next</span></button>
+        </div>
+        <audio id="quranAudio" preload="none"></audio>
+      </div>
+      <p class="source-note">النص القرآني والتلاوة الصوتية من <a href="https://alquran.cloud/" target="_blank" rel="noopener noreferrer">AlQuran Cloud</a>. تُعرض الآيات كما وردت في المصدر، دون تعديل.</p>
+    </section>
+
+    <section class="content-panel" id="panel-hadith" role="tabpanel" hidden>
+      <div class="panel-heading">
+        <div><span class="section-eyebrow">من هدي النبوة</span><h2>الأحاديث النبوية</h2><p>تصفّح الأحاديث مع درجتها وشرحها ومراجعها من موسوعة متخصصة.</p></div>
+        <span class="panel-seal gold-seal"><span class="material-icons-round">auto_stories</span></span>
+      </div>
+      <div class="hadith-toolbar">
+        <label class="search-field"><span class="material-icons-round">search</span><input id="hadithSearch" type="search" placeholder="ابحث في الأحاديث المعروضة…" autocomplete="off"></label>
+        <a class="source-link" href="https://hadeethenc.com/ar" target="_blank" rel="noopener noreferrer">الموسوعة <span class="material-icons-round">open_in_new</span></a>
+      </div>
+      <div class="hadith-categories" id="hadithCategories"><span class="muted-status">جارٍ تحميل أبواب الأحاديث…</span></div>
+      <div class="hadith-layout">
+        <div class="hadith-list" id="hadithList"><div class="reader-loading">جارٍ تحميل الأحاديث…</div></div>
+        <article class="hadith-detail" id="hadithDetail">
+          <div class="hadith-detail-empty"><span class="material-icons-round">menu_book</span><b>اختر حديثاً لقراءة تفاصيله</b><p>ستظهر هنا درجته وشرحه ومراجع تخريجه متى توفرت في المصدر.</p></div>
+        </article>
+      </div>
+      <p class="source-note">مصدر الأحاديث والشرح: <a href="https://hadeethenc.com/ar" target="_blank" rel="noopener noreferrer">موسوعة الأحاديث النبوية HadeethEnc</a>. تُعرض النصوص المنقولة كما يوردها المصدر.</p>
+    </section>
+
+    <section class="content-panel" id="panel-adhkar" role="tabpanel" hidden>
+      <div class="panel-heading">
+        <div><span class="section-eyebrow">طمأنينة القلب</span><h2>الأذكار والتسبيح</h2><p>عداد بسيط وهادئ يساعدك على متابعة وردك اليومي.</p></div>
+        <span class="panel-seal"><span class="material-icons-round">spa</span></span>
+      </div>
+      <div class="dhikr-layout">
+        <div class="tasbih-card">
+          <div class="tasbih-top"><span>مسبحة رقمية</span><span class="tasbih-live"><i></i> يحفظ تقدمك</span></div>
+          <label class="field-wrap dhikr-select-wrap"><span>الذكر الحالي</span><select id="dhikrPhrase">
+            <option value="سُبْحَانَ اللَّهِ">سُبْحَانَ اللَّهِ</option>
+            <option value="الْحَمْدُ لِلَّهِ">الْحَمْدُ لِلَّهِ</option>
+            <option value="اللَّهُ أَكْبَرُ">اللَّهُ أَكْبَرُ</option>
+            <option value="لَا إِلَهَ إِلَّا اللَّهُ">لَا إِلَهَ إِلَّا اللَّهُ</option>
+            <option value="أَسْتَغْفِرُ اللَّهَ">أَسْتَغْفِرُ اللَّهَ</option>
+            <option value="custom">ذكر أكتبه بنفسي</option>
+          </select></label>
+          <input id="customDhikr" class="custom-dhikr" type="text" maxlength="100" placeholder="اكتب الذكر الذي تريده" hidden>
+          <div class="tasbih-counter-wrap">
+            <div class="tasbih-ring" id="tasbihRing"><div class="tasbih-count"><b id="tasbihCount">0</b><span>التسبيحات</span></div></div>
+            <span class="tasbih-target-label">الهدف <b id="tasbihTargetLabel">33</b></span>
+          </div>
+          <div class="tasbih-targets" role="group" aria-label="هدف التسبيح">
+            <button type="button" data-target="33" class="active">33</button><button type="button" data-target="100">100</button><button type="button" data-target="300">300</button>
+          </div>
+          <div class="tasbih-actions">
+            <button type="button" class="tasbih-tap" id="tasbihTap"><span class="material-icons-round">touch_app</span><b>تسبيح</b><small>المس للعدّ</small></button>
+            <button type="button" class="tasbih-reset" id="tasbihReset" aria-label="إعادة العداد"><span class="material-icons-round">restart_alt</span></button>
+          </div>
+          <div class="tasbih-foot"><span id="tasbihProgressText">بداية ورد جديد</span><span id="tasbihToday">عدادك اليوم</span></div>
+        </div>
+        <aside class="dhikr-side">
+          <div class="dhikr-note-card">
+            <span class="material-icons-round">light_mode</span><div><b>اجعل لك ورداً ثابتاً</b><p>القليل الدائم خير من الكثير المنقطع. اختر ذكرك وعدّه بهدوء.</p></div>
+          </div>
+          <div class="dhikr-note-card">
+            <span class="material-icons-round">bookmark_added</span><div><b>يحفظ تقدمك</b><p>يبقى الذكر والعدد والهدف محفوظاً عند تسجيل الدخول، ويمكنك متابعة وردك من أجهزتك.</p></div>
+          </div>
+          <a href="https://hadeethenc.com/ar" target="_blank" rel="noopener noreferrer" class="dhikr-explore">استكشف الأذكار والأدعية من الموسوعة <span class="material-icons-round">arrow_back</span></a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="content-panel" id="panel-prayer" role="tabpanel" hidden>
+      <div class="panel-heading">
+        <div><span class="section-eyebrow">لكل مدينة توقيتها</span><h2>مواقيت الصلاة حول العالم</h2><p>اختر الدولة والمدينة، وحدد طريقة الحساب المناسبة لبلدك.</p></div>
+        <span class="panel-seal"><span class="material-icons-round">public</span></span>
+      </div>
+      <form id="prayerSearchForm" class="prayer-search-form">
+        <label class="field-wrap"><span>الدولة</span><input id="countryInput" name="country" type="text" list="countrySuggestions" value="Morocco" placeholder="اكتب اسم الدولة" autocomplete="country-name" required></label>
+        <datalist id="countrySuggestions">
+          <option value="Morocco"><option value="Saudi Arabia"><option value="Egypt"><option value="United Arab Emirates"><option value="Qatar"><option value="Kuwait"><option value="Turkey"><option value="United States"><option value="United Kingdom"><option value="France"><option value="Algeria"><option value="Tunisia"><option value="Indonesia"><option value="Malaysia"><option value="Pakistan"><option value="India">
+        </datalist>
+        <label class="field-wrap"><span>المدينة</span><input id="cityInput" name="city" type="text" value="Marrakech" placeholder="اكتب اسم المدينة" autocomplete="address-level2" required></label>
+        <label class="field-wrap"><span>طريقة حساب الصلاة</span><select id="prayerMethod">
+          <option value="21">المغرب — وزارة الأوقاف</option><option value="3">رابطة العالم الإسلامي</option><option value="4">أم القرى — مكة</option><option value="5">الهيئة المصرية العامة للمساحة</option><option value="1">كراتشي</option><option value="2">ISNA — أمريكا الشمالية</option><option value="13">تركيا — Diyanet</option><option value="18">تونس</option><option value="19">الجزائر</option><option value="20">إندونيسيا</option><option value="17">ماليزيا — JAKIM</option><option value="16">دبي</option><option value="10">قطر</option><option value="9">الكويت</option><option value="8">الخليج</option>
+        </select></label>
+        <label class="field-wrap"><span>طريقة حساب العصر</span><select id="asrSchool"><option value="0">شافعي (ظل واحد)</option><option value="1">حنفي (ظلان)</option></select></label>
+        <button type="submit" class="prayer-search-button" id="prayerSearchButton"><span class="material-icons-round">search</span> عرض المواقيت</button>
+      </form>
+      <div class="prayer-result-heading"><div><span class="section-eyebrow">الموقع المختار</span><h3 id="prayerLocationTitle">مراكش، المغرب</h3><p id="prayerTimezoneText">التوقيت المحلي للمدينة سيظهر هنا</p></div><span class="location-badge"><span class="material-icons-round">location_on</span> موقعك المحفوظ</span></div>
+      <div class="prayer-full-grid" id="prayerFullList"><div class="reader-loading">أدخل المدينة والدولة لعرض المواقيت.</div></div>
+      <div class="prayer-extra-grid">
+        <div class="prayer-extra-card"><span class="material-icons-round">public</span><div><small>التوقيت في المدينة</small><b id="prayerWorldClock">--:--:--</b><p id="prayerWorldDate">—</p></div></div>
+        <div class="prayer-extra-card qibla-card"><span class="material-icons-round">explore</span><div><small>اتجاه القبلة من الشمال</small><b id="qiblaDirection">—</b><p>زاوية الاتجاه من موقع المدينة المختارة</p></div></div>
+      </div>
+      <p class="prayer-disclaimer">المواقيت محسوبة وفق طريقة الحساب التي اخترتها وقد تختلف دقائق عن تقويم المسجد المحلي أو الجهة الرسمية في مدينتك. اعتمد التقويم المحلي عند الحاجة. <a href="https://aladhan.com/prayer-times-api" target="_blank" rel="noopener noreferrer">مصدر المواقيت وتفاصيل طرق الحساب</a>.</p>
+    </section>
+
+    <footer class="islamic-footer">
+      <div class="footer-mark"><span class="material-icons-round">auto_awesome</span></div>
+      <p>اللهم اجعل القرآن ربيع قلوبنا ونور صدورنا.</p>
+      <small>ركن السكينة من WallpaperHub Morocco</small>
+      <div class="footer-sources"><a href="https://alquran.cloud/" target="_blank" rel="noopener noreferrer">القرآن والتلاوة</a><a href="https://hadeethenc.com/ar" target="_blank" rel="noopener noreferrer">الأحاديث</a><a href="https://aladhan.com/" target="_blank" rel="noopener noreferrer">مواقيت الصلاة</a></div>
+    </footer>
+  </main>
+
+  <div class="islamic-toast" id="islamicToast" role="status" aria-live="polite"></div>
+  <div id="bottomNav"></div>
+
+  <script src="/js/components.js"></script>
+  <script src="/bottom-nav-20d.js?v=20261123-single-active-1"></script>
+  <script src="/islamic.js?v=20261128-islamic-v1"></script>
+</body>
+</html>
