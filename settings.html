@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f6f8ff">
 <title>الإعدادات | WallpaperHub</title>
-<link rel="stylesheet" href="settings.css">
+<link rel="stylesheet" href="settings.css?v=20261128-home-layout-1">
 <link rel="stylesheet" href="css/theme.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -104,6 +104,41 @@
                     <button class="style-option" data-style="classic" type="button"><span class="material-icons">check_circle</span><b>كلاسيكي</b><small>نظيف وخفيف</small></button>
                     <button class="style-option" data-style="glass" type="button"><span class="material-icons">blur_on</span><b>زجاجي</b><small>شفافية ولمسة حديثة</small></button>
                     <button class="style-option" data-style="premium" type="button"><span class="material-icons">auto_awesome</span><b>مميز</b><small>إبراز بصري أقوى</small></button>
+                </div>
+
+                <div class="setting-item home-layout-intro">
+                    <div class="setting-leading">
+                        <span class="item-icon cyan material-icons">view_quilt</span>
+                        <div>
+                            <h3>تخطيط الخلفيات في الرئيسية</h3>
+                            <p>اختر عدد الصفوف وطريقة ظهور بطاقات الخلفيات في كل قسم.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="home-layout-controls">
+                    <div class="home-layout-choices" role="group" aria-label="طريقة عرض أقسام الرئيسية">
+                        <button class="home-layout-choice active" type="button" data-home-layout-mode="one-row" aria-pressed="true">
+                            <span class="home-layout-preview one-row" aria-hidden="true"><i></i><i></i><i></i></span>
+                            <span class="home-layout-choice-copy"><b>سطر واحد</b><small>مع شريط للتحكم في الحجم</small></span>
+                        </button>
+                        <button class="home-layout-choice" type="button" data-home-layout-mode="two-rows" aria-pressed="false">
+                            <span class="home-layout-preview two-rows" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                            <span class="home-layout-choice-copy"><b>سطران أفقيان</b><small>بطاقات أصغر تلقائيًا</small></span>
+                        </button>
+                    </div>
+
+                    <div class="home-card-size-control" id="homeCardSizeControl">
+                        <div class="home-card-size-heading">
+                            <label for="homeCardSize">حجم بطاقات الخلفيات</label>
+                            <output id="homeCardSizeValue" for="homeCardSize">100%</output>
+                        </div>
+                        <input id="homeCardSize" type="range" min="70" max="130" step="5" value="100" aria-label="حجم بطاقات الخلفيات">
+                        <div class="home-card-size-ends"><span>أصغر</span><span>أكبر</span></div>
+                    </div>
+
+                    <p class="home-layout-hint" id="homeLayoutHint">يمكنك ضبط حجم البطاقات في وضع السطر الواحد.</p>
+                    <p class="home-layout-sync-note">يُحفظ اختيارك في حسابك على السحابة عند تسجيل الدخول، وعلى هذا الجهاز للزوار.</p>
                 </div>
             </div>
         </section>
@@ -253,7 +288,8 @@
 
 </main>
 
-<script src="settings.js"></script>
+<script src="settings-runtime.js?v=20261128-home-layout-1"></script>
+<script src="settings.js?v=20261128-home-layout-1"></script>
 <script type="module" src="settings-push.js"></script>
 <script src="theme.js"></script>
 </body>
