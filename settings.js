@@ -95,7 +95,7 @@ function applySetting(key){
 function bindSettings(){
     Object.keys(DEFAULT_SETTINGS).forEach(key => {
         const input = $(key === "notifications" ? "notificationsEnabled" : key);
-        if(!input) return;
+        if(!input || input.type !== "checkbox") return;
 
         input.checked = !!settings[key];
 
