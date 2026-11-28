@@ -32,7 +32,9 @@ const DEFAULT_SETTINGS = {
     notificationSound:true,
     browserNotifications:false,
     localActivity:true,
-    systemUpdate:true
+    systemUpdate:true,
+    homeLayoutMode:"one-row",
+    homeCardSize:100
 };
 
 const STORAGE_KEY = "wallpaperSettings";
@@ -140,6 +142,56 @@ function setupCardStyles(){
     });
 
     render();
+}
+
+function renderHomeLayoutControls(){
+    const sizeRange=$("homeCardSize");
+    const sizeControl=$("homeCardSizeControl");
+    if(!sizeRange || !sizeControl) return;
+
+    const mode=settings.homeLayoutMode==="two-rows"?"two-rows":"one-row";
+    const requested=Number(settings.homeCardSize);
+    const size=Number.isFinite(requested)?Math.min(130,Math.max(70,Math.round(requested/5)*5)):100;
+    settings.homeLayoutMode=mode;
+    settings.homeCardSize=size;
+
+    document.querySelectorAll("[data-home-layout-mode]").forEach(button=>{
+        const active=button.dataset.homeLayoutMode===mode;
+        button.classList.toggle("active",active);
+        button.setAttribute("aria-pressed",String(active));
+    });
+
+    sizeRange.value=String(size);
+    sizeRange.disabled=mode==="two-rows";
+    sizeControl.hidden=mode==="two-rows";
+    const output=$("homeCardSizeValue");
+    if(output) output.textContent=size+"%";
+    const hint=$("homeLayoutHint");
+    if(hint) hint.textContent=mode==="two-rows"
+        ?"تُرتّب الخلفيات في صفّين قابلين للسحب، ويُصغّر حجم البطاقات تلقائيًا."
+        :"يمكنك تكبير البطاقات أو تصغيرها باستخدام شريط الحجم أعلاه.";
+}
+
+function setupHomeLayoutControls(){
+    const buttons=[...document.querySelectorAll("[data-home-layout-mode]")];
+    const sizeRange=$("homeCardSize");
+    if(!buttons.length || !sizeRange) return;
+
+    buttons.forEach(button=>{
+        button.addEventListener("click",()=>{
+            settings.homeLayoutMode=button.dataset.homeLayoutMode==="two-rows"?"two-rows":"one-row";
+            saveSettings();
+            renderHomeLayoutControls();
+        });
+    });
+
+    sizeRange.addEventListener("input",()=>{
+        settings.homeCardSize=Number(sizeRange.value);
+        saveSettings();
+        renderHomeLayoutControls();
+    });
+
+    renderHomeLayoutControls();
 }
 
 function setupSearch(){
@@ -282,10 +334,12 @@ window.addEventListener("wallpaperhub:settings-loaded",event=>{
     if(styleValue)styleValue.textContent=({classic:"كلاسيكي",glass:"زجاجي",premium:"مميز"})[style]||"كلاسيكي";
     document.querySelectorAll(".style-option").forEach(option=>option.classList.toggle("active",option.dataset.style===style));
     Object.keys(settings).forEach(applySetting);
+    renderHomeLayoutControls();
 });
 
 bindSettings();
 setupCardStyles();
+setupHomeLayoutControls();
 setupSearch();
 setupTabs();
 setupDataTools();
