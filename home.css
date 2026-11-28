@@ -990,7 +990,6 @@ body.dark .community-cta:hover {
 @media (max-width: 360px){
     :root{
         --gutter: 12px;
-        --card-w: 124px;
     }
 
     .header .logo h2{
@@ -1010,15 +1009,6 @@ body.dark .community-cta:hover {
         width: 46px;
         height: 46px;
         flex-basis: 46px;
-    }
-}
-
-/* =========================================================
-   الهاتف (≥ 480)
-========================================================= */
-@media (min-width: 480px){
-    :root{
-        --card-w: clamp(140px, 36vw, 172px);
     }
 }
 
@@ -1807,17 +1797,26 @@ body.dark{
         font-size: 11.5px;
     }
 
+    /* Two equal wallpaper cards fill the phone rail; the next card appears only after swipe. */
     .wall-grid {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: stretch;
         width: 100%;
         max-width: 100%;
         min-width: 0;
         gap: 10px;
-        padding: 4px 1px 9px;
-        scroll-padding-inline: 1px;
+        padding: 4px 0 10px;
+        scroll-padding-inline: 0;
+        scroll-snap-type: x mandatory;
+        overscroll-behavior-x: contain;
     }
 
-    .wall-card {
-        width: var(--card-w);
+    .wall-grid > .wall-card {
+        flex: 0 0 calc((100% - 10px) / 2);
+        width: calc((100% - 10px) / 2);
+        min-width: 0;
+        max-width: none;
         border-radius: 16px;
     }
 
@@ -1899,7 +1898,6 @@ body.dark{
 @media (max-width: 380px) {
     :root {
         --gutter: 10px;
-        --card-w: 124px;
     }
 
     .title h3 {
