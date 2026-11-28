@@ -143,4 +143,14 @@ body.categories-page-body{
  .favorite-toggle{left:9px;bottom:9px;width:28px;height:28px}
 }
 
-
+.category-group-heading{
+ grid-column:1/-1;display:flex;align-items:center;gap:9px;
+ min-height:35px;margin:10px 2px 0;padding:0 2px;color:#35445c
+}
+.category-group-heading .material-icons{
+ width:30px;height:30px;display:grid;place-items:center;flex:none;
+ border:1px solid #e1e8f4;border-radius:10px;background:#fff;color:#6078b8;font-size:17px
+}
+.category-group-heading b{font-size:12px;font-weight:900}
+.category-group-heading small{margin-right:auto;color:#97a1b0;font-size:9px;font-weight:700}
+.category-loading{grid-column:1/-1}
