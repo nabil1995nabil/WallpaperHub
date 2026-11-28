@@ -1,23 +1,237 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4f7fc"><meta name="description" content="تصفح منشورات WallpaperHub، شاهد قصص الأعضاء، وشارك صورك وأفكارك مع مجتمع محبي الخلفيات."><meta name="robots" content="index,follow"><link rel="canonical" href="https://wallpaperhub-morocco.vercel.app/social.html"><meta property="og:type" content="website"><meta property="og:title" content="WallpaperHub | المنشورات"><meta property="og:description" content="قصص ومنشورات مجتمع WallpaperHub."><meta property="og:url" content="https://wallpaperhub-morocco.vercel.app/social.html"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://res.cloudinary.com" crossorigin><link rel="preconnect" href="https://ik.imagekit.io" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"><link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"><link rel="stylesheet" href="social.css?v=20261122-social-theme-v4"><link rel="stylesheet" href="bottom-nav.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
-<header class="topbar"><a class="brand" href="/"><span class="brandicon"><span class="material-icons-round">wallpaper</span></span><b>Wallpaper<span>Hub</span></b></a><a class="avatarbtn" id="myAvatarButton" href="/profile.html" aria-label="الانتقال إلى حسابي"><span id="myAvatar">U</span></a><button class="thought" id="openComposer">بم تفكر؟</button><button class="headicon" id="headerMediaButton"><span class="material-icons-round">add_photo_alternate</span></button></header>
-<main class="page"><section class="stories card"><div class="sectionhead"><div><h2>القصص</h2><small>لحظات سريعة من المجتمع</small></div></div><div class="storiesrow" id="storiesRow"><button class="story create" id="createStoryButton" type="button"><div class="storyphoto createphoto"><span class="material-icons-round">add</span></div><b>إضافة قصة</b></button><div class="story-status" id="storiesStatus">جاري تحميل القصص...</div></div></section>
-<div class="feedheading"><div><h1>منشورات المجتمع</h1><small>اكتشف ما يشاركه المبدعون</small></div><button id="refreshFeed" class="refresh"><span class="material-icons-round">refresh</span> تحديث</button></div><div class="layout"><section class="feedcol"><section class="quick card"><div class="quicktop"><div class="avatar" id="quickAvatar">U</div><button id="quickOpenComposer">بم تفكر؟ شارك شيئاً مع المجتمع...</button></div><div class="quickactions"><button id="quickPhoto" type="button"><span class="material-icons-round green">image</span> صورة</button></div></section><div class="filters"><button class="active" data-sort="new">الأحدث</button><button data-sort="popular">الأكثر تفاعلاً</button></div><div id="feed" aria-live="polite"><div class="status card">جاري تحميل المنشورات...</div></div><button id="loadMore" class="loadmore hidden">تحميل المزيد</button></section><aside class="sidecol"><section class="card sidecard"><h3><span class="material-icons-round">auto_awesome</span> مجتمع المبدعين</h3><p>شارك خلفياتك وتصاميمك واكتشف أعمالاً تلهمك كل يوم.</p><a href="/community">انتقل إلى دردشة المجتمع ←</a></section><section class="card sidecard"><h3>خلّ المجتمع أجمل</h3><p>احترم المبدعين وانشر محتوى تملك حق مشاركته.</p></section></aside></div></main>
-<div id="bottomNav"></div>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f9fc">
+  <meta name="description" content="منشورات WallpaperHub Morocco: اكتشف إبداعات الأعضاء، شارك صورك وأفكارك وتفاعل مع مجتمع محبي الخلفيات.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://wallpaperhub-morocco.vercel.app/social.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="WallpaperHub | مجتمع المنشورات">
+  <meta property="og:description" content="مساحة للمشاركة والإلهام والتواصل مع مجتمع WallpaperHub.">
+  <meta property="og:url" content="https://wallpaperhub-morocco.vercel.app/social.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/social.css?v=20261128-social-rebuild-1">
+  <link rel="stylesheet" href="/bottom-nav.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>المنشورات | WallpaperHub</title>
+</head>
+<body class="social-page">
+  <header class="social-topbar">
+    <div class="topbar-inner">
+      <a class="social-brand" href="/home.html" aria-label="العودة إلى الرئيسية">
+        <span class="brand-mark"><span class="material-icons-round">wallpaper</span></span>
+        <span class="brand-copy"><b>Wallpaper<span>Hub</span></b><small>مجتمع المبدعين</small></span>
+      </a>
+      <div class="topbar-actions">
+        <button class="create-post-button" id="openComposer" type="button">
+          <span class="material-icons-round">add</span><span>إنشاء منشور</span>
+        </button>
+        <a class="profile-button" id="myAvatarButton" href="/profile.html" aria-label="الانتقال إلى حسابي">
+          <span id="myAvatar">ع</span>
+        </a>
+      </div>
+    </div>
+  </header>
 
-<div class="story-composer-backdrop hidden" id="storyComposer" aria-hidden="true">
- <section class="story-composer" role="dialog" aria-modal="true" aria-labelledby="storyComposerTitle">
-  <header><button type="button" id="closeStoryComposer" aria-label="إغلاق">×</button><h2 id="storyComposerTitle">إضافة قصة جديدة</h2><button type="button" id="publishStory" disabled>نشر القصة</button></header>
-  <div class="story-composer-user"><div class="avatar" id="storyAvatar">U</div><div><b id="storyAuthorName">عضو WallpaperHub</b><small>ستختفي القصة تلقائياً بعد 24 ساعة</small></div></div>
-  <label class="story-pick" for="storyMediaInput"><span class="material-icons-round">add_photo_alternate</span><b>اختر صورة</b><small>صورة فقط — حتى 80MB</small></label>
-  <input id="storyMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
-  <div id="storyMediaPreview" class="story-media-preview hidden"></div><p class="story-expiry-note">القصص عامة للأعضاء المسجلين، وتظهر لمدة 24 ساعة فقط.</p><div id="storyUploadStatus" class="uploadstatus hidden">جاري رفع القصة...</div>
- </section>
-</div>
-<div class="story-viewer hidden" id="storyViewer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="عرض القصص">
- <div class="story-viewer-progress" id="storyViewerProgress"></div>
- <header class="story-viewer-header"><div class="avatar" id="viewerAvatar">U</div><div class="story-viewer-author"><b id="viewerAuthor">عضو WallpaperHub</b><small id="viewerTime">الآن</small></div><button id="closeStoryViewer" aria-label="إغلاق القصة">×</button></header>
- <button class="story-viewer-nav story-prev" id="prevStory" aria-label="القصة السابقة"></button><div class="story-viewer-media" id="storyViewerMedia"></div><button class="story-viewer-nav story-next" id="nextStory" aria-label="القصة التالية"></button>
- <div class="story-viewer-hint">اسحب يميناً أو يساراً للتبديل · اضغط للتوقف أو المتابعة</div>
-</div>
+  <main class="social-main">
+    <section class="stories-panel" aria-labelledby="storiesTitle">
+      <div class="section-heading stories-heading">
+        <div>
+          <span class="eyebrow">MOMENTS · لحظات</span>
+          <h2 id="storiesTitle">القصص</h2>
+          <p>لحظات سريعة من مجتمعنا</p>
+        </div>
+        <span class="heading-mark"><span class="material-icons-round">auto_awesome</span></span>
+      </div>
+      <div class="stories-row" id="storiesRow">
+        <button class="story create-story" id="createStoryButton" type="button">
+          <span class="create-story-art"><span class="material-icons-round">add</span></span>
+          <b>إضافة قصة</b>
+        </button>
+        <div class="story-status" id="storiesStatus">جاري تحميل القصص...</div>
+      </div>
+    </section>
 
-<div class="backdrop hidden" id="postModal" aria-hidden="true"><section class="modal" role="dialog" aria-modal="true"><header><button id="closeComposer" aria-label="إغلاق"><span class="material-icons-round">close</span></button><h2>منشور جديد</h2><button id="publishPost" disabled>نشر</button></header><div class="author"><div class="avatar" id="modalAvatar">U</div><div><b id="modalName">عضو WallpaperHub</b><small>🌐 عامة</small></div></div><textarea id="postText" maxlength="3000" placeholder="بم تفكر؟ شارك فكرة أو خلفية جديدة..."></textarea><div id="mediaPreview" class="preview hidden"></div><div id="uploadStatus" class="uploadstatus hidden">جاري رفع المنشور...</div><input id="postMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden><div class="attachbox"><b>أضف إلى منشورك</b><div><button id="chooseImage"><span class="material-icons-round green">image</span> صورة</button><button id="chooseWallpaper"><span class="material-icons-round orange">wallpaper</span> خلفية</button></div></div><small class="hint">المنشورات عامة لجميع أعضاء المجتمع.</small></section></div><div class="toast" id="toast" role="status"></div><script src="social.js?v=20261120-social-4k-smooth"></script><script src="js/components.js"></script><script src="bottom-nav-20d.js"></script></body></html>
+    <section class="feed-intro" aria-labelledby="feedTitle">
+      <div class="feed-intro-copy">
+        <span class="eyebrow">THE COMMUNITY FEED</span>
+        <h1 id="feedTitle">منشورات المجتمع</h1>
+        <p>أفكار وصور وإلهام يشاركها مبدعو WallpaperHub.</p>
+      </div>
+      <button class="refresh-button" id="refreshFeed" type="button" aria-label="تحديث المنشورات">
+        <span class="material-icons-round">refresh</span><span>تحديث</span>
+      </button>
+    </section>
+
+    <div class="social-layout">
+      <section class="feed-column" aria-label="خلاصة المنشورات">
+        <div class="feed-toolbar">
+          <div class="feed-toolbar-copy">
+            <b>استكشف المشاركات</b>
+            <small>اختر طريقة عرض الخلاصة</small>
+          </div>
+          <div class="feed-filters" role="group" aria-label="ترتيب المنشورات">
+            <button class="filter-button active" type="button" data-sort="new" aria-pressed="true">
+              <span class="material-icons-round">schedule</span> الأحدث
+            </button>
+            <button class="filter-button" type="button" data-sort="popular" aria-pressed="false">
+              <span class="material-icons-round">trending_up</span> الأكثر تفاعلاً
+            </button>
+          </div>
+        </div>
+
+        <div id="feed" class="feed-list" aria-live="polite" aria-busy="true">
+          <div class="feed-state loading-state"><span class="loader-dot"></span> يتم تجهيز الخلاصة…</div>
+        </div>
+        <button id="loadMore" class="load-more-button hidden" type="button">
+          <span>تحميل المزيد</span><span class="material-icons-round">expand_more</span>
+        </button>
+      </section>
+
+      <aside class="social-sidebar">
+        <section class="sidebar-feature">
+          <div class="sidebar-feature-art"><span class="material-icons-round">auto_awesome</span></div>
+          <span class="eyebrow">WALLPAPERHUB COMMUNITY</span>
+          <h2>كل مشاركة قد تلهم شخصاً آخر.</h2>
+          <p>شارك خلفياتك وأفكارك، واكتشف أعمالاً جديدة من أعضاء المجتمع.</p>
+          <button type="button" id="sidebarCreatePost">ابدأ مشاركة جديدة <span class="material-icons-round">arrow_back</span></button>
+        </section>
+        <section class="sidebar-note">
+          <div class="sidebar-note-icon"><span class="material-icons-round">verified_user</span></div>
+          <div><b>مساحة آمنة ومحترمة</b><p>انشر محتوى تملك حق مشاركته، واحترم أصحاب الأعمال والآراء.</p></div>
+        </section>
+        <a class="community-link" href="/community">
+          <span class="community-link-icon"><span class="material-icons-round">forum</span></span>
+          <span><b>دردشة المجتمع</b><small>انتقل إلى المحادثات العامة</small></span>
+          <span class="material-icons-round">chevron_left</span>
+        </a>
+      </aside>
+    </div>
+  </main>
+
+  <div id="bottomNav"></div>
+
+  <div class="dialog-backdrop hidden" id="postModal" aria-hidden="true">
+    <section class="dialog-card composer-dialog" role="dialog" aria-modal="true" aria-labelledby="composerTitle">
+      <header class="dialog-header">
+        <button class="icon-button close-dialog" id="closeComposer" type="button" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
+        <div><span class="eyebrow">SHARE WITH THE COMMUNITY</span><h2 id="composerTitle">منشور جديد</h2></div>
+        <button class="dialog-submit" id="publishPost" type="button" disabled>نشر</button>
+      </header>
+      <div class="composer-author">
+        <div class="avatar" id="modalAvatar">ع</div>
+        <div><b id="modalName">عضو WallpaperHub</b><small><span class="material-icons-round">public</span> منشور عام</small></div>
+      </div>
+      <textarea id="postText" maxlength="3000" placeholder="ما الذي تود مشاركته مع المجتمع؟" rows="4"></textarea>
+      <div id="mediaPreview" class="media-preview hidden"></div>
+      <div id="uploadStatus" class="upload-status hidden"><span class="loader-dot"></span> جارٍ رفع الصورة ونشرها…</div>
+      <input id="postMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+      <div class="composer-attachments">
+        <span>أرفق شيئاً بمنشورك</span>
+        <div>
+          <button id="chooseImage" type="button"><span class="material-icons-round image-icon">image</span> صورة</button>
+          <button id="chooseWallpaper" type="button"><span class="material-icons-round wallpaper-icon">wallpaper</span> خلفية</button>
+        </div>
+      </div>
+      <p class="dialog-footnote">الصور متاحة للنشر حالياً. احرص على مشاركة محتوى تملك حق استخدامه.</p>
+    </section>
+  </div>
+
+  <div class="dialog-backdrop hidden" id="editPostModal" aria-hidden="true">
+    <section class="dialog-card compact-dialog" role="dialog" aria-modal="true" aria-labelledby="editPostTitle">
+      <header class="dialog-header">
+        <button class="icon-button" type="button" data-close-dialog="editPostModal" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
+        <div><span class="eyebrow">YOUR POST</span><h2 id="editPostTitle">تعديل المنشور</h2></div>
+        <button class="dialog-submit" id="savePostEdit" type="submit" form="editPostForm">حفظ</button>
+      </header>
+      <form id="editPostForm">
+        <label class="form-label" for="editPostText">نص المنشور</label>
+        <textarea id="editPostText" maxlength="3000" rows="6" placeholder="اكتب نص المنشور…"></textarea>
+        <small class="form-help">يمكنك تعديل النص فقط. ستبقى الصورة والتفاعلات كما هي.</small>
+      </form>
+    </section>
+  </div>
+
+  <div class="dialog-backdrop hidden" id="deletePostModal" aria-hidden="true">
+    <section class="dialog-card confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="deletePostTitle">
+      <div class="confirm-symbol delete-symbol"><span class="material-icons-round">delete_outline</span></div>
+      <h2 id="deletePostTitle">حذف هذا المنشور؟</h2>
+      <p>سيُحذف المنشور من الخلاصة، وستُزال معه التفاعلات والتعليقات المرتبطة به. لا يمكن التراجع عن هذه الخطوة.</p>
+      <div class="confirm-actions">
+        <button type="button" class="secondary-dialog-button" data-close-dialog="deletePostModal">إلغاء</button>
+        <button type="button" class="danger-dialog-button" id="confirmDeletePost">حذف المنشور</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="dialog-backdrop hidden" id="reportPostModal" aria-hidden="true">
+    <section class="dialog-card compact-dialog" role="dialog" aria-modal="true" aria-labelledby="reportPostTitle">
+      <header class="dialog-header">
+        <button class="icon-button" type="button" data-close-dialog="reportPostModal" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
+        <div><span class="eyebrow">COMMUNITY SAFETY</span><h2 id="reportPostTitle">الإبلاغ عن منشور</h2></div>
+        <button class="dialog-submit" type="submit" form="reportPostForm" id="submitPostReport">إرسال</button>
+      </header>
+      <form id="reportPostForm" class="report-form">
+        <p>اختر السبب الأقرب للمشكلة. سيصل البلاغ إلى فريق المراجعة.</p>
+        <label class="form-label" for="reportReason">سبب الإبلاغ</label>
+        <select id="reportReason" required>
+          <option value="">اختر سبباً</option>
+          <option value="محتوى مزعج أو رسائل غير مرغوبة">محتوى مزعج أو رسائل غير مرغوبة</option>
+          <option value="إساءة أو تنمر أو مضايقة">إساءة أو تنمر أو مضايقة</option>
+          <option value="خطاب كراهية أو تمييز">خطاب كراهية أو تمييز</option>
+          <option value="محتوى عنيف أو غير آمن">محتوى عنيف أو غير آمن</option>
+          <option value="انتهاك حقوق الملكية الفكرية">انتهاك حقوق الملكية الفكرية</option>
+          <option value="محتوى مضلل أو انتحال">محتوى مضلل أو انتحال</option>
+          <option value="سبب آخر">سبب آخر</option>
+        </select>
+        <label class="form-label" for="reportDetails">تفاصيل إضافية <small>(اختياري)</small></label>
+        <textarea id="reportDetails" maxlength="350" rows="3" placeholder="أضف تفاصيل تساعد فريق المراجعة…"></textarea>
+      </form>
+    </section>
+  </div>
+
+  <div class="dialog-backdrop hidden" id="storyComposer" aria-hidden="true">
+    <section class="dialog-card story-composer-dialog" role="dialog" aria-modal="true" aria-labelledby="storyComposerTitle">
+      <header class="dialog-header">
+        <button class="icon-button" type="button" id="closeStoryComposer" aria-label="إغلاق"><span class="material-icons-round">close</span></button>
+        <div><span class="eyebrow">A MOMENT TO SHARE</span><h2 id="storyComposerTitle">إضافة قصة</h2></div>
+        <button class="dialog-submit" id="publishStory" type="button" disabled>نشر القصة</button>
+      </header>
+      <div class="composer-author">
+        <div class="avatar" id="storyAvatar">ع</div>
+        <div><b id="storyAuthorName">عضو WallpaperHub</b><small><span class="material-icons-round">schedule</span> تختفي القصة تلقائياً بعد 24 ساعة</small></div>
+      </div>
+      <label class="story-picker" for="storyMediaInput"><span class="material-icons-round">add_photo_alternate</span><b>اختر صورة أو فيديو</b><small>صورة أو فيديو قصير — حتى 80MB</small></label>
+      <input id="storyMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm,video/quicktime" hidden>
+      <div id="storyMediaPreview" class="media-preview hidden"></div>
+      <div id="storyUploadStatus" class="upload-status hidden"><span class="loader-dot"></span> جارٍ رفع القصة…</div>
+      <p class="dialog-footnote">ستكون قصتك ظاهرة لأعضاء المجتمع لمدة 24 ساعة.</p>
+    </section>
+  </div>
+
+  <div class="story-viewer hidden" id="storyViewer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="عرض القصص">
+    <div class="story-progress" id="storyViewerProgress"></div>
+    <header class="story-viewer-header">
+      <div class="avatar" id="viewerAvatar">ع</div>
+      <div class="story-viewer-author"><b id="viewerAuthor">عضو WallpaperHub</b><small id="viewerTime">الآن</small></div>
+      <button type="button" id="closeStoryViewer" aria-label="إغلاق القصة"><span class="material-icons-round">close</span></button>
+    </header>
+    <button type="button" class="story-nav story-prev" id="prevStory" aria-label="القصة السابقة"></button>
+    <div class="story-viewer-media" id="storyViewerMedia"></div>
+    <button type="button" class="story-nav story-next" id="nextStory" aria-label="القصة التالية"></button>
+    <div class="story-viewer-hint">اسحب للتنقل بين القصص · اضغط للإيقاف أو المتابعة</div>
+  </div>
+
+  <div class="social-toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/social.js?v=20261128-social-rebuild-1"></script>
+  <script src="/js/components.js"></script>
+  <script src="/bottom-nav-20d.js?v=20261128-social-nav-1"></script>
+</body>
+</html>
