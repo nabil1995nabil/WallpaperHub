@@ -19,7 +19,7 @@
   const merged={...DEFAULTS,...source};
   merged.homeLayoutMode=merged.homeLayoutMode==="two-rows"?"two-rows":"one-row";
   const requestedSize=Number(merged.homeCardSize);
-  merged.homeCardSize=Number.isFinite(requestedSize)?Math.min(130,Math.max(70,Math.round(requestedSize))):100;
+  merged.homeCardSize=Number.isFinite(requestedSize)?Math.min(130,Math.max(70,Math.round(requestedSize/5)*5)):100;
   return merged;
  }
  let preferences=readLocal();
