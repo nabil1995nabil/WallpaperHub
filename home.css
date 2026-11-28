@@ -1650,20 +1650,15 @@ body.dark{
     margin-top: 0;
 }
 .ad-container.home-latest-ad {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: min(360px, calc(100% - 32px));
-    height: 90px;
-    min-height: 90px;
-    margin: 10px auto 12px;
-    padding: 0;
-    overflow: hidden;
-    border-radius: 12px;
+    display: block;
+    width: min(100%, 970px);
+    min-height: 110px;
+    margin: 18px auto 22px;
+    padding: 0 12px;
+    overflow: visible;
+    text-align: center;
 }
 .ad-container.home-latest-ad .adsbygoogle {
-    display: block !important;
-    width: 100% !important;
-    height: 90px !important;
-    min-height: 90px;
+    display: block;
+    width: 100%;
 }
