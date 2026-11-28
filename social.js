@@ -410,6 +410,8 @@
     }
 
     $("#loadMore").classList.toggle("hidden", !S.more);
+    const restoreButton = $("#restoreHiddenPosts");
+    if (restoreButton) restoreButton.classList.toggle("hidden", !S.hiddenPosts.size && !S.hiddenUsers.size);
   }
 
   async function loadFeed(reset) {
@@ -1224,6 +1226,14 @@
 
     $("#refreshFeed").addEventListener("click", () => loadFeed(true));
     $("#loadMore").addEventListener("click", () => loadFeed(false));
+    $("#restoreHiddenPosts").addEventListener("click", () => {
+      S.hiddenPosts.clear();
+      S.hiddenUsers.clear();
+      saveSet(STORAGE_HIDDEN_POSTS, S.hiddenPosts);
+      saveSet(STORAGE_HIDDEN_USERS, S.hiddenUsers);
+      renderFeed();
+      toast("أُعيد إظهار المنشورات المخفية");
+    });
     $$(".filter-button").forEach(button => {
       button.addEventListener("click", () => {
         S.sort = button.dataset.sort;
