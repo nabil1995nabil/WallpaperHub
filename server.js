@@ -22,6 +22,22 @@ const supabase = createClient(
 process.env.SUPABASE_URL,
 SUPABASE_SERVER_KEY
 );
+const WALLPAPER_CATEGORY_CATALOG = require("./data/categories.json");
+const WALLPAPER_CATEGORY_IDS = new Set(
+    (WALLPAPER_CATEGORY_CATALOG.categories || []).map(item => String(item.id))
+);
+const WALLPAPER_DEVICE_IDS = new Set(["all","phone","desktop","tablet"]);
+
+function validateWallpaperCategory(value){
+    const category = String(value || "").trim().toLowerCase();
+    return WALLPAPER_CATEGORY_IDS.has(category) ? category : "";
+}
+
+function validateWallpaperDevice(value){
+    const device = String(value || "all").trim().toLowerCase();
+    return WALLPAPER_DEVICE_IDS.has(device) ? device : "";
+}
+
 
 // Validate wallpaper URLs from legacy providers and the new DBByte CDN.
 function isAllowedWallpaperImageUrl(value){
@@ -4174,6 +4190,7 @@ function wallpaperFromDb(row){
         id: Number(row.id),
         title: row.title ?? "",
         category: row.category ?? "other",
+        device: row.device ?? "all",
         thumbnail: row.thumbnail ?? "",
         image: row.image ?? "",
         resolution: row.resolution ?? "",
@@ -4217,6 +4234,7 @@ function wallpaperToDb(w){
         id: Number(w.id),
         title: w.title ?? null,
         category: w.category ?? null,
+        device: w.device ?? "all",
         thumbnail: w.thumbnail ?? null,
         image: w.image ?? null,
         resolution: w.resolution ?? null,
@@ -5474,12 +5492,6 @@ app.get(
 
 
 // ======================================
-// Unsplash API Proxy
-// Vercel Environment Variable:
-// UNSPLASH_ACCESS_KEY
-// ======================================
-
-// ======================================
 // Wallpapers API
 // ======================================
 
@@ -6087,6 +6099,7 @@ app.post("/api/admin/review/:id", async (req, res) => {
         thumbnail: submission.thumbnail_url || submission.image_url,
         resolution: submission.resolution || "",
         size: submission.file_size || "",
+        device: submission.device || "all",
         description: submission.description || "",
         tags: Array.isArray(submission.tags) ? submission.tags : [],
         colors: Array.isArray(submission.colors) ? submission.colors : [],
@@ -6847,6 +6860,14 @@ app.post("/api/publish/submissions", async(req,res)=>{
         const body = req.body || {};
         const image = String(body.image || "").trim();
         const title = String(body.title || "").trim();
+        const category = validateWallpaperCategory(body.category);
+        const device = validateWallpaperDevice(body.device);
+        if(!category){
+            return res.status(400).json({success:false,code:"INVALID_WALLPAPER_CATEGORY",message:"اختر قسماً صالحاً من قائمة أقسام WallpaperHub"});
+        }
+        if(!device){
+            return res.status(400).json({success:false,code:"INVALID_WALLPAPER_DEVICE",message:"اختر جهازاً مستهدفاً صالحاً"});
+        }
         if(!image || !isAllowedWallpaperImageUrl(image)){
             return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
         }
@@ -6862,13 +6883,14 @@ app.post("/api/publish/submissions", async(req,res)=>{
             user_id:String(user.id),
             title:title.slice(0,120),
             description:String(body.description || "").slice(0,600),
-            category:String(body.category || "other").slice(0,60),
+            category,
+
             image_url:image,
             thumbnail_url:String(body.thumbnail || image).trim(),
             resolution:String(body.resolution || "").slice(0,40),
             file_size:String(body.size || "").slice(0,40),
             tags, colors,
-            device:String(body.device || "all").slice(0,30),
+            device,
             is_360:is360,
             status:"pending",
             scheduled_at:scheduledAt ? scheduledAt.toISOString() : null
@@ -6911,6 +6933,14 @@ app.post(
             const body = req.body || {};
             const image = String(body.image || "").trim();
             const title = String(body.title || "").trim();
+            const category = validateWallpaperCategory(body.category);
+            const device = validateWallpaperDevice(body.device);
+            if(!category){
+                return res.status(400).json({success:false,code:"INVALID_WALLPAPER_CATEGORY",message:"اختر قسماً صالحاً من قائمة أقسام WallpaperHub"});
+            }
+            if(!device){
+                return res.status(400).json({success:false,code:"INVALID_WALLPAPER_DEVICE",message:"اختر جهازاً مستهدفاً صالحاً"});
+            }
             if (!image || !isAllowedWallpaperImageUrl(image)) {
                 return res.status(400).json({success:false,message:"رابط الصورة غير صالح"});
             }
@@ -6945,7 +6975,8 @@ app.post(
             const wallpaper = {
                 id: Date.now(),
                 title: title || "Untitled",
-                category: String(body.category || "other").trim().toLowerCase(),
+                category,
+                device,
                 image: image,
                 thumbnail: body.thumbnail || image,
                 resolution: body.resolution || "",
