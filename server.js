@@ -173,13 +173,18 @@ async function getAuthenticatedUser(req){
 const WH_USER_SETTINGS_KEYS = new Set([
  "darkMode","animations","videos","highQuality","fullscreen","autoUpdate","wifiOnly",
  "notifications","notificationsEnabled","ratingsNotify","updatesNotify",
- "notificationSound","localActivity","systemUpdate","cardStyle"
+ "notificationSound","localActivity","systemUpdate","cardStyle","homeLayoutMode","homeCardSize"
 ]);
 function cleanUserSettingsPreferences(value){
  const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
  const clean={};
  for(const key of WH_USER_SETTINGS_KEYS){
   if(key==="cardStyle"){if(["classic","glass","premium"].includes(String(source[key]||"")))clean[key]=String(source[key]);}
+  else if(key==="homeLayoutMode"){if(["one-row","two-rows"].includes(String(source[key]||"")))clean[key]=String(source[key]);}
+  else if(key==="homeCardSize"){
+   const size=Number(source[key]);
+   if(Number.isFinite(size))clean[key]=Math.min(130,Math.max(70,Math.round(size)));
+  }
   else if(typeof source[key]==="boolean")clean[key]=source[key];
  }
  return clean;
