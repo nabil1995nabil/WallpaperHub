@@ -66,7 +66,18 @@ function createAllCard(){
 function renderCategoryCards(){
  categoriesGrid.replaceChildren();
  categoriesGrid.appendChild(createAllCard());
- categoryCatalog.forEach(item=>categoriesGrid.appendChild(createCategoryCard(item)));
+ const groupDefinitions = window.WallpaperHubCategoryGroups || [];
+ groupDefinitions.forEach(group=>{
+  const items = categoryCatalog.filter(item=>item.group===group.id);
+  if(!items.length)return;
+  const heading=document.createElement("div");
+  heading.className="category-group-heading";
+  heading.innerHTML='<span class="material-icons">'+escapeHTML(group.icon||"category")+'</span><b>'+escapeHTML(group.title)+'</b><small>'+items.length.toLocaleString("ar-MA")+' أقسام</small>';
+  categoriesGrid.appendChild(heading);
+  items.forEach(item=>categoriesGrid.appendChild(createCategoryCard(item)));
+ });
+ const groupedIds=new Set(groupDefinitions.flatMap(group=>categoryCatalog.filter(item=>item.group===group.id).map(item=>item.id)));
+ categoryCatalog.filter(item=>!groupedIds.has(item.id)).forEach(item=>categoriesGrid.appendChild(createCategoryCard(item)));
  categories=[...categoriesGrid.querySelectorAll(".category-card")];
  updateFavoriteUI();
 }
@@ -141,6 +152,7 @@ async function initCategoryDirectory(){
   categoryCatalog=data.categories;
   categoryNames={all:"الكل"};
   categoryCatalog.forEach(item=>categoryNames[item.id]=item.name);
+  window.WallpaperHubCategoryGroups=data.groups||[];
   renderCategoryCards();
   setupCategoryEvents();
   const urlCategory=new URLSearchParams(location.search).get("category");
