@@ -29,6 +29,51 @@ const ALLOWED = new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 // ImageKit endpoint؛ المفتاح السري لا يوضع في المتصفح.
 const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/2xcgjj3oe";
 
+
+let wallpaperCategoryCatalogPromise = null;
+let allowedWallpaperCategoryIds = new Set();
+
+function populateWallpaperCategories(){
+  if(wallpaperCategoryCatalogPromise) return wallpaperCategoryCatalogPromise;
+  wallpaperCategoryCatalogPromise = (async()=>{
+    const select = $("wallCategory");
+    try{
+      const response = await fetch("/data/categories.json?v=20261128-catalog-2", {cache:"no-store",headers:{Accept:"application/json"}});
+      if(!response.ok) throw new Error("HTTP " + response.status);
+      const catalog = await response.json();
+      if(!Array.isArray(catalog.categories) || !catalog.categories.length) throw new Error("قائمة الأقسام فارغة");
+      const groups = new Map((catalog.groups || []).map(group=>[group.id,group.title]));
+      allowedWallpaperCategoryIds = new Set(catalog.categories.map(category=>String(category.id)));
+      select.replaceChildren(new Option("اختر القسم المناسب",""));
+      (catalog.groups || []).forEach(group=>{
+        const items = catalog.categories.filter(category=>category.group===group.id);
+        if(!items.length) return;
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = group.title;
+        items.forEach(category=>{
+          const option = new Option((category.emoji ? category.emoji + " " : "") + category.name, category.id);
+          optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+      });
+      const ungrouped = catalog.categories.filter(category=>!groups.has(category.group));
+      ungrouped.forEach(category=>{
+        select.add(new Option((category.emoji ? category.emoji + " " : "") + category.name,category.id));
+      });
+      select.disabled = false;
+      select.dataset.catalogVersion = String(catalog.version || 1);
+      return true;
+    }catch(error){
+      console.error("WALLPAPER CATEGORY CATALOG:",error);
+      select.replaceChildren(new Option("تعذر تحميل الأقسام — أعد تحديث الصفحة",""));
+      select.disabled = true;
+      notify("تعذر تحميل الأقسام. لم نرسل أي خلفية بتصنيف غير معروف.");
+      return false;
+    }
+  })();
+  return wallpaperCategoryCatalogPromise;
+}
+
 function notify(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -138,7 +183,19 @@ $("phonePreviewBtn").addEventListener("click",e=>{const on=previewGrid.classList
 $("cropBtn").addEventListener("click",e=>{const on=previewGrid.classList.toggle("crop-mode");e.currentTarget.setAttribute("aria-pressed",String(on));});
 function proposeTags(){
   const category=$("wallCategory").value,title=$("wallTitle").value||selectedFiles[0]?.name.replace(/\.[^.]+$/,"")||"";
-  const common={religious:["religious","islamic","quran","mosque","faith","spiritual","dua","dhikr"],nature:["nature","landscape","scenery","outdoors"],cars:["cars","automotive","vehicle"],games:["gaming","game","digital art"],space:["space","galaxy","stars","cosmos"],ai:["ai","digital art","generative art"],amoled:["amoled","dark","black wallpaper"],animals:["animals","wildlife"],anime:["anime","illustration"],city:["city","urban","architecture"],sports:["sports","athlete"],"4k":["4k","high resolution"],minimal:["minimal","clean design"],rain:["rain","weather","moody"],sunset:["sunset","sky","golden hour"],architecture:["architecture","building"]};
+  const common={
+    religious:["religious","islamic","quran","mosque","faith","spiritual","dua","dhikr"],
+    nature:["nature","landscape","scenery","outdoors"],animals:["animals","wildlife","pets"],city:["city","urban","skyline"],
+    architecture:["architecture","building","facade"],space:["space","galaxy","stars","cosmos"],"deep-space":["deep space","nebula","galaxy"],
+    ocean:["ocean","sea","marine","waves"],mountains:["mountains","landscape","peaks"],flowers:["flowers","botanical","floral"],
+    cars:["cars","automotive","vehicle"],sports_cars:["sports cars","supercar","racing"],bikes:["motorcycle","bikes","cycling"],sports:["sports","athlete","stadium"],
+    games:["gaming","game","digital art"],anime:["anime","illustration"],ai:["ai","digital art","generative art"],technology:["technology","tech","digital"],
+    amoled:["amoled","dark","black wallpaper"],dark:["dark","black","night"],minimal:["minimal","clean design","simple"],
+    abstract:["abstract","art","shapes"],colors:["colors","palette","colorful"],"3d":["3d","render","three dimensional"],neon:["neon","glow","lights"],
+    cyberpunk:["cyberpunk","neon city","futuristic"],gradients:["gradient","colors","background"],
+    snow:["snow","winter","ice"],aurora:["aurora","northern lights","sky"],rain:["rain","weather","moody"],sunset:["sunset","sunrise","golden hour"],
+    "4k":["4k","ultra hd","high resolution"],other:["wallpaper","background","creative"]
+  };
   const fromTitle=title.toLowerCase().split(/[\s_-]+/).filter(x=>x.length>2);
   $("wallTags").value=[...new Set([...(common[category]||[]),...fromTitle])].slice(0,15).join(", ");
 }
@@ -252,6 +309,7 @@ function setProfileGate(message,loggedIn=false){
 }
 let publisherSessionCheck = null;
 async function loadPublisherSession(){
+  if(!(await populateWallpaperCategories())) return false;
   // يمنع استدعاءات متزامنة من بدء الصفحة وحدث استعادة الجلسة.
   if(publisherSessionCheck) return publisherSessionCheck;
   publisherSessionCheck = (async()=>{
@@ -396,6 +454,12 @@ function uploadOne(file){
 form.addEventListener("submit",async e=>{
   e.preventDefault();
   if(!publisherSession){notify("يجب تسجيل الدخول أولاً.");return;}
+  if(!allowedWallpaperCategoryIds.has(String($("wallCategory").value || ""))){
+    notify("اختر قسماً صحيحاً من قائمة الأقسام.");
+    $("wallCategory").focus();
+    return;
+  }
+
   if(!$("wallTitle").value.trim()){notify("كتب عنوان الخلفية أولاً.");$("wallTitle").focus();return;}
   if(!selectedFiles.length){notify("اختار صورة واحدة على الأقل.");return;}
   const bad=selectedFiles.filter(file=>validate(file).length);

@@ -36,7 +36,6 @@
         "settings": "settings",
         "support": "support",
         "developers": "developers",
-        "unsplash": "unsplash",
         "wallhaven": "wallhaven",
         "notice": "notice",
         "notifications": "notifications",

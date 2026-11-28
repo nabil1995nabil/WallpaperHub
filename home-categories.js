@@ -2,56 +2,37 @@
 // Uses the same /api/wallpapers endpoint already used by the home page.
 // This avoids depending on a separate /api/categories route.
 
-const HOME_CATEGORY_DEFINITIONS = [
-    { key: "all", title: "All" },
-    { key: "religious", title: "الخلفيات الدينية" },
-    { key: "nature", title: "Nature" },
-    { key: "cars", title: "Cars" },
-    { key: "anime", title: "Anime" },
-    { key: "space", title: "Space" },
-    { key: "ai", title: "AI Art" },
-    { key: "animals", title: "Animals" },
-    { key: "city", title: "City" },
-    { key: "amoled", title: "AMOLED" },
-    { key: "minimal", title: "Minimal" },
-    { key: "games", title: "Gaming" },
-    { key: "dark", title: "Dark" },
-    { key: "4k", title: "4K Ultra" },
-    { key: "sports", title: "Sports" },
-    { key: "snow", title: "Snow & Winter" },
-    { key: "aurora", title: "Aurora" },
-    { key: "cyberpunk", title: "Cyberpunk" },
-    { key: "gradients", title: "Gradients" }
-];
+let HOME_CATEGORY_DEFINITIONS = [];
+let CATEGORY_ALIASES = {};
+let homeCategoryCatalogPromise = null;
 
-const CATEGORY_ALIASES = {
-    religious: ["religious", "religion", "islamic", "quran", "ديني", "الدين", "الخلفيات الدينية", "إسلامي", "اسلامي", "قرآن", "قران"],
-    nature: ["nature", "طبيعة", "الطبيعة"],
-    cars: ["cars", "car", "سيارات", "السيارات"],
-    anime: ["anime", "انمي", "الأنمي", "أنمي"],
-    space: ["space", "فضاء", "الفضاء"],
-    ai: ["ai", "ai art", "ذكاء اصطناعي", "الذكاء الاصطناعي"],
-    animals: ["animals", "animal", "حيوانات", "الحيوانات"],
-    city: ["city", "cities", "مدن", "المدن"],
-    amoled: ["amoled", "اموليد"],
-    minimal: ["minimal", "مينيمال"],
-    games: ["games", "gaming", "game", "العاب", "الألعاب", "ألعاب"],
-    dark: ["dark", "داكن", "مظلم"],
-    "4k": ["4k", "فور كي"],
-    sports: ["sports", "sport", "رياضة", "الرياضة"],
-    snow: ["snow", "winter", "ثلج", "الثلج", "شتاء", "الشتاء"],
-    aurora: ["aurora", "aurora borealis", "الشفق القطبي", "الشفق"],
-    cyberpunk: ["cyberpunk", "سايبربانك", "سايبر بانك"],
-    gradients: ["gradients", "gradient", "colors", "colours", "تدرجات", "التدرجات", "ألوان", "الوان"]
-};
+async function ensureHomeCategoryCatalog(){
+    if(homeCategoryCatalogPromise) return homeCategoryCatalogPromise;
+    homeCategoryCatalogPromise = (async()=>{
+        const response = await fetch("/data/categories.json?v=20261128-catalog-2",{cache:"no-store",headers:{Accept:"application/json"}});
+        if(!response.ok) throw new Error("تعذر تحميل الأقسام الموحدة");
+        const data = await response.json();
+        if(!Array.isArray(data.categories) || !data.categories.length) throw new Error("دليل الأقسام فارغ");
+        HOME_CATEGORY_DEFINITIONS = data.categories.map(item=>({
+            key:item.id,
+            title:item.name,
+            emoji:item.emoji || "",
+            aliases:Array.isArray(item.aliases) ? item.aliases : []
+        }));
+        CATEGORY_ALIASES = Object.fromEntries(HOME_CATEGORY_DEFINITIONS.map(item=>[item.key,item.aliases]));
+        return data;
+    })();
+    return homeCategoryCatalogPromise;
+}
 
 function normalizeCategory(value) {
-    return String(value ?? "").trim().toLowerCase();
+    return String(value ?? "").trim().toLowerCase()
+        .replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
 }
 
 function categoryMatches(key, value) {
     const normalized = normalizeCategory(value);
-    return normalized === key ||
+    return normalized === normalizeCategory(key) ||
         (CATEGORY_ALIASES[key] || []).some(alias => normalizeCategory(alias) === normalized);
 }
 
@@ -93,7 +74,7 @@ function escapeHtml(value) {
 function buildCategoryData(wallpapers) {
     const list = Array.isArray(wallpapers) ? wallpapers.filter(Boolean) : [];
 
-    return HOME_CATEGORY_DEFINITIONS.map(definition => {
+    return [{key:"all",title:"جميع الخلفيات",emoji:"🌍",aliases:[]}, ...HOME_CATEGORY_DEFINITIONS].map(definition => {
         if (definition.key === "all") {
             return {
                 ...definition,
@@ -139,7 +120,13 @@ const CATEGORY_INLINE_SVGS = {
 function applyCategoryIcon(card, key) {
     const icon = card.querySelector(".home-category-icon");
     if (!icon) return;
-    icon.innerHTML = CATEGORY_INLINE_SVGS[key] || CATEGORY_INLINE_SVGS.all;
+    const customSvg = CATEGORY_INLINE_SVGS[key];
+    if (customSvg) {
+        icon.innerHTML = customSvg;
+        return;
+    }
+    const definition = HOME_CATEGORY_DEFINITIONS.find(item => item.key === key);
+    icon.textContent = definition?.emoji || "🖼️";
 }
 
 function createCategoryCard(item) {
@@ -149,7 +136,7 @@ function createCategoryCard(item) {
     card.setAttribute("role", "listitem");
     card.setAttribute("tabindex", "0");
     card.setAttribute("aria-label",
-        `${item.title}: ${formatCategoryCount(item.count)} wallpapers`);
+        `${item.emoji ? item.emoji + " " : ""}${item.title}: ${formatCategoryCount(item.count)} wallpapers`);
 
     card.innerHTML = `
         <div class="home-category-media">
@@ -158,7 +145,7 @@ function createCategoryCard(item) {
             <span class="home-category-icon" aria-hidden="true"></span>
         </div>
         <div class="home-category-bottom">
-            <p class="home-cat-title">${escapeHtml(item.title)}</p>
+            <p class="home-cat-title">${escapeHtml((item.emoji ? item.emoji + " " : "") + item.title)}</p>
             <span class="home-cat-count" data-count>${formatCategoryCount(item.count)}</span>
         </div>
     `;
@@ -271,6 +258,7 @@ async function initCategories() {
     container.innerHTML = '<div class="home-categories-state" role="status">Loading categories…</div>';
     categoryInitPromise = (async()=>{
         try{
+            await ensureHomeCategoryCatalog();
             let data = window.WallpaperHubHomeWallpapers;
             if(!Array.isArray(data) && window.WallpaperHubHomeWallpapersPromise){
                 data = await window.WallpaperHubHomeWallpapersPromise;

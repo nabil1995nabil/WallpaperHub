@@ -1,21 +1,592 @@
-[
-  { "id": "nature", "name": "🌿 الطبيعة", "nameEn": "Nature", "icon": "🌿", "count": 0 },
-  { "id": "cars", "name": "🚗 السيارات", "nameEn": "Cars", "icon": "🚗", "count": 0 },
-  { "id": "games", "name": "🎮 الألعاب", "nameEn": "Games", "icon": "🎮", "count": 0 },
-  { "id": "space", "name": "🌌 الفضاء", "nameEn": "Space", "icon": "🚀", "count": 0 },
-  { "id": "ai", "name": "🤖 الذكاء الاصطناعي", "nameEn": "AI", "icon": "🤖", "count": 0 },
-  { "id": "amoled", "name": "🖤 AMOLED", "nameEn": "AMOLED", "icon": "🖤", "count": 0 },
-  { "id": "animals", "name": "🐾 الحيوانات", "nameEn": "Animals", "icon": "🐾", "count": 0 },
-  { "id": "anime", "name": "🌀 الأنمي", "nameEn": "Anime", "icon": "🌀", "count": 0 },
-  { "id": "city", "name": "🏙️ المدن", "nameEn": "City", "icon": "🏙️", "count": 0 },
-  { "id": "dark", "name": "🖤 Dark", "nameEn": "Dark", "icon": "🖤", "count": 0 },
-  { "id": "4k", "name": "💎 4K", "nameEn": "4K", "icon": "💎", "count": 0 },
-  { "id": "sports", "name": "⚽ الرياضة", "nameEn": "Sports", "icon": "⚽", "count": 0 },
-  { "id": "minimal", "name": "✨ Minimal", "nameEn": "Minimal", "icon": "✨", "count": 0 },
-  { "id": "wallhaven", "name": "🌐 Wallhaven AI", "nameEn": "Wallhaven", "icon": "🌌", "count": 0 },
-  { "id": "rain", "name": "🌧️ المطر", "nameEn": "Rain", "icon": "🌧️", "count": 0 },
-  { "id": "sunset", "name": "🌅 الغروب", "nameEn": "Sunset", "icon": "🌅", "count": 0 },
-  { "id": "architecture", "name": "🏛️ العمارة", "nameEn": "Architecture", "icon": "🏛️", "count": 0 },
-  { "id": "deep-space", "name": "🚀 الفضاء العميق", "nameEn": "Deep Space", "icon": "🚀", "count": 0 },
-  { "id": "other", "name": "📁 أخرى", "nameEn": "Other", "icon": "📁", "count": 0 }
-]
+{
+  "version": 2,
+  "groups": [
+    {
+      "id": "faith",
+      "title": "الإيمان والروحانيات",
+      "icon": "menu_book"
+    },
+    {
+      "id": "nature",
+      "title": "الطبيعة والمناظر",
+      "icon": "landscape"
+    },
+    {
+      "id": "vehicles",
+      "title": "المركبات والرياضة",
+      "icon": "directions_car"
+    },
+    {
+      "id": "digital",
+      "title": "الألعاب والتقنية",
+      "icon": "devices"
+    },
+    {
+      "id": "art",
+      "title": "الأنماط والتصاميم",
+      "icon": "auto_awesome"
+    },
+    {
+      "id": "seasonal",
+      "title": "الأجواء والفصول",
+      "icon": "wb_twilight"
+    },
+    {
+      "id": "quality",
+      "title": "الجودة وتصنيفات أخرى",
+      "icon": "tune"
+    }
+  ],
+  "categories": [
+    {
+      "id": "religious",
+      "name": "الخلفيات الدينية",
+      "nameEn": "Religious",
+      "icon": "menu_book",
+      "group": "faith",
+      "accent": "#b99650",
+      "description": "آيات قرآنية ومساجد وأذكار وتصاميم روحانية",
+      "aliases": [
+        "religion",
+        "islamic",
+        "quran",
+        "ديني",
+        "الدين",
+        "إسلامي",
+        "اسلامي",
+        "قرآن",
+        "قران",
+        "مساجد",
+        "أذكار",
+        "ادعية",
+        "أدعية"
+      ],
+      "emoji": "🕌"
+    },
+    {
+      "id": "nature",
+      "name": "الطبيعة",
+      "nameEn": "Nature",
+      "icon": "park",
+      "group": "nature",
+      "accent": "#22a56b",
+      "description": "غابات وجبال ومناظر طبيعية",
+      "aliases": [
+        "natural",
+        "طبيعه",
+        "الطبيعة"
+      ],
+      "emoji": "🌿"
+    },
+    {
+      "id": "animals",
+      "name": "الحيوانات",
+      "nameEn": "Animals",
+      "icon": "pets",
+      "group": "nature",
+      "accent": "#e68a35",
+      "description": "حيوانات وطيور وحياة برية",
+      "aliases": [
+        "animal",
+        "pets",
+        "حيوانات",
+        "الحيوانات",
+        "حيوان"
+      ],
+      "emoji": "🐾"
+    },
+    {
+      "id": "city",
+      "name": "المدن",
+      "nameEn": "City",
+      "icon": "location_city",
+      "group": "nature",
+      "accent": "#e97935",
+      "description": "مدن ومعالم ومناظر حضرية",
+      "aliases": [
+        "cities",
+        "urban",
+        "مدن",
+        "مدينه",
+        "مدينة",
+        "المدن"
+      ],
+      "emoji": "🏙️"
+    },
+    {
+      "id": "architecture",
+      "name": "العمارة",
+      "nameEn": "Architecture",
+      "icon": "apartment",
+      "group": "nature",
+      "accent": "#a38b68",
+      "description": "مبانٍ وهندسة معمارية",
+      "aliases": [
+        "building",
+        "buildings",
+        "عمارة",
+        "هندسة معمارية",
+        "مباني"
+      ],
+      "emoji": "🏛️"
+    },
+    {
+      "id": "space",
+      "name": "الفضاء",
+      "nameEn": "Space",
+      "icon": "public",
+      "group": "nature",
+      "accent": "#7658d5",
+      "description": "كواكب ونجوم ومجرات",
+      "aliases": [
+        "spaces",
+        "galaxy",
+        "astronomy",
+        "فضاء",
+        "الفضاء"
+      ],
+      "emoji": "🌌"
+    },
+    {
+      "id": "deep-space",
+      "name": "الفضاء العميق",
+      "nameEn": "Deep Space",
+      "icon": "rocket_launch",
+      "group": "nature",
+      "accent": "#584a9d",
+      "description": "مشاهد المجرات والسدم والفضاء البعيد",
+      "aliases": [
+        "deep space",
+        "deep-space",
+        "فضاء عميق",
+        "الفضاء العميق"
+      ],
+      "emoji": "🚀"
+    },
+    {
+      "id": "ocean",
+      "name": "البحار والمحيطات",
+      "nameEn": "Ocean",
+      "icon": "water",
+      "group": "nature",
+      "accent": "#278eae",
+      "description": "بحار وشواطئ وأعماق المحيطات",
+      "aliases": [
+        "sea",
+        "marine",
+        "بحر",
+        "محيط",
+        "المحيطات",
+        "البحر"
+      ],
+      "emoji": "🌊"
+    },
+    {
+      "id": "mountains",
+      "name": "الجبال",
+      "nameEn": "Mountains",
+      "icon": "terrain",
+      "group": "nature",
+      "accent": "#75936e",
+      "description": "قمم جبلية ووديان",
+      "aliases": [
+        "mountain",
+        "جبال",
+        "جبل"
+      ],
+      "emoji": "🏔️"
+    },
+    {
+      "id": "flowers",
+      "name": "الزهور",
+      "nameEn": "Flowers",
+      "icon": "local_florist",
+      "group": "nature",
+      "accent": "#d66b9a",
+      "description": "زهور ونباتات وتفاصيل ملونة",
+      "aliases": [
+        "flower",
+        "زهور",
+        "زهرة"
+      ],
+      "emoji": "🌸"
+    },
+    {
+      "id": "cars",
+      "name": "السيارات",
+      "nameEn": "Cars",
+      "icon": "directions_car",
+      "group": "vehicles",
+      "accent": "#d94f55",
+      "description": "سيارات رياضية وفاخرة",
+      "aliases": [
+        "car",
+        "vehicle",
+        "vehicles",
+        "سيارات",
+        "السيارات"
+      ],
+      "emoji": "🚗"
+    },
+    {
+      "id": "sports_cars",
+      "name": "السيارات الرياضية",
+      "nameEn": "Sports Cars",
+      "icon": "sports_motorsports",
+      "group": "vehicles",
+      "accent": "#d83f54",
+      "description": "سيارات الأداء والسباقات",
+      "aliases": [
+        "sports car",
+        "sports cars",
+        "سيارات رياضية",
+        "سيارة رياضية"
+      ],
+      "emoji": "🏎️"
+    },
+    {
+      "id": "bikes",
+      "name": "الدراجات",
+      "nameEn": "Bikes",
+      "icon": "two_wheeler",
+      "group": "vehicles",
+      "accent": "#ba6b3c",
+      "description": "دراجات نارية وهوائية",
+      "aliases": [
+        "bike",
+        "motorcycle",
+        "motorcycles",
+        "دراجات",
+        "دراجة"
+      ],
+      "emoji": "🏍️"
+    },
+    {
+      "id": "sports",
+      "name": "الرياضة",
+      "nameEn": "Sports",
+      "icon": "sports_soccer",
+      "group": "vehicles",
+      "accent": "#249c60",
+      "description": "كرة القدم والرياضات المختلفة",
+      "aliases": [
+        "sport",
+        "رياضه",
+        "رياضة",
+        "الرياضة"
+      ],
+      "emoji": "⚽"
+    },
+    {
+      "id": "games",
+      "name": "الألعاب",
+      "nameEn": "Gaming",
+      "icon": "sports_esports",
+      "group": "digital",
+      "accent": "#8057ce",
+      "description": "ألعاب الفيديو وعوالمها",
+      "aliases": [
+        "game",
+        "gaming",
+        "gamer",
+        "gamers",
+        "لعبة",
+        "العاب",
+        "ألعاب",
+        "قيمنق"
+      ],
+      "emoji": "🎮"
+    },
+    {
+      "id": "anime",
+      "name": "الأنمي",
+      "nameEn": "Anime",
+      "icon": "animation",
+      "group": "digital",
+      "accent": "#ce58a3",
+      "description": "شخصيات ومشاهد الأنمي",
+      "aliases": [
+        "انمي",
+        "أنمي"
+      ],
+      "emoji": "🌀"
+    },
+    {
+      "id": "ai",
+      "name": "الذكاء الاصطناعي",
+      "nameEn": "AI Art",
+      "icon": "smart_toy",
+      "group": "digital",
+      "accent": "#268ec9",
+      "description": "أعمال وتصاميم مولدة بالذكاء الاصطناعي",
+      "aliases": [
+        "artificial intelligence",
+        "artificial-intelligence",
+        "ai art",
+        "ذكاء اصطناعي",
+        "الذكاء الاصطناعي"
+      ],
+      "emoji": "🤖"
+    },
+    {
+      "id": "technology",
+      "name": "التقنية",
+      "nameEn": "Technology",
+      "icon": "memory",
+      "group": "digital",
+      "accent": "#4675be",
+      "description": "تقنيات وأجهزة ومستقبل رقمي",
+      "aliases": [
+        "tech",
+        "تكنولوجيا",
+        "تقنية"
+      ],
+      "emoji": "💻"
+    },
+    {
+      "id": "amoled",
+      "name": "AMOLED",
+      "nameEn": "AMOLED",
+      "icon": "contrast",
+      "group": "art",
+      "accent": "#8794aa",
+      "description": "خلفيات داكنة مناسبة لشاشات AMOLED",
+      "aliases": [
+        "black oled",
+        "oled",
+        "اموليد"
+      ],
+      "emoji": "🖤"
+    },
+    {
+      "id": "dark",
+      "name": "الخلفيات الداكنة",
+      "nameEn": "Dark",
+      "icon": "dark_mode",
+      "group": "art",
+      "accent": "#707b9a",
+      "description": "خلفيات داكنة وهادئة",
+      "aliases": [
+        "dark",
+        "داكن",
+        "داكنه",
+        "داكنة",
+        "مظلم",
+        "الخلفيات الداكنة"
+      ],
+      "emoji": "🌑"
+    },
+    {
+      "id": "minimal",
+      "name": "التصاميم البسيطة",
+      "nameEn": "Minimal",
+      "icon": "auto_awesome",
+      "group": "art",
+      "accent": "#c3a044",
+      "description": "تصاميم بسيطة ونظيفة",
+      "aliases": [
+        "minimal",
+        "بسيط",
+        "بسيطة",
+        "مينيمال"
+      ],
+      "emoji": "✨"
+    },
+    {
+      "id": "abstract",
+      "name": "التصاميم التجريدية",
+      "nameEn": "Abstract",
+      "icon": "blur_on",
+      "group": "art",
+      "accent": "#8a68c2",
+      "description": "أشكال وتجارب فنية تجريدية",
+      "aliases": [
+        "abstract",
+        "تجريدي",
+        "مجرد"
+      ],
+      "emoji": "🎨"
+    },
+    {
+      "id": "colors",
+      "name": "الألوان",
+      "nameEn": "Colors",
+      "icon": "palette",
+      "group": "art",
+      "accent": "#d36b82",
+      "description": "لوحات وألوان متناسقة",
+      "aliases": [
+        "color",
+        "colors",
+        "colours",
+        "ألوان",
+        "الوان"
+      ],
+      "emoji": "🌈"
+    },
+    {
+      "id": "3d",
+      "name": "ثلاثي الأبعاد",
+      "nameEn": "3D",
+      "icon": "view_in_ar",
+      "group": "art",
+      "accent": "#5475b7",
+      "description": "تصاميم ومشاهد ثلاثية الأبعاد",
+      "aliases": [
+        "three dimensional",
+        "3d",
+        "ثلاثي الأبعاد",
+        "ثلاثي الابعاد"
+      ],
+      "emoji": "🧊"
+    },
+    {
+      "id": "neon",
+      "name": "نيون",
+      "nameEn": "Neon",
+      "icon": "lightbulb",
+      "group": "art",
+      "accent": "#b34fc0",
+      "description": "أضواء نيون وألوان متوهجة",
+      "aliases": [
+        "neon",
+        "نيون"
+      ],
+      "emoji": "💠"
+    },
+    {
+      "id": "cyberpunk",
+      "name": "السايبربانك",
+      "nameEn": "Cyberpunk",
+      "icon": "bolt",
+      "group": "art",
+      "accent": "#d24d9f",
+      "description": "مدن مستقبلية وأضواء سايبربانك",
+      "aliases": [
+        "cyberpunk",
+        "سايبربانك",
+        "سايبر بانك"
+      ],
+      "emoji": "🌃"
+    },
+    {
+      "id": "gradients",
+      "name": "التدرجات والألوان",
+      "nameEn": "Gradients",
+      "icon": "gradient",
+      "group": "art",
+      "accent": "#8662cf",
+      "description": "خلفيات تدرجات ناعمة وملونة",
+      "aliases": [
+        "gradient",
+        "gradients",
+        "colors",
+        "colours",
+        "تدرجات",
+        "التدرجات",
+        "ألوان",
+        "الوان"
+      ],
+      "emoji": "🎨"
+    },
+    {
+      "id": "snow",
+      "name": "الثلج والشتاء",
+      "nameEn": "Snow & Winter",
+      "icon": "ac_unit",
+      "group": "seasonal",
+      "accent": "#55bde8",
+      "description": "ثلوج ومناظر شتوية",
+      "aliases": [
+        "snow",
+        "winter",
+        "ثلج",
+        "الثلج",
+        "شتاء",
+        "الشتاء"
+      ],
+      "emoji": "❄️"
+    },
+    {
+      "id": "aurora",
+      "name": "الشفق القطبي",
+      "nameEn": "Aurora",
+      "icon": "flare",
+      "group": "seasonal",
+      "accent": "#7b75ff",
+      "description": "مشاهد الشفق القطبي والسماء",
+      "aliases": [
+        "aurora",
+        "aurora borealis",
+        "الشفق القطبي",
+        "الشفق"
+      ],
+      "emoji": "🌌"
+    },
+    {
+      "id": "rain",
+      "name": "المطر",
+      "nameEn": "Rain",
+      "icon": "water_drop",
+      "group": "seasonal",
+      "accent": "#3e8db7",
+      "description": "أجواء ممطرة وسماء غائمة",
+      "aliases": [
+        "rain",
+        "مطر",
+        "المطر"
+      ],
+      "emoji": "🌧️"
+    },
+    {
+      "id": "sunset",
+      "name": "الغروب والشروق",
+      "nameEn": "Sunset & Sunrise",
+      "icon": "wb_twilight",
+      "group": "seasonal",
+      "accent": "#d98553",
+      "description": "ألوان الشروق والغروب",
+      "aliases": [
+        "sunset",
+        "sunrise",
+        "dawn",
+        "غروب",
+        "شروق",
+        "الغروب",
+        "غروب وشروق"
+      ],
+      "emoji": "🌅"
+    },
+    {
+      "id": "4k",
+      "name": "خلفيات 4K",
+      "nameEn": "4K Wallpapers",
+      "icon": "diamond",
+      "group": "quality",
+      "accent": "#2787cb",
+      "description": "تصنيف خلفيات 4K. فلتر دقة 4K موجود بشكل منفصل.",
+      "aliases": [
+        "4k",
+        "ultra hd",
+        "فور كي",
+        "جودة عالية"
+      ],
+      "emoji": "💎"
+    },
+    {
+      "id": "other",
+      "name": "خلفيات أخرى",
+      "nameEn": "Other",
+      "icon": "folder_open",
+      "group": "quality",
+      "accent": "#7c8da5",
+      "description": "تصنيفات متنوعة أخرى",
+      "aliases": [
+        "other",
+        "أخرى",
+        "خلفيات أخرى"
+      ],
+      "emoji": "📁"
+    }
+  ]
+}

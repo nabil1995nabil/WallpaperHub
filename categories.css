@@ -104,23 +104,17 @@ body.categories-page-body{
 .no-results p{margin:5px 0 13px;font-size:11px}
 .no-results button{border:1px solid #dfe5ef;background:#fff;color:#4778ff;border-radius:12px;padding:8px 13px;font:inherit;font-size:11px;font-weight:850;cursor:pointer}
 
-/* archived direct backgrounds — restored from the original categories.css */
-.category-card[data-image="all.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="nature.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="cars.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="games.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="space.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="ai.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="amoled.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="animals.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="anime.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="city.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="dark.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1507499739999-097706ad8914?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="4k.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="sports.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="minimal.svg"] .category-image{background-image:url("https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=600&auto=format&fit=crop")}
-.category-card[data-image="religious.svg"] .category-image{background-image:linear-gradient(135deg,#102f2b 0%,#1f6653 58%,#b99650 100%)}
-
+/* Self-contained category art: the directory no longer depends on third-party photo hosts. */
+.category-card .category-image{
+ background-image:linear-gradient(135deg,#38557a,#18243e);
+ background-repeat:no-repeat;background-position:center;background-size:cover;
+}
+.category-loading{
+ grid-column:1/-1;min-height:130px;display:flex;align-items:center;justify-content:center;
+ padding:22px;border:1px solid #e1e6ee;border-radius:17px;background:#fff;color:#7b8799;
+ font-size:11px;font-weight:750;text-align:center
+}
+.category-load-error{color:#b35b60;background:#fffafa;border-color:#f0dada}
 @media(min-width:900px){.categories-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){
  .header{width:calc(100% - 28px);min-height:154px;padding:26px 68px 20px}
@@ -149,31 +143,14 @@ body.categories-page-body{
  .favorite-toggle{left:9px;bottom:9px;width:28px;height:28px}
 }
 
-
-/* New categories: use real photographic thumbnails as category icons */
-.category-photo-icon{
-    padding:0;
-    overflow:hidden;
-    background:#fff;
-    border:2px solid rgba(255,255,255,.88);
+.category-group-heading{
+ grid-column:1/-1;display:flex;align-items:center;gap:9px;
+ min-height:35px;margin:10px 2px 0;padding:0 2px;color:#35445c
 }
-.category-photo-icon img{
-    display:block;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    border-radius:inherit;
+.category-group-heading .material-icons{
+ width:30px;height:30px;display:grid;place-items:center;flex:none;
+ border:1px solid #e1e8f4;border-radius:10px;background:#fff;color:#6078b8;font-size:17px
 }
-
-
-/* Four new photo-based category cards */
-.category-card[data-category="snow"]{--card-accent:#55bde8;--card-glow:rgba(85,189,232,.30)}
-.category-card[data-category="aurora"]{--card-accent:#7b75ff;--card-glow:rgba(123,117,255,.30)}
-.category-card[data-category="cyberpunk"]{--card-accent:#f34fb5;--card-glow:rgba(243,79,181,.30)}
-.category-card[data-category="gradients"]{--card-accent:#a879ff;--card-glow:rgba(168,121,255,.30)}
-.category-photo-icon{padding:0;overflow:hidden;background:#fff;border:2px solid rgba(255,255,255,.88)}
-.category-photo-icon img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
-.category-card[data-category="snow"] .category-image,
-.category-card[data-category="aurora"] .category-image,
-.category-card[data-category="cyberpunk"] .category-image,
-.category-card[data-category="gradients"] .category-image{background-position:center;background-size:cover}
+.category-group-heading b{font-size:12px;font-weight:900}
+.category-group-heading small{margin-right:auto;color:#97a1b0;font-size:9px;font-weight:700}
+.category-loading{grid-column:1/-1}

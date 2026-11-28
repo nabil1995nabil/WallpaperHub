@@ -428,46 +428,26 @@ function renderRecommended() {
 // إنشاء الأقسام تلقائياً
 // =======================================
 
-const categoryNames = {
+let homeWallpaperCategoryCatalog = [];
+let categoryNames = {};
+let homeWallpaperCategoryPromise = null;
 
-    religious: "🕌 الخلفيات الدينية",
-    nature: "🌿 الطبيعة",
-
-    cars: "🚗 السيارات",
-
-    games: "🎮 الألعاب",
-
-    space: "🌌 الفضاء",
-
-    ai: "🤖 الذكاء الاصطناعي",
-
-    amoled: "🖤 AMOLED",
-
-    animals: "🐾 الحيوانات",
-
-    anime: "🌀 الأنمي",
-
-    city: "🏙️ المدن",
-
-    dark: "🖤 Dark",
-
-    "4k": "💎 4K",
-
-    sports: "⚽ الرياضة",
-
-    minimal: "✨ Minimal",
-rain:"🌧️ المطر",
-
-sunset:"🌅 الغروب",
-
-architecture:"🏛️ العمارة",
-
-"deep-space":"🚀 الفضاء العميق",
-    "snow": "❄️ الثلج والشتاء",
-    "aurora": "🌌 الشفق القطبي",
-    "cyberpunk": "🌃 السايبربانك",
-    "gradients": "🎨 التدرجات والألوان"
-};
+function ensureHomeWallpaperCategoryCatalog(){
+    if(homeWallpaperCategoryPromise) return homeWallpaperCategoryPromise;
+    homeWallpaperCategoryPromise = (async()=>{
+        const response = await fetch("/data/categories.json?v=20261128-catalog-2",{cache:"no-store",headers:{Accept:"application/json"}});
+        if(!response.ok) throw new Error("تعذر تحميل تصنيفات الصفحة الرئيسية");
+        const data = await response.json();
+        if(!Array.isArray(data.categories) || !data.categories.length) throw new Error("دليل الأقسام فارغ");
+        homeWallpaperCategoryCatalog = data.categories;
+        categoryNames = Object.fromEntries(homeWallpaperCategoryCatalog.map(item=>[
+            item.id,
+            (item.emoji ? item.emoji+" " : "") + item.name
+        ]));
+        return data;
+    })();
+    return homeWallpaperCategoryPromise;
+}
 
 // =======================================
 // خلفيات أخرى — جلب الصور من Pixabay عبر API الخادم
@@ -505,14 +485,16 @@ async function renderOtherWallpapers() {
 // الأقسام لا تختفي عند إضافة خلفيات جديدة
 // =======================================
 
-function createDynamicSections() {
+async function createDynamicSections() {
     if(!dynamicSections) return;
+    try{
+        await ensureHomeWallpaperCategoryCatalog();
+    }catch(error){
+        console.warn("HOME CATEGORY CATALOG:",error);
+        return;
+    }
     dynamicSections.replaceChildren();
-    const categories = [
-        "religious","nature","cars","games","space","ai","amoled","animals",
-        "anime","city","dark","4k","sports","minimal","rain","sunset",
-        "architecture","deep-space","snow","aurora","cyberpunk","gradients"
-    ];
+    const categories = homeWallpaperCategoryCatalog.map(item=>item.id);
     let observer = null;
     if("IntersectionObserver" in window){
         observer = new IntersectionObserver(entries=>{
@@ -525,6 +507,8 @@ function createDynamicSections() {
         },{rootMargin:"850px 0px",threshold:0.01});
     }
     categories.forEach(category=>{
+        const definition=homeWallpaperCategoryCatalog.find(item=>item.id===category);
+        if(!definition) return;
         const section=document.createElement("section");
         section.className="wall-section home-dynamic-section";
         section.dataset.homeCategory=category;
@@ -535,8 +519,8 @@ function createDynamicSections() {
                 '<a class="religious-general-link" href="/islamic.html" aria-label="فتح الركن الإسلامي العامة">العامة</a>' +
               '</div>'
             : '<a href="' + categoryUrl + '">عرض الكل</a>';
-        section.innerHTML='<div class="title"><h3>' + (categoryNames[category] || category) + '</h3>' + sectionActions + '</div>' +
-            '<div class="wall-grid" id="section-' + category + '" aria-label="' + (categoryNames[category] || category) + '"></div>';
+        section.innerHTML='<div class="title"><h3>' + (categoryNames[category] || definition.name || category) + '</h3>' + sectionActions + '</div>' +
+            '<div class="wall-grid" id="section-' + category + '" aria-label="' + (definition.name || category) + '"></div>';
         dynamicSections.appendChild(section);
         if(observer) observer.observe(section);
         else renderCategory(category);
@@ -547,22 +531,15 @@ function renderCategory(category) {
     const container=document.getElementById("section-" + category);
     if(!container || container.dataset.rendered === "true") return;
     container.dataset.rendered = "true";
-    const targetCat=String(category || "").trim().toLowerCase();
-    const aliasMap={
-        religious:["ديني","الدين","الخلفيات الدينية","اسلامي","إسلامي","قرآن","قران","quran","islamic","religion","religious"],
-        nature:["طبيعة","الطبيعة"], cars:["سيارات","السيارات"], games:["العاب","الألعاب"],
-        space:["فضاء","الفضاء"], ai:["ذكاء اصطناعي","الذكاء الاصطناعي"], amoled:["اموليد"],
-        animals:["حيوانات","الحيوانات"], anime:["انمي","الأنمي"], city:["مدن","المدن"],
-        dark:["داكن","مظلم"], "4k":["فور كي"], sports:["رياضة","الرياضة"], minimal:["مينيمال"],
-        rain:["مطر","المطر"], sunset:["غروب","الغروب"], architecture:["عمارة","العمارة"],
-        "deep-space":["فضاء عميق","الفضاء العميق"], snow:["winter","ثلج","الثلج","شتاء","الشتاء"],
-        aurora:["aurora borealis","الشفق القطبي","الشفق"], cyberpunk:["سايبربانك","سايبر بانك"],
-        gradients:["gradient","colors","colours","تدرجات","التدرجات","ألوان","الوان"]
-    };
+    const definition=homeWallpaperCategoryCatalog.find(item=>item.id===category);
+    const normalize=value=>String(value||"").trim().toLowerCase()
+        .replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
+    const targetCat=normalize(category);
+    const aliases=(definition?.aliases || []).map(normalize);
     const matches=wallpapers.filter(w=>{
         if(!w || !w.category) return false;
-        const wallCat=String(w.category).trim().toLowerCase();
-        return wallCat===targetCat || (aliasMap[targetCat] || []).includes(wallCat);
+        const wallCat=normalize(w.category);
+        return wallCat===targetCat || aliases.includes(wallCat);
     });
     if(!matches.length){
         container.closest(".home-dynamic-section")?.classList.add("is-empty");

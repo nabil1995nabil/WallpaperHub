@@ -56,45 +56,27 @@ let visibleWallpapers = [];
 let currentFilter = "all";
 let currentView = "grid";
 
-const categoryNames = {
-    all:"جميع الخلفيات",
-    religious:"🕌 الخلفيات الدينية",
-    nature:"🌿 خلفيات الطبيعة",
-    cars:"🚗 خلفيات السيارات",
-    games:"🎮 خلفيات الألعاب",
-    space:"🌌 خلفيات الفضاء",
-    ai:"🤖 خلفيات الذكاء الاصطناعي",
-    amoled:"📱 خلفيات AMOLED",
-    animals:"🐾 خلفيات الحيوانات",
-    anime:"🌀 خلفيات الأنمي",
-    city:"🏙️ خلفيات المدن",
-    architecture:"🏛️ خلفيات العمارة",
-    dark:"🖤 الخلفيات الداكنة",
-    "4k":"💎 خلفيات 4K",
-    sports:"⚽ خلفيات الرياضة",
-    minimal:"✨ خلفيات Minimal",
-    bikes:"🏍️ خلفيات الدراجات",
-    ocean:"🌊 خلفيات البحر والمحيطات",
-    mountains:"🏔️ خلفيات الجبال",
-    sunset:"🌅 الغروب والشروق",
-    flowers:"🌸 الزهور",
-    technology:"💻 التقنية",
-    abstract:"🎨 Abstract",
-    colors:"🌈 الألوان",
-    "3d":"🧊 3D",
-    neon:"💠 Neon",
-    sports_cars:"🏎️ السيارات الرياضية",
-    gaming:"👾 Gaming",
-    pc:"🖥️ خلفيات PC",
-    mobile:"📱 خلفيات الهاتف",
-    tablet:"📲 خلفيات Tablet",
-    featured:"🔥 خلفيات مميزة",
-    snow:"❄️ خلفيات الثلج والشتاء",
-    aurora:"🌌 خلفيات الشفق القطبي",
-    cyberpunk:"🌃 خلفيات السايبربانك",
-    gradients:"🎨 خلفيات التدرجات والألوان",
-    other:"✨ خلفيات أخرى"
-};
+let categoryCatalog = [];
+let categoryNames = { all:"جميع الخلفيات" };
+let categoryCatalogPromise = null;
+
+function ensureCategoryCatalog(){
+    if(categoryCatalogPromise) return categoryCatalogPromise;
+    categoryCatalogPromise = (async()=>{
+        const response = await fetch("/data/categories.json?v=20261128-catalog-2",{cache:"no-store",headers:{Accept:"application/json"}});
+        if(!response.ok) throw new Error("تعذر تحميل دليل الأقسام ("+response.status+")");
+        const data = await response.json();
+        if(!Array.isArray(data.categories) || !data.categories.length) throw new Error("دليل الأقسام فارغ");
+        categoryCatalog = data.categories;
+        window.WallpaperHubCategoryGroups = data.groups || [];
+        categoryNames = {all:"جميع الخلفيات"};
+        categoryCatalog.forEach(item=>{
+            categoryNames[item.id] = (item.emoji ? item.emoji+" " : "") + item.name;
+        });
+        return data;
+    })();
+    return categoryCatalogPromise;
+}
 
 const typeNames = {
     popular:"🔥 الأكثر شعبية",
@@ -117,50 +99,14 @@ function getCategory(wallpaper){
     return normalizeText(wallpaper?.category);
 }
 
-function categoryMatches(wallpaper, target){
-    const value = getCategory(wallpaper);
-    const wanted = normalizeText(target);
-
-    if(value === wanted) return true;
-
-    const aliases = {
-        religious:["religious","religion","islamic","quran","ديني","الدين","الخلفيات الدينية","اسلامي","إسلامي","قرآن","قران","مساجد","أذكار","ادعية","أدعية"],
-        space:["spaces","galaxy","astronomy","فضاء","الفضاء"],
-        nature:["nature","natural","طبيعه","طبيعة","الطبيعة"],
-        cars:["car","cars","vehicle","vehicles","سيارات","السيارات"],
-        games:["game","games","gaming","لعبة","العاب","ألعاب","gaming"],
-        anime:["anime","انمي","أنمي"],
-        ai:["ai","artificial intelligence","artificial-intelligence","ذكاء اصطناعي","الذكاء الاصطناعي"],
-        amoled:["amoled","black oled","oled"],
-        animals:["animal","animals","حيوانات","الحيوانات","pets","حيوان"],
-        dark:["dark","داكن","داكنه","داكنة","الخلفيات الداكنة"],
-        city:["city","cities","مدن","مدينه","مدينة","المدن"],
-        architecture:["architecture","building","buildings","عمارة","هندسة معمارية","مباني"],
-        sports:["sport","sports","رياضه","رياضة","الرياضة"],
-        minimal:["minimal","بسيط","بسيطة","مينيمال"],
-        bikes:["bike","bikes","motorcycle","motorcycles","دراجات","دراجة"],
-        ocean:["ocean","sea","marine","بحر","محيط","المحيطات","البحر"],
-        mountains:["mountain","mountains","جبال","جبل"],
-        sunset:["sunset","sunrise","dawn","غروب","شروق","غروب وشروق"],
-        flowers:["flower","flowers","زهور","زهرة"],
-        technology:["technology","tech","تقنية","تكنولوجيا"],
-        abstract:["abstract","تجريدي","مجرد"],
-        colors:["color","colors","ألوان","الوان"],
-        "3d":["3d","three dimensional","ثلاثي الأبعاد","ثلاثي الابعاد"],
-        neon:["neon","نيون"],
-        sports_cars:["sports car","sports cars","سيارات رياضية","سيارة رياضية"],
-        gaming:["gaming","gamer","gamers","ألعاب","العاب","قيمنق"],
-        pc:["pc","desktop","computer","حاسوب","كمبيوتر"],
-        mobile:["mobile","phone","smartphone","هاتف","هاتف ذكي"],
-        tablet:["tablet","تابلت","لوحي"],
-        featured:["featured","مميز","مميزة","مميزّة","خلفيات مميزة"],
-        snow:["snow","winter","ثلج","الثلج","شتاء","الشتاء","خلفيات الثلج والشتاء"],
-        aurora:["aurora","aurora borealis","الشفق القطبي","الشفق"],
-        cyberpunk:["cyberpunk","سايبربانك","سايبر بانك"],
-        gradients:["gradients","gradient","colors","colours","تدرجات","التدرجات","ألوان","الوان"]
-    };
-
-    return (aliases[wanted] || []).some(alias => value === normalizeText(alias));
+function categoryMatches(wallpaper,target){
+    const value = normalizeText(wallpaper?.category);
+    const wanted = String(target || "").trim();
+    if(!wanted) return false;
+    if(value === normalizeText(wanted)) return true;
+    const definition = categoryCatalog.find(item => item.id === wanted);
+    if(!definition) return false;
+    return (definition.aliases || []).some(alias => value === normalizeText(alias));
 }
 
 function getQuality(resolution){
@@ -233,7 +179,8 @@ async function loadWallpapersDirectFromSupabase(){
         popular: Boolean(row.popular),
         type: row.type ?? "image",
         animated: Boolean(row.animated),
-        source: row.source ?? ""
+        source: row.source ?? "",
+        device: row.device ?? "all"
     }));
 }
 
@@ -271,6 +218,7 @@ async function loadWallpapers(){
                         ? data.wallpapers
                         : [];
 
+        await ensureCategoryCatalog();
         preparePage();
         applyFilters();
         syncFavoritesOnLogin().catch(()=>{});
@@ -294,9 +242,17 @@ async function loadWallpapers(){
 }
 
 function preparePage(){
+    pageWallpapers = [...allWallpapers];
+
+    if(type === "pixabay"){
+        currentFilter = "pixabay";
+        pageTitle.textContent = "صور من Pixabay";
+        return;
+    }
+
     if(type === "other"){
-        currentFilter = "other";
-        pageTitle.textContent = "✨ خلفيات أخرى";
+        pageWallpapers = pageWallpapers.filter(wallpaper => categoryMatches(wallpaper,"other"));
+        pageTitle.textContent = categoryNames.other || "خلفيات أخرى";
         return;
     }
 
@@ -511,26 +467,12 @@ async function filterByCurrentWeather(){
 }
 
 function applyFilters(){
-    if(currentFilter !== "other") visibleWallpapers = [...pageWallpapers];
-
-    // Pixabay section: load images from the server-side API proxy.
-    if(currentFilter === "other"){
+    if(currentFilter === "pixabay"){
         loadPixabayWallpapers();
         return;
     }
 
-    // Unsplash uses the same main wallpaper grid.
-    // No duplicate 10-photo section and no photographer names below the cards.
-    if(currentFilter === "unsplash"){
-        visibleWallpapers = visibleWallpapers.filter(wallpaper => {
-            const source = normalizeText(wallpaper?.source);
-            const type = normalizeText(wallpaper?.type);
-            const author = normalizeText(wallpaper?.author);
-            return source === "unsplash"
-                || type === "unsplash"
-                || author === "unsplash";
-        });
-    }
+    visibleWallpapers = [...pageWallpapers];
 
     const search = normalizeText(searchInput.value);
     if(search){
@@ -544,8 +486,14 @@ function applyFilters(){
         });
     }
 
-    if(currentFilter === "4k"){
+    if(currentFilter === "quality-4k"){
         visibleWallpapers = visibleWallpapers.filter(wallpaper => getQuality(wallpaper.resolution) === "4K");
+    }else if(currentFilter === "device-phone" || currentFilter === "device-desktop" || currentFilter === "device-tablet"){
+        const device = currentFilter.slice("device-".length);
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => {
+            const storedDevice = normalizeText(wallpaper.device || "all");
+            return storedDevice === "all" || storedDevice === device;
+        });
     }else if(currentFilter === "downloads" || currentFilter === "downloaded"){
         visibleWallpapers = visibleWallpapers.filter(wallpaper => Number(wallpaper.downloads || 0) > 0);
         visibleWallpapers.sort((a,b) => Number(b.downloads || 0) - Number(a.downloads || 0));
@@ -565,6 +513,10 @@ function applyFilters(){
             const scoreB = Number(b.rating || 0) * 10 + Number(b.downloads || 0) + (b.popular ? 50 : 0);
             return scoreB - scoreA;
         });
+    }else if(currentFilter === "featured"){
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => wallpaper.featured === true);
+    }else if(currentFilter === "wallhaven"){
+        visibleWallpapers = visibleWallpapers.filter(wallpaper => normalizeText(wallpaper.source) === "wallhaven");
     }else if(currentFilter.startsWith("weather-")){
         const weatherType = currentFilter.slice("weather-".length);
         visibleWallpapers = visibleWallpapers.filter(wallpaper => wallpaperMatchesWeather(wallpaper,weatherType));
@@ -576,9 +528,9 @@ function applyFilters(){
     renderWallpapers();
 }
 
-const categoryGroups = [
+const specialFilterGroups = [
     {
-        title:"🔥 الشعبية",
+        title:"🔥 الترتيب والتفاعل",
         icon:"local_fire_department",
         items:[
             ["popular","الأكثر شعبية","local_fire_department"],
@@ -586,84 +538,64 @@ const categoryGroups = [
             ["downloads","الأكثر تحميلاً","file_download"],
             ["rating","الأعلى تقييماً","star"],
             ["likes","الأكثر إعجاباً","favorite"],
-            ["recommended","المقترحة لك","auto_awesome"]
+            ["recommended","المقترحة لك","auto_awesome"],
+            ["featured","الخلفيات المميزة","verified"]
         ]
     },
     {
-        title:"🎨 التصنيفات",
-        icon:"category",
-        items:[
-            ["religious","الخلفيات الدينية","menu_book"],
-            ["nature","طبيعة","park"], ["animals","حيوانات","pets"],
-            ["cars","سيارات","directions_car"], ["bikes","دراجات","two_wheeler"],
-            ["games","ألعاب","sports_esports"], ["anime","أنمي","animation"],
-            ["space","فضاء","public"], ["city","مدن","location_city"],
-            ["architecture","عمارة","apartment"], ["sports","رياضة","sports_soccer"]
-        ]
-    },
-    {
-        title:"✨ الأنماط",
-        icon:"auto_awesome",
-        items:[
-            ["minimal","Minimal","auto_awesome"], ["dark","Dark","dark_mode"],
-            ["amoled","AMOLED","contrast"], ["abstract","Abstract","blur_on"],
-            ["3d","3D","view_in_ar"], ["neon","Neon","lightbulb"],
-            ["colors","ألوان","palette"], ["ai","ذكاء اصطناعي","smart_toy"],
-            ["snow","الثلج والشتاء","ac_unit"], ["aurora","الشفق القطبي","flare"],
-            ["cyberpunk","سايبربانك","bolt"], ["gradients","التدرجات والألوان","gradient"],
-            ["other","خلفيات أخرى","auto_awesome"]
-        ]
-    },
-    {
-        title:"🌍 المشاهد",
-        icon:"landscape",
-        items:[
-            ["mountains","جبال","landscape"], ["ocean","بحر ومحيطات","water"],
-            ["sunset","غروب وشروق","wb_twilight"], ["flowers","زهور","local_florist"],
-            ["technology","تقنية","memory"], ["featured","خلفيات مميزة","verified"]
-        ]
-    },
-    {
-        title:"💻 الأجهزة والاستخدام",
-        icon:"devices",
-        items:[
-            ["mobile","خلفيات الهاتف","smartphone"], ["pc","خلفيات PC","desktop_windows"],
-            ["tablet","خلفيات Tablet","tablet"], ["sports_cars","سيارات رياضية","sports_motorsports"],
-            ["gaming","Gaming","videogame_asset"]
-        ]
-    },
-    {
-        title:"📐 الجودة والمصادر",
+        title:"📐 الجودة والأجهزة",
         icon:"tune",
         items:[
-            ["4k","4K","4k"], ["unsplash","Unsplash","photo_camera"]
+            ["quality-4k","دقة 4K","4k"],
+            ["device-phone","خلفيات الهاتف","smartphone"],
+            ["device-desktop","خلفيات الكمبيوتر","desktop_windows"],
+            ["device-tablet","خلفيات الأجهزة اللوحية","tablet"]
+        ]
+    },
+    {
+        title:"🌐 مصادر ومكتبات خارجية",
+        icon:"collections",
+        items:[
+            ["wallhaven","Wallhaven","wallpaper"],
+            ["pixabay","استكشاف صور إضافية","photo_library"]
         ]
     }
 ];
 
+function buildCategoryGroups(){
+    const categoryGroups = (window.WallpaperHubCategoryGroups || []).map(group => ({
+        title:group.title || "التصنيفات",
+        icon:group.icon || "category",
+        items:categoryCatalog
+            .filter(category => category.group === group.id)
+            .map(category => [
+                category.id,
+                (category.emoji ? category.emoji + " " : "") + category.name,
+                category.icon || "category"
+            ])
+    })).filter(group => group.items.length);
+    return [...specialFilterGroups, ...categoryGroups];
+}
+
 function renderCategoriesPanel(){
     if(!categoriesContent) return;
     categoriesContent.innerHTML = "";
-
-    categoryGroups.forEach(group => {
+    buildCategoryGroups().forEach(group => {
         const section = document.createElement("section");
         const title = document.createElement("div");
         title.className = "category-group-title";
         title.append(createIcon(group.icon),document.createTextNode(group.title));
-
         const items = document.createElement("div");
         items.className = "category-items";
-
         group.items.forEach(([value,label,icon]) => {
             const button = document.createElement("button");
             button.type = "button";
             button.className = "category-item";
             button.dataset.filter = value;
             button.append(createIcon(icon),document.createTextNode(label));
-            button.addEventListener("click",() => selectFilter(value,label));
+            button.addEventListener("click",()=>selectFilter(value,label));
             items.appendChild(button);
         });
-
         section.append(title,items);
         categoriesContent.appendChild(section);
     });
@@ -675,8 +607,21 @@ function selectFilter(value,label){
     document.querySelectorAll(".category-item").forEach(btn => btn.classList.toggle("active",btn.dataset.filter === value));
 
     if(value === "all") pageTitle.textContent = "جميع الخلفيات";
-    else if(value === "unsplash") pageTitle.textContent = "Unsplash 📸";
-    else pageTitle.textContent = categoryNames[value] || label || "الخلفيات";
+    else pageTitle.textContent = ({
+        "quality-4k":"خلفيات بدقة 4K",
+        "device-phone":"خلفيات الهاتف",
+        "device-desktop":"خلفيات الكمبيوتر",
+        "device-tablet":"خلفيات الأجهزة اللوحية",
+        downloads:"الأكثر تحميلاً",
+        rating:"الأعلى تقييماً",
+        likes:"الأكثر إعجاباً",
+        popular:"الأكثر شعبية",
+        latest:"الأحدث",
+        recommended:"المقترحة لك",
+        featured:"الخلفيات المميزة",
+        wallhaven:"Wallhaven",
+        pixabay:"استكشاف صور إضافية"
+    })[value] || categoryNames[value] || label || "الخلفيات";
 
     closeCategoriesPanel();
     applyFilters();
