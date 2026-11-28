@@ -528,7 +528,14 @@ function createDynamicSections() {
         const section=document.createElement("section");
         section.className="wall-section home-dynamic-section";
         section.dataset.homeCategory=category;
-        section.innerHTML='<div class="title"><h3>' + (categoryNames[category] || category) + '</h3><a href="all-wallpapers.html?category=' + encodeURIComponent(category) + '">عرض الكل</a></div>' +
+        const categoryUrl = "all-wallpapers.html?category=" + encodeURIComponent(category);
+        const sectionActions = category === "religious"
+            ? '<div class="religious-section-actions">' +
+                '<a class="religious-view-all" href="' + categoryUrl + '">عرض الكل</a>' +
+                '<a class="religious-general-link" href="/islamic.html" aria-label="فتح الركن الإسلامي العامة">العامة</a>' +
+              '</div>'
+            : '<a href="' + categoryUrl + '">عرض الكل</a>';
+        section.innerHTML='<div class="title"><h3>' + (categoryNames[category] || category) + '</h3>' + sectionActions + '</div>' +
             '<div class="wall-grid" id="section-' + category + '" aria-label="' + (categoryNames[category] || category) + '"></div>';
         dynamicSections.appendChild(section);
         if(observer) observer.observe(section);
