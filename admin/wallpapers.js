@@ -4,15 +4,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const $ = id => document.getElementById(id);
   const PAGE_SIZE = 24;
   const API = "/api/wallpapers";
-  const CATEGORIES = [
-    ["nature","الطبيعة"],["amoled","AMOLED"],["games","الألعاب"],["cars","السيارات"],
-    ["animals","الحيوانات"],["anime","الأنمي"],["space","الفضاء"],["ai","الذكاء الاصطناعي"],
-    ["city","المدن"],["dark","داكن"],["4k","4K"],["sports","الرياضة"],["minimal","Minimal"],
-    ["rain","المطر"],["sunset","الغروب"],["architecture","العمارة"],["deep-space","الفضاء العميق"],
-    ["wallhaven","Wallhaven"],["unsplash","Unsplash"],["religious","الخلفيات الدينية"],["snow","الثلج والشتاء"],
-    ["aurora","الشفق القطبي"],["cyberpunk","سايبربانك"],["gradients","التدرجات"],["other","أخرى"]
-  ];
-  const CATEGORY_MAP = Object.fromEntries(CATEGORIES);
+  let CATEGORIES = [];
+  let CATEGORY_MAP = {};
+  try {
+    const categoryResponse = await fetch("/data/categories.json?v=20261128-catalog-2", { cache:"no-store" });
+    if (!categoryResponse.ok) throw new Error("تعذر تحميل الأقسام الموحدة");
+    const categoryData = await categoryResponse.json();
+    CATEGORIES = (categoryData.categories || []).map(item => [String(item.id), String(item.name)]);
+    CATEGORY_MAP = Object.fromEntries(CATEGORIES);
+  } catch (error) {
+    console.error("ADMIN CATEGORY CATALOG:", error);
+    throw new Error("تعذر تحميل الأقسام الموحدة قبل فتح مكتبة الإدارة");
+  }
   const state = { search:"", category:"all", type:"all", sort:"newest" };
   let session = null;
   let wallpapers = [];
