@@ -10,9 +10,18 @@
   darkMode:false,animations:true,videos:true,highQuality:true,fullscreen:true,
   autoUpdate:true,wifiOnly:false,notifications:true,notificationsEnabled:true,
   ratingsNotify:true,updatesNotify:true,notificationSound:true,
-  browserNotifications:false,localActivity:true,systemUpdate:true,cardStyle:"classic"
+  browserNotifications:false,localActivity:true,systemUpdate:true,cardStyle:"classic",
+  homeLayoutMode:"one-row",homeCardSize:100
  };
  const CLOUD_KEYS=Object.keys(DEFAULTS).filter(key=>key!=="browserNotifications");
+ function normalizePreferences(value){
+  const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+  const merged={...DEFAULTS,...source};
+  merged.homeLayoutMode=merged.homeLayoutMode==="two-rows"?"two-rows":"one-row";
+  const requestedSize=Number(merged.homeCardSize);
+  merged.homeCardSize=Number.isFinite(requestedSize)?Math.min(130,Math.max(70,Math.round(requestedSize))):100;
+  return merged;
+ }
  let preferences=readLocal();
  let syncTimer=0,lastRefresh=0,lastVersionCheck=0;
  let refreshInterval=5*60*1000;
@@ -21,7 +30,7 @@
    const parsed=JSON.parse(localStorage.getItem(KEY)||"{}");
    const value=parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:{};
    const card=localStorage.getItem(CARD_KEY);
-   return {...DEFAULTS,...value,cardStyle:["classic","glass","premium"].includes(value.cardStyle)?value.cardStyle:(["classic","glass","premium"].includes(card)?card:"classic")};
+   return normalizePreferences({...DEFAULTS,...value,cardStyle:["classic","glass","premium"].includes(value.cardStyle)?value.cardStyle:(["classic","glass","premium"].includes(card)?card:"classic")});
   }catch(_){return {...DEFAULTS};}
  }
  function writeLocal(){
@@ -84,6 +93,8 @@
   root.classList.toggle("wh-no-animations",preferences.animations===false);
   if(body)body.classList.toggle("wh-no-animations",preferences.animations===false);
   root.dataset.whCardStyle=preferences.cardStyle||"classic";
+  root.dataset.whHomeLayout=preferences.homeLayoutMode==="two-rows"?"two-rows":"one-row";
+  root.style.setProperty("--wh-home-card-scale",String(preferences.homeCardSize/100));
   root.dataset.whVideos=preferences.videos===false?"off":"on";
   root.dataset.whHighQuality=preferences.highQuality===false?"standard":"high";
   root.dataset.whAutoUpdate=preferences.autoUpdate===false?"off":"on";
@@ -119,7 +130,7 @@
    if(!result?.success)return;
    const deviceOnly={browserNotifications:preferences.browserNotifications};
    if(result.exists){
-    preferences={...DEFAULTS,...result.preferences,...deviceOnly};
+    preferences=normalizePreferences({...DEFAULTS,...result.preferences,...deviceOnly});
     writeLocal();apply();dispatchLoaded();
    }else{
     await syncAccountSettings();
@@ -140,7 +151,7 @@
  }
  function save(patch,options){
   const opts=options||{};
-  preferences={...preferences,...patch};
+  preferences=normalizePreferences({...preferences,...patch});
   if(!["classic","glass","premium"].includes(preferences.cardStyle))preferences.cardStyle="classic";
   writeLocal();apply();
   if(opts.dispatch!==false){
