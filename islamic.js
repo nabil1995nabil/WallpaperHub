@@ -911,7 +911,8 @@
       const title = detail.title || "حديث نبوي";
       const text = detail.hadeeth || detail.hadith || detail.text || "";
       const grade = detail.grade || detail.status || "لم تُذكر الدرجة في البيانات";
-      const attribution = detail.attribution || detail.reference || detail.source || "";
+      const attribution = detail.attribution || detail.source || "";
+      const reference = detail.reference || "";
       const explanation = detail.explanation || "";
       const hints = Array.isArray(detail.hints) ? detail.hints.join("\n") : String(detail.hints || "");
       $("hadithDetail").innerHTML =
@@ -920,7 +921,8 @@
         (attribution ? '<span class="hadith-source-chip">' + escapeHtml(attribution) + "</span>" : "") + "</div>" +
         (text ? '<p class="hadith-text">' + escapeHtml(text) + "</p>" : '<p class="hadith-text">لم يرسل المصدر نص الحديث لهذه الصفحة.</p>') +
         (explanation || hints ? '<div class="hadith-explanation"><h4>الشرح والفوائد</h4><p>' + escapeHtml([explanation, hints].filter(Boolean).join("\n\n")) + "</p></div>" : "") +
-        '<div class="hadith-reference"><span>المصدر: HadeethEnc</span><span>رقم الحديث: ' + escapeHtml(id) + "</span></div>";
+        '<div class="hadith-reference"><span>الموسوعة: HadeethEnc</span><span>' +
+        escapeHtml(reference ? "التخريج: " + reference : "رقم الحديث: " + id) + "</span></div>";
     } catch (error) {
       console.warn("HADITH DETAIL ERROR", error);
       $("hadithDetail").innerHTML = '<div class="reader-loading">تعذر تحميل تفاصيل هذا الحديث حالياً.</div>';
