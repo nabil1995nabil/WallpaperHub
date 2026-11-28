@@ -10,6 +10,7 @@
           "*.html",
           "*.css",
           "*.js",
+          "ads.txt",
           "public/**",
           "api/**",
           "admin/**",
