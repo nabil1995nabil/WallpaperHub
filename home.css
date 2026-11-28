@@ -1908,3 +1908,48 @@ body.dark{
         padding-inline: 12px;
     }
 }
+
+
+/* =========================================================
+   PERSONAL HOMEPAGE WALLPAPER LAYOUT
+   One row: user-controlled card scale.
+   Two rows: compact cards in a horizontally scrollable two-row rail.
+========================================================= */
+html[data-wh-page="home"][data-wh-home-layout="one-row"] .wall-grid > .wall-card{
+    flex:0 0 calc(var(--card-w) * var(--wh-home-card-scale, 1));
+    width:calc(var(--card-w) * var(--wh-home-card-scale, 1));
+}
+html[data-wh-page="home"][data-wh-home-layout="two-rows"] .wall-grid{
+    display:grid;
+    grid-auto-flow:column;
+    grid-template-rows:repeat(2,auto);
+    grid-auto-columns:clamp(92px,18vw,138px);
+    align-content:start;
+    align-items:stretch;
+    gap:9px 10px;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:4px 0 10px;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:0;
+    overscroll-behavior-x:contain;
+}
+html[data-wh-page="home"][data-wh-home-layout="two-rows"] .wall-grid > .wall-card{
+    width:100%;
+    min-width:0;
+    max-width:none;
+    aspect-ratio:2 / 3;
+    border-radius:14px;
+}
+@media(max-width:767px){
+    html[data-wh-page="home"][data-wh-home-layout="one-row"] .wall-grid > .wall-card{
+        flex:0 0 calc((100% - 10px) / 2 * var(--wh-home-card-scale, 1));
+        width:calc((100% - 10px) / 2 * var(--wh-home-card-scale, 1));
+    }
+}
+@media(prefers-reduced-motion:reduce){
+    html[data-wh-page="home"] .wall-grid{scroll-behavior:auto}
+}
