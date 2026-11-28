@@ -7059,8 +7059,12 @@ app.patch(
                 return res.status(400).json({ success:false, message:"Invalid wallpaper ID" });
             }
 
-            if(!category){
-                return res.status(400).json({ success:false, message:"Category required" });
+            if(!validateWallpaperCategory(category)){
+                return res.status(400).json({
+                    success:false,
+                    code:"INVALID_WALLPAPER_CATEGORY",
+                    message:"اختر قسماً صالحاً من قائمة أقسام WallpaperHub"
+                });
             }
 
             const { data, error } = await supabase
