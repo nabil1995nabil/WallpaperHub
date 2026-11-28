@@ -504,10 +504,38 @@ async function getActiveFeatureBan(userId, prefix){
 const app = express();
 
 const WALLPAPERHUB_GOOGLE_ANALYTICS_ID = "G-YE6V0P7R13";
+const WALLPAPERHUB_ADSENSE_CLIENT = "ca-pub-8383296220423056";
+const WALLPAPERHUB_ADSENSE_PUBLIC_PAGES = new Set([
+    "home.html",
+    "all-wallpapers.html",
+    "categories.html",
+    "explore.html",
+    "about.html",
+    "roadmap.html",
+    "today.html",
+    "monthly-book.html",
+    "virtual-gallery.html",
+    "wallpaper.html",
+    "developers.html"
+]);
 
-function injectWallpaperHubLanguageRuntime(source){
+function injectWallpaperHubLanguageRuntime(source, requestPath){
     if(typeof source!=="string") return source;
     let html=source;
+
+    // Load AdSense only on public content pages. The homepage already contains
+    // its loader, so the check below prevents duplicate script tags.
+    const requestedPage = path.basename(String(requestPath || "").split(/[?#]/)[0]).toLowerCase();
+    const shouldLoadAdsense = WALLPAPERHUB_ADSENSE_PUBLIC_PAGES.has(requestedPage);
+    const hasAdsenseLoader = /pagead\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/i.test(html);
+    if(shouldLoadAdsense && !hasAdsenseLoader){
+        const adsenseTag = '<script async src="https://pagead.googlesyndication.com/pagead/js/adsbygoogle.js?client=' +
+            WALLPAPERHUB_ADSENSE_CLIENT +
+            '" crossorigin="anonymous" data-wh-adsense-loader="1"></script>';
+        const adsenseHeadEnd = html.toLowerCase().indexOf("</head>");
+        if(adsenseHeadEnd >= 0) html = html.slice(0, adsenseHeadEnd) + adsenseTag + "\n" + html.slice(adsenseHeadEnd);
+        else html = adsenseTag + "\n" + html;
+    }
 
     // Google Analytics 4 uses a G- measurement ID, so load gtag.js (not the
     // Google Tag Manager container script gtm.js). Inject once on every page.
@@ -619,7 +647,7 @@ app.use((req,res,next)=>{
     res.send=function(body){
         const type=String(res.getHeader("Content-Type")||"").toLowerCase();
         if(typeof body==="string" && (type.includes("text/html") || /<\s*!doctype\s+html|<\s*html[\s>]/i.test(body))){
-            body=injectWallpaperHubLanguageRuntime(body);
+            body=injectWallpaperHubLanguageRuntime(body, req.path);
         }
         return originalSend(body);
     };
@@ -630,7 +658,7 @@ app.use((req,res,next)=>{
         fs.readFile(filePath,"utf8",(error,html)=>{
             if(error) return originalSendFile(filePath,options,callback);
             if(options && options.headers) res.set(options.headers);
-            res.status(200).type("html").send(injectWallpaperHubLanguageRuntime(html));
+            res.status(200).type("html").send(injectWallpaperHubLanguageRuntime(html, req.path));
             if(typeof callback==="function") res.once("finish",()=>callback());
         });
         return res;
@@ -3782,7 +3810,7 @@ app.get("/premium-user.html", async(req,res)=>{
         const premiumPath=path.join(__dirname,"premium-user.html");
         const html=await fs.promises.readFile(premiumPath,"utf8");
         res.set("Cache-Control","no-store, no-cache, must-revalidate");
-        return res.status(200).type("html").send(injectWallpaperHubLanguageRuntime(html));
+        return res.status(200).type("html").send(injectWallpaperHubLanguageRuntime(html, req.path));
     }catch(error){
         console.error("PREMIUM PAGE SERVER GATE:",error);
         return res.status(503).type("html").send(
@@ -3960,7 +3988,7 @@ app.get("/wallpaper.html", async (req, res, next) => {
         res.status(200);
         res.type("html");
         res.set("Cache-Control", "public, max-age=300, s-maxage=300");
-        return res.send(injectWallpaperHubLanguageRuntime(html));
+        return res.send(injectWallpaperHubLanguageRuntime(html, req.path));
     } catch (error) {
         console.error("WALLPAPER SEO PAGE ERROR:", error && error.message ? error.message : error);
         res.set("Retry-After", "60");
@@ -3982,7 +4010,7 @@ app.use((req,res,next)=>{
     fs.readFile(filePath,"utf8",(error,html)=>{
         if(error) return next(error);
         res.set("Cache-Control","no-store, no-cache, must-revalidate");
-        return res.type("html").send(injectWallpaperHubLanguageRuntime(html));
+        return res.type("html").send(injectWallpaperHubLanguageRuntime(html, req.path));
     });
 });
 
