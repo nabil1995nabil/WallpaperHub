@@ -527,7 +527,7 @@ function injectWallpaperHubLanguageRuntime(source, requestPath){
     // its loader, so the check below prevents duplicate script tags.
     const requestedPage = path.basename(String(requestPath || "").split(/[?#]/)[0]).toLowerCase();
     const shouldLoadAdsense = WALLPAPERHUB_ADSENSE_PUBLIC_PAGES.has(requestedPage);
-    const hasAdsenseLoader = /pagead\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/i.test(html);
+    const hasAdsenseLoader = /pagead2?\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/i.test(html);
     if(shouldLoadAdsense && !hasAdsenseLoader){
         const adsenseTag = '<script async src="https://pagead.googlesyndication.com/pagead/js/adsbygoogle.js?client=' +
             WALLPAPERHUB_ADSENSE_CLIENT +
