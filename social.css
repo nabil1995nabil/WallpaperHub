@@ -507,3 +507,14 @@ body.dialog-open{overflow:hidden}
   .post-action:not(.active):hover{background:#f3f6fc}
   .filter-button:not(.active):hover{background:#edf1fa;color:#596fbe}
 }
+
+.restore-hidden-button{
+  min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:0 10px;border:1px solid #dfe6f4;border-radius:10px;background:#fff;
+  color:#65779a;font-size:9px;font-weight:800;white-space:nowrap
+}
+.restore-hidden-button:hover{border-color:#cbd6f8;background:#f6f8ff;color:#4e66bd}
+.restore-hidden-button .material-icons-round{font-size:15px}
+@media(max-width:390px){
+  .restore-hidden-button{min-height:31px;padding:0 9px;font-size:8px}
+}
