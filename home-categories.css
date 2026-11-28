@@ -261,13 +261,17 @@
     }
 
     .home-categories-header {
-        padding: 0 18px;
+        padding-inline: 12px;
+        gap: 10px;
         margin-bottom: 10px;
     }
 
     .home-category-grid {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         gap: 9px;
-        padding: 3px 18px 8px;
+        padding: 3px 12px 8px;
     }
 
     .home-category-grid > .home-category {
