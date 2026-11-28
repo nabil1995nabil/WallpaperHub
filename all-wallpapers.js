@@ -563,17 +563,18 @@ const specialFilterGroups = [
 ];
 
 function buildCategoryGroups(){
-    const groups = specialFilterGroups.map(group=>({...group,items:group.items.slice()}));
-    categoryCatalog.forEach(category=>{
-        let group = groups.find(item=>item.catalogGroup === category.group);
-        if(!group){
-            const sourceGroup = (window.WallpaperHubCategoryGroups || []).find(item=>item.id===category.group);
-            group = {title:sourceGroup?.title || "🎨 التصنيفات",icon:sourceGroup?.icon || "category",items:[],catalogGroup:category.group};
-            groups.push(group);
-        }
-        group.items.push([category.id,category.name,category.icon || "category"]);
-    });
-    return groups;
+    const categoryGroups = (window.WallpaperHubCategoryGroups || []).map(group => ({
+        title:group.title || "التصنيفات",
+        icon:group.icon || "category",
+        items:categoryCatalog
+            .filter(category => category.group === group.id)
+            .map(category => [
+                category.id,
+                (category.emoji ? category.emoji + " " : "") + category.name,
+                category.icon || "category"
+            ])
+    })).filter(group => group.items.length);
+    return [...specialFilterGroups, ...categoryGroups];
 }
 
 function renderCategoriesPanel(){
