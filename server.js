@@ -664,7 +664,7 @@ function injectWallpaperHubLanguageRuntime(source, requestPath){
     // A small, read-only helper shortcut is injected into every public full HTML page.
     // It passes only the current public page filename to the AI help chat.
     const isAdminPath = /^\/admin(?:\/|$)/i.test(String(requestPath || ""));
-    const aiHelpExcluded = new Set(["ai.html","today.html","login.html","register.html","admin.html","admin-login.html"]);
+    const aiHelpExcluded = new Set(["ai.html","today.html","register.html","admin.html","admin-login.html"]);
     if(!isAdminPath && !aiHelpExcluded.has(requestedPage)){
         if(!html.includes("data-wh-ai-help-style")){
             const aiHelpStyle='<link rel="stylesheet" href="/ai-site-help.css?v=20261128-readonly-help-1" data-wh-ai-help-style="1">';
@@ -7548,6 +7548,10 @@ async function verifyApiToken(req,res,next){
 
 
 const WH_AI_HELP_PAGES = Object.freeze({
+    "login.html":{
+        title:"تسجيل الدخول",
+        guide:"تعرض صفحة تسجيل الدخول حقول البريد الإلكتروني وكلمة المرور، وزر تسجيل الدخول، وخيارات تسجيل الدخول عبر Google أو Facebook إذا كانت متاحة، ورابط الانتقال إلى إنشاء حساب. اشرح مكان الحقول وطريقة إدخالها بأمان، ولا تطلب من المستخدم كتابة كلمة مروره أو رمز التحقق في المحادثة."
+    },
     "home.html":{
         title:"الرئيسية",
         guide:"تعرض الصفحة الرئيسية أقسامًا مختارة، خلفيات حديثة وشائعة، وصورة اليوم ومحتوى المجتمع. اشرح للمستخدم طريقة التصفح والانتقال من الأقسام إلى تفاصيل الخلفية."

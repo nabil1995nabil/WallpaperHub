@@ -3,7 +3,7 @@
     if(document.getElementById("whAiHelpLauncher"))return;
     const path=window.location.pathname.toLowerCase();
     const page=(path.split("/").pop()||"home.html").toLowerCase();
-    const excluded=["ai.html","today.html","login.html","register.html","admin.html","admin-login.html"];
+    const excluded=["ai.html","today.html","register.html","admin.html","admin-login.html"];
     if(excluded.includes(page)||path.startsWith("/admin/"))return;
 
     const link=document.createElement("a");
