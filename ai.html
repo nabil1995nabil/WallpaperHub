@@ -4,30 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f7f8fb">
-    <meta name="description" content="مساعد WallpaperHub الذكي للمحادثة وفهم الصور وإنشاء خلفيات عالية الدقة حتى 4K.">
+    <meta name="description" content="مساعد WallpaperHub لشرح الموقع والإجابة عن أسئلتك خطوة بخطوة.">
     <title>المساعد الذكي | WallpaperHub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="ai.css?v=20261128-ai-clean-1">
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/ai.css?v=20261128-text-help-1">
 </head>
 <body>
 <div class="ai-app" id="aiApp">
     <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
     <aside class="history-sidebar" id="sidebar" aria-label="سجل المحادثات">
         <div class="sidebar-top">
-            <a class="sidebar-brand" href="home.html" aria-label="WallpaperHub الرئيسية">
+            <a class="sidebar-brand" href="/home.html" aria-label="WallpaperHub الرئيسية">
                 <span class="brand-symbol"><span class="material-icons">auto_awesome</span></span>
-                <span><b>WallpaperHub</b><small>المساعد الذكي</small></span>
+                <span><b>WallpaperHub</b><small>المساعد التعليمي</small></span>
             </a>
             <button class="icon-button sidebar-close" id="closeSidebar" type="button" aria-label="إغلاق سجل المحادثات"><span class="material-icons">close</span></button>
         </div>
-        <button class="new-chat-button" id="newChatSidebar" type="button"><span class="material-icons">add</span><span>محادثة جديدة</span></button>
+
+        <button class="new-chat-button" id="newChatSidebar" type="button">
+            <span class="material-icons">add</span><span>محادثة جديدة</span>
+        </button>
+
         <div class="history-heading"><span>محادثاتك</span><small id="chatCount">0</small></div>
         <nav class="chat-history" id="chatHistory" aria-label="المحادثات السابقة"></nav>
-        <div class="sidebar-bottom"><span class="sidebar-status-dot"></span><span>محادثاتك محفوظة على هذا الجهاز</span></div>
+
+        <div class="sidebar-bottom">
+            <span class="sidebar-status-dot"></span>
+            <span>المحادثات محفوظة على هذا الجهاز</span>
+        </div>
     </aside>
 
     <main class="workspace">
@@ -35,39 +44,39 @@
             <div class="header-start">
                 <button class="icon-button menu-button" id="menuBtn" type="button" aria-label="فتح سجل المحادثات"><span class="material-icons">menu</span></button>
                 <div class="header-title">
-                    <span class="header-avatar"><span class="material-icons">auto_awesome</span></span>
-                    <span><b>المساعد الذكي</b><small><i class="online-dot"></i> جاهز لمساعدتك</small></span>
+                    <span class="header-avatar"><span class="material-icons">support_agent</span></span>
+                    <span><b>مساعد WallpaperHub</b><small><i class="online-dot"></i> إرشاد وشرح فقط</small></span>
                 </div>
             </div>
             <div class="header-actions">
-                <a class="icon-button home-button" href="home.html" aria-label="العودة إلى الرئيسية" title="الرئيسية"><span class="material-icons">home</span></a>
+                <a class="icon-button home-button" href="/home.html" aria-label="العودة إلى الرئيسية" title="الرئيسية"><span class="material-icons">home</span></a>
                 <button class="new-chat-header" id="newChatHeader" type="button"><span class="material-icons">edit_square</span><span>محادثة جديدة</span></button>
             </div>
         </header>
+
+        <div class="context-strip" id="contextStrip">
+            <span class="material-icons">near_me</span>
+            <span>مساعدة مرتبطة بالصفحة:</span>
+            <strong id="pageContextName">WallpaperHub</strong>
+        </div>
 
         <section class="chat-scroll" id="chatContainer" role="log" aria-live="polite" aria-relevant="additions text"></section>
 
         <footer class="composer-shell">
             <div class="composer-inner">
-                <div class="composer-topline">
-                    <div class="mode-switch" role="group" aria-label="نوع المساعدة">
-                        <button class="mode-option active" id="chatModeBtn" type="button" aria-pressed="true"><span class="material-icons">forum</span>محادثة</button>
-                        <button class="mode-option" id="imageModeBtn" type="button" aria-pressed="false"><span class="material-icons">image</span>إنشاء صورة</button>
-                    </div>
-                    <div class="image-controls" id="imageControls" hidden>
-                        <label class="control-select"><span>الدقة</span><select id="imageSize" aria-label="دقة الصورة"><option value="1K">1K</option><option value="2K">2K</option><option value="4K" selected>4K</option></select></label>
-                        <label class="control-select"><span>الأبعاد</span><select id="imageAspectRatio" aria-label="نسبة أبعاد الصورة"><option value="9:16" selected>هاتف 9:16</option><option value="1:1">مربع 1:1</option><option value="16:9">عريض 16:9</option><option value="3:2">3:2</option><option value="2:3">2:3</option><option value="4:3">4:3</option></select></label>
-                    </div>
+                <div class="repair-notice" role="status" aria-live="polite">
+                    <span class="material-icons">build_circle</span>
+                    <span><b>إنشاء الصور قيد الإصلاح</b><small>تم إيقاف الميزة مؤقتًا. المحادثة النصية تعمل بشكل مستقل.</small></span>
+                    <button class="repair-status-button" id="imageModeBtn" type="button" disabled aria-disabled="true" title="ميزة إنشاء الصور قيد الإصلاح"><span class="material-icons">image</span><span>إنشاء صورة</span><small>قيد الإصلاح</small></button>
                 </div>
-                <div class="selected-image-preview" id="selectedImagePreview" hidden></div>
                 <form class="chat-composer" id="chatForm" autocomplete="off">
-                    <button class="composer-tool" id="attachImageButton" type="button" aria-label="إرفاق صورة" title="إرفاق صورة"><span class="material-icons">add_photo_alternate</span></button>
-                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" hidden>
-                    <textarea id="userInput" rows="1" maxlength="12000" placeholder="اكتب سؤالك هنا..." aria-label="رسالتك إلى المساعد" enterkeyhint="send"></textarea>
+                    <textarea id="userInput" rows="1" maxlength="12000" placeholder="اكتب سؤالك أو ما لم تفهمه في الموقع..." aria-label="رسالتك إلى المساعد" enterkeyhint="send"></textarea>
                     <button class="send-button" id="sendBtn" type="submit" aria-label="إرسال"><span class="material-icons">arrow_upward</span></button>
                 </form>
-                <div class="composer-footnote"><span class="material-icons">lock</span><span id="composerHint">لا تشارك كلمات المرور أو مفاتيح API داخل المحادثة.</span><span class="footnote-separator">•</span><span>WallpaperHub AI</span></div>
-                <div class="image-cost-note" id="imageCostNote" hidden>قد يستهلك خيار 4K رصيدًا أكبر من مزوّد خدمة الصور.</div>
+                <div class="composer-footnote">
+                    <span class="material-icons">info</span>
+                    <span>المساعد يشرح ويوجه فقط؛ لا يدخل إلى حسابك ولا ينفذ أي تغيير أو إجراء نيابةً عنك.</span>
+                </div>
             </div>
         </footer>
     </main>
@@ -75,28 +84,37 @@
 
 <template id="welcomeTemplate">
     <div class="welcome-screen">
-        <div class="welcome-icon"><span class="material-icons">auto_awesome</span></div>
-        <div class="welcome-eyebrow"><i></i> مساحة ذكية للإجابة والإبداع</div>
-        <h1>مرحبًا، كيف أساعدك؟</h1>
-        <p class="welcome-description">اسأل عن أي شيء، أرفق صورة لتحليلها، أو حوّل فكرتك إلى خلفية بجودة تصل إلى 4K.</p>
+        <div class="welcome-icon"><span class="material-icons">support_agent</span></div>
+        <div class="welcome-eyebrow"><i></i> مساعدك لفهم WallpaperHub</div>
+        <h1>ما الذي تريد فهمه؟</h1>
+        <p class="welcome-description">اسأل عن أي صفحة أو زر أو ميزة. سأشرح لك مكانها وطريقة استخدامها خطوة بخطوة، من دون تنفيذ أي إجراء داخل حسابك.</p>
         <div class="suggestion-grid">
-            <button class="suggestion-card" type="button" data-suggestion-mode="chat" data-suggestion="اقترح لي أفكارًا مميزة لخلفية هاتف هادئة وأنيقة.">
-                <span class="suggestion-icon violet"><span class="material-icons">lightbulb</span></span><span><b>أفكار وإلهام</b><small>اكتشف أفكارًا جديدة للخلفيات</small></span><span class="material-icons suggestion-arrow">north_west</span>
+            <button class="suggestion-card" type="button" data-suggestion="كيف أبحث عن خلفية وأصل إلى القسم المناسب؟">
+                <span class="suggestion-icon violet"><span class="material-icons">wallpaper</span></span>
+                <span><b>اكتشاف الخلفيات</b><small>البحث والأقسام والتحميل</small></span>
+                <span class="material-icons suggestion-arrow">north_west</span>
             </button>
-            <button class="suggestion-card" type="button" data-suggestion-mode="chat" data-action="attach">
-                <span class="suggestion-icon blue"><span class="material-icons">image_search</span></span><span><b>تحليل صورة</b><small>ارفع صورة واسأل عنها</small></span><span class="material-icons suggestion-arrow">north_west</span>
+            <button class="suggestion-card" type="button" data-suggestion="اشرح لي خطوات نشر خلفية وما الذي يجب الانتباه إليه قبل النشر.">
+                <span class="suggestion-icon blue"><span class="material-icons">cloud_upload</span></span>
+                <span><b>نشر خلفية</b><small>شرح الحقول والمعاينة</small></span>
+                <span class="material-icons suggestion-arrow">north_west</span>
             </button>
-            <button class="suggestion-card" type="button" data-suggestion-mode="image" data-suggestion="أنشئ خلفية هاتف فنية راقية، بتكوين سينمائي متوازن، إضاءة ناعمة وتفاصيل دقيقة.">
-                <span class="suggestion-icon green"><span class="material-icons">wallpaper</span></span><span><b>إنشاء خلفية</b><small>حوّل الوصف إلى صورة عالية الدقة</small></span><span class="material-icons suggestion-arrow">north_west</span>
+            <button class="suggestion-card" type="button" data-suggestion="أين أجد إعدادات الحساب والإشعارات والمظهر؟">
+                <span class="suggestion-icon green"><span class="material-icons">settings</span></span>
+                <span><b>إعدادات الحساب</b><small>المظهر والخصوصية والإشعارات</small></span>
+                <span class="material-icons suggestion-arrow">north_west</span>
             </button>
-            <button class="suggestion-card" type="button" data-suggestion-mode="chat" data-suggestion="ساعدني في اختيار لوحة ألوان متناغمة لتصميم واجهة بسيطة وأنيقة.">
-                <span class="suggestion-icon amber"><span class="material-icons">palette</span></span><span><b>اختيار الألوان</b><small>تناغمات وأفكار للتصميم</small></span><span class="material-icons suggestion-arrow">north_west</span>
+            <button class="suggestion-card" type="button" data-suggestion="اشرح لي كيف أستخدم المجتمع والنقاط والمفضلة.">
+                <span class="suggestion-icon amber"><span class="material-icons">groups</span></span>
+                <span><b>ميزات المجتمع</b><small>التفاعل والنقاط والمفضلة</small></span>
+                <span class="material-icons suggestion-arrow">north_west</span>
             </button>
         </div>
     </div>
 </template>
-<script src="js/performance-engine.js"></script>
-<script src="theme.js"></script>
-<script src="ai.js?v=20261128-ai-clean-1"></script>
+
+<script src="/js/performance-engine.js"></script>
+<script src="/theme.js"></script>
+<script src="/ai.js?v=20261128-text-help-1"></script>
 </body>
 </html>
